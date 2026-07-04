@@ -15,4 +15,4 @@ function notConfigured(name: string): StorageAdapter {
 
 export const sheetsStore = notConfigured("google-sheets");
 export const airtableStore = notConfigured("airtable");
-export const supabaseStore = notConfigured("supabase");
+// supabase graduated to a real adapter: lib/storage/supabaseStore.ts (Rob's 2026-07-04 call)

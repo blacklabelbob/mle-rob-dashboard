@@ -1,6 +1,7 @@
 import type { StorageAdapter } from "./adapter";
 import { fileStore } from "./fileStore";
-import { airtableStore, sheetsStore, supabaseStore } from "./stubs";
+import { airtableStore, sheetsStore } from "./stubs";
+import { supabaseStore } from "./supabaseStore";
 
 // THE one-line swap: set STORAGE_SOURCE in .env to change where data lives.
 const SOURCE = process.env.STORAGE_SOURCE ?? "file";

@@ -37,11 +37,9 @@ Everything below is pulled directly from Section 2 of the actual agreement (`pha
 
 ## 3. Cost, Payment Terms, and the 30-Day Guarantee
 
-**Fee.** Phase One is a single flat fee, scoped per client based on entity count, website page count, and agent count — there is no universal list price. Two live examples from signed deals: CG Roofing & Red Rock Roofing (2 entities, 500 pages each, no agent layer) = **$10,000**; Gulf Coast RE Group (1 entity, 2,000-page site, 60 agents with full agent layer) = **$18,000**.
-[CONFIRM WITH ROB: is there a standard rate card / minimum Phase One price for reps to quote, or is every deal scoped live on the call?]
+**Fee — CONFIRMED BY ROB (2026-07-04).** The standard Phase One anchor is **$10,000 upfront + $1,000 per month**. Reps lead with that number. Larger scopes are quoted up from the anchor based on entity count, page count, and agent count — live example: Gulf Coast RE Group (1 entity, 2,000-page site, 60 agents with full agent layer) closed at **$18,000** upfront. CG Roofing & Red Rock Roofing (2 entities, 500 pages each, no agent layer) closed at the **$10,000** anchor.
 
-**Payment terms.** Invoice is issued **"Due upon receipt"** (per the invoice config schema). The Effective Date of the agreement is legally defined as *the date Provider receives payment of the Phase I Fee* — in plain terms: **we don't start the clock, or the work, until they've paid.** Payment is a single lump sum; there's no deposit/installment structure in the current template.
-[CONFIRM WITH ROB: does he ever offer a split/installment payment plan, or is it always pay-in-full upfront?]
+**Payment terms — CONFIRMED BY ROB (2026-07-04).** The **$10,000 upfront is pay-in-full, "Due upon receipt"** (per the invoice config schema) — no installment split of the upfront. The **$1,000/month recurring** begins per the agreement schedule. The Effective Date of the agreement is legally defined as *the date Provider receives payment of the Phase I Fee* — in plain terms: **we don't start the clock, or the work, until they've paid.**
 
 **Go-Live and the Phase I Period.** We begin work immediately after payment. "Go-Live Date" = the date we tell the client the core Phase One services are live and operating. The **"Phase I Period" runs 30 days from the Go-Live Date** (not from the payment date) — unless a later-phase agreement supersedes it.
 
@@ -96,7 +94,7 @@ A fully built, AI-optimized website (up to the scoped page count), a self-updati
 That's the whole point of Phase One. You get 30 days from go-live to see results. If it's not producing, you get every dollar back — and you keep everything we built. There's no clawback.
 
 **3. "How much does this cost?"**
-It's scoped to your business — number of entities, site size, number of agents. [CONFIRM WITH ROB for the number reps should quote live / whether there's a starting price to anchor the conversation.]
+It's $10,000 upfront plus $1,000 a month — scoped up from there for bigger businesses (more entities, bigger site, agent layer).
 
 **4. "Do I have to sign a long-term contract?"**
 No. Phase One is a standalone agreement covering just this phase. If Phase One proves out, we write a new, more specific agreement for the next phase — you're never locked into something bigger than what you've already seen work.
@@ -136,7 +134,7 @@ No — it's a real, paid engagement with real deliverables you keep either way. 
 ## 7. FAQ for Reps (things reps ask each other, not prospects)
 
 **Q: Can I quote an exact price on the call?**
-Fee is scoped to entity count / page count / agent count — [CONFIRM WITH ROB whether there's an anchor price reps should lead with, e.g., "starts at $X"].
+Lead with the anchor: **"$10,000 upfront plus $1,000 a month."** Bigger scopes (entities / pages / agent layer) quote up from there.
 
 **Q: What if the prospect wants to negotiate the fee?**
 [CONFIRM WITH ROB: is there pricing flexibility/discount authority for reps, or does every fee change route through Rob/Will?]
@@ -145,7 +143,7 @@ Fee is scoped to entity count / page count / agent count — [CONFIRM WITH ROB w
 Three signatures every time: William DeVito (CEO), Robert Acheson (Managing Director), and the client. Never fewer.
 
 **Q: What if the prospect asks about installment payments?**
-Current template is pay-in-full, due upon receipt. [CONFIRM WITH ROB if installment/deposit terms are ever offered.]
+Upfront is pay-in-full, due upon receipt — no installments on the $10k. The $1,000/month recurring is separate and standard.
 
 **Q: Do I need to send the agreement myself?**
 No — reps should get the verbal "yes," then hand off to Rob/Will, who sends the cover email first and follows with the DocuSign after the client replies.
@@ -187,6 +185,6 @@ No, that's an ops/billing handoff once the agreement is signed. Your job ends at
 
 The following claims were deliberately left as placeholders because no source document specifies a fixed number — do not quote these to a prospect until confirmed:
 
-1. **Standard/anchor Phase One price** for reps to quote live on calls (only two real examples exist in source data: $10,000 and $18,000, both fully custom-scoped).
-2. **Whether installment/deposit payment plans are ever offered**, or whether it is always pay-in-full, due upon receipt, with no exceptions.
-3. **Whether reps have any discount/negotiation authority** on the Phase One fee, or whether every fee change must route through Rob or Will.
+1. ~~Standard/anchor Phase One price~~ — **RESOLVED 2026-07-04: $10,000 upfront + $1,000/month.**
+2. ~~Installment/deposit plans~~ — **RESOLVED 2026-07-04: upfront is pay-in-full due upon receipt; $1,000/month recurring is standard.**
+3. **Whether reps have any discount/negotiation authority** on the Phase One fee, or whether every fee change must route through Rob or Will. **STILL OPEN.**

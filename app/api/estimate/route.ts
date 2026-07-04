@@ -15,8 +15,9 @@ async function claudeEstimate(description: string): Promise<Estimate> {
     max_tokens: 700,
     system: [
       "You estimate the total contribution of a person to a B2B services network business.",
-      "The business sells ~$5k 'Phase One' AI/automation packages to local businesses",
-      "(roofing, medical, title/real-estate, payment processing) and grows through referrals.",
+      "The business sells 'Phase One' AI/automation packages to local businesses at",
+      "$10,000 upfront + $1,000/month recurring (~$22k year-one value per signed deal),",
+      "across roofing, medical, title/real-estate, and payment processing, growing through referrals.",
       "A person is worth: direct revenue THEY pay + aggregate revenue behind doors they can open.",
       "Return STRICT JSON: {\"estRevenue\": number (USD aggregate), \"estNewNodes\": number,",
       "\"probability\": number 0-1, \"reasoning\": string (2-4 sentences, concrete)}.",

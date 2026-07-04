@@ -2,8 +2,11 @@ import type { Estimate } from "@/lib/types";
 
 // v1 heuristic estimator — deliberately transparent. The Claude-powered path in
 // /api/estimate replaces this when ANTHROPIC_API_KEY is set (Phase 2.1 makes it default).
-const AVG_DEAL = 5000; // Phase One anchor ($5k Naples Spine & Joint)
-const AVG_DOOR_VALUE = 25000; // aggregate revenue behind one warm company intro
+// Rob's pricing (2026-07-04): Phase One = $10,000 upfront + $1,000/mo.
+// Year-one value of a signed deal ≈ $22k; a warm company intro carries roughly
+// two deals' worth of aggregate downstream revenue.
+const AVG_DEAL = 22000;
+const AVG_DOOR_VALUE = 44000;
 
 const COMPANY_HINT = /\b([A-Z][a-zA-Z]+(?:Tech|Logic|Sync|Soft|ware|ia))\b/g;
 

@@ -1,5 +1,5 @@
 # Storage Decision — Rob's 10-Second Call
-**Date:** 2026-07-04 · **Status:** AWAITING ROB · **Recommendation: Supabase (free tier), with the adapter making it painless to change**
+**Date:** 2026-07-04 · **Status:** ✅ DECIDED — Rob: "supabase go" (2026-07-04) · Adapter + schema + seed script are BUILT; awaiting `supabase login` + project creation to flip `STORAGE_SOURCE=supabase`
 
 ## What's going in it
 

@@ -1,6 +1,6 @@
 # PRD: MLE ROB Dashboard — The Network
 
-**Version:** 2.0.4 | **Created:** 2026-07-04 | **Updated:** 2026-07-04
+**Version:** 2.0.5 | **Created:** 2026-07-04 | **Updated:** 2026-07-04
 **Status:** ACTIVE
 **Owner:** Rob + Max
 **Project:** mle-rob-dashboard
@@ -86,7 +86,7 @@ One Vercel dashboard where Rob sees and grows The Network — every person as a 
 
 ### Phase 1: Storage & Real Data
 
-- [ ] Task 1.1 [Rob] - GATE: 10-second yes/no on storage recommendation (see `docs/STORAGE-DECISION.md`) | DoD: Decision logged in Decisions Log
+- [x] Task 1.1 [Rob] - GATE: 10-second yes/no on storage recommendation (see `docs/STORAGE-DECISION.md`) | DoD: Decision logged in Decisions Log
 - [ ] Task 1.2 [Engineering] - Implement chosen store adapter + migrate seed → real data | DoD: Dashboard reads live store; file store remains as fallback
 - [ ] Task 1.3 [Rob] - Brain-dump first ~25 real people (voice or text, any format — Max structures them) | DoD: 25 people in ledger with vertical + referred-by where known
 - [ ] Task 1.4 [Engineering] - Add-person form (<60s entry) + inline edit | DoD: New person → node appears without redeploy
@@ -139,9 +139,9 @@ One Vercel dashboard where Rob sees and grows The Network — every person as a 
 
 ## Open Questions
 
-- [ ] Q1: Storage — approve recommendation in `docs/STORAGE-DECISION.md` (owner: Rob, due: 2026-07-06)
+- [x] Q1: Storage — RESOLVED 2026-07-04: Supabase (Rob: "supabase go")
 - [ ] Q2: First 25 real people brain-dump — voice memo is fine (owner: Rob, due: 2026-07-08)
-- [ ] Q3: Anthropic API key for the live estimator + rep chat box — use existing key or provision new? (owner: Rob, due: 2026-07-08)
+- [ ] Q3: Anthropic API key — Rob 2026-07-04: "will give when done" — pending delivery (owner: Rob)
 
 ## Decisions Log
 
@@ -155,6 +155,9 @@ One Vercel dashboard where Rob sees and grows The Network — every person as a 
 | 2026-07-04 | Lost-reason/stage-probability taxonomy work deprioritized to later phase | Rob: "not super interested… we'll get there… I want to be moving" | Rob |
 | 2026-07-04 | Est. network value labeled directional (referrer estimates may overlap door revenue) until Phase 2.3 re-estimation ships | devil-advocate finding #4 — Rob quotes stats to clients; no unsourced/inflated numbers | Max |
 | 2026-07-04 | Estimate writes fail LOUD on read-only deploys and report save-state in UI; reads always fall back to file store | QE finding #2 — the no-stall guarantee must be code, not prose | Max |
+| 2026-07-04 | Storage = Supabase (adapter built: lib/storage/supabaseStore.ts, schema 0001_network.sql, seed script) | Rob: "supabase go" — closes Q1/Task 1.1 | Rob |
+| 2026-07-04 | Phase One pricing = $10,000 upfront + $1,000/month; upfront pay-in-full due upon receipt | Rob's direct answer — resolves 2 of 3 training-doc flags; estimator economics updated (~$22k yr-1/deal) | Rob |
+| 2026-07-04 | Rep discount authority still undecided | Only remaining [CONFIRM WITH ROB] in phase-one-explainer.md | Max |
 
 ## Dependencies & Blockers
 
@@ -180,6 +183,7 @@ One Vercel dashboard where Rob sees and grows The Network — every person as a 
 | Version | Date | What Changed | By |
 |---------|------|--------------|-----|
 | 1.0 | 2026-07-04 | Initial PRD — mission control over contracts systems; gated (G1-G4); QE 92/100 | Max |
+| 2.0.5 | 2026-07-04 | Auto-touched (session activity) | prd-autosave.sh |
 | 2.0.4 | 2026-07-04 | Auto-touched (session activity) | prd-autosave.sh |
 | 2.0.3 | 2026-07-04 | Auto-touched (session activity) | prd-autosave.sh |
 | 2.0.2 | 2026-07-04 | Auto-touched (session activity) | prd-autosave.sh |
