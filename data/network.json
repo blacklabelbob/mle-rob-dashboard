@@ -1,0 +1,278 @@
+{
+  "verticals": [
+    { "id": "core", "name": "Core Team", "color": "#f8fafc" },
+    { "id": "medical", "name": "Medical", "color": "#34d399" },
+    { "id": "title", "name": "Title / Real Estate", "color": "#60a5fa" },
+    { "id": "roofing", "name": "Roofing", "color": "#f59e0b" },
+    { "id": "payments", "name": "Payment Processing", "color": "#c084fc" },
+    { "id": "webdev", "name": "Web Developers", "color": "#f472b6" }
+  ],
+  "people": [
+    {
+      "id": "rob-acheson",
+      "name": "Rob Acheson",
+      "business": "AI VoiceTech / MLE",
+      "role": "Founder — network, training, presenting, recruiting",
+      "verticalId": "core",
+      "status": "lit",
+      "signed": false,
+      "keyDates": {},
+      "phaseOne": "not-started",
+      "notes": "Center of The Network."
+    },
+    {
+      "id": "will",
+      "name": "Will",
+      "business": "MLE",
+      "role": "Tech delivery + big-network relationship meetings",
+      "verticalId": "core",
+      "referredById": "rob-acheson",
+      "relationship": "partner",
+      "status": "lit",
+      "signed": false,
+      "keyDates": {},
+      "phaseOne": "not-started",
+      "notes": "Owns tech delivery. Meets with his past big-network relationships."
+    },
+    {
+      "id": "jonathan-polk",
+      "name": "Jonathan Polk",
+      "role": "Connector — referral machine",
+      "verticalId": "medical",
+      "referredById": "rob-acheson",
+      "relationship": "we run his LinkedIn automation free",
+      "status": "lit",
+      "quotedAmount": 0,
+      "signed": false,
+      "keyDates": { "met": "2026-06-20" },
+      "phaseOne": "not-started",
+      "description": "Jonathan Polk — we do his LinkedIn automation free. He brings so much business to Naples Spine & Joint that he can walk us into PropLogic, LandTech, and Qualia — their reps say he's their #1, never turns down a meeting.",
+      "estimate": {
+        "estRevenue": 100000,
+        "estNewNodes": 10,
+        "probability": 0.55,
+        "reasoning": "Direct revenue near zero (free work), but he is a proven top-referrer for three title-tech companies and one medical practice. Door value: 3 warm title-tech intros x ~$25k avg aggregate + downstream medical referrals. Probability discounted because none of the three intros has been scheduled yet.",
+        "source": "heuristic",
+        "estimatedAt": "2026-07-04T05:00:00Z"
+      },
+      "notes": "The test case for the AI estimator."
+    },
+    {
+      "id": "naples-spine-joint",
+      "name": "Naples Spine & Joint",
+      "business": "Naples Spine & Joint",
+      "role": "Chiropractic / spine clinic",
+      "verticalId": "medical",
+      "referredById": "jonathan-polk",
+      "relationship": "Polk is their #1 business-bringer",
+      "status": "lit",
+      "quotedAmount": 5000,
+      "signed": true,
+      "estTimeToPaymentDays": 7,
+      "keyDates": { "met": "2026-06-24", "quoted": "2026-06-26", "signed": "2026-07-01" },
+      "phaseOne": "in-progress",
+      "description": "Signed $5k Phase One. On paper worth $5k — through Polk's network, worth far more.",
+      "notes": "First lit client node in the medical cluster."
+    },
+    {
+      "id": "proplogic",
+      "name": "PropLogic",
+      "business": "PropLogic",
+      "role": "Title-tech company",
+      "verticalId": "title",
+      "referredById": "jonathan-polk",
+      "relationship": "their reps say Polk is their #1",
+      "status": "unlit",
+      "signed": false,
+      "keyDates": {},
+      "phaseOne": "not-started",
+      "notes": "Polk can walk us in."
+    },
+    {
+      "id": "landtech",
+      "name": "LandTech",
+      "business": "LandTech",
+      "role": "Title-tech company",
+      "verticalId": "title",
+      "referredById": "jonathan-polk",
+      "relationship": "their reps say Polk is their #1",
+      "status": "unlit",
+      "signed": false,
+      "keyDates": {},
+      "phaseOne": "not-started",
+      "notes": "Polk can walk us in."
+    },
+    {
+      "id": "qualia",
+      "name": "Qualia",
+      "business": "Qualia",
+      "role": "Title-tech / closing platform",
+      "verticalId": "title",
+      "referredById": "jonathan-polk",
+      "relationship": "their reps say Polk is their #1, never turns down a meeting",
+      "status": "unlit",
+      "signed": false,
+      "keyDates": {},
+      "phaseOne": "not-started",
+      "notes": "Polk can walk us in. Two-sided play: sell to them as retention bait for their agents."
+    },
+    {
+      "id": "will-network-a",
+      "name": "Will's Big-Network Contact A",
+      "role": "Placeholder — Will's past relationship, very large network",
+      "verticalId": "payments",
+      "referredById": "will",
+      "relationship": "Will's past relationship",
+      "status": "warm",
+      "signed": false,
+      "keyDates": {},
+      "phaseOne": "not-started",
+      "notes": "Will owns this meeting. Replace with real name in Phase 1 brain-dump."
+    },
+    {
+      "id": "will-network-b",
+      "name": "Will's Big-Network Contact B",
+      "role": "Placeholder — Will's past relationship, very large network",
+      "verticalId": "title",
+      "referredById": "will",
+      "relationship": "Will's past relationship",
+      "status": "warm",
+      "signed": false,
+      "keyDates": {},
+      "phaseOne": "not-started",
+      "notes": "Will owns this meeting. Replace with real name in Phase 1 brain-dump."
+    },
+    {
+      "id": "roofer-naples-a",
+      "name": "Roofing Contractor A (Naples)",
+      "role": "Placeholder — roofing cluster seed",
+      "verticalId": "roofing",
+      "referredById": "rob-acheson",
+      "relationship": "roofing domain network",
+      "status": "unlit",
+      "signed": false,
+      "keyDates": {},
+      "phaseOne": "not-started",
+      "notes": "Phase 1.5 imports the real roofing lists (domain data, no STG branding)."
+    },
+    {
+      "id": "roofer-naples-b",
+      "name": "Roofing Contractor B (Ft. Myers)",
+      "role": "Placeholder — roofing cluster seed",
+      "verticalId": "roofing",
+      "referredById": "rob-acheson",
+      "relationship": "roofing domain network",
+      "status": "unlit",
+      "signed": false,
+      "keyDates": {},
+      "phaseOne": "not-started"
+    },
+    {
+      "id": "pp-salesperson-a",
+      "name": "Displaced Payments Salesperson A",
+      "role": "Placeholder — knows every business owner in town",
+      "verticalId": "payments",
+      "status": "unlit",
+      "signed": false,
+      "keyDates": {},
+      "phaseOne": "not-started",
+      "notes": "Recruiting target archetype (Phase 2.5 LinkedIn scan fills these in)."
+    }
+  ],
+  "edges": [
+    { "id": "e-rob-will", "fromId": "rob-acheson", "toId": "will", "relationship": "partners" },
+    { "id": "e-rob-polk", "fromId": "rob-acheson", "toId": "jonathan-polk", "relationship": "free LinkedIn automation" },
+    { "id": "e-polk-naples", "fromId": "jonathan-polk", "toId": "naples-spine-joint", "relationship": "his #1 referral target" },
+    { "id": "e-polk-proplogic", "fromId": "jonathan-polk", "toId": "proplogic", "relationship": "reps' #1 referrer" },
+    { "id": "e-polk-landtech", "fromId": "jonathan-polk", "toId": "landtech", "relationship": "reps' #1 referrer" },
+    { "id": "e-polk-qualia", "fromId": "jonathan-polk", "toId": "qualia", "relationship": "reps' #1 referrer" },
+    { "id": "e-will-a", "fromId": "will", "toId": "will-network-a", "relationship": "past relationship" },
+    { "id": "e-will-b", "fromId": "will", "toId": "will-network-b", "relationship": "past relationship" },
+    { "id": "e-rob-roofa", "fromId": "rob-acheson", "toId": "roofer-naples-a", "relationship": "roofing network" },
+    { "id": "e-rob-roofb", "fromId": "rob-acheson", "toId": "roofer-naples-b", "relationship": "roofing network" }
+  ],
+  "projects": [
+    {
+      "id": "mle-rob-dashboard",
+      "name": "The Network Dashboard (this)",
+      "category": "internal",
+      "theme": "reduce-all-friction",
+      "completion": 40,
+      "owner": "Max",
+      "summary": "One URL: network graph, people ledger, projects board, AI estimator, training corner.",
+      "updatedAt": "2026-07-04"
+    },
+    {
+      "id": "meeting-to-money",
+      "name": "Meeting → Money Flow",
+      "category": "revenue-system",
+      "theme": "sign-the-agreement",
+      "completion": 15,
+      "owner": "Max",
+      "summary": "Meeting notes captured → scope drops into agreement → signature → invoice fires.",
+      "updatedAt": "2026-07-04"
+    },
+    {
+      "id": "invoicing-engine",
+      "name": "Invoicing Engine",
+      "category": "revenue-system",
+      "theme": "get-paid-fast",
+      "completion": 20,
+      "owner": "Max",
+      "summary": "Invoice out on signature; time-to-payment tracked like a hawk.",
+      "updatedAt": "2026-07-04"
+    },
+    {
+      "id": "aidre",
+      "name": "AIDRE — 24/7 AI Phone Receptionist",
+      "category": "product-build",
+      "theme": "get-paid-fast",
+      "completion": 70,
+      "owner": "Will",
+      "summary": "Plugs the missed-inbound-calls leak. Demo sells itself (live call @ $0.44).",
+      "link": "https://github.com/blacklabelbob/digi-rec-roi-dual-demo",
+      "willItems": [
+        { "item": "Confirm demo phone number stays provisioned", "due": "2026-07-08", "done": false },
+        { "item": "Deliver 5-roofer pilot target shortlist to Rob", "due": "2026-07-10", "done": false }
+      ],
+      "updatedAt": "2026-07-04"
+    },
+    {
+      "id": "aiva",
+      "name": "AIVA — Proactive Avatar Web Chat",
+      "category": "product-build",
+      "theme": "reduce-all-friction",
+      "completion": 40,
+      "owner": "Will",
+      "summary": "Plugs the missed-website-visitors leak (~97% leave silently).",
+      "link": "https://github.com/blacklabelbob/leaky-bucket-web-agent",
+      "willItems": [
+        { "item": "Rotate carried-over OpenAI key (security)", "due": "2026-07-07", "done": false }
+      ],
+      "updatedAt": "2026-07-04"
+    },
+    {
+      "id": "ranklens",
+      "name": "RankLens — SEO Audit Lead Magnet",
+      "category": "product-build",
+      "theme": "sign-the-agreement",
+      "completion": 70,
+      "owner": "Rob",
+      "summary": "Audit-led outreach: prospect sees their own leak, earns the conversation.",
+      "updatedAt": "2026-07-04"
+    },
+    {
+      "id": "propestimate",
+      "name": "PropEstimate — Title-Co Lead Magnet",
+      "category": "product-build",
+      "theme": "sign-the-agreement",
+      "completion": 55,
+      "owner": "Will",
+      "summary": "Closing-cost calculators as co-branded retention bait for title companies.",
+      "willItems": [
+        { "item": "Move SECRET_KEY to env var before any deploy", "due": "2026-07-06", "done": false }
+      ],
+      "updatedAt": "2026-07-04"
+    }
+  ]
+}
