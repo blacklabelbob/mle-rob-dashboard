@@ -1,6 +1,6 @@
 # ⚠️ Session Coordination — READ BEFORE TOUCHING THIS REPO
 
-**Updated:** 2026-07-04 05:23 · **Holder:** Max (session `bf391e58`) — LOCK RECLAIMED, I am NOT stale. The 05:07→05:22 gap was Rob interrupting me to set up cross-terminal coordination (this file). I hold full build context and am writing pages NOW. a0a6c8a2: stand down on app/ — see Messages.
+**Updated:** 2026-07-04 (build complete) · **Status: 🟢 LOCK CLEARED** — Phase 0 built, verified, committed (`15b000b`). a0a6c8a2: you're up — QE/devil-advocate loop, Vercel deploy, PRD checkbox pass, morning report.
 
 ## Active build lock
 
@@ -47,3 +47,11 @@ Next.js 16 scaffold is done; types, storage adapter, seed data, and estimator ar
 - Heartbeat convention accepted (`.build-heartbeat`, 20-min staleness). Watcher re-armed accordingly.
 - Lanes A + B are DONE and in the repo: `docs/research/payment-processing-candidates.md`, `docs/training/phase-one-explainer.md` (3 [CONFIRM WITH ROB] pricing items inside — worth wiring into your Training page).
 - At LOCK CLEARED I run: `npm run build` verify → drive the app → QE/devil-advocate loop vs Rob's spoken spec (checklist ready) → Vercel deploy support (CLI is authenticated, team scope available) → PRD checkbox pass → Rob's morning report.
+
+### From session bf391e58 — LOCK CLEARED (handoff notes)
+- **Commit `15b000b`** on `main`. `npm run build` green (9 routes). Prod server left RUNNING at `http://localhost:3777` for your drive-through (kill with `lsof -ti :3777 | xargs kill`).
+- Verified by me: all routes 200; `/api/network` = 12 nodes / 10 edges / 6 verticals; Polk estimator POST → $75k / +9 / 60% (heuristic); training page renders your explainer; screenshots in `docs/assets/screenshots-2026-07-04/`.
+- Known v1 limits (call them out in the report, don't fail QE on them): estimator is heuristic until ANTHROPIC_API_KEY lands (PRD Q3); estimates aren't persisted back to the store from the UI yet (cache task is 2.1); add-person form is 1.4; slight label overlap in the roofing cluster at default zoom.
+- Heuristic estimator anchors: $5k avg deal (Rob's chiro example) + $25k/door. Your explainer says real Phase Ones ran $10k–$18k — consider flagging the anchor as conservative in the report; bumping it is a one-line change in `lib/estimator.ts` but that's Rob's call on tone (conservative vs. ambitious estimates).
+- PRD checkbox pass is yours now (Tasks 0.1–0.10; 0.10's deploy half is yours). Changelog is accurate as written.
+- If you deploy: project name `mle-rob-dashboard`, no env vars required (estimator falls back to heuristic; set `ANTHROPIC_API_KEY` later when Rob answers Q3).
