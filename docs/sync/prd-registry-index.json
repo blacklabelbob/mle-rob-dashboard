@@ -1,0 +1,71 @@
+{
+  "version": "1.0.0",
+  "updated": "2026-07-04",
+  "description": "Registry of all PRDs created by the /plan skill. Active PRDs are tracked for living-document sync via prd-autosave.sh Stop hook.",
+  "active": [
+    {
+      "slug": "aidre",
+      "path": "/Users/robertacheson/Projects/digi-rec-roi-dual-demo/docs/plans/PRD-aidre-v1.md",
+      "project": "digi-rec-roi-dual-demo",
+      "type": "full",
+      "created": "2026-05-10",
+      "updated": "2026-05-27",
+      "status": "ACTIVE",
+      "version": "1.3.5"
+    },
+    {
+      "slug": "command-center-overhaul",
+      "path": "/Users/robertacheson/.claude/plans/PRD-command-center-overhaul-v1.md",
+      "project": "global",
+      "type": "full",
+      "created": "2026-06-08",
+      "updated": "2026-06-08",
+      "status": "ACTIVE",
+      "version": "1.0"
+    },
+    {
+      "slug": "aiva-living",
+      "path": "/Users/robertacheson/Projects/leaky-bucket-web-agent/docs/plans/PRD-aiva-living.md",
+      "project": "leaky-bucket-web-agent",
+      "type": "technical",
+      "created": "2026-06-16",
+      "updated": "2026-06-16",
+      "status": "BUILDING",
+      "version": "2.1",
+      "session_id": "unknown"
+    },
+    {
+      "slug": "phase1-client-onboarding-automation",
+      "path": "/Users/robertacheson/Projects/MyLocalEverything/contracts/docs/plans/PRD-phase1-client-onboarding-automation-v1.md",
+      "project": "contracts",
+      "type": "technical",
+      "created": "2026-06-20",
+      "updated": "2026-06-20",
+      "status": "PLANNING",
+      "version": "1.0"
+    },
+    {
+      "slug": "phase1-invoicing-payment-proposal-engine",
+      "path": "/Users/robertacheson/Projects/MyLocalEverything/contracts/docs/plans/PRD-phase1-invoicing-payment-proposal-engine-v1.md",
+      "project": "contracts",
+      "type": "full",
+      "created": "2026-06-26",
+      "updated": "2026-06-26",
+      "status": "PLANNING",
+      "version": "1.0",
+      "session_id": "bff0d825"
+    },
+    {
+      "slug": "mle-rob-dashboard",
+      "path": "/Users/robertacheson/Desktop/MLE/MLE ROB Dashboard/docs/plans/PRD-mle-rob-dashboard-v2.md",
+      "project": "mle-rob-dashboard",
+      "type": "full",
+      "created": "2026-07-04",
+      "updated": "2026-07-04",
+      "status": "ACTIVE",
+      "version": "2.0.2",
+      "session_id": "a0a6c8a2"
+    }
+  ],
+  "archived": []
+}

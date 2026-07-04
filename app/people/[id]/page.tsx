@@ -1,0 +1,191 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { getStore } from "@/lib/storage";
+import { contribution, money } from "@/lib/stats";
+import EstimatePanel from "@/components/EstimatePanel";
+
+export const dynamic = "force-dynamic";
+
+const DATE_LABELS: [keyof import("@/lib/types").KeyDates, string][] = [
+  ["met", "Met"],
+  ["quoted", "Quoted"],
+  ["signed", "Signed"],
+  ["invoiced", "Invoiced"],
+  ["paid", "Paid"],
+  ["phaseOneComplete", "Phase One complete"],
+];
+
+export default async function PersonPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const data = await getStore().getNetwork();
+  const person = data.people.find((p) => p.id === id);
+  if (!person) notFound();
+
+  const referrer = data.people.find((p) => p.id === person.referredById);
+  const doorsOpened = data.people.filter((p) => p.referredById === person.id);
+  const vertical = data.verticals.find((v) => v.id === person.verticalId);
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <Link href="/people" className="text-xs text-slate-500 hover:text-slate-300">
+          ← ledger
+        </Link>
+        <div className="mt-2 flex flex-wrap items-center gap-3">
+          <h1 className="text-2xl font-semibold text-white">{person.name}</h1>
+          <span
+            className={`rounded-full border px-2.5 py-0.5 text-xs ${
+              person.status === "lit"
+                ? "border-amber-400/40 bg-amber-400/10 text-amber-300"
+                : person.status === "warm"
+                  ? "border-orange-400/30 bg-orange-900/30 text-orange-300"
+                  : "border-slate-600/40 bg-slate-800 text-slate-400"
+            }`}
+          >
+            {person.status}
+          </span>
+          <span className="inline-flex items-center gap-1.5 text-sm text-slate-400">
+            <span className="h-2 w-2 rounded-full" style={{ background: vertical?.color }} />
+            {vertical?.name}
+          </span>
+        </div>
+        {person.role && <p className="mt-1 text-sm text-slate-400">{person.role}</p>}
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="space-y-6 lg:col-span-2">
+          <section className="rounded-xl border border-white/10 bg-white/5 p-5">
+            <h2 className="font-semibold text-white">The record</h2>
+            <dl className="mt-3 grid grid-cols-2 gap-x-6 gap-y-3 text-sm sm:grid-cols-3">
+              <div>
+                <dt className="text-xs text-slate-500">Quoted</dt>
+                <dd className="text-slate-200">
+                  {person.quotedAmount != null && person.quotedAmount > 0
+                    ? money(person.quotedAmount)
+                    : "—"}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs text-slate-500">Signed</dt>
+                <dd className={person.signed ? "text-emerald-400" : "text-slate-400"}>
+                  {person.signed ? "yes" : "not yet"}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs text-slate-500">Est. contribution</dt>
+                <dd className="font-medium text-sky-300">{money(contribution(person))}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-slate-500">Est. time to payment</dt>
+                <dd className="text-slate-200">
+                  {person.estTimeToPaymentDays != null ? `${person.estTimeToPaymentDays} days` : "—"}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs text-slate-500">Phase One</dt>
+                <dd className="text-slate-200">{person.phaseOne.replace("-", " ")}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-slate-500">Contact</dt>
+                <dd className="text-slate-200">
+                  {person.phone ?? person.email ?? person.website ?? "—"}
+                </dd>
+              </div>
+            </dl>
+            {(person.meetingVideoUrl || person.transcriptUrl) && (
+              <div className="mt-4 flex gap-3 text-sm">
+                {person.meetingVideoUrl && (
+                  <a href={person.meetingVideoUrl} className="text-sky-400 hover:underline">
+                    ▶ meeting video
+                  </a>
+                )}
+                {person.transcriptUrl && (
+                  <a href={person.transcriptUrl} className="text-sky-400 hover:underline">
+                    ☰ transcript
+                  </a>
+                )}
+              </div>
+            )}
+            {person.notes && <p className="mt-4 text-sm text-slate-400">{person.notes}</p>}
+          </section>
+
+          <section className="rounded-xl border border-white/10 bg-white/5 p-5">
+            <h2 className="font-semibold text-white">Key dates</h2>
+            <ol className="mt-3 flex flex-wrap gap-2">
+              {DATE_LABELS.map(([key, label]) => {
+                const v = person.keyDates[key];
+                return (
+                  <li
+                    key={key}
+                    className={`rounded-lg border px-3 py-2 text-xs ${
+                      v
+                        ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
+                        : "border-white/10 bg-black/20 text-slate-600"
+                    }`}
+                  >
+                    <div className="font-medium">{label}</div>
+                    <div>{v ?? "pending"}</div>
+                  </li>
+                );
+              })}
+            </ol>
+          </section>
+
+          <section className="rounded-xl border border-white/10 bg-white/5 p-5">
+            <h2 className="font-semibold text-white">Connections</h2>
+            <div className="mt-3 grid gap-4 sm:grid-cols-2">
+              <div>
+                <div className="text-xs uppercase tracking-wide text-slate-500">Came through</div>
+                {referrer ? (
+                  <Link
+                    href={`/people/${referrer.id}`}
+                    className="mt-1 block text-sm text-sky-400 hover:underline"
+                  >
+                    {referrer.name}
+                    {person.relationship && (
+                      <span className="block text-xs text-slate-500">{person.relationship}</span>
+                    )}
+                  </Link>
+                ) : (
+                  <div className="mt-1 text-sm text-slate-600">direct</div>
+                )}
+              </div>
+              <div>
+                <div className="text-xs uppercase tracking-wide text-slate-500">
+                  Doors opened ({doorsOpened.length})
+                </div>
+                <ul className="mt-1 space-y-1">
+                  {doorsOpened.map((d) => (
+                    <li key={d.id}>
+                      <Link href={`/people/${d.id}`} className="text-sm text-sky-400 hover:underline">
+                        {d.name}
+                      </Link>
+                      {d.relationship && (
+                        <span className="ml-2 text-xs text-slate-500">{d.relationship}</span>
+                      )}
+                    </li>
+                  ))}
+                  {doorsOpened.length === 0 && (
+                    <li className="text-sm text-slate-600">none yet — that&apos;s the job</li>
+                  )}
+                </ul>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div className="space-y-6">
+          <EstimatePanel
+            personId={person.id}
+            description={person.description ?? ""}
+            existing={person.estimate ?? null}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# The Network — MLE ROB Dashboard
 
-## Getting Started
+One URL where Rob sees and grows The Network: every person as a node worth
+**money + doors**, every project with completion/category/theme, and an AI
+estimator that prices what a relationship is really worth.
 
-First, run the development server:
+Plain-English mission: [`WHAT-WE-ARE-DOING.md`](./WHAT-WE-ARE-DOING.md)
+Living PRD: [`docs/plans/PRD-mle-rob-dashboard-v2.md`](./docs/plans/PRD-mle-rob-dashboard-v2.md)
+
+## Run it
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev        # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Optional: copy `.env.example` → `.env.local` and set `ANTHROPIC_API_KEY` to make
+the estimator Claude-powered (it falls back to a transparent heuristic without it).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+app/
+  page.tsx              Overview — stats, biggest nodes, Will's action items
+  network/page.tsx      The Network graph (zoom/pan canvas, clusters by vertical)
+  people/page.tsx       People ledger — all of Rob's fields, sortable
+  people/[id]/page.tsx  Person record — dates timeline, connections, AI estimate
+  projects/page.tsx     Projects board — completion / category / theme + Will flags
+  training/page.tsx     Training corner — renders docs/training/*.md
+  api/network/route.ts  Graph data for the canvas
+  api/estimate/route.ts AI estimator (Claude if key set, heuristic otherwise)
+components/
+  NetworkGraph.tsx      Force-directed canvas graph (no chart deps)
+  EstimatePanel.tsx     Estimator UI on person detail
+lib/
+  types.ts              Data model — Person, Edge, Project, Vertical, Estimate
+  stats.ts              Contribution + rollup math
+  estimator.ts          Heuristic estimator v1
+  storage/              StorageAdapter + file store + sheets/airtable/supabase stubs
+data/
+  network.json          Day-1 store (swap via STORAGE_SOURCE env — see docs/STORAGE-DECISION.md)
+docs/
+  training/             Training corpus (renders on /training)
+  research/             Network research (e.g. payment-processing candidates)
+  plans/                The living PRD
+```
 
-## Learn More
+## Rules of the build
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Storage behind an adapter.** `STORAGE_SOURCE=file|sheets|airtable|supabase` — swapping
+  the store is one env var; a tool outage never stalls work.
+- **The PRD is alive.** Check off tasks as they land; version scope changes.
+- **Speed over taxonomy.** Tools that make money and light nodes come first.
