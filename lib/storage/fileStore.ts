@@ -11,7 +11,18 @@ async function read(): Promise<NetworkData> {
 }
 
 async function write(data: NetworkData): Promise<void> {
-  await fs.writeFile(DATA_PATH, JSON.stringify(data, null, 2), "utf8");
+  try {
+    await fs.writeFile(DATA_PATH, JSON.stringify(data, null, 2), "utf8");
+  } catch (err) {
+    // Vercel's filesystem is read-only outside /tmp. Fail LOUD, never silent —
+    // the caller must surface "not saved" to the user (see /api/estimate).
+    throw new Error(
+      `file store is not writable here (read-only deploy?). ` +
+        `Set STORAGE_SOURCE to a real store (docs/STORAGE-DECISION.md). Cause: ${
+          err instanceof Error ? err.message : String(err)
+        }`
+    );
+  }
 }
 
 // Day-1 store: a JSON file in the repo. Read-only on Vercel (writes work locally),

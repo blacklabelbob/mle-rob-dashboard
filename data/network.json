@@ -1,11 +1,35 @@
 {
   "verticals": [
-    { "id": "core", "name": "Core Team", "color": "#f8fafc" },
-    { "id": "medical", "name": "Medical", "color": "#34d399" },
-    { "id": "title", "name": "Title / Real Estate", "color": "#60a5fa" },
-    { "id": "roofing", "name": "Roofing", "color": "#f59e0b" },
-    { "id": "payments", "name": "Payment Processing", "color": "#c084fc" },
-    { "id": "webdev", "name": "Web Developers", "color": "#f472b6" }
+    {
+      "id": "core",
+      "name": "Core Team",
+      "color": "#f8fafc"
+    },
+    {
+      "id": "medical",
+      "name": "Medical",
+      "color": "#34d399"
+    },
+    {
+      "id": "title",
+      "name": "Title / Real Estate",
+      "color": "#60a5fa"
+    },
+    {
+      "id": "roofing",
+      "name": "Roofing",
+      "color": "#f59e0b"
+    },
+    {
+      "id": "payments",
+      "name": "Payment Processing",
+      "color": "#c084fc"
+    },
+    {
+      "id": "webdev",
+      "name": "Web Developers",
+      "color": "#f472b6"
+    }
   ],
   "people": [
     {
@@ -18,7 +42,8 @@
       "signed": false,
       "keyDates": {},
       "phaseOne": "not-started",
-      "notes": "Center of The Network."
+      "notes": "Center of The Network.",
+      "nodeType": "partner"
     },
     {
       "id": "will",
@@ -32,7 +57,8 @@
       "signed": false,
       "keyDates": {},
       "phaseOne": "not-started",
-      "notes": "Owns tech delivery. Meets with his past big-network relationships."
+      "notes": "Owns tech delivery. Meets with his past big-network relationships.",
+      "nodeType": "partner"
     },
     {
       "id": "jonathan-polk",
@@ -44,18 +70,21 @@
       "status": "lit",
       "quotedAmount": 0,
       "signed": false,
-      "keyDates": { "met": "2026-06-20" },
-      "phaseOne": "not-started",
-      "description": "Jonathan Polk — we do his LinkedIn automation free. He brings so much business to Naples Spine & Joint that he can walk us into PropLogic, LandTech, and Qualia — their reps say he's their #1, never turns down a meeting.",
-      "estimate": {
-        "estRevenue": 100000,
-        "estNewNodes": 10,
-        "probability": 0.55,
-        "reasoning": "Direct revenue near zero (free work), but he is a proven top-referrer for three title-tech companies and one medical practice. Door value: 3 warm title-tech intros x ~$25k avg aggregate + downstream medical referrals. Probability discounted because none of the three intros has been scheduled yet.",
-        "source": "heuristic",
-        "estimatedAt": "2026-07-04T05:00:00Z"
+      "keyDates": {
+        "met": "2026-06-20"
       },
-      "notes": "The test case for the AI estimator."
+      "phaseOne": "not-started",
+      "description": "Jonathan Polk — we do his LinkedIn automation free. He brings so much business to Naples Spine & Joint that he can walk us into PropLogic, LandTech, and Qualia — their reps say he is their #1, never turns down a meeting.",
+      "estimate": {
+        "estRevenue": 75000,
+        "estNewNodes": 9,
+        "probability": 0.6,
+        "reasoning": "Heuristic v1: detected ~3 door(s) worth ~$25k aggregate each. Probability 60% from relationship-strength signals in the description. Claude-powered estimate replaces this when the API key is wired (PRD 2.1).",
+        "source": "heuristic",
+        "estimatedAt": "2026-07-04T09:44:07.493Z"
+      },
+      "notes": "The test case for the AI estimator.",
+      "nodeType": "connector"
     },
     {
       "id": "naples-spine-joint",
@@ -69,10 +98,15 @@
       "quotedAmount": 5000,
       "signed": true,
       "estTimeToPaymentDays": 7,
-      "keyDates": { "met": "2026-06-24", "quoted": "2026-06-26", "signed": "2026-07-01" },
+      "keyDates": {
+        "met": "2026-06-24",
+        "quoted": "2026-06-26",
+        "signed": "2026-07-01"
+      },
       "phaseOne": "in-progress",
       "description": "Signed $5k Phase One. On paper worth $5k — through Polk's network, worth far more.",
-      "notes": "First lit client node in the medical cluster."
+      "notes": "First lit client node in the medical cluster.",
+      "nodeType": "client"
     },
     {
       "id": "proplogic",
@@ -86,7 +120,8 @@
       "signed": false,
       "keyDates": {},
       "phaseOne": "not-started",
-      "notes": "Polk can walk us in."
+      "notes": "Polk can walk us in.",
+      "nodeType": "client"
     },
     {
       "id": "landtech",
@@ -100,7 +135,8 @@
       "signed": false,
       "keyDates": {},
       "phaseOne": "not-started",
-      "notes": "Polk can walk us in."
+      "notes": "Polk can walk us in.",
+      "nodeType": "client"
     },
     {
       "id": "qualia",
@@ -114,7 +150,8 @@
       "signed": false,
       "keyDates": {},
       "phaseOne": "not-started",
-      "notes": "Polk can walk us in. Two-sided play: sell to them as retention bait for their agents."
+      "notes": "Polk can walk us in. Two-sided play: sell to them as retention bait for their agents.",
+      "nodeType": "client"
     },
     {
       "id": "will-network-a",
@@ -127,7 +164,8 @@
       "signed": false,
       "keyDates": {},
       "phaseOne": "not-started",
-      "notes": "Will owns this meeting. Replace with real name in Phase 1 brain-dump."
+      "notes": "Will owns this meeting. Replace with real name in Phase 1 brain-dump.",
+      "nodeType": "connector"
     },
     {
       "id": "will-network-b",
@@ -140,7 +178,8 @@
       "signed": false,
       "keyDates": {},
       "phaseOne": "not-started",
-      "notes": "Will owns this meeting. Replace with real name in Phase 1 brain-dump."
+      "notes": "Will owns this meeting. Replace with real name in Phase 1 brain-dump.",
+      "nodeType": "connector"
     },
     {
       "id": "roofer-naples-a",
@@ -153,7 +192,8 @@
       "signed": false,
       "keyDates": {},
       "phaseOne": "not-started",
-      "notes": "Phase 1.5 imports the real roofing lists (domain data, no STG branding)."
+      "notes": "Phase 1.5 imports the real roofing lists (domain data, no STG branding).",
+      "nodeType": "client"
     },
     {
       "id": "roofer-naples-b",
@@ -165,7 +205,8 @@
       "status": "unlit",
       "signed": false,
       "keyDates": {},
-      "phaseOne": "not-started"
+      "phaseOne": "not-started",
+      "nodeType": "client"
     },
     {
       "id": "pp-salesperson-a",
@@ -176,20 +217,71 @@
       "signed": false,
       "keyDates": {},
       "phaseOne": "not-started",
-      "notes": "Recruiting target archetype (Phase 2.5 LinkedIn scan fills these in)."
+      "notes": "Recruiting target archetype (Phase 2.5 LinkedIn scan fills these in).",
+      "nodeType": "vertical-anchor"
     }
   ],
   "edges": [
-    { "id": "e-rob-will", "fromId": "rob-acheson", "toId": "will", "relationship": "partners" },
-    { "id": "e-rob-polk", "fromId": "rob-acheson", "toId": "jonathan-polk", "relationship": "free LinkedIn automation" },
-    { "id": "e-polk-naples", "fromId": "jonathan-polk", "toId": "naples-spine-joint", "relationship": "his #1 referral target" },
-    { "id": "e-polk-proplogic", "fromId": "jonathan-polk", "toId": "proplogic", "relationship": "reps' #1 referrer" },
-    { "id": "e-polk-landtech", "fromId": "jonathan-polk", "toId": "landtech", "relationship": "reps' #1 referrer" },
-    { "id": "e-polk-qualia", "fromId": "jonathan-polk", "toId": "qualia", "relationship": "reps' #1 referrer" },
-    { "id": "e-will-a", "fromId": "will", "toId": "will-network-a", "relationship": "past relationship" },
-    { "id": "e-will-b", "fromId": "will", "toId": "will-network-b", "relationship": "past relationship" },
-    { "id": "e-rob-roofa", "fromId": "rob-acheson", "toId": "roofer-naples-a", "relationship": "roofing network" },
-    { "id": "e-rob-roofb", "fromId": "rob-acheson", "toId": "roofer-naples-b", "relationship": "roofing network" }
+    {
+      "id": "e-rob-will",
+      "fromId": "rob-acheson",
+      "toId": "will",
+      "relationship": "partners"
+    },
+    {
+      "id": "e-rob-polk",
+      "fromId": "rob-acheson",
+      "toId": "jonathan-polk",
+      "relationship": "free LinkedIn automation"
+    },
+    {
+      "id": "e-polk-naples",
+      "fromId": "jonathan-polk",
+      "toId": "naples-spine-joint",
+      "relationship": "his #1 referral target"
+    },
+    {
+      "id": "e-polk-proplogic",
+      "fromId": "jonathan-polk",
+      "toId": "proplogic",
+      "relationship": "reps' #1 referrer"
+    },
+    {
+      "id": "e-polk-landtech",
+      "fromId": "jonathan-polk",
+      "toId": "landtech",
+      "relationship": "reps' #1 referrer"
+    },
+    {
+      "id": "e-polk-qualia",
+      "fromId": "jonathan-polk",
+      "toId": "qualia",
+      "relationship": "reps' #1 referrer"
+    },
+    {
+      "id": "e-will-a",
+      "fromId": "will",
+      "toId": "will-network-a",
+      "relationship": "past relationship"
+    },
+    {
+      "id": "e-will-b",
+      "fromId": "will",
+      "toId": "will-network-b",
+      "relationship": "past relationship"
+    },
+    {
+      "id": "e-rob-roofa",
+      "fromId": "rob-acheson",
+      "toId": "roofer-naples-a",
+      "relationship": "roofing network"
+    },
+    {
+      "id": "e-rob-roofb",
+      "fromId": "rob-acheson",
+      "toId": "roofer-naples-b",
+      "relationship": "roofing network"
+    }
   ],
   "projects": [
     {
@@ -232,8 +324,16 @@
       "summary": "Plugs the missed-inbound-calls leak. Demo sells itself (live call @ $0.44).",
       "link": "https://github.com/blacklabelbob/digi-rec-roi-dual-demo",
       "willItems": [
-        { "item": "Confirm demo phone number stays provisioned", "due": "2026-07-08", "done": false },
-        { "item": "Deliver 5-roofer pilot target shortlist to Rob", "due": "2026-07-10", "done": false }
+        {
+          "item": "Confirm demo phone number stays provisioned",
+          "due": "2026-07-08",
+          "done": false
+        },
+        {
+          "item": "Deliver 5-roofer pilot target shortlist to Rob",
+          "due": "2026-07-10",
+          "done": false
+        }
       ],
       "updatedAt": "2026-07-04"
     },
@@ -247,7 +347,11 @@
       "summary": "Plugs the missed-website-visitors leak (~97% leave silently).",
       "link": "https://github.com/blacklabelbob/leaky-bucket-web-agent",
       "willItems": [
-        { "item": "Rotate carried-over OpenAI key (security)", "due": "2026-07-07", "done": false }
+        {
+          "item": "Rotate carried-over OpenAI key (security)",
+          "due": "2026-07-07",
+          "done": false
+        }
       ],
       "updatedAt": "2026-07-04"
     },
@@ -270,7 +374,11 @@
       "owner": "Will",
       "summary": "Closing-cost calculators as co-branded retention bait for title companies.",
       "willItems": [
-        { "item": "Move SECRET_KEY to env var before any deploy", "due": "2026-07-06", "done": false }
+        {
+          "item": "Move SECRET_KEY to env var before any deploy",
+          "due": "2026-07-06",
+          "done": false
+        }
       ],
       "updatedAt": "2026-07-04"
     }

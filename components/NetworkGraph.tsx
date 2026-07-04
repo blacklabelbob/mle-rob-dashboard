@@ -11,6 +11,9 @@ interface GNode {
   signed: boolean;
   quotedAmount: number;
   contribution: number;
+  probability: number | null;
+  estNewNodes: number | null;
+  nodeType: string | null;
   role: string;
   relationship: string;
   referredById: string | null;
@@ -267,53 +270,74 @@ export default function NetworkGraph() {
       return null;
     }
 
-    let dragging = false;
+    // Pointer Events: one code path for mouse, touch, and pen. Two active
+    // pointers = pinch zoom (the "globe" gesture on a phone).
+    const pointers = new Map<number, { x: number; y: number }>();
     let moved = false;
-    let lastX = 0;
-    let lastY = 0;
+    let pinchDist = 0;
+
+    function zoomAt(mx: number, my: number, factor: number) {
+      const nk = Math.min(Math.max(k * factor, 0.15), 4);
+      tx = mx - ((mx - tx) / k) * nk;
+      ty = my - ((my - ty) / k) * nk;
+      k = nk;
+    }
 
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
       const rect = canvas!.getBoundingClientRect();
-      const mx = e.clientX - rect.left;
-      const my = e.clientY - rect.top;
-      const factor = Math.exp(-e.deltaY * 0.0015);
-      const nk = Math.min(Math.max(k * factor, 0.15), 4);
-      // zoom around cursor
-      tx = mx - ((mx - tx) / k) * nk;
-      ty = my - ((my - ty) / k) * nk;
-      k = nk;
+      zoomAt(e.clientX - rect.left, e.clientY - rect.top, Math.exp(-e.deltaY * 0.0015));
     };
-    const onDown = (e: MouseEvent) => {
-      dragging = true;
-      moved = false;
-      lastX = e.clientX;
-      lastY = e.clientY;
+    const onDown = (e: PointerEvent) => {
+      canvas!.setPointerCapture(e.pointerId);
+      pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (pointers.size === 1) moved = false;
+      if (pointers.size === 2) {
+        const [a, b] = [...pointers.values()];
+        pinchDist = Math.hypot(b.x - a.x, b.y - a.y);
+      }
     };
-    const onMove = (e: MouseEvent) => {
-      if (!dragging) return;
-      const dx = e.clientX - lastX;
-      const dy = e.clientY - lastY;
-      if (Math.abs(dx) + Math.abs(dy) > 3) moved = true;
-      tx += dx;
-      ty += dy;
-      lastX = e.clientX;
-      lastY = e.clientY;
+    const onMove = (e: PointerEvent) => {
+      const prev = pointers.get(e.pointerId);
+      if (!prev) return;
+      const cur = { x: e.clientX, y: e.clientY };
+      if (pointers.size === 1) {
+        const dx = cur.x - prev.x;
+        const dy = cur.y - prev.y;
+        if (Math.abs(dx) + Math.abs(dy) > 3) moved = true;
+        tx += dx;
+        ty += dy;
+      }
+      pointers.set(e.pointerId, cur);
+      if (pointers.size === 2) {
+        const [a, b] = [...pointers.values()];
+        const d = Math.hypot(b.x - a.x, b.y - a.y);
+        if (pinchDist > 0) {
+          const rect = canvas!.getBoundingClientRect();
+          const cx = (a.x + b.x) / 2 - rect.left;
+          const cy = (a.y + b.y) / 2 - rect.top;
+          zoomAt(cx, cy, d / pinchDist);
+          moved = true;
+        }
+        pinchDist = d;
+      }
     };
-    const onUp = (e: MouseEvent) => {
-      if (dragging && !moved) {
+    const onUp = (e: PointerEvent) => {
+      if (pointers.size === 1 && !moved) {
         const rect = canvas!.getBoundingClientRect();
         const n = hit(e.clientX - rect.left, e.clientY - rect.top);
         selectedRef.current = n;
         setSelected(n);
       }
-      dragging = false;
+      pointers.delete(e.pointerId);
+      pinchDist = 0;
     };
 
     canvas.addEventListener("wheel", onWheel, { passive: false });
-    canvas.addEventListener("mousedown", onDown);
-    window.addEventListener("mousemove", onMove);
-    window.addEventListener("mouseup", onUp);
+    canvas.addEventListener("pointerdown", onDown);
+    canvas.addEventListener("pointermove", onMove);
+    canvas.addEventListener("pointerup", onUp);
+    canvas.addEventListener("pointercancel", onUp);
     window.addEventListener("resize", fit);
 
     fit();
@@ -323,9 +347,10 @@ export default function NetworkGraph() {
       disposed = true;
       cancelAnimationFrame(raf);
       canvas.removeEventListener("wheel", onWheel);
-      canvas.removeEventListener("mousedown", onDown);
-      window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("mouseup", onUp);
+      canvas.removeEventListener("pointerdown", onDown);
+      canvas.removeEventListener("pointermove", onMove);
+      canvas.removeEventListener("pointerup", onUp);
+      canvas.removeEventListener("pointercancel", onUp);
       window.removeEventListener("resize", fit);
     };
   }, []);
@@ -334,7 +359,7 @@ export default function NetworkGraph() {
     <div className="relative">
       <canvas
         ref={canvasRef}
-        className="h-[72vh] w-full cursor-grab rounded-xl border border-white/10 bg-[#060a12] active:cursor-grabbing"
+        className="h-[72vh] w-full cursor-grab touch-none rounded-xl border border-white/10 bg-[#060a12] active:cursor-grabbing"
       />
 
       {/* legend */}
@@ -388,6 +413,26 @@ export default function NetworkGraph() {
                 {selected.signed ? "yes" : "not yet"}
               </dd>
             </div>
+            <div className="flex justify-between">
+              <dt className="text-slate-500">Probability</dt>
+              <dd className="text-emerald-300">
+                {selected.probability != null
+                  ? `${Math.round(selected.probability * 100)}%`
+                  : "no estimate yet"}
+              </dd>
+            </div>
+            {selected.estNewNodes != null && (
+              <div className="flex justify-between">
+                <dt className="text-slate-500">Est. new nodes</dt>
+                <dd className="text-amber-300">+{selected.estNewNodes}</dd>
+              </div>
+            )}
+            {selected.nodeType && (
+              <div className="flex justify-between">
+                <dt className="text-slate-500">Node type</dt>
+                <dd className="text-slate-300">{selected.nodeType.replace("-", " ")}</dd>
+              </div>
+            )}
             {selected.relationship && (
               <div>
                 <dt className="text-slate-500">Door</dt>

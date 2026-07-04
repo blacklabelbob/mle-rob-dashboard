@@ -8,6 +8,17 @@ export type NodeStatus = "lit" | "warm" | "unlit";
 
 export type PhaseOneStatus = "not-started" | "in-progress" | "complete";
 
+export type NodeType =
+  | "client"
+  | "connector"
+  | "phone-attacker"
+  | "social-butterfly"
+  | "vertical-anchor"
+  | "partner";
+// How a node grows the network: clients pay, connectors open doors,
+// phone-attackers/social-butterflies are rep archetypes, vertical-anchors
+// (e.g. payment processing) touch every business in a territory.
+
 export interface KeyDates {
   met?: string; // ISO dates
   quoted?: string;
@@ -31,6 +42,7 @@ export interface Person {
   name: string;
   business?: string;
   role?: string;
+  nodeType?: NodeType;
   verticalId: string;
   phone?: string;
   email?: string;

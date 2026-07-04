@@ -1,6 +1,6 @@
 # PRD: MLE ROB Dashboard — The Network
 
-**Version:** 2.0.3 | **Created:** 2026-07-04 | **Updated:** 2026-07-04
+**Version:** 2.0.4 | **Created:** 2026-07-04 | **Updated:** 2026-07-04
 **Status:** ACTIVE
 **Owner:** Rob + Max
 **Project:** mle-rob-dashboard
@@ -16,10 +16,10 @@
 
 ```mermaid
 flowchart LR
-    P0["Phase 0: Overnight Build<br/>0/10 done"] --> P1["Phase 1: Storage & Real Data<br/>0/6 done"]
-    P1 --> P2["Phase 2: Network Intelligence<br/>0/6 done"]
+    P0["Phase 0: Overnight Build<br/>9/10 done"] --> P1["Phase 1: Storage & Real Data<br/>0/6 done"]
+    P1 --> P2["Phase 2: Network Intelligence<br/>0/6 done (2.5 research in)"]
     P1 --> P3["Phase 3: Meeting→Money Flow<br/>0/5 done"]
-    P2 --> P4["Phase 4: Team & Training<br/>0/5 done"]
+    P2 --> P4["Phase 4: Team & Training<br/>1/5 done"]
     P3 --> P5["Phase 5: Cadence & Automation<br/>0/6 done"]
     P4 --> P6["Phase 6: Growth Tooling<br/>0/5 done"]
     P5 --> P6
@@ -28,7 +28,7 @@ flowchart LR
     style P1 fill:#6b7280,color:#fff
     style P2 fill:#6b7280,color:#fff
     style P3 fill:#6b7280,color:#fff
-    style P4 fill:#6b7280,color:#fff
+    style P4 fill:#f59e0b,color:#000
     style P5 fill:#6b7280,color:#fff
     style P6 fill:#6b7280,color:#fff
 ```
@@ -73,15 +73,15 @@ One Vercel dashboard where Rob sees and grows The Network — every person as a 
 
 ### Phase 0: Overnight Build (2026-07-04, Max solo, full authority)
 
-- [ ] Task 0.1 [Engineering] - Write plain-English WHAT-WE-ARE-DOING.md | DoD: File at project root explains the play + the build in plain English
-- [ ] Task 0.2 [Engineering] - Scaffold Next.js (App Router, TS, Tailwind) + git init with organized file structure | DoD: `npm run build` passes; structure documented in README
-- [ ] Task 0.3 [Engineering] - Data model: Person/Node, Edge (referredBy + relationship), Project (category, theme, completion), Vertical, Estimate types | DoD: `lib/types.ts` compiles; every Rob-specified field present
-- [ ] Task 0.4 [Engineering] - StorageAdapter interface + JSON file store (day-1 source) with Sheets/Airtable/Supabase stubs | DoD: All reads go through the adapter; swapping source = 1 line
-- [ ] Task 0.5 [Engineering] - Seed data: Jonathan Polk → Naples Spine & Joint → PropLogic/LandTech/Qualia chain, Will's big-network contacts placeholder, roofing + payment-processing + medical verticals, real project list (this dashboard, meeting→money, AIDRE, AIVA, RankLens, PropEstimate) | DoD: Seed renders on every page; Polk chain visible in graph
-- [ ] Task 0.6 [Engineering] - People ledger page: Rob's fields in optimized order, sortable, status badges | DoD: All 14+ fields render; sortable by key dates/quoted/signed
-- [ ] Task 0.7 [Engineering] - Network graph page: force-directed, zoom/pan, lit/unlit nodes, size = est. contribution, cluster coloring by vertical, click → detail | DoD: Polk chain zoomable; clicking node shows person panel
-- [ ] Task 0.8 [Engineering] - Overview + Projects pages: aggregates (pipeline $, signed, network size, est. network value), projects with completion/category/theme, Products section (AIDRE/AIVA link-outs) + Will reminders | DoD: Every project shows all three attributes; Will items flagged
-- [ ] Task 0.9 [Engineering] - AI estimator v1: heuristic scorer + `/api/estimate` route (Claude-powered, key-gated) + estimate display on person detail | DoD: Polk description produces revenue/nodes/probability/reasoning
+- [x] Task 0.1 [Engineering] - Write plain-English WHAT-WE-ARE-DOING.md | DoD: File at project root explains the play + the build in plain English
+- [x] Task 0.2 [Engineering] - Scaffold Next.js (App Router, TS, Tailwind) + git init with organized file structure | DoD: `npm run build` passes; structure documented in README
+- [x] Task 0.3 [Engineering] - Data model: Person/Node, Edge (referredBy + relationship), Project (category, theme, completion), Vertical, Estimate types | DoD: `lib/types.ts` compiles; every Rob-specified field present
+- [x] Task 0.4 [Engineering] - StorageAdapter interface + JSON file store (day-1 source) with Sheets/Airtable/Supabase stubs | DoD: All reads go through the adapter; swapping source = 1 line
+- [x] Task 0.5 [Engineering] - Seed data: Jonathan Polk → Naples Spine & Joint → PropLogic/LandTech/Qualia chain, Will's big-network contacts placeholder, roofing + payment-processing + medical verticals, real project list (this dashboard, meeting→money, AIDRE, AIVA, RankLens, PropEstimate) | DoD: Seed renders on every page; Polk chain visible in graph
+- [x] Task 0.6 [Engineering] - People ledger page: Rob's fields in optimized order, sortable, status badges | DoD: All 14+ fields render; sortable by key dates/quoted/signed
+- [x] Task 0.7 [Engineering] - Network graph page: force-directed, zoom/pan, lit/unlit nodes, size = est. contribution, cluster coloring by vertical, click → detail | DoD: Polk chain zoomable; clicking node shows person panel
+- [x] Task 0.8 [Engineering] - Overview + Projects pages: aggregates (pipeline $, signed, network size, est. network value), projects with completion/category/theme, Products section (AIDRE/AIVA link-outs) + Will reminders | DoD: Every project shows all three attributes; Will items flagged
+- [x] Task 0.9 [Engineering] - AI estimator v1: heuristic scorer + `/api/estimate` route (Claude-powered, key-gated) + estimate display on person detail | DoD: Polk description produces revenue/nodes/probability/reasoning
 - [ ] Task 0.10 [Engineering] - Evaluate → iterate → verify build; deploy to Vercel if authenticated, else local + screenshots; morning report | DoD: quality-evaluator ≥90 on Rob's spoken spec; report delivered
 
 ### Phase 1: Storage & Real Data
@@ -99,7 +99,7 @@ One Vercel dashboard where Rob sees and grows The Network — every person as a 
 - [ ] Task 2.2 [Engineering] - Connection suggester: AI scans ledger for non-obvious links (shared verticals, employers, geographies) | DoD: ≥1 suggested connection Rob didn't enter, shown as dashed edge
 - [ ] Task 2.3 [Engineering] - Success-rate vs probability overlay (predicted vs actual as deals close) | DoD: Graph toggle shows both per node
 - [ ] Task 2.4 [Sales] - Node-activation playbook per node type (connector / phone-attacker / social butterfly / vertical anchor) | DoD: Each type has a 3-step activation play visible on person detail
-- [ ] Task 2.5 [Research] - Vertical-anchor scan: payment processing first — displaced payment-processing salespeople w/ deep local books (LinkedIn) | DoD: 10 candidates with source URLs, loaded as unlit nodes
+- [ ] Task 2.5 [Research] - Vertical-anchor scan: payment processing first — displaced payment-processing salespeople w/ deep local books (LinkedIn) | DoD: 10 candidates with source URLs, loaded as unlit nodes (research doc DONE 2026-07-04 → docs/research/payment-processing-candidates.md; node loading pending)
 - [ ] Task 2.6 [Engineering] - Cluster analytics: per-vertical aggregate est. revenue + activation % | DoD: Zoom-out view shows per-cluster rollups
 
 ### Phase 3: Meeting→Money Flow
@@ -112,7 +112,7 @@ One Vercel dashboard where Rob sees and grows The Network — every person as a 
 
 ### Phase 4: Team & Training
 
-- [ ] Task 4.1 [Marketing] - Phase One explainer (what it is, what it costs, what client gets) as training page + short video script | DoD: A new rep can answer "what's Phase One" from the page alone
+- [x] Task 4.1 [Marketing] - Phase One explainer (what it is, what it costs, what client gets) as training page + short video script | DoD: A new rep can answer "what's Phase One" from the page alone
 - [ ] Task 4.2 [Engineering] - Rep chat box (Claude-backed, grounded in training corpus) | DoD: "What is phase one?" answered correctly from corpus, not vibes
 - [ ] Task 4.3 [Rob] - Record/approve coaching materials descriptions (Max structures into corpus) | DoD: ≥3 coaching entries live in training corner
 - [ ] Task 4.4 [Sales] - Rep onboarding path: day 1 → first call script → first deal | DoD: Checklist page a new rep can self-serve
@@ -153,6 +153,8 @@ One Vercel dashboard where Rob sees and grows The Network — every person as a 
 | 2026-07-04 | Storage behind adapter; file store day 1; no tool outage may ever stall work (Sheets fallback mandate) | Rob: "plug them into Google Sheets until we get back" | Rob |
 | 2026-07-04 | No outside money; door-openers can earn a cut | Rob's core-values statement | Rob |
 | 2026-07-04 | Lost-reason/stage-probability taxonomy work deprioritized to later phase | Rob: "not super interested… we'll get there… I want to be moving" | Rob |
+| 2026-07-04 | Est. network value labeled directional (referrer estimates may overlap door revenue) until Phase 2.3 re-estimation ships | devil-advocate finding #4 — Rob quotes stats to clients; no unsourced/inflated numbers | Max |
+| 2026-07-04 | Estimate writes fail LOUD on read-only deploys and report save-state in UI; reads always fall back to file store | QE finding #2 — the no-stall guarantee must be code, not prose | Max |
 
 ## Dependencies & Blockers
 
@@ -178,7 +180,9 @@ One Vercel dashboard where Rob sees and grows The Network — every person as a 
 | Version | Date | What Changed | By |
 |---------|------|--------------|-----|
 | 1.0 | 2026-07-04 | Initial PRD — mission control over contracts systems; gated (G1-G4); QE 92/100 | Max |
+| 2.0.4 | 2026-07-04 | Auto-touched (session activity) | prd-autosave.sh |
 | 2.0.3 | 2026-07-04 | Auto-touched (session activity) | prd-autosave.sh |
 | 2.0.2 | 2026-07-04 | Auto-touched (session activity) | prd-autosave.sh |
 | 2.0.1 | 2026-07-04 | Auto-touched (session activity) | prd-autosave.sh |
 | 2.0 | 2026-07-04 | MAJOR scope change per Rob: The Network is the center — graph, people ledger, AI estimator, themes, training, Will's corner; hosting = Vercel; taxonomy ceremony deprioritized; PRD moved into project repo | Max (Rob directive) |
+| 2.1 | 2026-07-04 | Phase 0 built (two-session build: bf391e58 pages + a0a6c8a2 verify/fix). QE scored 77 → fixes: real no-stall storage fallback, estimate persistence w/ honest save-state, pointer/pinch graph controls, probability+nodeType surfaced, Polk seed regenerated from actual heuristic, Daily-priorities/Events stubs, double-count caveat. Tasks 0.1-0.9, 4.1 checked; 2.5 research half done. | Max |

@@ -14,6 +14,7 @@ export default function EstimatePanel({
 }) {
   const [text, setText] = useState(description);
   const [estimate, setEstimate] = useState<Estimate | null>(existing);
+  const [persisted, setPersisted] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -27,7 +28,9 @@ export default function EstimatePanel({
         body: JSON.stringify({ personId, description: text }),
       });
       if (!res.ok) throw new Error(`estimate failed (${res.status})`);
-      setEstimate((await res.json()) as Estimate);
+      const json = (await res.json()) as Estimate & { persisted?: boolean };
+      setEstimate(json);
+      setPersisted(json.persisted ?? false);
     } catch (e) {
       setError(e instanceof Error ? e.message : "estimate failed");
     } finally {
@@ -81,6 +84,12 @@ export default function EstimatePanel({
           <p className="text-xs leading-relaxed text-slate-400">{estimate.reasoning}</p>
           <p className="text-[10px] text-slate-600">
             source: {estimate.source} · {new Date(estimate.estimatedAt).toLocaleString()}
+            {persisted === true && <span className="ml-2 text-emerald-500">✓ saved to record</span>}
+            {persisted === false && (
+              <span className="ml-2 text-amber-500">
+                not saved — store is read-only here (docs/STORAGE-DECISION.md)
+              </span>
+            )}
           </p>
         </div>
       )}

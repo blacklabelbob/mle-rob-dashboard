@@ -53,6 +53,11 @@ export default async function Overview() {
           accent="text-sky-300"
         />
       </div>
+      <p className="-mt-6 text-[11px] text-slate-600">
+        Est. network value = signed/quoted dollars + probability-weighted AI estimates. Caveat: a
+        referrer&apos;s estimate can overlap with revenue their doors later sign — automatic re-estimation
+        on close lands in Phase 2.3. Treat as directional, not bookable.
+      </p>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="rounded-xl border border-white/10 bg-white/5 p-5">
@@ -108,6 +113,23 @@ export default async function Overview() {
               ))}
             </ul>
           )}
+        </section>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <section className="rounded-xl border border-dashed border-white/15 bg-black/20 p-4">
+          <h2 className="text-sm font-semibold text-slate-300">Daily priorities</h2>
+          <p className="mt-1 text-xs text-slate-500">
+            Not built yet — lands in Phase 5.1: AI ranks each morning&apos;s actions (nodes to light,
+            follow-ups, Will nudges) with reasons. Until then, work &quot;Nodes to light next&quot; below.
+          </p>
+        </section>
+        <section className="rounded-xl border border-dashed border-white/15 bg-black/20 p-4">
+          <h2 className="text-sm font-semibold text-slate-300">Events</h2>
+          <p className="mt-1 text-xs text-slate-500">
+            Not built yet — lands in Phase 5.4: upcoming events as network opportunities (who&apos;s
+            there, which nodes they can light).
+          </p>
         </section>
       </div>
 

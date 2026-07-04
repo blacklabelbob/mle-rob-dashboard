@@ -12,6 +12,30 @@ const stores: Record<string, StorageAdapter> = {
   supabase: supabaseStore,
 };
 
+// The no-stall rule, enforced in code: if the chosen store fails a READ for any
+// reason (not configured, credentials revoked, service down), fall back to the
+// file store so the dashboard always renders. Writes do NOT silently fall back —
+// writing to the wrong store would fork the data; they fail loudly instead.
+function withFallback(primary: StorageAdapter): StorageAdapter {
+  if (primary === fileStore) return primary;
+  return {
+    name: `${primary.name}→file-fallback`,
+    async getNetwork() {
+      try {
+        return await primary.getNetwork();
+      } catch (err) {
+        console.error(
+          `[storage] ${primary.name} read failed — serving file fallback (no-stall rule):`,
+          err
+        );
+        return fileStore.getNetwork();
+      }
+    },
+    upsertPerson: (p) => primary.upsertPerson(p),
+    upsertProject: (p) => primary.upsertProject(p),
+  };
+}
+
 export function getStore(): StorageAdapter {
-  return stores[SOURCE] ?? fileStore;
+  return withFallback(stores[SOURCE] ?? fileStore);
 }

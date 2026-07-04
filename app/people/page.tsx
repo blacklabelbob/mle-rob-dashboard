@@ -75,6 +75,7 @@ export default async function PeoplePage({
             <tr>
               <th className="px-3 py-2.5">Status</th>
               <th className="px-3 py-2.5">{sortLink("name", "Name")}</th>
+              <th className="px-3 py-2.5">Type</th>
               <th className="px-3 py-2.5">Vertical</th>
               <th className="px-3 py-2.5">Door (referred by)</th>
               <th className="px-3 py-2.5 text-right">{sortLink("quoted", "Quoted")}</th>
@@ -107,6 +108,9 @@ export default async function PeoplePage({
                     {p.business && p.business !== p.name && (
                       <div className="text-xs text-slate-500">{p.business}</div>
                     )}
+                  </td>
+                  <td className="px-3 py-2.5 text-xs text-slate-400">
+                    {p.nodeType ? p.nodeType.replace("-", " ") : "—"}
                   </td>
                   <td className="px-3 py-2.5">
                     <span className="inline-flex items-center gap-1.5 text-slate-300">

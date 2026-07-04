@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { heuristicEstimate } from "@/lib/estimator";
+import { getStore } from "@/lib/storage";
 import type { Estimate } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -39,20 +40,43 @@ async function claudeEstimate(description: string): Promise<Estimate> {
 }
 
 export async function POST(req: Request) {
-  const { description } = (await req.json()) as {
-    personId?: string;
-    description?: string;
-  };
+  let body: { personId?: string; description?: string };
+  try {
+    body = (await req.json()) as typeof body;
+  } catch {
+    return NextResponse.json({ error: "body must be JSON" }, { status: 400 });
+  }
+  const { personId, description } = body;
   if (!description || description.trim().length < 10) {
     return NextResponse.json({ error: "description too short" }, { status: 400 });
   }
 
+  let estimate: Estimate | null = null;
   if (process.env.ANTHROPIC_API_KEY) {
     try {
-      return NextResponse.json(await claudeEstimate(description));
+      estimate = await claudeEstimate(description);
     } catch {
       // fall through to heuristic — the estimator never hard-fails
     }
   }
-  return NextResponse.json(heuristicEstimate(description));
+  estimate = estimate ?? heuristicEstimate(description);
+
+  // Persist onto the person when we can; report honestly when we can't
+  // (e.g. file store on a read-only Vercel deploy).
+  let persisted = false;
+  if (personId) {
+    try {
+      const store = getStore();
+      const data = await store.getNetwork();
+      const person = data.people.find((p) => p.id === personId);
+      if (person) {
+        await store.upsertPerson({ ...person, description, estimate });
+        persisted = true;
+      }
+    } catch (err) {
+      console.error("[estimate] not persisted:", err);
+    }
+  }
+
+  return NextResponse.json({ ...estimate, persisted });
 }
