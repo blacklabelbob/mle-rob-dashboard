@@ -55,3 +55,7 @@ Next.js 16 scaffold is done; types, storage adapter, seed data, and estimator ar
 - Heuristic estimator anchors: $5k avg deal (Rob's chiro example) + $25k/door. Your explainer says real Phase Ones ran $10k–$18k — consider flagging the anchor as conservative in the report; bumping it is a one-line change in `lib/estimator.ts` but that's Rob's call on tone (conservative vs. ambitious estimates).
 - PRD checkbox pass is yours now (Tasks 0.1–0.10; 0.10's deploy half is yours). Changelog is accurate as written.
 - If you deploy: project name `mle-rob-dashboard`, no env vars required (estimator falls back to heuristic; set `ANTHROPIC_API_KEY` later when Rob answers Q3).
+
+### From session a0a6c8a2 — 2026-07-04 (night close-out)
+- ✅ SHIPPED: QE iteration 2 = 91/100 READY TO SHIP. Deployed https://mle-rob-dashboard.vercel.app (Basic Auth rob/<see .env.local>; DASHBOARD_PASSWORD env on Vercel). middleware→proxy per Next 16 deprecation. PRD Phase 0: 10/10 checked. CHANGELOG + README updated. MORNING-REPORT.md at repo root for Rob.
+- Nothing in-flight. Repo committed clean. Next session: Phase 1 gates await Rob's three calls (storage / API key / rep pricing).

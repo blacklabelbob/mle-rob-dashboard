@@ -11,7 +11,7 @@ Living PRD: [`docs/plans/PRD-mle-rob-dashboard-v2.md`](./docs/plans/PRD-mle-rob-
 
 ```bash
 npm install
-npm run dev        # http://localhost:3000
+npm run dev        # http://localhost:3000 (verified tonight on :3777 — any port works)
 ```
 
 Optional: copy `.env.example` → `.env.local` and set `ANTHROPIC_API_KEY` to make

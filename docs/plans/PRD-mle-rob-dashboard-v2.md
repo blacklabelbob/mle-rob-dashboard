@@ -16,7 +16,7 @@
 
 ```mermaid
 flowchart LR
-    P0["Phase 0: Overnight Build<br/>9/10 done"] --> P1["Phase 1: Storage & Real Data<br/>0/6 done"]
+    P0["Phase 0: Overnight Build<br/>10/10 done"] --> P1["Phase 1: Storage & Real Data<br/>0/6 done"]
     P1 --> P2["Phase 2: Network Intelligence<br/>0/6 done (2.5 research in)"]
     P1 --> P3["Phase 3: Meeting→Money Flow<br/>0/5 done"]
     P2 --> P4["Phase 4: Team & Training<br/>1/5 done"]
@@ -24,7 +24,7 @@ flowchart LR
     P4 --> P6["Phase 6: Growth Tooling<br/>0/5 done"]
     P5 --> P6
 
-    style P0 fill:#f59e0b,color:#000
+    style P0 fill:#22c55e,color:#000
     style P1 fill:#6b7280,color:#fff
     style P2 fill:#6b7280,color:#fff
     style P3 fill:#6b7280,color:#fff
@@ -82,7 +82,7 @@ One Vercel dashboard where Rob sees and grows The Network — every person as a 
 - [x] Task 0.7 [Engineering] - Network graph page: force-directed, zoom/pan, lit/unlit nodes, size = est. contribution, cluster coloring by vertical, click → detail | DoD: Polk chain zoomable; clicking node shows person panel
 - [x] Task 0.8 [Engineering] - Overview + Projects pages: aggregates (pipeline $, signed, network size, est. network value), projects with completion/category/theme, Products section (AIDRE/AIVA link-outs) + Will reminders | DoD: Every project shows all three attributes; Will items flagged
 - [x] Task 0.9 [Engineering] - AI estimator v1: heuristic scorer + `/api/estimate` route (Claude-powered, key-gated) + estimate display on person detail | DoD: Polk description produces revenue/nodes/probability/reasoning
-- [ ] Task 0.10 [Engineering] - Evaluate → iterate → verify build; deploy to Vercel if authenticated, else local + screenshots; morning report | DoD: quality-evaluator ≥90 on Rob's spoken spec; report delivered
+- [x] Task 0.10 [Engineering] - Evaluate → iterate → verify build; deploy to Vercel if authenticated, else local + screenshots; morning report | DoD: quality-evaluator ≥90 on Rob's spoken spec; report delivered
 
 ### Phase 1: Storage & Real Data
 

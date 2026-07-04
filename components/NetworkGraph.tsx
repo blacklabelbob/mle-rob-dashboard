@@ -374,7 +374,9 @@ export default function NetworkGraph() {
         <div className="mt-2 border-t border-white/10 pt-1.5 text-slate-500">
           size = est. contribution · glow = lit
           <br />
-          scroll to zoom · drag to pan · click a node
+          node type = role it plays (status shows lit/unlit)
+          <br />
+          scroll or pinch to zoom · drag to pan · click a node
         </div>
       </div>
 
