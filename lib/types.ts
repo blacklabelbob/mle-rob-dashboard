@@ -89,6 +89,11 @@ export interface WillItem {
   done: boolean;
 }
 
+export interface ProjectResource {
+  label: string;
+  url: string;
+}
+
 export interface Project {
   id: string;
   name: string;
@@ -98,6 +103,7 @@ export interface Project {
   owner: "Rob" | "Will" | "Max";
   summary?: string;
   link?: string;
+  resources?: ProjectResource[]; // deliverables/docs Rob opens from the card (cost models, PRDs, demos)
   willItems?: WillItem[]; // things owed by Will → reminders
   updatedAt: string;
 }

@@ -342,9 +342,9 @@
       "name": "AIVA — Proactive Avatar Web Chat",
       "category": "product-build",
       "theme": "reduce-all-friction",
-      "completion": 40,
+      "completion": 45,
       "owner": "Will",
-      "summary": "Plugs the missed-website-visitors leak (~97% leave silently).",
+      "summary": "Plugs the missed-website-visitors leak (~97% leave silently). Cost model verified 2026-07-08: 88-99.6% margin at the $300-500/mo band. Next: MLE fleet embed (template-level, one line).",
       "link": "https://github.com/blacklabelbob/leaky-bucket-web-agent",
       "willItems": [
         {
@@ -353,7 +353,21 @@
           "done": false
         }
       ],
-      "updatedAt": "2026-07-04"
+      "updatedAt": "2026-07-08",
+      "resources": [
+        {
+          "label": "Cost Model & Finish-Line Map",
+          "url": "https://claude.ai/code/artifact/7f4e44b1-9242-4b46-be69-a14e4cc5b211"
+        },
+        {
+          "label": "Living PRD v2.5",
+          "url": "https://github.com/blacklabelbob/leaky-bucket-web-agent/blob/main/docs/plans/PRD-aiva-living.md"
+        },
+        {
+          "label": "Sourced pricing snapshot",
+          "url": "https://github.com/blacklabelbob/leaky-bucket-web-agent/blob/main/docs/research/aiva-cost-model-2026-07-08.md"
+        }
+      ]
     },
     {
       "id": "ranklens",

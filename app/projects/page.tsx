@@ -70,6 +70,22 @@ function ProjectCard({ project }: { project: Project }) {
         </div>
       </div>
 
+      {(project.resources ?? []).length > 0 && (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {project.resources!.map((r) => (
+            <a
+              key={r.url}
+              href={r.url}
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-full border border-sky-400/30 bg-sky-400/10 px-2.5 py-0.5 text-xs text-sky-300 hover:bg-sky-400/20"
+            >
+              {r.label} ↗
+            </a>
+          ))}
+        </div>
+      )}
+
       {openWill.length > 0 && (
         <div className="mt-4 rounded-lg border border-amber-400/25 bg-amber-400/5 p-3">
           <div className="text-xs font-medium text-amber-300">⚑ Will owes</div>
