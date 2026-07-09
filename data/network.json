@@ -361,11 +361,11 @@
         },
         {
           "label": "Living PRD v2.5",
-          "url": "https://github.com/blacklabelbob/leaky-bucket-web-agent/blob/main/docs/plans/PRD-aiva-living.md"
+          "url": "https://github.com/blacklabelbob/leaky-bucket-web-agent/blob/feat/aiva-perfect/docs/plans/PRD-aiva-living.md"
         },
         {
           "label": "Sourced pricing snapshot",
-          "url": "https://github.com/blacklabelbob/leaky-bucket-web-agent/blob/main/docs/research/aiva-cost-model-2026-07-08.md"
+          "url": "https://github.com/blacklabelbob/leaky-bucket-web-agent/blob/feat/aiva-perfect/docs/research/aiva-cost-model-2026-07-08.md"
         }
       ]
     },
