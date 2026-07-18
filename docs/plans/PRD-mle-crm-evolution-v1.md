@@ -1,6 +1,6 @@
 # PRD: MLE Dashboard → Self-Made CRM Evolution
 
-**Version:** 2.1.12 | **Created:** 2026-07-16 | **Updated:** 2026-07-17
+**Version:** 2.1.14 | **Created:** 2026-07-16 | **Updated:** 2026-07-17
 **Status:** PLANNING
 **Owner:** Rob + Max
 **Project:** mle-rob-dashboard
@@ -225,6 +225,9 @@ The ultimate platform for sales reps — a self-owned CRM whose only job is **he
 | 2026-07-17 | **Full CRM rebuild w/ logins GREENLIT** — Rob: "let me back off and let you build"; push to GitHub first + push throughout the job | Repo live: github.com/blacklabelbob/mle-rob-dashboard (private) | Rob |
 | 2026-07-17 | **Critic Rob evaluator agent mandated**: built from mined history (all rules/feedback/preferences); uncompromising orderliness+precision, Jobs-grade design taste, Musk-grade first-principles engineering; backs down only at perfect; interprets Rob's non-technical phrasing for intent | Rob directive; corpus mining running | Rob |
 | 2026-07-17 | **Auto-enrichment mandated** for every business record (phones, firmographics, social connections); current records under-enriched; scout GitHub for existing agents before building | Rob | Rob |
+| 2026-07-17 | Enrichment stack (scout-verified): gosom/google-maps-scraper (5.1k★, MIT) as the phone/address/rating engine + fire-enrich architecture for domain→firmographics; NO self-hostable Clearbit exists — social-graph data goes through a paid API in an n8n waterfall | github-tool-scout report, docs/research/SCOUT-crm-agents-enrichment-2026-07-17.md | scout/Max |
+| 2026-07-17 | Dialer build shape: official twilio-voice.js SDK + own thin Next.js token/webhook routes (~200 lines); no OSS dialer worth forking. Task 7.1's SaaS-provider scorecard (JustCall/Aircall/OpenPhone vs raw Twilio) still owed before 7.2 | scout report mission 2 | scout/Max |
+| 2026-07-17 | Agent imports: wshobson/agents (38k★) + VoltAgent collections as pattern donors (backend-architect, sales-automator, code-reviewer et al) — re-tuned per CR-1/CR-2, not drop-in | scout report mission 3 | scout/Max |
 
 ## Dependencies & Blockers
 
@@ -255,6 +258,8 @@ The ultimate platform for sales reps — a self-owned CRM whose only job is **he
 | Version | Date | What Changed | By |
 |---------|------|--------------|-----|
 | 1.0 | 2026-07-16 | Initial PRD — army baseline (CoS + all 5 dept heads); explicitly DRAFT pending Rob's differentiator dump → v2.0 | Max |
+| 2.1.14 | 2026-07-17 | Auto-touched (session activity) | prd-autosave.sh |
+| 2.1.13 | 2026-07-17 | Auto-touched (session activity) | prd-autosave.sh |
 | 2.1.12 | 2026-07-17 | Auto-touched (session activity) | prd-autosave.sh |
 | 2.1.11 | 2026-07-17 | Auto-touched (session activity) | prd-autosave.sh |
 | 2.1.10 | 2026-07-17 | Auto-touched (session activity) | prd-autosave.sh |
