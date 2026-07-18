@@ -6,14 +6,24 @@
       "color": "#f8fafc"
     },
     {
+      "id": "food",
+      "name": "Food & Beverage",
+      "color": "#a3e635"
+    },
+    {
+      "id": "home-services",
+      "name": "Home Services",
+      "color": "#34d399"
+    },
+    {
       "id": "medical",
       "name": "Medical",
       "color": "#34d399"
     },
     {
-      "id": "title",
-      "name": "Title / Real Estate",
-      "color": "#60a5fa"
+      "id": "payments",
+      "name": "Payment Processing",
+      "color": "#c084fc"
     },
     {
       "id": "roofing",
@@ -21,9 +31,9 @@
       "color": "#f59e0b"
     },
     {
-      "id": "payments",
-      "name": "Payment Processing",
-      "color": "#c084fc"
+      "id": "title",
+      "name": "Title / Real Estate",
+      "color": "#60a5fa"
     },
     {
       "id": "webdev",
@@ -33,37 +43,412 @@
   ],
   "people": [
     {
-      "id": "rob-acheson",
-      "name": "Rob Acheson",
-      "business": "AI VoiceTech / MLE",
-      "role": "Founder — network, training, presenting, recruiting",
-      "verticalId": "core",
-      "status": "lit",
+      "id": "alex-greenwood",
+      "name": "Alex Greenwood",
+      "role": "Team Leader, Gulf Coast RE Group (FL lic SL3227669, since 2009)",
+      "nodeType": "connector",
+      "verticalId": "title",
+      "referredById": "rob-acheson",
+      "relationship": "Named by Rob 2026-07-07. Verified: DBPR license at ROG MVP Collier County LLC; press-documented 3,700+ career transactions, $1.5B+ volume, 250 sides/$125M trailing 12mo",
+      "status": "warm",
       "signed": false,
       "keyDates": {},
       "phaseOne": "not-started",
-      "notes": "Center of The Network.",
-      "nodeType": "partner"
+      "description": "Team Leader, Gulf Coast RE Group (~60 agents, site = 85% of revenue). Economics: $1,500/day PPC, 2 sales/100 leads, CAC ~$1,100, Boomtown Enterprise $2,500/mo (kept for Google buying power $40→$22/lead; restrictive API; Bold Trail rejected; wants proprietary replacement in ~2 yrs — the CRM-shaped hole MLE fits). FOUR ventures: HyperLocal/Website Factory (Cape Coral beta, localhomes.com — 6/17 notes say hyperlocalhomes.com, CONFIRM — Oct/Nov GTM, $699-899/mo licensing), HomeCloneVault (blockchain property twin: Origin Vault + Origin Stamp + Field Pulse, funding WIRED, rev-share proposed), $29/mo solopreneur trades app, internal 60-agent app (Upwork build). Live AI receptionist demo happened on the 6/16 call (transfer + whisper worked). 4-phase plan agreed → national rev-share. $18k agreement viewed, unsigned since 6/19.",
+      "estimate": {
+        "source": "claude",
+        "reasoning": "Engagement live since Jun 16-17 (four-phase plan; his numbers: ~60 agents, $1,500/day PPC, CAC ~$1,100, Boomtown $2,500/mo he wants off). BUT the $18k agreement has sat unsigned since 6/19 after being viewed — probability trimmed until signature; the nudge is the highest-leverage action in this cluster. Expansion inside the account: Website Factory, HomeCloneVault, solopreneur app.",
+        "estRevenue": 350000,
+        "estNewNodes": 15,
+        "estimatedAt": "2026-07-08T08:05:00.000Z",
+        "probability": 0.6
+      },
+      "notes": "ENRICHED 2026-07-17: Personal cell/email not pulled from public web per hunt spec (internal ask -- Rob/Will have met him repeatedly). Team-site bio page: https://www.gulfcoastregroup.com/agents/327940-Alex-Greenwood/ -- this page only lists the shared team line (239-448-8458, already on the company record), no personal direct number or email published. LinkedIn: https://www.linkedin.com/in/alex-greenwood-swfl/ (search-indexed as 'Alex Greenwood - SWFL RE Group').\nENRICHED 2026-07-17: Press-syndicated office numbers found -- NOT his own-site/verified personal line, so not written to the phone field: Fort Myers (239) 777-5318, Cape Coral (239) 393-8558 (https://www.newswire.com/news/best-real-estate-agent-in-fort-myers-fl-alex-greenwood, April 2026 wire release; also syndicated at weeklyvoice.com and natlawreview.com).\nENRICHED 2026-07-17: Press-confirmed stats: 3,700+ career transactions, $1.5B+ career volume, 250 sales / $125M+ trailing 12 months, 800+ five-star reviews, billed as 'Most Positively Reviewed Agent in Southwest Florida' (same newswire source).\nENRICHED 2026-07-17: DBPR license SL3227669 not independently re-verified this pass -- direct DBPR detail-page search did not return a hit; existing CRM record already cites it as verified 2026-07-07, recommend a fresh myfloridalicense.com pull to reconfirm status.\nENRICHED 2026-07-17: See golf-coast-real-estate-group company notes -- ROG MVP Collier County LLC's Sunbiz managers list does not include Greenwood by name; his brokerage-of-record entity needs direct confirmation."
     },
     {
-      "id": "will",
-      "name": "Will",
-      "business": "MLE",
-      "role": "Tech delivery + big-network relationship meetings",
-      "verticalId": "core",
-      "referredById": "rob-acheson",
-      "relationship": "partner",
-      "status": "lit",
+      "id": "atlanta-roofing-contractor",
+      "name": "Atlanta roofing contractor (TBD name)",
+      "role": "Large multi-office, multi-salesman GA contractor — first CRM expansion prospect",
+      "nodeType": "lead",
+      "verticalId": "roofing",
+      "referredById": "caleb-green",
+      "relationship": "Both Caleb AND Will have meetings with them (6/18 call). The roofing CRM's first external customer candidate",
+      "status": "unlit",
       "signed": false,
       "keyDates": {},
       "phaseOne": "not-started",
-      "notes": "Owns tech delivery. Meets with his past big-network relationships.",
-      "nodeType": "partner"
+      "description": "Unnamed Atlanta contractor — get the name from Caleb/Will. Source: 6/18 partnership call.",
+      "estimate": {
+        "source": "claude",
+        "reasoning": "Multi-office, multi-salesman contractor already in meetings with both Caleb and Will — the roofing CRM's first external customer candidate. High ceiling (multi-seat SaaS + Phase One), discounted until named and scheduled.",
+        "estRevenue": 150000,
+        "estNewNodes": 5,
+        "estimatedAt": "2026-07-09T05:40:00.000Z",
+        "probability": 0.35
+      }
+    },
+    {
+      "id": "caleb-green",
+      "name": "Caleb Green",
+      "role": "President, CG Roofing (~$9M op, $6.8M 2025 rev, ~$960k net) + Red Rock (UT) — FIRST SIGNED CLIENT + 3-WAY CRM PARTNER",
+      "nodeType": "client",
+      "verticalId": "roofing",
+      "referredById": "rob-acheson",
+      "relationship": "SIGNED 6/22, $10k invoiced 6/26 (CFO Kelly handles invoicing, Net 30). BIGGER: three-way CRM partnership (Caleb + Rob + Will) forming with counsel — revenue splits in draft; all parties owe entity/legal info. CG is the test bed for a national roofing-CRM SaaS. Close rate 60-65%; high-end residential focus. Referrals in motion: Atlanta contractor + a family moving-company intro.",
+      "status": "lit",
+      "signed": true,
+      "keyDates": {
+        "signed": "2026-06-22",
+        "invoiced": "2026-06-26"
+      },
+      "phaseOne": "in-progress",
+      "description": "Caleb Green — MLE's first signed client, now a three-way CRM partner (with Rob + Will). CG Roofing (Jacksonville) + Red Rock (UT). Signed Phase One 6/22, $10k invoiced 6/26; contracts for the CRM partnership drafting with counsel. Pains: owner-dependent (no GM), capacity-constrained in season, ADA-risk on the old site. 4-step model in motion: foundation → automations (3-mo ROI-or-refund) → custom roofing CRM (pyramid green/purple/red job status, no-billing-without-change-orders) → nationwide commercialization. Ambition: $100M national roofing CRM SaaS, CG = test bed. SEO pivot to N.FL/S.GA. Referrals already flowing (Atlanta multi-office contractor + a family moving-company intro). Sources: Fathom/Fireflies 6/16–6/18, SignWell 6/22, invoice 6/26.",
+      "estimate": {
+        "source": "claude",
+        "reasoning": "SIGNED and invoiced ($10k Phase One in hand, CFO paying). Upside: phased rollout to automations and the roofing CRM (multi-million framing, nationwide commercialization intent), Red Rock second entity, Jacksonville reference pull. Probability reflects a signed, staged relationship.",
+        "estRevenue": 250000,
+        "estNewNodes": 8,
+        "estimatedAt": "2026-07-08T08:05:00.000Z",
+        "probability": 0.85
+      },
+      "notes": "Said he’d be able to wrap up the first payment very soon we’ll do 5K get GC going and then 5K on red rocks\n\nENRICHED 2026-07-17: Personal cell/email not pulled from public web per hunt spec (internal ask via Rob/Will) -- none found publicly either. FL DBPR licensee record: RC29027554, Caleb William Green, Registered Roofing Contractor d/b/a CG Roofing Group LLC, status 'Delinquent,Active' (https://www.myfloridalicense.com/LicenseDetail.asp?SID=&id=1F408DB1D56E37A1432104D5AAC2872A). Sunbiz registered agent/authorized person on CG ROOFING GROUP LLC (doc# L17000012511) (https://search.sunbiz.org/Inquiry/CorporationSearch/SearchResults?InquiryType=EntityName&InquiryDirectionType=ForwardRecord&SearchTerm=CG+ROOFING+GROUP). Personal LinkedIn: https://www.linkedin.com/in/caleb-green-674127b2/. Company phone/website landed on the CG Roofing Group company record (cg-roofing-group) to avoid duplicating contact data across the pair.\nENRICHED 2026-07-17: Utah Red Rock Roofing entity -- no registration found under Caleb Green's name via public Utah corporations/contractor-license search this pass (corporations.utah.gov, secure.utah.gov/llv); a UT roofer license (#377705-5501) tied to a 'Red Rock Roofing' in St George, UT showed as expired 10-01-2022 in search results but could not be confirmed as the same entity/owner -- needs a direct name+entity search or an internal ask. CFO Kelly's surname/email: not found publicly -- internal ask only.\nDATA NOTE 2026-07-17: the $10k Phase-1 deal value is recorded on the CG Roofing Group row (deal belongs to the company; prevents double-counting in totals)."
+    },
+    {
+      "id": "calebs-brother-moving-co",
+      "name": "On Time Moving and Storage",
+      "business": "On Time Moving and Storage",
+      "role": "Moving company owned by Caleb Green's brother — direct referral from Caleb (6/18)",
+      "nodeType": "lead",
+      "verticalId": "home-services",
+      "website": "https://www.ontimemovingandstorage.com/",
+      "referredById": "caleb-green",
+      "relationship": "Owner Joseph Green — Caleb Green's brother (family referral)",
+      "status": "unlit",
+      "quotedAmount": 7000,
+      "signed": false,
+      "keyDates": {
+        "quoted": "2026-07-17"
+      },
+      "phaseOne": "not-started",
+      "description": "On Time Moving and Storage — owned by Joseph Green (Caleb Green's brother). Phase One quoted $7,000 + $600/month recurring for additional Security and Reporting. Moving companies are missed-call-heavy — strong AIDRE fit.",
+      "estimate": {
+        "source": "claude",
+        "reasoning": "Direct family referral from a signed, invested partner — the warmest possible intro class. Moving companies are missed-call-heavy (the calculator demo maps perfectly). Discounted only for unknown company size.",
+        "estRevenue": 60000,
+        "estNewNodes": 3,
+        "estimatedAt": "2026-07-09T05:40:00.000Z",
+        "probability": 0.5
+      }
+    },
+    {
+      "id": "cg-roofing-group",
+      "name": "CG Roofing Group",
+      "role": "Roofing & waterproofing, Jacksonville — $6.8M 2025 revenue — Phase 1 SIGNED",
+      "nodeType": "vertical-anchor",
+      "verticalId": "roofing",
+      "phone": "(904) 609-7180",
+      "website": "https://www.cgroofinggroup.com/",
+      "referredById": "caleb-green",
+      "relationship": "MLE's first signed account (with Red Rock Roofing). The roofing CRM built here becomes the template for the whole roofing cluster",
+      "status": "lit",
+      "quotedAmount": 10000,
+      "signed": true,
+      "keyDates": {
+        "signed": "2026-06-22",
+        "invoiced": "2026-06-26"
+      },
+      "phaseOne": "in-progress",
+      "description": "CG ROOFING GROUP, LLC — signed Phase 1 6/22, invoice MLE-2026-100122 issued 6/26. Will live-built a dev site on the discovery call (~89/98/100/100 Lighthouse). CRM = key strategic asset.",
+      "estimate": {
+        "source": "claude",
+        "reasoning": "Signed lighthouse: direct phased revenue plus template value across the 12-company roofing cluster on this map. Overlaps Caleb's node (directional).",
+        "estRevenue": 150000,
+        "estNewNodes": 5,
+        "estimatedAt": "2026-07-08T08:05:00.000Z",
+        "probability": 0.8
+      },
+      "notes": "Bookkeeper/CFO: Kelly — pays the $10k invoice; Rob to brief her on backend technical requirements; email owed by Caleb. (Folded from deleted contact row 2026-07-17 — admins are notes on the lead, not rows. Ledger = KDMs + sales-related only.)\n\nENRICHED 2026-07-17: Sunbiz CG ROOFING GROUP LLC doc# L17000012511, FEI/EIN 32-0516571, filed 01/17/2017, official sunbiz.org status ACTIVE, registered agent Caleb W Green, principal address 4320 Deerwood Lake Pkwy Ste 101-133, Jacksonville FL 32216 (https://search.sunbiz.org/Inquiry/CorporationSearch/SearchResults?InquiryType=EntityName&InquiryDirectionType=ForwardRecord&SearchTerm=CG+ROOFING+GROUP) -- NOTE: third-party mirror bisprofiles.com shows this entity as inactive / voluntarily dissolved 2025-07-23 (https://bisprofiles.com/fl/cg-roofing-group-l17000012511), which conflicts with the official sunbiz.org snapshot; verify directly on sunbiz.org before relying on entity status for the 3-way CRM partnership contract.\nENRICHED 2026-07-17: FL DBPR license RC29027554, Registered Roofing Contractor, licensee Caleb William Green d/b/a CG Roofing Group LLC, status shown as 'Delinquent,Active' -- verify renewal/CE standing before citing in the Phase 1 case study (https://www.myfloridalicense.com/LicenseDetail.asp?SID=&id=1F408DB1D56E37A1432104D5AAC2872A).\nENRICHED 2026-07-17: BBB profile A+ rating, NOT BBB-accredited, phone (904) 609-7180 confirmed, address listed as 8638 Philips Hwy Ste 12, Jacksonville FL 32256 (https://www.bbb.org/us/fl/jacksonville/profile/roofing-contractors/cg-roofing-group-llc-0403-236017548) -- NOTE: this conflicts with both the Sunbiz principal address above and the homepage's own schema address (6900 Philips Hwy #38); physical office address needs confirming directly with Caleb.\nENRICHED 2026-07-17: Google Business Profile baseline (proxy, not pulled directly from GBP): 4.3/5 stars, 30 reviews per GAF contractor directory (https://www.gaf.com/en-us/roofing-contractors/residential/usa/fl/jacksonville/cg-roofing-group-llc-1115406); 4.4/5 stars, 27 reviews per LocallyFind (https://locallyfind.com/services/jacksonville/roofing-contractor/cg-roofing-waterproofing-llc/).\nENRICHED 2026-07-17: Social -- Facebook facebook.com/cgroofingandwaterproofing/ (~165 likes); LinkedIn company page linkedin.com/company/cg-roofing-group-llc (22 followers), alt linkedin.com/company/cg-roofing-and-waterproofing-llc; no Instagram found (source: web search of listed profiles, 2026-07-17).\nENRICHED 2026-07-17: Caleb Green personal LinkedIn: https://www.linkedin.com/in/caleb-green-674127b2/."
+    },
+    {
+      "id": "chris-acheson",
+      "name": "Chris Acheson",
+      "role": "Realtor, Gulf Coast RE Group (FL lic SL3400734, PA; Estero; since 2017)",
+      "nodeType": "connector",
+      "verticalId": "title",
+      "referredById": "rob-acheson",
+      "relationship": "Named by Rob 2026-07-07. Verified via DBPR extract: license at ROG MVP Collier County LLC. Prior brand Naples239Homes/MVP Realty. (Murray Acheson, Sarasota broker: NOT related — Rob confirmed 2026-07-08)",
+      "status": "warm",
+      "signed": false,
+      "keyDates": {},
+      "phaseOne": "not-started",
+      "description": "Realtor on Gulf Coast RE Group (~50-agent team, Realty ONE Group MVP). FL Sales Associate SL3400734 since 2017, Estero. Writes the team blog. Activation path into the team roster and the informal vendor graph around ~250 closings/yr.",
+      "estimate": {
+        "source": "claude",
+        "reasoning": "Personal door into the Gulf Coast team plus his own Naples/Estero orbit (Naples239Homes brand, team blog author). Two to three doors at ~$44k aggregate each; highest probability in the cluster because he is the named first contact.",
+        "estRevenue": 120000,
+        "estNewNodes": 6,
+        "estimatedAt": "2026-07-08T05:47:00.000Z",
+        "probability": 0.6
+      }
+    },
+    {
+      "id": "daniella-roach",
+      "name": "Daniella Roach",
+      "role": "Co-owner MIGA Food Manufacturing · co-owner Martin Fierro (Naples) · serial entrepreneur",
+      "nodeType": "connector",
+      "verticalId": "food",
+      "website": "https://www.linkedin.com/in/daniella-roach-b1a0297/",
+      "referredById": "gary-waskivich",
+      "relationship": "co-owner of Miga with Gary — door via the Miga deal",
+      "status": "unlit",
+      "signed": false,
+      "keyDates": {},
+      "phaseOne": "not-started",
+      "description": "Serial entrepreneur (FB feature: 'Owner Oasis, Martin Fierro and MIGA Food Manufacturing'). Officer + registered agent of MIGA Food Manufacturing Inc. Married to Michael Jaenvega (Jaenvega Holdings LLC — both AMBRs, same address 5198 Monza Ct, Ave Maria). Closing Miga likely opens Martin Fierro + the whole family restaurant cluster.",
+      "notes": "Rob 2026-07-17: Daniella and Gary are CO-owners of Miga (resolves the earlier ownership conflict). Sources: Sunbiz P21000103391 (Miga officer/agent); Sunbiz L23000029882 (Jaenvega Holdings, AMBR w/ Michael); facebook.com/shopthesecretingredient 'Meet Daniella' feature; LinkedIn /in/daniella-roach-b1a0297."
+    },
+    {
+      "id": "david-cates",
+      "name": "David Cates",
+      "business": "The Cates Processing Group",
+      "nodeType": "rep-candidate",
+      "verticalId": "payments",
+      "referredById": "rob-acheson",
+      "relationship": "Former Colleague",
+      "status": "warm",
+      "signed": false,
+      "keyDates": {},
+      "phaseOne": "not-started",
+      "description": "Very Excited to get training and onboarding. We need more Social Proof and Mini Case Studies first which I communicated to Will"
+    },
+    {
+      "id": "dececco-pasta",
+      "name": "De Cecco USA",
+      "business": "De Cecco Pasta",
+      "verticalId": "food",
+      "referredById": "gary-waskivich",
+      "relationship": "door via Gary (Regional Sales Mgr) and Gio (KDM)",
+      "status": "unlit",
+      "signed": false,
+      "keyDates": {},
+      "phaseOne": "not-started"
+    },
+    {
+      "id": "derm-clinic-pilot",
+      "name": "Dermatology clinic (pilot #1)",
+      "role": "First pilot site for the skin-cancer AI — Rob's sister-in-law works there",
+      "nodeType": "lead",
+      "verticalId": "medical",
+      "referredById": "rob-acheson",
+      "relationship": "First pilot site for the skin-cancer AI — a clinic in Rob's personal network. Rob owes a product demo → hospital intros. Part of the 5-clinic free-year validation program.",
+      "status": "unlit",
+      "signed": false,
+      "keyDates": {},
+      "phaseOne": "not-started",
+      "description": "Pilot #1 of 5. Source: 7/8 Dix call.",
+      "estimate": {
+        "source": "claude",
+        "reasoning": "Pilot #1 with a family-connected champion inside. Free-year economics mean revenue comes later, but it unlocks the hospital intros and the case study the whole US entry depends on.",
+        "estRevenue": 30000,
+        "estNewNodes": 3,
+        "estimatedAt": "2026-07-09T05:40:00.000Z",
+        "probability": 0.55
+      }
+    },
+    {
+      "id": "dix-healthcare-ai",
+      "name": "Dix Healthcare AI (7 models)",
+      "role": "7 fine-tuned medical models: skin cancer (lead), blood smear, bone fracture, breast cancer + more — Rob gets 20-30% equity for US cert/licensing intros",
+      "nodeType": "partner",
+      "verticalId": "medical",
+      "referredById": "dix-thedevdix",
+      "relationship": "Skin-cancer model: +7-8% accuracy/specificity vs research models (3,000-image benchmark), lesion tracking over time, 'second opinion' positioning. Pricing $10-20k/mo unlimited or $1-2/API call. GTM: free-for-1-year to 5 clinics for validation. First pilot: a dermatology clinic in Rob's network. Compute gifted; training completes ~week of 7/13.",
+      "status": "warm",
+      "signed": false,
+      "keyDates": {},
+      "phaseOne": "not-started",
+      "description": "The US-direction half of the Dix two-way channel — Rob holds an equity stake for opening US market entry. 7 fine-tuned medical models (skin cancer lead, blood smear, bone fracture, breast cancer). Needs: certifications, licensing, validation docs, pilots. Source: 7/8 Dix call.",
+      "estimate": {
+        "source": "claude",
+        "reasoning": "Rob's 20-30% equity in a product priced $10-20k/mo (or $1-2/API call) with a 5-clinic validation program starting at the derm pilot. If two retainer clients land post-validation, Rob's share alone clears six figures annually. Discounted for certification/licensing risk and pre-revenue status.",
+        "estRevenue": 300000,
+        "estNewNodes": 8,
+        "estimatedAt": "2026-07-09T05:40:00.000Z",
+        "probability": 0.4
+      }
+    },
+    {
+      "id": "dix-thedevdix",
+      "name": "Dixith (thedevdix)",
+      "role": "Two-way channel partner: resells MLE into Eastern Europe / Montenegro / UK + Rob brings his healthcare-AI models into the US (equity stake for Rob)",
+      "nodeType": "partner",
+      "verticalId": "webdev",
+      "referredById": "rob-acheson",
+      "relationship": "Deal agreed in principle 7/8: Dix pitches MLE services in his market + handles Phase 3 audit dev overflow + quick site work; Rob facilitates US certification/licensing for the healthcare AI (equity to Rob) + a clinic pilot intro. Dix consults George re: EU intros. Follow-up ~7/15. Long-standing relationship (since 2024).",
+      "status": "warm",
+      "signed": false,
+      "keyDates": {},
+      "phaseOne": "not-started",
+      "description": "Dix ('thedev08', thedevdix@gmail.com). Status: demos/trials running, blocked on EU company registration + GDPR; component library w/ 20k daily viewers (going open-source); TypeScript/Three.js craftsman. Owes: website mockup, AI model demos, business info, George consult, outreach. Rob owes: proposal doc, case studies, clinic demo, licensing contacts. Sources: Gemini notes + Notion 7/8.",
+      "estimate": {
+        "source": "openai",
+        "reasoning": "Dix has a solid referral edge through his network in Europe and has a potential direct revenue stream from the healthcare AI pilot at a derm clinic. The estimated revenue reflects the likely $20k monthly retainer for healthcare AI services, amplified by the contacts he can open through George. Given the existing plan for a skin-cancer AI pilot and his industry connections, there's a strong chance he will bring in new clients, although unscheduled intros might limit growth slightly.",
+        "estRevenue": 220000,
+        "estNewNodes": 3,
+        "estimatedAt": "2026-07-09T02:31:03.761Z",
+        "probability": 0.7
+      }
+    },
+    {
+      "id": "gary-waskivich",
+      "name": "Gary Waskovich",
+      "business": "Miga Food Manufacturing",
+      "role": "Regional Sales Manager (FL), De Cecco USA — Naples resident, 26+ yrs food sales, Johnson & Wales",
+      "nodeType": "lead",
+      "verticalId": "food",
+      "referredById": "rob-acheson",
+      "relationship": "ROB 2026-07-08: Gary is the CHAMPION — high-probability close for Miga, then De Cecco next. Big shot at De Cecco (verified: Regional Sales Mgr FL). Gary↔Miga tie confirmed real by Rob (was dashed/unverified)",
+      "status": "warm",
+      "signed": false,
+      "keyDates": {
+        "met": "2026-07-01"
+      },
+      "phaseOne": "not-started",
+      "description": "Gary Waskovich, Naples FL. Regional Sales Manager at De Cecco USA (PMI Inc, NY) — US arm of the 140-year family-owned world-#3 pasta maker (founded 1886, €652M FY2024). His account book: every major FL food distributor, grocery buyer, foodservice operator. Local tie to Miga Food Manufacturing claimed but publicly unverified. Sources: linkedin.com/in/gary-waskovich-390490294, signalhire.com/companies/de-cecco-usa-pmi-inc",
+      "estimate": {
+        "source": "openai",
+        "reasoning": "Gary Waskovich's extensive connections with major food distributors and grocery buyers in Florida suggest he can potentially open multiple significant doors in the foodservice industry. Given the broad application of AI/automation services, these contacts could yield meaningful new business. However, the reliability of his local tie to Miga Food Manufacturing is uncertain, which slightly reduces the expected revenue and conversion probability.",
+        "estRevenue": 220000,
+        "estNewNodes": 5,
+        "estimatedAt": "2026-07-17T02:47:30.446Z",
+        "probability": 0.7
+      }
+    },
+    {
+      "id": "george-eu",
+      "name": "George (Dix's EU contact) Guest Genie",
+      "business": "Guest Genie",
+      "role": "Dix's advisor/contact for European automation-client intros (Eastern Europe / Montenegro / UK)",
+      "nodeType": "lead",
+      "verticalId": "webdev",
+      "referredById": "dix-thedevdix",
+      "relationship": "Dix consulting him about EU connections for MLE services — awaiting outcome (~7/15 follow-up)",
+      "status": "unlit",
+      "signed": false,
+      "keyDates": {},
+      "phaseOne": "not-started",
+      "description": "Gateway node for the MLE→Europe channel. Source: 7/8 Dix call.",
+      "estimate": {
+        "source": "claude",
+        "reasoning": "Gateway to the European channel: if Dix's consult converts George into an active connector, each EU automation client lands at door economics. Two hops out and unscheduled — heavily discounted.",
+        "estRevenue": 80000,
+        "estNewNodes": 4,
+        "estimatedAt": "2026-07-09T05:40:00.000Z",
+        "probability": 0.3
+      }
+    },
+    {
+      "id": "giovanni-spazioso",
+      "name": "Giovanni Spazioso",
+      "role": "National Account Sales Manager – East (Foodservice), De Cecco USA (NYC)",
+      "nodeType": "connector",
+      "verticalId": "food",
+      "referredById": "gary-waskivich",
+      "relationship": "Gary introduced Rob to Gio — Rob doesn't know him directly",
+      "status": "warm",
+      "signed": false,
+      "keyDates": {},
+      "phaseOne": "not-started",
+      "description": "Giovanni Spazioso — De Cecco USA, NYC. National Account Sales Manager East, ex-Business Controller (FMVA). 21 yrs experience. His counterparts are importers, Italian specialty distributors, national grocery buyers — each a high-ticket MLE prospect category. Sources: linkedin.com/in/giovannispazioso, rocketreach.co/giovanni-spazioso-email_20619759",
+      "estimate": {
+        "source": "claude",
+        "reasoning": "Upgraded per Rob: senior figure and part of the planned sequence (Miga close → De Cecco push). His East Coast national-accounts book is the enterprise prize; probability rises because the path now has a confirmed champion and stated intent, discounted until Miga lands.",
+        "estRevenue": 120000,
+        "estNewNodes": 6,
+        "estimatedAt": "2026-07-08T07:10:00.000Z",
+        "probability": 0.45
+      },
+      "notes": "Rob 2026-07-17: confirmed — Gio is the KDM for De Cecco Pasta; access runs through Gary."
+    },
+    {
+      "id": "golf-coast-real-estate-group",
+      "name": "Gulf Coast RE Group",
+      "role": "56-agent team under Realty ONE Group MVP (SWFL) — 250 sides & $125M+ trailing 12mo",
+      "nodeType": "client",
+      "verticalId": "title",
+      "phone": "239-448-8458",
+      "website": "https://www.gulfcoastregroup.com/",
+      "referredById": "alex-greenwood",
+      "relationship": "⚠️ $18k Phase 1 agreement SENT via SignWell 6/19, VIEWED by Alex + Will — NOT SIGNED (stalled ~3 weeks). Continuation meeting 6/20 (unrecorded). THE PLAY (Rob): work Alex + make his agents individually successful — each successful agent becomes a referring node",
+      "status": "lit",
+      "quotedAmount": 19000,
+      "signed": true,
+      "keyDates": {
+        "paid": "2026-07-18",
+        "quoted": "2026-06-19",
+        "signed": "2026-07-18"
+      },
+      "phaseOne": "in-progress",
+      "description": "Gulf Coast RE Group: ~50-agent team under Realty ONE Group MVP, SWFL. Documented 250 sides / $125M+ trailing 12mo. Activation flywheel: help Alex, then make individual agents successful (AI tools that win them listings) — successful agents recommend us to their vendor orbit and to each other. No formal preferred-vendor program exists; that graph is unclaimed. Adjacency: MVP Title Agency LLC shares the brokerage registered address.\n\nPhase 1 will be $1900. Including:\n1) Company Website tied into  MLS. Up to 2000 pg optimized for AEO, SEO, Convertibility, GBP, etc\n2) Living 2nd Brain for Corp\n3) Up to 60 Individual Websites (56 agents + TBD) + 45 Automated Social Media Accounts\n4) Living 2nd Brain for each Agent",
+      "estimate": {
+        "source": "openai",
+        "reasoning": "With 50 agents generating $125M in transactions, assuming potential engagement with our AI services could yield about $10k per agent annually, the estimated revenue from direct sales to agents could reach $500,000. Additionally, the referral potential from successful agents is conservatively estimated to open up new nodes, projecting around 15 new potential clients based on network effects. The probability reflects confidence in the existing business relationships but acknowledges uncertainty due to the lack of a formal referral system.",
+        "estRevenue": 550000,
+        "estNewNodes": 15,
+        "estimatedAt": "2026-07-17T01:00:25.225Z",
+        "probability": 0.7
+      },
+      "notes": "Have already Decided we're going to roll through this and then Proceed to 50/50 Phase 4\nPhase 4 will include full platform that we can sell to Brokerages around the Country\n- Replace Boomtown\n\nENRICHED 2026-07-17: Contact page phone 239-448-8458 and address 3384 Woods Edge Cir Ste #103, Bonita Springs FL 34134 confirmed on own site (https://www.gulfcoastregroup.com/contactus/). No usable public email found -- the contact page's only visible address is a Boomtown CRM system placeholder (bouncedemail@boomtownroi.com), not a real inbox; do not use.\nENRICHED 2026-07-17: Social -- Facebook facebook.com/gcregroup, Instagram instagram.com/gulf_coast_re, LinkedIn linkedin.com/in/gulf-coast-re-group-50ba3b310 (source: https://www.gulfcoastregroup.com/contactus/).\nENRICHED 2026-07-17: Reviews -- Birdeye lists 115 reviews, 5-star average, at the Bonita Springs address (https://reviews.birdeye.com/gulf-coast-re-group-171598325153823).\nENRICHED 2026-07-17: Agent roster count NOT verified -- team's own recruiting page (https://www.gulfcoastregroup.com/for-agents/) publishes no current headcount; the 50/56/60 conflict in existing notes remains unresolved. Needs internal ask.\nENRICHED 2026-07-17: MVP Title Agency LLC (adjacent title-vertical door) -- Sunbiz doc# L23000148252, FEI/EIN 92-3269298, filed 03/23/2023, status ACTIVE, principal address 1495 Pine Ridge Rd Ste 1, Naples FL 34109 (same building as the ROG MVP Collier entity below); FL DFS title-agency license G016627, exp 10/31/2026; website mvptitleagency.com (https://search.sunbiz.org/Inquiry/corporationsearch/SearchResultDetail?inquirytype=EntityName&directionType=Initial&searchNameOrder=MVPTITLEAGENCY+L230001482520 ; https://mvptitleagency.com/).\nENRICHED 2026-07-17: ROG MVP Collier County LLC (brokerage entity at the same 1495 Pine Ridge Rd address) -- Sunbiz doc# L24000291887, filed 06/28/2024, status ACTIVE, registered agent NJ Law PLLC; listed managers are Bermudez (Anthony Minnow), Carlson (Derek), Doerr (Dawn), Hopple (Deborah Ann), Ledbetter (Mark), Prawl (Luis) -- Alex Greenwood does NOT appear by name on this Collier County filing, so his brokerage-of-record entity should be confirmed directly with him (https://www.bizprofile.net/fl/naples/rog-mvp-collier-county ; ratemyagent.com/real-estate-agency/rog-mvp-collier-county-llc-b02cia lists 1,034 active + 1,337 sold listings / $747M trailing-12mo at the whole-brokerage level, not Gulf Coast RE Group's team alone).\nENRICHED 2026-07-17: Website Factory / HomeCloneVault domain (localhomes.com vs hyperlocalhomes.com) -- could not confirm either domain's ownership tied to Alex Greenwood via public search this pass; still needs direct confirmation from Alex.\nRESOLVED 2026-07-18 by Rob (owner ruling): deal IS signed and PAID — payment by checks, hard-copy signature held by Rob. Prior \"sent 6/19 / NOT SIGNED / stalled\" note is superseded. NOTE: signed/paid dates recorded as the confirmation date 2026-07-18 — Rob to correct to actual dates from the hard copy via the date chips."
+    },
+    {
+      "id": "joe-fleming",
+      "name": "Joe Fleming",
+      "role": "Co-Founder/Owner, Vive Health (LLC manager + registered agent; Vanderbilt ME, ex-Schlumberger)",
+      "nodeType": "lead",
+      "verticalId": "medical",
+      "referredById": "jonathan-burns",
+      "relationship": "The owner behind the Vive Health door (one hop from Jonathan Burns). Engineer-turned-founder, bootstrapped — the profile that takes an operator-to-operator intro seriously.",
+      "status": "unlit",
+      "signed": false,
+      "keyDates": {},
+      "phaseOne": "not-started",
+      "description": "Joseph 'Joe' Fleming — co-founder/controlling owner of Vive Health LLC. Reachable in one verified hop: Burns reports to him. Path into a ~100-person Naples DME manufacturer + its clinic/DME vendor orbit.",
+      "estimate": {
+        "source": "claude",
+        "reasoning": "Controlling owner of a ~100-employee Naples DME manufacturer, reachable in ONE verified hop (Burns reports directly to him). Direct deal (~$22k yr-1) plus the B2B wholesale orbit — clinics, chiro, podiatry, pharmacies, DME resellers — that Vive already sells into. Engineer-founder archetype, bootstrapped: takes operator intros seriously. Discounted because the intro is named but not yet scheduled.",
+        "estRevenue": 140000,
+        "estNewNodes": 6,
+        "estimatedAt": "2026-07-08T05:45:00.000Z",
+        "probability": 0.5
+      }
+    },
+    {
+      "id": "jonathan-burns",
+      "name": "Jonathan (John) Burns",
+      "role": "Director of B2B Marketing, Vive Health (Naples FL, since 2020; ~10-person dept)",
+      "nodeType": "connector",
+      "verticalId": "medical",
+      "referredById": "rob-acheson",
+      "relationship": "Rob brain-dump 2026-07-08. VERIFIED: reports DIRECTLY to owner Joe Fleming (org chart) — one-hop door. Public footprint under |John Burns|; confirm he goes by Jonathan",
+      "status": "warm",
+      "signed": false,
+      "keyDates": {},
+      "phaseOne": "not-started",
+      "description": "Director of B2B Marketing at Vive Health, Naples FL. His B2B seat sells into clinics, chiro/podiatry, pharmacies, DME resellers — his rolodex IS the medical channel. Reports directly to co-founder/owner Joe Fleming. Prior: Host Merchant Services, Global Tech LED. Sources: theorg.com/org/vive-health/org-chart/john-burns, rocketreach.co/john-burns-email_20550631",
+      "estimate": {
+        "source": "claude",
+        "reasoning": "Named, verified one-hop path to Vive Health ownership — org chart shows he reports directly to owner Joe Fleming. One company deal plus the medical-products vendor orbit behind it; medical cluster already lit via Polk in the same city raises close odds, but the intro is not yet scheduled.",
+        "estRevenue": 90000,
+        "estNewNodes": 4,
+        "estimatedAt": "2026-07-08T05:47:00.000Z",
+        "probability": 0.45
+      }
     },
     {
       "id": "jonathan-polk",
       "name": "Jonathan Polk",
       "role": "Connector — referral machine",
+      "nodeType": "connector",
       "verticalId": "medical",
       "referredById": "rob-acheson",
       "relationship": "we run his LinkedIn automation free",
@@ -76,58 +461,21 @@
       "phaseOne": "not-started",
       "description": "Jonathan Polk — we do his LinkedIn automation free. He brings so much business to Naples Spine & Joint that he can walk us into PropLogic, LandTech, and Qualia — their reps say he is their #1, never turns down a meeting.",
       "estimate": {
+        "source": "heuristic",
+        "reasoning": "Heuristic v1: detected ~3 door(s) worth ~$25k aggregate each. Probability 60% from relationship-strength signals in the description. Claude-powered estimate replaces this when the API key is wired (PRD 2.1).",
         "estRevenue": 75000,
         "estNewNodes": 9,
-        "probability": 0.6,
-        "reasoning": "Heuristic v1: detected ~3 door(s) worth ~$25k aggregate each. Probability 60% from relationship-strength signals in the description. Claude-powered estimate replaces this when the API key is wired (PRD 2.1).",
-        "source": "heuristic",
-        "estimatedAt": "2026-07-04T09:44:07.493Z"
+        "estimatedAt": "2026-07-04T09:44:07.493Z",
+        "probability": 0.6
       },
-      "notes": "The test case for the AI estimator.",
-      "nodeType": "connector"
-    },
-    {
-      "id": "naples-spine-joint",
-      "name": "Naples Spine & Joint",
-      "business": "Naples Spine & Joint",
-      "role": "Chiropractic / spine clinic",
-      "verticalId": "medical",
-      "referredById": "jonathan-polk",
-      "relationship": "Polk is their #1 business-bringer",
-      "status": "lit",
-      "quotedAmount": 5000,
-      "signed": true,
-      "estTimeToPaymentDays": 7,
-      "keyDates": {
-        "met": "2026-06-24",
-        "quoted": "2026-06-26",
-        "signed": "2026-07-01"
-      },
-      "phaseOne": "in-progress",
-      "description": "Signed $5k Phase One. On paper worth $5k — through Polk's network, worth far more.",
-      "notes": "First lit client node in the medical cluster.",
-      "nodeType": "client"
-    },
-    {
-      "id": "proplogic",
-      "name": "PropLogic",
-      "business": "PropLogic",
-      "role": "Title-tech company",
-      "verticalId": "title",
-      "referredById": "jonathan-polk",
-      "relationship": "their reps say Polk is their #1",
-      "status": "unlit",
-      "signed": false,
-      "keyDates": {},
-      "phaseOne": "not-started",
-      "notes": "Polk can walk us in.",
-      "nodeType": "client"
+      "notes": "The test case for the AI estimator.\n\nENRICHED 2026-07-17: LinkedIn confirms his employer/role -- Regional Manager, Southwest & Miami FL, PropLogix (https://www.linkedin.com/in/jonathan-polk-56a95469/ ; team bio https://www.proplogix.com/team/jonathan-polk/) -- resolves 'what does Polk actually do' from the gap audit; also strongly suggests the CRM's separate 'PropLogic' record is a misspelling of PropLogix (his employer), worth merging/renaming. Career history per LinkedIn also lists former VP of Marketing, Naples Spine & Joint, and a stop connected to Online Land Surveyors / LandTec Survey (a Facebook post from LandTec Survey welcomes him to their team: https://www.facebook.com/landtecsurvey/photos/exciting-news-jonathan-polk-is-joining-our-team-to-sprinkle-some-magic-into-our-/947582267372244/) -- suggests the CRM's 'LandTech' record is likely LandTec Surveying. An Instagram post also references him as 'CEO of Polk Industries, a marketing arm of LandTech...' (https://www.instagram.com/p/Cis3EaOuGMo/) -- his own marketing venture, worth a follow-up ask.\nENRICHED 2026-07-17: Direct phone/email not found publicly this pass; per hunt spec, Rob already runs Polk's LinkedIn automation -- his LinkedIn profile URL above should be copied into a social field once one exists.\nENRICHED 2026-07-17: Naples Spine & Joint ownership link -- Monica Polk (same surname) is LinkedIn-listed as 'Business Owner, Naples Spine & Joint' (https://www.linkedin.com/in/monica-polk-7aa586324/), matching the CRM's existing 'Polk and Monica's Company' description on the naples-spine-joint record."
     },
     {
       "id": "landtech",
       "name": "LandTech",
       "business": "LandTech",
       "role": "Title-tech company",
+      "nodeType": "lead",
       "verticalId": "title",
       "referredById": "jonathan-polk",
       "relationship": "their reps say Polk is their #1",
@@ -135,14 +483,155 @@
       "signed": false,
       "keyDates": {},
       "phaseOne": "not-started",
-      "notes": "Polk can walk us in.",
-      "nodeType": "client"
+      "notes": "Polk can walk us in."
+    },
+    {
+      "id": "martin-fierro-restaurant",
+      "name": "Martin Fierro Restaurant",
+      "business": "Martin Fierro (MFS Naples, Inc.)",
+      "role": "Argentine-Uruguayan open-fire steakhouse — 13040 Livingston Rd, Naples (est. 2003)",
+      "verticalId": "food",
+      "phone": "(239) 300-4777",
+      "email": "info@martinfierronaples.com",
+      "website": "https://martinfierronaples.com/",
+      "referredById": "daniella-roach",
+      "relationship": "the family's Naples restaurant — door via Daniella/Gary (Miga)",
+      "status": "unlit",
+      "signed": false,
+      "keyDates": {},
+      "phaseOne": "not-started",
+      "description": "Family-owned Argentinian steakhouse, only custom open-wood-fire grill in SWFL (grill master Juan Delgado). Operating entity MFS Naples, Inc. — ACTIVE, President Michael Jaenvega. High-ticket restaurant — fits the AI receptionist / missed-call pitch (reservations line).",
+      "notes": "Sources: martinfierronaples.com (contact); Sunbiz P17000087470; swspotlight.com feature; Yelp /martin-fierro-naples."
+    },
+    {
+      "id": "michael-jaenvega",
+      "name": "Michael Jaenvega",
+      "role": "President, MFS Naples Inc (Martin Fierro) · co-owner Oasis The Kitchen Lounge (JV w/ Phong Ho)",
+      "verticalId": "food",
+      "phone": "(239) 961-7326 (public record — unverified)",
+      "website": "https://www.linkedin.com/in/michael-jaenvega-85438578/",
+      "referredById": "daniella-roach",
+      "relationship": "Daniella's husband — co-owner of the family restaurants",
+      "status": "unlit",
+      "signed": false,
+      "keyDates": {},
+      "phaseOne": "not-started",
+      "description": "Restaurant operator. President of MFS Naples, Inc. — the ACTIVE operating company of Martin Fierro Steakhouse (reinstated 11/2024), principal address 5198 Monza Ct, Ave Maria — same address as Miga's HQ. Also behind Oasis The Kitchen Lounge (Ave Maria Town Center, JV with restaurateur Phong Ho), Naples Meat Shop (older), Jaenvega Holdings. IG @michael_jaenvega.",
+      "notes": "Sources: Sunbiz P17000087470 (MFS Naples pres, ACTIVE); Sunbiz L23000029882 + L23000083341 (Jaenvega Holdings, Oasis AveMaria FL — both admin-dissolved, operations continue under other entities); avemaria.com Oasis opening announcement; swspotlight.com 'Martin Fierro Brings the Open Range to Naples'; clustrmaps public-records phone (verify before dialing)."
+    },
+    {
+      "id": "miga-food-manufacturing",
+      "name": "Miga Food Manufacturing",
+      "role": "Argentine empanada manufacturer (Ave Maria FL) — wholesale, co-packing, private label; 100% women-owned; pre-national-launch",
+      "nodeType": "lead",
+      "verticalId": "food",
+      "referredById": "gary-waskivich",
+      "relationship": "HIGH-PROBABILITY CLOSE (Rob 2026-07-08) via champion Gary Waskovich. Owner Daniella Jaenvega (Martin Fierro family). Next after Miga: De Cecco",
+      "status": "warm",
+      "signed": false,
+      "keyDates": {},
+      "phaseOne": "not-started",
+      "description": "MIGA Food Manufacturing Inc (FL P21000103391, inc. 2021, Ave Maria). 8 empanada flavors, born at Martin Fierro Restaurant Naples 2003. Channels: distributors, grocery, country clubs, hotels, caterers. Site still on Cloudflare Pages staging — pre-launch. One warm intro = reference account for the whole blue-collar food-manufacturing vertical. Sources: miga-food-manufacturing.pages.dev, b2bhint.com/en/company/us-fl/miga-food-manufacturing-inc--P21000103391, martinfierronaples.com",
+      "estimate": {
+        "source": "claude",
+        "reasoning": "Rob-confirmed high-probability near-term close with a named champion (Waskovich). Direct Phase One (~$22k yr-1) plus first reference account in blue-collar food manufacturing — unlocks the co-packer/distributor/country-club orbit and validates the vertical. Probability reflects Rob's own read plus a live champion, discounted only for not-yet-signed.",
+        "estRevenue": 80000,
+        "estNewNodes": 5,
+        "estimatedAt": "2026-07-08T07:10:00.000Z",
+        "probability": 0.75
+      },
+      "notes": " | Rob 2026-07-17: ownership resolved — Gary Waskovich and Daniella Roach are CO-owners. Daniella's family also runs Martin Fierro (Naples) + Oasis (Ave Maria): the Miga close opens the whole restaurant cluster."
+    },
+    {
+      "id": "naples-spine-joint",
+      "name": "Naples Spine & Joint",
+      "business": "Naples Spine & Joint",
+      "role": "Chiropractic / spine clinic",
+      "nodeType": "client",
+      "verticalId": "medical",
+      "phone": "(239) 734-3356",
+      "email": "info@naplessj.com",
+      "website": "https://www.naplessj.com/",
+      "referredById": "jonathan-polk",
+      "relationship": "Polk is their #1 business-bringer",
+      "status": "lit",
+      "quotedAmount": 5000,
+      "signed": true,
+      "keyDates": {
+        "met": "2026-06-24",
+        "quoted": "2026-06-26",
+        "signed": "2026-07-01"
+      },
+      "phaseOne": "in-progress",
+      "description": "Polk and Monicas Company. Will be good for Other Adv Med Spas in Area and the Spanish Audience changes we made",
+      "estimate": {
+        "source": "claude",
+        "reasoning": "Polk and Monica appear to be a direct med spa signing (~$22k year-one value), plus potential referral access to other med spas in their area and the Spanish-speaking market segment given the localization work already done. However, 'other med spas in area' and 'Spanish audience' are unscheduled, vague referral pathways with no named contacts or confirmed intros yet, so this is discounted heavily. Estimate assumes the direct deal closes plus roughly 1-2 referred med spa deals materialize over time.",
+        "estRevenue": 44000,
+        "estNewNodes": 3,
+        "estimatedAt": "2026-07-18T00:15:09.004Z",
+        "probability": 0.35
+      },
+      "notes": "First lit client node in the medical cluster.\n\nENRICHED 2026-07-17: Address 7955 Airport Pulling Rd, Suite 203, Naples FL 34109 (https://www.naplessj.com/contact).\nENRICHED 2026-07-17: Sunbiz NAPLES SPINE & JOINT, LLC, doc# L24000046786, FEI/EIN 99-0904739, filed 01/25/2024 (eff 01/24/2024), status ACTIVE, principal address matches the clinic (7955 Airport Pulling Rd 203, Naples FL 34109) -- confirms this is a young business, ~2.5 years old (https://search.sunbiz.org/Inquiry/corporationsearch/SearchResultDetail?inquirytype=EntityName&directionType=ForwardList&searchNameOrder=NAPLESSPINEJOINT+L240000467860).\nENRICHED 2026-07-17: OWNERSHIP / Jonathan Polk connection resolved -- Monica Polk is listed on LinkedIn as 'Business Owner, Naples Spine & Joint' (https://www.linkedin.com/in/monica-polk-7aa586324/), same surname as connector Jonathan Polk, matching the existing CRM description 'Polk and Monica's Company.' Separately, Jonathan Polk's own LinkedIn work history lists him as former VP of Marketing at Naples Spine & Joint before his current role as Regional Manager (Southwest & Miami, FL) at PropLogix (https://www.linkedin.com/in/jonathan-polk-56a95469/ ; https://www.proplogix.com/team/jonathan-polk/) -- this also resolves the open question on Polk's employer (see jonathan-polk record) and strongly suggests 'PropLogic' elsewhere in this CRM is a misspelling of PropLogix, his actual employer.\nENRICHED 2026-07-17: Social -- Instagram @naples_spine_joint (https://www.instagram.com/naples_spine_joint/, includes a 'clinic is now open' post consistent with the Jan-2024 filing date); Facebook page https://www.facebook.com/61577212680619/.\nENRICHED 2026-07-17: Yelp listing exists (https://www.yelp.com/biz/naples-spine-and-joint-naples) but the page blocked automated fetch (403) and no star rating/review count surfaced via search this pass -- still open. No Google Business Profile rating captured either. EN vs Spanish-language review split not verified.\nENRICHED 2026-07-17: No individual doctor/chiropractor names published on the site's About page -- could not pull a named practitioner for an FL DOH license lookup; needs an internal ask (likely Monica Polk or a named DC on staff)."
+    },
+    {
+      "id": "oasis-kitchen-lounge",
+      "name": "Oasis The Kitchen Lounge",
+      "business": "Oasis The Kitchen Lounge",
+      "role": "Restaurant & cocktail lounge, Ave Maria Town Center",
+      "verticalId": "food",
+      "referredById": "michael-jaenvega",
+      "relationship": "Michael's second restaurant (JV w/ Phong Ho) — Ave Maria Town Center",
+      "status": "unlit",
+      "signed": false,
+      "keyDates": {},
+      "phaseOne": "not-started",
+      "description": "Joint venture between Michael Jaenvega and restaurateur Phong Ho in the Ave Maria Town Center — same town as Miga's HQ. Second door in the Jaenvega family cluster.",
+      "notes": "Sources: avemaria.com Oasis opening announcement; Sunbiz L23000083341 (original Oasis AveMaria FL LLC — Michael MGR, Daniella AMBR)."
+    },
+    {
+      "id": "omega-title-fl",
+      "name": "Omega Title (FL)",
+      "role": "Omega Title Florida (Omega Title Holdings Group) — Naples-HQ title co, CEO Scott Dascani; 6,000+ closings, ops in 24+ states",
+      "nodeType": "vertical-anchor",
+      "verticalId": "title",
+      "referredById": "alex-greenwood",
+      "relationship": "Door via Alex Greenwood (Gulf Coast RE), Rob 2026-07-09. Likely = Omega Title Holdings Group (Naples HQ, 3411 Tamiami Trail N; SW-FL origin — fits Alex). CONFIRM w/ Alex it's Scott Dascani's shop (name-collides with Omega Title LLC of Fort Myers + Omega National Title).",
+      "status": "unlit",
+      "signed": false,
+      "keyDates": {},
+      "phaseOne": "not-started",
+      "description": "Omega Title Florida LLC (Sunbiz; reg. agent Scott Dascani, Naples). Brand: omegatitlegroup.com. Principals: Scott Dascani (CEO/founder), David Cochran (CFO), Angela Stavros (COO), Mike Stiber II (Pres. East Coast). Self-reported 6,000+ closings across 24+ states (3 divisions). FL offices: Naples HQ + Ft. Lauderdale, Pembroke Pines, Stuart, Gulf Breeze. Revenue not public. Source: omegatitlegroup.com/about, Sunbiz, BBB (2026-07-09 enrichment).",
+      "estimate": {
+        "source": "claude",
+        "reasoning": "Florida title company, warm intro via Alex Greenwood (an active engaged relationship). Title is MLE's #2 vertical; one company deal plus the closing-vendor orbit. Discounted until the intro is scheduled and the company is enriched.",
+        "estRevenue": 90000,
+        "estNewNodes": 4,
+        "estimatedAt": "2026-07-09T14:00:00.000Z",
+        "probability": 0.4
+      }
+    },
+    {
+      "id": "proplogic",
+      "name": "PropLogic",
+      "business": "PropLogic",
+      "role": "Title-tech company",
+      "nodeType": "lead",
+      "verticalId": "title",
+      "referredById": "jonathan-polk",
+      "relationship": "their reps say Polk is their #1",
+      "status": "unlit",
+      "signed": false,
+      "keyDates": {},
+      "phaseOne": "not-started",
+      "notes": "Polk can walk us in."
     },
     {
       "id": "qualia",
       "name": "Qualia",
       "business": "Qualia",
       "role": "Title-tech / closing platform",
+      "nodeType": "lead",
       "verticalId": "title",
       "referredById": "jonathan-polk",
       "relationship": "their reps say Polk is their #1, never turns down a meeting",
@@ -150,13 +639,107 @@
       "signed": false,
       "keyDates": {},
       "phaseOne": "not-started",
-      "notes": "Polk can walk us in. Two-sided play: sell to them as retention bait for their agents.",
-      "nodeType": "client"
+      "notes": "Polk can walk us in. Two-sided play: sell to them as retention bait for their agents."
+    },
+    {
+      "id": "red-rock-roofing",
+      "name": "Red Rock Roofing (UT)",
+      "role": "Caleb's company #2 — Utah greenfield launch, ~3 months to legal go-live, GM + crews lined up",
+      "nodeType": "lead",
+      "verticalId": "roofing",
+      "referredById": "caleb-green",
+      "relationship": "MLE owns its digital foundation (Step 1 starts now). Caleb's exit plan: Red Rock replaces CG income → sell CG at max multiple. $4k spent on old site (MLE reviewing take-over from dev Garrett)",
+      "status": "warm",
+      "signed": false,
+      "keyDates": {},
+      "phaseOne": "in-progress",
+      "description": "Red Rock Roofing — the growth vehicle inside the 3-way CRM partnership. Timeline gated by licensing/EIN. Utah niche targets owed by Caleb. Source: 6/16+6/18 meeting extractions.",
+      "estimate": {
+        "source": "claude",
+        "reasoning": "Greenfield inside a signed partnership: MLE owns the digital foundation from day one, and Red Rock is Caleb's declared exit vehicle — budget follows intent here. Step 1 already authorized in the 4-step model; Utah market entry adds a second-state reference account.",
+        "estRevenue": 180000,
+        "estNewNodes": 6,
+        "estimatedAt": "2026-07-09T05:40:00.000Z",
+        "probability": 0.7
+      }
+    },
+    {
+      "id": "rob-acheson",
+      "name": "Rob Acheson",
+      "business": "AI VoiceTech / MLE",
+      "role": "Founder — network, training, presenting, recruiting",
+      "nodeType": "mle-admin",
+      "verticalId": "core",
+      "status": "lit",
+      "signed": false,
+      "keyDates": {},
+      "phaseOne": "not-started",
+      "notes": "Center of The Network."
+    },
+    {
+      "id": "trent-brands",
+      "name": "Trent Brands",
+      "role": "Founder/CEO, Title Base (veteran-owned title & escrow, 400 5th Ave S, Naples) — 2x title founder (Estates Title 2022→exit 2025)",
+      "nodeType": "vertical-anchor",
+      "verticalId": "title",
+      "referredById": "rob-acheson",
+      "relationship": "Rob 2026-07-09: Trent's company is Title Base (thetitlebase.com). Named by Rob as pipeline; 2x title founder, Naples. Referral multiplier into title/realtor/VA-lender orbit.",
+      "status": "warm",
+      "signed": false,
+      "keyDates": {},
+      "phaseOne": "not-started",
+      "description": "Trenton Brands — founder/CEO of Title Base (TB Florida LLC, inc. 11/2024, BBB A). US Navy vet (USS Blue Ridge, Operation Tomodachi). Licensed agent 2014-2025, flipper, Airbnb Superhost. Built Estates Title 2022, sold share 2025, now scaling Title Base solo. Hometown Heroes Boost = discounted closings for military/first responders/teachers/medical — generates homebuyer inquiry volume a 2-person shop can't answer at 7pm: exact AIDRE receptionist + AIVA leak profile. Title companies live on inbound calls (payoffs, wires, closing dates) + realtor/lender referral nurture. Sources: thetitlebase.com, bbb.org (TB Florida LLC), linkedin.com/in/trentbrands, drivensuccesspodcast.com",
+      "estimate": {
+        "source": "claude",
+        "reasoning": "Two-time title-company founder in startup mode with sole signing authority — high direct-close odds on Phase One (~$22k yr-1) because title shops live on inbound call handling and he has no legacy stack. Real value is the multiplier: Estates Title alumni channel, Naples podcast circuit, and the realtor/VA-lender rolodex that feeds his closings — three to four doors at door economics. Probability reflects warm-not-contacted status.",
+        "estRevenue": 180000,
+        "estNewNodes": 8,
+        "estimatedAt": "2026-07-08T05:45:00.000Z",
+        "probability": 0.55
+      }
+    },
+    {
+      "id": "vive-health",
+      "name": "Vive Health",
+      "role": "Naples FL medical-device/DME manufacturer — ~100+ employees, 3 US warehouses, house brands Vive/Vive Precision/Xtra-Comfort/Arctic Flex",
+      "nodeType": "vertical-anchor",
+      "verticalId": "medical",
+      "referredById": "jonathan-burns",
+      "relationship": "Door: Jonathan Burns → owner Joseph Fleming (LLC manager + registered agent). Same city as lit Polk/Naples Spine & Joint cluster",
+      "status": "warm",
+      "signed": false,
+      "keyDates": {},
+      "phaseOne": "not-started",
+      "description": "Vive Health LLC (Sunbiz L14000097313, filed 2014, Naples 34109). DME manufacturer: mobility aids, braces, bathroom safety, monitoring. Direct e-comm + major Amazon storefront + B2B wholesale portal into clinics/chiro/podiatry/pharmacy/DME resellers — exactly the Naples Spine & Joint category. Family business: Danny Fleming runs ecommerce. Sources: bisprofiles.com/fl/vive-health-l14000097313, vivehealth.com, bbb.org",
+      "estimate": {
+        "source": "claude",
+        "reasoning": "Naples DME manufacturer (~100+ employees, 3 warehouses) as direct client plus its B2B wholesale orbit: clinics, chiro, podiatry, pharmacies, DME resellers — the exact category the lit Naples Spine & Joint node sits in. Value depends on the Burns-to-Fleming intro converting; discounted accordingly.",
+        "estRevenue": 110000,
+        "estNewNodes": 5,
+        "estimatedAt": "2026-07-08T05:47:00.000Z",
+        "probability": 0.4
+      }
+    },
+    {
+      "id": "will",
+      "name": "Will",
+      "business": "MLE",
+      "role": "Tech delivery + big-network relationship meetings",
+      "nodeType": "mle-admin",
+      "verticalId": "core",
+      "referredById": "rob-acheson",
+      "relationship": "partner",
+      "status": "lit",
+      "signed": false,
+      "keyDates": {},
+      "phaseOne": "not-started",
+      "notes": "Owns tech delivery. Meets with his past big-network relationships."
     },
     {
       "id": "will-network-a",
       "name": "Will's Big-Network Contact A",
       "role": "Placeholder — Will's past relationship, very large network",
+      "nodeType": "connector",
       "verticalId": "payments",
       "referredById": "will",
       "relationship": "Will's past relationship",
@@ -164,75 +747,111 @@
       "signed": false,
       "keyDates": {},
       "phaseOne": "not-started",
-      "notes": "Will owns this meeting. Replace with real name in Phase 1 brain-dump.",
-      "nodeType": "connector"
-    },
-    {
-      "id": "will-network-b",
-      "name": "Will's Big-Network Contact B",
-      "role": "Placeholder — Will's past relationship, very large network",
-      "verticalId": "title",
-      "referredById": "will",
-      "relationship": "Will's past relationship",
-      "status": "warm",
-      "signed": false,
-      "keyDates": {},
-      "phaseOne": "not-started",
-      "notes": "Will owns this meeting. Replace with real name in Phase 1 brain-dump.",
-      "nodeType": "connector"
-    },
-    {
-      "id": "roofer-naples-a",
-      "name": "Roofing Contractor A (Naples)",
-      "role": "Placeholder — roofing cluster seed",
-      "verticalId": "roofing",
-      "referredById": "rob-acheson",
-      "relationship": "roofing domain network",
-      "status": "unlit",
-      "signed": false,
-      "keyDates": {},
-      "phaseOne": "not-started",
-      "notes": "Phase 1.5 imports the real roofing lists (domain data, no STG branding).",
-      "nodeType": "client"
-    },
-    {
-      "id": "roofer-naples-b",
-      "name": "Roofing Contractor B (Ft. Myers)",
-      "role": "Placeholder — roofing cluster seed",
-      "verticalId": "roofing",
-      "referredById": "rob-acheson",
-      "relationship": "roofing domain network",
-      "status": "unlit",
-      "signed": false,
-      "keyDates": {},
-      "phaseOne": "not-started",
-      "nodeType": "client"
-    },
-    {
-      "id": "pp-salesperson-a",
-      "name": "Displaced Payments Salesperson A",
-      "role": "Placeholder — knows every business owner in town",
-      "verticalId": "payments",
-      "status": "unlit",
-      "signed": false,
-      "keyDates": {},
-      "phaseOne": "not-started",
-      "notes": "Recruiting target archetype (Phase 2.5 LinkedIn scan fills these in).",
-      "nodeType": "vertical-anchor"
+      "notes": "Will owns this meeting. Replace with real name in Phase 1 brain-dump."
     }
   ],
   "edges": [
     {
-      "id": "e-rob-will",
-      "fromId": "rob-acheson",
-      "toId": "will",
-      "relationship": "partners"
+      "id": "biz-alex-greenwood-kdm-of-golf-coast-real-estate-group",
+      "fromId": "alex-greenwood",
+      "toId": "golf-coast-real-estate-group",
+      "relationship": "Team Leader (56-agent team)"
     },
     {
-      "id": "e-rob-polk",
-      "fromId": "rob-acheson",
-      "toId": "jonathan-polk",
-      "relationship": "free LinkedIn automation"
+      "id": "biz-caleb-green-owns-cg-roofing-group",
+      "fromId": "caleb-green",
+      "toId": "cg-roofing-group",
+      "relationship": "President, CG Roofing"
+    },
+    {
+      "id": "biz-caleb-green-owns-red-rock-roofing",
+      "fromId": "caleb-green",
+      "toId": "red-rock-roofing",
+      "relationship": "Caleb's company #2 (UT)"
+    },
+    {
+      "id": "biz-chris-acheson-works-for-golf-coast-real-estate-group",
+      "fromId": "chris-acheson",
+      "toId": "golf-coast-real-estate-group",
+      "relationship": "Realtor"
+    },
+    {
+      "id": "biz-daniella-owns-mf",
+      "fromId": "daniella-roach",
+      "toId": "martin-fierro-restaurant",
+      "relationship": "co-owner (family business; FB feature)"
+    },
+    {
+      "id": "biz-daniella-owns-miga",
+      "fromId": "daniella-roach",
+      "toId": "miga-food-manufacturing",
+      "relationship": "co-owner (officer/agent, Sunbiz P21000103391)"
+    },
+    {
+      "id": "biz-daniella-owns-oasis",
+      "fromId": "daniella-roach",
+      "toId": "oasis-kitchen-lounge",
+      "relationship": "co-owner (AMBR, Oasis AveMaria FL LLC)"
+    },
+    {
+      "id": "biz-dix-thedevdix-owns-dix-healthcare-ai",
+      "fromId": "dix-thedevdix",
+      "toId": "dix-healthcare-ai",
+      "relationship": "his healthcare-AI venture"
+    },
+    {
+      "id": "biz-gary-waskivich-owns-miga-food-manufacturing",
+      "fromId": "gary-waskivich",
+      "toId": "miga-food-manufacturing",
+      "relationship": "Rob 2026-07-17: Gary owns Miga (⚠️ row says owner Daniella Jaenvega / 100% women-owned — confirm with Rob)"
+    },
+    {
+      "id": "biz-gary-waskivich-works-for-dececco-pasta",
+      "fromId": "gary-waskivich",
+      "toId": "dececco-pasta",
+      "relationship": "Regional Sales Manager (FL), De Cecco USA"
+    },
+    {
+      "id": "biz-giovanni-spazioso-kdm-of-dececco-pasta",
+      "fromId": "giovanni-spazioso",
+      "toId": "dececco-pasta",
+      "relationship": "KDM — National Account Sales Manager, East (Rob 2026-07-17)"
+    },
+    {
+      "id": "biz-joe-fleming-owns-vive-health",
+      "fromId": "joe-fleming",
+      "toId": "vive-health",
+      "relationship": "Co-Founder/Owner"
+    },
+    {
+      "id": "biz-jonathan-burns-works-for-vive-health",
+      "fromId": "jonathan-burns",
+      "toId": "vive-health",
+      "relationship": "Director of B2B Marketing"
+    },
+    {
+      "id": "biz-michael-owns-mf",
+      "fromId": "michael-jaenvega",
+      "toId": "martin-fierro-restaurant",
+      "relationship": "President, MFS Naples Inc (Sunbiz P17000087470)"
+    },
+    {
+      "id": "biz-michael-owns-oasis",
+      "fromId": "michael-jaenvega",
+      "toId": "oasis-kitchen-lounge",
+      "relationship": "co-owner (JV w/ Phong Ho)"
+    },
+    {
+      "id": "e-healthai-derm",
+      "fromId": "dix-healthcare-ai",
+      "toId": "derm-clinic-pilot",
+      "relationship": "pilot #1 via Rob's sister-in-law"
+    },
+    {
+      "id": "e-polk-landtech",
+      "fromId": "jonathan-polk",
+      "toId": "landtech",
+      "relationship": "reps' #1 referrer"
     },
     {
       "id": "e-polk-naples",
@@ -247,16 +866,22 @@
       "relationship": "reps' #1 referrer"
     },
     {
-      "id": "e-polk-landtech",
-      "fromId": "jonathan-polk",
-      "toId": "landtech",
-      "relationship": "reps' #1 referrer"
-    },
-    {
       "id": "e-polk-qualia",
       "fromId": "jonathan-polk",
       "toId": "qualia",
       "relationship": "reps' #1 referrer"
+    },
+    {
+      "id": "e-rob-polk",
+      "fromId": "rob-acheson",
+      "toId": "jonathan-polk",
+      "relationship": "free LinkedIn automation"
+    },
+    {
+      "id": "e-rob-will",
+      "fromId": "rob-acheson",
+      "toId": "will",
+      "relationship": "partners"
     },
     {
       "id": "e-will-a",
@@ -265,33 +890,225 @@
       "relationship": "past relationship"
     },
     {
-      "id": "e-will-b",
-      "fromId": "will",
-      "toId": "will-network-b",
-      "relationship": "past relationship"
+      "id": "prov-alex-greenwood",
+      "fromId": "rob-acheson",
+      "toId": "alex-greenwood",
+      "relationship": "named by Rob 2026-07-07"
     },
     {
-      "id": "e-rob-roofa",
-      "fromId": "rob-acheson",
-      "toId": "roofer-naples-a",
-      "relationship": "roofing network"
+      "id": "prov-atlanta-roofing-contractor",
+      "fromId": "caleb-green",
+      "toId": "atlanta-roofing-contractor",
+      "relationship": "referral in motion from Caleb (6/18 call)"
     },
     {
-      "id": "e-rob-roofb",
+      "id": "prov-caleb-green",
       "fromId": "rob-acheson",
-      "toId": "roofer-naples-b",
-      "relationship": "roofing network"
+      "toId": "caleb-green",
+      "relationship": "SIGNED 6/22, $10k invoiced 6/26 (CFO Kelly handles invoicing, Net 30). BIGGER: three-way CRM partnership (Caleb + Rob + Will) forming with counsel — revenue splits in draft; all parties owe entity/legal info. CG is the test bed for a national roofing-CRM SaaS. Close rate 60-65%; high-end residential focus. Referrals in motion: Atlanta contractor + a family moving-company intro."
+    },
+    {
+      "id": "prov-calebs-brother-moving-co",
+      "fromId": "caleb-green",
+      "toId": "calebs-brother-moving-co",
+      "relationship": "direct referral from Caleb (6/18)"
+    },
+    {
+      "id": "prov-cg-roofing-group",
+      "fromId": "caleb-green",
+      "toId": "cg-roofing-group",
+      "relationship": "Caleb's company — first signed account"
+    },
+    {
+      "id": "prov-chris-acheson",
+      "fromId": "rob-acheson",
+      "toId": "chris-acheson",
+      "relationship": "named by Rob 2026-07-07"
+    },
+    {
+      "id": "prov-daniella-roach",
+      "fromId": "gary-waskivich",
+      "toId": "daniella-roach",
+      "relationship": "co-owner of Miga with Gary — door via the Miga deal"
+    },
+    {
+      "id": "prov-david-cates",
+      "fromId": "rob-acheson",
+      "toId": "david-cates",
+      "relationship": "Former Colleague"
+    },
+    {
+      "id": "prov-dececco-pasta",
+      "fromId": "gary-waskivich",
+      "toId": "dececco-pasta",
+      "relationship": "door via Gary (Regional Sales Mgr) and Gio (KDM)"
+    },
+    {
+      "id": "prov-derm-clinic-pilot",
+      "fromId": "rob-acheson",
+      "toId": "derm-clinic-pilot",
+      "relationship": "Rob's sister-in-law works there"
+    },
+    {
+      "id": "prov-dix-healthcare-ai",
+      "fromId": "dix-thedevdix",
+      "toId": "dix-healthcare-ai",
+      "relationship": "Dix's healthcare-AI venture (Rob gets equity for US intros)"
+    },
+    {
+      "id": "prov-dix-thedevdix",
+      "fromId": "rob-acheson",
+      "toId": "dix-thedevdix",
+      "relationship": "long-standing relationship since 2024"
+    },
+    {
+      "id": "prov-gary-waskivich",
+      "fromId": "rob-acheson",
+      "toId": "gary-waskivich",
+      "relationship": "ROB 2026-07-08: Gary is the CHAMPION — high-probability close for Miga, then De Cecco next. Big shot at De Cecco (verified: Regional Sales Mgr FL). Gary↔Miga tie confirmed real by Rob (was dashed/unverified)"
+    },
+    {
+      "id": "prov-george-eu",
+      "fromId": "dix-thedevdix",
+      "toId": "george-eu",
+      "relationship": "Dix's advisor for EU intros"
+    },
+    {
+      "id": "prov-giovanni-spazioso",
+      "fromId": "gary-waskivich",
+      "toId": "giovanni-spazioso",
+      "relationship": "Gary introduced Rob to Gio (Rob 2026-07-17)"
+    },
+    {
+      "id": "prov-golf-coast-real-estate-group",
+      "fromId": "alex-greenwood",
+      "toId": "golf-coast-real-estate-group",
+      "relationship": "Alex is the door — his 56-agent team"
+    },
+    {
+      "id": "prov-joe-fleming",
+      "fromId": "jonathan-burns",
+      "toId": "joe-fleming",
+      "relationship": "one hop: Burns reports directly to Fleming"
+    },
+    {
+      "id": "prov-jonathan-burns",
+      "fromId": "rob-acheson",
+      "toId": "jonathan-burns",
+      "relationship": "Rob brain-dump 2026-07-08"
+    },
+    {
+      "id": "prov-martin-fierro-restaurant",
+      "fromId": "daniella-roach",
+      "toId": "martin-fierro-restaurant",
+      "relationship": "the family's Naples restaurant"
+    },
+    {
+      "id": "prov-michael-jaenvega",
+      "fromId": "daniella-roach",
+      "toId": "michael-jaenvega",
+      "relationship": "Daniella's husband"
+    },
+    {
+      "id": "prov-miga-food-manufacturing",
+      "fromId": "gary-waskivich",
+      "toId": "miga-food-manufacturing",
+      "relationship": "champion Gary — high-probability close"
+    },
+    {
+      "id": "prov-oasis-kitchen-lounge",
+      "fromId": "michael-jaenvega",
+      "toId": "oasis-kitchen-lounge",
+      "relationship": "Michael's JV with Phong Ho"
+    },
+    {
+      "id": "prov-omega-title-fl",
+      "fromId": "alex-greenwood",
+      "toId": "omega-title-fl",
+      "relationship": "door via Alex Greenwood (Rob 2026-07-09)"
+    },
+    {
+      "id": "prov-red-rock-roofing",
+      "fromId": "caleb-green",
+      "toId": "red-rock-roofing",
+      "relationship": "Caleb's company #2 (UT greenfield)"
+    },
+    {
+      "id": "prov-trent-brands",
+      "fromId": "rob-acheson",
+      "toId": "trent-brands",
+      "relationship": "named by Rob 2026-07-09"
+    },
+    {
+      "id": "prov-vive-health",
+      "fromId": "jonathan-burns",
+      "toId": "vive-health",
+      "relationship": "door: Burns → owner Joe Fleming"
     }
   ],
   "projects": [
     {
-      "id": "mle-rob-dashboard",
-      "name": "The Network Dashboard (this)",
-      "category": "internal",
+      "id": "ai-realestate",
+      "name": "AI Real Estate Analyst",
+      "category": "revenue-system",
+      "theme": "sign-the-agreement",
+      "completion": 70,
+      "owner": "Rob",
+      "summary": "WHAT: instant property-score report as a lead magnet for realtors/investors. WHY: free property workup earns the conversation. 3 iterations live (canonical: ai-realestate-claude-ra.vercel.app); landing + sample reports are strong, the live-score engine is still a mockup (~90-day build to wire real data).",
+      "link": "https://ai-realestate-claude-ra.vercel.app",
+      "updatedAt": "2026-07-09"
+    },
+    {
+      "id": "aidre",
+      "name": "AIDRE — 24/7 AI Phone Receptionist",
+      "category": "product-build",
+      "theme": "get-paid-fast",
+      "completion": 70,
+      "owner": "Will",
+      "summary": "Plugs the missed-inbound-calls leak. Demo sells itself (live call @ $0.44).",
+      "link": "https://github.com/blacklabelbob/digi-rec-roi-dual-demo",
+      "updatedAt": "2026-07-04"
+    },
+    {
+      "id": "aiva",
+      "name": "AIVA — Proactive Avatar Web Chat",
+      "category": "product-build",
       "theme": "reduce-all-friction",
       "completion": 40,
+      "owner": "Will",
+      "summary": "Plugs the missed-website-visitors leak (~97% leave silently).",
+      "link": "https://github.com/blacklabelbob/leaky-bucket-web-agent",
+      "updatedAt": "2026-07-04"
+    },
+    {
+      "id": "dashboard-chatbot",
+      "name": "Dashboard Chatbot (talk-to-Claude)",
+      "category": "internal",
+      "theme": "reduce-all-friction",
+      "completion": 0,
+      "owner": "Rob",
+      "summary": "WHAT: a working chatbot embedded IN the MLE dashboard that connects directly to Claude. WHY: Rob edits the network as he goes — 'just write in it to make changes' (add/rename nodes, log intel, update deals) in natural language instead of forms. Rob directive 2026-07-09. Also: RankLens/dataforseo has an /#agents surface (dataforseo-claude-ra.vercel.app/#agents) worth reviewing as a pattern.",
+      "updatedAt": "2026-07-09"
+    },
+    {
+      "id": "geo-seo-claude",
+      "name": "GEO/SEO Audit — client deliverable (Geo)",
+      "category": "revenue-system",
+      "theme": "sign-the-agreement",
+      "completion": 78,
+      "owner": "Rob",
+      "summary": "WHAT: the real, client-grade GEO/SEO audit we hand a prospect — polished, scored (composite + search visibility / technical / content), executive summary, live-data findings. Example: the CG Roofing / Title Base audit (83/100). THIS is the good one with the full report. WHY: it's the deliverable that wins deals. Source project: 'geo-seo-claude copy'.",
+      "link": "https://mle-rob-dashboard.vercel.app/geo/cg-roofing-audit.html",
+      "updatedAt": "2026-07-09"
+    },
+    {
+      "id": "invoicing-engine",
+      "name": "Invoicing Engine",
+      "category": "revenue-system",
+      "theme": "get-paid-fast",
+      "completion": 20,
       "owner": "Max",
-      "summary": "One URL: network graph, people ledger, projects board, AI estimator, training corner.",
+      "summary": "Invoice out on signature; time-to-payment tracked like a hawk.",
       "updatedAt": "2026-07-04"
     },
     {
@@ -305,69 +1122,24 @@
       "updatedAt": "2026-07-04"
     },
     {
-      "id": "invoicing-engine",
-      "name": "Invoicing Engine",
-      "category": "revenue-system",
-      "theme": "get-paid-fast",
-      "completion": 20,
-      "owner": "Max",
-      "summary": "Invoice out on signature; time-to-payment tracked like a hawk.",
-      "updatedAt": "2026-07-04"
-    },
-    {
-      "id": "aidre",
-      "name": "AIDRE — 24/7 AI Phone Receptionist",
-      "category": "product-build",
-      "theme": "get-paid-fast",
-      "completion": 70,
-      "owner": "Will",
-      "summary": "Plugs the missed-inbound-calls leak. Demo sells itself (live call @ $0.44).",
-      "link": "https://github.com/blacklabelbob/digi-rec-roi-dual-demo",
-      "willItems": [
-        {
-          "item": "Confirm demo phone number stays provisioned",
-          "due": "2026-07-08",
-          "done": false
-        },
-        {
-          "item": "Deliver 5-roofer pilot target shortlist to Rob",
-          "due": "2026-07-10",
-          "done": false
-        }
-      ],
-      "updatedAt": "2026-07-04"
-    },
-    {
-      "id": "aiva",
-      "name": "AIVA — Proactive Avatar Web Chat",
-      "category": "product-build",
+      "id": "mle-rob-dashboard",
+      "name": "The Network Dashboard (this)",
+      "category": "internal",
       "theme": "reduce-all-friction",
-      "completion": 45,
+      "completion": 40,
+      "owner": "Max",
+      "summary": "One URL: network graph, people ledger, projects board, AI estimator, training corner.",
+      "updatedAt": "2026-07-04"
+    },
+    {
+      "id": "propestimate",
+      "name": "PropEstimate — Title-Co Lead Magnet",
+      "category": "product-build",
+      "theme": "sign-the-agreement",
+      "completion": 55,
       "owner": "Will",
-      "summary": "Plugs the missed-website-visitors leak (~97% leave silently). Cost model verified 2026-07-08: 88-99.6% margin at the $300-500/mo band. Next: MLE fleet embed (template-level, one line).",
-      "link": "https://github.com/blacklabelbob/leaky-bucket-web-agent",
-      "willItems": [
-        {
-          "item": "Rotate carried-over OpenAI key (security)",
-          "due": "2026-07-07",
-          "done": false
-        }
-      ],
-      "updatedAt": "2026-07-08",
-      "resources": [
-        {
-          "label": "Cost Model & Finish-Line Map",
-          "url": "https://claude.ai/code/artifact/7f4e44b1-9242-4b46-be69-a14e4cc5b211"
-        },
-        {
-          "label": "Living PRD v2.5",
-          "url": "https://github.com/blacklabelbob/leaky-bucket-web-agent/blob/feat/aiva-perfect/docs/plans/PRD-aiva-living.md"
-        },
-        {
-          "label": "Sourced pricing snapshot",
-          "url": "https://github.com/blacklabelbob/leaky-bucket-web-agent/blob/feat/aiva-perfect/docs/research/aiva-cost-model-2026-07-08.md"
-        }
-      ]
+      "summary": "Closing-cost calculators as co-branded retention bait for title companies.",
+      "updatedAt": "2026-07-04"
     },
     {
       "id": "ranklens",
@@ -380,21 +1152,26 @@
       "updatedAt": "2026-07-04"
     },
     {
-      "id": "propestimate",
-      "name": "PropEstimate — Title-Co Lead Magnet",
-      "category": "product-build",
+      "id": "ranklens-funnel",
+      "name": "RankLens + dataforseo prospecting",
+      "category": "revenue-system",
       "theme": "sign-the-agreement",
-      "completion": 55,
-      "owner": "Will",
-      "summary": "Closing-cost calculators as co-branded retention bait for title companies.",
-      "willItems": [
-        {
-          "item": "Move SECRET_KEY to env var before any deploy",
-          "due": "2026-07-06",
-          "done": false
-        }
-      ],
-      "updatedAt": "2026-07-04"
+      "completion": 75,
+      "owner": "Rob",
+      "summary": "WHAT: domain-in → SEO audit → report → checkout funnel. WHY: a rep-sendable link that shows a prospect why Google ranks their competitors above them, then sells the fix. LIVE now (deployed 2026-07-09). Next: swap disk store → KV, add Stripe links.",
+      "link": "https://ranklens-livid.vercel.app",
+      "updatedAt": "2026-07-09"
+    },
+    {
+      "id": "storm-match-hail-engine",
+      "name": "Storm Match",
+      "category": "revenue-system",
+      "theme": "sign-the-agreement",
+      "completion": 75,
+      "owner": "Rob",
+      "summary": "WHAT: hail storm → named list of hit homeowners in minutes, from free public data + a branded Storm Impact Report generator (report.html) a rep personalizes per roofer and sends as PDF. WHY: fastest trust-builder in roofing — free list starts the Phase One conversation; the report IS the deliverable. LIVE: storm-match.vercel.app.",
+      "link": "https://storm-match.vercel.app",
+      "updatedAt": "2026-07-09"
     }
   ]
 }

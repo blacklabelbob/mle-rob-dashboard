@@ -1,7 +1,10 @@
 # CRM BUILD QUEUE — worked by the 10-minute driver (crm-build-driver.sh)
 **Protocol:** the driver takes the TOP unchecked item, does ONE safe increment (≤6 min), verifies (build/tests), commits + pushes, and ticks or annotates the item. Milestones get a critic-rob review before checking off. Never modify money/signed fields without a Rob instruction. Rob's dev-chat messages ALWAYS preempt this queue.
 
-- [ ] Q1. Fallback truthfulness (Critic Rob R1-#7): regenerate `data/network.json` from live Supabase + `scripts/regen-fallback.mjs` + visible amber "serving fallback data" banner when file store is active | DoD: fallback file matches live rows; banner renders when STORAGE_SOURCE=file
+- [x] Q1. Fallback truthfulness (Critic Rob R1-#7): regenerate `data/network.json` from live Supabase + `scripts/regen-fallback.mjs` + visible amber "serving fallback data" banner when file store is active | DoD: fallback file matches live rows; banner renders when STORAGE_SOURCE=file
+  - 2026-07-18 driver: `scripts/regen-fallback.mjs` added (mirrors supabaseStore field mapping; loads .env.local; deterministic id-ordered output). Ran it: network.json went 12→34 people, 10→49 edges, 6→8 verticals, 7→12 projects — now matches live Supabase.
+  - Amber banner: `components/FallbackBanner.tsx` in layout; `servingFileData()` in lib/storage distinguishes "configured" (STORAGE_SOURCE=file) vs "fallback" (Supabase read failed, sticky until next good read).
+  - Verified: npm run build green, 8/8 vitest, local `next start` with STORAGE_SOURCE=file renders "File store active — this is snapshot data, not live Supabase."
 - [ ] Q2. Purge remaining 7/4 seed fiction: audit projects table + any placeholder rows (Will's Network Contact A/B etc.) — list to Rob in dev-chat for kill confirmation, delete confirmed ones | DoD: no dummy data renders anywhere
 - [ ] Q3. entity_kind mapping (Critic Rob R1-#6 tail): expose `entityKind` through types/adapter/UI badge (person vs business) as the visible precursor to Task 2.0 | DoD: businesses show a subtle badge in ledger + record
 - [ ] Q4. Task 2.0 people/org split — design + migration `0003_orgs_split.sql` per D-002 ERD (orgs, org_memberships, paired-FK edges), classification pass with review queue in dev-chat | DoD: PRD Task 2.0 DoD (54-in reconciliation adapted to current counts)

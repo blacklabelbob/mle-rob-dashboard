@@ -17,18 +17,34 @@ const stores: Record<string, StorageAdapter> = {
 // reason (not configured, credentials revoked, service down), fall back to the
 // file store so the dashboard always renders. Writes do NOT silently fall back —
 // writing to the wrong store would fork the data; they fail loudly instead.
+// Sticky per-instance flag: true after any read fell back to the file store,
+// cleared by the next successful primary read. Best-effort (per serverless
+// instance), used only to warn in the UI — never for data decisions.
+let fallbackServed = false;
+
+// What the UI should disclose about where data comes from right now.
+// "configured" = STORAGE_SOURCE is the file store itself; "fallback" = the
+// real store failed a read and stale file data was served instead.
+export function servingFileData(): "configured" | "fallback" | null {
+  if (SOURCE === "file" || !stores[SOURCE]) return "configured";
+  return fallbackServed ? "fallback" : null;
+}
+
 function withFallback(primary: StorageAdapter): StorageAdapter {
   if (primary === fileStore) return primary;
   return {
     name: `${primary.name}→file-fallback`,
     async getNetwork() {
       try {
-        return await primary.getNetwork();
+        const data = await primary.getNetwork();
+        fallbackServed = false;
+        return data;
       } catch (err) {
         console.error(
           `[storage] ${primary.name} read failed — serving file fallback (no-stall rule):`,
           err
         );
+        fallbackServed = true;
         return fileStore.getNetwork();
       }
     },
