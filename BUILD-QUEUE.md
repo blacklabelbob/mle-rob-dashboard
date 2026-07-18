@@ -1,0 +1,12 @@
+# CRM BUILD QUEUE — worked by the 10-minute driver (crm-build-driver.sh)
+**Protocol:** the driver takes the TOP unchecked item, does ONE safe increment (≤6 min), verifies (build/tests), commits + pushes, and ticks or annotates the item. Milestones get a critic-rob review before checking off. Never modify money/signed fields without a Rob instruction. Rob's dev-chat messages ALWAYS preempt this queue.
+
+- [ ] Q1. Fallback truthfulness (Critic Rob R1-#7): regenerate `data/network.json` from live Supabase + `scripts/regen-fallback.mjs` + visible amber "serving fallback data" banner when file store is active | DoD: fallback file matches live rows; banner renders when STORAGE_SOURCE=file
+- [ ] Q2. Purge remaining 7/4 seed fiction: audit projects table + any placeholder rows (Will's Network Contact A/B etc.) — list to Rob in dev-chat for kill confirmation, delete confirmed ones | DoD: no dummy data renders anywhere
+- [ ] Q3. entity_kind mapping (Critic Rob R1-#6 tail): expose `entityKind` through types/adapter/UI badge (person vs business) as the visible precursor to Task 2.0 | DoD: businesses show a subtle badge in ledger + record
+- [ ] Q4. Task 2.0 people/org split — design + migration `0003_orgs_split.sql` per D-002 ERD (orgs, org_memberships, paired-FK edges), classification pass with review queue in dev-chat | DoD: PRD Task 2.0 DoD (54-in reconciliation adapted to current counts)
+- [ ] Q5. Task 7.1 dialer SaaS scorecard: JustCall vs Aircall vs OpenPhone vs raw Twilio (recording API, webhooks, per-seat cost, embed) per scoring-pattern rule → post pick to dev-chat for Rob confirm | DoD: weighted scorecard w/ source URLs in docs/research/
+- [ ] Q6. Phase 4 logins: Supabase Auth + profiles table + role layers (super_admin now, rest gated) — replace basic-auth for Rob's login | DoD: Rob logs in with email magic-link/password; basic auth retired
+- [ ] Q7. Enrichment round 2: hunt-list records 4-10 via the audit doc, same write rules (verified→columns, soft→sourced notes) | DoD: audit doc updated, avg completeness ≥3.5
+- [ ] Q8. n8n key rotation (PRD Task 3.1 — key expires ~2026-07-19!) + Gmail capture workflow (Task 3.2, aivoicetech.io only) | DoD: per PRD DoDs
+- [ ] Q9. Deals schema (Task 2.1-2.3): 0004_crm_core.sql per D-002, adapter methods, backfill from people rows | DoD: PRD DoDs; critic-rob review before check-off
