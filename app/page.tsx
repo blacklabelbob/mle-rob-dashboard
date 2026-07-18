@@ -5,11 +5,12 @@ import type { Person, Project, WillItem } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-function Stat({ label, value, accent }: { label: string; value: string; accent?: string }) {
+function Stat({ label, value, accent, sub }: { label: string; value: string; accent?: string; sub?: string }) {
   return (
     <div className="rounded-xl border border-white/10 bg-white/5 p-4">
       <div className="text-xs uppercase tracking-wide text-slate-400">{label}</div>
       <div className={`mt-1 text-2xl font-semibold ${accent ?? "text-white"}`}>{value}</div>
+      {sub && <div className="mt-0.5 text-[11px] text-amber-400/90">⚠ {sub}</div>}
     </div>
   );
 }
@@ -21,6 +22,9 @@ export default async function Overview() {
   const willItems: { project: Project; item: WillItem }[] = data.projects.flatMap(
     (project) => (project.willItems ?? []).filter((i) => !i.done).map((item) => ({ project, item }))
   );
+  const today = new Date().toISOString().slice(0, 10);
+  const daysLate = (due?: string) =>
+    due && due < today ? Math.round((Date.parse(today) - Date.parse(due)) / 86400000) : 0;
 
   const topNodes = [...data.people]
     .filter((p) => p.id !== "rob-acheson" && p.id !== "will")
@@ -45,7 +49,12 @@ export default async function Overview() {
           value={`${stats.litCount} / ${stats.warmCount} / ${stats.unlitCount}`}
           accent="text-amber-300"
         />
-        <Stat label="Signed value" value={money(stats.signedValue)} accent="text-emerald-400" />
+        <Stat
+          label="Signed value"
+          value={money(stats.signedValue)}
+          accent="text-emerald-400"
+          sub={stats.disputedSignedValue > 0 ? `+ ${money(stats.disputedSignedValue)} disputed` : undefined}
+        />
         <Stat label="Open pipeline" value={money(stats.pipelineQuoted)} />
         <Stat
           label="Est. network value"
@@ -101,12 +110,13 @@ export default async function Overview() {
             <ul className="mt-3 space-y-2.5">
               {willItems.map(({ project, item }) => (
                 <li key={`${project.id}-${item.item}`} className="flex items-start gap-3 text-sm">
-                  <span className="mt-0.5 text-amber-400">⚑</span>
+                  <span className={`mt-0.5 ${daysLate(item.due) > 0 ? "text-red-400" : "text-amber-400"}`}>⚑</span>
                   <div>
                     <div className="text-slate-200">{item.item}</div>
-                    <div className="text-xs text-slate-500">
+                    <div className={`text-xs ${daysLate(item.due) > 0 ? "font-medium text-red-400" : "text-slate-500"}`}>
                       {project.name}
                       {item.due ? ` · due ${item.due}` : ""}
+                      {daysLate(item.due) > 0 ? ` · ${daysLate(item.due)}d LATE` : ""}
                     </div>
                   </div>
                 </li>

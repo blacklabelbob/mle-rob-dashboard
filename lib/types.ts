@@ -9,12 +9,13 @@ export type NodeStatus = "lit" | "warm" | "unlit";
 export type PhaseOneStatus = "not-started" | "in-progress" | "complete";
 
 export type NodeType =
+  | "mle-admin"
+  | "partner"
+  | "lead"
   | "client"
   | "connector"
-  | "phone-attacker"
-  | "social-butterfly"
   | "vertical-anchor"
-  | "partner";
+  | "rep-candidate";
 // How a node grows the network: clients pay, connectors open doors,
 // phone-attackers/social-butterflies are rep archetypes, vertical-anchors
 // (e.g. payment processing) touch every business in a territory.
@@ -123,6 +124,7 @@ export interface NetworkStats {
   unlitCount: number;
   signedCount: number;
   pipelineQuoted: number; // sum of quoted, unsigned
-  signedValue: number; // sum of quoted, signed
+  signedValue: number; // sum of quoted where signed AND keyDates.signed present (verified)
+  disputedSignedValue: number; // signed=true but no signed date — excluded from rollups, shown flagged
   estNetworkValue: number; // sum of probability-weighted estimates
 }

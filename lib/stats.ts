@@ -8,6 +8,12 @@ export function contribution(p: Person): number {
   return paper + est;
 }
 
+// signed counts in rollups ONLY when a signed date exists; a signed flag with no
+// date is a data conflict (e.g. Gulf Coast 2026-07) — flagged, never silently summed.
+export function isDisputedSigned(p: Person): boolean {
+  return p.signed && !p.keyDates?.signed;
+}
+
 export function computeStats(data: NetworkData): NetworkStats {
   const people = data.people;
   const litCount = people.filter((p) => p.status === "lit").length;
@@ -22,7 +28,10 @@ export function computeStats(data: NetworkData): NetworkStats {
       .filter((p) => !p.signed)
       .reduce((s, p) => s + (p.quotedAmount ?? 0), 0),
     signedValue: people
-      .filter((p) => p.signed)
+      .filter((p) => p.signed && !isDisputedSigned(p))
+      .reduce((s, p) => s + (p.quotedAmount ?? 0), 0),
+    disputedSignedValue: people
+      .filter(isDisputedSigned)
       .reduce((s, p) => s + (p.quotedAmount ?? 0), 0),
     estNetworkValue: people.reduce((s, p) => s + contribution(p), 0),
   };

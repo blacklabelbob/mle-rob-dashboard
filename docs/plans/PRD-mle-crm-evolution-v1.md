@@ -1,6 +1,6 @@
 # PRD: MLE Dashboard → Self-Made CRM Evolution
 
-**Version:** 2.1.15 | **Created:** 2026-07-16 | **Updated:** 2026-07-17
+**Version:** 2.1.16 | **Created:** 2026-07-16 | **Updated:** 2026-07-17
 **Status:** PLANNING
 **Owner:** Rob + Max
 **Project:** mle-rob-dashboard
@@ -258,6 +258,7 @@ The ultimate platform for sales reps — a self-owned CRM whose only job is **he
 | Version | Date | What Changed | By |
 |---------|------|--------------|-----|
 | 1.0 | 2026-07-16 | Initial PRD — army baseline (CoS + all 5 dept heads); explicitly DRAFT pending Rob's differentiator dump → v2.0 | Max |
+| 2.1.16 | 2026-07-17 | Auto-touched (session activity) | prd-autosave.sh |
 | 2.1.15 | 2026-07-17 | Auto-touched (session activity) | prd-autosave.sh |
 | 2.1.14 | 2026-07-17 | Auto-touched (session activity) | prd-autosave.sh |
 | 2.1.13 | 2026-07-17 | Auto-touched (session activity) | prd-autosave.sh |

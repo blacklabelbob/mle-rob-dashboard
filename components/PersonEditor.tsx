@@ -68,7 +68,13 @@ export default function PersonEditor({
                 personId={person.id}
                 field="signed"
                 value={person.signed}
-                onLabel={<span className="text-emerald-400">yes</span>}
+                onLabel={
+                  person.keyDates.signed ? (
+                    <span className="text-emerald-400">yes</span>
+                  ) : (
+                    <span className="text-amber-400" title="signed flag set but no signed date — resolve or set the date">⚠ disputed</span>
+                  )
+                }
                 offLabel={<span className="text-slate-400">not yet</span>}
               />
             </dd>
@@ -76,19 +82,6 @@ export default function PersonEditor({
           <div>
             <dt className={label}>Est. contribution</dt>
             <dd className="tabular font-medium text-sky-300">{money(contribution(person))}</dd>
-          </div>
-          <div>
-            <dt className={label}>Est. time to payment</dt>
-            <dd className="tabular text-slate-200">
-              <InlineText
-                personId={person.id}
-                field="estTimeToPaymentDays"
-                value={person.estTimeToPaymentDays}
-                numeric
-                format={(v) => `${v} days`}
-                placeholder="+ set days"
-              />
-            </dd>
           </div>
           <div>
             <dt className={label}>Phase One</dt>

@@ -181,8 +181,8 @@ export default function PeopleTable({
               <th className="px-3 py-2.5">Door (referred by)</th>
               <th className="px-3 py-2.5 text-right">{sortBtn("quoted", "Quoted")}</th>
               <th className="px-3 py-2.5">{sortBtn("signed", "Signed")}</th>
+              <th className="px-3 py-2.5">Paid</th>
               <th className="px-3 py-2.5 text-right">{sortBtn("contribution", "Est. contribution")}</th>
-              <th className="px-3 py-2.5 text-right">Days→$</th>
               <th className="px-3 py-2.5">{sortBtn("met", "Met")}</th>
               <th className="px-3 py-2.5">Contact</th>
             </tr>
@@ -213,9 +213,15 @@ export default function PeopleTable({
                         { value: "unlit", label: "unlit" },
                       ]}
                       display={
-                        <span className={`rounded-full border px-2 py-0.5 text-xs ${statusBadge[p.status]}`}>
-                          {p.status}
-                        </span>
+                        p.keyDates.paid ? (
+                          <span className="rounded-full border border-green-400/40 bg-green-400/15 px-2 py-0.5 text-xs text-green-300">
+                            paid
+                          </span>
+                        ) : (
+                          <span className={`rounded-full border px-2 py-0.5 text-xs ${statusBadge[p.status]}`}>
+                            {p.status}
+                          </span>
+                        )
                       }
                     />
                   </td>
@@ -294,30 +300,34 @@ export default function PeopleTable({
                       personId={p.id}
                       field="signed"
                       value={p.signed}
-                      onLabel={<span className="whitespace-nowrap text-emerald-400">✓ {p.keyDates.signed ?? "signed"}</span>}
+                      onLabel={
+                        p.keyDates.signed ? (
+                          <span className="whitespace-nowrap text-emerald-400">✓ {p.keyDates.signed}</span>
+                        ) : (
+                          <span className="whitespace-nowrap text-amber-400" title="signed flag set but no signed date — excluded from totals until resolved">⚠ disputed</span>
+                        )
+                      }
                       offLabel={<span className="text-slate-600">—</span>}
                     />
                   </td>
+                  <td className="px-3 py-2.5">
+                    {p.keyDates.paid ? (
+                      <span className="whitespace-nowrap font-medium text-green-400">✓ {p.keyDates.paid}</span>
+                    ) : (
+                      <span className="text-slate-600">—</span>
+                    )}
+                  </td>
                   <td className="tabular px-3 py-2.5 text-right font-medium text-sky-300">
                     {contribution(p) > 0 ? money(contribution(p)) : "—"}
-                  </td>
-                  <td className="tabular px-3 py-2.5 text-right text-slate-300">
-                    <InlineText
-                      personId={p.id}
-                      field="estTimeToPaymentDays"
-                      value={p.estTimeToPaymentDays}
-                      numeric
-                      inputClassName="text-right"
-                    />
                   </td>
                   <td className="px-3 py-2.5 text-slate-400">{p.keyDates.met ?? "—"}</td>
                   <td className="px-3 py-2.5 text-xs text-slate-400">
                     <div className="space-y-0.5">
                       <div>
-                        <InlineText personId={p.id} field="phone" value={p.phone} placeholder="+ phone" />
+                        <InlineText personId={p.id} field="phone" value={p.phone} placeholder="+ phone" className={p.phone ? "" : "opacity-0 transition group-hover:opacity-100"} />
                       </div>
                       <div>
-                        <InlineText personId={p.id} field="email" value={p.email} placeholder="+ email" />
+                        <InlineText personId={p.id} field="email" value={p.email} placeholder="+ email" className={p.email ? "" : "opacity-0 transition group-hover:opacity-100"} />
                       </div>
                     </div>
                   </td>

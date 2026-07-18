@@ -72,9 +72,6 @@ export default async function PersonPage({
                     className="mt-1 block text-sm text-sky-400 hover:underline"
                   >
                     {referrer.name}
-                    {person.relationship && (
-                      <span className="block text-xs text-slate-500">{person.relationship}</span>
-                    )}
                   </Link>
                 ) : (
                   <div className="mt-1 text-sm text-slate-600">direct</div>

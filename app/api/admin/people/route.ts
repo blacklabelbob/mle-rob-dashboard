@@ -52,6 +52,9 @@ export async function PATCH(req: NextRequest) {
   if (!Object.keys(row).length) {
     return NextResponse.json({ error: "no editable fields in changes" }, { status: 400 });
   }
+  // Rob's ruling 2026-07-17: paid is the apex — setting a paid date auto-upgrades to Client.
+  const kd = changes.keyDates as Record<string, string> | undefined;
+  if (kd?.paid) row.node_type = "client";
   row.updated_at = new Date().toISOString();
   const { error } = await db().from("people").update(row).eq("id", id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
