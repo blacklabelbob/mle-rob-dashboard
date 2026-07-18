@@ -25,3 +25,186 @@ body {
     radial-gradient(1.5px 1.5px at 40% 80%, rgba(255, 255, 255, 0.1) 0, transparent 100%),
     radial-gradient(1px 1px at 85% 15%, rgba(255, 255, 255, 0.15) 0, transparent 100%);
 }
+
+/* ---------- inline click-to-edit kit (Attio/Linear standard) ---------- */
+
+.inline-value {
+  display: inline-block;
+  max-width: 100%;
+  text-align: inherit;
+  border-radius: 5px;
+  padding: 1px 5px;
+  margin: -1px -5px;
+  cursor: text;
+  transition: background-color 130ms ease, box-shadow 130ms ease;
+  border-bottom: 1px dashed transparent;
+}
+.inline-value:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-bottom-color: rgba(148, 163, 184, 0.45);
+}
+.inline-value:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 1.5px rgba(56, 189, 248, 0.6);
+}
+.inline-empty {
+  color: rgb(71 85 105);
+  font-style: normal;
+}
+
+.inline-input {
+  width: 100%;
+  min-width: 4rem;
+  background: rgba(2, 6, 16, 0.9);
+  border: 1px solid rgba(56, 189, 248, 0.55);
+  border-radius: 5px;
+  padding: 1px 5px;
+  margin: -1px -5px;
+  font: inherit;
+  color: #fff;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.12);
+}
+
+/* selects: invisible until hover, native reliability */
+.inline-select-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 5px;
+  transition: background-color 130ms ease;
+}
+.inline-select-wrap:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+.inline-select {
+  appearance: none;
+  background: transparent;
+  border: none;
+  color: inherit;
+  font: inherit;
+  padding: 1px 16px 1px 5px;
+  cursor: pointer;
+  outline: none;
+  border-radius: 5px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='6'%3E%3Cpath d='M1 1l3 3 3-3' stroke='%2364748b' fill='none' stroke-width='1.4' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 4px center;
+}
+.inline-select option {
+  background: #0b1120;
+  color: #e2e8f0;
+}
+.inline-select-overlay {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* date chips */
+.inline-datechip {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 1px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.2);
+  color: rgb(71 85 105);
+  border-radius: 8px;
+  padding: 7px 12px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: border-color 130ms ease, background-color 130ms ease;
+}
+.inline-datechip:hover {
+  border-color: rgba(148, 163, 184, 0.45);
+  background: rgba(255, 255, 255, 0.05);
+}
+.inline-datechip-set {
+  border-color: rgba(52, 211, 153, 0.3);
+  background: rgba(52, 211, 153, 0.08);
+  color: rgb(110 231 183);
+}
+.inline-datechip-label {
+  font-weight: 500;
+}
+.inline-datechip-input {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font: inherit;
+  outline: none;
+  color-scheme: dark;
+  padding: 0;
+}
+
+/* textareas */
+.inline-textblock {
+  border-radius: 7px;
+  padding: 4px 7px;
+  margin: -4px -7px;
+  cursor: text;
+  white-space: pre-wrap;
+  transition: background-color 130ms ease;
+}
+.inline-textblock:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+.inline-textarea {
+  width: 100%;
+  resize: none;
+  background: rgba(2, 6, 16, 0.9);
+  border: 1px solid rgba(56, 189, 248, 0.55);
+  border-radius: 7px;
+  padding: 4px 7px;
+  margin: -4px -7px;
+  font: inherit;
+  color: #e2e8f0;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.12);
+}
+
+/* save feedback: a breath of amber, error = red */
+@keyframes inline-saved-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.55); background: rgba(251, 191, 36, 0.16); }
+  100% { box-shadow: 0 0 0 7px rgba(251, 191, 36, 0); background: transparent; }
+}
+.inline-pulse-saved {
+  animation: inline-saved-pulse 900ms ease-out;
+  border-radius: 5px;
+}
+@keyframes inline-error-pulse {
+  0%, 60% { box-shadow: 0 0 0 1.5px rgba(248, 113, 113, 0.8); }
+  100% { box-shadow: 0 0 0 1.5px rgba(248, 113, 113, 0); }
+}
+.inline-pulse-error {
+  animation: inline-error-pulse 2s ease-out;
+  border-radius: 5px;
+}
+
+/* contextual selection bar (bulk actions) */
+@keyframes bar-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.selection-bar {
+  animation: bar-in 140ms ease-out;
+}
+
+/* row selection affordance */
+.row-check {
+  opacity: 0;
+  transition: opacity 100ms ease;
+}
+tr:hover .row-check,
+.row-check:checked,
+.row-check[data-active="true"] {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .inline-pulse-saved, .inline-pulse-error, .selection-bar { animation: none; }
+}
+
+/* money columns read like an instrument panel */
+.tabular { font-variant-numeric: tabular-nums; }

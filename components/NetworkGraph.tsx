@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { typeLabel } from "@/lib/labels";
 
 interface GNode {
   id: string;
@@ -49,10 +50,43 @@ interface Payload {
 const W = 1600;
 const H = 1100;
 
+function money(n: number): string {
+  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}m`;
+  if (n >= 1000) return `$${Math.round(n / 1000)}k`;
+  return `$${Math.round(n)}`;
+}
+
 export default function NetworkGraph() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [selected, setSelected] = useState<GNode | null>(null);
   const [verticals, setVerticals] = useState<Vertical[]>([]);
+  const [hidden, setHidden] = useState<Set<string>>(new Set());
+  const [focusId, setFocusId] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
+  const [loaded, setLoaded] = useState(false);
+
+  // Refs bridge React state into the canvas closure (which runs once).
+  const hiddenRef = useRef<Set<string>>(new Set());
+  const focusSetRef = useRef<Set<string> | null>(null); // focused node + neighbors, null = no focus
+  const graphRef = useRef<{ nodes: GNode[]; edges: GEdge[] }>({ nodes: [], edges: [] });
+  const centerRef = useRef<(id: string) => void>(() => {});
+
+  hiddenRef.current = hidden;
+
+  // Focus neighborhood: the focused person + everyone directly connected.
+  useEffect(() => {
+    if (!focusId) {
+      focusSetRef.current = null;
+      return;
+    }
+    const set = new Set<string>([focusId]);
+    for (const e of graphRef.current.edges) {
+      if (e.fromId === focusId) set.add(e.toId);
+      if (e.toId === focusId) set.add(e.fromId);
+    }
+    focusSetRef.current = set;
+    centerRef.current(focusId);
+  }, [focusId, loaded]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -78,6 +112,13 @@ export default function NetworkGraph() {
       canvas!.height = rect.height * devicePixelRatio;
       tx = (rect.width - W * k) / 2;
       ty = (rect.height - H * k) / 2;
+    }
+
+    // A node is on-screen if it survives BOTH the cluster toggles and (when
+    // focusing a person) the focus neighborhood. Focus narrows, never widens.
+    function isVisible(n: GNode): boolean {
+      if (focusSetRef.current) return focusSetRef.current.has(n.id);
+      return !hiddenRef.current.has(n.verticalId);
     }
 
     async function load() {
@@ -115,7 +156,16 @@ export default function NetworkGraph() {
         };
       });
       edges = data.edges;
+      graphRef.current = { nodes, edges };
+      centerRef.current = (id: string) => {
+        const n = nodes.find((x) => x.id === id);
+        if (!n) return;
+        const rect = canvas!.getBoundingClientRect();
+        tx = rect.width / 2 - n.x * k;
+        ty = rect.height / 2 - n.y * k;
+      };
       alpha = 1;
+      setLoaded(true);
     }
 
     function tick() {
@@ -191,11 +241,11 @@ export default function NetworkGraph() {
 
       const byId = new Map(nodes.map((n) => [n.id, n]));
 
-      // edges
+      // edges — only between two visible endpoints
       for (const e of edges) {
         const a = byId.get(e.fromId);
         const b = byId.get(e.toId);
-        if (!a || !b) continue;
+        if (!a || !b || !isVisible(a) || !isVisible(b)) continue;
         ctx!.beginPath();
         ctx!.moveTo(a.x, a.y);
         ctx!.lineTo(b.x, b.y);
@@ -209,8 +259,9 @@ export default function NetworkGraph() {
         ctx!.setLineDash([]);
       }
 
-      // nodes
+      // nodes — visible only
       for (const n of nodes) {
+        if (!isVisible(n)) continue;
         ctx!.beginPath();
         ctx!.arc(n.x, n.y, n.r, 0, Math.PI * 2);
         if (n.status === "lit") {
@@ -243,7 +294,7 @@ export default function NetworkGraph() {
           ctx!.stroke();
         }
 
-        if (k > 0.45) {
+        if (k > 0.45 || focusSetRef.current) {
           ctx!.font = `${12 / k}px sans-serif`;
           ctx!.textAlign = "center";
           ctx!.fillStyle = n.status === "unlit" ? "rgba(148,163,184,0.7)" : "#e2e8f0";
@@ -254,6 +305,9 @@ export default function NetworkGraph() {
     }
 
     const selectedRef = { current: null as GNode | null };
+    selectedSetterRef.current = (n: GNode | null) => {
+      selectedRef.current = n;
+    };
 
     function toWorld(mx: number, my: number) {
       return { x: (mx - tx) / k, y: (my - ty) / k };
@@ -263,6 +317,7 @@ export default function NetworkGraph() {
       const w = toWorld(mx, my);
       for (let i = nodes.length - 1; i >= 0; i--) {
         const n = nodes[i];
+        if (!isVisible(n)) continue;
         const dx = w.x - n.x;
         const dy = w.y - n.y;
         if (dx * dx + dy * dy <= (n.r + 4) * (n.r + 4)) return n;
@@ -353,7 +408,76 @@ export default function NetworkGraph() {
       canvas.removeEventListener("pointercancel", onUp);
       window.removeEventListener("resize", fit);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Lets the React side clear the canvas-side selection ring too.
+  const selectedSetterRef = useRef<(n: GNode | null) => void>(() => {});
+
+  // ----- money math (data is static after load; recompute on filter changes) -----
+  const totals = useMemo(() => {
+    const { nodes, edges } = graphRef.current;
+    if (!nodes.length) return null;
+    const focusSet = focusId
+      ? (() => {
+          const s = new Set<string>([focusId]);
+          for (const e of edges) {
+            if (e.fromId === focusId) s.add(e.toId);
+            if (e.toId === focusId) s.add(e.fromId);
+          }
+          return s;
+        })()
+      : null;
+    const visible = nodes.filter((n) =>
+      focusSet ? focusSet.has(n.id) : !hidden.has(n.verticalId)
+    );
+    const sum = (xs: GNode[], f: (n: GNode) => number) => xs.reduce((a, n) => a + (f(n) || 0), 0);
+    let selectionTotal: { count: number; est: number } | null = null;
+    if (selected) {
+      const s = new Set<string>([selected.id]);
+      for (const e of edges) {
+        if (e.fromId === selected.id) s.add(e.toId);
+        if (e.toId === selected.id) s.add(e.fromId);
+      }
+      const sel = nodes.filter((n) => s.has(n.id));
+      selectionTotal = { count: sel.length, est: sum(sel, (n) => n.contribution) };
+    }
+    return {
+      count: visible.length,
+      est: sum(visible, (n) => n.contribution),
+      quoted: sum(visible, (n) => n.quotedAmount),
+      selectionTotal,
+    };
+  }, [hidden, focusId, selected, loaded]);
+
+  const matches = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (q.length < 2) return [];
+    return graphRef.current.nodes
+      .filter((n) => n.name.toLowerCase().includes(q))
+      .slice(0, 8);
+  }, [query, loaded]);
+
+  function toggleVertical(id: string) {
+    setHidden((h) => {
+      const next = new Set(h);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function soloVertical(id: string) {
+    setHidden(new Set(verticals.filter((v) => v.id !== id).map((v) => v.id)));
+  }
+
+  function focusPerson(id: string) {
+    setFocusId(id);
+    setQuery("");
+    const n = graphRef.current.nodes.find((x) => x.id === id) ?? null;
+    setSelected(n);
+    selectedSetterRef.current(n);
+  }
 
   return (
     <div className="relative">
@@ -362,23 +486,102 @@ export default function NetworkGraph() {
         className="h-[72vh] w-full cursor-grab touch-none rounded-xl border border-white/10 bg-[#060a12] active:cursor-grabbing"
       />
 
-      {/* legend */}
-      <div className="pointer-events-none absolute left-3 top-3 rounded-lg bg-black/50 p-3 text-xs backdrop-blur">
-        <div className="mb-1.5 font-medium text-slate-300">Clusters</div>
-        {verticals.map((v) => (
-          <div key={v.id} className="flex items-center gap-2 py-0.5 text-slate-400">
-            <span className="h-2 w-2 rounded-full" style={{ background: v.color }} />
-            {v.name}
+      {/* controls: search + cluster toggles */}
+      <div className="absolute left-3 top-3 w-56 rounded-lg bg-black/60 p-3 text-xs backdrop-blur">
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="find a person…"
+          className="mb-2 w-full rounded-md border border-white/10 bg-white/5 px-2 py-1.5 text-xs text-white placeholder:text-slate-600 focus:border-sky-400/50 focus:outline-none"
+        />
+        {matches.length > 0 && (
+          <div className="mb-2 overflow-hidden rounded-md border border-white/10">
+            {matches.map((m) => (
+              <button
+                key={m.id}
+                onClick={() => focusPerson(m.id)}
+                className="block w-full bg-black/40 px-2 py-1.5 text-left text-slate-300 hover:bg-sky-500/20 hover:text-white"
+              >
+                {m.name}
+              </button>
+            ))}
           </div>
-        ))}
+        )}
+        {focusId && (
+          <button
+            onClick={() => setFocusId(null)}
+            className="mb-2 flex w-full items-center justify-between rounded-md bg-sky-500/20 px-2 py-1.5 text-sky-200 hover:bg-sky-500/30"
+          >
+            <span>Focusing: {graphRef.current.nodes.find((n) => n.id === focusId)?.name}</span>
+            <span className="font-bold">✕</span>
+          </button>
+        )}
+        <div className="mb-1 flex items-center justify-between">
+          <span className="font-medium text-slate-300">Clusters</span>
+          <button onClick={() => setHidden(new Set())} className="text-slate-500 hover:text-white">
+            show all
+          </button>
+        </div>
+        {verticals.map((v) => {
+          const off = hidden.has(v.id);
+          return (
+            <div key={v.id} className="flex items-center gap-1 py-0.5">
+              <button
+                onClick={() => toggleVertical(v.id)}
+                title={off ? "show cluster" : "hide cluster"}
+                className={`flex flex-1 items-center gap-2 rounded px-1 py-0.5 text-left transition ${
+                  off ? "text-slate-600 line-through opacity-60" : "text-slate-400 hover:text-white"
+                }`}
+              >
+                <span
+                  className="h-2 w-2 rounded-full"
+                  style={{ background: v.color, opacity: off ? 0.3 : 1 }}
+                />
+                {v.name}
+              </button>
+              <button
+                onClick={() => soloVertical(v.id)}
+                title="show only this cluster"
+                className="rounded px-1 text-[10px] uppercase text-slate-600 hover:bg-white/10 hover:text-sky-300"
+              >
+                only
+              </button>
+            </div>
+          );
+        })}
         <div className="mt-2 border-t border-white/10 pt-1.5 text-slate-500">
           size = est. contribution · glow = lit
           <br />
-          node type = role it plays (status shows lit/unlit)
+          click cluster to hide · &ldquo;only&rdquo; to solo
           <br />
-          scroll or pinch to zoom · drag to pan · click a node
+          scroll or pinch to zoom · drag to pan
         </div>
       </div>
+
+      {/* $ readout */}
+      {totals && (
+        <div className="absolute bottom-3 left-3 rounded-lg bg-black/60 px-3 py-2 text-xs backdrop-blur">
+          <span className="text-slate-400">
+            Showing <span className="font-semibold text-white">{totals.count}</span> nodes ·{" "}
+            <span className="font-semibold text-sky-300">{money(totals.est)}</span> est. potential
+            {totals.quoted > 0 && (
+              <>
+                {" "}
+                · <span className="font-semibold text-amber-300">{money(totals.quoted)}</span> quoted
+              </>
+            )}
+          </span>
+          {totals.selectionTotal && (
+            <div className="mt-1 border-t border-white/10 pt-1 text-slate-400">
+              Selected + connections ({totals.selectionTotal.count}):{" "}
+              <span className="font-semibold text-emerald-300">
+                {money(totals.selectionTotal.est)}
+              </span>{" "}
+              est.
+            </div>
+          )}
+        </div>
+      )}
 
       {/* detail panel */}
       {selected && (
@@ -431,8 +634,8 @@ export default function NetworkGraph() {
             )}
             {selected.nodeType && (
               <div className="flex justify-between">
-                <dt className="text-slate-500">Node type</dt>
-                <dd className="text-slate-300">{selected.nodeType.replace("-", " ")}</dd>
+                <dt className="text-slate-500">Relationship</dt>
+                <dd className="text-slate-300">{typeLabel(selected.nodeType)}</dd>
               </div>
             )}
             {selected.relationship && (
@@ -442,12 +645,20 @@ export default function NetworkGraph() {
               </div>
             )}
           </dl>
-          <Link
-            href={`/people/${selected.id}`}
-            className="mt-3 block rounded-lg bg-sky-500/90 px-3 py-1.5 text-center text-xs font-medium text-white hover:bg-sky-400"
-          >
-            open full record →
-          </Link>
+          <div className="mt-3 flex gap-2">
+            <button
+              onClick={() => focusPerson(selected.id)}
+              className="flex-1 rounded-lg bg-white/10 px-3 py-1.5 text-center text-xs font-medium text-sky-200 hover:bg-white/20"
+            >
+              focus connections
+            </button>
+            <Link
+              href={`/people/${selected.id}`}
+              className="flex-1 rounded-lg bg-sky-500/90 px-3 py-1.5 text-center text-xs font-medium text-white hover:bg-sky-400"
+            >
+              full record →
+            </Link>
+          </div>
         </div>
       )}
     </div>

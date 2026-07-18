@@ -1,6 +1,6 @@
 # PRD: MLE ROB Dashboard — The Network
 
-**Version:** 2.1.0 | **Created:** 2026-07-04 | **Updated:** 2026-07-04
+**Version:** 2.1.2 | **Created:** 2026-07-04 | **Updated:** 2026-07-16
 **Status:** ACTIVE
 **Owner:** Rob + Max
 **Project:** mle-rob-dashboard
@@ -111,8 +111,8 @@ One Vercel dashboard where Rob sees and grows The Network — every person as a 
 ### Phase 1: Storage & Real Data
 
 - [x] Task 1.1 [Rob] - GATE: 10-second yes/no on storage recommendation (see `docs/STORAGE-DECISION.md`) | DoD: Decision logged in Decisions Log — **RESOLVED: "supabase go"**
-- [ ] Task 1.2 [Engineering] - Implement chosen store adapter + migrate seed → real data | DoD: Dashboard reads live store; file store remains as fallback
-- [ ] Task 1.3 [Rob] - Brain-dump first ~25 real people (voice or text, any format — Max structures them) | DoD: 25 people in ledger with vertical + referred-by where known
+- [x] Task 1.2 [Engineering] - Implement chosen store adapter + migrate seed → real data | DoD: Dashboard reads live store; file store remains as fallback ✅ 2026-07-17 verified: Supabase project `mle-network` (fjebwaxgoxixwxmxmfxr) serves local (smoke test: Supabase-only record renders) AND production (mle-rob-dashboard.vercel.app, env confirmed); file-store fallback intact in `lib/storage/index.ts`
+- [x] Task 1.3 [Rob] - Brain-dump first ~25 real people (voice or text, any format — Max structures them) | DoD: 25 people in ledger with vertical + referred-by where known ✅ 2026-07-17: `mle-network` holds 54 people + 65 edges + 7 verticals — target exceeded (loaded via 2026-07-08 session); Rob to spot-check ledger for accuracy
 - [ ] Task 1.4 [Engineering] - Add-person form (<60s entry) + inline edit | DoD: New person → node appears without redeploy
 - [ ] Task 1.5 [Engineering] - Import roofing lists + lead-magnet assets inventory as network seed clusters | DoD: Roofing cluster populated from existing STG-era domain data (data, not branding)
 - [ ] Task 1.6 [Operations] - Nightly backup of store to file (no-stall guarantee) | DoD: Simulated store outage → dashboard serves from last backup
@@ -155,7 +155,7 @@ One Vercel dashboard where Rob sees and grows The Network — every person as a 
 
 - [ ] Task 6.1 [Research] - Scraper/search pipeline for target groups (e.g., web developers) — names, roles, contact where permissible | DoD: 25-row enriched list from one target group with source URLs
 - [ ] Task 6.2 [Sales] - Vertical expansion queue ranked by node-multiplier potential (payment processing, title, roofing next-wave) | DoD: Ranked list with rationale + est. aggregate revenue per vertical
-- [ ] Task 6.3 [Engineering] - Bulk import (CSV/Sheets) → ledger + graph | DoD: 100-row CSV imports clean with dedup
+- [ ] Task 6.3 [Engineering] - **[SUPERSEDED 2026-07-16]** Bulk import now built CRM-schema-aware in `PRD-mle-crm-evolution-v1.md` Tasks 4.3/4.4 (CSV import/export + field-mapping pipeline with dedup). Do not build here. | DoD: n/a — see CRM-evolution Tasks 4.3/4.4
 - [ ] Task 6.4 [Marketing] - Reuse roofing lead magnets for network activation campaigns | DoD: ≥2 existing magnets wired to a booking link with source tracking
 - [ ] Task 6.5 [Rob] - Recruit first 2 reps; their targets appear as assigned nodes | DoD: Rep column live in ledger; nodes assignable
 
@@ -163,7 +163,7 @@ One Vercel dashboard where Rob sees and grows The Network — every person as a 
 
 ### Phase 7: Business Definitions & KPIs *(preserved from v1 — deprioritized, not dropped)*
 
-- [ ] Task 7.1 [Sales] - Define 8 canonical pipeline stages (Lead → Discovery Booked → Discovery Held → Proposal/Agreement Sent → Signed → Invoiced → Paid → Delivering) each with entry/exit trigger event | DoD: Stage table maps each stage to the exact system event that moves a deal into it; approved by Rob
+- [ ] Task 7.1 [Sales] - **[SUPERSEDED 2026-07-16]** Canonical pipeline-stage definition now lives in `PRD-mle-crm-evolution-v1.md` Task 1.6 (which must reconcile this task's 8 stages incl. Invoiced/Paid/Delivering + entry/exit triggers). Do not define stages here. | DoD: n/a — see CRM-evolution Task 1.6
 - [ ] Task 7.2 [Sales] - Define 7 sales KPIs with formulas + source fields: Discovery Show Rate (≥75%), Proposal Win Rate (30/60/90d), Weighted Pipeline Value (stage-probability map), Avg Sales Cycle, Time-to-First-Touch (<4 bus. hrs), Signed-to-Cash Lag, Follow-up SLA Compliance | DoD: Each KPI has formula, numerator/denominator source fields, and target benchmark documented; stage→probability mapping approved by Rob
 - [ ] Task 7.3 [Marketing] - Define 4 marketing KPIs with formulas + named source systems: Cost per Booked Call, Lead-Magnet Conversion, Source → Close Rate, Booking Volume by Channel | DoD: Each KPI has formula, input-source table, and a worked example
 - [ ] Task 7.4 [Sales] - Define "Needs Action Today" rule set (new lead >24h untouched; no 24h-prior discovery reminder; no proposal within 48h of discovery; no follow-up in 3 bus. days; signed-not-invoiced >24h) | DoD: Rule table with trigger, action owed, SLA hours, exact field each rule reads — feeds the daily-priorities panel (5.1)
@@ -250,6 +250,8 @@ One Vercel dashboard where Rob sees and grows The Network — every person as a 
 | Version | Date | What Changed | By |
 |---------|------|--------------|-----|
 | 2.1.0 | 2026-07-04 | **Merged full v1 mission-control scope back in as Phases 7–9** per Rob: front-load Network priorities, keep everything else tracked (KPIs, ops data layer, ingestion, panels, alerting). Retired-item list added with reasons. Open questions Q5/Q6 carried over from v1. Task 1.1 checked (Supabase resolved). | Max (Rob directive) |
+| 2.1.1 | 2026-07-04 | Auto-touched (session activity) | prd-autosave.sh |
+| 2.1.2 | 2026-07-16 | Tasks 7.1 + 6.3 marked SUPERSEDED with cross-links to `PRD-mle-crm-evolution-v1.md` (Tasks 1.6, 4.3/4.4) — Rob directive: dashboard becomes basis of self-made CRM; prevents two-PRD drift | Max |
 | 1.0 | 2026-07-04 | Initial PRD — mission control over contracts systems; gated (G1-G4); QE 92/100 | Max |
 | 2.0.6 | 2026-07-04 | Auto-touched (session activity) | prd-autosave.sh |
 | 2.0.5 | 2026-07-04 | Auto-touched (session activity) | prd-autosave.sh |

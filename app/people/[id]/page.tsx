@@ -1,19 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getStore } from "@/lib/storage";
-import { contribution, money } from "@/lib/stats";
 import EstimatePanel from "@/components/EstimatePanel";
+import PersonEditor from "@/components/PersonEditor";
+import { typeLabel } from "@/lib/labels";
 
 export const dynamic = "force-dynamic";
-
-const DATE_LABELS: [keyof import("@/lib/types").KeyDates, string][] = [
-  ["met", "Met"],
-  ["quoted", "Quoted"],
-  ["signed", "Signed"],
-  ["invoiced", "Invoiced"],
-  ["paid", "Paid"],
-  ["phaseOneComplete", "Phase One complete"],
-];
 
 export default async function PersonPage({
   params,
@@ -54,7 +46,7 @@ export default async function PersonPage({
           </span>
           {person.nodeType && (
             <span className="rounded-full border border-sky-400/30 bg-sky-400/10 px-2.5 py-0.5 text-xs text-sky-300">
-              {person.nodeType.replace("-", " ")}
+              {typeLabel(person.nodeType)}
             </span>
           )}
         </div>
@@ -63,82 +55,11 @@ export default async function PersonPage({
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
-          <section className="rounded-xl border border-white/10 bg-white/5 p-5">
-            <h2 className="font-semibold text-white">The record</h2>
-            <dl className="mt-3 grid grid-cols-2 gap-x-6 gap-y-3 text-sm sm:grid-cols-3">
-              <div>
-                <dt className="text-xs text-slate-500">Quoted</dt>
-                <dd className="text-slate-200">
-                  {person.quotedAmount != null && person.quotedAmount > 0
-                    ? money(person.quotedAmount)
-                    : "—"}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-xs text-slate-500">Signed</dt>
-                <dd className={person.signed ? "text-emerald-400" : "text-slate-400"}>
-                  {person.signed ? "yes" : "not yet"}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-xs text-slate-500">Est. contribution</dt>
-                <dd className="font-medium text-sky-300">{money(contribution(person))}</dd>
-              </div>
-              <div>
-                <dt className="text-xs text-slate-500">Est. time to payment</dt>
-                <dd className="text-slate-200">
-                  {person.estTimeToPaymentDays != null ? `${person.estTimeToPaymentDays} days` : "—"}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-xs text-slate-500">Phase One</dt>
-                <dd className="text-slate-200">{person.phaseOne.replace("-", " ")}</dd>
-              </div>
-              <div>
-                <dt className="text-xs text-slate-500">Contact</dt>
-                <dd className="text-slate-200">
-                  {person.phone ?? person.email ?? person.website ?? "—"}
-                </dd>
-              </div>
-            </dl>
-            {(person.meetingVideoUrl || person.transcriptUrl) && (
-              <div className="mt-4 flex gap-3 text-sm">
-                {person.meetingVideoUrl && (
-                  <a href={person.meetingVideoUrl} className="text-sky-400 hover:underline">
-                    ▶ meeting video
-                  </a>
-                )}
-                {person.transcriptUrl && (
-                  <a href={person.transcriptUrl} className="text-sky-400 hover:underline">
-                    ☰ transcript
-                  </a>
-                )}
-              </div>
-            )}
-            {person.notes && <p className="mt-4 text-sm text-slate-400">{person.notes}</p>}
-          </section>
-
-          <section className="rounded-xl border border-white/10 bg-white/5 p-5">
-            <h2 className="font-semibold text-white">Key dates</h2>
-            <ol className="mt-3 flex flex-wrap gap-2">
-              {DATE_LABELS.map(([key, label]) => {
-                const v = person.keyDates[key];
-                return (
-                  <li
-                    key={key}
-                    className={`rounded-lg border px-3 py-2 text-xs ${
-                      v
-                        ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
-                        : "border-white/10 bg-black/20 text-slate-600"
-                    }`}
-                  >
-                    <div className="font-medium">{label}</div>
-                    <div>{v ?? "pending"}</div>
-                  </li>
-                );
-              })}
-            </ol>
-          </section>
+          <PersonEditor
+            person={person}
+            verticals={data.verticals}
+            peopleOptions={data.people.map((p) => ({ id: p.id, name: p.name }))}
+          />
 
           <section className="rounded-xl border border-white/10 bg-white/5 p-5">
             <h2 className="font-semibold text-white">Connections</h2>
