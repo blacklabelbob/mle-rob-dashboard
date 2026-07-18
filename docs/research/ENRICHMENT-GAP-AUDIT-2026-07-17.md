@@ -145,3 +145,68 @@ Additional integrity flags found during audit:
 ## Template
 
 **Martin Fierro Restaurant (score 5/6)** is the standard every business row should hit: phone + email + website in dedicated columns, Sunbiz entity + officer named, sourced notes with registry numbers and review-platform citations. Every hunt above should land its findings in the same shape.
+
+---
+
+## Hunt results — 2026-07-17 (priorities 1–3 executed)
+
+Method: public web only (company sites, FL Sunbiz, DBPR, GBP-proxy review sites, LinkedIn/FB/IG, press). Direct-write only to `phone`/`email`/`website` from a record's own site or an official registry; everything softer appended to `notes` as dated `ENRICHED 2026-07-17:` lines, each ending in its source URL. `signed`, `quoted_amount`, `status`, `node_type`, `relationship`, `referred_by_id` were not touched on any record (verified post-write).
+
+### 1–2. Caleb Green + CG Roofing Group
+
+**`cg-roofing-group` (company) — direct-write:** `phone` → `(904) 609-7180`, `website` → `https://www.cgroofinggroup.com/` (confirmed on [own site](https://www.cgroofinggroup.com/) and [BBB](https://www.bbb.org/us/fl/jacksonville/profile/roofing-contractors/cg-roofing-group-llc-0403-236017548)). No public email found — skipped.
+
+**Appended to notes (both records):**
+- Sunbiz: **CG ROOFING GROUP, LLC**, doc# L17000012511, FEI/EIN 32-0516571, filed 01/17/2017, official [sunbiz.org](https://search.sunbiz.org/Inquiry/CorporationSearch/SearchResults?InquiryType=EntityName&InquiryDirectionType=ForwardRecord&SearchTerm=CG+ROOFING+GROUP) status **ACTIVE**, registered agent Caleb W Green, principal address 4320 Deerwood Lake Pkwy Ste 101-133, Jacksonville FL 32216. ⚠️ Conflict: third-party mirror [bisprofiles.com](https://bisprofiles.com/fl/cg-roofing-group-l17000012511) shows this same entity as inactive/voluntarily dissolved 2025-07-23 — contradicts the official sunbiz.org snapshot. **Recommend Rob/Will verify directly on sunbiz.org before finalizing the 3-way CRM partnership contract**, since entity status matters for that filing.
+- FL DBPR: license **RC29027554**, Registered Roofing Contractor, licensee Caleb William Green d/b/a CG Roofing Group LLC, status shown as **"Delinquent,Active"** — verify renewal/CE standing before citing in the Phase 1 case study. [Source](https://www.myfloridalicense.com/LicenseDetail.asp?SID=&id=1F408DB1D56E37A1432104D5AAC2872A).
+- BBB: **A+ rating, not accredited**; address on file (8638 Philips Hwy Ste 12, Jacksonville FL 32256) conflicts with both the Sunbiz principal address and the homepage's own schema address (6900 Philips Hwy #38) — three different addresses across three sources, physical office needs confirming with Caleb.
+- Review baseline (GBP proxy, not pulled from GBP directly): 4.3/5 (30 reviews) via [GAF contractor directory](https://www.gaf.com/en-us/roofing-contractors/residential/usa/fl/jacksonville/cg-roofing-group-llc-1115406); 4.4/5 (27 reviews) via [LocallyFind](https://locallyfind.com/services/jacksonville/roofing-contractor/cg-roofing-waterproofing-llc/).
+- Social: Facebook [facebook.com/cgroofingandwaterproofing](https://www.facebook.com/cgroofingandwaterproofing/) (~165 likes); LinkedIn company page [linkedin.com/company/cg-roofing-group-llc](https://www.linkedin.com/company/cg-roofing-group-llc) (22 followers); Caleb's personal LinkedIn [linkedin.com/in/caleb-green-674127b2](https://www.linkedin.com/in/caleb-green-674127b2/). No Instagram found.
+- Caleb's personal cell/email: not pulled from the web (per hunt spec — internal ask). Utah Red Rock Roofing entity: **no registration found under Caleb Green's name** in public Utah corporations/contractor-license search this pass — a "Red Rock Roofing" contractor license in St George, UT (#377705-5501) showed expired 10-01-2022 but could not be confirmed as the same owner/entity. CFO Kelly's surname/email: not found publicly.
+
+### 3–4. Gulf Coast RE Group + Alex Greenwood
+
+**`golf-coast-real-estate-group` (company) — direct-write:** `phone` → `239-448-8458`, `website` → `https://www.gulfcoastregroup.com/` (confirmed on [own contact page](https://www.gulfcoastregroup.com/contactus/)). Email skipped — the only address surfaced on the contact page is a Boomtown CRM placeholder (`bouncedemail@boomtownroi.com`), not a real inbox.
+
+**⚠️ Signed-flag conflict — NOT touched, flagging for Rob's ruling only:** confirmed the audit's original finding still stands: `signed=true` / `quoted_amount=19000` on the record, while `relationship` still reads "$18k Phase 1 agreement SENT via SignWell 6/19 … NOT SIGNED (stalled ~3 weeks)". No public source resolves this — it's a CRM-internal fact only Rob/Will can rule on.
+
+**Appended to notes:**
+- Address 3384 Woods Edge Cir Ste #103, Bonita Springs FL 34134; social — [Facebook](https://www.facebook.com/gcregroup/), [Instagram](https://www.instagram.com/gulf_coast_re), [LinkedIn](https://www.linkedin.com/in/gulf-coast-re-group-50ba3b310).
+- Reviews: **115 reviews, 5.0 average** per [Birdeye](https://reviews.birdeye.com/gulf-coast-re-group-171598325153823).
+- Agent roster count: **still unresolved** — the team's own recruiting page publishes no current headcount; the 50/56/60 conflict from the original audit stands. Needs internal ask.
+- **MVP Title Agency LLC** (adjacent title-vertical door): Sunbiz doc# L23000148252, FEI/EIN 92-3269298, filed 03/23/2023, status ACTIVE, principal address 1495 Pine Ridge Rd Ste 1, Naples FL (same building as the ROG MVP Collier entity below); FL DFS title-agency license G016627, exp 10/31/2026; site [mvptitleagency.com](https://mvptitleagency.com/).
+- **ROG MVP Collier County LLC** (brokerage entity, same address): Sunbiz doc# L24000291887, filed 06/28/2024, status ACTIVE, registered agent NJ Law PLLC. **Finding: Alex Greenwood does not appear by name among the listed managers** (Bermudez, Carlson, Doerr, Hopple, Ledbetter, Prawl) — his actual brokerage-of-record entity needs direct confirmation. [RateMyAgent](https://www.ratemyagent.com/real-estate-agency/rog-mvp-collier-county-llc-b02cia/sales/overview) shows this entity at 1,034 active / 1,337 sold listings, $747M trailing-12mo — that's the whole-brokerage number, not Gulf Coast RE Group's team alone; don't conflate the two in the deal sizing.
+- Website Factory / HomeCloneVault domain (localhomes.com vs hyperlocalhomes.com): **could not confirm ownership** tied to Alex via public search — still needs his direct confirmation.
+
+**`alex-greenwood` (person) — no direct-write.** His own team-site bio page ([gulfcoastregroup.com/agents/327940-Alex-Greenwood](https://www.gulfcoastregroup.com/agents/327940-Alex-Greenwood/)) only surfaces the shared team line (already captured above) and no personal email — so nothing rock-solid to put in his own phone/email fields. Notes appended: LinkedIn [linkedin.com/in/alex-greenwood-swfl](https://www.linkedin.com/in/alex-greenwood-swfl/); press-syndicated (not own-site, so not direct-written) office numbers Fort Myers (239) 777-5318 / Cape Coral (239) 393-8558 and stats (3,700+ career transactions, $1.5B+ volume, 250 sales/$125M+ trailing 12mo, 800+ five-star reviews) per an April-2026 [Newswire release](https://www.newswire.com/news/best-real-estate-agent-in-fort-myers-fl-alex-greenwood); DBPR SL3227669 not re-verified this pass (search didn't return a direct hit — existing "verified 2026-07-07" note stands unconfirmed-but-unchallenged).
+
+### 5. Naples Spine & Joint + Jonathan Polk/Monica connection
+
+**`naples-spine-joint` (company) — direct-write:** `phone` → `(239) 734-3356`, `email` → `info@naplessj.com`, `website` → `https://www.naplessj.com/` (all confirmed on their [own contact page](https://www.naplessj.com/contact)).
+
+**Appended to notes:**
+- Address 7955 Airport Pulling Rd, Suite 203, Naples FL 34109.
+- Sunbiz: **NAPLES SPINE & JOINT, LLC**, doc# L24000046786, FEI/EIN 99-0904739, filed 01/25/2024, status ACTIVE, principal address matches the clinic — confirms this is a young business (~2.5 yrs old). [Source](https://search.sunbiz.org/Inquiry/corporationsearch/SearchResultDetail?inquirytype=EntityName&directionType=ForwardList&searchNameOrder=NAPLESSPINEJOINT+L240000467860).
+- Social: Instagram [@naples_spine_joint](https://www.instagram.com/naples_spine_joint/) (includes a "clinic is now open" post, consistent with the Jan-2024 filing); Facebook [facebook.com/61577212680619](https://www.facebook.com/61577212680619/).
+- Yelp listing exists but blocked automated fetch (403) and no rating/count surfaced via search — still open. No GBP rating captured either. EN vs. Spanish-language review split not verified.
+- No individual doctor/chiropractor name published on the site — couldn't pull a named practitioner for an FL DOH license lookup; needs internal ask.
+
+**Jonathan Polk / Monica connection — resolved:**
+- **Monica Polk** is LinkedIn-listed as **"Business Owner, Naples Spine & Joint"** ([linkedin.com/in/monica-polk-7aa586324](https://www.linkedin.com/in/monica-polk-7aa586324/)) — same surname as connector Jonathan Polk, confirming the CRM's existing "Polk and Monica's Company" description is literal, not coincidental.
+- **Jonathan Polk's employer resolved** (this also closes out gap-audit hunt #6's open question, "what does Polk actually do"): his LinkedIn work history lists him as former **VP of Marketing, Naples Spine & Joint**, and current **Regional Manager, Southwest & Miami FL, at PropLogix** ([linkedin.com/in/jonathan-polk-56a95469](https://www.linkedin.com/in/jonathan-polk-56a95469/); [proplogix.com/team/jonathan-polk](https://www.proplogix.com/team/jonathan-polk/)). This strongly suggests the CRM's separate **"PropLogic" lead record is a misspelling of PropLogix** — Polk's own employer, not a third-party referral door. Worth merging or correcting.
+- Also found a likely resolution for **"LandTech"**: a Facebook post from **LandTec Survey** welcomes Jonathan Polk to their team ([facebook.com/landtecsurvey](https://www.facebook.com/landtecsurvey/photos/exciting-news-jonathan-polk-is-joining-our-team-to-sprinkle-some-magic-into-our-/947582267372244/)), and an Instagram post references him as "CEO of Polk Industries, a marketing arm of LandTech" ([instagram.com/p/Cis3EaOuGMo](https://www.instagram.com/p/Cis3EaOuGMo/)) — his own marketing venture, worth a follow-up ask to nail down exactly how Polk Industries / LandTec / PropLogix relate.
+- These findings were appended to both `jonathan-polk` and `naples-spine-joint` notes.
+
+### Came up empty / still open (flagged, nothing written)
+- Caleb Green and Alex Greenwood personal cells/emails (by design — internal ask, not a web hunt).
+- CFO Kelly's surname/email.
+- Red Rock Roofing (UT) entity registration under Caleb Green's name.
+- Gulf Coast RE Group exact agent headcount (50 vs 56 vs 60).
+- Alex Greenwood's ROG MVP brokerage-of-record entity (not the Collier County one on file).
+- localhomes.com / hyperlocalhomes.com ownership confirmation.
+- Naples Spine & Joint Yelp/GBP review counts and named treating chiropractor(s) for a DOH license pull.
+
+### Three most valuable discoveries
+1. **CG Roofing Group's Sunbiz entity status conflict** (official sunbiz.org = ACTIVE vs. a third-party mirror showing dissolved 2025-07-23) — needs resolving before the 3-way CRM partnership contract closes with counsel.
+2. **Jonathan Polk's employer is PropLogix**, and his LinkedIn history shows he was formerly VP of Marketing *at* Naples Spine & Joint while Monica Polk (family) owns it — the referral graph for "PropLogic," "LandTech," and Naples Spine & Joint all trace back through one person, which reframes Polk from "connector" to a much tighter, higher-trust hub.
+3. **Alex Greenwood's name is absent from the ROG MVP Collier County LLC Sunbiz managers list** — the brokerage entity backing his $19k deal isn't the one he appears to be legally tied to, which is worth clarifying before further legal/contract work in that vertical.
