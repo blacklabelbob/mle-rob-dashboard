@@ -210,3 +210,54 @@ Method: public web only (company sites, FL Sunbiz, DBPR, GBP-proxy review sites,
 1. **CG Roofing Group's Sunbiz entity status conflict** (official sunbiz.org = ACTIVE vs. a third-party mirror showing dissolved 2025-07-23) — needs resolving before the 3-way CRM partnership contract closes with counsel.
 2. **Jonathan Polk's employer is PropLogix**, and his LinkedIn history shows he was formerly VP of Marketing *at* Naples Spine & Joint while Monica Polk (family) owns it — the referral graph for "PropLogic," "LandTech," and Naples Spine & Joint all trace back through one person, which reframes Polk from "connector" to a much tighter, higher-trust hub.
 3. **Alex Greenwood's name is absent from the ROG MVP Collier County LLC Sunbiz managers list** — the brokerage entity backing his $19k deal isn't the one he appears to be legally tied to, which is worth clarifying before further legal/contract work in that vertical.
+
+---
+
+## Hunt results round 2 — 2026-07-18
+
+Method: same as round 1 — public web only (company/staging sites, FL Sunbiz, FL DBPR/FDACS, UT Division of Corporations/DOPL, BBB/Birdeye/Yelp/HomeAdvisor, LinkedIn/FB/IG, SignalHire/RocketReach). Direct-write only to `phone`/`email`/`website` from a record's own site or an official registry; everything softer appended to `notes` as a dated `ENRICHED 2026-07-18:` block, each ending in source URL(s), never overwriting prior notes. `signed`, `quoted_amount`, `status`, `node_type`, `referred_by_id`, `key_dates` were not touched on any record (verified post-write via a full-table pull). Scope: hunt-list priorities 4–10 (priorities 1–3 — Caleb Green, CG Roofing Group, Gulf Coast RE Group — were executed in round 1). No `(DEMO)` records were touched.
+
+### 4. Alex Greenwood — supplementary follow-up only (already substantially enriched in round 1)
+No direct-write (still no personal phone/email surfaced from his own site or a registry). Appended to notes: FL DBPR SL3227669 still unverifiable via direct URL (session-gated tool); his own team-site bio clarifies his brokerage as "Gulf Coast REGroup - Realty One MVP" (Bonita Springs franchise office) — a **different** entity than the Sunbiz-registered "ROG MVP Collier County LLC" checked in round 1, which reframes (doesn't resolve) his absence from that LLC's manager list. localhomes.com / hyperlocalhomes.com ownership still unconfirmed (WHOIS/ICANN gated).
+
+### 5. Naples Spine & Joint — supplementary follow-up only (phone/email/website already direct-written in round 1)
+No new direct-write. Appended to notes: Yelp and Google Business Profile review counts/ratings still unconfirmed (both blocked/CAPTCHA-gated this pass too); named treating chiropractor(s) still not published anywhere on the site — all three gaps remain genuinely open, not just unattempted.
+
+### 6. Jonathan Polk — light supplementary (employer/referral graph already resolved in round 1)
+No direct-write (no personal phone/email found; not a company-level fact). Appended to notes: PropLogix's general office contact — 8374 Market Street PMB #505, Bradenton FL 34202, (941) 444-7142, support@proplogix.com (company-level only, not personal to Polk, per https://www.proplogix.com/team/jonathan-polk/). No further public-web gaps identified for this record.
+
+### 7. On Time Moving and Storage (`calebs-brother-moving-co`) — direct-write
+`phone` → `904-794-1200`, `email` → `ontimemoving18@gmail.com` (both confirmed on [own contact page](https://www.ontimemovingandstorage.com/contact); `website` was already on file). Appended to notes: address 1475 Northwood Drive, St. Augustine FL 32084; a likely-match LinkedIn owner profile (name not independently confirmed as Joseph Green, LinkedIn blocked automated fetch); FL Sunbiz — no confirmed matching entity this pass (a same-named entity in Wildwood FL is a different address, likely unrelated) and FDACS intrastate-mover (IM#) registration not found (public tool is interactive-only); reviews — BBB A+ (accredited since 2011), Google 4.6/5 (20 reviews, Birdeye proxy), Yelp ~53–56 reviews (rating blocked), HomeAdvisor 4.0/5; fleet size 9 trucks/14 drivers per a single blocked-page RocketReach snippet — low-medium confidence.
+
+### 8. Miga Food Manufacturing (`miga-food-manufacturing`) — direct-write
+`phone` → `239-537-0990`, `email` → `info@migafm.com`, `website` → `https://miga-food-manufacturing.pages.dev/` (all confirmed on the company's own staging site and its [contact page](https://miga-food-manufacturing.pages.dev/contact.html)). Appended to notes: a separate "Emerald Brokers FLA" contact line naming Gary Waskovich as broker rep (not a Miga officer on-site); **⚠️ name discrepancy** — the site names "Daniella **Jaenvega**" as Managing Partner vs. this CRM's "Daniella **Roach**" (Sunbiz snippet for P21000103391 confirms "Daniella Roach" as registered agent/officer, status ACTIVE, reinstated 2023-01-11 after a lapse — Gary Waskovich does not appear as an officer) — flagged for Rob to confirm whether these are the same person; social — Instagram [@miga.food_](https://www.instagram.com/miga.food_/), Facebook (login-gated, unconfirmed); **corrected** the original gap audit's "shopthesecretingredient" lead — that FB page is unrelated to Miga, it traces to a different ingredient-sourcing business; a second, more polished brand site migafoods.com also exists with an unclear relationship to the staging site; FDA/FDACS food-permit status not found (both tools are non-scriptable).
+
+### 9. Gary Waskovich (`gary-waskivich`) — no direct-write (no own-site/registry phone or email surfaced)
+Appended to notes: LinkedIn confirmed live ([linkedin.com/in/gary-waskovich-390490294](https://www.linkedin.com/in/gary-waskovich-390490294/), Regional Sales Manager/De Cecco USA/Naples FL/JWU/125 connections — medium-high confidence, direct fetch blocked); De Cecco USA / PMI Inc (Prodotti Mediterranei Inc., NY) HQ — 75 Broad Street, New York NY 10004, (212) 661-2336; no FL regional office found (he's a field-based rep); employee count 11–50 per LinkedIn (SignalHire/RocketReach roughly consistent, one conflicting "25–100" snippet flagged); no public email pattern surfaced (SignalHire/RocketReach gate emails behind paid unlock — not guessed). Also re-flagged (not corrected, outside direct-write scope): his `business` field still misreads "Miga Food Manufacturing" instead of his actual employer, and the id/name spelling (Waskivich/Waskovich) still needs standardizing — Task 2.0 cleanup item.
+
+### 10. Red Rock Roofing (UT) (`red-rock-roofing`) — no direct-write (nothing confirmed as this specific venture's own info)
+Appended to notes: no distinct Utah Division of Corporations filing found under Caleb Green's name (official search tool is JS-gated); **⚠️ ambiguity** — at least 3 unrelated national "Red Rock Roofing" businesses exist (CO, TN, WA), none tied to Caleb Green; no live Utah-specific domain or "Garrett" developer credit found; a Utah DOPL license record for a "Red Rock Roofing" in St. George/Ivins UT (#377705-5501, contact "Jason Schick") shows **expired/inactive since 2022** — cannot be confirmed as the same venture, needs an internal ask on whether Jason Schick is Caleb's "GM lined up"; no GBP/social stub found. Cross-referenced Caleb Green's own FL DBPR license (RC29027554) as still "Delinquent, Active."
+
+### Came up empty / still open (flagged, nothing written)
+- Alex Greenwood's DBPR re-verification, and localhomes.com/hyperlocalhomes.com ownership.
+- Naples Spine & Joint's Yelp/GBP review counts and named practitioner(s).
+- On Time Moving and Storage's FL Sunbiz entity match and FDACS IM# (both registries are bot-blocked/interactive-only — need a manual browser lookup, not a dead end).
+- Miga Food Manufacturing's FDA/FDACS food-permit status, and the Jaenvega-vs-Roach name conflict (needs Rob's confirmation, not a web answer).
+- Gary Waskovich's and Caleb/Alex's personal cell/email (by design — internal ask, not a web hunt).
+- Red Rock Roofing (UT)'s actual entity status — genuinely appears not-yet-registered or unconfirmable, not merely unsearched.
+
+### Recomputed average completeness score (all 33 live non-DEMO records)
+
+Same 0–6 rubric as the original audit (Phone / Email / Website / Role / Description>100 chars / Social), computed programmatically from the current Supabase table state (a pure scoring pass over `phone`, `email`, `website`, `role`, `description`, and a social-URL/handle regex over `notes`+`description` only — never double-counting a link already credited to `website`, and never crediting a bare mention of a platform name with no link, e.g. "no Facebook found" does not score a social point):
+
+| Metric | Round 0 (2026-07-17 baseline) | After round 2 (2026-07-18) |
+|---|---|---|
+| Live non-DEMO records | 34 | 33 (one admin consolidation since baseline) |
+| Average completeness score | 1.94 / 6 | **2.64 / 6** |
+| Average among the 10 hunted priority records only | ~1.3 / 6 (pre-hunt) | **4.2 / 6** |
+
+⚠️ Note for Rob/Will: the BUILD-QUEUE Q7 DoD target of "avg completeness ≥3.5" is **met for the 10 hunted priority records (4.2/6)** but **not yet met across all 33 live records (2.64/6)** — mathematically, enriching only 10 of 33 records cannot lift the whole-table average past ~2.9 even in the best case, since the other 23 untouched records remain at their round-0 baseline (mostly role-only, score 1–2). Closing the full-table average requires either enriching the remaining 23 records or re-scoping the DoD to the priority subset — flagging rather than fudging the number.
+
+### Two-most-valuable discoveries this round
+1. **Miga Food Manufacturing's on-site "Daniella Jaenvega" vs. CRM's "Daniella Roach"** — the company's own staging site names a different surname for the same Managing Partner role that Sunbiz confirms as "Daniella Roach," raising a real question of whether these are the same person (married/maiden name) before the Miga deal or the Jaenvega/Roach restaurant-cluster thesis goes further — a fact only Rob can resolve, not the web.
+2. **Red Rock Roofing (UT) has no confirmable public footprint tied to Caleb Green** — no matching Utah entity filing, no live domain, and the only same-named DOPL contractor license in St. George/Ivins, UT has been expired since 2022 under a different named contact ("Jason Schick") — the growth-vehicle venture appears to genuinely not exist yet in any public record, which should reset expectations on its timeline rather than assuming it's just under-searched.
