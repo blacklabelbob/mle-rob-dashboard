@@ -76,3 +76,16 @@ Item 7 (fallback regen), item 10 (stats unit tests — the money math that just 
 
 ---
 *Verdict flips to SHIP when NEW-1 and NEW-2 land (≈1 hour) — NEW-3/4/5 are same-week hygiene. This deliverable went from "wrong number in green" to "one missed surface and a skipped log line." That's the right direction at the right speed.*
+
+---
+
+# Final verdict 2026-07-17 (commit 7c26b3f)
+**Evidence:** live `/api/network` payload (Gulf: `signedDisputed: true`, `signedDate: null` — proves the deploy), `NetworkGraph.tsx` PAID/⚠ disputed/yes+date ternary, CHANGELOG "Critic Rob round 2" entry covering both batches, PRD auto-touch rows folded to a range line, `0002_node_type_taxonomy.sql` matching the live 7-slug constraint exactly, zero `estTimeToPaymentDays` references anywhere, Caleb DATA NOTE live in Supabase, `npx vitest run` executed by the reviewer: **8/8 green** including the exact $44k→$15k/$19k reproduction.
+
+```
+CRITIC ROB — MLE CRM Dashboard (final, post NEW-1/NEW-2 + bonus batch)
+VERDICT: SHIP   ·   Score: 90/100
+Gates: Fidelity 95 · UX 92 · Truth 95 · Engineering 92 · Recording 90 · Effort 95
+```
+
+SHIP. Every number on every surface is now something Rob can cite, the rule that guards it is code with tests, and the schema-as-code rebuilds truthfully. Remaining opens (fallback regen, entity_kind mapping, Gulf ruling — Rob's, Phases 4/7) are tracked, not blockers. Done nitpicking.
