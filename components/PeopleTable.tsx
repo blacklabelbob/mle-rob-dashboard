@@ -242,6 +242,9 @@ export default function PeopleTable({
                         ↗
                       </Link>
                     </div>
+                    {p.entityKind === "company" && (
+                      <span className="mr-1 rounded border border-white/10 bg-white/5 px-1 py-px text-[9px] uppercase tracking-wider text-slate-500" title="business record — gets its own table in the people/org split (Task 2.0)">biz</span>
+                    )}
                     {p.business && p.business !== p.name && (
                       <div className="text-xs text-slate-500">{p.business}</div>
                     )}

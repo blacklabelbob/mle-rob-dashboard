@@ -44,6 +44,7 @@ export interface Person {
   business?: string;
   role?: string;
   nodeType?: NodeType;
+  entityKind?: "person" | "company";
   verticalId: string;
   phone?: string;
   email?: string;
