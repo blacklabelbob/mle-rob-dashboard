@@ -55,3 +55,8 @@ Auto-initialized by changelog-guard hook.
 - PeopleTable rebuilt: every cell live (name/quoted/phone/email/days inline text; status/relationship/vertical native-select overlays styled invisible-until-hover; signed = click toggle). Hover-reveal row checkboxes + contextual selection bar (N selected · Delete). "+ New vertical…" inside the vertical menu. Door-column notes clamped to 2 lines w/ hover tooltip.
 - Person record page: fully inline (all fields + referred-by dropdown + key-date chips w/ native pickers + click-to-edit notes/description). PersonEditor form-with-Save deleted.
 - Verified via Playwright before deploy: 7/7 interaction tests (save round trip, persistence, Esc, pickers) + screenshot review; fixed door-column flooding + signed-date wrap found in review.
+
+## 2026-07-17 — Critic Rob round 2 (55→75→SHIP-track): truth on every surface
+- Punch 1-5,8,9: signed value $15k truthful (+$19k disputed amber), data-level deal dedup, Paid column + green Client tier + paid→client auto-upgrade in code, Days→$ metric deleted, key-dates backfill, Will items red w/ days-late, repo strays archived.
+- Re-score NEW items: graph detail panel now renders PAID (green) / ⚠ disputed (amber) / signed+date — the missed 3rd surface; migration 0002_node_type_taxonomy.sql keeps rebuilds truthful; estTimeToPaymentDays fully removed (types/adapter/API); Caleb row carries the deal-moved data note; PRD autosave spam collapsed.
+- Item 10 closed: vitest wired, lib/__tests__/stats.test.ts — 8 tests incl. an exact reproduction of the $44k double-count case. `npm test` green.

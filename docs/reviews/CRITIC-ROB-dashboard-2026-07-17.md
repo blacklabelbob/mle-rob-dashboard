@@ -35,3 +35,44 @@ Gates: Fidelity 70 · UX 72 · Truth 55 · Engineering 65 · Recording 75 · Eff
 
 ---
 *Scores are gate minimums, not averages. Verdict returns to SHIP when items 1–5 are fixed and verified against prod — items 6–10 are same-week, not same-night, blockers.*
+
+---
+
+# Re-score 2026-07-17 (post-fix, commit f026cc8)
+**Evidence:** live curl -4 w/ basic auth (overview / people / person-caleb / person-gulf, all 200), Supabase read-only queries (signed rows + node_type distribution), full diff read of f026cc8, DOM-vs-RSC-payload separation on note renders.
+
+```
+CRITIC ROB — MLE CRM Dashboard (re-score after punch items 1-5, 8, parts of 9, 6)
+VERDICT: REVISE   ·   Score: 75/100   (was 55)
+Gates: Fidelity 85 · UX 88 · Truth 82 · Engineering 78 · Recording 75 · Effort 90
+```
+
+## Verified fixed against LIVE prod (not the claims)
+
+- **Item 1 ✅** Overview renders **$15k** emerald with amber "⚠ + $19k disputed" sub. Dedup is in DATA (Supabase: `caleb-green.quoted_amount = null`, `cg-roofing-group = $10k`) so pipeline ($7k) and est-network-value inherit it. `lib/stats.ts` now has `isDisputedSigned()` — signed counts only with a signed date. Math checked by hand against live rows: 10k (CG) + 5k (Naples) = 15k. Correct.
+- **Item 2 ✅ on 2 of 3 surfaces** — PeopleTable and PersonEditor render Gulf as amber "⚠ disputed" with honest tooltips; excluded from signed rollups. **Missed the third surface — see NEW-1.**
+- **Item 3 ✅** Days→$ / Est-time-to-payment renderings: zero occurrences on live pages. Paid column live (green ✓ date, else —). Status pill goes green "paid" off `keyDates.paid`. Paid→Client auto-upgrade lives in CODE (`route.ts` PATCH: `if (kd?.paid) row.node_type = "client"`) — CR-3 done right. Date chips send the full merged `keyDates` object, so no sibling-date wipe.
+- **Item 4 ✅ (display half)** Live overview shows 4 items in red with 8d/10d/11d/12d LATE. The verify-with-Will half (are the two SECURITY rotations actually done?) is still an open internal ask — the page now at least tells the truth about the delinquency.
+- **Item 5 ✅** Caleb + CG both carry `signed: 2026-06-22, invoiced: 2026-06-26` in Supabase; chips render those live. Gulf's quoted 2026-06-19 set. "Where known" satisfied.
+- **Item 8 ✅ mostly** Three strays archived to `docs/archive/` (tracked), `.vercel-DISABLED` git-rm'd + gitignored, `.env.local.backup-*` gone. **prd-autosave fold NOT done — see NEW-2.**
+- **Item 9 parts ✅** Referral note renders once in the DOM (verified with scripts stripped — the doubled count was the RSC payload, not the page). Ghost contact affordances now `opacity-0 group-hover:opacity-100` — Attio pattern, exactly as specified.
+- **Item 6 partial ✅** NodeType union verified against the LIVE distribution (7 slugs + null) — matches exactly. `entityKind` mapping acknowledged open.
+
+## NEW DEFECTS (found in the fixes; none are regressions)
+
+- **NEW-1 [Truth/Fidelity] `components/NetworkGraph.tsx:617-618` still renders Gulf "Signed: yes" in clean emerald.** The claim was "disputed anywhere signed shows" — the graph detail panel is a signed surface, and it's the ONE place Gulf is guaranteed to be clicked (it's the biggest node on the canvas, $404k). Overclaimed fix. → Pass the disputed state into the graph node payload and render the same amber "⚠ disputed" there.
+- **NEW-2 [Recording] The punch-fix batch has NO CHANGELOG.md entry** — every prior 7/17 batch got a dated entry; the commit that answers a formal review didn't. And PRD rev table gained row #15 of "Auto-touched (session activity)" spam (2.1.16) — the fold-to-one-line fix from item 8 wasn't done. → Add the changelog entry; fix `prd-autosave.sh`.
+- **NEW-3 [Engineering] `supabase/migrations/0001_network.sql` constraint is stale vs live DB** — still allows `phone-attacker`/`social-butterfly`, missing `mle-admin`/`lead`/`rep-candidate`. The live constraint was mutated ad hoc across dev-chat batches; a rebuild from migrations would REJECT today's data. Schema-as-code is now the liar the types file used to be. → Write `0002_node_type_taxonomy.sql` capturing the current constraint.
+- **NEW-4 [Engineering, minor] `estTimeToPaymentDays` survives as a dead part** — in `lib/types.ts:58`, the supabaseStore mapping, and the PATCH FIELD_MAP (still writable via API for a metric Rob killed). Types.ts lines 20-21 comment still narrates phone-attackers/social-butterflies. → Delete the field end-to-end + fix the comment. Musk gate: the best part is no part.
+- **NEW-5 [Truth, minor] Caleb's row note still says "$10k invoiced" while his Quoted cell is empty** — the "note the move in the row" half of item 1 wasn't written (the enrichment note covers contact-data placement, not the quote). One sentence in his notes: "Deal $ lives on cg-roofing-group (company record of this pair)."
+
+## Still open, tracked, NOT re-penalized
+Item 7 (fallback regen), item 10 (stats unit tests — the money math that just burned us is STILL untested; this caps Engineering below 90 until it lands), entity_kind mapping, Role-dump IA residual of item 9, Gulf ruling (Rob's call), enrichment rounds 2+, Phases 4/7.
+
+## WHAT SURVIVES CONTACT WITH ROB
+- **The headline is now true.** $15k is citable, the disputed $19k is visible instead of laundered, and the dedup lives in data + a named rule (`isDisputedSigned`) instead of a prose promise.
+- **Paid→Client in code.** The apex metric Rob crowned is enforced by the API route, not a convention someone has to remember.
+- **The ledger reads like Attio now** — Paid column, hover-gated contact affordances, no dead Days→$ column.
+
+---
+*Verdict flips to SHIP when NEW-1 and NEW-2 land (≈1 hour) — NEW-3/4/5 are same-week hygiene. This deliverable went from "wrong number in green" to "one missed surface and a skipped log line." That's the right direction at the right speed.*

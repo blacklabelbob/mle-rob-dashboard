@@ -1,6 +1,6 @@
 # PRD: MLE Dashboard → Self-Made CRM Evolution
 
-**Version:** 2.1.16 | **Created:** 2026-07-16 | **Updated:** 2026-07-17
+**Version:** 2.1.17 | **Created:** 2026-07-16 | **Updated:** 2026-07-17
 **Status:** PLANNING
 **Owner:** Rob + Max
 **Project:** mle-rob-dashboard
@@ -258,22 +258,6 @@ The ultimate platform for sales reps — a self-owned CRM whose only job is **he
 | Version | Date | What Changed | By |
 |---------|------|--------------|-----|
 | 1.0 | 2026-07-16 | Initial PRD — army baseline (CoS + all 5 dept heads); explicitly DRAFT pending Rob's differentiator dump → v2.0 | Max |
-| 2.1.16 | 2026-07-17 | Auto-touched (session activity) | prd-autosave.sh |
-| 2.1.15 | 2026-07-17 | Auto-touched (session activity) | prd-autosave.sh |
-| 2.1.14 | 2026-07-17 | Auto-touched (session activity) | prd-autosave.sh |
-| 2.1.13 | 2026-07-17 | Auto-touched (session activity) | prd-autosave.sh |
-| 2.1.12 | 2026-07-17 | Auto-touched (session activity) | prd-autosave.sh |
-| 2.1.11 | 2026-07-17 | Auto-touched (session activity) | prd-autosave.sh |
-| 2.1.10 | 2026-07-17 | Auto-touched (session activity) | prd-autosave.sh |
-| 2.1.9 | 2026-07-17 | Auto-touched (session activity) | prd-autosave.sh |
-| 2.1.8 | 2026-07-17 | Auto-touched (session activity) | prd-autosave.sh |
-| 2.1.7 | 2026-07-17 | Auto-touched (session activity) | prd-autosave.sh |
-| 2.1.6 | 2026-07-17 | Auto-touched (session activity) | prd-autosave.sh |
-| 2.1.5 | 2026-07-17 | Auto-touched (session activity) | prd-autosave.sh |
-| 2.1.4 | 2026-07-17 | Auto-touched (session activity) | prd-autosave.sh |
-| 2.1.3 | 2026-07-17 | Auto-touched (session activity) | prd-autosave.sh |
-| 2.1.2 | 2026-07-17 | Auto-touched (session activity) | prd-autosave.sh |
-| 2.1.1 | 2026-07-17 | Auto-touched (session activity) | prd-autosave.sh |
 | 1.1 | 2026-07-16 | QE fixes (was 83/100 → 95/100): stage canonicity, base-6.3 supersession, Phase 2 gate, task splits, diagram gating | Max |
 | 1.1.1–1.1.10 | 2026-07-16/17 | Auto-touched (session activity) | prd-autosave.sh |
 | 2.0 | 2026-07-17 | **VISION AMENDMENT** — Rob's verbal dump folded in: north-star principles, role layers (super-admin/mgmt/rep subtypes + bounty-hunter/booker channels), lead-routing engine (1.14, 5.5), source-context intake (1.15), Rep Cockpit phase P7 (dialer/recording/transcript/AI summary/RAG/deep-scrape briefs/video ingestion), In-Call Buttons phase P8 (proposal/case-study matcher/e-sign/invoice), scout first mission (1.12), Task 1.1 ✅, stack + base-structure questions answered in Decisions Log, Q1–Q3 opened with ASSUMED defaults | Max (Rob directive) |

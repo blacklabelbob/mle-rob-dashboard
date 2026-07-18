@@ -17,7 +17,7 @@ export type NodeType =
   | "vertical-anchor"
   | "rep-candidate";
 // How a node grows the network: clients pay, connectors open doors,
-// phone-attackers/social-butterflies are rep archetypes, vertical-anchors
+// vertical-anchors
 // (e.g. payment processing) touch every business in a territory.
 
 export interface KeyDates {
@@ -55,7 +55,6 @@ export interface Person {
   signed: boolean;
   meetingVideoUrl?: string;
   transcriptUrl?: string;
-  estTimeToPaymentDays?: number;
   keyDates: KeyDates;
   phaseOne: PhaseOneStatus;
   description?: string; // free text Rob types; feeds the AI estimator

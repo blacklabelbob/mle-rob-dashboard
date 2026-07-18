@@ -10,6 +10,9 @@ interface GNode {
   status: "lit" | "warm" | "unlit";
   verticalId: string;
   signed: boolean;
+  signedDisputed: boolean;
+  signedDate: string | null;
+  paidDate: string | null;
   quotedAmount: number;
   contribution: number;
   probability: number | null;
@@ -614,8 +617,24 @@ export default function NetworkGraph() {
             </div>
             <div className="flex justify-between">
               <dt className="text-slate-500">Signed</dt>
-              <dd className={selected.signed ? "text-emerald-400" : "text-slate-500"}>
-                {selected.signed ? "yes" : "not yet"}
+              <dd
+                className={
+                  selected.paidDate
+                    ? "font-medium text-green-400"
+                    : selected.signedDisputed
+                      ? "text-amber-400"
+                      : selected.signed
+                        ? "text-emerald-400"
+                        : "text-slate-500"
+                }
+              >
+                {selected.paidDate
+                  ? `PAID ${selected.paidDate}`
+                  : selected.signedDisputed
+                    ? "⚠ disputed"
+                    : selected.signed
+                      ? `yes ${selected.signedDate ?? ""}`
+                      : "not yet"}
               </dd>
             </div>
             <div className="flex justify-between">

@@ -29,7 +29,6 @@ const FIELD_MAP: Record<string, string> = {
   website: "website",
   relationship: "relationship",
   referredById: "referred_by_id",
-  estTimeToPaymentDays: "est_time_to_payment_days",
   assignedRep: "assigned_rep",
   phaseOne: "phase_one",
   keyDates: "key_dates",

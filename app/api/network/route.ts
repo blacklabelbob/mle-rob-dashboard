@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getStore } from "@/lib/storage";
-import { contribution } from "@/lib/stats";
+import { contribution, isDisputedSigned } from "@/lib/stats";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +17,9 @@ export async function GET() {
       status: p.status,
       verticalId: p.verticalId,
       signed: p.signed,
+      signedDisputed: isDisputedSigned(p),
+      signedDate: p.keyDates.signed ?? null,
+      paidDate: p.keyDates.paid ?? null,
       quotedAmount: p.quotedAmount ?? 0,
       contribution: contribution(p),
       probability: p.estimate?.probability ?? null,
