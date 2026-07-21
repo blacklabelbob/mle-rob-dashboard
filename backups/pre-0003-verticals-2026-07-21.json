@@ -1,0 +1,8 @@
+[{"id":"core","name":"Core Team","color":"#f8fafc"}, 
+ {"id":"food","name":"Food & Beverage","color":"#a3e635"}, 
+ {"id":"home-services","name":"Home Services","color":"#34d399"}, 
+ {"id":"medical","name":"Medical","color":"#34d399"}, 
+ {"id":"payments","name":"Payment Processing","color":"#c084fc"}, 
+ {"id":"roofing","name":"Roofing","color":"#f59e0b"}, 
+ {"id":"title","name":"Title / Real Estate","color":"#60a5fa"}, 
+ {"id":"webdev","name":"Web Developers","color":"#f472b6"}]

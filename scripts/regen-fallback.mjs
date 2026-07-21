@@ -31,12 +31,13 @@ const toPerson = (r) => ({
   name: r.name,
   business: r.business ?? undefined,
   role: r.role ?? undefined,
+  entityKind: r.entity_kind ?? undefined,
   nodeType: r.node_type ?? undefined,
   verticalId: r.vertical_id,
   phone: r.phone ?? undefined,
   email: r.email ?? undefined,
   website: r.website ?? undefined,
-  referredById: r.referred_by_id ?? undefined,
+  referredById: r.referred_by_id ?? r.referred_by_org_id ?? undefined,
   relationship: r.relationship ?? undefined,
   status: r.status,
   quotedAmount: r.quoted_amount ?? undefined,
@@ -53,8 +54,8 @@ const toPerson = (r) => ({
 
 const toEdge = (r) => ({
   id: r.id,
-  fromId: r.from_id,
-  toId: r.to_id,
+  fromId: r.from_id ?? r.from_org_id,
+  toId: r.to_id ?? r.to_org_id,
   relationship: r.relationship ?? undefined,
   suggested: r.suggested || undefined,
 });
@@ -78,13 +79,28 @@ async function all(table) {
   return data;
 }
 
-const [verticals, people, edges, projects] = await Promise.all([
-  all("verticals"), all("people"), all("edges"), all("projects"),
+// Post-0003 split: company rows live in `orgs` and come back as entityKind
+// "company" Persons (mirrors supabaseStore merged read). Absent table (pre-split
+// database) degrades to an empty list so the script works on both schemas.
+async function allOrgs() {
+  const { data, error } = await db.from("orgs").select("*").order("id");
+  if (error) {
+    if (/orgs/.test(error.message) && /not exist|find the table/i.test(error.message)) return [];
+    throw new Error(`orgs: ${error.message}`);
+  }
+  return data;
+}
+
+const [verticals, people, edges, projects, orgs] = await Promise.all([
+  all("verticals"), all("people"), all("edges"), all("projects"), allOrgs(),
 ]);
 
 const out = {
   verticals: verticals.map((r) => ({ id: r.id, name: r.name, color: r.color })),
-  people: people.map(toPerson),
+  people: [
+    ...people.map(toPerson),
+    ...orgs.map((r) => ({ ...toPerson(r), entityKind: "company" })),
+  ],
   edges: edges.map(toEdge),
   projects: projects.map(toProject),
 };
