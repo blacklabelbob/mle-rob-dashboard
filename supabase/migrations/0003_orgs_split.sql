@@ -78,12 +78,14 @@ update orgs o set referred_by_org_id = o.referred_by_id, referred_by_id = null
 --    because org rows KEEP their ids — we add org columns and repoint.
 alter table edges add column if not exists from_org_id text references orgs(id);
 alter table edges add column if not exists to_org_id text references orgs(id);
+-- drop not null BEFORE the repoint updates set from_id/to_id to null
+-- (2026-07-21 transactional rehearsal on prod caught the original order failing 23502)
+alter table edges alter column from_id drop not null;
+alter table edges alter column to_id drop not null;
 update edges e set from_org_id = e.from_id, from_id = null
   where exists (select 1 from orgs o where o.id = e.from_id);
 update edges e set to_org_id = e.to_id, to_id = null
   where exists (select 1 from orgs o where o.id = e.to_id);
-alter table edges alter column from_id drop not null;
-alter table edges alter column to_id drop not null;
 alter table edges add constraint edges_from_one check (num_nonnulls(from_id, from_org_id) = 1);
 alter table edges add constraint edges_to_one check (num_nonnulls(to_id, to_org_id) = 1);
 
