@@ -20,8 +20,19 @@ function db(): SupabaseClient {
   return client;
 }
 
+// Task 2.0 dual-schema mode (post 0003_orgs_split): company rows live in
+// `orgs`, edges may carry from_org_id/to_org_id, and referred_by pointers at
+// org rows moved to referred_by_org_id. ORGS_SPLIT_READS=1 turns the merged
+// read + write-routing on; NetworkData shape is unchanged (orgs come back as
+// Person rows with entityKind "company"), so no UI code moves. The flag stays
+// unset until 0003 is applied — with it off, every path below is byte-identical
+// to the pre-split behavior because the org columns simply don't exist.
+function orgsSplitMode(): boolean {
+  return process.env.ORGS_SPLIT_READS === "1";
+}
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
-function toPerson(r: any): Person {
+export function toPerson(r: any): Person {
   return {
     id: r.id,
     name: r.name,
@@ -33,7 +44,7 @@ function toPerson(r: any): Person {
     phone: r.phone ?? undefined,
     email: r.email ?? undefined,
     website: r.website ?? undefined,
-    referredById: r.referred_by_id ?? undefined,
+    referredById: r.referred_by_id ?? r.referred_by_org_id ?? undefined,
     relationship: r.relationship ?? undefined,
     status: r.status,
     quotedAmount: r.quoted_amount ?? undefined,
@@ -77,6 +88,47 @@ function fromPerson(p: Person) {
   };
 }
 
+export function toOrgPerson(r: any): Person {
+  return { ...toPerson(r), entityKind: "company" };
+}
+
+// orgs.node_type has a narrower check constraint than people (no mle-admin /
+// rep-candidate) and no entity_kind column; referred-by routes to the paired
+// column depending on whether the referrer itself is an org.
+const ORG_NODE_TYPES = new Set(["partner", "lead", "client", "connector", "vertical-anchor"]);
+
+export function fromOrgRow(p: Person, referrerIsOrg: boolean) {
+  const row: any = fromPerson(p);
+  delete row.entity_kind;
+  if (row.node_type && !ORG_NODE_TYPES.has(row.node_type)) row.node_type = null;
+  return routeReferrer(row, referrerIsOrg);
+}
+
+export function routeReferrer(row: any, referrerIsOrg: boolean) {
+  const ref = row.referred_by_id;
+  row.referred_by_id = referrerIsOrg ? null : ref;
+  row.referred_by_org_id = referrerIsOrg ? ref : null;
+  return row;
+}
+
+// Edge FKs are paired-nullable post-split (exactly one of person/org set per
+// endpoint — DB check constraint); coalescing keeps the app's single-id shape.
+export function toEdge(r: any): Edge {
+  return {
+    id: r.id,
+    fromId: r.from_id ?? r.from_org_id,
+    toId: r.to_id ?? r.to_org_id,
+    relationship: r.relationship ?? undefined,
+    suggested: r.suggested ?? undefined,
+  };
+}
+
+async function isOrgId(s: SupabaseClient, id: string): Promise<boolean> {
+  const { data, error } = await s.from("orgs").select("id").eq("id", id).maybeSingle();
+  if (error) throw new Error(`supabase orgs lookup failed: ${error.message}`);
+  return data != null;
+}
+
 function toProject(r: any): Project {
   return {
     id: r.id,
@@ -112,25 +164,20 @@ export const supabaseStore: StorageAdapter = {
   name: "supabase",
   async getNetwork(): Promise<NetworkData> {
     const s = db();
-    const [people, edges, verticals, projects] = await Promise.all([
+    const split = orgsSplitMode();
+    const [people, edges, verticals, projects, orgs] = await Promise.all([
       s.from("people").select("*"),
       s.from("edges").select("*"),
       s.from("verticals").select("*"),
       s.from("projects").select("*"),
+      split ? s.from("orgs").select("*") : Promise.resolve({ data: [], error: null }),
     ]);
-    const firstError = people.error ?? edges.error ?? verticals.error ?? projects.error;
+    const firstError =
+      people.error ?? edges.error ?? verticals.error ?? projects.error ?? orgs.error;
     if (firstError) throw new Error(`supabase read failed: ${firstError.message}`);
     return {
-      people: (people.data ?? []).map(toPerson),
-      edges: (edges.data ?? []).map(
-        (r): Edge => ({
-          id: r.id,
-          fromId: r.from_id,
-          toId: r.to_id,
-          relationship: r.relationship ?? undefined,
-          suggested: r.suggested ?? undefined,
-        })
-      ),
+      people: [...(people.data ?? []).map(toPerson), ...(orgs.data ?? []).map(toOrgPerson)],
+      edges: (edges.data ?? []).map(toEdge),
       verticals: (verticals.data ?? []).map(
         (r): Vertical => ({ id: r.id, name: r.name, color: r.color })
       ),
@@ -138,7 +185,20 @@ export const supabaseStore: StorageAdapter = {
     };
   },
   async upsertPerson(person: Person) {
-    const { error } = await db().from("people").upsert(fromPerson(person));
+    const s = db();
+    if (!orgsSplitMode()) {
+      const { error } = await s.from("people").upsert(fromPerson(person));
+      if (error) throw new Error(`supabase upsertPerson failed: ${error.message}`);
+      return;
+    }
+    // Split mode: a company row must land in orgs — writing it to people would
+    // fork the record back into the table 0003 just emptied. Person rows still
+    // go to people, but their referrer may now be an org (paired column).
+    const refIsOrg = person.referredById ? await isOrgId(s, person.referredById) : false;
+    const { error } =
+      person.entityKind === "company"
+        ? await s.from("orgs").upsert(fromOrgRow(person, refIsOrg))
+        : await s.from("people").upsert(routeReferrer(fromPerson(person), refIsOrg));
     if (error) throw new Error(`supabase upsertPerson failed: ${error.message}`);
   },
   async upsertProject(project: Project) {
