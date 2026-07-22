@@ -2,12 +2,22 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { verifyCronAuth } from "@/lib/dedup/detector";
 import { findOrphans, orphanFlagTitle } from "@/lib/integrity/orphans";
+import {
+  checkCredentials,
+  credentialFlagTitle,
+} from "@/lib/integrity/credentials";
 
-// Nightly orphan check (PRD Task 3.7), fired by Vercel cron (vercel.json),
-// same auth contract as /api/cron/dedup: CRON_SECRET unset → 503 inert,
-// wrong bearer → 401. Findings alert Rob via the flags ledger ("Things to
-// Address", findings protocol 2026-07-22) — one flag per orphaned row ever
-// (deterministic title = idempotency key), so re-runs never duplicate.
+// Nightly orphan check (PRD Task 3.7) + credential-expiry check (Task 3.8),
+// fired by Vercel cron (vercel.json) — 3.8 rides this cron because Vercel
+// Hobby caps us at 2 cron jobs. Same auth contract as /api/cron/dedup:
+// CRON_SECRET unset → 503 inert, wrong bearer → 401. Findings alert Rob via
+// the flags ledger ("Things to Address", findings protocol 2026-07-22) — one
+// flag per finding ever (deterministic title = idempotency key), so re-runs
+// never duplicate. Credential flags carry env-var NAMES only, never values.
+
+// JWT-shaped credentials whose real `exp` claim we watch (7-day window).
+// Non-JWT secrets have no expiry — see docs/plans/CRM-FAILURE-MODES.md.
+const WATCHED_CREDENTIALS = ["SUPABASE_SERVICE_ROLE_KEY", "N8N_API_KEY"];
 
 export const dynamic = "force-dynamic";
 
@@ -52,29 +62,50 @@ export async function GET(req: NextRequest) {
     tasks: tasks.data ?? [],
   });
 
+  const credFindings = checkCredentials(
+    WATCHED_CREDENTIALS.map((name) => ({ name, token: process.env[name] })),
+    Date.now()
+  );
+
+  // One flag per finding ever: deterministic title = idempotency key.
+  const candidates = [
+    ...findings.map((f) => ({
+      title: orphanFlagTitle(f),
+      detail: f.reason,
+      severity: "high",
+    })),
+    ...credFindings.map((f) => ({
+      title: credentialFlagTitle(f),
+      detail:
+        f.status === "expired"
+          ? `${f.name} is EXPIRED (since ${f.expiresAt}) — rotate it now; every feature using it is down.`
+          : `${f.name} expires ${f.expiresAt} (${f.daysLeft}d left) — rotate before it lapses.`,
+      severity: "high",
+    })),
+  ];
+
   let flagged = 0;
-  if (findings.length > 0) {
+  if (candidates.length > 0) {
     const { data: existing, error: exErr } = await client
       .from("flags")
       .select("title")
       .eq("entity_name", ENTITY);
     if (exErr) return NextResponse.json({ error: exErr.message }, { status: 500 });
     const seen = new Set((existing ?? []).map((f) => f.title));
-    const fresh = findings.filter((f) => !seen.has(orphanFlagTitle(f)));
+    const fresh = candidates.filter((c) => !seen.has(c.title));
     if (fresh.length > 0) {
       const { error } = await client.from("flags").insert(
-        fresh.map((f) => ({
-          entity_id: null,
-          entity_name: ENTITY,
-          title: orphanFlagTitle(f),
-          detail: f.reason,
-          severity: "high",
-        }))
+        fresh.map((c) => ({ entity_id: null, entity_name: ENTITY, ...c }))
       );
       if (error) return NextResponse.json({ error: error.message }, { status: 500 });
       flagged = fresh.length;
     }
   }
 
-  return NextResponse.json({ ok: true, orphans: findings.length, flagged });
+  return NextResponse.json({
+    ok: true,
+    orphans: findings.length,
+    credsExpiring: credFindings.length,
+    flagged,
+  });
 }
