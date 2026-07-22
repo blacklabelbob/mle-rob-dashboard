@@ -258,7 +258,7 @@ The base PRD's own 12-row revision history (v1.0 → v2.1.2, 2026-07-04 through 
 duplicated** into the unified doc's Revision History table — that table tracks changes to the unified
 document itself, not a second copy of the base document's history. **Nothing is lost**: the base file is
 preserved unmodified (per the "do not modify source files" constraint of this task) and referenced by the
-LINEAGE note at the top of the unified PRD; a full archive copy is a flagged follow-up action (see summary).
+LINEAGE note at the top of the unified PRD; archive copies exist at docs/archive/plans/ (commit 6bc0b64).
 Disposition: `kept-as-is` — in its original file, referenced not duplicated.
 
 ---
