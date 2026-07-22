@@ -62,6 +62,7 @@ export interface Person {
   estimate?: Estimate;
   notes?: string;
   assignedRep?: string; // Phase 6
+  orgId?: string; // person→org link (Task 2.2, backfilled by backfill-org-links.mjs)
 }
 
 export interface Edge {
@@ -106,6 +107,90 @@ export interface Project {
   link?: string;
   resources?: ProjectResource[]; // deliverables/docs Rob opens from the card (cost models, PRDs, demos)
   willItems?: WillItem[]; // things owed by Will → reminders
+  updatedAt: string;
+}
+
+// ── CRM core (Task 2.2, rides migration 0005_crm_core.sql) ──────────────────
+// Field lists are pinned to the 0005 DDL by lib/__tests__/crm.test.ts — if a
+// column is added/renamed there, the gate test fails until these move too.
+
+// orgs mirrors people verbatim minus entity_kind (0003_orgs_split); orgId is
+// the person→org link, so it has no org-side counterpart either.
+export type Org = Omit<Person, "entityKind" | "orgId">;
+
+// Task 1.6 DRAFT stage list — not Rob-locked; 0005 uses the same check
+// constraint, one cheap ALTER + this union when he locks it.
+export type DealStage =
+  | "new_lead"
+  | "contacted"
+  | "meeting_booked"
+  | "meeting_held"
+  | "quote_sent"
+  | "negotiating"
+  | "signed"
+  | "invoiced"
+  | "paid"
+  | "delivering"
+  | "stalled"
+  | "lost";
+
+export type RoutingLane = "auto_close" | "rep" | "bounty_hunter" | "booker";
+
+export interface Deal {
+  id: string;
+  personId?: string; // ≥1 of personId/orgId enforced by 0005 check
+  orgId?: string;
+  verticalId?: string;
+  ownerId?: string; // free text until Phase-4 profiles (D-002 step 9)
+  name: string;
+  stage: DealStage;
+  value?: number;
+  routingLane?: RoutingLane;
+  referralSourced: boolean;
+  keyDates: KeyDates;
+  estimate?: Estimate; // carried short-term per D-002 step 10
+  bookProtected: boolean;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type ActivityType = "call" | "email" | "meeting" | "note" | "status_change";
+export type ActivitySource = "manual" | "n8n" | "api" | "aidre" | "dialer";
+
+export interface Activity {
+  id: string;
+  personId?: string; // ≤1 of personId/orgId, ≥1 anchor incl. dealId (0005 checks)
+  orgId?: string;
+  dealId?: string;
+  createdBy?: string; // free text until Phase-4 profiles
+  type: ActivityType;
+  source: ActivitySource;
+  sourceContext: Record<string, unknown>; // Task 1.15 differentiator
+  summary?: string;
+  actionItems?: unknown;
+  buyingSignals?: unknown;
+  recordingUrl?: string;
+  transcriptUrl?: string; // becomes a transcripts FK at Task 7.4
+  bookProtected: boolean;
+  occurredAt: string;
+  createdAt: string;
+}
+
+export type TaskStatus = "open" | "done" | "cancelled";
+
+export interface Task {
+  id: string;
+  activityId?: string;
+  dealId?: string;
+  personId?: string;
+  assignedTo?: string; // free text until Phase-4 profiles
+  title: string;
+  detail?: string;
+  status: TaskStatus;
+  dueDate?: string; // ISO date
+  bookProtected: boolean;
+  createdAt: string;
   updatedAt: string;
 }
 
