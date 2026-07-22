@@ -34,7 +34,7 @@ export function isDemoRecord(r: DedupSourceRecord): boolean {
   return /^demo-/.test(r.id) || r.node_type === "demo";
 }
 
-export function pairKey(kind: DedupKind, pair: DedupPair): string {
+export function pairKey(kind: DedupKind, pair: Pick<DedupPair, "aId" | "bId">): string {
   return `${kind}:${pair.aId}:${pair.bId}`;
 }
 
