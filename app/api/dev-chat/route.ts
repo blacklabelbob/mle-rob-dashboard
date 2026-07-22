@@ -43,5 +43,12 @@ export async function POST(req: NextRequest) {
     .select("id")
     .single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  // Guaranteed receipt (Rob 2026-07-22: every prompt gets acknowledged) — inserted
+  // server-side as 'system' so the driver's unanswered-detection (rob.id > max.id)
+  // still sees the message as awaiting a real Max reply.
+  await db().from("dev_chat").insert({
+    author: "system",
+    body: "📥 Received — Max acts within ~10 min (sooner when he's live).",
+  });
   return NextResponse.json({ ok: true, id: data.id });
 }

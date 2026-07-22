@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 // Floating dev-chat panel: Rob talks to Max while looking at the dashboard.
 // Renders only when NEXT_PUBLIC_DEV_CHAT=1. Polls every 5s.
 
-type Msg = { id: number; author: "rob" | "max"; body: string; created_at: string };
+type Msg = { id: number; author: "rob" | "max" | "system"; body: string; created_at: string };
 
 export default function DevChat() {
   const [open, setOpen] = useState(false);
@@ -89,7 +89,12 @@ export default function DevChat() {
                 Tell Max what to change while you look at it. Say which page you&apos;re on — messages land in his queue even when he&apos;s not live.
               </p>
             )}
-            {msgs.map((m) => (
+            {msgs.map((m) =>
+              m.author === "system" ? (
+                <div key={m.id} className="py-0.5 text-center text-[10px] text-slate-600">
+                  {m.body}
+                </div>
+              ) : (
               <div
                 key={m.id}
                 className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${
@@ -103,7 +108,8 @@ export default function DevChat() {
                 </div>
                 <div className="whitespace-pre-wrap">{m.body}</div>
               </div>
-            ))}
+              )
+            )}
           </div>
           {sendError && (
             <div className="border-t border-red-400/30 bg-red-500/10 px-3 py-1.5 text-[11px] text-red-300">
