@@ -3,9 +3,10 @@ import { notFound } from "next/navigation";
 import CallButton from "@/components/CallButton";
 import PhaseEightBar from "@/components/PhaseEightBar";
 import ActivityTimeline from "@/components/ActivityTimeline";
+import QuotedAmountInline from "@/components/QuotedAmountInline";
 import { InlineSelect, InlineText } from "@/components/inline/fields";
 import { getStore } from "@/lib/storage";
-import { isDemo as isDemoPerson, money } from "@/lib/stats";
+import { isDemo as isDemoPerson } from "@/lib/stats";
 import { demoActivity, sourceContext, touchReason } from "@/lib/repSource";
 
 // The account workspace — the money page (Task 1b.3): what opens when a rep
@@ -69,14 +70,7 @@ export default async function RepAccountWorkspace({
           <div className="flex items-center gap-3">
             <div className="text-right">
               <div className="tabular text-xl font-semibold text-amber-300">
-                <InlineText
-                  personId={person.id}
-                  field="quotedAmount"
-                  value={person.quotedAmount != null && person.quotedAmount > 0 ? person.quotedAmount : null}
-                  numeric
-                  format={(v) => money(Number(v))}
-                  placeholder="+ add quote"
-                />
+                <QuotedAmountInline personId={person.id} value={person.quotedAmount} />
               </div>
               <div className="text-[11px] uppercase tracking-wide text-slate-500">quoted</div>
             </div>
