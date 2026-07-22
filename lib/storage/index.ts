@@ -32,11 +32,13 @@ export function servingFileData(): "configured" | "fallback" | null {
 
 function withFallback(primary: StorageAdapter): StorageAdapter {
   if (primary === fileStore) return primary;
-  return {
-    name: `${primary.name}→file-fallback`,
-    async getNetwork() {
+  // Same no-stall rule for every read; writes never fall back (data fork risk).
+  function fallbackRead<A extends unknown[], R>(
+    read: (store: StorageAdapter) => (...args: A) => Promise<R>
+  ): (...args: A) => Promise<R> {
+    return async (...args: A) => {
       try {
-        const data = await primary.getNetwork();
+        const data = await read(primary)(...args);
         fallbackServed = false;
         return data;
       } catch (err) {
@@ -45,11 +47,21 @@ function withFallback(primary: StorageAdapter): StorageAdapter {
           err
         );
         fallbackServed = true;
-        return fileStore.getNetwork();
+        return read(fileStore)(...args);
       }
-    },
+    };
+  }
+  return {
+    name: `${primary.name}→file-fallback`,
+    getNetwork: fallbackRead((s) => s.getNetwork.bind(s)),
+    listDeals: fallbackRead((s) => s.listDeals.bind(s)),
+    listActivities: fallbackRead((s) => s.listActivities.bind(s)),
+    listTasks: fallbackRead((s) => s.listTasks.bind(s)),
     upsertPerson: (p) => primary.upsertPerson(p),
     upsertProject: (p) => primary.upsertProject(p),
+    upsertDeal: (d) => primary.upsertDeal(d),
+    upsertActivity: (a) => primary.upsertActivity(a),
+    upsertTask: (t) => primary.upsertTask(t),
   };
 }
 

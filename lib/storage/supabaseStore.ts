@@ -1,6 +1,17 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
-import type { NetworkData, Person, Project, Edge, Vertical } from "@/lib/types";
-import type { StorageAdapter } from "./adapter";
+import type {
+  Activity,
+  Deal,
+  Edge,
+  NetworkData,
+  Person,
+  Project,
+  Task,
+  Vertical,
+} from "@/lib/types";
+// Relative on purpose: vitest has no "@/" alias; runtime imports must resolve.
+import { fromActivity, fromDeal, fromTask, toActivity, toDeal, toTask } from "../crm";
+import type { ActivityFilter, StorageAdapter, TaskFilter } from "./adapter";
 
 // Rob's 2026-07-04 call: "Supabase — go." Rows mirror lib/types with nested
 // objects (keyDates, estimate, willItems) as JSONB — schema in
@@ -204,5 +215,41 @@ export const supabaseStore: StorageAdapter = {
   async upsertProject(project: Project) {
     const { error } = await db().from("projects").upsert(fromProject(project));
     if (error) throw new Error(`supabase upsertProject failed: ${error.message}`);
+  },
+  async listDeals(): Promise<Deal[]> {
+    const { data, error } = await db()
+      .from("deals")
+      .select("*")
+      .order("created_at", { ascending: true });
+    if (error) throw new Error(`supabase listDeals failed: ${error.message}`);
+    return (data ?? []).map(toDeal);
+  },
+  async upsertDeal(deal: Deal) {
+    const { error } = await db().from("deals").upsert(fromDeal(deal));
+    if (error) throw new Error(`supabase upsertDeal failed: ${error.message}`);
+  },
+  async listActivities(filter?: ActivityFilter): Promise<Activity[]> {
+    let q = db().from("activities").select("*").order("occurred_at", { ascending: true });
+    if (filter?.personId) q = q.eq("person_id", filter.personId);
+    if (filter?.orgId) q = q.eq("org_id", filter.orgId);
+    if (filter?.dealId) q = q.eq("deal_id", filter.dealId);
+    const { data, error } = await q;
+    if (error) throw new Error(`supabase listActivities failed: ${error.message}`);
+    return (data ?? []).map(toActivity);
+  },
+  async upsertActivity(activity: Activity) {
+    const { error } = await db().from("activities").upsert(fromActivity(activity));
+    if (error) throw new Error(`supabase upsertActivity failed: ${error.message}`);
+  },
+  async listTasks(filter?: TaskFilter): Promise<Task[]> {
+    let q = db().from("tasks").select("*").order("created_at", { ascending: true });
+    if (filter?.status) q = q.eq("status", filter.status);
+    const { data, error } = await q;
+    if (error) throw new Error(`supabase listTasks failed: ${error.message}`);
+    return (data ?? []).map(toTask);
+  },
+  async upsertTask(task: Task) {
+    const { error } = await db().from("tasks").upsert(fromTask(task));
+    if (error) throw new Error(`supabase upsertTask failed: ${error.message}`);
   },
 };

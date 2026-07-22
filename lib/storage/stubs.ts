@@ -10,7 +10,18 @@ function notConfigured(name: string): StorageAdapter {
           `Set STORAGE_SOURCE=file to keep moving (no-stall rule).`
       )
     );
-  return { name, getNetwork: fail, upsertPerson: fail, upsertProject: fail };
+  return {
+    name,
+    getNetwork: fail,
+    upsertPerson: fail,
+    upsertProject: fail,
+    listDeals: fail,
+    upsertDeal: fail,
+    listActivities: fail,
+    upsertActivity: fail,
+    listTasks: fail,
+    upsertTask: fail,
+  };
 }
 
 export const sheetsStore = notConfigured("google-sheets");

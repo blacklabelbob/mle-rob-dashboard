@@ -1,9 +1,59 @@
 import { promises as fs } from "fs";
 import path from "path";
-import type { NetworkData, Person, Project } from "@/lib/types";
-import type { StorageAdapter } from "./adapter";
+import type { Activity, Deal, NetworkData, Person, Project, Task } from "@/lib/types";
+import type { ActivityFilter, StorageAdapter, TaskFilter } from "./adapter";
 
 const DATA_PATH = path.join(process.cwd(), "data", "network.json");
+
+// CRM rows live in their own file so network.json (and regen-fallback.mjs)
+// keep their exact shape. Overridable so the contract test can point at a
+// temp file; resolved per-call, not at module load.
+function crmPath(): string {
+  return process.env.CRM_DATA_PATH ?? path.join(process.cwd(), "data", "crm.json");
+}
+
+interface CrmData {
+  deals: Deal[];
+  activities: Activity[];
+  tasks: Task[];
+}
+
+async function readCrm(): Promise<CrmData> {
+  try {
+    const raw = await fs.readFile(crmPath(), "utf8");
+    const parsed = JSON.parse(raw);
+    return {
+      deals: parsed.deals ?? [],
+      activities: parsed.activities ?? [],
+      tasks: parsed.tasks ?? [],
+    };
+  } catch (err: unknown) {
+    // No CRM file yet = no CRM rows yet. Anything else (bad JSON, perms) is real.
+    if ((err as NodeJS.ErrnoException)?.code === "ENOENT")
+      return { deals: [], activities: [], tasks: [] };
+    throw err;
+  }
+}
+
+async function writeCrm(data: CrmData): Promise<void> {
+  try {
+    await fs.writeFile(crmPath(), JSON.stringify(data, null, 2), "utf8");
+  } catch (err) {
+    // Same loud-fail rule as write() below: never a silent "saved".
+    throw new Error(
+      `file store is not writable here (read-only deploy?). ` +
+        `Set STORAGE_SOURCE to a real store (docs/plans/sources/STORAGE-DECISION.md). Cause: ${
+          err instanceof Error ? err.message : String(err)
+        }`
+    );
+  }
+}
+
+function upsertById<T extends { id: string }>(arr: T[], item: T): void {
+  const i = arr.findIndex((x) => x.id === item.id);
+  if (i >= 0) arr[i] = item;
+  else arr.push(item);
+}
 
 async function read(): Promise<NetworkData> {
   const raw = await fs.readFile(DATA_PATH, "utf8");
@@ -43,5 +93,41 @@ export const fileStore: StorageAdapter = {
     if (i >= 0) data.projects[i] = project;
     else data.projects.push(project);
     await write(data);
+  },
+  async listDeals() {
+    const { deals } = await readCrm();
+    return deals.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  },
+  async upsertDeal(deal: Deal) {
+    const data = await readCrm();
+    upsertById(data.deals, deal);
+    await writeCrm(data);
+  },
+  async listActivities(filter?: ActivityFilter) {
+    const { activities } = await readCrm();
+    return activities
+      .filter(
+        (a) =>
+          (!filter?.personId || a.personId === filter.personId) &&
+          (!filter?.orgId || a.orgId === filter.orgId) &&
+          (!filter?.dealId || a.dealId === filter.dealId)
+      )
+      .sort((a, b) => a.occurredAt.localeCompare(b.occurredAt));
+  },
+  async upsertActivity(activity: Activity) {
+    const data = await readCrm();
+    upsertById(data.activities, activity);
+    await writeCrm(data);
+  },
+  async listTasks(filter?: TaskFilter) {
+    const { tasks } = await readCrm();
+    return tasks
+      .filter((t) => !filter?.status || t.status === filter.status)
+      .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  },
+  async upsertTask(task: Task) {
+    const data = await readCrm();
+    upsertById(data.tasks, task);
+    await writeCrm(data);
   },
 };
