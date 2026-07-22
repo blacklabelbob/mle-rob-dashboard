@@ -1,6 +1,6 @@
 # PRD: MLE CRM — The Network + Self-Made CRM (Unified)
 
-**Version:** 3.0.5 | **Created:** 2026-07-16 | **Updated:** 2026-07-21
+**Version:** 3.0.6 | **Created:** 2026-07-16 | **Updated:** 2026-07-21
 **Status:** ACTIVE
 **Owner:** Rob + Max
 **Project:** mle-rob-dashboard
@@ -355,7 +355,7 @@ dependence on GoHighLevel, Close, or any rented CRM core.
 | ~~Base-PRD Task 1.2: Supabase adapter live~~ | dependency | Max | ✅ resolved 2026-07-17 (mle-network live, local+prod verified) |
 | ~~Base-PRD Task 1.3: 25-person brain-dump~~ | dependency | Rob | ✅ resolved (54-person dataset live 7/8; Rob confirmed 7/21) |
 | ~~Anthropic API key~~ | dependency | Rob | ✅ resolved — estimator running on claude (est. panel stamps 'source: claude 7/17'; Rob confirmed 7/21) |
-| n8n API key rotation (EXPIRED ~7/19 — new key needed from Rob's n8n login, PING-INBOX item) | gate for Tasks 3.2+ only | Rob | open |
+| ~~n8n API key~~ | dependency | Rob | ✅ resolved 2026-07-21 — new key delivered in .env.local (N8N_KEY), live-tested 200 vs boostn8n API |
 | AIDRE call-outcome payload shape | dependency for Task 3.3 | Max (AIDRE build) | open |
 | Q1–Q3 answers (bounty/booker, book visibility, auto-close lane) | refines 1.13/1.14/4.6 | Rob | open |
 | ~~Dialer provider decision (Task 7.1 output)~~ | ~~blocker for 7.2–7.3~~ | Max → Rob confirm | **decided 7/18 (raw Twilio, composite 94.5) — 7.2 build proceeding per merit rule; Rob async veto still open (dev-chat #27)** |
@@ -385,6 +385,7 @@ dependence on GoHighLevel, Close, or any rented CRM core.
 | Version | Date | What Changed | By |
 |---------|------|--------------|-----|
 | 3.0.2 | 2026-07-21 | **RACE-LOSS RESTORED (critic-rob unification punch #1):** the driver closed Task 2.0 (orgs split APPLIED TO PROD, TICK 97/100) between the merge snapshot (v2.2.27) and commit; final state + the 6 revision rows below ported verbatim from the archived source (which preserved v2.2.31). Gulf signed-dispute = resolved-by-data since 7/18 (in Task 2.0 post-close notes). Driver now PAUSES during structural PRD ops (crm-driver.pause flag) | Max |
+| 3.0.6 | 2026-07-21 | Auto-touched (session activity) | prd-autosave.sh |
 | 3.0.5 | 2026-07-21 | Auto-touched (session activity) | prd-autosave.sh |
 | 3.0.4 | 2026-07-21 | Auto-touched (session activity) | prd-autosave.sh |
 | 3.0.3 | 2026-07-21 | Auto-touched (session activity) | prd-autosave.sh |
