@@ -1,6 +1,7 @@
 import { getStore } from "@/lib/storage";
-import { money } from "@/lib/stats";
+import { repMoney, toRepAccountListItem } from "@/lib/repSource";
 import RepAccountsList from "@/components/RepAccountsList";
+import DemoFooter from "@/components/DemoFooter";
 
 // "My Accounts" — the CRM-feeling list Rob asked to see first (Task 1b.3):
 // "what's it look like when a rep sees his list of accounts." Same book as
@@ -27,12 +28,14 @@ export default async function RepAccountsPage() {
           </p>
         </div>
         <div className="text-right">
-          <div className="tabular text-xl font-semibold text-amber-300">{money(pipeline)}</div>
+          <div className="tabular text-xl font-semibold text-amber-300">{repMoney(pipeline)}</div>
           <div className="text-[11px] uppercase tracking-wide text-slate-500">quotes out</div>
         </div>
       </div>
 
-      <RepAccountsList people={book} verticals={data.verticals} />
+      <RepAccountsList people={book.map(toRepAccountListItem)} verticals={data.verticals} />
+
+      <DemoFooter />
     </div>
   );
 }

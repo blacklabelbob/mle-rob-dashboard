@@ -1,9 +1,9 @@
 import Link from "next/link";
 import CallButton from "@/components/CallButton";
 import PhaseEightBar from "@/components/PhaseEightBar";
+import DemoFooter from "@/components/DemoFooter";
 import { getStore } from "@/lib/storage";
-import { money } from "@/lib/stats";
-import { sourceContext, stageRank, touchReason } from "@/lib/repSource";
+import { repMoney, sourceContext, stageRank, touchReason } from "@/lib/repSource";
 
 // Rep Cockpit — the page this CRM exists for (Rob: "the ultimate platform for
 // sales reps... the only thing we need this for is to help close more deals").
@@ -42,7 +42,7 @@ export default async function RepCockpit() {
         </div>
         <div className="flex gap-6 text-right">
           <div>
-            <div className="tabular text-xl font-semibold text-amber-300">{money(pipeline)}</div>
+            <div className="tabular text-xl font-semibold text-amber-300">{repMoney(pipeline)}</div>
             <div className="text-[11px] uppercase tracking-wide text-slate-500">quotes out</div>
           </div>
           <div>
@@ -89,8 +89,12 @@ export default async function RepCockpit() {
                 </div>
                 <div className="flex items-center gap-2">
                   {p.quotedAmount ? (
-                    <span className="tabular rounded-lg bg-amber-400/10 px-2.5 py-1 text-sm font-semibold text-amber-300">
-                      {money(p.quotedAmount)} quoted
+                    <span
+                      className={`tabular rounded-lg px-2.5 py-1 text-sm font-semibold ${
+                        p.keyDates.paid ? "bg-emerald-400/10 text-emerald-300" : "bg-amber-400/10 text-amber-300"
+                      }`}
+                    >
+                      {repMoney(p.quotedAmount)} {p.keyDates.paid ? "collected" : "quoted"}
                     </span>
                   ) : null}
                   {p.phone && <CallButton phone={p.phone} />}
@@ -126,10 +130,7 @@ export default async function RepCockpit() {
         )}
       </div>
 
-      <p className="text-[11px] text-slate-600">
-        DEMO rep + fabricated demo leads (marked in every record) — built 2026-07-18 per Rob to show
-        the rep experience. Real reps + real routing land with Phases 4–5.
-      </p>
+      <DemoFooter />
     </div>
   );
 }

@@ -1,10 +1,26 @@
-import type { Person } from "@/lib/types";
+// Relative import, not "@/lib/stats": vitest has no path-alias config (only
+// tsconfig/Next resolve "@/*"), and type-only imports elsewhere in lib/ get
+// erased before resolution — this is a real value import, so it needs a path
+// vitest can actually follow.
+import { money } from "./stats";
+import type { KeyDates, NodeStatus, Person } from "@/lib/types";
 
 // Shared rep-facing helpers — used by /rep (cockpit) and /rep/accounts (CRM
 // scaffold, Task 1b.3) so the two surfaces never drift on how "why touch this
 // account" or "how did they get here" get computed.
 
-export function touchReason(p: Person): { label: string; cls: string } {
+// Minimal shape touchReason/stageRank actually need — lets the trimmed
+// RepAccountListItem DTO (see below) satisfy these functions without ever
+// widening back to a full Person on the client (Critic Rob punch #5).
+export type TouchSignals = Pick<Person, "quotedAmount" | "signed" | "status" | "keyDates">;
+
+// Paid is the apex (Rob's ruling, 2026-07-17: "paid client > signed" — never
+// label collected money as a quote or a bare "signed"). Checked before every
+// other branch, including quote-out, so a paid account can never regress to
+// "follow up on this quote."
+export function touchReason(p: TouchSignals): { label: string; cls: string } {
+  if (p.keyDates?.paid)
+    return { label: "client — paid", cls: "border-emerald-400/40 bg-emerald-400/15 text-emerald-300" };
   if (p.quotedAmount && !p.signed)
     return { label: "quote out — follow up", cls: "border-amber-400/40 bg-amber-400/10 text-amber-300" };
   if (p.status === "warm")
@@ -14,13 +30,24 @@ export function touchReason(p: Person): { label: string; cls: string } {
 }
 
 // Rank used for the default "priority" sort: money-on-the-table first, then
-// warm, then signed/lit (already closed, lowest urgency for a rep queue),
-// then brand-new. Mirrors the work order in the cockpit queue.
-export function stageRank(p: Person): number {
+// warm, then signed/lit/paid (already closed, lowest urgency for a rep
+// queue), then brand-new. Mirrors the work order in the cockpit queue.
+export function stageRank(p: TouchSignals): number {
+  if (p.keyDates?.paid) return 3;
   if (p.quotedAmount && !p.signed) return 0;
   if (p.status === "warm") return 1;
   if (p.signed) return 3;
   return 2;
+}
+
+// Exact money for rep surfaces — reps quote/read sub-$100k numbers a client
+// can check against an invoice; money()'s whole-k rounding turns $9,500 into
+// "$10k" and a $27,500 pipeline into "$28k" (Critic Rob punch #1 — "every
+// stat needs to be right, he cites these"). money() itself stays untouched
+// for admin rollups, where k/M rounding is the right call at that scale.
+export function repMoney(n: number): string {
+  if (n >= 1_000_000) return money(n);
+  return `$${Math.round(n).toLocaleString("en-US")}`;
 }
 
 // Source context is the differentiator: pull the SOURCE block from
@@ -93,11 +120,57 @@ export function demoActivity(personId: string): TimelineEntry[] {
   return DEMO_ACTIVITY_BY_ID[personId] ?? [];
 }
 
-// "Last touch" for the accounts list — derived from real data only (never the
-// demo timeline, so the list and the workspace agree with what's actually on
-// the record): the most recent of the person's keyDates.
-export function lastTouchDate(p: Person): string | null {
-  const dates = Object.values(p.keyDates ?? {}).filter((d): d is string => !!d);
+// "Last touch" — max(keyDates, activity timeline) so the list and the
+// workspace timeline always agree (Critic Rob punch #8: Rita's list showed
+// 7/10 from keyDates alone while her timeline's latest entry was 7/11).
+// Real records pass no demoEntries and just get their keyDates; DEMO records
+// additionally fold in their hand-written history from lib/repSource.
+export function lastTouchDate(keyDates: KeyDates, demoEntries: TimelineEntry[] = []): string | null {
+  const dates = [
+    ...Object.values(keyDates ?? {}).filter((d): d is string => !!d),
+    ...demoEntries.map((e) => e.when),
+  ];
   if (!dates.length) return null;
   return dates.sort().at(-1) ?? null;
+}
+
+/* ---------- rep account list DTO ---------- */
+
+// What the accounts LIST is allowed to know, full stop — mapped server-side
+// before crossing into the "use client" RepAccountsList (Critic Rob punch #5:
+// the full Person object, including `notes` and eventually `estimate`/AI
+// revenue $, was landing in the RSC payload just because it was a prop on a
+// client component). No admin fields, no raw description — only what's
+// already rendered: the parsed source, and a precomputed lastTouch.
+export interface RepAccountListItem {
+  id: string;
+  name: string;
+  role?: string;
+  verticalId: string;
+  quotedAmount?: number;
+  signed: boolean;
+  status: NodeStatus;
+  keyDates: KeyDates;
+  relationship?: string; // next-step text (see workspace page for why this field)
+  source: string;
+  sourceDetail: string;
+  lastTouch: string | null;
+}
+
+export function toRepAccountListItem(p: Person): RepAccountListItem {
+  const ctx = sourceContext(p);
+  return {
+    id: p.id,
+    name: p.name,
+    role: p.role,
+    verticalId: p.verticalId,
+    quotedAmount: p.quotedAmount,
+    signed: p.signed,
+    status: p.status,
+    keyDates: p.keyDates,
+    relationship: p.relationship,
+    source: ctx.source,
+    sourceDetail: ctx.detail,
+    lastTouch: lastTouchDate(p.keyDates, demoActivity(p.id)),
+  };
 }

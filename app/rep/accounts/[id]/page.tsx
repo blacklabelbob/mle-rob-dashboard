@@ -4,7 +4,8 @@ import CallButton from "@/components/CallButton";
 import PhaseEightBar from "@/components/PhaseEightBar";
 import ActivityTimeline from "@/components/ActivityTimeline";
 import QuotedAmountInline from "@/components/QuotedAmountInline";
-import { InlineSelect, InlineText } from "@/components/inline/fields";
+import DemoFooter from "@/components/DemoFooter";
+import { InlineDateChip, InlineSelect, InlineText } from "@/components/inline/fields";
 import { getStore } from "@/lib/storage";
 import { isDemo as isDemoPerson } from "@/lib/stats";
 import { demoActivity, sourceContext, touchReason } from "@/lib/repSource";
@@ -15,6 +16,13 @@ import { demoActivity, sourceContext, touchReason } from "@/lib/repSource";
 // autosave, no Save button (Rob's law, see docs/agents/CRITIC-ROB-CORPUS.md §B).
 
 export const dynamic = "force-dynamic";
+
+const KEY_DATE_FIELDS: [string, string][] = [
+  ["met", "Met"],
+  ["quoted", "Quoted"],
+  ["signed", "Signed"],
+  ["paid", "Paid"],
+];
 
 export default async function RepAccountWorkspace({
   params,
@@ -31,6 +39,7 @@ export default async function RepAccountWorkspace({
   const reason = touchReason(person);
   const ctx = sourceContext(person);
   const isDemo = isDemoPerson(person);
+  const paidDate = person.keyDates?.paid;
 
   return (
     <div className="space-y-6">
@@ -38,7 +47,7 @@ export default async function RepAccountWorkspace({
         ← my accounts
       </Link>
 
-      {/* Header: who + status + quoted + one-tap contact */}
+      {/* Header: who + status + quoted/collected + one-tap contact */}
       <div className="rounded-xl border border-white/10 bg-white/5 p-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
@@ -69,10 +78,14 @@ export default async function RepAccountWorkspace({
 
           <div className="flex items-center gap-3">
             <div className="text-right">
-              <div className="tabular text-xl font-semibold text-amber-300">
+              {/* Paid is the apex: collected money is never labeled a quote (Rob's
+                  ruling 2026-07-17 — "paid client > signed"). */}
+              <div className={`tabular text-xl font-semibold ${paidDate ? "text-emerald-300" : "text-amber-300"}`}>
                 <QuotedAmountInline personId={person.id} value={person.quotedAmount} />
               </div>
-              <div className="text-[11px] uppercase tracking-wide text-slate-500">quoted</div>
+              <div className="text-[11px] uppercase tracking-wide text-slate-500">
+                {paidDate ? "collected" : "quoted"}
+              </div>
             </div>
             <div className="flex gap-2">
               {person.phone && <CallButton phone={person.phone} />}
@@ -125,8 +138,49 @@ export default async function RepAccountWorkspace({
               />
             </div>
           </section>
+
+          {/* Contact card — visible, readable, copyable phone/email (not just
+              the Call/Email buttons in the header). Critic Rob punch #3. */}
+          <section className="rounded-xl border border-white/10 bg-white/5 p-5">
+            <h2 className="font-semibold text-white">Contact</h2>
+            <dl className="mt-3 space-y-3 text-sm">
+              <div>
+                <dt className="text-xs text-slate-500">Phone</dt>
+                <dd className="mt-0.5 text-slate-200">
+                  <InlineText personId={person.id} field="phone" value={person.phone} placeholder="+ add phone" />
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs text-slate-500">Email</dt>
+                <dd className="mt-0.5 text-slate-200">
+                  <InlineText personId={person.id} field="email" value={person.email} placeholder="+ add email" />
+                </dd>
+              </div>
+            </dl>
+          </section>
+
+          <section className="rounded-xl border border-white/10 bg-white/5 p-5">
+            <div className="flex items-center justify-between">
+              <h2 className="font-semibold text-white">Key dates</h2>
+              <span className="text-[11px] text-slate-600">click a chip to set</span>
+            </div>
+            <ol className="mt-3 flex flex-wrap gap-2">
+              {KEY_DATE_FIELDS.map(([key, label]) => (
+                <li key={key}>
+                  <InlineDateChip
+                    personId={person.id}
+                    label={label}
+                    dateKey={key}
+                    keyDates={person.keyDates as Record<string, string | undefined>}
+                  />
+                </li>
+              ))}
+            </ol>
+          </section>
         </div>
       </div>
+
+      <DemoFooter />
     </div>
   );
 }

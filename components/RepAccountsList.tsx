@@ -2,13 +2,17 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { money } from "@/lib/stats";
-import { lastTouchDate, sourceContext, stageRank, touchReason } from "@/lib/repSource";
-import type { Person, Vertical } from "@/lib/types";
+import { repMoney, stageRank, touchReason, type RepAccountListItem } from "@/lib/repSource";
+import type { Vertical } from "@/lib/types";
 
 // "My Accounts" — the rep's book, Attio-density list. Read-only glance (edits
 // happen in the account workspace, one click away) so a row can be the whole
 // click target with zero conflict against inline-edit affordances.
+//
+// Takes RepAccountListItem DTOs, not Person — the full record (notes,
+// description, estimate/AI-revenue $) never crosses into this client
+// component; the server page maps via lib/repSource's toRepAccountListItem
+// first (Critic Rob punch #5).
 
 type SortKey = "priority" | "quoted" | "lastTouch";
 
@@ -22,7 +26,7 @@ export default function RepAccountsList({
   people,
   verticals,
 }: {
-  people: Person[];
+  people: RepAccountListItem[];
   verticals: Vertical[];
 }) {
   const [sortKey, setSortKey] = useState<SortKey>("priority");
@@ -34,7 +38,7 @@ export default function RepAccountsList({
       case "quoted":
         return arr.sort((a, b) => (b.quotedAmount ?? 0) - (a.quotedAmount ?? 0));
       case "lastTouch":
-        return arr.sort((a, b) => (lastTouchDate(b) ?? "").localeCompare(lastTouchDate(a) ?? ""));
+        return arr.sort((a, b) => (b.lastTouch ?? "").localeCompare(a.lastTouch ?? ""));
       default:
         return arr.sort(
           (a, b) => stageRank(a) - stageRank(b) || (b.quotedAmount ?? 0) - (a.quotedAmount ?? 0)
@@ -75,9 +79,7 @@ export default function RepAccountsList({
         <div className="divide-y divide-white/5">
           {sorted.map((p) => {
             const reason = touchReason(p);
-            const ctx = sourceContext(p);
             const vertical = verticalById.get(p.verticalId);
-            const touch = lastTouchDate(p);
             return (
               <Link
                 key={p.id}
@@ -102,12 +104,12 @@ export default function RepAccountsList({
 
                 <div className="tabular text-sm text-slate-200 md:text-right">
                   <span className="text-[10px] uppercase tracking-wide text-slate-600 md:hidden">quoted </span>
-                  {p.quotedAmount ? money(p.quotedAmount) : <span className="text-slate-600">—</span>}
+                  {p.quotedAmount ? repMoney(p.quotedAmount) : <span className="text-slate-600">—</span>}
                 </div>
 
                 <div className="text-sm text-slate-400">
                   <span className="text-[10px] uppercase tracking-wide text-slate-600 md:hidden">last touch </span>
-                  {touch ?? <span className="text-slate-600">no contact yet</span>}
+                  {p.lastTouch ?? <span className="text-slate-600">no contact yet</span>}
                 </div>
 
                 <div className="min-w-0 text-sm text-slate-300">
@@ -119,8 +121,8 @@ export default function RepAccountsList({
                   )}
                 </div>
 
-                <div className="min-w-0 truncate text-xs text-slate-500" title={ctx.detail}>
-                  {ctx.source}
+                <div className="min-w-0 truncate text-xs text-slate-500" title={p.sourceDetail}>
+                  {p.source}
                 </div>
               </Link>
             );
