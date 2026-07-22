@@ -1,6 +1,7 @@
 import { getStore } from "@/lib/storage";
 import { isDemo } from "@/lib/stats";
 import PeopleTable from "@/components/PeopleTable";
+import ThingsToAddress from "@/components/ThingsToAddress";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +19,7 @@ export default async function PeoplePage() {
           </p>
         </div>
       </div>
+      <ThingsToAddress />
       <PeopleTable people={data.people} verticals={data.verticals} />
     </div>
   );
