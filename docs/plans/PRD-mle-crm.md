@@ -1,6 +1,6 @@
 # PRD: MLE CRM — The Network + Self-Made CRM (Unified)
 
-**Version:** 3.0.2 | **Created:** 2026-07-16 | **Updated:** 2026-07-21
+**Version:** 3.0.4 | **Created:** 2026-07-16 | **Updated:** 2026-07-21
 **Status:** ACTIVE
 **Owner:** Rob + Max
 **Project:** mle-rob-dashboard
@@ -9,21 +9,13 @@
 
 > **LINEAGE (replaces the old "Relationship to the base PRD" banner):** This is the single unified living
 > PRD for the MLE CRM, formed 2026-07-21 by merging `PRD-mle-rob-dashboard-v2.md` (base PRD — "The Network",
-> Created 2026-07-04, versions 1.0 → 2.1.2) INTO `PRD-mle-crm-evolution-v1.md` (CRM-evolution PRD, Created
-> 2026-07-16, versions 1.0 → 2.2.28 — **this PRD's direct lineage**; its structure, North-Star Principles,
-> Role Layers, Scope, Success Criteria, Phases 1–8, Open Questions, Decisions Log, and Dependencies are the
-> skeleton of this document, kept intact below). The base PRD is archived, unmodified, at
-> [`docs/archive/plans/PRD-mle-rob-dashboard-v2.md`](../archive/plans/PRD-mle-rob-dashboard-v2.md). A
-> pre-merge snapshot and git tag `pre-prd-merge-2026-07-21` preserve both source files exactly as they stood
-> before this merge. **⚠️ Merge-note:** the archive copy and git tag are referenced here per the merge
-> instruction but were created in commit 6bc0b64 (tag pushed) (source files were explicitly left untouched, per the
-> "don't move/delete/modify source files" constraint) — creating them is a follow-up action, flagged in the
-> merge report. Every task, question, decision, and dependency from BOTH source PRDs is accounted for —
-> zero-loss proof at [`MERGE-LEDGER-2026-07-21.md`](./MERGE-LEDGER-2026-07-21.md); nothing below is a summary
-> of the sources, it is the sources, merged.
->
-> Plain-English companion: [`WHAT-WE-ARE-DOING.md`](../../WHAT-WE-ARE-DOING.md) — read that first.
-> Verbatim vision dump (source of truth for CRM intent): [`ROB-CRM-VISION-DUMP-2026-07-17.md`](./sources/ROB-CRM-VISION-DUMP-2026-07-17.md).
+> Created 2026-07-04, v1.0 → 2.1.2) INTO `PRD-mle-crm-evolution-v1.md` (CRM-evolution PRD, Created 2026-07-16 —
+> **this PRD's direct lineage**; its structure and content are the skeleton of this document). Both source PRDs
+> are archived with tombstone headers in [`docs/archive/plans/`](../archive/plans/) (created in commit 6bc0b64;
+> Task 2.0's final state, closed by the build driver mid-merge, was ported from the archive in commit eefd7e8 —
+> see revision 3.0.2). **Rollback:** git tag `pre-prd-merge-exact` (= ba4cc68, the exact pre-merge state; the
+> earlier tag `pre-prd-merge-2026-07-21` is a checkpoint 3 commits prior), PRD snapshots in
+> `~/.claude/plans/snapshots/`, and the zero-loss map in [`MERGE-LEDGER-2026-07-21.md`](./MERGE-LEDGER-2026-07-21.md).
 
 ---
 
@@ -377,7 +369,7 @@ dependence on GoHighLevel, Close, or any rented CRM core.
 ## Related Files
 
 - [`ROB-CRM-VISION-DUMP-2026-07-17.md`](./sources/ROB-CRM-VISION-DUMP-2026-07-17.md) — **verbatim vision dump (source of truth for intent)**
-- `docs/archive/plans/PRD-mle-rob-dashboard-v2.md` — archived base PRD (Phases 0–9, v1.0→2.1.2); superseded by this document 2026-07-21 *(archive copy is a follow-up action — see LINEAGE note above)*
+- `docs/archive/plans/PRD-mle-rob-dashboard-v2.md` — archived base PRD (Phases 0–9, v1.0→2.1.2); superseded by this document 2026-07-21 (archived in commit 6bc0b64, tombstoned)
 - `WHAT-WE-ARE-DOING.md` — plain-English strategy
 - `docs/plans/sources/STORAGE-DECISION.md` — Supabase decision record
 - `~/.claude/rules/scoring-pattern.md` — scoring-in-code rule (Tasks 2.4, 1.2, 7.1)
@@ -393,13 +385,15 @@ dependence on GoHighLevel, Close, or any rented CRM core.
 | Version | Date | What Changed | By |
 |---------|------|--------------|-----|
 | 3.0.2 | 2026-07-21 | **RACE-LOSS RESTORED (critic-rob unification punch #1):** the driver closed Task 2.0 (orgs split APPLIED TO PROD, TICK 97/100) between the merge snapshot (v2.2.27) and commit; final state + the 6 revision rows below ported verbatim from the archived source (which preserved v2.2.31). Gulf signed-dispute = resolved-by-data since 7/18 (in Task 2.0 post-close notes). Driver now PAUSES during structural PRD ops (crm-driver.pause flag) | Max |
+| 3.0.4 | 2026-07-21 | Auto-touched (session activity) | prd-autosave.sh |
+| 3.0.3 | 2026-07-21 | Auto-touched (session activity) | prd-autosave.sh |
 | 2.2.30 | 2026-07-21 | **Task 2.0 CLOSED — critic-rob TICK 97/100** (docs/reviews/CRITIC-ROB-Q4-orgs-split-2026-07-21.md; all DoD clauses independently verified vs live Supabase + prod). Same increment: UI merge-view check caught + fixed a prod defect — commit 6b5faeb (isDemo filter) was never deployed, so the 6 DEMO rows were leaking into prod graph/ledger; redeployed, prod now 32 nodes/0 DEMO. Punch-list notes recorded on Task 2.0: export entityKind in /api/network pre-Phase-2; drop people.entity_kind after Task 2.2; Gulf dispute resolved-by-data 7/18 | Max (driver) |
 | 2.2.27 | 2026-07-21 | Task 2.0: person→org `org_id` backfill DONE (scripts/backfill-org-links.mjs) — 11/16 people linked to their org with per-link evidence (Sunbiz/DBPR/LinkedIn/Rob-confirmed), 15 `org_memberships` rows incl. secondary affiliations (Gary↔Miga co-owner, Daniella↔Martin Fierro+Oasis, Michael↔Oasis); 5 skips logged where no org row exists (Title Base, Cates, Guest Genie, MLE internal). Idempotent + gated (linked must equal 11). DoD "every human links to their org" now met for every human whose org exists. Remaining on 2.0: UI merge-view check → critic-rob review | Max (driver) |
 | 2.2.26 | 2026-07-21 | Task 2.0: **0003 APPLIED TO PROD + `ORGS_SPLIT_READS=1` live** (same-increment Vercel deploy, CLI upgraded 37→56 mid-deploy when the old one was rejected). Pre-apply JSON backups in `backups/`; post-apply gates matched the rehearsal run exactly; prod verified via authed curl (32 nodes, 47 edges, 0 null endpoints, quoted/signed/referrer spot-check intact). `scripts/regen-fallback.mjs` made org-aware (merges orgs as company Persons, coalesces paired FKs — fallback would otherwise have silently lost all 16 companies) and fallback regenerated. Remaining on 2.0: person→org `org_id` backfill, UI merge-view check, critic-rob review | Max (driver) |
 | 2.2.25 | 2026-07-21 | Task 2.0: adapter dual-schema mode SHIPPED (env-gated `ORGS_SPLIT_READS=1`, off in prod until 0003 applies) — supabaseStore merges `orgs` rows back as entityKind-company Persons, edges coalesce paired person/org FKs, referred_by_org_id coalesced on read; writes route company rows to `orgs` and org-referrers to the paired column so an edit can never fork a record back into `people`. 7 new unit tests on the mappers (15/15 green), build green. Remaining on 2.0: real apply (flip flag same deploy) → UI merge view → critic-rob review | Max (driver) |
 | 2.2.24 | 2026-07-21 | Task 2.0: 0003 rehearsed FULL-SQL against live prod data w/ guaranteed rollback (scripts/orgs-split-rehearsal.sql); caught+fixed a 2nd apply-blocker (edges from_id/to_id nulled before NOT NULL dropped → reordered). All gates pass on live data: 32→16+16 recon, 33/47 edges repointed, 0 constraint violations, field-preservation exact. 0003 apply-ready; next = adapter dual-schema reads, then apply + critic-rob | Max (driver) |
 | 2.2.22 | 2026-07-21 | Task 2.0: migration 0003 amended pre-apply — verbatim column carry into `orgs` (original draft would have destroyed referred_by/relationship/estimate/phase_one on all 17 live company rows); dry-run now enforces a field-preservation gate. Also reverted a stray autosave corruption in the vision-dump title line | Max (driver) |
-| 3.0 | 2026-07-21 | **UNIFICATION**: merged `PRD-mle-rob-dashboard-v2.md` (base PRD, v1.0→2.1.2, 62 tasks + scope/criteria/questions/decisions/dependencies) into this PRD (v1.0→2.2.28, the skeleton). Base Phase 1 remainder + Phase 2 → Phase M1; Phase 3 → M2; Phase 4 remainder → M3; Phase 5 → M4; Phase 6 remainder → M5; Phases 7–9 remainder → new "Mission Control" phase (super-admin only, per North-Star Principle 1). Completed/superseded/resolved base items recorded as absorbed, not re-listed. Scope OUT gained 2 bullets (outside investment, no write-back); Success Criteria gained 3 bullets; Open Questions gained Q4–Q6; Decisions Log gained 9 rows + 1 enrichment; Dependencies gained 5 rows; Related Files gained 2 entries. 5 content-overlap points flagged (not silently merged) between CRM Phase 1/2 tasks and Mission Control tasks — see ledger. One gate (base 7.7/G1) found functionally-but-not-formally resolved — flagged for Rob. Full task-by-task zero-loss proof: `MERGE-LEDGER-2026-07-21.md`. Base PRD's own revision history (12 rows, v1.0→2.1.2) is preserved intact in the archived source file, not duplicated here. | Max (Rob directive: "unify the two living PRDs... lose NOTHING important") |
+| 3.0 | 2026-07-21 | **UNIFICATION**: merged `PRD-mle-rob-dashboard-v2.md` (base PRD, v1.0→2.1.2, 62 tasks + scope/criteria/questions/decisions/dependencies) into this PRD (v1.0→2.2.28, the skeleton). Base Phase 1 remainder + Phase 2 → Phase M1; Phase 3 → M2; Phase 4 remainder → M3; Phase 5 → M4; Phase 6 remainder → M5; Phases 7–9 remainder → new "Mission Control" phase (super-admin only, per North-Star Principle 1). Completed/superseded/resolved base items recorded as absorbed, not re-listed. Scope OUT gained 2 bullets (outside investment, no write-back); Success Criteria gained 3 bullets; Open Questions gained Q4–Q6; Decisions Log gained 10 rows (incl. 1 enrichment); Dependencies gained 5 rows; Related Files gained 2 entries. 5 content-overlap points flagged (not silently merged) between CRM Phase 1/2 tasks and Mission Control tasks — see ledger. One gate (base 7.7/G1) found functionally-but-not-formally resolved — flagged for Rob. Full task-by-task zero-loss proof: `MERGE-LEDGER-2026-07-21.md`. Base PRD's own revision history (12 rows, v1.0→2.1.2) is preserved intact in the archived source file, not duplicated here. | Max (Rob directive: "unify the two living PRDs... lose NOTHING important") |
 | 3.0.2 | 2026-07-21 | Task 7.2 server scaffold: env-gated Twilio routes (token mint w/o SDK dep, TwiML dial w/ dual-channel recording, signature-validated recording webhook emitting the activities-ready payload) + 12 unit tests; deps table: 7.1 dialer decision marked decided (Twilio), new Twilio-creds gate row (live-call DoD only) | Max (driver) |
 | 3.0.1 | 2026-07-21 | Auto-touched (session activity) | prd-autosave.sh |
 | 2.2.28 | 2026-07-21 | Auto-touched (session activity) | prd-autosave.sh |

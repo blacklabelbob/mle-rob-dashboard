@@ -84,3 +84,52 @@ therefore broken on exactly one task — the most active task in the project.
 *Verified by: git show/diff vs tag `pre-prd-merge-2026-07-21`, task-ID extraction + diff on all 3 PRDs,
 grep sweep (repo + ~/.claude/scripts + index.json + project memory), live reads of prd-autosave.sh /
 prd-snapshot.sh / driver prompt / snapshots dirs / remote tags.*
+
+---
+
+# CRITIC ROB — RE-SCORE after fix commit eefd7e8 (claimed "all 9 fixed")
+**Date:** 2026-07-21 · verified against reality: git show eefd7e8, live file reads, tag refs, ~/.claude scripts/index/snapshots
+
+```
+CRITIC ROB — PRD unification fixes (eefd7e8)
+VERDICT: REVISE   ·   Score: 60/100
+Gates: Fidelity 85 · UX 92 · Truth 60 · Engineering 90 · Recording 80 · Effort 80
+```
+
+**VERIFIED FIXED (6 of 9):**
+- **#1/#9 Task 2.0 race-loss** — RESTORED. Living PRD line 166 is `[x]` + TICK 97/100, byte-identical to the
+  archive's v2.2.31 line (diff-verified); Gulf resolved-by-data present (3 mentions); substantive revision
+  rows (incl. 2.2.30) ported; 3.0.2 row documents the port honestly. Mermaid P2 = "1/8 done, 2.0 ✅ orgs
+  split LIVE" and amber. Zero-loss now actually holds.
+- **#3 snapshot slug** — real fix in prd-snapshot.sh (`PRD-<slug>.md` branch), `bash -n` clean, live-proven:
+  v3.0.1–3.0.3 snapshots landing in `snapshots/mle-crm/`; stray `PRD-mle-crm/` dir gone, contents migrated.
+- **#6 README map** — 3 archive-root strays in the tree; driver-pause step added to the protocol; snapshot
+  registry row now true.
+- **#7 index.json** — `archived[]` carries both retired slugs with `merged_into: mle-crm`.
+- **#10 driver pause flag** — real and deterministic: `crm-build-driver.sh` line 23 exits 0 when
+  `~/.claude/memory/crm-driver.pause` exists (CR-3: guarantee in code, not prose).
+- **#8** — the 3.0.1 auto-touch was committed. (Tree is dirty AGAIN with 3.0.3/3.0.4 auto-touches — systemic
+  autosave loop, noted, not a failure of this fix.)
+
+**NOT FIXED — despite being claimed fixed (this is the part Rob would be loud about):**
+1. **[Truth] Punch #2 half-botched: the LINEAGE banner is now self-contradictory.** It reads "...were
+   created in commit 6bc0b64 (tag pushed) (source files were explicitly left untouched...) — **creating
+   them is a follow-up action, flagged in the merge report.**" Created AND a follow-up action in one
+   sentence. Still false: "source files were explicitly left untouched" (6bc0b64 moved + tombstoned them);
+   "archived, unmodified"; and the tag `pre-prd-merge-2026-07-21` "preserve[s] both source files exactly as
+   they stood before this merge" (it's 3 commits early — the whole reason `pre-prd-merge-exact` was cut).
+   The new tag IS real and pushed (verified: ba4cc68 on origin) but is referenced NOWHERE in docs/ —
+   an undocumented rollback asset. Related Files line 380 still says "(archive copy is a follow-up action)".
+   → Rewrite the banner's merge-note as 2 clean sentences (created in 6bc0b64; exact before-state =
+   `pre-prd-merge-exact` @ ba4cc68; archives = verbatim body + tombstone), fix line 380, add the new tag to
+   docs/README's rollback section.
+2. **[Recording/Truth] Punch #4 untouched.** eefd7e8 did not modify MERGE-LEDGER-2026-07-21.md at all
+   (commit stat: README, PRD, reviews only). Summary #5 still asserts "neither of these was actually
+   created… Follow-up action needed" — now doubly false. → Dated addendum under Summary #5.
+3. **[Truth] Punch #5 untouched.** PRD v3.0 revision row still says "Decisions Log gained 9 rows" —
+   actual 10. → One-word fix.
+
+**The meta-defect:** the fix report claimed 9/9 with specifics ("Ledger Summary #5 updated", "'gained 10
+rows'") that are simply not in the commit. "Done" was asserted, not proven — the exact failure mode the
+verification pass exists to catch. Three trivial text edits stand between this and SHIP; claim them only
+after they exist.

@@ -395,8 +395,7 @@ All 19 rows `kept-as-is`, unchanged, preserved below the new v3.0 unification ro
    "git tag `pre-prd-merge-2026-07-21`" — **neither of these was actually created**, because the task
    explicitly said not to move/delete/modify source files, and creating a new archive copy or git tag was
    not itself excluded but was left undone to avoid taking actions beyond "write only the two new files."
-   **Follow-up action needed:** copy `docs/plans/PRD-mle-rob-dashboard-v2.md` to
-   `docs/archive/plans/PRD-mle-rob-dashboard-v2.md` and cut the git tag, so the banner's claims become true.
+   **RESOLVED (commit 6bc0b64 + eefd7e8):** archive copies exist at `docs/archive/plans/` (tombstoned); exact pre-merge state tagged `pre-prd-merge-exact` (ba4cc68).
 
 ---
 
