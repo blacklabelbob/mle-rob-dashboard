@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getStore } from "@/lib/storage";
 import ThingsToAddress from "@/components/ThingsToAddress";
+import DedupQueue from "@/components/DedupQueue";
 import { computeStats, contribution, isDemo, money } from "@/lib/stats";
 import type { Person, Project, WillItem } from "@/lib/types";
 
@@ -105,6 +106,8 @@ export default async function Overview() {
         </section>
 
         <ThingsToAddress mode="overview" />
+
+        <DedupQueue />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">

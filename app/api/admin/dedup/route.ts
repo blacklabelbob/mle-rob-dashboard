@@ -23,7 +23,32 @@ export async function GET(req: NextRequest) {
     .order("confidence", { ascending: true }) // 'high' before 'review'
     .order("pair_key", { ascending: true });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ pairs: data ?? [] });
+
+  // Attach display names so the review UI shows people, not ids. A missing
+  // record (already deleted) resolves to null — the UI labels it honestly.
+  const pairs = data ?? [];
+  const ids = { person: new Set<string>(), org: new Set<string>() };
+  for (const p of pairs) {
+    const bucket = ids[p.kind as "person" | "org"];
+    if (bucket) {
+      bucket.add(p.a_id);
+      bucket.add(p.b_id);
+    }
+  }
+  const names = new Map<string, string>();
+  for (const [kind, table] of [["person", "people"], ["org", "orgs"]] as const) {
+    const wanted = [...ids[kind]];
+    if (wanted.length === 0) continue;
+    const { data: rows } = await db().from(table).select("id,name").in("id", wanted);
+    for (const r of rows ?? []) names.set(`${kind}:${r.id}`, r.name);
+  }
+  return NextResponse.json({
+    pairs: pairs.map((p) => ({
+      ...p,
+      a_name: names.get(`${p.kind}:${p.a_id}`) ?? null,
+      b_name: names.get(`${p.kind}:${p.b_id}`) ?? null,
+    })),
+  });
 }
 
 // Run the detector across live people + orgs (shared with the nightly cron —
