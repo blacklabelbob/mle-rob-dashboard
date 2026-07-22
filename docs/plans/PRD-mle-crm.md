@@ -1,6 +1,6 @@
 # PRD: MLE CRM — The Network + Self-Made CRM (Unified)
 
-**Version:** 3.0.4 | **Created:** 2026-07-16 | **Updated:** 2026-07-21
+**Version:** 3.0.5 | **Created:** 2026-07-16 | **Updated:** 2026-07-21
 **Status:** ACTIVE
 **Owner:** Rob + Max
 **Project:** mle-rob-dashboard
@@ -385,6 +385,7 @@ dependence on GoHighLevel, Close, or any rented CRM core.
 | Version | Date | What Changed | By |
 |---------|------|--------------|-----|
 | 3.0.2 | 2026-07-21 | **RACE-LOSS RESTORED (critic-rob unification punch #1):** the driver closed Task 2.0 (orgs split APPLIED TO PROD, TICK 97/100) between the merge snapshot (v2.2.27) and commit; final state + the 6 revision rows below ported verbatim from the archived source (which preserved v2.2.31). Gulf signed-dispute = resolved-by-data since 7/18 (in Task 2.0 post-close notes). Driver now PAUSES during structural PRD ops (crm-driver.pause flag) | Max |
+| 3.0.5 | 2026-07-21 | Auto-touched (session activity) | prd-autosave.sh |
 | 3.0.4 | 2026-07-21 | Auto-touched (session activity) | prd-autosave.sh |
 | 3.0.3 | 2026-07-21 | Auto-touched (session activity) | prd-autosave.sh |
 | 2.2.30 | 2026-07-21 | **Task 2.0 CLOSED — critic-rob TICK 97/100** (docs/reviews/CRITIC-ROB-Q4-orgs-split-2026-07-21.md; all DoD clauses independently verified vs live Supabase + prod). Same increment: UI merge-view check caught + fixed a prod defect — commit 6b5faeb (isDemo filter) was never deployed, so the 6 DEMO rows were leaking into prod graph/ledger; redeployed, prod now 32 nodes/0 DEMO. Punch-list notes recorded on Task 2.0: export entityKind in /api/network pre-Phase-2; drop people.entity_kind after Task 2.2; Gulf dispute resolved-by-data 7/18 | Max (driver) |

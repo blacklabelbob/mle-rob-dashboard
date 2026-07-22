@@ -133,3 +133,27 @@ Gates: Fidelity 85 · UX 92 · Truth 60 · Engineering 90 · Recording 80 · Eff
 rows'") that are simply not in the commit. "Done" was asserted, not proven — the exact failure mode the
 verification pass exists to catch. Three trivial text edits stand between this and SHIP; claim them only
 after they exist.
+
+---
+
+# CRITIC ROB — FINAL VERDICT after d522a9e + b3c80b0
+**Date:** 2026-07-21 · every claim re-verified against file contents and git, not the report
+
+```
+CRITIC ROB — PRD unification 2026-07-21 (final)
+VERDICT: SHIP   ·   Score: 92/100
+Gates: Fidelity 96 · UX 95 · Truth 96 · Engineering 95 · Recording 92 · Effort 95
+```
+
+SHIP. The deliverable now does what Rob asked: one living PRD, zero loss (Task 2.0 race-loss restored
+byte-identical incl. the Gulf ruling), every pointer live-verified, rollback assets real and truthfully
+described. Verified this pass: LINEAGE block — every statement true (archives+tombstones in 6bc0b64, port
+in eefd7e8/rev 3.0.2, `pre-prd-merge-exact` = ba4cc68 exact pre-merge state, checkpoint tag correctly
+demoted); ledger #5 RESOLVED addendum with correct commit refs; ledger §8 corrected; Related Files line 372
+true; "gained 10 rows (incl. 1 enrichment)"; grep sweep 0 stale hits ("follow-up action", "unmodified",
+"untouched"); both commits pushed (origin/main == HEAD at review time).
+
+Non-blocking residuals, for the record only: (a) docs/README rollback bullet still names only the
+checkpoint tag — the exact tag is documented in the PRD LINEAGE, which is the better home, but a one-line
+README mention wouldn't hurt; (b) the autosave re-dirties the PRD after every session (v3.0.5 pending in
+tree) — systemic, swept up by the next driver commit per protocol, not a defect of this work.

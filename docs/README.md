@@ -55,7 +55,7 @@ docs/
 
 ## Rollback (how we get anything back)
 
-- **Git:** every change is a pushed commit; structural milestones carry tags (`pre-prd-merge-2026-07-21`). `git checkout <tag> -- <path>` restores any file; the private GitHub repo is the offsite copy.
+- **Git:** every change is a pushed commit; structural milestones carry tags (`pre-prd-merge-exact` = the exact 7/21 pre-merge state; `pre-prd-merge-2026-07-21` = earlier checkpoint). `git checkout <tag> -- <path>` restores any file; the private GitHub repo is the offsite copy.
 - **PRD snapshots:** every version bump auto-snapshots to `~/.claude/plans/snapshots/{slug}/` BEFORE mutation (last 50 kept). `/plan rollback mle-crm v<X.Y>` restores one.
 - **Archives:** pre-merge PRDs live verbatim (plus tombstone) in `docs/archive/plans/`; the MERGE-LEDGER maps every old task ID to its new home, so anything can be traced in either direction.
 - **Data:** `docs/backups/*.json` are dated pre-mutation Supabase dumps; the Supabase project itself has PITR on the roadmap (Mission Control phase).
