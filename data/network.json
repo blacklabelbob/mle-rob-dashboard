@@ -146,7 +146,8 @@
       "signed": false,
       "keyDates": {},
       "phaseOne": "not-started",
-      "description": "Very Excited to get training and onboarding. We need more Social Proof and Mini Case Studies first which I communicated to Will"
+      "description": "Very Excited to get training and onboarding. We need more Social Proof and Mini Case Studies first which I communicated to Will",
+      "notes": "Enrichment hunt 2026-07-22: no public web footprint found for The Cates Processing Group (web search, name + payments variants). Contact info likely only via Rob (former colleague) — left blank rather than guessed."
     },
     {
       "id": "demo-dale-hutchins",
@@ -558,14 +559,17 @@
       "id": "dececco-pasta",
       "name": "De Cecco USA",
       "business": "De Cecco Pasta",
+      "role": "CPG pasta brand — US arm (De Cecco USA / PMI Inc, NYC) of the Italian maker est. 1831",
       "entityKind": "company",
       "verticalId": "food",
+      "website": "https://www.dececco.com/us_us/",
       "referredById": "gary-waskivich",
       "relationship": "door via Gary (Regional Sales Mgr) and Gio (KDM)",
       "status": "unlit",
       "signed": false,
       "keyDates": {},
-      "phaseOne": "not-started"
+      "phaseOne": "not-started",
+      "description": "De Cecco USA (Prodotti Mediterranei Inc.) is the NYC-based North-America subsidiary of pasta maker De Cecco (est. 1831, Italy). No public US phone found — Italy customer care +39 085 4548570. Door via Gary (Regional Sales Mgr) + Gio (KDM). Sources: https://www.dececco.com/us_us/contact-us/ ; https://www.crunchbase.com/organization/de-cecco-usa-pmi-inc"
     },
     {
       "id": "derm-clinic-pilot",
@@ -652,13 +656,15 @@
       "entityKind": "company",
       "nodeType": "lead",
       "verticalId": "title",
+      "website": "https://landtechdata.com",
       "referredById": "jonathan-polk",
       "relationship": "their reps say Polk is their #1",
       "status": "unlit",
       "signed": false,
       "keyDates": {},
       "phaseOne": "not-started",
-      "notes": "Polk can walk us in."
+      "description": "LandTech Data Corp — real-estate settlement/closing software since 1979 (on-prem LandTech + cloud LandTech Lime), deep in the FL title world (Old Republic/The Fund integration: https://www.thefund.com/software/landtech). Polk Industries is a marketing arm of LandTech (https://www.instagram.com/p/Cis3EaOuGMo/). Site: https://landtechdata.com",
+      "notes": "Polk can walk us in. LinkedIn: https://www.linkedin.com/company/landtech-florida.inc."
     },
     {
       "id": "martin-fierro-restaurant",
@@ -786,12 +792,15 @@
       "entityKind": "company",
       "nodeType": "lead",
       "verticalId": "title",
+      "phone": "941-444-7142",
+      "website": "https://www.proplogix.com",
       "referredById": "jonathan-polk",
       "relationship": "their reps say Polk is their #1",
       "status": "unlit",
       "signed": false,
       "keyDates": {},
       "phaseOne": "not-started",
+      "description": "Leading provider of Municipal Lien Searches and HOA Estoppels for title companies and law firms nationwide. HQ: 5901 N Honore Ave, Suite 200, Sarasota FL 34243. Sources: https://www.proplogix.com/contact/ ; FLTA member directory https://members.flta.org/member-directory/Details/proplogix-4014094",
       "notes": "Polk can walk us in."
     },
     {
@@ -802,13 +811,16 @@
       "entityKind": "company",
       "nodeType": "lead",
       "verticalId": "title",
+      "phone": "303-554-0301",
+      "website": "https://www.qualia.com",
       "referredById": "jonathan-polk",
       "relationship": "their reps say Polk is their #1, never turns down a meeting",
       "status": "unlit",
       "signed": false,
       "keyDates": {},
       "phaseOne": "not-started",
-      "notes": "Polk can walk us in. Two-sided play: sell to them as retention bait for their agents."
+      "description": "Leading digital real-estate closing platform for title, escrow, RE and mortgage-lending pros. SF office: 50 Fremont St Ste 3600, San Francisco CA 94105. Phone per ALTA member directory: https://www.alta.org/marketplace/profile/1141461 . Site: https://www.qualia.com/about-us/",
+      "notes": "Polk can walk us in. Two-sided play: sell to them as retention bait for their agents. LinkedIn: https://www.linkedin.com/company/qualiasoftware"
     },
     {
       "id": "red-rock-roofing",
