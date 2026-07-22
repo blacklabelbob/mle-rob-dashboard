@@ -1,6 +1,6 @@
 # PRD: MLE CRM — The Network + Self-Made CRM (Unified)
 
-**Version:** 3.0 | **Created:** 2026-07-16 | **Updated:** 2026-07-21
+**Version:** 3.0.1 | **Created:** 2026-07-16 | **Updated:** 2026-07-21
 **Status:** ACTIVE
 **Owner:** Rob + Max
 **Project:** mle-rob-dashboard
@@ -216,7 +216,7 @@ dependence on GoHighLevel, Close, or any rented CRM core.
 *The heart of Rob's vision: every conversation captured, understood, and searchable. Rent-first on commodity pieces. **Task 7.1 is pure research — it runs NOW, parallel to Phases 1–2 (no code dependency), so the dialer pick is ready before 7.2 starts.***
 
 - [x] Task 7.1 [Research] - ✅ 2026-07-18: raw Twilio (94.5 composite; docs/research/DIALER-SCORECARD-2026-07-18.md) — Dialer selection (rent-first, UNGATED — runs parallel to Phase 1): JustCall / Aircall / OpenPhone / Twilio-direct — recording API, webhook events, per-seat cost, CRM-embed support | DoD: Weighted scorecard per scoring-pattern rule, source URL per cell; pick logged in Decisions Log
-- [ ] Task 7.2 [Engineering] - Click-to-dial from person/deal page via chosen provider; call auto-logged as `activity` type=call source=dialer with recording URL | DoD: Test call from UI → activity row with working recording link
+- [ ] Task 7.2 [Engineering] - Click-to-dial from person/deal page via chosen provider; call auto-logged as `activity` type=call source=dialer with recording URL | DoD: Test call from UI → activity row with working recording link. **Progress 2026-07-21:** server side scaffolded env-gated (`lib/twilio.ts` + `/api/twilio/token` + `/api/twilio/voice` TwiML + `/api/webhooks/twilio-recording` signature-checked → activities-ready payload; 12 unit tests). Remaining: rep-cockpit Call button (twilio-voice.js client), Twilio creds from Rob (PING-INBOX), activity persistence rides on Task 2.1 activities table
 - [ ] Task 7.3 [Operations] - Recording → transcript pipeline (provider transcription or Whisper via n8n) → transcript stored on the activity | DoD: Test call yields attached transcript within 10 min of hangup
 - [ ] Task 7.4 [Engineering] - Post-call AI pass: summary, action items, key buying signals → written to activity + action items auto-created as `tasks` | DoD: Fixture transcript produces summary + ≥1 correctly-assigned task; buying-signals field populated
 - [ ] Task 7.5 [Engineering] - RAG over transcripts/summaries: pgvector embeddings on Supabase + search UI ("what's working" queries) | DoD: Query "pricing objection" returns the relevant call moments from seeded transcripts with links to source activities
@@ -366,7 +366,8 @@ dependence on GoHighLevel, Close, or any rented CRM core.
 | n8n API key rotation (EXPIRED ~7/19 — new key needed from Rob's n8n login, PING-INBOX item) | gate for Tasks 3.2+ only | Rob | open |
 | AIDRE call-outcome payload shape | dependency for Task 3.3 | Max (AIDRE build) | open |
 | Q1–Q3 answers (bounty/booker, book visibility, auto-close lane) | refines 1.13/1.14/4.6 | Rob | open |
-| Dialer provider decision (Task 7.1 output) | blocker for 7.2–7.3 | Max → Rob confirm | open |
+| ~~Dialer provider decision (Task 7.1 output)~~ | ~~blocker for 7.2–7.3~~ | Max → Rob confirm | **decided 7/18 (raw Twilio, composite 94.5) — 7.2 build proceeding per merit rule; Rob async veto still open (dev-chat #27)** |
+| Twilio creds (Account SID + Auth Token + local number, Rob-owned account) | gate for Task 7.2 live-call DoD only (scaffold done, env-gated) | Rob (PING-INBOX ☎️ item) | open |
 | Onboarding PRD extraction pipeline *(folded in 2026-07-21, was base PRD dependency)* | dependency for Tasks M2.2, MC.6 | contracts build | open |
 | Invoicing PRD engine *(folded in 2026-07-21, was base PRD dependency)* | dependency for Tasks M2.3, MC.7 | contracts build | open |
 | ~~G1: CRM system of record (ledger vs separate CRM)~~ *(folded in 2026-07-21, was base PRD gate for 7.7)* | ~~gate~~ | Rob | **functionally resolved** by this PRD's own 2026-07-16 Decision ("Dashboard becomes basis of self-made CRM") — flagged for Rob's explicit confirmation since base 7.7 itself was never checked off; see Mission Control phase note |
@@ -392,6 +393,8 @@ dependence on GoHighLevel, Close, or any rented CRM core.
 | Version | Date | What Changed | By |
 |---------|------|--------------|-----|
 | 3.0 | 2026-07-21 | **UNIFICATION**: merged `PRD-mle-rob-dashboard-v2.md` (base PRD, v1.0→2.1.2, 62 tasks + scope/criteria/questions/decisions/dependencies) into this PRD (v1.0→2.2.28, the skeleton). Base Phase 1 remainder + Phase 2 → Phase M1; Phase 3 → M2; Phase 4 remainder → M3; Phase 5 → M4; Phase 6 remainder → M5; Phases 7–9 remainder → new "Mission Control" phase (super-admin only, per North-Star Principle 1). Completed/superseded/resolved base items recorded as absorbed, not re-listed. Scope OUT gained 2 bullets (outside investment, no write-back); Success Criteria gained 3 bullets; Open Questions gained Q4–Q6; Decisions Log gained 9 rows + 1 enrichment; Dependencies gained 5 rows; Related Files gained 2 entries. 5 content-overlap points flagged (not silently merged) between CRM Phase 1/2 tasks and Mission Control tasks — see ledger. One gate (base 7.7/G1) found functionally-but-not-formally resolved — flagged for Rob. Full task-by-task zero-loss proof: `MERGE-LEDGER-2026-07-21.md`. Base PRD's own revision history (12 rows, v1.0→2.1.2) is preserved intact in the archived source file, not duplicated here. | Max (Rob directive: "unify the two living PRDs... lose NOTHING important") |
+| 3.0.2 | 2026-07-21 | Task 7.2 server scaffold: env-gated Twilio routes (token mint w/o SDK dep, TwiML dial w/ dual-channel recording, signature-validated recording webhook emitting the activities-ready payload) + 12 unit tests; deps table: 7.1 dialer decision marked decided (Twilio), new Twilio-creds gate row (live-call DoD only) | Max (driver) |
+| 3.0.1 | 2026-07-21 | Auto-touched (session activity) | prd-autosave.sh |
 | 2.2.28 | 2026-07-21 | Auto-touched (session activity) | prd-autosave.sh |
 | 2.2.27 | 2026-07-21 | Task 2.0: person→org `org_id` backfill DONE (scripts/backfill-org-links.mjs) — 11/16 people linked to their org with per-link evidence (Sunbiz/DBPR/LinkedIn/Rob-confirmed), 15 `org_memberships` rows incl. secondary affiliations (Gary↔Miga co-owner, Daniella↔Martin Fierro+Oasis, Michael↔Oasis); 5 skips logged where no org row exists (Title Base, Cates, Guest Genie, MLE internal). Idempotent + gated (linked must equal 11). DoD "every human links to their org" now met for every human whose org exists. Remaining on 2.0: UI merge-view check → critic-rob review | Max (driver) |
 | 2.2.26 | 2026-07-21 | Auto-touched (session activity) | prd-autosave.sh |
