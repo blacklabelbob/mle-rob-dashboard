@@ -26,7 +26,13 @@ const sevStyle: Record<Flag["severity"], string> = {
   low: "border-sky-400/30 bg-sky-400/10 text-sky-300",
 };
 
-export default function ThingsToAddress() {
+export default function ThingsToAddress({
+  mode = "entity",
+  person,
+}: {
+  mode?: "overview" | "entity";
+  person?: string;
+}) {
   const [flags, setFlags] = useState<Flag[]>([]);
   const [showArchive, setShowArchive] = useState(false);
   const [noteFor, setNoteFor] = useState<number | null>(null);
@@ -35,16 +41,30 @@ export default function ThingsToAddress() {
 
   const load = useCallback(async () => {
     try {
-      const r = await fetch("/api/admin/flags");
+      const r = await fetch(person ? `/api/admin/flags?person=${person}` : "/api/admin/flags");
       if (r.ok) setFlags((await r.json()).flags);
     } catch {
       /* section is non-critical — never break the ledger */
     }
-  }, []);
+  }, [person]);
 
   useEffect(() => {
     load();
   }, [load]);
+
+  async function markRead(id: number) {
+    setBusy(true);
+    try {
+      await fetch("/api/admin/flags", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, action: "read" }),
+      });
+      await load();
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function resolve(id: number, withNote: string) {
     setBusy(true);
@@ -67,6 +87,54 @@ export default function ThingsToAddress() {
   const open = flags.filter((f) => f.status === "open");
   const resolved = flags.filter((f) => f.status === "resolved");
   if (!flags.length) return null;
+
+  // Overview mode: compact digest — unread open items only, hover for full
+  // detail, "Read" clears it from Overview (read ≠ resolved; it stays on the
+  // entity's own pages until actually resolved).
+  if (mode === "overview") {
+    const unread = open.filter((f) => !(f as Flag & { read_at?: string | null }).read_at);
+    return (
+      <section className="rounded-xl border border-amber-400/25 bg-amber-400/5 p-5">
+        <h2 className="font-semibold text-amber-200">
+          Things to Address{" "}
+          {unread.length > 0 && (
+            <span className="ml-1 rounded-full bg-red-500/80 px-2 py-0.5 text-xs font-bold text-white">
+              {unread.length}
+            </span>
+          )}
+        </h2>
+        {unread.length === 0 ? (
+          <p className="mt-2 text-sm text-slate-400">Nothing unread. Open items live on each record&apos;s page.</p>
+        ) : (
+          <ul className="mt-3 space-y-2">
+            {unread.map((f) => (
+              <li key={f.id} className="flex items-start gap-3 text-sm" title={f.detail}>
+                <input
+                  type="checkbox"
+                  title="mark read — clears from Overview, stays on the record until resolved"
+                  onChange={() => markRead(f.id)}
+                  disabled={busy}
+                  className="mt-1 h-3.5 w-3.5 cursor-pointer accent-emerald-500"
+                />
+                <div className="min-w-0">
+                  <span className={`mr-2 rounded px-1.5 py-px text-[10px] uppercase ${sevStyle[f.severity]}`}>{f.severity}</span>
+                  {f.entity_id ? (
+                    <Link href={`/people/${f.entity_id}`} className="font-medium text-slate-200 hover:underline">
+                      {f.entity_name}
+                    </Link>
+                  ) : (
+                    <span className="font-medium text-slate-200">{f.entity_name}</span>
+                  )}
+                  <span className="text-slate-400"> — {f.title}</span>
+                  <span className="ml-2 text-[10px] text-slate-600">{f.notified_at} · hover for detail</span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    );
+  }
 
   return (
     <section className="rounded-xl border border-white/10 bg-white/5 p-4">

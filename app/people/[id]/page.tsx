@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getStore } from "@/lib/storage";
 import EstimatePanel from "@/components/EstimatePanel";
 import PersonEditor from "@/components/PersonEditor";
+import ThingsToAddress from "@/components/ThingsToAddress";
 import { typeLabel } from "@/lib/labels";
 
 export const dynamic = "force-dynamic";
@@ -60,6 +61,7 @@ export default async function PersonPage({
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
+          <ThingsToAddress mode="entity" person={person.id} />
           <PersonEditor
             person={person}
             verticals={data.verticals}

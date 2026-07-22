@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getStore } from "@/lib/storage";
+import ThingsToAddress from "@/components/ThingsToAddress";
 import { computeStats, contribution, isDemo, money } from "@/lib/stats";
 import type { Person, Project, WillItem } from "@/lib/types";
 
@@ -103,28 +104,7 @@ export default async function Overview() {
           </ul>
         </section>
 
-        <section className="rounded-xl border border-amber-400/25 bg-amber-400/5 p-5">
-          <h2 className="font-semibold text-amber-200">Will&apos;s open action items</h2>
-          {willItems.length === 0 ? (
-            <p className="mt-2 text-sm text-slate-400">Nothing outstanding. 🎉</p>
-          ) : (
-            <ul className="mt-3 space-y-2.5">
-              {willItems.map(({ project, item }) => (
-                <li key={`${project.id}-${item.item}`} className="flex items-start gap-3 text-sm">
-                  <span className={`mt-0.5 ${daysLate(item.due) > 0 ? "text-red-400" : "text-amber-400"}`}>⚑</span>
-                  <div>
-                    <div className="text-slate-200">{item.item}</div>
-                    <div className={`text-xs ${daysLate(item.due) > 0 ? "font-medium text-red-400" : "text-slate-500"}`}>
-                      {project.name}
-                      {item.due ? ` · due ${item.due}` : ""}
-                      {daysLate(item.due) > 0 ? ` · ${daysLate(item.due)}d LATE` : ""}
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+        <ThingsToAddress mode="overview" />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">

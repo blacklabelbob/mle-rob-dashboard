@@ -13,10 +13,19 @@ function db() {
   return createClient(url, key, { auth: { persistSession: false } });
 }
 
-export async function GET() {
-  const { data, error } = await db()
+export async function GET(req: NextRequest) {
+  const entities = req.nextUrl.searchParams.get("entities");
+  const person = req.nextUrl.searchParams.get("person");
+  let ids = entities ? entities.split(",") : null;
+  if (person) {
+    const { data: mem } = await db().from("org_memberships").select("org_id").eq("person_id", person);
+    ids = [person, ...(mem ?? []).map((m) => m.org_id)];
+  }
+  let q = db()
     .from("flags")
-    .select("*")
+    .select("*");
+  if (ids) q = q.in("entity_id", ids);
+  const { data, error } = await q
     .order("status", { ascending: false }) // open first
     .order("severity", { ascending: true })
     .order("notified_at", { ascending: false });
@@ -27,8 +36,13 @@ export async function GET() {
 // resolve (with optional note) — or reopen if Rob changes his mind
 export async function PATCH(req: NextRequest) {
   const { id, action, note } = await req.json();
-  if (typeof id !== "number" || !["resolve", "reopen"].includes(action)) {
+  if (typeof id !== "number" || !["resolve", "reopen", "read", "unread"].includes(action)) {
     return NextResponse.json({ error: "need { id, action: resolve|reopen, note? }" }, { status: 400 });
+  }
+  if (action === "read" || action === "unread") {
+    const { error } = await db().from("flags").update({ read_at: action === "read" ? new Date().toISOString().slice(0, 10) : null }).eq("id", id);
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ ok: true });
   }
   const row =
     action === "resolve"
