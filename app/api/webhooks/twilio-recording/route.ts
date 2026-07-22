@@ -14,13 +14,19 @@ export const dynamic = "force-dynamic";
 // is verifiable from Vercel logs.
 export async function POST(req: Request) {
   const env = twilioEnv();
-  const form = await req.formData();
-  const params: Record<string, string> = {};
-  for (const [k, v] of form.entries()) params[k] = String(v);
-
   // No auth token → dialer isn't set up; never accept unsigned payloads.
   if (!env.authToken) {
     return NextResponse.json({ error: "webhook not configured" }, { status: 503 });
+  }
+
+  let params: Record<string, string>;
+  try {
+    const form = await req.formData();
+    params = Object.fromEntries(
+      [...form.entries()].map(([k, v]) => [k, String(v)]),
+    );
+  } catch {
+    return NextResponse.json({ error: "expected form-encoded body" }, { status: 400 });
   }
   const signature = req.headers.get("x-twilio-signature") ?? "";
   if (!validateTwilioSignature(env.authToken, req.url, params, signature)) {
