@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
 import DevChat from "@/components/DevChat";
 import FallbackBanner from "@/components/FallbackBanner";
+import RepSubNav from "@/components/RepSubNav";
 import "./globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -57,6 +58,7 @@ export default function RootLayout({
             </div>
           </div>
         </header>
+        <RepSubNav />
         <FallbackBanner />
         <main className="mx-auto max-w-7xl px-4 py-8">{children}</main>
         {process.env.NEXT_PUBLIC_DEV_CHAT === "1" && <DevChat />}

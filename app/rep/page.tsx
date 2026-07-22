@@ -1,43 +1,29 @@
 import Link from "next/link";
 import CallButton from "@/components/CallButton";
+import PhaseEightBar from "@/components/PhaseEightBar";
 import { getStore } from "@/lib/storage";
 import { money } from "@/lib/stats";
-import type { Person } from "@/lib/types";
+import { sourceContext, stageRank, touchReason } from "@/lib/repSource";
 
 // Rep Cockpit — the page this CRM exists for (Rob: "the ultimate platform for
 // sales reps... the only thing we need this for is to help close more deals").
 // v1 runs on Jake Torres (DEMO) and his demo book. Principle 1: ONLY what
 // closes deals. Every lead shows the STORY behind the source — the differentiator.
+// This is the rep's "Today" home; "My Accounts" (Task 1b.3) is the CRM-feeling
+// book view + per-account workspace — see app/rep/accounts.
 
 export const dynamic = "force-dynamic";
 
 const REP = "Jake Torres (DEMO)";
-
-function touchReason(p: Person): { label: string; cls: string } {
-  if (p.quotedAmount && !p.signed)
-    return { label: "quote out — follow up", cls: "border-amber-400/40 bg-amber-400/10 text-amber-300" };
-  if (p.status === "warm")
-    return { label: "warm — keep momentum", cls: "border-orange-400/30 bg-orange-400/10 text-orange-300" };
-  return { label: "new — first touch", cls: "border-sky-400/30 bg-sky-400/10 text-sky-300" };
-}
-
-// Source context is the differentiator: pull the SOURCE block from description.
-function sourceContext(p: Person): { source: string; detail: string } {
-  const d = p.description ?? "";
-  const m = d.match(/^SOURCE:\s*([^.]+)\.\s*([\s\S]*)$/);
-  if (m) return { source: m[1].trim(), detail: m[2].trim() };
-  return { source: p.relationship ?? "unknown", detail: d };
-}
 
 export default async function RepCockpit() {
   const data = await getStore().getNetwork();
   const book = data.people.filter((p) => (p.assignedRep ?? "").startsWith("Jake"));
 
   // Work order: money on the table first, then warm, then fresh meat.
-  const queue = [...book].sort((a, b) => {
-    const rank = (p: Person) => (p.quotedAmount && !p.signed ? 0 : p.status === "warm" ? 1 : 2);
-    return rank(a) - rank(b) || (b.quotedAmount ?? 0) - (a.quotedAmount ?? 0);
-  });
+  const queue = [...book].sort(
+    (a, b) => stageRank(a) - stageRank(b) || (b.quotedAmount ?? 0) - (a.quotedAmount ?? 0)
+  );
 
   const quotedOut = book.filter((p) => p.quotedAmount && !p.signed);
   const pipeline = quotedOut.reduce((s, p) => s + (p.quotedAmount ?? 0), 0);
@@ -86,7 +72,7 @@ export default async function RepCockpit() {
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <Link
-                      href={`/people/${p.id}`}
+                      href={`/rep/accounts/${p.id}`}
                       className="text-base font-semibold text-white hover:underline"
                     >
                       {p.name.replace(" (DEMO)", "")}
@@ -127,18 +113,8 @@ export default async function RepCockpit() {
                 <p className="mt-1 text-sm leading-relaxed text-slate-300">{ctx.detail}</p>
               </div>
 
-              <div className="mt-2.5 flex items-center gap-2 text-[11px] text-slate-600">
-                <span className="uppercase tracking-wide">on this call:</span>
-                {["Proposal", "Case studies", "E-sign", "Invoice"].map((b) => (
-                  <span
-                    key={b}
-                    title="lands with Phase 8 — In-Call Action Buttons"
-                    className="cursor-not-allowed rounded-md border border-white/10 px-2 py-0.5 text-slate-600"
-                  >
-                    {b}
-                  </span>
-                ))}
-                <span className="text-slate-700">· Phase 8</span>
+              <div className="mt-2.5">
+                <PhaseEightBar compact />
               </div>
             </section>
           );
