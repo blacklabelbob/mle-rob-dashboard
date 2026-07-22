@@ -20,6 +20,17 @@ type Flag = {
   resolution_note: string | null;
 };
 
+async function fetchFlags(person?: string): Promise<Flag[] | null> {
+  try {
+    const r = await fetch(person ? `/api/admin/flags?person=${person}` : "/api/admin/flags");
+    if (!r.ok) return null;
+    return (await r.json()).flags;
+  } catch {
+    /* section is non-critical — never break the ledger */
+    return null;
+  }
+}
+
 const sevStyle: Record<Flag["severity"], string> = {
   high: "border-red-400/40 bg-red-500/10 text-red-300",
   medium: "border-amber-400/40 bg-amber-400/10 text-amber-300",
@@ -40,17 +51,19 @@ export default function ThingsToAddress({
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
-    try {
-      const r = await fetch(person ? `/api/admin/flags?person=${person}` : "/api/admin/flags");
-      if (r.ok) setFlags((await r.json()).flags);
-    } catch {
-      /* section is non-critical — never break the ledger */
-    }
+    const next = await fetchFlags(person);
+    if (next) setFlags(next);
   }, [person]);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    let cancelled = false;
+    fetchFlags(person).then((next) => {
+      if (next && !cancelled) setFlags(next);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [person]);
 
   async function markRead(id: number) {
     setBusy(true);

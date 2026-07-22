@@ -12,13 +12,15 @@ export default function DevChat() {
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
-  const [unseen, setUnseen] = useState(0);
+  const [lastSeenId, setLastSeenId] = useState(0);
   const [sendError, setSendError] = useState(false);
   const lastId = useRef(0);
-  const openRef = useRef(false);
   const scroller = useRef<HTMLDivElement>(null);
 
-  openRef.current = open;
+  // Badge count is derived: max-authored messages past the seen watermark.
+  // The watermark advances on every open/close toggle, so nothing needs to
+  // reset it from an effect.
+  const unseen = msgs.filter((m) => m.id > lastSeenId && m.author === "max").length;
 
   const poll = useCallback(async () => {
     try {
@@ -28,9 +30,6 @@ export default function DevChat() {
       if (messages.length) {
         lastId.current = messages[messages.length - 1].id;
         setMsgs((m) => [...m, ...messages]);
-        if (!openRef.current) {
-          setUnseen((u) => u + messages.filter((x) => x.author === "max").length);
-        }
       }
     } catch {
       /* dashboard must never break because dev chat is down */
@@ -45,10 +44,14 @@ export default function DevChat() {
 
   useEffect(() => {
     if (open) {
-      setUnseen(0);
       scroller.current?.scrollTo({ top: scroller.current.scrollHeight });
     }
   }, [open, msgs]);
+
+  function toggleOpen() {
+    setOpen((o) => !o);
+    setLastSeenId(lastId.current);
+  }
 
   async function send() {
     const body = draft.trim();
@@ -146,7 +149,7 @@ export default function DevChat() {
         </div>
       )}
       <button
-        onClick={() => setOpen((o) => !o)}
+        onClick={toggleOpen}
         className="relative flex items-center gap-2 rounded-full border border-white/15 bg-[#0b1120] px-4 py-2.5 text-sm font-semibold text-white shadow-xl transition hover:border-amber-400/40"
       >
         <span className="inline-block h-2 w-2 rounded-full bg-emerald-400" />
