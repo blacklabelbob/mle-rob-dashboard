@@ -1,0 +1,20 @@
+# CI — the independent robot (Rob 2026-07-22): every push re-verified on GitHub's
+# machines. The 3am driver can't ship a broken build without this screaming.
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: npm }
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+        env:
+          STORAGE_SOURCE: file   # CI never touches live Supabase
+      - run: npx vitest run
