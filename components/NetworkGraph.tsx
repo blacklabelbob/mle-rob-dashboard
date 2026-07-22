@@ -66,15 +66,17 @@ export default function NetworkGraph() {
   const [hidden, setHidden] = useState<Set<string>>(new Set());
   const [focusId, setFocusId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
-  const [loaded, setLoaded] = useState(false);
+  // Static after load; the canvas closure owns the mutable sim copies of x/y.
+  const [graph, setGraph] = useState<{ nodes: GNode[]; edges: GEdge[] }>({ nodes: [], edges: [] });
 
   // Refs bridge React state into the canvas closure (which runs once).
   const hiddenRef = useRef<Set<string>>(new Set());
   const focusSetRef = useRef<Set<string> | null>(null); // focused node + neighbors, null = no focus
-  const graphRef = useRef<{ nodes: GNode[]; edges: GEdge[] }>({ nodes: [], edges: [] });
   const centerRef = useRef<(id: string) => void>(() => {});
 
-  hiddenRef.current = hidden;
+  useEffect(() => {
+    hiddenRef.current = hidden;
+  }, [hidden]);
 
   // Focus neighborhood: the focused person + everyone directly connected.
   useEffect(() => {
@@ -83,13 +85,13 @@ export default function NetworkGraph() {
       return;
     }
     const set = new Set<string>([focusId]);
-    for (const e of graphRef.current.edges) {
+    for (const e of graph.edges) {
       if (e.fromId === focusId) set.add(e.toId);
       if (e.toId === focusId) set.add(e.fromId);
     }
     focusSetRef.current = set;
     centerRef.current(focusId);
-  }, [focusId, loaded]);
+  }, [focusId, graph]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -159,7 +161,6 @@ export default function NetworkGraph() {
         };
       });
       edges = data.edges;
-      graphRef.current = { nodes, edges };
       centerRef.current = (id: string) => {
         const n = nodes.find((x) => x.id === id);
         if (!n) return;
@@ -168,7 +169,7 @@ export default function NetworkGraph() {
         ty = rect.height / 2 - n.y * k;
       };
       alpha = 1;
-      setLoaded(true);
+      setGraph({ nodes, edges });
     }
 
     function tick() {
@@ -411,7 +412,6 @@ export default function NetworkGraph() {
       canvas.removeEventListener("pointercancel", onUp);
       window.removeEventListener("resize", fit);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Lets the React side clear the canvas-side selection ring too.
@@ -419,7 +419,7 @@ export default function NetworkGraph() {
 
   // ----- money math (data is static after load; recompute on filter changes) -----
   const totals = useMemo(() => {
-    const { nodes, edges } = graphRef.current;
+    const { nodes, edges } = graph;
     if (!nodes.length) return null;
     const focusSet = focusId
       ? (() => {
@@ -451,15 +451,15 @@ export default function NetworkGraph() {
       quoted: sum(visible, (n) => n.quotedAmount),
       selectionTotal,
     };
-  }, [hidden, focusId, selected, loaded]);
+  }, [graph, hidden, focusId, selected]);
 
   const matches = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (q.length < 2) return [];
-    return graphRef.current.nodes
+    return graph.nodes
       .filter((n) => n.name.toLowerCase().includes(q))
       .slice(0, 8);
-  }, [query, loaded]);
+  }, [graph, query]);
 
   function toggleVertical(id: string) {
     setHidden((h) => {
@@ -477,7 +477,7 @@ export default function NetworkGraph() {
   function focusPerson(id: string) {
     setFocusId(id);
     setQuery("");
-    const n = graphRef.current.nodes.find((x) => x.id === id) ?? null;
+    const n = graph.nodes.find((x) => x.id === id) ?? null;
     setSelected(n);
     selectedSetterRef.current(n);
   }
@@ -515,7 +515,7 @@ export default function NetworkGraph() {
             onClick={() => setFocusId(null)}
             className="mb-2 flex w-full items-center justify-between rounded-md bg-sky-500/20 px-2 py-1.5 text-sky-200 hover:bg-sky-500/30"
           >
-            <span>Focusing: {graphRef.current.nodes.find((n) => n.id === focusId)?.name}</span>
+            <span>Focusing: {graph.nodes.find((n) => n.id === focusId)?.name}</span>
             <span className="font-bold">✕</span>
           </button>
         )}
