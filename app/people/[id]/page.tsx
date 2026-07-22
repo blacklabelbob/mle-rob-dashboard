@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getStore } from "@/lib/storage";
+import ActivityTimeline from "@/components/ActivityTimeline";
 import EstimatePanel from "@/components/EstimatePanel";
 import PersonEditor from "@/components/PersonEditor";
 import ThingsToAddress from "@/components/ThingsToAddress";
@@ -67,6 +68,8 @@ export default async function PersonPage({
             verticals={data.verticals}
             peopleOptions={data.people.map((p) => ({ id: p.id, name: p.name }))}
           />
+
+          <ActivityTimeline personId={person.id} demoEntries={[]} isDemo={false} />
 
           <section className="rounded-xl border border-white/10 bg-white/5 p-5">
             <h2 className="font-semibold text-white">Connections</h2>

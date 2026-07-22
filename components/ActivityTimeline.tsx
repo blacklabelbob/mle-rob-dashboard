@@ -74,8 +74,8 @@ export default function ActivityTimeline({
         <p className="mt-3 text-sm text-slate-600">loading…</p>
       ) : entries.length === 0 ? (
         <p className="mt-3 text-sm text-slate-500">
-          Nothing logged yet — calls, emails, and touches will appear here automatically once
-          activity logging lands (Phase 8/9).
+          Nothing logged yet — emails, calls, and touches will appear here automatically as
+          capture comes online (email capture is armed; calls land with the dialer).
         </p>
       ) : (
         <ol className="mt-3 space-y-3 border-l border-white/10 pl-4">
