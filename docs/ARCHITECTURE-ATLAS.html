@@ -1,0 +1,849 @@
+<title>MLE CRM — Architecture Atlas</title>
+<style>
+  :root {
+    --ink: #1B2A44;
+    --ink-soft: #4A5A74;
+    --ground: #F7F9FB;
+    --paper: #FFFFFF;
+    --grid-line: #DCE4EE;
+    --steel: #3E6FA8;
+    --steel-deep: #2C5282;
+    --redline: #D64524;
+    --live: #2E7D4F;
+    --pending: #B07B1E;
+    --rail-w: 232px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink: #E4EAF3;
+      --ink-soft: #9FAEC4;
+      --ground: #131A26;
+      --grid-line: #2A3648;
+      --steel: #7FA8D9;
+      --steel-deep: #A8C6E8;
+      --redline: #F07B5A;
+      --live: #6FBF8F;
+      --pending: #D9A94A;
+    }
+  }
+  :root[data-theme="light"] {
+    --ink: #1B2A44; --ink-soft: #4A5A74; --ground: #F7F9FB; --grid-line: #DCE4EE;
+    --steel: #3E6FA8; --steel-deep: #2C5282; --redline: #D64524; --live: #2E7D4F; --pending: #B07B1E;
+  }
+  :root[data-theme="dark"] {
+    --ink: #E4EAF3; --ink-soft: #9FAEC4; --ground: #131A26; --grid-line: #2A3648;
+    --steel: #7FA8D9; --steel-deep: #A8C6E8; --redline: #F07B5A; --live: #6FBF8F; --pending: #D9A94A;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--ground); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 15.5px; line-height: 1.55;
+  }
+  .mono { font-family: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, monospace; }
+
+  .wrap { display: flex; min-height: 100vh; }
+
+  /* ---------- sheet index rail ---------- */
+  nav.rail {
+    width: var(--rail-w); flex: 0 0 var(--rail-w);
+    border-right: 1px solid var(--grid-line);
+    padding: 26px 0 40px; position: sticky; top: 0; align-self: flex-start;
+    max-height: 100vh; overflow-y: auto;
+  }
+  .rail .brand { padding: 0 20px 18px; border-bottom: 1px solid var(--grid-line); }
+  .rail .brand .co { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--steel); }
+  .rail .brand h1 { margin: 6px 0 0; font-size: 17px; line-height: 1.25; letter-spacing: -.01em; }
+  .rail ol { list-style: none; margin: 12px 0 0; padding: 0; }
+  .rail li a {
+    display: flex; gap: 10px; align-items: baseline; padding: 7px 20px;
+    color: var(--ink-soft); text-decoration: none; font-size: 13.5px;
+  }
+  .rail li a:hover, .rail li a:focus-visible { color: var(--steel-deep); background: color-mix(in srgb, var(--steel) 8%, transparent); outline: none; }
+  .rail li a .sheetno { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 11px; color: var(--steel); flex: 0 0 44px; }
+  .rail .sep { margin: 10px 20px 4px; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-soft); opacity: .75; }
+
+  main { flex: 1; min-width: 0; padding: 34px 40px 90px; max-width: 1120px; }
+
+  /* ---------- cover ---------- */
+  .cover { border: 1.5px solid var(--ink); background: var(--paper); color: #1B2A44; padding: 30px 34px 26px; position: relative; }
+  .cover::after {
+    content: ""; position: absolute; inset: 6px; pointer-events: none;
+    border: 1px solid #DCE4EE;
+  }
+  .cover .eyebrow { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: #3E6FA8; }
+  .cover h2 { margin: 8px 0 4px; font-size: 34px; letter-spacing: -.02em; line-height: 1.1; text-wrap: balance; }
+  .cover p.thesis { max-width: 62ch; color: #4A5A74; margin: 10px 0 0; }
+  .statrow { display: flex; flex-wrap: wrap; gap: 0; margin-top: 22px; border-top: 1px solid #DCE4EE; }
+  .stat { padding: 12px 26px 4px 0; margin-right: 26px; }
+  .stat .n { font-size: 25px; font-weight: 650; font-variant-numeric: tabular-nums; color: #1B2A44; }
+  .stat .l { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: #4A5A74; }
+  .legend { margin-top: 18px; display: flex; flex-wrap: wrap; gap: 16px; font-size: 12.5px; color: #4A5A74; }
+  .legend span { display: inline-flex; align-items: center; gap: 7px; }
+  .sw { width: 22px; height: 0; border-top: 3px solid #3E6FA8; display: inline-block; }
+  .sw.dash { border-top-style: dashed; }
+  .sw.red { border-top-color: #D64524; }
+
+  /* ---------- sheets ---------- */
+  section.sheet { margin-top: 46px; scroll-margin-top: 20px; }
+  .sheet-frame { border: 1.5px solid var(--ink); background: var(--paper); color: #1B2A44; }
+  .titleblock {
+    display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;
+    border-bottom: 1.5px solid #1B2A44; padding: 10px 16px;
+    background: #F2F5F9;
+  }
+  .titleblock .no { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px; font-weight: 700; color: #3E6FA8; letter-spacing: .06em; }
+  .titleblock .t { font-size: 15.5px; font-weight: 650; letter-spacing: -.01em; }
+  .titleblock .rev { margin-left: auto; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 10.5px; color: #4A5A74; letter-spacing: .08em; }
+  .sheet-canvas { padding: 18px 16px; overflow-x: auto; }
+  .sheet-canvas > pre.mermaid { margin: 0; min-width: 640px; }
+  .sheet-note { padding: 12px 16px 14px; border-top: 1px dashed #DCE4EE; color: #4A5A74; font-size: 13.5px; }
+  .sheet-note b { color: #1B2A44; }
+  .sheet p.lede { max-width: 68ch; color: var(--ink-soft); margin: 8px 0 14px; }
+
+  .redflag { border-left: 3px solid var(--redline); background: color-mix(in srgb, var(--redline) 7%, var(--ground)); padding: 10px 14px; margin: 0 0 14px; font-size: 13.5px; }
+  .redflag .tag { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 10.5px; color: var(--redline); letter-spacing: .12em; text-transform: uppercase; font-weight: 700; }
+
+  /* ---------- tables ---------- */
+  .tblwrap { overflow-x: auto; border: 1.5px solid var(--ink); background: var(--paper); }
+  table.spec { border-collapse: collapse; width: 100%; font-size: 13px; color: #1B2A44; min-width: 640px; }
+  table.spec caption { text-align: left; padding: 10px 14px; font-weight: 650; font-size: 14px; background: #F2F5F9; border-bottom: 1.5px solid #1B2A44; caption-side: top; }
+  table.spec th { text-align: left; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: #4A5A74; padding: 8px 12px; border-bottom: 1px solid #DCE4EE; background: #FAFBFD; }
+  table.spec td { padding: 7px 12px; border-bottom: 1px solid #EEF2F7; vertical-align: top; }
+  table.spec tr:last-child td { border-bottom: 0; }
+  .pill { display: inline-block; padding: 1px 8px; border-radius: 3px; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 10.5px; letter-spacing: .04em; }
+  .pill.own { background: #E3EDF7; color: #2C5282; }
+  .pill.rent { background: #FBEAE4; color: #A83A1E; border: 1px dashed #D64524; }
+  .pill.gap { background: #D64524; color: #fff; font-weight: 700; }
+  .pill.live { background: #E1F1E7; color: #23643F; }
+  .pill.assumed { background: #F6EBD4; color: #8A5F13; }
+  .cell-none { color: #B6C0CE; }
+  .cell-full { color: #23643F; font-weight: 600; }
+  .cell-own { color: #2C5282; }
+  .cell-read { color: #8A5F13; }
+
+  h3.grouphead { margin: 54px 0 6px; font-size: 13px; font-family: ui-monospace, "SF Mono", Menlo, monospace; letter-spacing: .18em; text-transform: uppercase; color: var(--steel); }
+  h3.grouphead::after { content: ""; display: block; margin-top: 6px; border-top: 1.5px solid var(--grid-line); }
+
+  .twocol { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 980px) { .twocol { grid-template-columns: 1fr; } }
+  @media (max-width: 820px) {
+    .wrap { display: block; }
+    nav.rail { position: static; width: auto; max-height: none; border-right: 0; border-bottom: 1px solid var(--grid-line); }
+    main { padding: 24px 16px 70px; }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    html { scroll-behavior: smooth; }
+  }
+</style>
+
+<div class="wrap">
+<nav class="rail" aria-label="Sheet index">
+  <div class="brand">
+    <div class="co">AI VoiceTech · MLE</div>
+    <h1>CRM Architecture Atlas</h1>
+  </div>
+  <ol>
+    <li><a href="#cover"><span class="sheetno mono">A-000</span> Cover &amp; Index</a></li>
+    <li class="sep">Architecture</li>
+    <li><a href="#a01"><span class="sheetno mono">A-001</span> System Context</a></li>
+    <li><a href="#a02"><span class="sheetno mono">A-002</span> Containers</a></li>
+    <li><a href="#a03"><span class="sheetno mono">A-003</span> Integration Map</a></li>
+    <li><a href="#a04"><span class="sheetno mono">A-004</span> Stack &amp; Gaps</a></li>
+    <li><a href="#a05"><span class="sheetno mono">A-005</span> Access &amp; Comms</a></li>
+    <li class="sep">Data</li>
+    <li><a href="#d01"><span class="sheetno mono">D-001</span> ERD — Today</a></li>
+    <li><a href="#d02"><span class="sheetno mono">D-002</span> ERD — Target</a></li>
+    <li><a href="#d03"><span class="sheetno mono">D-003</span> Migration &amp; RLS</a></li>
+    <li class="sep">Flows</li>
+    <li><a href="#f01"><span class="sheetno mono">F-001</span> Lead Lifecycle</a></li>
+    <li><a href="#f02"><span class="sheetno mono">F-002</span> In-Call Sequence</a></li>
+    <li><a href="#f03"><span class="sheetno mono">F-003</span> Roles &amp; a Day</a></li>
+    <li class="sep">Delivery</li>
+    <li><a href="#r01"><span class="sheetno mono">R-001</span> Roadmap</a></li>
+  </ol>
+</nav>
+
+<main>
+
+<div class="cover" id="cover">
+  <div class="eyebrow">Drawing Set · Rev 2026-07-22 · Source: PRD-mle-crm.md (unified) v3.1 + Rob's dumps 07-17 / 7.21.26-1 (verbatim)</div>
+  <h2>The MLE CRM, mapped end to end</h2>
+  <p class="thesis">A self-owned CRM whose only job is helping reps close more deals — The Network graph as Rob's super-admin lens, every call recorded and searchable, proposals and signatures sent while still on the phone. Thirteen sheets: what talks to what, where the data lives, how a lead becomes cash, and what ships when.</p>
+  <div class="statrow">
+    <div class="stat"><div class="n">16 + 16</div><div class="l">People + Orgs (live prod)</div></div>
+    <div class="stat"><div class="n">47</div><div class="l">Referral edges (live)</div></div>
+    <div class="stat"><div class="n">4</div><div class="l">Migrations applied</div></div>
+    <div class="stat"><div class="n">108</div><div class="l">Tasks · 6 done</div></div>
+    <div class="stat"><div class="n">15</div><div class="l">Build phases</div></div>
+    <div class="stat"><div class="n">68</div><div class="l">Tests · CI live</div></div>
+  </div>
+  <div class="legend">
+    <span><span class="sw"></span> owned code / data</span>
+    <span><span class="sw dash"></span> rented SaaS module (rent-first principle)</span>
+    <span><span class="sw red"></span> redline: urgent fix or engineering gap</span>
+  </div>
+  <div class="legend" style="margin-top:10px; padding-top:10px; border-top:1px dashed #DCE4EE;">
+    <span><b>C4&nbsp;L1/L2</b>&nbsp;— standard zoom levels: the system among its neighbors, then inside it</span>
+    <span><b>PK/FK</b>&nbsp;— a record's ID / a link to another record</span>
+    <span><b>RLS</b>&nbsp;— database-enforced "who can see which rows"</span>
+    <span><b>RAG&nbsp;/&nbsp;pgvector</b>&nbsp;— calls stored so AI can search them by meaning, not keywords</span>
+  </div>
+</div>
+
+<h3 class="grouphead">A-Series · Architecture</h3>
+
+<section class="sheet" id="a01">
+  <p class="lede">Every human role and every external system this CRM touches, on one sheet. Each edge is labeled with what actually flows over it. Rob's partner plugs in at the bottom-left — via APIs, never absorbed.</p>
+  <div class="sheet-frame">
+    <div class="titleblock"><span class="no">A-001</span><span class="t">System Context — who and what talks to the CRM</span><span class="rev">C4 L1 · REV A</span></div>
+    <div class="sheet-canvas">
+<pre class="mermaid">
+flowchart TD
+    RobA["Super Admin Rob"]
+    MgmtA["Management and Tech"]
+    RepA["Sales Rep (house)"]
+    AgentA["Sales Agent (own book)"]
+    BountyA["Bounty Hunter"]
+    BookerA["Booker"]
+    ProspectA["Prospect / Customer"]
+
+    CRM(("MLE CRM<br/>Next.js on Vercel"))
+
+    Supabase["Supabase mle-network<br/>Postgres + pgvector + RLS"]
+    N8N["n8n cloud"]
+    Dialer["Twilio + Vapi hybrid<br/>(locked 7/22, dev-chat #40)"]
+    Meet["Fathom / Fireflies"]
+    Documenso["Documenso e-sign"]
+    Invoicing["Invoicing engine"]
+    AIDRE["AIDRE — AI receptionist"]
+    AIVA["AIVA — web avatar"]
+    Gmail["Gmail rob@aivoicetech.io"]
+    Anthropic["Anthropic API"]
+    PartnerAgents["Partner's terminal agents"]
+    Firecrawl["Firecrawl scraper"]
+
+    RobA -->|"graph, roles, AI contribution $"| CRM
+    MgmtA -->|"ops views, pipeline health"| CRM
+    RepA -->|"leads, dial, log, send docs"| CRM
+    AgentA -->|"own-book CRUD, protected"| CRM
+    BountyA -->|"claim / return leads"| CRM
+    BookerA -->|"booking queue"| CRM
+    ProspectA -->|"calls, forms, email, chat"| CRM
+
+    CRM -->|"people, orgs, deals, activities"| Supabase
+    CRM -->|"trigger workflows"| N8N
+    N8N -->|"captured mail, alerts, crons"| CRM
+    CRM -->|"click-to-dial"| Dialer
+    Dialer -->|"call events + recording URL"| CRM
+    Meet -->|"meeting transcripts + summaries"| CRM
+    CRM -->|"send agreement"| Documenso
+    Documenso -->|"signed-status webhook"| CRM
+    CRM -->|"send invoice"| Invoicing
+    Invoicing -->|"payment-status webhook"| CRM
+    AIDRE -->|"POST lead, bearer token"| CRM
+    AIVA -->|"POST lead, bearer token"| CRM
+    N8N -->|"read + match + append"| Gmail
+    CRM -->|"summaries, estimates, RAG"| Anthropic
+    PartnerAgents -->|"API sync in and out — IP stays his"| CRM
+    CRM -->|"deep-scrape request"| Firecrawl
+    Firecrawl -->|"talking points, screenshots"| CRM
+</pre>
+    </div>
+    <div class="sheet-note"><b>Reading this sheet:</b> six human roles on top, eleven systems below. AIDRE and AIVA are Rob's own products pushing leads in through an authenticated API (Task 5.1). The partner's tools appear as one box on purpose — they connect through plug points, and their internals stay off this map by design.</div>
+  </div>
+</section>
+
+<section class="sheet" id="a02">
+  <p class="lede">Inside the box: the app, its API surface, the storage layer with its no-stall fallback, the AI passes, and the rented modules (dashed). This is the sheet the partner wires against.</p>
+  <div class="sheet-frame">
+    <div class="titleblock"><span class="no">A-002</span><span class="t">Containers — inside the MLE CRM</span><span class="rev">C4 L2 · REV A</span></div>
+    <div class="sheet-canvas">
+<pre class="mermaid">
+flowchart TB
+    subgraph CRMSYS["MLE CRM System — Vercel"]
+        subgraph UI["Next.js App Router UI"]
+            RepUI["Rep Cockpit<br/>deals, dialer, in-call buttons"]
+            AdminUI["Super Admin Graph UI"]
+            OpsUI["Admin / Ops screens"]
+        end
+        subgraph API["API Layer app/api/*"]
+            LeadsAPI["/api/leads<br/>bearer token per product"]
+            WebhooksAPI["/api/webhooks/*<br/>aidre, dialer, documenso, invoicing"]
+            EstimateAPI["/api/estimate"]
+            TasksAPI["/api/tasks/today"]
+        end
+        Adapter["StorageAdapter lib/storage"]
+        subgraph AIPASS["AI Passes"]
+            CallSummary["Call summary + action items (7.4)"]
+            Estimator["Deal scoring lib/scoring/deal.ts (2.4)"]
+            RAGQuery["RAG query engine (7.5)"]
+        end
+    end
+
+    subgraph DATA["Supabase mle-network"]
+        Tables["LIVE: people · orgs · org_memberships · edges · flags<br/>TARGET: deals · activities · tasks · profiles"]
+        Vector["pgvector embeddings"]
+        RLS["RLS per role layer"]
+    end
+
+    FileStore[("File-store fallback<br/>no-stall rule")]
+
+    subgraph AUTOMATION["n8n cloud — rented"]
+        GmailCap["Gmail capture"]
+        Watchers["overdue / dedup / orphan / credential watchers"]
+        Transcribe["transcript pipeline"]
+    end
+
+    subgraph RENTED["Rent-first SaaS modules"]
+        DialerR["Twilio rails + Vapi agent layer"]
+        DocumensoR["Documenso"]
+        MeetR["Fathom / Fireflies"]
+        InvoicingR["Invoicing engine"]
+    end
+
+    RepUI --> LeadsAPI
+    RepUI --> TasksAPI
+    AdminUI --> Adapter
+    OpsUI --> Adapter
+    LeadsAPI --> Adapter
+    WebhooksAPI --> Adapter
+    EstimateAPI --> Estimator
+    TasksAPI --> Adapter
+    Adapter -->|"primary read/write"| Tables
+    Adapter -.->|"read fallback on failure"| FileStore
+    RAGQuery --> Vector
+    CallSummary --> Adapter
+    Estimator --> Adapter
+    Tables --- RLS
+    Tables --- Vector
+    AUTOMATION -->|"webhooks"| WebhooksAPI
+    GmailCap -->|"append activity"| Adapter
+    RepUI -.->|"click-to-dial"| DialerR
+    WebhooksAPI -.->|"e-sign"| DocumensoR
+    WebhooksAPI -.->|"invoices"| InvoicingR
+    Transcribe -.->|"meeting ingest"| MeetR
+
+    classDef rented stroke-dasharray: 5 5
+    class DialerR,DocumensoR,MeetR,InvoicingR,AUTOMATION rented
+</pre>
+    </div>
+    <div class="sheet-note"><b>The one resilience piece already live:</b> the dashed Adapter → file-store edge. If Supabase is ever unreachable, reads fall back to local JSON and the dashboard keeps rendering (implemented in <span class="mono">lib/storage/index.ts</span>). Writes fail loudly instead of forking data.</div>
+  </div>
+</section>
+
+<section class="sheet" id="a03">
+  <p class="lede">Every integration, its direction, its protocol, and — per the rent-first principle — whether we own it or rent it. Each lands at a named PRD task.</p>
+  <div class="tblwrap">
+    <table class="spec">
+      <caption>A-003 · Integration &amp; Plug-Point Map</caption>
+      <thead><tr><th>Integration</th><th>Direction</th><th>Protocol</th><th>Rent vs Own</th><th>Lands in</th></tr></thead>
+      <tbody>
+        <tr><td>Supabase (mle-network)</td><td>Bi</td><td>REST · supabase-js · pgvector</td><td><span class="pill own">own schema</span> <span class="pill rent">rented infra</span></td><td class="mono">base 1.2 ✅ · 2.1–2.7</td></tr>
+        <tr><td>n8n cloud (boostn8n)</td><td>Bi</td><td>Webhook / REST</td><td><span class="pill rent">rent</span></td><td class="mono">Phase 3</td></tr>
+        <tr><td>Twilio + Vapi hybrid (decided 7/22 — 93.5 scorecard, Rob delegation)</td><td>Bi</td><td>REST + webhook · SIP</td><td><span class="pill rent">rent</span></td><td class="mono">7.1 ✅ → 7.2 (unpaused) · Q15 Vapi receptionist</td></tr>
+        <tr><td>Fathom / Fireflies</td><td>In</td><td>Webhook / MCP</td><td><span class="pill rent">rent</span></td><td class="mono">7.7</td></tr>
+        <tr><td>Documenso e-sign</td><td>Bi</td><td>REST / webhook</td><td><span class="pill rent">rent</span></td><td class="mono">8.3 (base P3)</td></tr>
+        <tr><td>Invoicing engine</td><td>Bi</td><td>REST / webhook</td><td><span class="pill own">own</span></td><td class="mono">8.4</td></tr>
+        <tr><td>AIDRE (AI receptionist)</td><td>In</td><td>REST · bearer token</td><td><span class="pill own">own product</span></td><td class="mono">5.1 · stub 3.3</td></tr>
+        <tr><td>AIVA (web avatar)</td><td>In</td><td>REST · bearer token</td><td><span class="pill own">own product</span></td><td class="mono">5.1</td></tr>
+        <tr><td>Gmail (rob@aivoicetech.io only)</td><td>In</td><td>n8n Gmail node</td><td><span class="pill rent">rent</span></td><td class="mono">3.2</td></tr>
+        <tr><td>Anthropic API</td><td>Out</td><td>REST</td><td><span class="pill rent">usage-based</span></td><td class="mono">7.4 · 7.5 · estimator</td></tr>
+        <tr><td>Partner's terminal agents</td><td>Bi</td><td>API plug points only</td><td><span class="pill own">his IP — external</span></td><td class="mono">ongoing</td></tr>
+        <tr><td>Firecrawl</td><td>Out</td><td>REST / MCP</td><td><span class="pill rent">rent</span></td><td class="mono">7.6 · 8.2</td></tr>
+        <tr><td>lead-enricher agent</td><td>Out</td><td>internal agent</td><td><span class="pill own">own</span></td><td class="mono">5.3 · 7.6</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="sheet" id="a04">
+  <p class="lede">The stack as decided — plus the seven things a staff engineer flagged on 07-17. Two are now closed (CI live, staging-by-protocol via Vercel previews), one deferred by decision (Sentry, to rep rollout), the rest stay open and should be scoped before the public lead API (Phase 5) takes external traffic.</p>
+  <div class="tblwrap">
+    <table class="spec">
+      <caption>A-004 · Tech Stack &amp; Engineering Gaps</caption>
+      <thead><tr><th>Layer</th><th>Choice</th><th>Why / status</th></tr></thead>
+      <tbody>
+        <tr><td>Frontend</td><td>Next.js 16 · React 19 · TS · Tailwind</td><td><span class="pill live">live</span> Rob's Q answered: no language change — same family Twenty CRM uses</td></tr>
+        <tr><td>Data</td><td>Supabase Postgres + pgvector</td><td><span class="pill live">live</span> mle-network serving local + production, verified 07-17</td></tr>
+        <tr><td>Storage abstraction</td><td>StorageAdapter + file fallback</td><td><span class="pill live">live</span> the no-stall guarantee</td></tr>
+        <tr><td>Automation</td><td>n8n cloud</td><td>existing workspace; Phase 3</td></tr>
+        <tr><td>Dialer / meetings / e-sign</td><td>rent-first: TBD dialer · Fathom/Fireflies · Documenso</td><td>$15-SaaS-beats-3-month-build principle</td></tr>
+        <tr><td>AI + RAG</td><td>Anthropic API + pgvector</td><td>call summaries, estimator, "what's working" search — no new infra</td></tr>
+        <tr><td>Auth / roles</td><td>Supabase Auth + RLS profiles</td><td>4-layer model, rep tiers gated off until reps exist (4.6)</td></tr>
+        <tr><td><span class="pill live">CLOSED ✅</span> CI</td><td>GitHub Actions (.github/workflows/ci.yml)</td><td><span class="pill live">live 7/22</span> lint + build + 68 vitest on every push · + ESLint + Dependabot; day-zero win: CI auto-blocked a breaking TS 5→7 dep bump</td></tr>
+        <tr><td><span class="pill live">CLOSED ✅</span> Staging env</td><td>Vercel preview deploys</td><td>adopted-by-protocol as staging discipline for lanes (decision 2026-07-22); no second Supabase env — migrations still rehearsed-with-rollback, not branch-gated</td></tr>
+        <tr><td><span class="pill assumed">DEFERRED</span> Error tracking</td><td>Sentry on API routes</td><td>explicitly deferred to rep rollout (decision 2026-07-22); until then webhook receivers depend on Vercel logs</td></tr>
+        <tr><td><span class="pill assumed">PARTIAL</span> Backup / DR</td><td>Supabase PITR + scheduled exports</td><td>pre-apply JSON backups shipped with 0003 (backups/); nightly verified backup lives in Task MC.16 — still pending</td></tr>
+        <tr><td><span class="pill gap">GAP</span> Observability</td><td>structured logs (Vercel drains / Axiom)</td><td>watchdogs (3.6–3.8) need a log source to alert on</td></tr>
+        <tr><td><span class="pill gap">GAP</span> Rate limiting</td><td>extend beyond /api/leads to all webhook routes</td><td>only lead intake is protected in the plan (5.2)</td></tr>
+        <tr><td><span class="pill gap">GAP</span> Secrets runbook</td><td>rotation procedure, not just expiry alerts</td><td>Task 3.1 rotation partially delivered 7/21 (revoke/repoint sub-items remain); playbook still unwritten</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="sheet" id="a05">
+  <p class="lede">Two architecture decisions Rob locked on 2026-07-21/22 (dump 7.21.26-1 + dev-chat #40): how people get into the system, and how every conversation — human or AI — lands in one searchable corpus.</p>
+  <div class="redflag"><span class="tag">Flagged · accepted trade</span><br>
+  The dashboard is currently <b>OPEN on the public web</b> — basic auth was disarmed on Rob's order 7/21 (env var removed, commit <span class="mono">f7e2e81</span>; the Sign-In popup interrupted his dictation). Rob accepted the exposure until the ACCESS rollout; re-arm is one env add + deploy. Task 4.6 RLS remains the real fix.</div>
+  <div class="tblwrap" style="margin-bottom:20px">
+    <table class="spec">
+      <caption>A-005a · Access model — decisions of 2026-07-22</caption>
+      <thead><tr><th>Decision</th><th>What was decided</th><th>Lands in</th></tr></thead>
+      <tbody>
+        <tr><td>User creation</td><td>Rob provisions every user from HIS admin portal — no self-signup</td><td class="mono">4.6 (rewritten)</td></tr>
+        <tr><td>Sign-in</td><td>Google OAuth; the same consent grants Gmail read/send scopes — email capture + send-as-rep come free with onboarding</td><td class="mono">4.6 → M2 / COMMS</td></tr>
+        <tr><td>Interim logins</td><td><b>None.</b> No login prompts before rollout (old magic-link/password scope is dead)</td><td class="mono">D-7/21 decision</td></tr>
+        <tr><td>"View as rep"</td><td>Rob gets rep impersonation to see exactly what a rep sees</td><td class="mono">4.6</td></tr>
+        <tr><td>Rollout gate</td><td>Full rep-POV mockup required before any rep touches it (scaffold underway on Jake demo book)</td><td class="mono">1b.3</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="sheet-frame">
+    <div class="titleblock"><span class="no">A-005b</span><span class="t">Comms stack &amp; data lake — Twilio rails, Vapi agents, one corpus</span><span class="rev">REV A · locked 7/22</span></div>
+    <div class="sheet-canvas">
+<pre class="mermaid">
+flowchart TD
+    subgraph CHANNELS["Every conversation channel"]
+        C1["Rep outbound calls<br/>Twilio click-to-dial (7.2)"]
+        C2["Inbound: ring rep, miss,<br/>AI answers — AIDRE on Vapi"]
+        C3["AIVA web chats"]
+        C4["Rep email<br/>Gmail scopes from OAuth"]
+    end
+    LOOKUP["crm_caller_lookup API:<br/>caller's CRM record pre-loaded<br/>before the AI answers"]
+    C2 --- LOOKUP
+    C1 --> ACT["activities"]
+    C2 --> ACT
+    C3 --> ACT
+    C4 --> ACT
+    ACT --> TR["transcripts"]
+    TR --> EMB["embeddings (pgvector)"]
+    EMB --> U1["analysis: what's working"]
+    EMB --> U2["enablement: best-practice digest"]
+    EMB --> U3["end state: live on-call assist<br/>(Vapi live events)"]
+</pre>
+    </div>
+    <div class="sheet-note"><b>The stack, verified:</b> Twilio = telephony rails; <b>Vapi = agent-layer standard</b> — AIDRE confirmed built on Vapi (67 refs in its code); LiveKit stays as the self-host hedge if scale economics demand. Twilio+Vapi hybrid scored 93.5 vs LiveKit 85.25 / Twilio-only 79.25 / Vapi-only 76.25 and was locked by Rob's delegation (dev-chat #40). Leaky-Bucket products are producers <i>and</i> consumers of the lake; product lanes stay separate — the CRM consumes AIDRE, never absorbs it.</div>
+  </div>
+</section>
+
+<h3 class="grouphead">D-Series · Data Model</h3>
+
+<section class="sheet" id="d01">
+  <p class="lede"><span class="pill live">HISTORICAL — bug FIXED 2026-07-21</span> &nbsp;This sheet is kept as the record of the defect, not the present. The redline below was closed by Task 2.0: migration <span class="mono">0003_orgs_split.sql</span> applied to prod 7/21 eve (critic-rob TICK 97/100) — zero business entities remain typed as Person.</p>
+  <div class="redflag"><span class="tag">Redline · Task 2.0 · CLOSED 07-21 (was: urgent per Rob 07-17)</span><br>
+  The live <span class="mono">people</span> table mixed humans and businesses — <span class="mono">miga-food-manufacturing</span> was a company typed as a Person. "Business" was just a text field, so a company had no identity of its own: no edges, no deals, no contacts roster. Sheet D-002 was the fix (now applied); the executed migration path is D-003.</div>
+  <div class="sheet-frame">
+    <div class="titleblock"><span class="no">D-001</span><span class="t">ER Diagram — as it existed pre-split (0001_network.sql) · HISTORICAL</span><span class="rev">REV B · superseded by 0003</span></div>
+    <div class="sheet-canvas">
+<pre class="mermaid">
+erDiagram
+    VERTICALS ||--o{ PEOPLE : categorizes
+    PEOPLE ||--o{ PEOPLE : referred_by
+    PEOPLE ||--o{ EDGES : from_id
+    PEOPLE ||--o{ EDGES : to_id
+
+    VERTICALS {
+        text id PK
+        text name
+        text color
+    }
+    PEOPLE {
+        text id PK
+        text name
+        text business
+        text vertical_id FK
+        text referred_by_id FK
+        text node_type
+        text status
+        boolean signed
+        text assigned_rep
+    }
+    EDGES {
+        text id PK
+        text from_id FK
+        text to_id FK
+        text relationship
+    }
+    PROJECTS {
+        text id PK
+        text owner
+        text category
+        integer completion
+    }
+</pre>
+    </div>
+    <div class="sheet-note"><b>Second defect worth seeing (still open):</b> <span class="mono">projects</span> floats disconnected — its owner is free text, not a link to anything in the graph. The people/org mixing above is fixed; this one waits on the Phase-2 core.</div>
+  </div>
+</section>
+
+<section class="sheet" id="d02">
+  <p class="lede">The target model — now partly real. <span class="pill live">✅ LIVE IN PROD since 7/21</span>: <span class="mono">orgs</span>, <span class="mono">org_memberships</span>, the paired-FK <span class="mono">edges</span>, <span class="mono">people.org_id</span> (migration <span class="mono">0003_orgs_split.sql</span>, applied 7/21 eve — 16 people + 16 orgs, 33/47 edges repointed, 0 violations) and <span class="mono">flags</span> (<span class="mono">0004_flags.sql</span>, live — the "Things to Address" system). Still target-state: <span class="mono">deals</span>, <span class="mono">activities</span>, <span class="mono">tasks</span>, <span class="mono">transcripts</span>, <span class="mono">embeddings</span>, <span class="mono">routing_log</span>, <span class="mono">profiles</span> (Tasks 2.1+). The two design decisions held: a fast <span class="mono">org_id</span> on every person (Attio's shape) with an <span class="mono">org_memberships</span> escape hatch, and paired nullable FKs (Twenty's pattern) so the database itself enforces integrity.</p>
+  <div class="sheet-frame">
+    <div class="titleblock"><span class="no">D-002</span><span class="t">ER Diagram — target state (the centerpiece) · graph half LIVE, deals half pending</span><span class="rev">REV B · 0003 applied 7/21 · remainder feeds Task 2.1</span></div>
+    <div class="sheet-canvas">
+<pre class="mermaid">
+erDiagram
+    VERTICALS ||--o{ ORGS : categorizes
+    VERTICALS ||--o{ PEOPLE : categorizes
+    ORGS ||--o{ PEOPLE : primary_employer
+    ORGS ||--o{ ORG_MEMBERSHIPS : has_member
+    PEOPLE ||--o{ ORG_MEMBERSHIPS : spans_orgs
+    PEOPLE ||--o{ PEOPLE : referred_by
+    PEOPLE ||--o{ EDGES : from_person
+    ORGS ||--o{ EDGES : from_org
+    PEOPLE ||--o{ DEALS : deal_contact
+    ORGS ||--o{ DEALS : deal_org
+    PROFILES ||--o{ DEALS : owns_deal
+    PEOPLE ||--o{ ACTIVITIES : activity_person
+    DEALS ||--o{ ACTIVITIES : logged_against
+    PROFILES ||--o{ ACTIVITIES : logged_by
+    ACTIVITIES ||--o| TRANSCRIPTS : has_transcript
+    TRANSCRIPTS ||--o{ EMBEDDINGS : chunked_into
+    ACTIVITIES ||--o{ TASKS : spawns
+    DEALS ||--o{ TASKS : tracks
+    PROFILES ||--o{ TASKS : assigned_to
+    DEALS ||--o{ ROUTING_LOG : routing_decision
+    PROFILES ||--o{ PROJECTS : owns
+
+    ORGS {
+        text id PK
+        text name
+        text vertical_id FK
+        text domain
+        text status
+    }
+    PEOPLE {
+        text id PK
+        text name
+        text org_id FK
+        text vertical_id FK
+        text referred_by_id FK
+        text assigned_rep_id FK
+        text status
+    }
+    ORG_MEMBERSHIPS {
+        text id PK
+        text person_id FK
+        text org_id FK
+        boolean is_primary
+    }
+    EDGES {
+        text id PK
+        text from_person_id FK
+        text from_org_id FK
+        text to_person_id FK
+        text to_org_id FK
+        boolean suggested
+    }
+    DEALS {
+        text id PK
+        text person_id FK
+        text org_id FK
+        text owner_id FK
+        text stage
+        numeric value
+        text routing_lane
+        boolean referral_sourced
+    }
+    ACTIVITIES {
+        text id PK
+        text person_id FK
+        text org_id FK
+        text deal_id FK
+        text created_by FK
+        text type
+        text source
+        jsonb source_context
+    }
+    TASKS {
+        text id PK
+        text activity_id FK
+        text deal_id FK
+        text assigned_to FK
+        text status
+        date due_date
+    }
+    TRANSCRIPTS {
+        text id PK
+        text activity_id FK
+        text full_text
+    }
+    EMBEDDINGS {
+        text id PK
+        text transcript_id FK
+        vector embedding
+        integer chunk_index
+    }
+    ROUTING_LOG {
+        text id PK
+        text deal_id FK
+        text decision
+        text rule_matched
+    }
+    PROFILES {
+        text id PK
+        text role
+        boolean book_protected
+    }
+    PROJECTS {
+        text id PK
+        text owner_id FK
+        integer completion
+    }
+    FLAGS {
+        bigint id PK
+        text entity_id
+        text title
+        text severity
+        text status
+        date resolved_at
+    }
+</pre>
+    </div>
+    <div class="sheet-note"><b>Live vs target:</b> ORGS, ORG_MEMBERSHIPS, EDGES (paired FKs), PEOPLE.org_id and FLAGS are <b>live in prod</b> (0003 + 0004); DEALS, ACTIVITIES, TASKS, TRANSCRIPTS, EMBEDDINGS, ROUTING_LOG and PROFILES remain target-state. FLAGS points at entities by loose <span class="mono">entity_id</span> on purpose — it must be able to flag records that don't exist yet. <b>Where the differentiator lives:</b> <span class="mono">activities.source_context</span> (JSONB) carries the email they replied to, the form answers, the reel topic, the trade-show notes — "capture the details behind the source, not just the source." <span class="mono">TRANSCRIPTS → EMBEDDINGS</span> is the RAG spine: every call becomes searchable. <span class="mono">profiles.book_protected</span> is the Sales-Agent book lock.</div>
+  </div>
+</section>
+
+<section class="sheet" id="d03">
+  <div class="twocol">
+    <div class="tblwrap">
+      <table class="spec">
+        <caption>D-003a · Migration Path — split half EXECUTED 7/21 (32 rows in = 16 people + 16 orgs out, zero dropped)</caption>
+        <thead><tr><th>#</th><th>Action</th><th>Task</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">1</td><td>Classify every live <span class="mono">people</span> row (32 at apply time; 54 at PRD time): human / org / ambiguous, human-decided</td><td class="mono">2.0</td><td><span class="pill live">done 7/21</span></td></tr>
+          <tr><td class="mono">2</td><td>Org-flagged rows (e.g. miga-food-manufacturing) → INSERT into <span class="mono">orgs</span> (16 created), original rows removed</td><td class="mono">2.0</td><td><span class="pill live">done 7/21</span></td></tr>
+          <tr><td class="mono">3</td><td>People with a resolvable business name → link <span class="mono">people.org_id</span> — 11/16 linked + 15 org_memberships, source-cited; 5 honest skips where no org row exists</td><td class="mono">2.0</td><td><span class="pill live">done 7/21</span></td></tr>
+          <tr><td class="mono">4</td><td>Repoint edges touching now-org rows to <span class="mono">from_org_id / to_org_id</span> — 33/47 repointed, 0 violations</td><td class="mono">2.0</td><td><span class="pill live">done 7/21</span></td></tr>
+          <tr><td class="mono">5</td><td>Reconciliation report: N in = orgs + people out (post-apply gates matched rehearsal exactly)</td><td class="mono">2.0 DoD</td><td><span class="pill live">done 7/21</span></td></tr>
+          <tr><td class="mono">6</td><td>Apply the CRM-core migration — deals, activities, tasks, transcripts, embeddings, routing_log, profiles (next migration number; the split shipped separately as <span class="mono">0003</span>, flags as <span class="mono">0004</span>)</td><td class="mono">2.1</td><td><span class="pill assumed">pending</span></td></tr>
+          <tr><td class="mono">7</td><td>Backfill one deal per person/org with quoted/signed data</td><td class="mono">2.7</td><td><span class="pill assumed">pending</span></td></tr>
+          <tr><td class="mono">8</td><td>Meeting video/transcript URLs → activities + transcripts rows</td><td class="mono">2.7</td><td><span class="pill assumed">pending</span></td></tr>
+          <tr><td class="mono">9</td><td>assigned_rep free text → owner_id, FK-resolved when profiles ship</td><td class="mono">2.7→4.6</td><td><span class="pill assumed">pending</span></td></tr>
+          <tr><td class="mono">10</td><td>estimate JSONB kept short-term; superseded by scoring module</td><td class="mono">2.4</td><td><span class="pill assumed">pending</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="tblwrap">
+      <table class="spec">
+        <caption>D-003b · RLS Sketch — who can touch what <span class="pill assumed">Q2 assumed</span></caption>
+        <thead><tr><th>Table</th><th>Rob</th><th>Mgmt</th><th>Rep</th><th>Agent</th></tr></thead>
+        <tbody>
+          <tr><td>graph (orgs, people, edges)</td><td class="cell-full">full</td><td class="cell-read">read</td><td class="cell-own">own</td><td class="cell-own">own book</td></tr>
+          <tr><td>deals / activities / tasks</td><td class="cell-full">full</td><td class="cell-full">full</td><td class="cell-own">own</td><td class="cell-own">own</td></tr>
+          <tr><td><b>book_protected rows</b></td><td class="cell-read">read</td><td class="cell-none">none</td><td class="cell-none">none</td><td class="cell-own">own</td></tr>
+          <tr><td>routing_log</td><td class="cell-full">full</td><td class="cell-read">read</td><td class="cell-own">own deals</td><td class="cell-none">none</td></tr>
+          <tr><td>transcripts / embeddings</td><td class="cell-full">full</td><td class="cell-read">read</td><td class="cell-own">own calls</td><td class="cell-own">own calls</td></tr>
+          <tr><td>profiles</td><td class="cell-full">full</td><td class="cell-read">read</td><td class="cell-own">own row</td><td class="cell-own">own row</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<h3 class="grouphead">F-Series · Process Flows</h3>
+
+<section class="sheet" id="f01">
+  <p class="lede">Six ways a lead is born, one context-rich intake, one routing decision, one path to cash — with the referral-chase and dead-lead-recycling loops drawn as the return edges they really are.</p>
+  <div class="sheet-frame">
+    <div class="titleblock"><span class="no">F-001</span><span class="t">Lead Lifecycle — born → routed → worked → paid</span><span class="rev">REV A</span></div>
+    <div class="sheet-canvas">
+<pre class="mermaid">
+flowchart TD
+    subgraph SRC["Lead Born"]
+        A1["AIDRE call"]
+        A2["AIVA chat"]
+        A3["Web form"]
+        A4["Trade show"]
+        A5["TikTok reel ad"]
+        A6["Referral edge"]
+    end
+
+    A1 --> CTX
+    A2 --> CTX
+    A3 --> CTX
+    A4 --> CTX
+    A5 --> CTX
+    A6 --> CTX
+
+    CTX["Source-context captured (1.15):<br/>reply text · form answers ·<br/>reel topic · trade-show notes"] --> ENR
+    ENR["Deep-scrape enrichment (7.6):<br/>talking-points brief"] --> ROUTE
+
+    ROUTE{"Routing decision (1.14)"}
+    ROUTE -->|"high-intent, eligible"| AUTO["Auto-close lane"]
+    ROUTE -->|"standard"| REP["Assign Sales Rep"]
+    ROUTE -->|"bounty pool"| BH["Bounty Hunter pool"]
+    ROUTE -->|"needs booking"| BK["Booker queue"]
+
+    AUTO --> SIGNED
+    BH --> REP
+    BK --> REP
+
+    REP --> WDIT["Who-do-I-touch-today (1.7)"]
+    WDIT --> STG1["New Lead"] --> STG2["Contacted"] --> STG3["Meeting Booked"] --> STG4["Meeting Held"] --> STG5["Quote Sent"] --> STG6["Negotiating"]
+    STG6 --> SIGNED["Signed"]
+    STG6 --> STALL["Stalled / Lost"]
+    SIGNED --> INV["Invoiced"] --> PAID["Paid"]
+
+    STALL -->|"no activity 180d (5.4)"| RECYCLE["recycle candidate → weekly digest"]
+    RECYCLE --> WDIT
+    SIGNED -->|"promised intro overdue (1.8)"| CHASE["Referral-chase queue"]
+    CHASE -->|"referred lead logged"| A6
+</pre>
+    </div>
+  </div>
+</section>
+
+<section class="sheet" id="f02">
+  <p class="lede">Thirty numbered beats from click-to-dial to a searchable call memory. Beats 7–22 are the differentiator: proposal, matched case study, signed agreement, and invoice — all sent before hangup.</p>
+  <div class="sheet-frame">
+    <div class="titleblock"><span class="no">F-002</span><span class="t">In-Call Sequence — dial → close → RAG</span><span class="rev">REV A</span></div>
+    <div class="sheet-canvas">
+<pre class="mermaid">
+sequenceDiagram
+    participant Rep
+    participant CRMUI as CRM UI
+    participant Dialer as Dialer (Twilio rails)
+    participant Transcription
+    participant Anthropic
+    participant Supabase
+    participant Prospect
+
+    Rep->>CRMUI: 1 click-to-dial from deal page
+    CRMUI->>Dialer: 2 place call
+    Dialer->>Prospect: 3 ring
+    Prospect->>Dialer: 4 answer
+    Dialer-->>CRMUI: 5 connected, activity logged
+    Note over Rep,Prospect: 6 live call
+    Rep->>CRMUI: 7 press Proposal button
+    CRMUI->>Supabase: 8 fetch person + deal context
+    CRMUI->>Anthropic: 9 generate proposal
+    Anthropic-->>CRMUI: 10 proposal draft
+    CRMUI->>CRMUI: 11 render branded PDF
+    CRMUI->>Prospect: 12 email proposal
+    CRMUI->>Supabase: 13 log proposal activity
+    Rep->>CRMUI: 14 press case-study match
+    CRMUI->>Supabase: 15 query client DB by vertical + problem
+    Supabase-->>CRMUI: 16 redacted matched case study
+    CRMUI->>Prospect: 17 share case study
+    Rep->>CRMUI: 18 press e-sign button
+    CRMUI->>Prospect: 19 send agreement
+    Prospect-->>CRMUI: 20 signed, status logged
+    Rep->>CRMUI: 21 press invoice button
+    CRMUI->>Prospect: 22 send invoice
+    Rep->>Dialer: 23 hang up
+    Dialer-->>CRMUI: 24 recording URL
+    CRMUI->>Transcription: 25 send recording
+    Transcription-->>CRMUI: 26 transcript
+    CRMUI->>Anthropic: 27 summarize + action items + buying signals
+    Anthropic-->>CRMUI: 28 summary + tasks + signals
+    CRMUI->>Supabase: 29 write to activity timeline
+    CRMUI->>Supabase: 30 store pgvector embedding for RAG
+</pre>
+    </div>
+  </div>
+</section>
+
+<section class="sheet" id="f03">
+  <p class="lede">Who sees what — the permission contract behind the 4-layer model — and the day-in-the-life loop that is the demo-to-partner slide.</p>
+  <div class="tblwrap" style="margin-bottom:20px">
+    <table class="spec">
+      <caption>F-003a · Role / Permission Matrix &nbsp; <span class="pill assumed">⚠ = assumed, pending Q1/Q2</span></caption>
+      <thead><tr><th>Object</th><th>Super Admin</th><th>Mgmt</th><th>Sales Rep</th><th>Sales Agent</th><th>Bounty Hunter</th><th>Booker</th></tr></thead>
+      <tbody>
+        <tr><td>Network graph</td><td class="cell-full">full</td><td class="cell-none">none</td><td class="cell-none">none</td><td class="cell-none">none</td><td class="cell-none">none</td><td class="cell-none">none</td></tr>
+        <tr><td>AI contribution $ / door-open scores</td><td class="cell-full">full</td><td class="cell-none">none</td><td class="cell-none">none</td><td class="cell-none">none</td><td class="cell-none">none</td><td class="cell-none">none</td></tr>
+        <tr><td>Own leads / deals</td><td class="cell-full">full</td><td class="cell-read">read</td><td class="cell-own">own-only</td><td class="cell-own">own-only</td><td class="cell-own">own-only ⚠</td><td class="cell-own">own-only ⚠</td></tr>
+        <tr><td>Other reps' deals</td><td class="cell-full">full</td><td class="cell-read">read</td><td class="cell-none">none</td><td class="cell-none">none</td><td class="cell-none">none</td><td class="cell-none">none</td></tr>
+        <tr><td>Sales Agent book</td><td class="cell-read">read ⚠</td><td class="cell-none">none</td><td class="cell-none">none</td><td class="cell-own">own-only</td><td class="cell-none">none</td><td class="cell-none">none</td></tr>
+        <tr><td>Routing config</td><td class="cell-full">full</td><td class="cell-read">read ⚠</td><td class="cell-none">none</td><td class="cell-none">none</td><td class="cell-none">none</td><td class="cell-none">none</td></tr>
+        <tr><td>Transcripts — own / all</td><td class="cell-full">full</td><td class="cell-none">none</td><td class="cell-own">own-only</td><td class="cell-own">own-only</td><td class="cell-none">none</td><td class="cell-none">none</td></tr>
+        <tr><td>Best-practice digest (7.8)</td><td class="cell-full">full</td><td class="cell-read">read</td><td class="cell-read">read</td><td class="cell-read">read ⚠</td><td class="cell-none">none</td><td class="cell-none">none</td></tr>
+        <tr><td>Proposal / e-sign / invoice buttons</td><td class="cell-full">full</td><td class="cell-none">none</td><td class="cell-own">own-only</td><td class="cell-own">own-only</td><td class="cell-none">none</td><td class="cell-none">none</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="sheet-frame">
+    <div class="titleblock"><span class="no">F-003b</span><span class="t">A Day in the Life — the loop that lights the graph</span><span class="rev">REV A</span></div>
+    <div class="sheet-canvas">
+<pre class="mermaid">
+flowchart TD
+    subgraph Automation["CRM automation — continuous"]
+        AUTO1["compute Who-do-I-touch-today (1.7)"]
+        AUTO2["scan referral-chase queue (1.8)"]
+        AUTO3["tag dead leads (5.4)"]
+        AUTO4["transcribe + summarize calls (7.3, 7.4)"]
+        AUTO5["auto-create follow-up tasks"]
+    end
+    subgraph BookerLane["Booker"]
+        BK1["open booking queue"]
+        BK2["set appointments"]
+        BK3["Meeting Booked logged"]
+    end
+    subgraph RepLane["Rep"]
+        R1["open Who-do-I-touch-today"]
+        R2["work overdue and aging deals"]
+        R3["click-to-dial"]
+        R4["mid-call: proposal / case study / e-sign / invoice"]
+        R5["chase promised intros"]
+    end
+    subgraph RobLane["Rob"]
+        RB1["opens Network graph"]
+        RB2["watches nodes light up"]
+        RB3["reviews contribution $ and door-open scores"]
+    end
+
+    AUTO1 --> R1
+    AUTO2 --> R5
+    AUTO3 --> R1
+    BK1 --> BK2 --> BK3 --> R1
+    R1 --> R2 --> R3 --> R4
+    R4 --> AUTO4 --> AUTO5 --> R1
+    R4 --> RB2
+    BK3 --> RB2
+    R5 --> RB2
+    RB1 --> RB2 --> RB3
+</pre>
+    </div>
+  </div>
+</section>
+
+<h3 class="grouphead">R-Series · Delivery</h3>
+
+<section class="sheet" id="r01">
+  <p class="lede">What ships when. Phase 1 definitions and the 7.1 dialer research run now; everything else stacks on the CRM core. Three questions stay open with working assumptions — answers due 07-24.</p>
+  <div class="sheet-frame">
+    <div class="titleblock"><span class="no">R-001</span><span class="t">Build Roadmap — 8 phases, 60 tasks</span><span class="rev">PRD v2.1</span></div>
+    <div class="sheet-canvas">
+<pre class="mermaid">
+flowchart LR
+    P1["P1 De-Risk and Definition<br/>1/15 done — RUNNING"] --> P2["P2 CRM Core<br/>deals, activities, tasks<br/>+ 2.0 URGENT people/org split"]
+    P2 --> P3["P3 Capture and Automation<br/>Gmail, watchers, webhooks"]
+    P2 --> P4["P4 Lifecycle and Access<br/>search, dedup, import, RLS"]
+    P2 --> P7["P7 Rep Cockpit<br/>dialer, transcripts, RAG<br/>(7.1 research runs NOW)"]
+    P7 --> P8["P8 In-Call Buttons<br/>proposal, case study, e-sign, invoice"]
+    P3 --> P5["P5 Intake and Routing API"]
+    P4 --> P5
+    P5 --> P6["P6 Productization Groundwork<br/>DEFERRED — docs only"]
+
+    style P1 fill:#f59e0b,color:#000
+    style P7 fill:#f59e0b,color:#000
+</pre>
+    </div>
+    <div class="sheet-note">
+      <b>Open questions (Rob, due 07-24):</b>
+      Q1 — bounty hunter + booker mechanics: real logins or portal handoffs, paid per close or per intro?
+      Q2 — Sales Agent book: invisible to everyone, or visible-but-untouchable to Rob only? (drives the RLS sheet)
+      Q3 — is auto-close a genuine no-human lane (AI conversation → self-serve agreement + payment)?
+      <br><b>Standing assumptions until then:</b> book visible to Rob only · "blockchain" = the connection-graph metaphor · partner integrates via API plug points, his IP never absorbed.
+    </div>
+  </div>
+</section>
+
+<p style="margin-top:40px; font-size:12.5px; color:var(--ink-soft);" class="mono">MLE CRM Architecture Atlas · generated 2026-07-17 · sources: PRD-mle-crm-evolution v2.1 · ROB-CRM-VISION-DUMP-2026-07-17 (verbatim) · 0001_network.sql · lib/storage · mle-network live counts. Every sheet traceable to a PRD task ID.</p>
+
+</main>
+</div>
