@@ -64,7 +64,7 @@
         "estimatedAt": "2026-07-08T08:05:00.000Z",
         "probability": 0.6
       },
-      "notes": "ENRICHED 2026-07-17: Personal cell/email not pulled from public web per hunt spec (internal ask -- Rob/Will have met him repeatedly). Team-site bio page: https://www.gulfcoastregroup.com/agents/327940-Alex-Greenwood/ -- this page only lists the shared team line (239-448-8458, already on the company record), no personal direct number or email published. LinkedIn: https://www.linkedin.com/in/alex-greenwood-swfl/ (search-indexed as 'Alex Greenwood - SWFL RE Group').\nENRICHED 2026-07-17: Press-syndicated office numbers found -- NOT his own-site/verified personal line, so not written to the phone field: Fort Myers (239) 777-5318, Cape Coral (239) 393-8558 (https://www.newswire.com/news/best-real-estate-agent-in-fort-myers-fl-alex-greenwood, April 2026 wire release; also syndicated at weeklyvoice.com and natlawreview.com).\nENRICHED 2026-07-17: Press-confirmed stats: 3,700+ career transactions, $1.5B+ career volume, 250 sales / $125M+ trailing 12 months, 800+ five-star reviews, billed as 'Most Positively Reviewed Agent in Southwest Florida' (same newswire source).\nENRICHED 2026-07-17: DBPR license SL3227669 not independently re-verified this pass -- direct DBPR detail-page search did not return a hit; existing CRM record already cites it as verified 2026-07-07, recommend a fresh myfloridalicense.com pull to reconfirm status.\nENRICHED 2026-07-17: See golf-coast-real-estate-group company notes -- ROG MVP Collier County LLC's Sunbiz managers list does not include Greenwood by name; his brokerage-of-record entity needs direct confirmation.\n\nENRICHED 2026-07-18 (round 2 follow-up): FL DBPR SL3227669 still not independently re-verified -- the myfloridalicense.com verify-a-licensee tool requires a per-search session ID with no reliable direct-URL lookup; targeted searches surfaced no confirming hit (only an unrelated same-surname licensee in SC). Brokerage-of-record clarified: his own team-site bio lists his brokerage as \"Gulf Coast REGroup - Realty One MVP\" (Bonita Springs office) -- a separate Realty ONE Group MVP franchise location, distinct from the Sunbiz-registered \"ROG MVP Collier County LLC\" (doc L24000291887) checked in round 1. This reframes his earlier absence from that entity's manager list as likely the wrong entity to check against, rather than a red flag -- still needs his direct confirmation either way. localhomes.com / hyperlocalhomes.com ownership still unconfirmed -- WHOIS/ICANN lookups returned no usable registration data (privacy-shielded or JS-gated). Source: https://www.gulfcoastregroup.com/agents/327940-Alex-Greenwood/"
+      "notes": "\n\n\n\n\nENRICHED 2026-07-17: Personal cell/email not pulled from public web per hunt spec (internal ask -- Rob/Will have met him repeatedly). Team-site bio page: https://www.gulfcoastregroup.com/agents/327940-Alex-Greenwood/ -- this page only lists the shared team line (239-448-8458, already on the company record), no personal direct number or email published. LinkedIn: https://www.linkedin.com/in/alex-greenwood-swfl/ (search-indexed as 'Alex Greenwood - SWFL RE Group').\nENRICHED 2026-07-17: Press-syndicated office numbers found -- NOT his own-site/verified personal line, so not written to the phone field: Fort Myers (239) 777-5318, Cape Coral (239) 393-8558 (https://www.newswire.com/news/best-real-estate-agent-in-fort-myers-fl-alex-greenwood, April 2026 wire release; also syndicated at weeklyvoice.com and natlawreview.com).\nENRICHED 2026-07-17: Press-confirmed stats: 3,700+ career transactions, $1.5B+ career volume, 250 sales / $125M+ trailing 12 months, 800+ five-star reviews, billed as 'Most Positively Reviewed Agent in Southwest Florida' (same newswire source).\nENRICHED 2026-07-17: DBPR license SL3227669 not independently re-verified this pass -- direct DBPR detail-page search did not return a hit; existing CRM record already cites it as verified 2026-07-07, recommend a fresh myfloridalicense.com pull to reconfirm status.\nENRICHED 2026-07-17: See golf-coast-real-estate-group company notes -- ROG MVP Collier County LLC's Sunbiz managers list does not include Greenwood by name; his brokerage-of-record entity needs direct confirmation.\n\nENRICHED 2026-07-18 (round 2 follow-up): FL DBPR SL3227669 still not independently re-verified -- the myfloridalicense.com verify-a-licensee tool requires a per-search session ID with no reliable direct-URL lookup; targeted searches surfaced no confirming hit (only an unrelated same-surname licensee in SC). Brokerage-of-record clarified: his own team-site bio lists his brokerage as \"Gulf Coast REGroup - Realty One MVP\" (Bonita Springs office) -- a separate Realty ONE Group MVP franchise location, distinct from the Sunbiz-registered \"ROG MVP Collier County LLC\" (doc L24000291887) checked in round 1. This reframes his earlier absence from that entity's manager list as likely the wrong entity to check against, rather than a red flag -- still needs his direct confirmation either way. localhomes.com / hyperlocalhomes.com ownership still unconfirmed -- WHOIS/ICANN lookups returned no usable registration data (privacy-shielded or JS-gated). Source: https://www.gulfcoastregroup.com/agents/327940-Alex-Greenwood/"
     },
     {
       "id": "caleb-green",
@@ -131,7 +131,7 @@
       "keyDates": {},
       "phaseOne": "not-started",
       "description": "Serial entrepreneur (FB feature: 'Owner Oasis, Martin Fierro and MIGA Food Manufacturing'). Officer + registered agent of MIGA Food Manufacturing Inc. Married to Michael Jaenvega (Jaenvega Holdings LLC — both AMBRs, same address 5198 Monza Ct, Ave Maria). Closing Miga likely opens Martin Fierro + the whole family restaurant cluster.",
-      "notes": "Rob 2026-07-17: Daniella and Gary are CO-owners of Miga (resolves the earlier ownership conflict). Sources: Sunbiz P21000103391 (Miga officer/agent); Sunbiz L23000029882 (Jaenvega Holdings, AMBR w/ Michael); facebook.com/shopthesecretingredient 'Meet Daniella' feature; LinkedIn /in/daniella-roach-b1a0297."
+      "notes": "Rob 2026-07-17: Daniella and Gary are CO-owners of Miga (resolves the earlier ownership conflict). Sources: Sunbiz P21000103391 (Miga officer/agent); Sunbiz L23000029882 (Jaenvega Holdings, AMBR w/ Michael); facebook.com/shopthesecretingredient 'Meet Daniella' feature; LinkedIn /in/daniella-roach-b1a0297.\nALIAS (Rob-confirmed 2026-07-22): also appears as Daniella Jaenvega (Miga site Managing Partner listing)."
     },
     {
       "id": "david-cates",
@@ -147,6 +147,108 @@
       "keyDates": {},
       "phaseOne": "not-started",
       "description": "Very Excited to get training and onboarding. We need more Social Proof and Mini Case Studies first which I communicated to Will"
+    },
+    {
+      "id": "demo-dale-hutchins",
+      "name": "Dale Hutchins (DEMO)",
+      "role": "Owner, Hutchins Plumbing & Drain (fabricated)",
+      "entityKind": "person",
+      "verticalId": "home-services",
+      "phone": "+1 (555) 010-9907",
+      "email": "dale.hutchins@example.com",
+      "status": "unlit",
+      "signed": false,
+      "keyDates": {},
+      "phaseOne": "not-started",
+      "description": "SOURCE: Cold list — storm-county trades pull. 4.9 stars on 200+ Google reviews but answers his own phone from under sinks; no office staff. Classic missed-call leak. No contact yet — first touch should lead with the two-jobs-a-week-lost math, not the tech.",
+      "notes": "FABRICATED DEMO RECORD — Rep Cockpit training data, not a real person. Hidden from People/Network/Overview; visible only on /rep.",
+      "assignedRep": "Jake Torres (DEMO)"
+    },
+    {
+      "id": "demo-marcus-webb",
+      "name": "Marcus Webb (DEMO)",
+      "role": "Owner, Webb & Sons Roofing (fabricated)",
+      "entityKind": "person",
+      "verticalId": "roofing",
+      "phone": "+1 (555) 010-4471",
+      "email": "marcus.webb@example.com",
+      "status": "warm",
+      "quotedAmount": 18000,
+      "signed": false,
+      "keyDates": {},
+      "phaseOne": "not-started",
+      "description": "SOURCE: Referral — Polk crew chief. His foreman worked a storm job alongside Polk's crew in March; heard Polk's office 'never misses a call anymore' and asked who built it. Quote for AI receptionist + missed-call textback went out 7/14 — he read it same day, went quiet. He loses ~3 storm calls a week to voicemail (his words).",
+      "notes": "FABRICATED DEMO RECORD — Rep Cockpit training data, not a real person. Hidden from People/Network/Overview; visible only on /rep.",
+      "assignedRep": "Jake Torres (DEMO)"
+    },
+    {
+      "id": "demo-priya-nair",
+      "name": "Priya Nair (DEMO)",
+      "role": "Practice Administrator, Lakeside Dermatology (fabricated)",
+      "entityKind": "person",
+      "verticalId": "medical",
+      "phone": "+1 (555) 010-6650",
+      "email": "priya.nair@example.com",
+      "status": "warm",
+      "signed": false,
+      "keyDates": {},
+      "phaseOne": "not-started",
+      "description": "SOURCE: LinkedIn reply. Replied to Jake's post about the derm-clinic pilot: 'we abandon 40+ calls a week, front desk is drowning.' Two-location practice, after-hours line goes to a paid answering service she wants to cut. HIPAA question is the only open objection.",
+      "notes": "FABRICATED DEMO RECORD — Rep Cockpit training data, not a real person. Hidden from People/Network/Overview; visible only on /rep.",
+      "assignedRep": "Jake Torres (DEMO)"
+    },
+    {
+      "id": "demo-rita-alvarez",
+      "name": "Rita Alvarez (DEMO)",
+      "role": "Broker-Owner, Alvarez Realty Group (fabricated)",
+      "entityKind": "person",
+      "verticalId": "title",
+      "phone": "+1 (555) 010-3384",
+      "email": "rita.alvarez@example.com",
+      "status": "lit",
+      "quotedAmount": 12000,
+      "signed": true,
+      "keyDates": {
+        "paid": "2026-07-10",
+        "signed": "2026-07-02"
+      },
+      "phaseOne": "in-progress",
+      "description": "SOURCE: Referral — closed client. Signed 7/2, paid 7/10 ($12k Phase 1). She's the proof story for Jake's pitches: her team of 9 agents stopped losing weekend sign-call leads in week one. Ask her for two intros — she offered on the kickoff call.",
+      "notes": "FABRICATED DEMO RECORD — Rep Cockpit training data, not a real person. Hidden from People/Network/Overview; visible only on /rep.",
+      "assignedRep": "Jake Torres (DEMO)"
+    },
+    {
+      "id": "demo-sandra-ellis",
+      "name": "Sandra Ellis (DEMO)",
+      "role": "Ops Manager, Suncrest Title (fabricated)",
+      "entityKind": "person",
+      "verticalId": "title",
+      "phone": "+1 (555) 010-8832",
+      "email": "sandra.ellis@example.com",
+      "status": "warm",
+      "quotedAmount": 9500,
+      "signed": false,
+      "keyDates": {},
+      "phaseOne": "not-started",
+      "description": "SOURCE: Website intake form. Filled the intake at 9:40pm on a Sunday — 'our closers spend half their day answering where-is-my-file calls.' Quoted a status-line AI agent 7/16. Decision committee is her plus two attorneys; she asked for a one-pager she can forward.",
+      "notes": "FABRICATED DEMO RECORD — Rep Cockpit training data, not a real person. Hidden from People/Network/Overview; visible only on /rep.",
+      "assignedRep": "Jake Torres (DEMO)"
+    },
+    {
+      "id": "demo-tony-marchetti",
+      "name": "Tony Marchetti (DEMO)",
+      "role": "GM, Marchetti Bros. Distribution (fabricated)",
+      "entityKind": "person",
+      "verticalId": "food",
+      "phone": "+1 (555) 010-2219",
+      "email": "tony.marchetti@example.com",
+      "status": "warm",
+      "signed": false,
+      "keyDates": {},
+      "phaseOne": "not-started",
+      "description": "SOURCE: Referral — Martin Fierro kitchen. Daniella mentioned MLE while his driver was doing a Friday drop; he called HER to ask about it (inbound heat). Order desk misses calls 11am-1pm every day. Wants to see it answer a live call before he'll talk numbers.",
+      "notes": "FABRICATED DEMO RECORD — Rep Cockpit training data, not a real person. Hidden from People/Network/Overview; visible only on /rep.",
+      "assignedRep": "Jake Torres (DEMO)"
     },
     {
       "id": "dix-thedevdix",
@@ -317,7 +419,7 @@
         "estimatedAt": "2026-07-04T09:44:07.493Z",
         "probability": 0.6
       },
-      "notes": "The test case for the AI estimator.\n\nENRICHED 2026-07-17: LinkedIn confirms his employer/role -- Regional Manager, Southwest & Miami FL, PropLogix (https://www.linkedin.com/in/jonathan-polk-56a95469/ ; team bio https://www.proplogix.com/team/jonathan-polk/) -- resolves 'what does Polk actually do' from the gap audit; also strongly suggests the CRM's separate 'PropLogic' record is a misspelling of PropLogix (his employer), worth merging/renaming. Career history per LinkedIn also lists former VP of Marketing, Naples Spine & Joint, and a stop connected to Online Land Surveyors / LandTec Survey (a Facebook post from LandTec Survey welcomes him to their team: https://www.facebook.com/landtecsurvey/photos/exciting-news-jonathan-polk-is-joining-our-team-to-sprinkle-some-magic-into-our-/947582267372244/) -- suggests the CRM's 'LandTech' record is likely LandTec Surveying. An Instagram post also references him as 'CEO of Polk Industries, a marketing arm of LandTech...' (https://www.instagram.com/p/Cis3EaOuGMo/) -- his own marketing venture, worth a follow-up ask.\nENRICHED 2026-07-17: Direct phone/email not found publicly this pass; per hunt spec, Rob already runs Polk's LinkedIn automation -- his LinkedIn profile URL above should be copied into a social field once one exists.\nENRICHED 2026-07-17: Naples Spine & Joint ownership link -- Monica Polk (same surname) is LinkedIn-listed as 'Business Owner, Naples Spine & Joint' (https://www.linkedin.com/in/monica-polk-7aa586324/), matching the CRM's existing 'Polk and Monica's Company' description on the naples-spine-joint record.\n\nENRICHED 2026-07-18 (round 2 follow-up): PropLogix's general/main office contact (company-level, not personal to Polk): 8374 Market Street PMB #505, Bradenton FL 34202, phone (941) 444-7142, support@proplogix.com -- per https://www.proplogix.com/team/jonathan-polk/. No individual phone/email listed for Polk on that page or found elsewhere publicly this pass; per hunt spec his personal contact remains an internal ask. No further public-web gaps identified for this record beyond round 1's findings."
+      "notes": "The test case for the AI estimator.\n\nENRICHED 2026-07-17: LinkedIn confirms his employer/role -- Regional Manager, Southwest & Miami FL, PropLogix (https://www.linkedin.com/in/jonathan-polk-56a95469/ ; team bio https://www.proplogix.com/team/jonathan-polk/) -- resolves 'what does Polk actually do' from the gap audit; also strongly suggests the CRM's separate 'PropLogic' record is a misspelling of PropLogix (his employer) -- RESOLVED 2026-07-22: record renamed PropLogix (Rob 7/21), free-text swept. Career history per LinkedIn also lists former VP of Marketing, Naples Spine & Joint, and a stop connected to Online Land Surveyors / LandTec Survey (a Facebook post from LandTec Survey welcomes him to their team: https://www.facebook.com/landtecsurvey/photos/exciting-news-jonathan-polk-is-joining-our-team-to-sprinkle-some-magic-into-our-/947582267372244/) -- suggests the CRM's 'LandTech' record is likely LandTec Surveying. An Instagram post also references him as 'CEO of Polk Industries, a marketing arm of LandTech...' (https://www.instagram.com/p/Cis3EaOuGMo/) -- his own marketing venture, worth a follow-up ask.\nENRICHED 2026-07-17: Direct phone/email not found publicly this pass; per hunt spec, Rob already runs Polk's LinkedIn automation -- his LinkedIn profile URL above should be copied into a social field once one exists.\nENRICHED 2026-07-17: Naples Spine & Joint ownership link -- Monica Polk (same surname) is LinkedIn-listed as 'Business Owner, Naples Spine & Joint' (https://www.linkedin.com/in/monica-polk-7aa586324/), matching the CRM's existing 'Polk and Monica's Company' description on the naples-spine-joint record.\n\nENRICHED 2026-07-18 (round 2 follow-up): PropLogix's general/main office contact (company-level, not personal to Polk): 8374 Market Street PMB #505, Bradenton FL 34202, phone (941) 444-7142, support@proplogix.com -- per https://www.proplogix.com/team/jonathan-polk/. No individual phone/email listed for Polk on that page or found elsewhere publicly this pass; per hunt spec his personal contact remains an internal ask. No further public-web gaps identified for this record beyond round 1's findings."
     },
     {
       "id": "michael-jaenvega",
@@ -602,7 +704,7 @@
         "estimatedAt": "2026-07-08T07:10:00.000Z",
         "probability": 0.75
       },
-      "notes": " | Rob 2026-07-17: ownership resolved — Gary Waskovich and Daniella Roach are CO-owners. Daniella's family also runs Martin Fierro (Naples) + Oasis (Ave Maria): the Miga close opens the whole restaurant cluster.\n\nENRICHED 2026-07-18: Contact info pulled directly from the company's own staging site (https://miga-food-manufacturing.pages.dev/ and /contact.html): sales phone 239-537-0990, email info@migafm.com. A separate line is also listed for \"Emerald Brokers FLA\" (239-571-6031, emeraldbrokersfla@gmail.com) with Gary Waskovich named as the broker rep there -- not labeled a Miga officer on-site.\nENRICHED 2026-07-18: ⚠ Name discrepancy flagged -- the staging site names \"Daniella Jaenvega\" as Managing Partner, not \"Daniella Roach\" as recorded in this CRM. Sunbiz snippet for P21000103391 (search-indexed; direct fetch blocked/403) shows principal address 5198 Monza Ct, Ave Maria FL 34142, registered agent/sole listed officer \"Daniella Roach\" (matches CRM name), status ACTIVE, last filing a Reinstatement dated 2023-01-11 (implies a prior lapse). Gary Waskovich does NOT appear as a Sunbiz officer. Recommend Rob confirm whether Jaenvega/Roach are the same person (maiden/married name?) before relying on either spelling -- source: https://search.sunbiz.org/Inquiry/CorporationSearch/SearchResultDetail?inquirytype=EntityName&searchNameOrder=MIGAFOODMANUFACTURING+P210001033910&aggregateId=domp-p21000103391-ef7b9583-5cee-4196-96d5-7ef744a39557 (not independently re-verified via direct fetch -- recommend a human/browser check).\nENRICHED 2026-07-18: Social -- Instagram https://www.instagram.com/miga.food_/ (\"MIGA Food Manufacturing, Inc.\"); Facebook https://www.facebook.com/Miga-Food-359687127575634/ (content login-gated, unconfirmed). The \"shopthesecretingredient\" FB page cited in the original gap audit is NOT Miga's -- it traces to an unrelated ingredient-sourcing business; correcting that prior assumption. A separate, more polished brand site migafoods.com (dulce de leche focus) also exists, but its contact page yielded no extractable info -- relationship between the two sites/brands unconfirmed.\nENRICHED 2026-07-18: FDA food-facility registration and FL FDACS food-permit status -- not found/blocked (FDA's facility registry isn't public-searchable; FDACS's public tool at https://foodpermit.fdacs.gov/Reports/SearchFoodEntity.aspx requires interactive form submission that couldn't be completed via automated fetch). Needs a manual browser check."
+      "notes": " | Rob 2026-07-17: ownership resolved — Gary Waskovich and Daniella Roach are CO-owners. Daniella's family also runs Martin Fierro (Naples) + Oasis (Ave Maria): the Miga close opens the whole restaurant cluster.\n\nENRICHED 2026-07-18: Contact info pulled directly from the company's own staging site (https://miga-food-manufacturing.pages.dev/ and /contact.html): sales phone 239-537-0990, email info@migafm.com. A separate line is also listed for \"Emerald Brokers FLA\" (239-571-6031, emeraldbrokersfla@gmail.com) with Gary Waskovich named as the broker rep there -- not labeled a Miga officer on-site.\nENRICHED 2026-07-18: ⚠ Name discrepancy flagged -- the staging site names \"Daniella Jaenvega\" as Managing Partner, not \"Daniella Roach\" as recorded in this CRM. Sunbiz snippet for P21000103391 (search-indexed; direct fetch blocked/403) shows principal address 5198 Monza Ct, Ave Maria FL 34142, registered agent/sole listed officer \"Daniella Roach\" (matches CRM name), status ACTIVE, last filing a Reinstatement dated 2023-01-11 (implies a prior lapse). Gary Waskovich does NOT appear as a Sunbiz officer. Recommend Rob confirm whether Jaenvega/Roach are the same person (maiden/married name?) before relying on either spelling -- source: https://search.sunbiz.org/Inquiry/CorporationSearch/SearchResultDetail?inquirytype=EntityName&searchNameOrder=MIGAFOODMANUFACTURING+P210001033910&aggregateId=domp-p21000103391-ef7b9583-5cee-4196-96d5-7ef744a39557 (not independently re-verified via direct fetch -- recommend a human/browser check).\nENRICHED 2026-07-18: Social -- Instagram https://www.instagram.com/miga.food_/ (\"MIGA Food Manufacturing, Inc.\"); Facebook https://www.facebook.com/Miga-Food-359687127575634/ (content login-gated, unconfirmed). The \"shopthesecretingredient\" FB page cited in the original gap audit is NOT Miga's -- it traces to an unrelated ingredient-sourcing business; correcting that prior assumption. A separate, more polished brand site migafoods.com (dulce de leche focus) also exists, but its contact page yielded no extractable info -- relationship between the two sites/brands unconfirmed.\nENRICHED 2026-07-18: FDA food-facility registration and FL FDACS food-permit status -- not found/blocked (FDA's facility registry isn't public-searchable; FDACS's public tool at https://foodpermit.fdacs.gov/Reports/SearchFoodEntity.aspx requires interactive form submission that couldn't be completed via automated fetch). Needs a manual browser check.\nRESOLVED 2026-07-22 (Rob): Managing Partner Daniella Jaenvega on the site IS Daniella Roach (Sunbiz officer) — same person, Jaenvega is her used/site name."
     },
     {
       "id": "naples-spine-joint",
@@ -635,7 +737,7 @@
         "estimatedAt": "2026-07-18T00:15:09.004Z",
         "probability": 0.35
       },
-      "notes": "First lit client node in the medical cluster.\n\nENRICHED 2026-07-17: Address 7955 Airport Pulling Rd, Suite 203, Naples FL 34109 (https://www.naplessj.com/contact).\nENRICHED 2026-07-17: Sunbiz NAPLES SPINE & JOINT, LLC, doc# L24000046786, FEI/EIN 99-0904739, filed 01/25/2024 (eff 01/24/2024), status ACTIVE, principal address matches the clinic (7955 Airport Pulling Rd 203, Naples FL 34109) -- confirms this is a young business, ~2.5 years old (https://search.sunbiz.org/Inquiry/corporationsearch/SearchResultDetail?inquirytype=EntityName&directionType=ForwardList&searchNameOrder=NAPLESSPINEJOINT+L240000467860).\nENRICHED 2026-07-17: OWNERSHIP / Jonathan Polk connection resolved -- Monica Polk is listed on LinkedIn as 'Business Owner, Naples Spine & Joint' (https://www.linkedin.com/in/monica-polk-7aa586324/), same surname as connector Jonathan Polk, matching the existing CRM description 'Polk and Monica's Company.' Separately, Jonathan Polk's own LinkedIn work history lists him as former VP of Marketing at Naples Spine & Joint before his current role as Regional Manager (Southwest & Miami, FL) at PropLogix (https://www.linkedin.com/in/jonathan-polk-56a95469/ ; https://www.proplogix.com/team/jonathan-polk/) -- this also resolves the open question on Polk's employer (see jonathan-polk record) and strongly suggests 'PropLogic' elsewhere in this CRM is a misspelling of PropLogix, his actual employer.\nENRICHED 2026-07-17: Social -- Instagram @naples_spine_joint (https://www.instagram.com/naples_spine_joint/, includes a 'clinic is now open' post consistent with the Jan-2024 filing date); Facebook page https://www.facebook.com/61577212680619/.\nENRICHED 2026-07-17: Yelp listing exists (https://www.yelp.com/biz/naples-spine-and-joint-naples) but the page blocked automated fetch (403) and no star rating/review count surfaced via search this pass -- still open. No Google Business Profile rating captured either. EN vs Spanish-language review split not verified.\nENRICHED 2026-07-17: No individual doctor/chiropractor names published on the site's About page -- could not pull a named practitioner for an FL DOH license lookup; needs an internal ask (likely Monica Polk or a named DC on staff).\n\nENRICHED 2026-07-18 (round 2 follow-up): Yelp review count/rating still unconfirmed -- listing exists (https://www.yelp.com/biz/naples-spine-and-joint-naples) but both a direct fetch and a text-proxy fetch were blocked/CAPTCHA-gated. Google Business Profile star rating still not found -- a practice-directory listing (https://medximity.com/practice/naples-spine-joint) confirms the profile is \"verified through Google Business Profile\" but surfaces no rating/count. Named treating chiropractor(s) still not found -- re-checked naplessj.com and naplessj.com/about directly; both reference \"the doctors\" / \"our team\" generically with no individual names or credentials, so no FL DOH practitioner cross-check was possible. All three gaps remain open pending an internal ask or a live (non-automated) browser check."
+      "notes": "First lit client node in the medical cluster.\n\nENRICHED 2026-07-17: Address 7955 Airport Pulling Rd, Suite 203, Naples FL 34109 (https://www.naplessj.com/contact).\nENRICHED 2026-07-17: Sunbiz NAPLES SPINE & JOINT, LLC, doc# L24000046786, FEI/EIN 99-0904739, filed 01/25/2024 (eff 01/24/2024), status ACTIVE, principal address matches the clinic (7955 Airport Pulling Rd 203, Naples FL 34109) -- confirms this is a young business, ~2.5 years old (https://search.sunbiz.org/Inquiry/corporationsearch/SearchResultDetail?inquirytype=EntityName&directionType=ForwardList&searchNameOrder=NAPLESSPINEJOINT+L240000467860).\nENRICHED 2026-07-17: OWNERSHIP / Jonathan Polk connection resolved -- Monica Polk is listed on LinkedIn as 'Business Owner, Naples Spine & Joint' (https://www.linkedin.com/in/monica-polk-7aa586324/), same surname as connector Jonathan Polk, matching the existing CRM description 'Polk and Monica's Company.' Separately, Jonathan Polk's own LinkedIn work history lists him as former VP of Marketing at Naples Spine & Joint before his current role as Regional Manager (Southwest & Miami, FL) at PropLogix (https://www.linkedin.com/in/jonathan-polk-56a95469/ ; https://www.proplogix.com/team/jonathan-polk/) -- this also resolves the open question on Polk's employer (see jonathan-polk record) and strongly suggests 'PropLogic' elsewhere in this CRM is a misspelling of PropLogix, his actual employer (resolved 2026-07-22: record renamed PropLogix, free-text swept).\nENRICHED 2026-07-17: Social -- Instagram @naples_spine_joint (https://www.instagram.com/naples_spine_joint/, includes a 'clinic is now open' post consistent with the Jan-2024 filing date); Facebook page https://www.facebook.com/61577212680619/.\nENRICHED 2026-07-17: Yelp listing exists (https://www.yelp.com/biz/naples-spine-and-joint-naples) but the page blocked automated fetch (403) and no star rating/review count surfaced via search this pass -- still open. No Google Business Profile rating captured either. EN vs Spanish-language review split not verified.\nENRICHED 2026-07-17: No individual doctor/chiropractor names published on the site's About page -- could not pull a named practitioner for an FL DOH license lookup; needs an internal ask (likely Monica Polk or a named DC on staff).\n\nENRICHED 2026-07-18 (round 2 follow-up): Yelp review count/rating still unconfirmed -- listing exists (https://www.yelp.com/biz/naples-spine-and-joint-naples) but both a direct fetch and a text-proxy fetch were blocked/CAPTCHA-gated. Google Business Profile star rating still not found -- a practice-directory listing (https://medximity.com/practice/naples-spine-joint) confirms the profile is \"verified through Google Business Profile\" but surfaces no rating/count. Named treating chiropractor(s) still not found -- re-checked naplessj.com and naplessj.com/about directly; both reference \"the doctors\" / \"our team\" generically with no individual names or credentials, so no FL DOH practitioner cross-check was possible. All three gaps remain open pending an internal ask or a live (non-automated) browser check."
     },
     {
       "id": "oasis-kitchen-lounge",
@@ -679,7 +781,7 @@
     {
       "id": "proplogic",
       "name": "PropLogix",
-      "business": "PropLogic",
+      "business": "PropLogix",
       "role": "Title-tech company",
       "entityKind": "company",
       "nodeType": "lead",
@@ -730,7 +832,7 @@
         "estimatedAt": "2026-07-09T05:40:00.000Z",
         "probability": 0.7
       },
-      "notes": "ENRICHED 2026-07-18: Utah Division of Corporations entity search -- not confirmed. The official businessregistration.utah.gov search tool is JS-interactive and blocked automated fetch (403); web search surfaced no distinct Utah entity filing under \"Red Rock Roofing\" tied to Caleb Green. ⚠ Ambiguity: at least 3 unrelated national \"Red Rock Roofing\" businesses exist (Firestone CO -- redrockroofing.com; Dickson TN -- redrrco.com; Renton WA per HomeAdvisor) -- none show any tie to Caleb Green or CG Roofing Group. No live Utah-specific domain (e.g., redrockroofingutah.com) found, and no developer/\"Garrett\" credit located anywhere.\nENRICHED 2026-07-18: Utah DOPL license search (via BuildZoom aggregation, not independently re-verified on secure.utah.gov/llv/search) shows a \"Red Rock Roofing,\" St. George/Ivins UT 84771, license #377705-5501 (Roofer) plus related qualifier/lien-fund numbers -- status EXPIRED/INACTIVE, expiration 11-30-2009, last verified expired 10-01-2022, contact on file \"Jason Schick.\" ⚠ This is an old, inactive license -- cannot be confirmed as connected to Caleb Green's planned venture; needs internal confirmation whether Jason Schick is the \"GM lined up\" Caleb referenced, or an unrelated prior business. Source: https://www.buildzoom.com/contractor/red-rock-roofing-ivins-ut\nENRICHED 2026-07-18: No Google Business Profile, Facebook, or Instagram stub found for a Utah-based Red Rock Roofing. Cross-reference: Caleb Green's own FL DBPR license (RC29027554, CG Roofing Group LLC) re-confirmed status \"Delinquent, Active,\" expires 08/31/2025 -- https://www.myfloridalicense.com/LicenseDetail.asp?SID=&id=1F408DB1D56E37A1432104D5AAC2872A."
+      "notes": "ENRICHED 2026-07-18: Utah Division of Corporations entity search -- not confirmed. The official businessregistration.utah.gov search tool is JS-interactive and blocked automated fetch (403); web search surfaced no distinct Utah entity filing under \"Red Rock Roofing\" tied to Caleb Green. ⚠ Ambiguity: at least 3 unrelated national \"Red Rock Roofing\" businesses exist (Firestone CO -- redrockroofing.com; Dickson TN -- redrrco.com; Renton WA per HomeAdvisor) -- none show any tie to Caleb Green or CG Roofing Group. No live Utah-specific domain (e.g., redrockroofingutah.com) found, and no developer/\"Garrett\" credit located anywhere.\nENRICHED 2026-07-18: Utah DOPL license search (via BuildZoom aggregation, not independently re-verified on secure.utah.gov/llv/search) shows a \"Red Rock Roofing,\" St. George/Ivins UT 84771, license #377705-5501 (Roofer) plus related qualifier/lien-fund numbers -- status EXPIRED/INACTIVE, expiration 11-30-2009, last verified expired 10-01-2022, contact on file \"Jason Schick.\" ⚠ This is an old, inactive license -- cannot be confirmed as connected to Caleb Green's planned venture; needs internal confirmation whether Jason Schick is the \"GM lined up\" Caleb referenced, or an unrelated prior business. Source: https://www.buildzoom.com/contractor/red-rock-roofing-ivins-ut\nENRICHED 2026-07-18: No Google Business Profile, Facebook, or Instagram stub found for a Utah-based Red Rock Roofing. Cross-reference: Caleb Green's own FL DBPR license (RC29027554, CG Roofing Group LLC) re-confirmed status \"Delinquent, Active,\" expires 08/31/2025 -- https://www.myfloridalicense.com/LicenseDetail.asp?SID=&id=1F408DB1D56E37A1432104D5AAC2872A.\nRESOLVED 2026-07-22 (Rob): Red Rock Roofing is REAL — Caleb Green's new company spinning up soon; part of upcoming MLE work. No registry footprint expected yet. KEEP."
     },
     {
       "id": "vive-health",
