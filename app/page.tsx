@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getStore } from "@/lib/storage";
-import { computeStats, contribution, money } from "@/lib/stats";
+import { computeStats, contribution, isDemo, money } from "@/lib/stats";
 import type { Person, Project, WillItem } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -17,6 +17,7 @@ function Stat({ label, value, accent, sub }: { label: string; value: string; acc
 
 export default async function Overview() {
   const data = await getStore().getNetwork();
+  data.people = data.people.filter((p) => !isDemo(p));
   const stats = computeStats(data);
 
   const willItems: { project: Project; item: WillItem }[] = data.projects.flatMap(

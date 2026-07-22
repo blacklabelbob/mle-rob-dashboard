@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getStore } from "@/lib/storage";
-import { contribution, isDisputedSigned } from "@/lib/stats";
+import { contribution, isDemo, isDisputedSigned } from "@/lib/stats";
 
 export const dynamic = "force-dynamic";
 
@@ -8,10 +8,14 @@ export const dynamic = "force-dynamic";
 // with contribution pre-computed so the client stays dumb.
 export async function GET() {
   const data = await getStore().getNetwork();
+  const people = data.people.filter((p) => !isDemo(p));
+  const ids = new Set(people.map((p) => p.id));
   return NextResponse.json({
     verticals: data.verticals,
-    edges: data.edges,
-    nodes: data.people.map((p) => ({
+    edges: data.edges.filter(
+      (e) => (!e.fromId || ids.has(e.fromId)) && (!e.toId || ids.has(e.toId))
+    ),
+    nodes: people.map((p) => ({
       id: p.id,
       name: p.name,
       status: p.status,

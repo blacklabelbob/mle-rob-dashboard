@@ -1,10 +1,12 @@
 import { getStore } from "@/lib/storage";
+import { isDemo } from "@/lib/stats";
 import PeopleTable from "@/components/PeopleTable";
 
 export const dynamic = "force-dynamic";
 
 export default async function PeoplePage() {
   const data = await getStore().getNetwork();
+  data.people = data.people.filter((p) => !isDemo(p));
 
   return (
     <div className="space-y-4">

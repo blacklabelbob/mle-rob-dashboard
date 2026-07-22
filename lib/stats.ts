@@ -8,6 +8,12 @@ export function contribution(p: Person): number {
   return paper + est;
 }
 
+// Demo records (fabricated rep-training data, name-tagged "(DEMO)") exist only
+// for the Rep Cockpit; every real-data surface must exclude them.
+export function isDemo(p: Person): boolean {
+  return p.name.includes("(DEMO)");
+}
+
 // signed counts in rollups ONLY when a signed date exists; a signed flag with no
 // date is a data conflict (e.g. Gulf Coast 2026-07) — flagged, never silently summed.
 export function isDisputedSigned(p: Person): boolean {
