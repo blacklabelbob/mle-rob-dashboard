@@ -194,6 +194,30 @@ export function parseDealStagePatch(body: unknown): DealStagePatch {
   return { ok: true, id, stage: stage as DealStage };
 }
 
+// Task 4.7 audit trail: every real stage change writes exactly one
+// status_change activity. The row is built HERE from the before/after the
+// route itself read out of the database — never from client input (the
+// client only ever supplies { id, stage }). Deterministic id per
+// (deal, instant) doubles as the idempotency key for the upsert.
+export function buildStageChangeActivity(args: {
+  dealId: string;
+  from: DealStage;
+  to: DealStage;
+  at: string; // ISO timestamp passed in by the caller — no clock reads here
+}): Record<string, unknown> | null {
+  const { dealId, from, to, at } = args;
+  if (from === to) return null; // no change → no audit row
+  return {
+    id: `stage-${dealId}-${at}`,
+    deal_id: dealId,
+    type: "status_change",
+    source: "manual",
+    source_context: { from, to },
+    summary: `Stage: ${from} → ${to}`,
+    occurred_at: at,
+  };
+}
+
 // Compile-time exhaustiveness: if a union gains a member the arrays lack,
 // these lines stop compiling (the arrays' DDL match is tested at runtime).
 type AssertSame<A, B extends A> = B extends A ? (A extends B ? true : never) : never;
