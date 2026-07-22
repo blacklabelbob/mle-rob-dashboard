@@ -1,6 +1,6 @@
 # PRD: MLE CRM — The Network + Self-Made CRM (Unified)
 
-**Version:** 3.0.9 | **Created:** 2026-07-16 | **Updated:** 2026-07-21
+**Version:** 3.0.11 | **Created:** 2026-07-16 | **Updated:** 2026-07-21
 **Status:** ACTIVE
 **Owner:** Rob + Max
 **Project:** mle-rob-dashboard
@@ -167,7 +167,7 @@ dependence on GoHighLevel, Close, or any rented CRM core.
 
 ### Phase 3: Capture & Automation (Operations)
 
-- [ ] Task 3.1 [Operations] - **URGENT (expires ~2026-07-19):** Rotate boostn8n.app.n8n.cloud API key, re-point all workflows | DoD: New key live, old revoked, zero auth failures post-cutover
+- [ ] Task 3.1 [Operations] - ~~URGENT (expires ~2026-07-19)~~ Rotate boostn8n.app.n8n.cloud API key, re-point all workflows | DoD: New key live, old revoked, zero auth failures post-cutover | **Progress 2026-07-21:** urgency cleared — Rob delivered the new key (`N8N_KEY` in .env.local), live-tested 200 on delivery and re-verified 200 during the 7/21 reconciliation sweep. Remaining for DoD: confirm the expired key is revoked in the n8n UI + nothing external still presents it (note: the session-start hook still warns "key expired" from a stale cached copy — hook repoint owed)
 - [ ] Task 3.2 [Operations] - n8n Gmail capture: rob@aivoicetech.io ONLY → match to contact → append to activity timeline | DoD: Test email appears on correct timeline <5 min; boostuppayments.com mail never ingested (log-verified — identity rule)
 - [ ] Task 3.3 [Operations] - AIDRE call-outcome webhook receiver stub (`/api/webhooks/aidre-call`) → `activities` as type=call, source=aidre | DoD: Synthetic POST creates one correctly-linked activity row; payload schema doc delivered
 - [ ] Task 3.4 [Operations] - Overdue follow-up watcher: hourly n8n cron pings Rob on past-threshold follow-ups | DoD: Test past-due record triggers exactly one ping, no dupes on re-run
@@ -385,6 +385,8 @@ dependence on GoHighLevel, Close, or any rented CRM core.
 | Version | Date | What Changed | By |
 |---------|------|--------------|-----|
 | 3.0.2 | 2026-07-21 | **RACE-LOSS RESTORED (critic-rob unification punch #1):** the driver closed Task 2.0 (orgs split APPLIED TO PROD, TICK 97/100) between the merge snapshot (v2.2.27) and commit; final state + the 6 revision rows below ported verbatim from the archived source (which preserved v2.2.31). Gulf signed-dispute = resolved-by-data since 7/18 (in Task 2.0 post-close notes). Driver now PAUSES during structural PRD ops (crm-driver.pause flag) | Max |
+| 3.0.11 | 2026-07-21 | **Q4b reconciliation sweep, pass 1 (driver):** every checkbox, dependency row, and open question verified against live state. VERIFIED TRUE: n8n key live (fresh 200 vs boostn8n API), Twilio creds still absent (Q5b gate holds), prod /api/network 32 nodes with NO entityKind export (Task 2.0 punch item (a) accurate), lib/types.ts has entityKind but no orgId (2.2 correctly open), rollback tags + all referenced review/research files exist, phase counts in status diagram exact (2/15, 1/8, 1/8). ONE stale line found+fixed: Task 3.1 still read as un-started urgent rotation — annotated with 7/21 delivery/test state + remaining revoke/repoint sub-items. Remaining for Q4b tick: critic-rob 5-claim spot-check | Max (driver) |
+| 3.0.10 | 2026-07-21 | Auto-touched (session activity) | prd-autosave.sh |
 | 3.0.9 | 2026-07-21 | Auto-touched (session activity) | prd-autosave.sh |
 | 3.0.8 | 2026-07-21 | Auto-touched (session activity) | prd-autosave.sh |
 | 3.0.7 | 2026-07-21 | Task 7.2 client wiring: rep-cockpit Call button is now `components/CallButton.tsx` (@twilio/voice-sdk added, dynamic-imported only after a 200 token probe) — one availability probe per page load; 503 (creds unset) or any call failure renders/degrades to the exact pre-dialer tel: link. Deployed + prod-verified (token 503, /rep 200, tel: links render). 7.2 remaining: Twilio creds (Rob), live-call DoD test, activity persistence rides on Task 2.1 | Max (driver) |
