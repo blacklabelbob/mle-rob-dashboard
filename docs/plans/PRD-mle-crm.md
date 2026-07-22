@@ -1,6 +1,6 @@
 # PRD: MLE CRM — The Network + Self-Made CRM (Unified)
 
-**Version:** 3.0.8 | **Created:** 2026-07-16 | **Updated:** 2026-07-21
+**Version:** 3.0.9 | **Created:** 2026-07-16 | **Updated:** 2026-07-21
 **Status:** ACTIVE
 **Owner:** Rob + Max
 **Project:** mle-rob-dashboard
@@ -385,6 +385,7 @@ dependence on GoHighLevel, Close, or any rented CRM core.
 | Version | Date | What Changed | By |
 |---------|------|--------------|-----|
 | 3.0.2 | 2026-07-21 | **RACE-LOSS RESTORED (critic-rob unification punch #1):** the driver closed Task 2.0 (orgs split APPLIED TO PROD, TICK 97/100) between the merge snapshot (v2.2.27) and commit; final state + the 6 revision rows below ported verbatim from the archived source (which preserved v2.2.31). Gulf signed-dispute = resolved-by-data since 7/18 (in Task 2.0 post-close notes). Driver now PAUSES during structural PRD ops (crm-driver.pause flag) | Max |
+| 3.0.9 | 2026-07-21 | Auto-touched (session activity) | prd-autosave.sh |
 | 3.0.8 | 2026-07-21 | Auto-touched (session activity) | prd-autosave.sh |
 | 3.0.7 | 2026-07-21 | Task 7.2 client wiring: rep-cockpit Call button is now `components/CallButton.tsx` (@twilio/voice-sdk added, dynamic-imported only after a 200 token probe) — one availability probe per page load; 503 (creds unset) or any call failure renders/degrades to the exact pre-dialer tel: link. Deployed + prod-verified (token 503, /rep 200, tel: links render). 7.2 remaining: Twilio creds (Rob), live-call DoD test, activity persistence rides on Task 2.1 | Max (driver) |
 | 3.0.6 | 2026-07-21 | Auto-touched (session activity) | prd-autosave.sh |

@@ -13,6 +13,7 @@ export default function DevChat() {
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const [unseen, setUnseen] = useState(0);
+  const [sendError, setSendError] = useState(false);
   const lastId = useRef(0);
   const openRef = useRef(false);
   const scroller = useRef<HTMLDivElement>(null);
@@ -53,6 +54,7 @@ export default function DevChat() {
     const body = draft.trim();
     if (!body || sending) return;
     setSending(true);
+    setSendError(false);
     try {
       const r = await fetch("/api/dev-chat", {
         method: "POST",
@@ -62,7 +64,11 @@ export default function DevChat() {
       if (r.ok) {
         setDraft("");
         await poll();
+      } else {
+        setSendError(true); // never silently eat Rob's message — draft stays in the box
       }
+    } catch {
+      setSendError(true);
     } finally {
       setSending(false);
     }
@@ -99,6 +105,16 @@ export default function DevChat() {
               </div>
             ))}
           </div>
+          {sendError && (
+            <div className="border-t border-red-400/30 bg-red-500/10 px-3 py-1.5 text-[11px] text-red-300">
+              Send failed — your message is still in the box. Hit Send again.
+            </div>
+          )}
+          {msgs.length > 0 && msgs[msgs.length - 1].author === "rob" && (
+            <div className="border-t border-white/10 px-3 py-1 text-[10px] text-slate-500">
+              Delivered · Max checks every ~10 min (instant when he&apos;s live)
+            </div>
+          )}
           <div className="flex gap-2 border-t border-white/10 p-2">
             <textarea
               value={draft}
