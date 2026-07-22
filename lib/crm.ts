@@ -170,6 +170,30 @@ export const ACTIVITY_SOURCES = [
 ] as const satisfies readonly ActivitySource[];
 export const TASK_STATUSES = ["open", "done", "cancelled"] as const satisfies readonly TaskStatus[];
 
+// Stage-only patch gate for the /deals drag board. Refusing value/keyDates
+// (and everything else) lives HERE as code, not in route prose: any key
+// beyond {id, stage} rejects the whole request — a payload that smuggles
+// value alongside a stage change never reaches the database.
+export type DealStagePatch =
+  | { ok: true; id: string; stage: DealStage }
+  | { ok: false; error: string };
+
+export function parseDealStagePatch(body: unknown): DealStagePatch {
+  if (typeof body !== "object" || body === null || Array.isArray(body)) {
+    return { ok: false, error: "need { id, stage }" };
+  }
+  const extras = Object.keys(body).filter((k) => k !== "id" && k !== "stage");
+  if (extras.length) {
+    return { ok: false, error: `stage-only route — refused fields: ${extras.join(", ")}` };
+  }
+  const { id, stage } = body as { id?: unknown; stage?: unknown };
+  if (typeof id !== "string" || !id) return { ok: false, error: "need { id, stage }" };
+  if (typeof stage !== "string" || !(DEAL_STAGES as readonly string[]).includes(stage)) {
+    return { ok: false, error: `stage must be one of: ${DEAL_STAGES.join(", ")}` };
+  }
+  return { ok: true, id, stage: stage as DealStage };
+}
+
 // Compile-time exhaustiveness: if a union gains a member the arrays lack,
 // these lines stop compiling (the arrays' DDL match is tested at runtime).
 type AssertSame<A, B extends A> = B extends A ? (A extends B ? true : never) : never;
