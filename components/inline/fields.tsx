@@ -46,6 +46,19 @@ function pulseClass(state: SaveState) {
   return "";
 }
 
+// Optimistic mirror of a server prop: local writes show instantly, a prop
+// change (router.refresh after save) re-syncs. Reset happens during render
+// (react.dev "adjusting state when a prop changes"), not in an effect.
+function useSyncedState<T>(value: T): [T, (v: T) => void] {
+  const [shown, setShown] = useState(value);
+  const [prev, setPrev] = useState(value);
+  if (prev !== value) {
+    setPrev(value);
+    setShown(value);
+  }
+  return [shown, setShown];
+}
+
 /* ---------- text / number ---------- */
 
 export function InlineText({
@@ -74,10 +87,9 @@ export function InlineText({
   const { save, state } = useRecordSave(personId);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState("");
-  const [shown, setShown] = useState(value); // optimistic
+  const [shown, setShown] = useSyncedState(value); // optimistic
   const ref = useRef<HTMLInputElement>(null);
 
-  useEffect(() => setShown(value), [value]);
   useEffect(() => {
     if (editing) ref.current?.select();
   }, [editing]);
@@ -155,8 +167,7 @@ export function InlineSelect({
   onCreateNew?: () => void;
 }) {
   const { save, state } = useRecordSave(personId);
-  const [shown, setShown] = useState(value ?? "");
-  useEffect(() => setShown(value ?? ""), [value]);
+  const [shown, setShown] = useSyncedState(value ?? "");
 
   async function onChange(v: string) {
     if (v === "__new__") {
@@ -208,8 +219,7 @@ export function InlineToggle({
   className?: string;
 }) {
   const { save, state } = useRecordSave(personId);
-  const [shown, setShown] = useState(value);
-  useEffect(() => setShown(value), [value]);
+  const [shown, setShown] = useSyncedState(value);
 
   async function flip() {
     const next = !shown;
@@ -240,10 +250,9 @@ export function InlineDateChip({
 }) {
   const { save, state } = useRecordSave(personId);
   const [editing, setEditing] = useState(false);
-  const [shown, setShown] = useState(keyDates[dateKey]);
+  const [shown, setShown] = useSyncedState(keyDates[dateKey]);
   const ref = useRef<HTMLInputElement>(null);
 
-  useEffect(() => setShown(keyDates[dateKey]), [keyDates, dateKey]);
   useEffect(() => {
     if (editing) ref.current?.showPicker?.();
   }, [editing]);
@@ -305,10 +314,9 @@ export function InlineTextarea({
   const { save, state } = useRecordSave(personId);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState("");
-  const [shown, setShown] = useState(value ?? "");
+  const [shown, setShown] = useSyncedState(value ?? "");
   const ref = useRef<HTMLTextAreaElement>(null);
 
-  useEffect(() => setShown(value ?? ""), [value]);
   useEffect(() => {
     if (editing && ref.current) {
       ref.current.focus();

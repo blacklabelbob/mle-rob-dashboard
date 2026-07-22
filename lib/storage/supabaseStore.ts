@@ -31,7 +31,7 @@ function orgsSplitMode(): boolean {
   return process.env.ORGS_SPLIT_READS === "1";
 }
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 export function toPerson(r: any): Person {
   return {
     id: r.id,
@@ -158,7 +158,7 @@ function fromProject(p: Project) {
     updated_at: p.updatedAt,
   };
 }
-/* eslint-enable @typescript-eslint/no-explicit-any */
+ 
 
 export const supabaseStore: StorageAdapter = {
   name: "supabase",
