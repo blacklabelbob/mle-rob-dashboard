@@ -1,5 +1,5 @@
 # Rob's CRM Vision — Verbatim Brain Dump
-**Captured:** 2026-07-17 · **Source:** Rob, verbal dump via chat (Task 1.1 of PRD-mle-crm-evolution) · **Status:** RAW — clarifying Q&A in progress; v2.0 scope amendment follows
+**Captured:** 2026-07-17 · **Source:** Rob, verbal dump via chat (Task 1.1 — now in the unified docs/plans/PRD-mle-crm.md) · **Status:** RAW — clarifying Q&A in progress; v2.0 scope amendment follows
 
 > Verbatim below. Do not paraphrase this file — structure lives in the PRD, this is the source of truth for intent.
 

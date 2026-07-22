@@ -18,7 +18,7 @@ async function write(data: NetworkData): Promise<void> {
     // the caller must surface "not saved" to the user (see /api/estimate).
     throw new Error(
       `file store is not writable here (read-only deploy?). ` +
-        `Set STORAGE_SOURCE to a real store (docs/STORAGE-DECISION.md). Cause: ${
+        `Set STORAGE_SOURCE to a real store (docs/plans/sources/STORAGE-DECISION.md). Cause: ${
           err instanceof Error ? err.message : String(err)
         }`
     );

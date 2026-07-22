@@ -42,7 +42,7 @@ Feeding it: **low-friction meeting-to-money flow** — meeting notes get capture
 ## Rules of the build
 
 - **Never stall on a tool.** Data lives behind an adapter: if Airtable access dies, we swap to Google Sheets or a plain file and keep moving. The dashboard never knows the difference.
-- **The PRD is alive.** Every task gets checked off as it's done. Scope changes get versioned. (PRD: `docs/plans/PRD-mle-rob-dashboard-v2.md`)
+- **The PRD is alive.** Every task gets checked off as it's done. Scope changes get versioned. (PRD: `docs/plans/PRD-mle-crm.md`)
 - **Not everything is automated on day one — that's fine.** Manual entry first, automation follows. Moving beats perfect.
 - **Speed over taxonomy.** No lost-reason dropdowns and stage-probability committees right now. Tools that make money and light nodes come first.
 - **Connection is key.** Every record links to the people around it. The AI's job is to spot connections Rob doesn't see.

@@ -87,7 +87,7 @@ export default function EstimatePanel({
             {persisted === true && <span className="ml-2 text-emerald-500">✓ saved to record</span>}
             {persisted === false && (
               <span className="ml-2 text-amber-500">
-                not saved — store is read-only here (docs/STORAGE-DECISION.md)
+                not saved — store is read-only here (docs/plans/sources/STORAGE-DECISION.md)
               </span>
             )}
           </p>

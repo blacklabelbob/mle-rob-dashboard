@@ -1,5 +1,5 @@
 # MLE CRM Architecture Atlas — Data Model View-Set v1.0
-**Date:** 2026-07-17 · **Owner:** Head of Engineering (Max) · **Feeds:** PRD-mle-crm-evolution-v1.md Tasks 1.4, 2.0, 2.1, 2.7
+**Date:** 2026-07-17 · **Owner:** Head of Engineering (Max) · **Feeds:** PRD-mle-crm.md (unified 2026-07-21; task IDs per MERGE-LEDGER) — orig. Tasks 1.4, 2.0, 2.1, 2.7
 **Audience:** Rob (founder) + technical partner
 
 ---

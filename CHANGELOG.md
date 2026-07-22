@@ -60,3 +60,9 @@ Auto-initialized by changelog-guard hook.
 - Punch 1-5,8,9: signed value $15k truthful (+$19k disputed amber), data-level deal dedup, Paid column + green Client tier + paid→client auto-upgrade in code, Days→$ metric deleted, key-dates backfill, Will items red w/ days-late, repo strays archived.
 - Re-score NEW items: graph detail panel now renders PAID (green) / ⚠ disputed (amber) / signed+date — the missed 3rd surface; migration 0002_node_type_taxonomy.sql keeps rebuilds truthful; estTimeToPaymentDays fully removed (types/adapter/API); Caleb row carries the deal-moved data note; PRD autosave spam collapsed.
 - Item 10 closed: vitest wired, lib/__tests__/stats.test.ts — 8 tests incl. an exact reproduction of the $44k double-count case. `npm test` green.
+
+## 2026-07-21 — PRD UNIFICATION + docs restructure (Rob directive: one plan, super-understandable, zero loss)
+- ONE living PRD now: docs/plans/PRD-mle-crm.md (v3.0, 113 checkboxes: CRM Phases 1-8 + merged M1-M5 + Mission Control super-admin phase). Zero-loss proof: MERGE-LEDGER-2026-07-21.md — all 123 source tasks dispositioned, 4 builder verification passes + grep cross-check.
+- Retired PRDs tombstoned → docs/archive/plans/. Seeds → docs/plans/sources/ (vision dump, ERD, STORAGE-DECISION). Legacy sync experiment → docs/archive/sync/. docs/README.md = the structure map + pointer registry + update protocol + rollback procedure.
+- Every pointer updated same-commit: driver prompt/script, ~/.claude/plans/index.json (slug mle-crm), project memory, code comments, repo docs. Verified: grep sweep clean (lineage-only mentions), build+15 tests green, driver syntax OK.
+- Rollback: git tag pre-prd-merge-2026-07-21 (pushed) + PRD snapshots + verbatim archives + ledger mapping both directions.

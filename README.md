@@ -5,7 +5,7 @@ One URL where Rob sees and grows The Network: every person as a node worth
 estimator that prices what a relationship is really worth.
 
 Plain-English mission: [`WHAT-WE-ARE-DOING.md`](./WHAT-WE-ARE-DOING.md)
-Living PRD: [`docs/plans/PRD-mle-rob-dashboard-v2.md`](./docs/plans/PRD-mle-rob-dashboard-v2.md)
+Living PRD: [`docs/plans/PRD-mle-crm.md`](./docs/plans/PRD-mle-crm.md)
 
 ## Run it
 
@@ -38,7 +38,7 @@ lib/
   estimator.ts          Heuristic estimator v1
   storage/              StorageAdapter + file store + sheets/airtable/supabase stubs
 data/
-  network.json          Day-1 store (swap via STORAGE_SOURCE env — see docs/STORAGE-DECISION.md)
+  network.json          Day-1 store (swap via STORAGE_SOURCE env — see docs/plans/sources/STORAGE-DECISION.md)
 docs/
   training/             Training corpus (renders on /training)
   research/             Network research (e.g. payment-processing candidates)

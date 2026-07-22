@@ -13,7 +13,7 @@ function db(): SupabaseClient {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) {
     throw new Error(
-      "supabase store: set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (see docs/STORAGE-DECISION.md)"
+      "supabase store: set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (see docs/plans/sources/STORAGE-DECISION.md)"
     );
   }
   client ??= createClient(url, key, { auth: { persistSession: false } });
