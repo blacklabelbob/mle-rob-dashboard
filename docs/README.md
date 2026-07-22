@@ -20,6 +20,7 @@ docs/
 ├── backups/                 ← dated pre-mutation JSON dumps of Supabase tables
 ├── assets/                  ← screenshots/images
 └── archive/                 ← retired, tombstoned, never edited
+    ├── MORNING-REPORT.md / README-STALE-COPY.md / SESSION-COORDINATION.md  (7/4 strays)
     ├── plans/               (the two pre-merge PRDs, tombstone headers point forward)
     └── sync/                (7/4 sync experiment, superseded by ~/.claude/plans registry)
 ```
@@ -44,12 +45,13 @@ docs/
 ## The update protocol (what gets checked, every time)
 
 1. **Before structural changes:** `git tag` a rollback point + run `~/.claude/scripts/prd-snapshot.sh <prd>` for any PRD being touched. Inventory references first: `grep -rn "<filename>" . ~/.claude/scripts ~/.claude/plans/index.json ~/.claude/projects/*/memory/ --include="*"` (exclude node_modules).
-2. **Make the change** — moves via `git mv` (history preserved); retired files get a tombstone header pointing to their successor; archives are never edited afterward.
-3. **Verification Sweep (the triple check):**
+2. **Pause the driver first for structural PRD/docs ops:** `touch ~/.claude/memory/crm-driver.pause` (remove after) — prevents the 7/21 race where the driver advanced the PRD mid-merge.
+3. **Make the change** — moves via `git mv` (history preserved); retired files get a tombstone header pointing to their successor; archives are never edited afterward.
+4. **Verification Sweep (the triple check):**
    - **Pass 1 — grep:** old names/paths must appear ONLY in `docs/archive/`, snapshots, `CHANGELOG.md`, the merge ledger, and explicit lineage/revision-history lines (PRD LINEAGE banner, index.json `lineage` field). Anywhere else = unfinished pointer.
    - **Pass 2 — functional:** `npm run build` + `npx vitest run` green; `bash -n` on any touched shell script **plus one live end-to-end run** (the 7/18–7/21 driver outage was caused by an edit that was never run live — never again).
    - **Pass 3 — independent:** Critic Rob (or QE) verifies claims against reality, not against the report.
-4. **Record:** CHANGELOG entry + PRD revision row (if plan-affecting) + commit + push. Work that isn't recorded doesn't count.
+5. **Record:** CHANGELOG entry + PRD revision row (if plan-affecting) + commit + push. Work that isn't recorded doesn't count.
 
 ## Rollback (how we get anything back)
 
