@@ -258,6 +258,7 @@
       "entityKind": "person",
       "nodeType": "partner",
       "verticalId": "webdev",
+      "email": "thedevdix@gmail.com",
       "referredById": "rob-acheson",
       "relationship": "Deal agreed in principle 7/8: Dix pitches MLE services in his market + handles Phase 3 audit dev overflow + quick site work; Rob facilitates US certification/licensing for the healthcare AI (equity to Rob) + a clinic pilot intro. Dix consults George re: EU intros. Follow-up ~7/15. Long-standing relationship (since 2024).",
       "status": "warm",
@@ -447,11 +448,14 @@
       "entityKind": "person",
       "nodeType": "mle-admin",
       "verticalId": "core",
+      "email": "rob@aivoicetech.io",
+      "website": "https://aivoicetech.io",
       "status": "lit",
       "signed": false,
       "keyDates": {},
       "phaseOne": "not-started",
-      "notes": "Center of The Network."
+      "description": "Founder, AI VoiceTech (vertical AI products: AI receptionist + web-avatar lines) and principal of MLE — the center of The Network. Sells his own products; targets roofing contractors first, real-estate/title second; PVP (Cannonball) go-to-market. Owner of this CRM.",
+      "notes": "Center of The Network.\nENRICHED 2026-07-22: email/website/description from Rob's own AI VoiceTech identity (Rob-confirmed internal source; aivoicetech.io is his venture address)."
     },
     {
       "id": "trent-brands",
@@ -752,6 +756,8 @@
       "role": "Restaurant & cocktail lounge, Ave Maria Town Center",
       "entityKind": "company",
       "verticalId": "food",
+      "phone": "(239) 658-5938",
+      "website": "https://www.oasisavemaria.com",
       "referredById": "michael-jaenvega",
       "relationship": "Michael's second restaurant (JV w/ Phong Ho) — Ave Maria Town Center",
       "status": "unlit",
@@ -759,7 +765,7 @@
       "keyDates": {},
       "phaseOne": "not-started",
       "description": "Joint venture between Michael Jaenvega and restaurateur Phong Ho in the Ave Maria Town Center — same town as Miga's HQ. Second door in the Jaenvega family cluster.",
-      "notes": "Sources: avemaria.com Oasis opening announcement; Sunbiz L23000083341 (original Oasis AveMaria FL LLC — Michael MGR, Daniella AMBR)."
+      "notes": "Sources: avemaria.com Oasis opening announcement; Sunbiz L23000083341 (original Oasis AveMaria FL LLC — Michael MGR, Daniella AMBR).\nENRICHED 2026-07-22: oasisavemaria.com verified as the official site — (239) 658-5938, 5072 Annunciation Cir Ste 103, Ave Maria 34142. Socials: facebook.com/oasiskitchenlounge, instagram.com/oasis_kitchenlounge. No public email published (left blank)."
     },
     {
       "id": "omega-title-fl",
@@ -768,6 +774,9 @@
       "entityKind": "company",
       "nodeType": "vertical-anchor",
       "verticalId": "title",
+      "phone": "239-351-1405",
+      "email": "angela@omegatitlegroup.com",
+      "website": "https://omegatitlegroup.com",
       "referredById": "alex-greenwood",
       "relationship": "Door via Alex Greenwood (Gulf Coast RE), Rob 2026-07-09. Likely = Omega Title Holdings Group (Naples HQ, 3411 Tamiami Trail N; SW-FL origin — fits Alex). CONFIRM w/ Alex it's Scott Dascani's shop (name-collides with Omega Title LLC of Fort Myers + Omega National Title).",
       "status": "unlit",
@@ -782,7 +791,8 @@
         "estNewNodes": 4,
         "estimatedAt": "2026-07-09T14:00:00.000Z",
         "probability": 0.4
-      }
+      },
+      "notes": "ENRICHED 2026-07-22: contact from omegatitlegroup.com/contact — 239.351.1405, Naples HQ 3411 Tamiami Trail N 34103 (matches the HQ in the relationship note, strengthening the Dascani-shop identification; Alex confirm still open). Contact email angela@omegatitlegroup.com (Angela Stavros, COO). Socials: facebook.com/Omega-Title-Holdings-166529245480805, instagram.com/omega_title_holdings."
     },
     {
       "id": "proplogic",
@@ -853,6 +863,9 @@
       "entityKind": "company",
       "nodeType": "vertical-anchor",
       "verticalId": "medical",
+      "phone": "1-800-487-3808",
+      "email": "service@vivehealth.com",
+      "website": "https://www.vivehealth.com",
       "referredById": "jonathan-burns",
       "relationship": "Door: Jonathan Burns → owner Joseph Fleming (LLC manager + registered agent). Same city as lit Polk/Naples Spine & Joint cluster",
       "status": "warm",
@@ -867,7 +880,8 @@
         "estNewNodes": 5,
         "estimatedAt": "2026-07-08T05:47:00.000Z",
         "probability": 0.4
-      }
+      },
+      "notes": "ENRICHED 2026-07-22: contact from vivehealth.com/pages/contact-us — phone 1-800-487-3808 (daily 9am–9pm ET), service@vivehealth.com. Socials: linkedin.com/company/vive-health, facebook.com/vivehealthusa, instagram.com/vivehealthusa."
     }
   ],
   "edges": [

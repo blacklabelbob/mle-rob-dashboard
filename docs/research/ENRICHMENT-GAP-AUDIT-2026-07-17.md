@@ -261,3 +261,28 @@ Same 0–6 rubric as the original audit (Phone / Email / Website / Role / Descri
 ### Two-most-valuable discoveries this round
 1. **Miga Food Manufacturing's on-site "Daniella Jaenvega" vs. CRM's "Daniella Roach"** — the company's own staging site names a different surname for the same Managing Partner role that Sunbiz confirms as "Daniella Roach," raising a real question of whether these are the same person (married/maiden name) before the Miga deal or the Jaenvega/Roach restaurant-cluster thesis goes further — a fact only Rob can resolve, not the web.
 2. **Red Rock Roofing (UT) has no confirmable public footprint tied to Caleb Green** — no matching Utah entity filing, no live domain, and the only same-named DOPL contractor license in St. George/Ivins, UT has been expired since 2022 under a different named contact ("Jason Schick") — the growth-vehicle venture appears to genuinely not exist yet in any public record, which should reset expectations on its timeline rather than assuming it's just under-searched.
+
+---
+
+## Hunt results round 3 (2026-07-22, Q7b batches 1–2) — **DoD MET: whole-table avg 3.56/6 ≥ 3.5**
+
+Scoring is now code, not prose: `scripts/enrichment/completeness-score.mjs` (exact rubric above, reads both `people` and `orgs` post-split, 11 unit tests). All numbers below are its output, honestly recomputed after each batch.
+
+| Metric | After round 2 (7/18) | Post-split baseline (7/22, scorer) | After batch 1 | After batch 2 | Target |
+|---|---|---|---|---|---|
+| Live non-DEMO records | 33 | 32 | 32 | 32 | — |
+| Average completeness | 2.64 / 6 | 2.69 / 6 | 3.09 / 6 | **3.56 / 6** | ≥3.5 ✅ |
+| Records below 3 | — | 17 | 13 | **8** | — |
+
+**Batch 1 (worst-first tail):** PropLogix 1→4 (proplogix.com + 941-444-7142 + desc; proplogix.com/contact, FLTA directory), Qualia 1→5 (qualia.com + 303-554-0301 per ALTA member directory + desc + LinkedIn), LandTech 1→4 (identity resolved: LandTech Data Corp / landtechdata.com; "Polk Industries is a marketing arm of LandTech"), De Cecco USA 0→3 (dececco.com/us_us + role + desc; no public US phone — left blank). Cates: zero public footprint → hunt note only. 2 Rob-input gaps → /api/admin/flags (Cates contacts; derm-pilot placeholder).
+
+**Batch 2 (this round's writes, all source-cited, unprotected fields only):**
+1. **Vive Health 2→6** — phone 1-800-487-3808, service@vivehealth.com, vivehealth.com; socials (LinkedIn/FB/IG) in notes. Source: vivehealth.com/pages/contact-us.
+2. **Omega Title (FL) 2→6** — 239-351-1405, angela@omegatitlegroup.com (Angela Stavros, COO), omegatitlegroup.com; FB/IG in notes. Source: omegatitlegroup.com/contact. Bonus: contact-page HQ (3411 Tamiami Trail N, Naples 34103) matches the address already in the relationship note — strengthens the Dascani-shop identification (Alex confirm still open).
+3. **Oasis The Kitchen Lounge 2→6** — (239) 658-5938, oasisavemaria.com (fetched + verified official); FB/IG in notes. Sources: oasisavemaria.com, Yelp/avemaria.com listings. No public email published — left blank.
+4. **Rob Acheson 1→4** — rob@aivoicetech.io, aivoicetech.io, description written (founder AI VoiceTech / MLE principal). Source: Rob's own operating docs (internal, authoritative). No social point claimed — GitHub org isn't a scored platform and no verified LinkedIn URL on file.
+5. **Dixith Magadiev 2→3** — email field filled with thedevdix@gmail.com, which was already sitting in his own description (Gemini notes source); field-copy, not new research.
+
+**Honest non-writes:** Red Rock Roofing (Rob 7/22: real but pre-launch, no registry footprint expected — unenrichable by design), Dix Healthcare AI (pre-registration EU entity), David Cates (no public footprint, flagged to Rob), derm pilot #1 (placeholder, flagged), George/Guest Genie (multiple unrelated "Guest Genie" companies; which one is his was not confirmable — needs Dix/Rob, not the web).
+
+**Remaining below-3 tail (8):** Cates 1, derm-pilot 1, George 1, Chris Acheson 2, Dix Healthcare AI 2, Joe Fleming 2, Jonathan Burns 2, Red Rock 2 — all blocked on either Rob/Dix input or nonexistent public footprints, per above. Further table-wide gains now come from Rob's address book, not hunting.
