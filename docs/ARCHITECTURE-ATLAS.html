@@ -172,7 +172,7 @@
   <h2>The MLE CRM, mapped end to end</h2>
   <p class="thesis">A self-owned CRM whose only job is helping reps close more deals — The Network graph as Rob's super-admin lens, every call recorded and searchable, proposals and signatures sent while still on the phone. Thirteen sheets: what talks to what, where the data lives, how a lead becomes cash, and what ships when.</p>
   <div class="statrow">
-    <div class="stat"><div class="n">16 + 16</div><div class="l">People + Orgs (live prod)</div></div>
+    <div class="stat"><div class="n">22 + 16</div><div class="l">People + Orgs (live prod)</div></div>
     <div class="stat"><div class="n">47</div><div class="l">Referral edges (live)</div></div>
     <div class="stat"><div class="n">4</div><div class="l">Migrations applied</div></div>
     <div class="stat"><div class="n">108</div><div class="l">Tasks · 6 done</div></div>
@@ -251,7 +251,7 @@ flowchart TD
     Firecrawl -->|"talking points, screenshots"| CRM
 </pre>
     </div>
-    <div class="sheet-note"><b>Reading this sheet:</b> six human roles on top, eleven systems below. AIDRE and AIVA are Rob's own products pushing leads in through an authenticated API (Task 5.1). The partner's tools appear as one box on purpose — they connect through plug points, and their internals stay off this map by design.</div>
+    <div class="sheet-note"><b>Reading this sheet:</b> six human roles on top, twelve systems below. AIDRE and AIVA are Rob's own products pushing leads in through an authenticated API (Task 5.1). The partner's tools appear as one box on purpose — they connect through plug points, and their internals stay off this map by design.</div>
   </div>
 </section>
 
@@ -366,12 +366,12 @@ flowchart TB
       <thead><tr><th>Layer</th><th>Choice</th><th>Why / status</th></tr></thead>
       <tbody>
         <tr><td>Frontend</td><td>Next.js 16 · React 19 · TS · Tailwind</td><td><span class="pill live">live</span> Rob's Q answered: no language change — same family Twenty CRM uses</td></tr>
-        <tr><td>Data</td><td>Supabase Postgres + pgvector</td><td><span class="pill live">live</span> mle-network serving local + production, verified 07-17</td></tr>
+        <tr><td>Data</td><td>Supabase Postgres + pgvector</td><td><span class="pill live">live</span> mle-network serving local + production; orgs split (0003) + flags (0004) applied 7/21–7/22</td></tr>
         <tr><td>Storage abstraction</td><td>StorageAdapter + file fallback</td><td><span class="pill live">live</span> the no-stall guarantee</td></tr>
         <tr><td>Automation</td><td>n8n cloud</td><td>existing workspace; Phase 3</td></tr>
-        <tr><td>Dialer / meetings / e-sign</td><td>rent-first: TBD dialer · Fathom/Fireflies · Documenso</td><td>$15-SaaS-beats-3-month-build principle</td></tr>
+        <tr><td>Dialer / meetings / e-sign</td><td>rent-first: Twilio+Vapi hybrid (locked 7/22) · Fathom/Fireflies · Documenso</td><td>$15-SaaS-beats-3-month-build principle; hybrid = rails rented, agent layer rented, lookup API owned</td></tr>
         <tr><td>AI + RAG</td><td>Anthropic API + pgvector</td><td>call summaries, estimator, "what's working" search — no new infra</td></tr>
-        <tr><td>Auth / roles</td><td>Supabase Auth + RLS profiles</td><td>4-layer model, rep tiers gated off until reps exist (4.6)</td></tr>
+        <tr><td>Auth / roles</td><td>Admin-portal provisioning + Google OAuth (Gmail scopes) + RLS profiles</td><td>re-scoped 7/22 (see A-005); 4-layer model, rep tiers gated off until reps exist (4.6); site intentionally OPEN pre-rollout</td></tr>
         <tr><td><span class="pill live">CLOSED ✅</span> CI</td><td>GitHub Actions (.github/workflows/ci.yml)</td><td><span class="pill live">live 7/22</span> lint + build + 68 vitest on every push · + ESLint + Dependabot; day-zero win: CI auto-blocked a breaking TS 5→7 dep bump</td></tr>
         <tr><td><span class="pill live">CLOSED ✅</span> Staging env</td><td>Vercel preview deploys</td><td>adopted-by-protocol as staging discipline for lanes (decision 2026-07-22); no second Supabase env — migrations still rehearsed-with-rollback, not branch-gated</td></tr>
         <tr><td><span class="pill assumed">DEFERRED</span> Error tracking</td><td>Sentry on API routes</td><td>explicitly deferred to rep rollout (decision 2026-07-22); until then webhook receivers depend on Vercel logs</td></tr>
@@ -425,7 +425,7 @@ flowchart TD
     EMB --> U3["end state: live on-call assist<br/>(Vapi live events)"]
 </pre>
     </div>
-    <div class="sheet-note"><b>The stack, verified:</b> Twilio = telephony rails; <b>Vapi = agent-layer standard</b> — AIDRE confirmed built on Vapi (67 refs in its code); LiveKit stays as the self-host hedge if scale economics demand. Twilio+Vapi hybrid scored 93.5 vs LiveKit 85.25 / Twilio-only 79.25 / Vapi-only 76.25 and was locked by Rob's delegation (dev-chat #40). Leaky-Bucket products are producers <i>and</i> consumers of the lake; product lanes stay separate — the CRM consumes AIDRE, never absorbs it.</div>
+    <div class="sheet-note"><b>The stack, verified:</b> Twilio = telephony rails; <b>Vapi = agent-layer standard</b> — AIDRE confirmed built on Vapi (11 source files reference vapi — reproducible grep, 2026-07-22); LiveKit stays as the self-host hedge if scale economics demand. Twilio+Vapi hybrid scored 93.5 vs LiveKit 85.25 / Twilio-only 79.25 / Vapi-only 76.25 and was locked by Rob's delegation (dev-chat #40). Leaky-Bucket products are producers <i>and</i> consumers of the lake; product lanes stay separate — the CRM consumes AIDRE, never absorbs it.</div>
   </div>
 </section>
 
@@ -480,7 +480,7 @@ erDiagram
 </section>
 
 <section class="sheet" id="d02">
-  <p class="lede">The target model — now partly real. <span class="pill live">✅ LIVE IN PROD since 7/21</span>: <span class="mono">orgs</span>, <span class="mono">org_memberships</span>, the paired-FK <span class="mono">edges</span>, <span class="mono">people.org_id</span> (migration <span class="mono">0003_orgs_split.sql</span>, applied 7/21 eve — 16 people + 16 orgs, 33/47 edges repointed, 0 violations) and <span class="mono">flags</span> (<span class="mono">0004_flags.sql</span>, live — the "Things to Address" system). Still target-state: <span class="mono">deals</span>, <span class="mono">activities</span>, <span class="mono">tasks</span>, <span class="mono">transcripts</span>, <span class="mono">embeddings</span>, <span class="mono">routing_log</span>, <span class="mono">profiles</span> (Tasks 2.1+). The two design decisions held: a fast <span class="mono">org_id</span> on every person (Attio's shape) with an <span class="mono">org_memberships</span> escape hatch, and paired nullable FKs (Twenty's pattern) so the database itself enforces integrity.</p>
+  <p class="lede">The target model — now partly real. <span class="pill live">✅ LIVE IN PROD since 7/21</span>: <span class="mono">orgs</span>, <span class="mono">org_memberships</span>, the paired-FK <span class="mono">edges</span>, <span class="mono">people.org_id</span> (migration <span class="mono">0003_orgs_split.sql</span>, applied 7/21 eve — 22 people (incl. 5 demo) + 16 orgs, 33/47 edges repointed, 0 violations) and <span class="mono">flags</span> (<span class="mono">0004_flags.sql</span>, live — the "Things to Address" system). Still target-state: <span class="mono">deals</span>, <span class="mono">activities</span>, <span class="mono">tasks</span>, <span class="mono">transcripts</span>, <span class="mono">embeddings</span>, <span class="mono">routing_log</span>, <span class="mono">profiles</span> (Tasks 2.1+). The two design decisions held: a fast <span class="mono">org_id</span> on every person (Attio's shape) with an <span class="mono">org_memberships</span> escape hatch, and paired nullable FKs (Twenty's pattern) so the database itself enforces integrity.</p>
   <div class="sheet-frame">
     <div class="titleblock"><span class="no">D-002</span><span class="t">ER Diagram — target state (the centerpiece) · graph half LIVE, deals half pending</span><span class="rev">REV B · 0003 applied 7/21 · remainder feeds Task 2.1</span></div>
     <div class="sheet-canvas">
@@ -611,7 +611,7 @@ erDiagram
   <div class="twocol">
     <div class="tblwrap">
       <table class="spec">
-        <caption>D-003a · Migration Path — split half EXECUTED 7/21 (32 rows in = 16 people + 16 orgs out, zero dropped)</caption>
+        <caption>D-003a · Migration Path — split half EXECUTED 7/21 (32 rows in = 22 people (incl. 5 demo) + 16 orgs out, zero dropped)</caption>
         <thead><tr><th>#</th><th>Action</th><th>Task</th><th>Status</th></tr></thead>
         <tbody>
           <tr><td class="mono">1</td><td>Classify every live <span class="mono">people</span> row (32 at apply time; 54 at PRD time): human / org / ambiguous, human-decided</td><td class="mono">2.0</td><td><span class="pill live">done 7/21</span></td></tr>
@@ -814,36 +814,49 @@ flowchart TD
 <h3 class="grouphead">R-Series · Delivery</h3>
 
 <section class="sheet" id="r01">
-  <p class="lede">What ships when. Phase 1 definitions and the 7.1 dialer research run now; everything else stacks on the CRM core. Three questions stay open with working assumptions — answers due 07-24.</p>
+  <p class="lede">What ships when — regenerated against the unified PRD v3.1 (the 2026-07-21 merge folded the base Network PRD in whole: Phases M1–M5 + Mission Control are its Phases 1–9, nothing dropped). Phase 1 and the live-with-Rob 1b lane run now; the orgs split (2.0) is done and Phase 2 core is next; the dialer pick is locked and 7.2 is unpaused.</p>
   <div class="sheet-frame">
-    <div class="titleblock"><span class="no">R-001</span><span class="t">Build Roadmap — 8 phases, 60 tasks</span><span class="rev">PRD v2.1</span></div>
+    <div class="titleblock"><span class="no">R-001</span><span class="t">Build Roadmap — 15 phases, 108 tasks (6 done)</span><span class="rev">PRD v3.1 · 2026-07-22</span></div>
     <div class="sheet-canvas">
 <pre class="mermaid">
 flowchart LR
-    P1["P1 De-Risk and Definition<br/>1/15 done — RUNNING"] --> P2["P2 CRM Core<br/>deals, activities, tasks<br/>+ 2.0 URGENT people/org split"]
-    P2 --> P3["P3 Capture and Automation<br/>Gmail, watchers, webhooks"]
-    P2 --> P4["P4 Lifecycle and Access<br/>search, dedup, import, RLS"]
-    P2 --> P7["P7 Rep Cockpit<br/>dialer, transcripts, RAG<br/>(7.1 research runs NOW)"]
-    P7 --> P8["P8 In-Call Buttons<br/>proposal, case study, e-sign, invoice"]
-    P3 --> P5["P5 Intake and Routing API"]
+    P1["P1 De-Risk and Definition<br/>2/15 done — RUNNING"] --> P2["P2 CRM Core<br/>1/8 done<br/>2.0 orgs split LIVE IN PROD 7/21"]
+    P1B["P1b Live-with-Rob additions<br/>2/3 done — rep CRM scaffold next"] --> P2
+    P2 --> P3["P3 Capture and Automation<br/>0/8 — Gmail, watchers, webhooks"]
+    P2 --> P4["P4 Lifecycle and Access<br/>0/7 — RLS, Google OAuth, View-as-rep"]
+    P2 --> P7["P7 Rep Cockpit<br/>1/8 — Twilio+Vapi locked,<br/>7.2 unpaused (awaiting creds)"]
+    P7 --> P8["P8 In-Call Buttons<br/>0/4 — proposal, case study, e-sign, invoice"]
+    P3 --> P5["P5 Intake and Routing API<br/>0/6"]
     P4 --> P5
-    P5 --> P6["P6 Productization Groundwork<br/>DEFERRED — docs only"]
+    P5 --> P6["P6 Productization Groundwork<br/>0/5 — DEFERRED, docs only"]
+    P2 --> M1["M1 Network Intelligence<br/>0/8"]
+    M1 --> M2["M2 Meeting to Money<br/>0/5"]
+    M1 --> M3["M3 Team and Training<br/>0/4"]
+    M1 --> M4["M4 Cadence and Automation<br/>0/6"]
+    M4 --> M5["M5 Growth Tooling<br/>0/4"]
+    P8 --> MC["Mission Control<br/>super-admin only, never in rep views<br/>0/17"]
+    M2 --> MC
+    M4 --> MC
 
     style P1 fill:#f59e0b,color:#000
+    style P1B fill:#f59e0b,color:#000
+    style P2 fill:#f59e0b,color:#000
     style P7 fill:#f59e0b,color:#000
 </pre>
     </div>
     <div class="sheet-note">
-      <b>Open questions (Rob, due 07-24):</b>
+      <b>Open questions still on Rob:</b>
       Q1 — bounty hunter + booker mechanics: real logins or portal handoffs, paid per close or per intro?
       Q2 — Sales Agent book: invisible to everyone, or visible-but-untouchable to Rob only? (drives the RLS sheet)
       Q3 — is auto-close a genuine no-human lane (AI conversation → self-serve agreement + payment)?
-      <br><b>Standing assumptions until then:</b> book visible to Rob only · "blockchain" = the connection-graph metaphor · partner integrates via API plug points, his IP never absorbed.
+      Q8 — ACCESS/COMMS: own repo then merge, or lanes in this repo?
+      <br><b>Resolved since Rev A:</b> Q7 voice stack → Twilio+Vapi HYBRID locked 7/22 (Rob delegation, dev-chat #40) · Q9 rename propagation verified · Q10 /api gate shipped, then intentionally disarmed pre-rollout (see A-005).
+      <br><b>Standing assumptions:</b> book visible to Rob only · "blockchain" = the connection-graph metaphor · partner integrates via API plug points, his IP never absorbed.
     </div>
   </div>
 </section>
 
-<p style="margin-top:40px; font-size:12.5px; color:var(--ink-soft);" class="mono">MLE CRM Architecture Atlas · generated 2026-07-17 · sources: PRD-mle-crm-evolution v2.1 · ROB-CRM-VISION-DUMP-2026-07-17 (verbatim) · 0001_network.sql · lib/storage · mle-network live counts. Every sheet traceable to a PRD task ID.</p>
+<p style="margin-top:40px; font-size:12.5px; color:var(--ink-soft);" class="mono">MLE CRM Architecture Atlas · Rev 2026-07-22 (living doc — refresh duty per PRD v3.1) · sources: docs/plans/PRD-mle-crm.md v3.1 (unified 07-21, MERGE-LEDGER-2026-07-21.md) · ROB-CRM-VISION-DUMP-2026-07-17 + dump 7.21.26-1 (verbatim) · migrations 0001–0004 (0003 orgs split + 0004 flags APPLIED) · .github/workflows/ci.yml · vitest 68/68 · mle-network live counts (22 people (incl. 5 demo) + 16 orgs, 47 edges, prod-verified). Every sheet traceable to a PRD task ID.</p>
 
 </main>
 </div>
