@@ -1,4 +1,5 @@
 import Link from "next/link";
+import CallButton from "@/components/CallButton";
 import { getStore } from "@/lib/storage";
 import { money } from "@/lib/stats";
 import type { Person } from "@/lib/types";
@@ -106,14 +107,7 @@ export default async function RepCockpit() {
                       {money(p.quotedAmount)} quoted
                     </span>
                   ) : null}
-                  {p.phone && (
-                    <a
-                      href={`tel:${p.phone.replace(/[^+\d]/g, "")}`}
-                      className="rounded-lg bg-emerald-500/90 px-3.5 py-1.5 text-sm font-semibold text-white transition hover:bg-emerald-400"
-                    >
-                      Call
-                    </a>
-                  )}
+                  {p.phone && <CallButton phone={p.phone} />}
                   {p.email && (
                     <a
                       href={`mailto:${p.email}`}
