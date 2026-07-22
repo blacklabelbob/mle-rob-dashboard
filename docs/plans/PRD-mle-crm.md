@@ -155,7 +155,7 @@ dependence on GoHighLevel, Close, or any rented CRM core.
 
 - [x] Task 1b.1 [Engineering] ✅ 2026-07-22 - "Things to Address" flag system (table+API+3 surfaces: Overview digest w/ Read, entity pages w/ resolve+note, dated archive) | DoD met: CG conflict live test open; Miga/RedRock archived w/ Rob rulings
 - [x] Task 1b.2 [Engineering] ✅ 2026-07-22 - Guaranteed dev-chat receipts server-side ('system' author) + CI/ESLint/Dependabot | DoD met: receipt round-trip proven on prod; CI green on main, blocked breaking dep PR
-- [ ] Task 1b.3 [Engineering] - **REP CRM SCAFFOLD (Rob priority 7/22):** rep-facing account list ("My Accounts" — feels like a CRM, optimized for closing) + account workspace page (what opens on click: context story, timeline, action bar) on Jake demo book; full rep-POV mockup for Rob's sign-off | DoD: Rob can click through list→account→actions in prod demo; critic-rob ≥90; informs the Phase-4 rollout mockup requirement
+- [x] Task 1b.3 [Engineering] ✅ 2026-07-22 — critic-rob SHIP 92/100 after punch-fix round (docs/reviews/CRITIC-ROB-rep-scaffold-2026-07-22.md) — **REP CRM SCAFFOLD (Rob priority 7/22):** rep-facing account list ("My Accounts" — feels like a CRM, optimized for closing) + account workspace page (what opens on click: context story, timeline, action bar) on Jake demo book; full rep-POV mockup for Rob's sign-off | DoD: Rob can click through list→account→actions in prod demo; critic-rob ≥90; informs the Phase-4 rollout mockup requirement
 
 ### Phase 2: CRM Core — Deals, Activities, Tasks (Engineering)
 

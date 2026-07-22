@@ -31,3 +31,24 @@ Gates: Fidelity 90 · UX 72 · Truth 80 · Engineering 80 · Recording 74 · Eff
 - **Honesty engineering.** Dale's truthful empty shell, the DEMO-HISTORY badge with a tooltip that literally says "fabricated," the defensive activities route that returns real rows the day the table exists. No Tessa in this build.
 
 *Fix 1–4 + 7 and rerun this gate — that's a same-evening pass to SHIP. Nothing here is structural.*
+
+---
+
+# RE-SCORE — after punch fixes 1-9 (commit 117df50, live prod re-verified 2026-07-22)
+
+VERDICT: SHIP   ·   Score: 92/100
+Gates: Fidelity 95 · UX 92 · Truth 95 · Engineering 93 · Recording 95 · Effort 92
+
+Every claim re-verified against LIVE prod, not the builder's report:
+1. **Exact money everywhere** — list: $18,000 / $9,500 / $12,000, pipeline "$27,500"; zero "$10k"/"$28k" anywhere; /rep Today also exact. ✅
+2. **Paid apex** — Rita: green "client — paid" chip + "$12,000 COLLECTED" header; stageRank puts her last in the work queue; list chip matches. ✅
+3. **Right column filled** — Contact card (copyable phone + email, inline kit) + Key-dates chips (Signed 2026-07-02 / Paid 2026-07-10 green, Met/Quoted pending) + Next step. No desktop void. ✅
+4. **Mobile 390px** — scrollWidth 390 = clientWidth 390 on /rep/accounts, workspace, and /rep. No horizontal scroll; site-wide nav fix confirmed. ✅
+5. **DTO leak closed** — /rep/accounts view-source: 0 hits for FABRICATED / notes / estimate / estRevenue / SOURCE:; only "description" hits are the site meta tag. ✅
+6. **Tests** — 88/88 vitest (20 new repSource tests incl. paid branch + DTO mapper), build green, 0 lint errors. Rerun locally on 117df50. ✅
+7. **CHANGELOG** — three dated 2026-07-22 entries (scaffold, 500-fix, punch fixes). ✅
+8. **lastTouch = max(keyDates, timeline)** — Rita list shows 2026-07-11 (kickoff call), Marcus 07-15; list and workspace agree. ✅
+9. **DemoFooter** — present on list, Rita, Marcus, AND Dale (plus his honest "Nothing logged yet"). ✅
+10. **Q16 recorded** in BUILD-QUEUE.md with a real DoD (alias /api/rep/* before Phase-4 real reps) — queued, not built, per instruction. ✅
+
+Zero Save buttons on every surface (DOM-counted), tel:/mailto: intact, inline autosave previously proven live. The list is Attio-density with truthful numbers; the workspace is a complete record page. **Task 1b.3 gets ticked.** The remaining 8 points live in Q16 and the Phase-8 ghost buttons becoming real — both tracked, neither blocks this mockup.
