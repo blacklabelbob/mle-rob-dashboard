@@ -5,10 +5,14 @@ import { NextRequest, NextResponse } from "next/server";
 // Real allowlist auth lands in Phase 1; this keeps deal data off the open web today.
 
 // Twilio must reach these unauthenticated; they carry their own
-// X-Twilio-Signature auth and never return graph data.
+// X-Twilio-Signature auth and never return graph data. /api/cron/* is fired
+// by Vercel cron (no Basic creds) and carries its own CRON_SECRET bearer
+// check — without the secret it returns 401/503, never data.
 export function isPublicPath(pathname: string): boolean {
   return (
-    pathname === "/api/twilio/voice" || pathname.startsWith("/api/webhooks/")
+    pathname === "/api/twilio/voice" ||
+    pathname.startsWith("/api/webhooks/") ||
+    pathname.startsWith("/api/cron/")
   );
 }
 

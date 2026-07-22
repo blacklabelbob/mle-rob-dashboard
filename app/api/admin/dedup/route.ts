@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { collectDedupRows } from "@/lib/dedup/run";
+import { runDedupDetector } from "@/lib/dedup/detector";
 
 // Dedup review queue (PRD Task 3.5): POST runs the detector and upserts pairs
 // into `dedup_review`; GET lists the queue; PATCH dismisses/reopens a pair.
@@ -26,60 +26,12 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ pairs: data ?? [] });
 }
 
-// Run the detector across live people + orgs. Idempotent: re-runs upsert on
-// pair_key. `status` is never in the payload, so dismissed pairs stay
-// dismissed; open pairs the detector no longer sees are auto-resolved so the
-// queue never shows a duplicate Rob already fixed at the source.
+// Run the detector across live people + orgs (shared with the nightly cron —
+// see lib/dedup/detector.ts for the idempotency/auto-resolve contract).
 export async function POST() {
-  const client = db();
-  const [people, orgs] = await Promise.all([
-    client.from("people").select("id,name,email,phone,node_type"),
-    client.from("orgs").select("id,name,email,phone,node_type"),
-  ]);
-  if (people.error || orgs.error) {
-    return NextResponse.json(
-      { error: (people.error ?? orgs.error)!.message },
-      { status: 500 }
-    );
-  }
-
-  const rows = collectDedupRows({ people: people.data ?? [], orgs: orgs.data ?? [] });
-  const now = new Date().toISOString();
-
-  if (rows.length > 0) {
-    const { error } = await client
-      .from("dedup_review")
-      .upsert(rows.map((r) => ({ ...r, last_seen_at: now })), { onConflict: "pair_key" });
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-
-  // Auto-resolve open pairs the detector no longer detects (source data fixed).
-  const detectedKeys = new Set(rows.map((r) => r.pair_key));
-  const { data: openRows, error: openErr } = await client
-    .from("dedup_review")
-    .select("pair_key")
-    .eq("status", "open");
-  if (openErr) return NextResponse.json({ error: openErr.message }, { status: 500 });
-  const stale = (openRows ?? []).map((r) => r.pair_key).filter((k) => !detectedKeys.has(k));
-  if (stale.length > 0) {
-    const { error } = await client
-      .from("dedup_review")
-      .update({
-        status: "resolved",
-        resolved_at: now,
-        resolution_note: "auto: signals no longer present in source records",
-      })
-      .in("pair_key", stale);
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-
-  return NextResponse.json({
-    ok: true,
-    detected: rows.length,
-    high: rows.filter((r) => r.confidence === "high").length,
-    review: rows.filter((r) => r.confidence === "review").length,
-    autoResolved: stale.length,
-  });
+  const result = await runDedupDetector(db(), new Date().toISOString());
+  if (!result.ok) return NextResponse.json({ error: result.error }, { status: 500 });
+  return NextResponse.json(result);
 }
 
 // Rob's disposition from the queue: dismiss ("not a duplicate" — never
