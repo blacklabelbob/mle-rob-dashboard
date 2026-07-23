@@ -12,6 +12,11 @@ describe("isPublicPath (basic-auth gate exemptions)", () => {
     expect(isPublicPath("/api/cron")).toBe(false); // bare prefix stays gated
   });
 
+  it("keeps /api/health reachable (uptime monitors, data-free payload)", () => {
+    expect(isPublicPath("/api/health")).toBe(true);
+    expect(isPublicPath("/api/health/extra")).toBe(false); // exact match only
+  });
+
   it("gates everything else, including the money graph and token mint", () => {
     expect(isPublicPath("/")).toBe(false);
     expect(isPublicPath("/api/network")).toBe(false);

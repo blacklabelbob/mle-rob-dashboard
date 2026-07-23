@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from "next/server";
 export function isPublicPath(pathname: string): boolean {
   return (
     pathname === "/api/twilio/voice" ||
+    pathname === "/api/health" || // uptime monitors carry no creds; payload is data-free (MC.16)
     pathname.startsWith("/api/webhooks/") ||
     pathname.startsWith("/api/cron/")
   );
