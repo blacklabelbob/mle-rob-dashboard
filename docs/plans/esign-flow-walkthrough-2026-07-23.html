@@ -1,0 +1,351 @@
+<title>Rep-to-Signed: E-Sign Flow — The Network</title>
+<style>
+  :root{
+    --ink:#0B1220; --paper:#F5F7FB; --card:#FFFFFF; --line:#DCE2EE;
+    --tx:#18202F; --tx2:#55617A; --tx3:#8A94AB;
+    --accent:#3E6FE0; --accent-soft:#E5EBFB;
+    --ok:#199A55; --ok-bg:#E3F4EA;
+    --bad:#D64545; --bad-bg:#FBE7E7;
+    --warn:#C98A1B; --warn-bg:#F9F0DC;
+    --own:#7C4DD8; --own-bg:#EFE8FB;
+    --code-bg:#EEF1F8;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --ink:#0B1220; --paper:#0B1220; --card:#131C2E; --line:#243350;
+      --tx:#E6EBF5; --tx2:#9AA7C2; --tx3:#66738F;
+      --accent:#6E96F5; --accent-soft:#1B2A4A;
+      --ok:#4CC98A; --ok-bg:#12301F;
+      --bad:#F07575; --bad-bg:#3A1A1A;
+      --warn:#E5B355; --warn-bg:#332708;
+      --own:#A784EC; --own-bg:#261A40;
+      --code-bg:#0F1728;
+    }
+  }
+  :root[data-theme="light"]{
+    --ink:#0B1220; --paper:#F5F7FB; --card:#FFFFFF; --line:#DCE2EE;
+    --tx:#18202F; --tx2:#55617A; --tx3:#8A94AB;
+    --accent:#3E6FE0; --accent-soft:#E5EBFB;
+    --ok:#199A55; --ok-bg:#E3F4EA;
+    --bad:#D64545; --bad-bg:#FBE7E7;
+    --warn:#C98A1B; --warn-bg:#F9F0DC;
+    --own:#7C4DD8; --own-bg:#EFE8FB;
+    --code-bg:#EEF1F8;
+  }
+  :root[data-theme="dark"]{
+    --ink:#0B1220; --paper:#0B1220; --card:#131C2E; --line:#243350;
+    --tx:#E6EBF5; --tx2:#9AA7C2; --tx3:#66738F;
+    --accent:#6E96F5; --accent-soft:#1B2A4A;
+    --ok:#4CC98A; --ok-bg:#12301F;
+    --bad:#F07575; --bad-bg:#3A1A1A;
+    --warn:#E5B355; --warn-bg:#332708;
+    --own:#A784EC; --own-bg:#261A40;
+    --code-bg:#0F1728;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--tx);font-family:-apple-system,"SF Pro Text",system-ui,"Segoe UI",Roboto,sans-serif;font-size:15px;line-height:1.55}
+  .mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+  .wrap{max-width:1020px;margin:0 auto;padding:0 24px 96px}
+  a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
+  a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+  code{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;background:var(--code-bg);padding:1px 6px;border-radius:4px}
+
+  header.hero{background:var(--ink);color:#E6EBF5}
+  header.hero .wrap{padding-top:52px;padding-bottom:44px}
+  .eyebrow{font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#7FA0F2;margin:0 0 14px}
+  h1{font-size:clamp(26px,4.2vw,40px);font-weight:800;letter-spacing:-.02em;line-height:1.14;margin:0 0 14px;max-width:24ch;text-wrap:balance;color:#F2F5FC}
+  .hero p.thesis{max-width:64ch;color:#AAB6D3;margin:0 0 20px;font-size:16px}
+  .hero strong{color:#F2F5FC}
+  .statrow{display:flex;flex-wrap:wrap;gap:10px}
+  .stat{background:rgba(110,150,245,.10);border:1px solid rgba(110,150,245,.28);border-radius:6px;padding:8px 14px;font-family:ui-monospace,Menlo,monospace;font-size:12.5px;color:#C7D4F0}
+  .stat b{color:#fff}
+
+  section{margin-top:52px}
+  h2{font-size:13px;font-family:ui-monospace,Menlo,monospace;letter-spacing:.16em;text-transform:uppercase;color:var(--tx2);margin:0 0 6px;display:flex;align-items:baseline;gap:10px}
+  h2::after{content:"";flex:1;height:1px;background:var(--line)}
+  .sec-lede{font-size:17px;font-weight:700;letter-spacing:-.01em;margin:0 0 18px;max-width:70ch;text-wrap:balance}
+
+  .answers{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+  .ans{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+  .ans .q{font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--tx3);display:block;margin-bottom:8px}
+  .ans .a{font-size:15px;font-weight:800;letter-spacing:-.01em}
+  .ans .a.yes{color:var(--ok)} .ans .a.own{color:var(--own)}
+  .ans p{margin:6px 0 0;color:var(--tx2);font-size:13px}
+
+  /* steps */
+  .step{display:grid;grid-template-columns:56px 1fr;gap:0 18px;margin-top:18px}
+  .stepnum{
+    width:44px;height:44px;border-radius:10px;background:var(--accent-soft);color:var(--accent);
+    display:flex;align-items:center;justify-content:center;font-family:ui-monospace,Menlo,monospace;
+    font-weight:700;font-size:16px;border:1px solid color-mix(in srgb,var(--accent) 30%,transparent);
+  }
+  .stepline{grid-column:1;justify-self:center;width:2px;flex:1;background:var(--line);min-height:18px}
+  .stepbody{grid-column:2;grid-row:1 / span 2;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 20px;margin-bottom:4px}
+  .stepbody h3{margin:0 0 4px;font-size:15.5px;font-weight:800;letter-spacing:-.01em}
+  .stepbody .who{font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3);display:block;margin-bottom:10px}
+  .stepbody p{margin:8px 0;color:var(--tx2);font-size:13.5px}
+  .stepbody p b{color:var(--tx)}
+
+  .screen{
+    border:1px dashed color-mix(in srgb,var(--accent) 45%,transparent);border-radius:8px;
+    background:color-mix(in srgb,var(--accent-soft) 40%,transparent);padding:12px 16px;margin:10px 0;
+    font-size:13px;color:var(--tx2);
+  }
+  .screen .t{font-family:ui-monospace,Menlo,monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:6px}
+  .screen ul{margin:4px 0 0;padding-left:18px}
+  .screen li{margin:3px 0}
+  .pill{display:inline-block;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;letter-spacing:.06em;padding:2px 8px;border-radius:4px;white-space:nowrap}
+  .pill.pre{background:var(--ok-bg);color:var(--ok)}
+  .pill.type{background:var(--warn-bg);color:var(--warn)}
+  .pill.auto{background:var(--own-bg);color:var(--own)}
+
+  .tblwrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--card)}
+  table{border-collapse:collapse;width:100%;font-size:13px}
+  th{text-align:left;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--tx3);padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap;background:var(--card)}
+  td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  td.mono2{font-family:ui-monospace,Menlo,monospace;font-size:12px;white-space:nowrap}
+  td .muted{color:var(--tx2);font-size:12.5px}
+
+  .chip{display:inline-block;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;letter-spacing:.08em;padding:2px 8px;border-radius:4px;white-space:nowrap}
+  .chip.mit{background:var(--ok-bg);color:var(--ok)}
+  .chip.agpl{background:var(--bad-bg);color:var(--bad)}
+  .chip.build{background:var(--own-bg);color:var(--own)}
+
+  .note{border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:0 8px 8px 0;padding:12px 16px;font-size:13.5px;margin-top:14px}
+  .note.warn{border-left-color:var(--warn);background:var(--warn-bg)}
+  .note.ok{border-left-color:var(--ok);background:var(--ok-bg)}
+
+  details{border:1px solid var(--line);border-radius:10px;background:var(--card);margin-top:10px}
+  summary{cursor:pointer;padding:13px 18px;font-weight:700;font-size:14px;list-style:none;display:flex;align-items:center;gap:10px}
+  summary::before{content:"▸";color:var(--accent);transition:transform .15s}
+  details[open] summary::before{transform:rotate(90deg)}
+  details .inner{padding:0 18px 16px;color:var(--tx2);font-size:13.5px}
+  @media (prefers-reduced-motion:reduce){summary::before{transition:none}}
+
+  footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--line);color:var(--tx3);font-size:12px}
+</style>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="eyebrow">The Network · Agreement E-Sign Flow · 2026-07-23</p>
+    <h1>Rep presses one button. Signed agreement files itself.</h1>
+    <p class="thesis">The plotted flow: a rep on a lead in your CRM clicks <strong>Generate Agreement</strong> → the form is already filled from the lead → your existing <strong>phase1_engine.py generates the PDF</strong> → customer signs on a link (legally binding, ESIGN/UETA) → the signed PDF files back into the Contracts project under your existing rules, ledger updated, CRM stage flipped. <strong>Nobody provides this app — we assemble ~6 screens from 4 MIT libraries inside the dashboard you already host. $0, no per-envelope fees, no DocuSign.</strong></p>
+    <div class="statrow" role="list">
+      <span class="stat" role="listitem"><b>$0</b> forever · no per-envelope fees</span>
+      <span class="stat" role="listitem"><b>MIT</b> everything, owned</span>
+      <span class="stat" role="listitem"><b>~6–9</b> dev-days total</span>
+      <span class="stat" role="listitem"><b>Templates:</b> your engine, preloaded</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <section id="answers">
+    <h2>Your five questions, answered first</h2>
+    <div class="answers">
+      <div class="ans"><span class="q">Can templates be preloaded?</span><span class="a yes">YES — they already are</span><p>Your Phase 1 Agreement isn't a Word file — it's <code>phase1_engine.py</code> in the Contracts project: code that takes a client JSON and emits the finished PDF (§5/§6 wording included). The CRM just gets a template picker that lists your engines.</p></div>
+      <div class="ans"><span class="q">Where do reps type the details?</span><span class="a own">A FORM — never the document</span><p>Business name, office, signer come <b>pre-filled from the lead record</b>. Reps confirm/edit in a form; scope is picked, not free-typed. The engine refuses to generate if required fields are missing — same intake gate you have today.</p></div>
+      <div class="ans"><span class="q">Do they provide the app, or do we build?</span><span class="a own">WE BUILD (small)</span><p>No MIT vendor provides this app — that was the scout's finding. We assemble ~6 screens from 4 maintained MIT libraries. The AGPL alternative (DocuSeal) provides a full app but needs its own server + license discipline.</p></div>
+      <div class="ans"><span class="q">Do we host it?</span><span class="a yes">ALREADY HOSTED</span><p>It ships inside the dashboard on Vercel + Supabase (storage, tables, auth) — the stack that's already running. Nothing new to stand up, no new bill.</p></div>
+      <div class="ans"><span class="q">Can I use the Contracts folder templates &amp; rules?</span><span class="a yes">YES — it's the backbone</span><p>Same client JSON schema (<code>prospects/cg_roofing.json</code> shape), same engines, same <code>organize.py</code> filing rules, same ledgers. The CRM reads/writes them — your standing rule "read the JSONs/ledgers, never parse filenames" is honored.</p></div>
+      <div class="ans"><span class="q">Where does the file live?</span><span class="a own">SUPABASE STORAGE, ON THE LEAD</span><p>Private bucket, same auth as the dashboard, time-limited signed URLs — <b>not</b> Google Docs (that means leaving the CRM + a second login + no RLS). Every lead gets a Documents section; the Contracts folder stays the canonical local filing via a sync job.</p></div>
+    </div>
+  </section>
+
+  <section id="flow">
+    <h2>The walkthrough — button to signed &amp; filed</h2>
+    <p class="sec-lede">Scenario: rep is on the CG-Roofing-style lead in the CRM.</p>
+
+    <div class="step">
+      <div class="stepnum">1</div><div class="stepline"></div>
+      <div class="stepbody">
+        <h3>Rep presses "Generate Agreement" on the lead</h3>
+        <span class="who">Rep · in the leads CRM (dashboard)</span>
+        <p>Button lives on the lead/account page. First choice is the <b>template picker</b> — preloaded registry, starting with <b>Phase 1 Services Agreement</b> (your engine). New templates get added to the registry once, by us, and every rep sees them.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="stepnum">2</div><div class="stepline"></div>
+      <div class="stepbody">
+        <h3>The pre-send check — a required popup; nothing sends blind</h3>
+        <span class="who">Rep · every field shows its pre-filled guess and must be CONFIRMED</span>
+        <p>The CRM often won't have perfect data at signing time — that's expected. This modal exists precisely for that: pre-fills are <b>suggestions to confirm or correct</b>, and the send button stays disabled until every required field is confirmed.</p>
+        <div class="screen"><span class="t">Popup: Pre-send check (Agreement Builder)</span>
+          <ul>
+            <li><b>Legal entity name</b> — <span class="pill pre">CONFIRM/EDIT</span> — separate from brand: legal name goes in the agreement preamble (e.g. "CG Roofing and Waterproofing LLC and Red Rock Roofing LLC")</li>
+            <li><b>DBA / brand name</b> — <span class="pill pre">CONFIRM/EDIT</span> — what they're known as (e.g. "CG Roofing & Red Rock Roofing"); prints on the d/b/a line and cover email</li>
+            <li><b>Business office / address</b> — <span class="pill pre">CONFIRM/EDIT</span> — flagged "unverified" until a human confirms it once</li>
+            <li><b>Entity descriptor</b> — <span class="pill pre">CONFIRM/EDIT</span> ("each a Florida limited liability company")</li>
+            <li><b>Scope</b> — <span class="pill type">PICKED, NOT TYPED</span>: standard package (1 entity / 1 website / 1 Second Brain + social) preselected; entity editor for extras; any deviation goes in a "non-standard adjustments" box that <b>routes to Rob for approval</b> — same rule as the CG split-payment approval PDF</li>
+            <li><b>Fee</b> — <span class="pill auto">COMPUTED</span> from package + entities; editable only with approval</li>
+            <li><b>Authorized signer</b> — <span class="pill pre">CONFIRM/OVERRIDE</span> — defaults to the lead's KDM, but fully overridable: name + email + <b>mobile number</b> (send to whoever actually signs — an office manager, a partner, counsel)</li>
+            <li><b>Delivery channel</b> — <span class="pill type">PICK</span>: <b>Email · SMS · Both</b></li>
+            <li><b>MLE representative</b> — <span class="pill auto">AUTO</span> = the logged-in rep, or Rob if the rep lacks signing authority (field-visibility rule from the CRM PRD)</li>
+          </ul>
+        </div>
+        <p>Under the hood this popup <b>is</b> your client JSON — same schema as <code>prospects/cg_roofing.json</code>, with legal-vs-DBA now first-class. The intake gate carries over: engine hard-refuses to generate unless the confirmed intake block matches the entities list. Bonus: every confirmed value <b>writes back to the lead record</b> — the CRM gets cleaner with every agreement sent.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="stepnum">3</div><div class="stepline"></div>
+      <div class="stepbody">
+        <h3>Engine generates the PDF</h3>
+        <span class="who">System · your existing engine, wrapped as an API</span>
+        <p>The form saves the JSON → calls <code>phase1_engine.py</code> (wrapped in a small <code>POST /generate</code> API, exactly as your onboarding PRD already planned) → out comes the same agreement PDF you sent CG Roofing, with the §5/§6 as-delivered wording. A row is appended to <code>agreement-ledger.csv</code> (version, generated date, status=draft) and the JSON lands in <code>prospects/&lt;slug&gt;.json</code>.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="stepnum">4</div><div class="stepline"></div>
+      <div class="stepbody">
+        <h3>Preview + approval gate</h3>
+        <span class="who">Rep previews · Rob approves deviations only</span>
+        <p>Rep sees the rendered PDF in-browser (react-pdf). Standard-scope agreements go straight to send. Non-standard ones show <b>"Awaiting Rob's approval"</b> — Rob gets the ping, taps approve, and the approval is logged like today's approval PDFs.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="stepnum">5</div><div class="stepline"></div>
+      <div class="stepbody">
+        <h3>Customer signs on a link — legally binding</h3>
+        <span class="who">Authorized signer · any device, no account</span>
+        <div class="screen"><span class="t">Screen: Signing page (their side)</span>
+          <ul>
+            <li><b>Email and/or SMS</b> with a <b>single-use, expiring link</b> → opens the agreement for full review. SMS is just as binding — ESIGN doesn't regulate the delivery channel, and phone possession ties identity at least as tightly as email. SMS via Twilio (~$0.008/text + one-time A2P 10DLC business-texting registration)</li>
+            <li><b>Consent checkbox</b> — ESIGN/UETA electronic-business consent (consumer version with §7001(c) disclosures if the signer is a homeowner)</li>
+            <li><b>Signature</b> — draw with finger/mouse (signature_pad) or type name rendered in script; <b>printed name</b> field beside it</li>
+            <li><b>Date</b> — <span class="pill auto">AUTO-STAMPED</span> server-side at the moment of signing (never self-reported)</li>
+            <li>Every event logged: sent (channel + destination), viewed, consented, signed — with timestamp, IP, device</li>
+            <li><b>Copy retention (legal requirement):</b> completion screen always offers a download button + "email me my copy" field — so SMS-only signers can still keep their copy</li>
+          </ul>
+        </div>
+        <p><b>MLE side:</b> the MLE representative (Rob, or an authorized rep) countersigns the same way from inside the CRM — same signature box, same auto-date. Both signatures + printed names + dates are stamped onto the signature block of the PDF by the server.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="stepnum">6</div><div class="stepline"></div>
+      <div class="stepbody">
+        <h3>Completion — stamped, certified, filed, advanced</h3>
+        <span class="who">System · zero manual steps</span>
+        <p>Server re-verifies the document hash (proves nothing changed since send), stamps both signatures, appends an <b>audit-certificate page</b> (every event, hash, parties — the page that wins the court fight), emails final copies to the signer and MLE, and files the PDF into the Contracts project as <code>agreements/Phase 1 Agreement - &lt;Client&gt; v&lt;N&gt; (complete).pdf</code> — your organize.py naming — with the ledger row flipped to <b>signed</b> and superseded versions moved to <code>archive/</code>.</p>
+        <p><b>CRM reacts:</b> lead stage flips Quote&nbsp;Sent → Signed, and the invoice engine (<code>invoice_engine.py</code>, gapless MLE-YYYY-NNNNNN numbers) is one click away — the Invoiced → Paid → CLIENT promotion path from the CRM PRD.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="stepnum">7</div><div class="stepline"></div>
+      <div class="stepbody">
+        <h3>It never leaves the CRM — Documents on the lead, one-click resend</h3>
+        <span class="who">Automatic · reps stay inside the dashboard</span>
+        <div class="screen"><span class="t">Lead page: Documents section</span>
+          <ul>
+            <li>Every agreement version listed with a status chip — <b>draft → sent → viewed → signed</b> — tap to view the PDF right there (Supabase Storage signed URL)</li>
+            <li><b>Resend</b> reopens the pre-send check <b>pre-populated with everything confirmed last time</b>: unchanged → old link voided, fresh link sent, same version; edited → bumps to v2, v1 auto-archived per your existing versioning rules</li>
+            <li>Every send/resend/view/sign lands on the lead's activity timeline (feeds the R2 timeline + audit trail)</li>
+          </ul>
+        </div>
+        <p><b>Storage decision:</b> Supabase Storage private bucket — same auth, RLS, signed URLs, effectively free at PDF sizes. Google Docs was considered and rejected: breaks "never leave the CRM," adds a second login, no row-level security. <b>The Contracts folder stays canonical for local filing</b> — a small sync job (extension of organize.py's world) mirrors signed PDFs + ledger rows down from Supabase, so the <code>(complete).pdf</code>/archive rules keep working invisibly.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="nudges">
+    <h2>Nudge engine — unsigned docs chase themselves</h2>
+    <p class="sec-lede">Deterministic ladder, code-not-vibes. Runs on the hourly n8n watcher the CRM PRD already planned (Task 3.4) — agreements are just another overdue type. Numbers are defaults; Rob tunes them once real data exists.</p>
+    <div class="tblwrap">
+      <table>
+        <thead><tr><th>Trigger</th><th>Who's nudged</th><th>Action</th></tr></thead>
+        <tbody>
+          <tr><td class="mono2">Viewed, unsigned +24h</td><td><b>Rep</b></td><td>"They opened it — call now." The hottest signal in the pipeline gets a same-day task.</td></tr>
+          <tr><td class="mono2">Sent +2d, unsigned</td><td><b>Customer</b></td><td>Gentle reminder on the same channel the link went out on</td></tr>
+          <tr><td class="mono2">Sent +5d</td><td><b>Customer + Rep</b></td><td>Second nudge on the <em>other</em> channel if known (email↔SMS); rep gets a "who do I touch today" task</td></tr>
+          <tr><td class="mono2">Sent +10d</td><td><b>Customer</b></td><td>Final notice: "your signing link expires in X days" — real urgency, link genuinely expires</td></tr>
+          <tr><td class="mono2">Sent +14d</td><td><b>Rob</b></td><td>Escalation: deal flagged <b>Stalled</b> on the dashboard</td></tr>
+          <tr><td class="mono2">Signed / voided</td><td>everyone</td><td>Ladder stops instantly</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">Guardrails: max 3 customer touches per agreement · business-hours sends only · every nudge logged to the audit trail and the lead timeline · re-run never double-sends (idempotent, same rule as the overdue watcher).</p>
+    <p class="note warn"><b>Projects-tab "Contracts" link:</b> untouched by all of this. It's the meeting demo — stays where it is for walk-in-meeting moments. The real agreement flow lives on the <em>lead</em>; nothing here references that tab. If it ever confuses a rep, a "demo" badge is a 5-minute fix, someday.</p>
+  </section>
+
+  <section id="mapping">
+    <h2>Field map — lead → form → PDF</h2>
+    <div class="tblwrap">
+      <table>
+        <thead><tr><th>You asked about</th><th>Comes from</th><th>JSON field (Contracts schema)</th><th>Rep effort</th></tr></thead>
+        <tbody>
+          <tr><td><b>Customer Business Name</b></td><td>Lead's company record</td><td class="mono2">client.legal_name / short_name</td><td><span class="pill pre">confirm</span></td></tr>
+          <tr><td><b>Business Office</b></td><td>Lead's company record</td><td class="mono2">client.address</td><td><span class="pill pre">confirm</span></td></tr>
+          <tr><td><b>Scope written correctly</b></td><td>Package picker + entity editor + deviation box (Rob-gated)</td><td class="mono2">entities[] · intake · other_adjustments</td><td><span class="pill type">pick</span></td></tr>
+          <tr><td><b>Authorized Signer name</b></td><td>Lead's KDM contact</td><td class="mono2">client.owner → signer.name/email</td><td><span class="pill pre">confirm</span></td></tr>
+          <tr><td><b>Signature + date (customer)</b></td><td>Signing page — drawn/typed; date server-stamped</td><td class="mono2">signature_requests + signature_events</td><td>none (customer acts)</td></tr>
+          <tr><td><b>MLE Representative + signature</b></td><td>Logged-in rep or Rob (authority rule)</td><td class="mono2">mle_rep → countersign flow</td><td><span class="pill auto">auto</span></td></tr>
+          <tr><td><b>Fee</b></td><td>Computed from package/entities</td><td class="mono2">fee</td><td><span class="pill auto">auto</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="parts">
+    <h2>What's actually "in the repos" we're using</h2>
+    <p class="sec-lede">Four maintained MIT libraries do the hard parts. We write the glue — and you already own the two engines.</p>
+    <div class="tblwrap">
+      <table>
+        <thead><tr><th>Piece</th><th>Source</th><th>License</th><th>What it does in this flow</th></tr></thead>
+        <tbody>
+          <tr><td><b>Agreement engine</b></td><td class="mono2">contracts/.claude/skills/phase1-agreement</td><td><span class="chip build">YOURS</span></td><td>Template + merge: JSON in → finished Phase 1 PDF out. Already battle-tested on CG Roofing &amp; Gulf Coast.</td></tr>
+          <tr><td><b>Invoice engine</b></td><td class="mono2">contracts/.claude/skills/phase1-invoice</td><td><span class="chip build">YOURS</span></td><td>Fires after signing; gapless ledger numbers.</td></tr>
+          <tr><td>Signature capture</td><td><a href="https://github.com/szimek/signature_pad">szimek/signature_pad</a> · 11,985★</td><td><span class="chip mit">MIT</span></td><td>The draw-your-signature box (mouse/finger), plus typed-name mode we render in script.</td></tr>
+          <tr><td>PDF preview</td><td><a href="https://github.com/wojtekmaj/react-pdf">wojtekmaj/react-pdf</a> · 11,129★</td><td><span class="chip mit">MIT</span></td><td>In-browser agreement review for rep and signer.</td></tr>
+          <tr><td>PDF stamping</td><td><a href="https://github.com/cantoo-scribe/pdf-lib">@cantoo/pdf-lib</a> · maintained fork</td><td><span class="chip mit">MIT</span></td><td>Stamps signatures, names, dates onto the signature block; appends the audit-certificate page.</td></tr>
+          <tr><td>Crypto seal (optional, +1 day)</td><td><a href="https://github.com/vbuch/node-signpdf">vbuch/node-signpdf</a> · 893★</td><td><span class="chip mit">MIT</span></td><td>Cryptographically seals the final PDF so any later edit is machine-detectable.</td></tr>
+          <tr><td>Reference codebase</td><td><a href="https://github.com/salocin93/freesign">salocin93/freesign</a> · MIT, your exact stack</td><td><span class="chip mit">MIT</span></td><td>Read-first crib sheet (React/TS/Supabase signing app) — we mine its schema, not depend on it.</td></tr>
+          <tr><td>SMS delivery</td><td class="mono2">Twilio (already connected) via n8n or direct API</td><td><span class="chip build">SERVICE</span></td><td>Texts the signing link (~$0.008/text; one-time A2P 10DLC registration for US business texting — the only non-free penny in the system).</td></tr>
+          <tr><td><b>What we write</b></td><td class="mono2">~6 pieces in the dashboard</td><td><span class="chip build">BUILD</span></td><td>Template picker + builder form · <code>/generate</code> wrapper around your engine · signing page (consent + sign) · countersign step · 3 Supabase tables (<code>documents</code>, <code>signature_requests</code>, append-only <code>signature_events</code>) · completion job (stamp, certify, email, file, ledger, stage-flip).</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note ok"><b>Legality, one line:</b> intent (deliberate sign act) + consent (checkbox, consumer disclosures when needed) + association (audit log tied to the doc) + retention (copies emailed &amp; stored) = binding under ESIGN/UETA (<a href="https://www.law.cornell.edu/uscode/text/15/7001">15 U.S.C. §7001</a>). Courts care about the audit trail — ours is append-only with IP + timestamps + hashes. Not for deeds/notarized docs (that's notary/RON territory).</p>
+  </section>
+
+  <section id="hosting">
+    <h2>Hosting &amp; the DocuSeal alternative</h2>
+    <div class="tblwrap">
+      <table>
+        <thead><tr><th></th><th>Build-in (recommended)</th><th>DocuSeal self-hosted</th></tr></thead>
+        <tbody>
+          <tr><td class="mono2">Who provides the app</td><td><b>We build ~6 screens</b> from MIT parts</td><td>They provide a complete app (18,075★)</td></tr>
+          <tr><td class="mono2">Where it runs</td><td>Inside the dashboard — <b>Vercel + Supabase already running</b></td><td>A Docker server you'd stand up (the old onboarding PRD budgeted a VPS for exactly this)</td></tr>
+          <tr><td class="mono2">Templates</td><td>Your engines, preloaded; scope structurally enforced</td><td>Re-create templates in their drag-and-drop designer; scope becomes free text again</td></tr>
+          <tr><td class="mono2">CRM integration</td><td>Native — same tables, same ledger, stage flips built-in</td><td>Via their API + webhooks (wiring work anyway)</td></tr>
+          <tr><td class="mono2">License</td><td><span class="chip mit">MIT / yours</span></td><td><span class="chip agpl">AGPL server</span> — free if run unmodified &amp; separate; never merge its code</td></tr>
+          <tr><td class="mono2">Cost</td><td>$0</td><td>$0 + ~$6–12/mo VPS</td></tr>
+          <tr><td class="mono2">Effort</td><td><b>~7–10 dev-days</b> (4–7 e-sign flow + ~2 wiring engines/CRM + ~1 SMS delivery/10DLC)</td><td>~2–3 days setup + template rebuild + webhook wiring</td></tr>
+          <tr><td class="mono2">What you give up</td><td>Their polish: bulk send, reminders UI, mobile apps</td><td>Structural scope enforcement, one-system audit trail, MIT purity — and your engine sits outside the signing loop</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note"><b>Why build-in wins for you specifically:</b> the hard part of e-sign products is templates + field placement — and you already solved it with <code>phase1_engine.py</code>. DocuSeal would ask you to re-implement your template in their designer and give up the intake gate that keeps scope correct. The signing layer we'd still need to wire either way is only ~4–7 days as a pure-MIT build.</p>
+    <details>
+      <summary>Where this slots into the existing plans</summary>
+      <div class="inner">
+        <ul>
+          <li><b>CRM-evolution PRD (R10 agreement lane):</b> this IS the "phase later: in-app signing" — pulled forward, replacing the DocuSeal sidecar with the MIT build (blueprint updated on merit: your engine changes the math).</li>
+          <li><b>Onboarding-automation PRD (contracts project):</b> Phase 1 (engine-as-API) and Phase 4 (e-sign roundtrip) are exactly steps 3 and 5 above — the old plan said "Documenso on a VPS"; this supersedes it with no new server.</li>
+          <li><b>Contracts folder:</b> remains the source of truth. The CRM writes the same JSONs, ledgers, and file names organize.py enforces — dashboards read state from JSONs/ledgers, never filenames (your standing rule).</li>
+          <li><b>Sent_via today:</b> "DocuSign (Rob)" in your ledger — the paid dependency this whole flow deletes.</li>
+        </ul>
+      </div>
+    </details>
+  </section>
+
+  <footer>
+    <span class="mono">REP-TO-SIGNED FLOW · 2026-07-23 · sources: e-sign scout (docs/research/esign-mit-scout-2026-07-23.md, licenses read from LICENSE files) · contracts project (prospects/cg_roofing.json schema, agreement-ledger.csv, phase1_engine.py, organize.py) · CRM PRD R10 · ESIGN 15 U.S.C. §7001/§7003 · not legal advice</span>
+  </footer>
+</div>
