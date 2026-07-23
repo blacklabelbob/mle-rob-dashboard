@@ -205,10 +205,12 @@ describe("0008 DDL gate", () => {
       ...REQUEST_STATUSES,
     ]);
   });
-  it("event types match the DDL", () => {
-    const idx = ddl.indexOf("create table if not exists signature_events");
-    const chunk = ddl.slice(idx);
-    const m = chunk.match(/type text not null check \(type in\s*\(([^)]+)\)\)/);
+  it("event types match the DDL (0009 superseded the 0008 list)", () => {
+    const ddl9 = readFileSync(
+      join(__dirname, "../../../supabase/migrations/0009_esign_comms_consent.sql"),
+      "utf8"
+    );
+    const m = ddl9.match(/add constraint signature_events_type_check check \(type in\s*\(([^)]+)\)\)/);
     expect(m).toBeTruthy();
     expect(m![1].match(/'([^']+)'/g)!.map((s) => s.replace(/'/g, ""))).toEqual([...EVENT_TYPES]);
   });

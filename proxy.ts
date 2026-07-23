@@ -13,7 +13,13 @@ export function isPublicPath(pathname: string): boolean {
     pathname === "/api/twilio/voice" ||
     pathname === "/api/health" || // uptime monitors carry no creds; payload is data-free (MC.16)
     pathname.startsWith("/api/webhooks/") ||
-    pathname.startsWith("/api/cron/")
+    pathname.startsWith("/api/cron/") ||
+    // Q47 e-sign: customers open signing links with no Basic creds. The page
+    // and sign POST authenticate via the single-use token itself (hash-at-rest,
+    // expiring — lib/esign/token.ts); every other /api/esign/* route
+    // (send, documents) stays behind the Basic gate.
+    pathname.startsWith("/sign/") ||
+    pathname === "/api/esign/sign"
   );
 }
 

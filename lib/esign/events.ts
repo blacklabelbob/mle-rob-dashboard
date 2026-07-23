@@ -12,6 +12,7 @@ export const EVENT_TYPES = [
   "voided",
   "nudge",
   "copy_delivered",
+  "comms_consent", // PEWC comms opt-in (0009) — optional, never gates signing
 ] as const;
 export type EventType = (typeof EVENT_TYPES)[number];
 

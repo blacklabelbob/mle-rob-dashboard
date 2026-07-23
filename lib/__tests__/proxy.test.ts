@@ -25,6 +25,15 @@ describe("isPublicPath (basic-auth gate exemptions)", () => {
     expect(isPublicPath("/rep")).toBe(false);
   });
 
+  it("keeps signer links reachable, but only the token-authed surfaces (Q47)", () => {
+    expect(isPublicPath("/sign/some-token")).toBe(true);
+    expect(isPublicPath("/api/esign/sign")).toBe(true);
+    expect(isPublicPath("/sign")).toBe(false); // bare prefix stays gated
+    expect(isPublicPath("/api/esign/send")).toBe(false); // admin: Basic gate
+    expect(isPublicPath("/api/esign/documents")).toBe(false); // admin: Basic gate
+    expect(isPublicPath("/api/esign/sign/extra")).toBe(false); // exact match only
+  });
+
   it("does not let lookalike prefixes through", () => {
     expect(isPublicPath("/api/twilio/voicemail")).toBe(false);
     expect(isPublicPath("/api/webhooks")).toBe(false);
