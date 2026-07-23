@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>n8n Workflow Map — MLE CRM · 2026-07-23</title>
+<style>
+  :root{
+    --bg:#070b14; --panel:#0c1220; --panel2:#101828; --line:rgba(255,255,255,.08);
+    --ink:#e2e8f0; --dim:#94a3b8; --faint:#64748b;
+    --sky:#38bdf8; --green:#34d399; --amber:#fbbf24; --rose:#fb7185; --violet:#a78bfa;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.45;padding:32px 20px 64px}
+  .wrap{max-width:1180px;margin:0 auto}
+  header.page h1{font-size:22px;font-weight:650;letter-spacing:-.02em}
+  header.page p{color:var(--dim);font-size:13px;margin-top:4px}
+  .tag{display:inline-block;font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;border-radius:999px;padding:2px 9px;margin-left:8px;vertical-align:2px;color:var(--sky);background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.3)}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;margin-top:24px;overflow:hidden}
+  .panel>.cap{padding:10px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:baseline;background:rgba(255,255,255,.02)}
+  .cap b{font-size:13px;font-weight:650}
+  .cap span{font-size:11px;color:var(--faint)}
+  .panel .inner{padding:16px;overflow-x:auto}
+  .mermaid{display:flex;justify-content:center}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th{font-size:10px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--faint);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+  td{padding:8px 10px;border-bottom:1px solid var(--line);color:var(--dim);vertical-align:top}
+  td b{color:var(--ink);font-weight:600}
+  td code{font-size:11px;color:var(--sky);background:rgba(56,189,248,.08);border-radius:4px;padding:0 4px}
+  .pill{display:inline-block;font-size:10px;font-weight:600;border-radius:999px;padding:1px 8px}
+  .pill.green{color:var(--green);background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.3)}
+  .pill.faint{color:var(--faint);background:rgba(100,116,139,.1);border:1px solid rgba(100,116,139,.3)}
+  .foot{color:var(--faint);font-size:11px;margin-top:18px}
+  .foot a{color:var(--sky);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="page">
+    <h1>n8n Workflow Map — MLE CRM <span class="tag">Task MC.11 · live 1:1</span></h1>
+    <p>Every automation touching the CRM: trigger → nodes → target. Pulled from the live n8n instance (boostn8n) 2026-07-23. Canonical doc: <code style="color:var(--sky)">docs/ops/N8N-WORKFLOW-MAP.md</code></p>
+  </header>
+
+  <div class="panel">
+    <div class="cap"><b>The map</b><span>7 CRM-touching workflows · all active · dotted = failure paths</span></div>
+    <div class="inner">
+      <pre class="mermaid">
+flowchart LR
+  subgraph N8N["n8n cloud — boostn8n"]
+    OT["⏰ Overdue Task Watcher<br/>hourly :33"]
+    UW["⏰ Uptime Watch<br/>every 10 min"]
+    NB["⏰ Nightly Backup<br/>daily 03:33"]
+    RC["⏰ Dead-Lead Recycle<br/>Mon 09:33"]
+    GM["📧 Gmail capture<br/>rob@aivoicetech.io ONLY"]
+    LM["📡 Voice-Law Monitor<br/>Mon 9am ET · 4 RSS"]
+    EA["🚨 Error Alarm<br/>backstop"]
+  end
+  subgraph CRM["mle-rob-dashboard.vercel.app"]
+    health["/api/health"]
+    overdue["/api/cron/overdue"]
+    backup["/api/cron/backup"]
+    recycle["/api/cron/recycle"]
+    email["/api/webhooks/n8n-email"]
+    voicelaw["/api/webhooks/voice-law"]
+    n8nerror["/api/webhooks/n8n-error"]
+    flagsapi["/api/admin/flags"]
+  end
+  subgraph DATA["Supabase"]
+    flags[("flags → Things to Address")]
+    activities[("activities")]
+    people[("people.notes tag")]
+    bucket[("backups bucket + verify")]
+  end
+  UW --> health
+  UW -- "unhealthy → high flag" --> flagsapi --> flags
+  NB --> backup --> bucket
+  NB -- "unverified → high flag" --> flagsapi
+  OT --> overdue --> flags
+  RC --> recycle --> people
+  recycle -- "low flag / person" --> flags
+  GM --> email --> activities
+  LM -- "match → email Rob + POST" --> voicelaw --> flags
+  GM -. errorTrigger .-> n8nerror
+  EA -. "errorWorkflow: UW / NB / GM" .-> n8nerror --> flags
+      </pre>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="cap"><b>Per-workflow detail</b><span>trigger / auth / target / failure path</span></div>
+    <div class="inner">
+      <table>
+        <tr><th>Workflow</th><th>Status</th><th>Trigger</th><th>Auth</th><th>Target</th><th>Failure path</th></tr>
+        <tr><td><b>Hourly Overdue Task Watcher</b><br><code>ozMXSpftU2lIbhp2</code></td><td><span class="pill green">active</span></td><td>hourly :33</td><td>CRON_SECRET bearer</td><td>flags (per overdue task, route-deduped)</td><td>route 401/503 contract</td></tr>
+        <tr><td><b>Uptime Watch</b><br><code>Dqpm48FtsjiwyUMO</code></td><td><span class="pill green">active</span></td><td>every 10 min</td><td>none (health is unauth)</td><td>high flag on unhealthy, deduped</td><td>inline branch + Error Alarm</td></tr>
+        <tr><td><b>Nightly Backup</b><br><code>f99xNvSpKIy95k4Q</code></td><td><span class="pill green">active</span></td><td>daily 03:33</td><td>CRON_SECRET bearer</td><td>backups bucket (12 tables, verified) · high flag on failure</td><td>inline branch + Error Alarm</td></tr>
+        <tr><td><b>Weekly Dead-Lead Recycle</b><br><code>EsDSJQoJwzLkJOhR</code></td><td><span class="pill green">active</span></td><td>Mon 09:33</td><td>CRON_SECRET bearer</td><td>people.notes [recycle_candidate] tag + low flags</td><td>route 401/503 contract</td></tr>
+        <tr><td><b>Gmail capture</b><br><code>JnIJiCbOqSaK8uN2</code></td><td><span class="pill green">active</span></td><td>new mail — rob@aivoicetech.io ONLY</td><td>x-n8n-secret</td><td>activities (idempotent ids; boostuppayments.com hard-rejected)</td><td>embedded errorTrigger + Error Alarm</td></tr>
+        <tr><td><b>AI Voice Call Law Monitor</b><br><code>KKDnWT0gYVB1YFvA</code></td><td><span class="pill green">active</span></td><td>Mon 9am ET · FCC/FTC/TCPAWorld/NatLawReview RSS</td><td>x-n8n-secret</td><td>medium flags (one per story ever) + digest email to Rob</td><td>no matches = silent by design</td></tr>
+        <tr><td><b>Error Alarm backstop</b><br><code>VoOFOPGqObGWe5Jr</code></td><td><span class="pill green">active</span></td><td>errorTrigger (UW / NB / GM)</td><td>x-n8n-secret</td><td>flags (&lt;15-min alerting)</td><td>it IS the failure path</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="cap"><b>Rotation coupling</b><span>what a secret rotation touches</span></div>
+    <div class="inner">
+      <table>
+        <tr><th>Secret</th><th>Touches</th></tr>
+        <tr><td><b>CRON_SECRET</b></td><td>3 hardcoded-bearer workflows: <code>ozMXSpftU2lIbhp2</code>, <code>EsDSJQoJwzLkJOhR</code>, <code>f99xNvSpKIy95k4Q</code></td></tr>
+        <tr><td><b>N8N_EMAIL_WEBHOOK_SECRET</b></td><td>shared n8n header credential <code>2sHDFkgzMWkOvhv7</code> → Gmail capture, Error Alarm, Voice-Law POST</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="cap"><b>1:1 accounting — the other 10 workflows on the instance</b><span>verified: none reference the CRM</span></div>
+    <div class="inner">
+      <table>
+        <tr><th>Workflow</th><th>Status</th><th>Scope</th></tr>
+        <tr><td>Gamma Pipeline v2.0 <code>YlK880u1m5SKVABE</code></td><td><span class="pill green">active</span></td><td>Gamma deck automation (separate project)</td></tr>
+        <tr><td>STG Community Listening <code>U9HrIUMiuuNunHrH</code></td><td><span class="pill green">active</span></td><td>STG legacy side-consulting</td></tr>
+        <tr><td>Docs Expert Chatbot (Gemini RAG) <code>4ceeHqM5L4v7AkYJ</code></td><td><span class="pill faint">inactive</span></td><td>experiment</td></tr>
+        <tr><td>AI Agent workflow <code>PVK5gy3MHxS85XPu</code></td><td><span class="pill faint">inactive</span></td><td>experiment</td></tr>
+        <tr><td>AI Agent Chat with Tools <code>UnaBWqZ7QrOgWUSk</code></td><td><span class="pill faint">inactive</span></td><td>experiment</td></tr>
+        <tr><td>Disco to Gamma <code>WeYz7BYckCU41Jv1</code></td><td><span class="pill faint">inactive</span></td><td>superseded by v2.0</td></tr>
+        <tr><td>Gamma Pipeline v1 <code>m0qURCLqNzkU43Wy</code></td><td><span class="pill faint">inactive</span></td><td>superseded by v2.0</td></tr>
+        <tr><td>My workflow <code>XzqlkzsQmkKRfZcv</code></td><td><span class="pill faint">inactive</span></td><td>scratch</td></tr>
+        <tr><td>n8n Barber <code>dP2GZq5qEhytOMgr</code></td><td><span class="pill faint">inactive</span></td><td>scratch</td></tr>
+        <tr><td>Chat Handoff <code>xeJAZPdPahCeqVAS</code></td><td><span class="pill faint">inactive</span></td><td>scratch</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <p class="foot">Refresh rule: any new/changed CRM-touching n8n workflow updates this page + <code>docs/ops/N8N-WORKFLOW-MAP.md</code> same-commit (MC.9's future ingestion workflows extend it). · <a href="/">← back to dashboard</a></p>
+</div>
+<script type="module">
+  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: "dark",
+    themeVariables: {
+      darkMode: true, background: "#0c1220",
+      primaryColor: "#101828", primaryBorderColor: "rgba(255,255,255,.18)", primaryTextColor: "#e2e8f0",
+      lineColor: "#64748b", clusterBkg: "rgba(255,255,255,.02)", clusterBorder: "rgba(255,255,255,.1)",
+      fontFamily: "ui-sans-serif, system-ui, sans-serif", fontSize: "13px"
+    },
+    flowchart: { curve: "basis", padding: 12 }
+  });
+</script>
+</body>
+</html>
