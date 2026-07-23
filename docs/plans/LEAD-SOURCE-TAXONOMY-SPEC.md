@@ -30,7 +30,7 @@ Worked examples: `TAXONOMY_WORKED_EXAMPLES`, test-pinned to the classifier (drif
 | MC.9 Cal.com ingestion | `classifyUtm` at ingestion time on passthrough params |
 | MC.12 KPI Summary / MC.15 rollup | group-by domain |
 
-## Remaining for the MC.4 tick (inc.2)
-**Cal.com hidden-field/UTM passthrough spike** — yes/no verdict with evidence URLs (or a documented workaround). Until then the DoD is 2/3 met (taxonomy ✅, UTM convention ✅, verdict ⏳).
+## Cal.com passthrough verdict (inc.2 — MC.4 DoD 3/3 ✅)
+**YES, via hidden booking fields only** — full evidence in `docs/research/CALCOM-UTM-PASSTHROUGH-VERDICT-2026-07-23.md`. Short form: Cal.com auto-tracks our exact five `utm_*` params but that data is **UI-only** (not in webhooks — open issue calcom#24759); the reliable channel is **hidden Short-Text booking questions** with identifiers matching `UTM_CONVENTION` (+ `campaign_ref`), auto-filled by plain `utm_*` query params on the booking link, arriving in the `BOOKING_CREATED` webhook's top-level `responses` object. MC.9 reads `responses.<identifier>.value` → `classifyUtm`; it must NOT use `metadata[...]` query params (regression-prone, calcom#16140) and its DoD test event must assert the six keys arrive.
 
 Tests: `lib/__tests__/sourceTaxonomy.test.ts` (7 pins incl. ladder order, enum freeze, 1.15 completeness, worked-example drift).
