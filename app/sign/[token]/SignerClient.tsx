@@ -8,6 +8,7 @@ import {
   ESIGN_CONSENT_TEXT,
   ESIGN_CONSUMER_CONSENT_TEXT,
 } from "@/lib/esign/consent";
+import { canSign, consentLocked } from "@/lib/esign/signerGate";
 
 // Q47 e-sign signer surface (walkthrough step 5): full-document review →
 // ESIGN consent → draw (signature_pad) or typed-name signature →
@@ -92,12 +93,20 @@ export default function SignerClient(props: Props) {
   }, [mode, done]);
 
   // Consumer consent stays locked until the PDF has rendered (spec §3.3.1).
-  const consentLocked = consumer && !pdfRenderedAt;
+  // Gating logic is pure + unit-tested in lib/esign/signerGate.ts.
+  const locked = consentLocked(props.signerType, pdfRenderedAt);
   const signatureReady = mode === "draw" ? !padEmpty : typed.trim().length > 1;
-  const canSign = consent && !consentLocked && name.trim().length > 1 && signatureReady && !busy;
+  const signable = canSign({
+    signerType: props.signerType,
+    pdfRenderedAt,
+    consent,
+    printedName: name,
+    signatureReady,
+    busy,
+  });
 
   async function submit() {
-    if (!canSign) return;
+    if (!signable) return;
     setBusy(true);
     setError("");
     try {
@@ -197,13 +206,13 @@ export default function SignerClient(props: Props) {
           <input
             type="checkbox"
             checked={consent}
-            disabled={consentLocked}
+            disabled={locked}
             onChange={(e) => setConsent(e.target.checked)}
             className="mt-1 h-4 w-4 shrink-0 accent-sky-500 disabled:opacity-40"
           />
           <span>
             {consumer ? ESIGN_CONSUMER_CONSENT_TEXT : ESIGN_CONSENT_TEXT}
-            {consentLocked && (
+            {locked && (
               <span className="mt-1 block text-xs text-amber-400/90">
                 The consent box unlocks once the agreement has displayed above — if it
                 won&apos;t load, request a paper copy instead (see above).
@@ -314,7 +323,7 @@ export default function SignerClient(props: Props) {
 
         <button
           type="button"
-          disabled={!canSign}
+          disabled={!signable}
           onClick={submit}
           className="w-full rounded-lg bg-sky-500 px-4 py-3 text-sm font-semibold text-white transition enabled:hover:bg-sky-400 disabled:cursor-not-allowed disabled:opacity-40"
         >

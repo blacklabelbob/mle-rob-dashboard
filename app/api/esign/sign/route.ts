@@ -156,59 +156,139 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "signing link signed" }, { status: 409 });
   }
 
-  // Audit chain for the certificate = every prior event + the two being added.
-  const prior = await listEvents([request.id]);
-  const chain = [
-    ...prior.map((e) => ({ type: e.type, at: e.at, ip: e.ip })),
-    { type: "consent", at: now, ip },
-    { type: "signed", at: now, ip },
-  ];
+  // ------------------------------------------------------------------------
+  // CRITICAL SECTION (critic-rob punch #1). The latch above is only a
+  // concurrency lock — the signature does not legally EXIST until the stamped
+  // PDF is stored and the document row is flipped. If anything in between
+  // fails, we REVERT the latch to the exact pre-latch row (snapshot in
+  // `request`), file a high flag, and 500 with an honest "nothing was
+  // recorded — same link still works" message. Design choice, on record:
+  //   * cannot lose a signature — nothing durable existed at failure, and the
+  //     link comes back to life for an immediate retry;
+  //   * cannot double-sign — the latch update stays atomic
+  //     (.is(signed_at,null)); a retry re-takes it cleanly.
+  // If the REVERT ITSELF fails the link is stuck consumed — that flag says so
+  // explicitly and the signer is told to request a fresh link.
+  // ------------------------------------------------------------------------
+  let signedPath: string;
+  let sha256Signed: string;
+  try {
+    // Audit chain for the certificate = every prior event + the two being added.
+    const prior = await listEvents([request.id]);
+    const chain = [
+      ...prior.map((e) => ({ type: e.type, at: e.at, ip: e.ip })),
+      { type: "consent", at: now, ip },
+      { type: "signed", at: now, ip },
+    ];
 
-  const signedBytes = await stampAndCertify({
-    originalPdf: original,
-    documentTitle: document.title,
-    documentId: document.id,
-    version: document.version,
-    phase: document.phase,
-    signerName,
-    signerEmail: signerEmail || request.sent_to,
-    signatureDataUrl,
-    typedName,
-    signedAtIso: now,
-    consentAtIso: now,
-    signerIp: ip,
-    signerUserAgent: userAgent,
-    sha256AtUpload: document.sha256_at_upload,
-    sha256AtSign: shaAtSign,
-    events: chain,
-    consumer:
-      isConsumer && renderEvidence
-        ? {
-            disclosureText: renderConsumerDisclosure(ROB_COPY_ADDRESS, "My Local Everything"),
-            disclosureVersion: CONSUMER_CONSENT_VERSION,
-            pdfRenderedAt: renderEvidence.pdfRenderedAt,
-            disclosureShownAt: renderEvidence.disclosureShownAt,
-          }
+    const signedBytes = await stampAndCertify({
+      originalPdf: original,
+      documentTitle: document.title,
+      documentId: document.id,
+      version: document.version,
+      phase: document.phase,
+      signerName,
+      signerEmail: signerEmail || request.sent_to,
+      signatureDataUrl,
+      typedName,
+      signedAtIso: now,
+      consentAtIso: now,
+      signerIp: ip,
+      signerUserAgent: userAgent,
+      sha256AtUpload: document.sha256_at_upload,
+      sha256AtSign: shaAtSign,
+      events: chain,
+      consumer:
+        isConsumer && renderEvidence
+          ? {
+              disclosureText: renderConsumerDisclosure(ROB_COPY_ADDRESS, "My Local Everything"),
+              disclosureVersion: CONSUMER_CONSENT_VERSION,
+              pdfRenderedAt: renderEvidence.pdfRenderedAt,
+              disclosureShownAt: renderEvidence.disclosureShownAt,
+            }
+          : undefined,
+      commsConsent: commsConsent
+        ? { phone: commsConsent.phone, languageVersion: COMMS_CONSENT_VERSION, text: COMMS_CONSENT_TEXT }
         : undefined,
-    commsConsent: commsConsent
-      ? { phone: commsConsent.phone, languageVersion: COMMS_CONSENT_VERSION, text: COMMS_CONSENT_TEXT }
-      : undefined,
-  });
-  const sha256Signed = sha256Hex(signedBytes);
-  const anchor = anchorIdOf(document);
-  const signedPath = documentPath(anchor, document.id, document.version, true);
-  await uploadPdf(signedPath, signedBytes);
+    });
+    sha256Signed = sha256Hex(signedBytes);
+    const anchor = anchorIdOf(document);
+    signedPath = documentPath(anchor, document.id, document.version, true);
+    await uploadPdf(signedPath, signedBytes);
 
-  const { error: docErr } = await esignDb()
-    .from("documents")
-    .update({
-      status: "signed",
-      signed_path: signedPath,
-      sha256_signed: sha256Signed,
-      updated_at: now,
-    })
-    .eq("id", document.id);
-  if (docErr) return NextResponse.json({ error: docErr.message }, { status: 500 });
+    const { error: docErr } = await esignDb()
+      .from("documents")
+      .update({
+        status: "signed",
+        signed_path: signedPath,
+        sha256_signed: sha256Signed,
+        updated_at: now,
+      })
+      .eq("id", document.id);
+    if (docErr) throw new Error(`document update: ${docErr.message}`);
+  } catch (err) {
+    const reason = (err as Error).message;
+    console.error(`[esign] post-latch failure for ${request.id}: ${reason}`);
+    // Revert the latch to the exact pre-latch snapshot.
+    const revertAt = new Date().toISOString();
+    const { data: reverted, error: revErr } = await esignDb()
+      .from("signature_requests")
+      .update({
+        signed_at: request.signed_at,
+        consent_at: request.consent_at,
+        status: request.status,
+        signer_name: request.signer_name,
+        signer_email: request.signer_email,
+        signer_ip: request.signer_ip,
+        signer_user_agent: request.signer_user_agent,
+        sha256_at_sign: request.sha256_at_sign,
+        updated_at: revertAt,
+      })
+      .eq("id", request.id)
+      .select("id");
+    const revertOk = !revErr && (reverted?.length ?? 0) > 0;
+    await esignDb()
+      .from("flags")
+      .insert({
+        entity_id: document.person_id ?? document.org_id ?? document.deal_id,
+        entity_name: "E-sign",
+        title: `E-sign signing failed after latch — ${request.id}`,
+        detail: revertOk
+          ? `Signing "${document.title}" (v${document.version}) for ${request.sent_to} failed after the single-use latch (${reason}). Latch REVERTED — the link is live again and the signer was told to retry. No signature was recorded.`
+          : `Signing "${document.title}" (v${document.version}) for ${request.sent_to} failed after the single-use latch (${reason}) AND the revert also failed (${revErr?.message ?? "0 rows"}). The link is stuck consumed with NO signed PDF — issue a fresh link via resend.`,
+        severity: "high",
+      })
+      .then(({ error: fErr }) => {
+        if (fErr) console.error(`[esign] failure flag insert failed: ${fErr.message}`);
+      });
+    return NextResponse.json(
+      {
+        error: revertOk
+          ? "signing could not be completed — nothing was recorded. Your link is still valid; please try again."
+          : "signing could not be completed — please contact us for a fresh signing link.",
+      },
+      { status: 500 }
+    );
+  }
+
+  // From here the signed record is DURABLE — no failure below may 500 or
+  // revert. DB-ledger event misses are an audit gap (the certificate already
+  // embeds the chain), so they file a flag instead of failing the signer.
+  const auditGap = (what: string) => (err: unknown) => {
+    console.error(`[esign] ${what} failed post-durability:`, err);
+    void esignDb()
+      .from("flags")
+      .insert({
+        entity_id: document.person_id ?? document.org_id ?? document.deal_id,
+        entity_name: "E-sign",
+        title: `E-sign audit gap: ${what} — ${request.id}`,
+        detail: `"${document.title}" signed successfully but ${what} failed to write (${(err as Error).message}). The signed PDF's certificate page carries the full chain; backfill the ledger row.`,
+        severity: "high",
+      })
+      .then(({ error: fErr }) => {
+        if (fErr) console.error(`[esign] audit-gap flag insert failed: ${fErr.message}`);
+      });
+  };
 
   await insertEvent(
     buildEvent(request.id, "consent", now, {
@@ -226,7 +306,7 @@ export async function POST(req: NextRequest) {
           : {}),
       },
     })
-  );
+  ).catch(auditGap("consent event"));
   // PEWC comms opt-in — separate event with its own language version, and a
   // person-level record so no surface ever re-asks (0009 people.comms_consent).
   if (commsConsent) {
@@ -240,7 +320,7 @@ export async function POST(req: NextRequest) {
           userAgent,
         },
       })
-    ).catch((err) => console.error("[esign] comms_consent event failed:", err));
+    ).catch(auditGap("comms_consent event"));
     if (document.person_id) {
       await esignDb()
         .from("people")
@@ -270,7 +350,7 @@ export async function POST(req: NextRequest) {
         signedPath,
       },
     })
-  );
+  ).catch(auditGap("signed event"));
 
   // Lead-timeline activity (walkthrough: "everything a lead-timeline event").
   // Idempotent id per request; anchors copied from the document row (same
