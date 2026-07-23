@@ -2,6 +2,7 @@ import { getStore } from "@/lib/storage";
 import { isDemo } from "@/lib/stats";
 import PeopleTable from "@/components/PeopleTable";
 import SearchBar from "@/components/SearchBar";
+import CsvButtons from "@/components/CsvButtons";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +19,10 @@ export default async function PeoplePage() {
             {data.people.length} people · every line is a node · edits here update every page
           </p>
         </div>
-        <SearchBar />
+        <div className="flex flex-wrap items-center gap-2">
+          <SearchBar />
+          <CsvButtons />
+        </div>
       </div>
       <PeopleTable people={data.people} verticals={data.verticals} />
     </div>
