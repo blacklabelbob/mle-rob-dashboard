@@ -12,6 +12,11 @@ type Plan = {
   inserts: { id: string; name: string; kind?: string }[];
   dupes: { line: number; name: string; matchId: string; matchWhere: string; signals: string[] }[];
   errors: { line: number; reason: string }[];
+  // Task 4.4 (Q35): field-mapping report for Rob's real lists — every original
+  // header is accounted for, either mapped to a canonical field or listed as
+  // ignored. Ignored columns MUST be shown before commit (no silent drops).
+  mapping: Record<string, string>;
+  ignoredColumns: string[];
 };
 
 export default function CsvButtons() {
@@ -20,6 +25,7 @@ export default function CsvButtons() {
   const [csv, setCsv] = useState<string | null>(null);
   const [fileName, setFileName] = useState("");
   const [plan, setPlan] = useState<Plan | null>(null);
+  const [tag, setTag] = useState("");
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -28,6 +34,7 @@ export default function CsvButtons() {
     setCsv(null);
     setFileName("");
     setPlan(null);
+    setTag("");
     setDone(null);
     setError(null);
     if (fileRef.current) fileRef.current.value = "";
@@ -58,7 +65,10 @@ export default function CsvButtons() {
     setBusy(true);
     setError(null);
     try {
-      const res = await fetch("/api/admin/import?commit=1", { method: "POST", body: csv });
+      const commitUrl =
+        "/api/admin/import?commit=1" +
+        (tag.trim() ? `&tag=${encodeURIComponent(tag.trim())}` : "");
+      const res = await fetch(commitUrl, { method: "POST", body: csv });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? `HTTP ${res.status}`);
       setDone(data.inserted);
@@ -111,6 +121,19 @@ export default function CsvButtons() {
                 {plan.dupes.length === 1 ? "" : "s"} flagged · {plan.errors.length} error
                 {plan.errors.length === 1 ? "" : "s"}
               </p>
+              {(() => {
+                const remapped = Object.entries(plan.mapping ?? {}).filter(([h, c]) => h !== c);
+                return remapped.length > 0 ? (
+                  <p className="text-xs text-slate-400">
+                    Recognized: {remapped.map(([h, c]) => `${h} → ${c}`).join(" · ")}
+                  </p>
+                ) : null;
+              })()}
+              {(plan.ignoredColumns?.length ?? 0) > 0 && (
+                <p className="text-xs text-amber-300/90">
+                  Not imported (no matching field): {plan.ignoredColumns.join(", ")}
+                </p>
+              )}
               {plan.dupes.length > 0 && (
                 <ul className="max-h-28 space-y-0.5 overflow-y-auto text-xs text-amber-300/90">
                   {plan.dupes.map((d) => (
@@ -130,6 +153,16 @@ export default function CsvButtons() {
                 </ul>
               )}
             </div>
+          )}
+
+          {plan && plan.inserts.length > 0 && (
+            <input
+              type="text"
+              value={tag}
+              onChange={(e) => setTag(e.target.value)}
+              placeholder="Tag this import (optional) — e.g. gulf-coast-list"
+              className="mt-2 w-full rounded border border-white/10 bg-white/5 px-2 py-1 text-xs text-slate-200 placeholder:text-slate-500 focus:border-white/25 focus:outline-none"
+            />
           )}
 
           <div className="mt-2 flex justify-end gap-2">
