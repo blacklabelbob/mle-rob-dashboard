@@ -19,15 +19,25 @@ export default function SearchBar() {
   const boxRef = useRef<HTMLDivElement>(null);
   const seq = useRef(0);
 
-  useEffect(() => {
-    const trimmed = q.trim();
-    if (!trimmed) {
+  // Empty-query clearing lives in the change handler, not the effect —
+  // react-hooks/set-state-in-effect (CI gate): effects must not setState
+  // synchronously. Bumping seq here also invalidates any in-flight fetch so
+  // stale hits can't reopen the box after the user cleared it.
+  function onQueryChange(value: string) {
+    setQ(value);
+    if (!value.trim()) {
+      seq.current++;
       setHits([]);
       setOpen(false);
       setSearching(false);
-      return;
+    } else {
+      setSearching(true);
     }
-    setSearching(true);
+  }
+
+  useEffect(() => {
+    const trimmed = q.trim();
+    if (!trimmed) return;
     const mine = ++seq.current;
     const t = setTimeout(async () => {
       try {
@@ -61,7 +71,7 @@ export default function SearchBar() {
 
   function go(hit: SearchHit) {
     setOpen(false);
-    setQ("");
+    onQueryChange("");
     router.push(`/people/${hit.id}`);
   }
 
@@ -96,7 +106,7 @@ export default function SearchBar() {
         </svg>
         <input
           value={q}
-          onChange={(e) => setQ(e.target.value)}
+          onChange={(e) => onQueryChange(e.target.value)}
           onKeyDown={onKeyDown}
           onFocus={() => q.trim() && hits.length > 0 && setOpen(true)}
           placeholder="Search people & companies…"
