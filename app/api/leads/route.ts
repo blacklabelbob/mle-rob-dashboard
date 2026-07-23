@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { getStore } from "@/lib/storage";
 import { parseLeadIntake } from "@/lib/leads/intakePayload";
-import { planLeadIntake } from "@/lib/leads/intakePlan";
+import { IDEMPOTENCY_KEY_RE, intakeIds, planLeadIntake } from "@/lib/leads/intakePlan";
+import { checkRateLimit } from "@/lib/leads/rateLimit";
 import {
   bearerToken,
   leadKeysFromEnv,
@@ -17,7 +18,19 @@ export const dynamic = "force-dynamic";
 // planLeadIntake (pure planner, CR-3) → this route executes the plan
 // VERBATIM via the store — it never invents ops of its own.
 // Missing/wrong token → 401 (DoD); a token for the wrong product → 401 too
-// (an AIDRE key can't submit AIVA leads). Rate-limit + idempotency = Task 5.2.
+// (an AIDRE key can't submit AIVA leads).
+//
+// Task 5.2 layers on top:
+// - Rate-limit: sliding window per authenticated product (pure lib, clock
+//   injected); over the limit → 429 + Retry-After. Counted post-auth so an
+//   unauthenticated flood can't starve a product's real quota.
+// - Idempotency: optional Idempotency-Key header. Deal/activity ids derive
+//   from (product, key), so the deal row IS the idempotency record — a retry
+//   finds it in the ledger, WRITES NOTHING, and returns 200 replayed:true.
+//   No side table to drift; same key twice → one person, one deal, one
+//   activity (the DoD), structurally.
+
+const rateHits = new Map<string, number[]>();
 
 // Unmatched free-text vertical is a registry finding Rob should see —
 // FINDINGS PROTOCOL routes it to the flags table (Things to Address).
@@ -54,6 +67,22 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "missing or invalid bearer token" }, { status: 401 });
   }
 
+  const rate = checkRateLimit(rateHits, products.join(","), Date.now());
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { error: "rate limit exceeded" },
+      { status: 429, headers: { "Retry-After": String(rate.retryAfterSec) } }
+    );
+  }
+
+  const idempotencyKey = req.headers.get("idempotency-key")?.trim() || undefined;
+  if (idempotencyKey && !IDEMPOTENCY_KEY_RE.test(idempotencyKey)) {
+    return NextResponse.json(
+      { error: "Idempotency-Key must match [A-Za-z0-9_-]{1,100}" },
+      { status: 400 }
+    );
+  }
+
   let raw: unknown;
   try {
     raw = await req.json();
@@ -73,8 +102,29 @@ export async function POST(req: Request) {
   }
 
   const store = getStore();
+
+  // Idempotent replay: if a deal with this (product, key) id already exists,
+  // the first submit already landed — write nothing, echo the ids back.
+  if (idempotencyKey) {
+    const ids = intakeIds(payload.product, idempotencyKey);
+    const prior = (await store.listDeals()).find((d) => d.id === ids.dealId);
+    if (prior) {
+      console.log("[leads] replay", payload.product, ids.dealId);
+      return NextResponse.json(
+        {
+          ok: true,
+          replayed: true,
+          person: { action: "replay", id: prior.personId },
+          dealId: ids.dealId,
+          activityId: ids.activityId,
+        },
+        { status: 200 }
+      );
+    }
+  }
+
   const { people, verticals } = await store.getNetwork();
-  const plan = planLeadIntake(payload, people, verticals, new Date().toISOString());
+  const plan = planLeadIntake(payload, people, verticals, new Date().toISOString(), idempotencyKey);
 
   // Execute the plan verbatim.
   const planPerson = plan.person;

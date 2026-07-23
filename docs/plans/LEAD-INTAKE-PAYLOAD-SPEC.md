@@ -36,3 +36,8 @@ Plus `contact` (`name` + at least one of `email`/`phone` — a lead nobody can r
 - **Call shape:** `Authorization: Bearer <key>`, JSON body = `LeadIntakePayload` (this doc). Import `INTAKE_WORKED_EXAMPLES` for a known-good payload per product.
 - **Responses:** `201` person(create|match) + deal id + activity id · `400` every payload problem listed · `401` missing/wrong/cross-product token · `503` keys unset (inert).
 - **Rotation:** replace in Vercel env (`vercel env rm/add LEADS_KEY_X production`) + `.env.local`, redeploy; old key dies with the deploy.
+
+## IDEMPOTENCY + RATE LIMIT (Task 5.2 shipped 2026-07-22, Q37)
+
+- **`Idempotency-Key` header (optional, SEND IT on every retry-able submit):** any `[A-Za-z0-9_-]{1,100}` string unique per lead event (e.g. AIDRE call id, AIVA session id). Deal/activity ids derive from `(product, key)` — `lead-<product>-<key>` / `lead-act-<product>-<key>` — so the deal row itself is the idempotency record: a retried submit finds it, **writes nothing**, and returns `200 {ok, replayed: true, person, dealId, activityId}` instead of `201`. Same key twice → one person, one deal, one activity (DoD). Keys are product-scoped: AIDRE's `abc` never collides with AIVA's `abc`. Malformed key → `400`. Without the header behavior is unchanged (ids derive from person+timestamp; retries WILL duplicate the deal/activity — that's on the caller).
+- **Rate limit:** 60 requests/min per product (sliding window), counted after auth. Over → `429` + `Retry-After` seconds. Per-instance memory, so treat it as abuse braking, not a billing-grade quota — callers should still back off on 429.

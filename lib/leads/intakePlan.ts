@@ -102,11 +102,27 @@ function pickMatch(pairs: DedupPair[]): DedupPair | null {
   return strong[0];
 }
 
+// Task 5.2 idempotency: with a client Idempotency-Key, deal/activity ids
+// derive from (product, key) instead of (personId, now) — so a retried
+// submit targets the SAME rows, and the deal row itself is the idempotency
+// record (the route sees it already exists and writes nothing). Product in
+// the id scopes keys per caller: AIDRE's "abc" can never collide with AIVA's.
+export const IDEMPOTENCY_KEY_RE = /^[A-Za-z0-9_-]{1,100}$/;
+
+export function intakeIds(product: string, idempotencyKey: string) {
+  const slug = idempotencyKey.toLowerCase();
+  return {
+    dealId: `lead-${product}-${slug}`,
+    activityId: `lead-act-${product}-${slug}`,
+  };
+}
+
 export function planLeadIntake(
   payload: LeadIntakePayload,
   existing: Person[],
   verticals: { id: string; name: string }[],
-  now: string
+  now: string,
+  idempotencyKey?: string
 ): IntakePlan {
   // Vertical: free text mapped against the registry by id or normalized name;
   // no match → recorded honestly as unmatched, never guessed.
@@ -174,11 +190,12 @@ export function planLeadIntake(
     };
   }
 
-  // Ids derived from (personId, now) — deterministic per CR-3; true
-  // idempotency keys are Task 5.2's job and layer on top of this.
+  // Ids: (product, Idempotency-Key) when the caller sent one (Task 5.2 —
+  // retries hit the same rows), else (personId, now) as before.
   const stamp = now.replace(/[^0-9]/g, "").slice(0, 14);
+  const ids = idempotencyKey ? intakeIds(payload.product, idempotencyKey) : undefined;
   const deal: Deal = {
-    id: `lead-${personId}-${stamp}`,
+    id: ids?.dealId ?? `lead-${personId}-${stamp}`,
     personId,
     verticalId,
     ownerId: payload.assigned_rep,
@@ -194,7 +211,7 @@ export function planLeadIntake(
   // ActivitySource has no "aiva" value yet — AIVA rides the generic "api"
   // channel; the true product always lives in sourceContext.product.
   const activity: Activity = {
-    id: `lead-act-${personId}-${stamp}`,
+    id: ids?.activityId ?? `lead-act-${personId}-${stamp}`,
     personId,
     dealId: deal.id,
     type: "note",
