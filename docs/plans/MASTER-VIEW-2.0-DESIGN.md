@@ -335,7 +335,7 @@ Sequenced so nothing waits on Rob that doesn't have to. **A = buildable on doc a
 
 | # | Increment | Gate | DoD |
 |---|---|---|---|
-| 1 | **Rep card click-through (Q42).** Whole-card link on `/rep` queue cards; buttons stopPropagation. | A (buildable now) | Click any card body in prod → lead detail opens |
+| 1 | ✅ **Rep card click-through (Q42).** Whole-card link on `/rep` queue cards; buttons stopPropagation. **SHIPPED 2026-07-23** (stretched-link overlay + z-10 actions, not stopPropagation — same effect, no nested anchors; prod-verified 12/12 cards). | A (buildable now) | Click any card body in prod → lead detail opens |
 | 2 | **Notes/enrichment retrofit (Q43).** On current record page: Notes prominent; enrichment/provenance collapsed at bottom, most-recent visible + expander. | A (buildable now) | Record renders notes-first; critic-rob readability pass |
 | 3 | **Lineage engine.** `lib/lineage.ts` pure chain-walk + cycle guard + tests; breadcrumb component; mount on person page + "doors opened" lines. | A | Unit tests green; person page shows `ROB → … → X` |
 | 4a | **`/companies` list.** New route + table with company columns (name, vertical, status, phase, owed/paid, rep, last touch); nav entry. | A | `/companies` live, companies only, zero people rows |

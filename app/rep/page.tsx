@@ -66,14 +66,18 @@ export default async function RepCockpit() {
           return (
             <section
               key={p.id}
-              className="rounded-xl border border-white/10 bg-white/5 p-4 transition hover:border-white/20"
+              className="relative rounded-xl border border-white/10 bg-white/5 p-4 transition hover:border-white/20"
             >
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
+                    {/* Q42 (Master View §7): the WHOLE card is the click target —
+                        this link stretches over the card via the after: overlay;
+                        Call/Email float above it (relative z-10). Rob: "you cant
+                        even click into them in the pipeline." */}
                     <Link
                       href={`/rep/accounts/${p.id}`}
-                      className="text-base font-semibold text-white hover:underline"
+                      className="text-base font-semibold text-white hover:underline after:absolute after:inset-0 after:content-['']"
                     >
                       {p.name.replace(" (DEMO)", "")}
                     </Link>
@@ -87,10 +91,10 @@ export default async function RepCockpit() {
                   </div>
                   {p.role && <div className="mt-0.5 text-xs text-slate-400">{p.role}</div>}
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="relative z-10 flex items-center gap-2">
                   {p.quotedAmount ? (
                     <span
-                      className={`tabular rounded-lg px-2.5 py-1 text-sm font-semibold ${
+                      className={`tabular pointer-events-none rounded-lg px-2.5 py-1 text-sm font-semibold ${
                         p.keyDates.paid ? "bg-emerald-400/10 text-emerald-300" : "bg-amber-400/10 text-amber-300"
                       }`}
                     >
