@@ -1,6 +1,6 @@
 # MASTER VIEW 2.0 — Design Doc
-**Date:** 2026-07-22 · **Status:** DRAFT rev 2 (critic-rob 88/100 punch list applied) — awaiting re-review + Rob sign-off (Q39 gate for Q40–Q43) · **Owner:** Max
-**Sources:** Rob dumps `sources/7.22.26-2.md`, `sources/7.22.26-3.md` (gospel), `sources/ROB-CRM-VISION-DUMP-2026-07-17.md`, `sources/DATA-MODEL-crm-erd-2026-07-17.md`, BUILD-QUEUE Q39–Q43, live demo `https://mylocaleverything.com/app?demo=1`
+**Date:** 2026-07-22 · **Status:** DRAFT rev 3 — Rob's decision batch (2026-07-22 late) folded: OQ-1..5 RESOLVED, labels Option A + ROLE amendment, Q45 meeting_booked, phase checklists drafted for his edit. Awaiting the visual companion + final sign-off (Q39 gate) · **Owner:** Max
+**Sources:** Rob dumps `sources/7.22.26-2.md`, `sources/7.22.26-3.md` (gospel), `sources/ROB-CRM-VISION-DUMP-2026-07-17.md`, `sources/DATA-MODEL-crm-erd-2026-07-17.md`, BUILD-QUEUE Q39–Q45 + "ROB DECISIONS 2026-07-22 late", live demo `https://mylocaleverything.com/app?demo=1` · **Companions:** `PHASE-SIGNAL-WEBHOOK-CONTRACT.md`, `PHASE-COMPONENT-CHECKLIST-DRAFT.md`
 **Design research:** Attio, Folk, Twenty, HubSpot, Pipedrive, Affinity — every borrowed pattern cited inline.
 
 > **How to read this:** each section leads with THE DECISION in one or two lines. Details, evidence, and quotes follow. Skim the bold lines and you have the whole design in two minutes.
@@ -57,6 +57,8 @@ The graph (`/network`) is untouched: mixed nodes stay, per Rob. The existing ded
 
 ### 2b. Status vocabulary — replacing the shared "Client" label
 
+> **✅ RESOLVED 2026-07-22 (Rob decision batch): Option A APPROVED — with an amendment.** Relationship labels alone are not enough for people; Rob: someone may be *"a VP, or a Bookkeeper that we need to send the Invoice to."* The person model below (§2c) adds a functional ROLE + an invoice-recipient flag. Options B/C stay in this doc as the record of what was considered.
+
 Rob: *"I dont love that they can both share 'Client' designation. Maybe 'Client/Owner' I dont know. I want you to think long and hard about this."*
 
 The root problem: `nodeType: "client"` is applied to both Caleb (a human) and Miga Food Manufacturing (a company). "Client" is true of the **company relationship**; the human's label should say **what they are to that relationship**.
@@ -80,6 +82,24 @@ So the list reads: *Miga Food Manufacturing — Client* and *Caleb — Owner @ C
 **Recommendation: Option A now, with C's derivation as a check** — if a company is marked Client but has no signed deal, flag it in Things to Address (same pattern as the existing "⚠ disputed signed" flag).
 
 Migration note: `node_type` slugs stay in the DB; this is a label-map + per-object filtered option list change (`lib/labels.ts` already centralizes this), plus a one-time reclassification pass over the ~54 rows using the ERD doc's org-split heuristic (`DATA-MODEL-crm-erd-2026-07-17.md` §3).
+
+### 2c. The person row — final field vocabulary (Rob's ROLE amendment, 2026-07-22)
+
+**Decision: a person carries FOUR distinct facts, never conflated — relationship (what they are to the deal), role (what they are at their company), a billing flag (who gets the invoice), and the company link.** Rob's amendment: relationship labels are not enough — someone may be *"a VP, or a Bookkeeper that we need to send the Invoice to."* And his ask to *"figure out the language we want to use"* — this table IS the proposed language:
+
+| Fact | UI label | Field | Type | Example | Where it shows |
+|---|---|---|---|---|---|
+| What they are **to us/the deal** | **Relationship** | `node_type` (relabeled) | enum: Owner · Champion · Connector · Partner · Rep Candidate · Lead | Owner | header pill, `/people` column, graph |
+| What they are **at their company** | **Role / title** | `role` (exists today) | free text | "VP of Ops", "Bookkeeper" | header, `/people` column, company People-rail |
+| Who **gets the invoice** | **Invoice recipient** | `billing_contact` (new boolean) | flag, ≤1 warn per company | ✓ | badge in company People-rail + on the tracker's money row ("Invoice to: Karen — Bookkeeper") |
+| **Which company** | **Company** | `org_id` (exists today) | FK → orgs | Miga Food Manufacturing | header "@ Company" link |
+
+Header grammar: **"Karen Diaz — Champion · Bookkeeper @ Miga Food Manufacturing ⧉ invoices"**. Relationship answers "why do I care", role answers "what do they do", the flag answers Rob's exact bookkeeper case: the tracker's per-phase money row names the invoice recipient so nobody hunts for who to bill. Role stays free text (Attio/Folk treat job title as an open attribute, not an enum — titles are too varied to enumerate; the structure lives in the other three fields).
+
+**The `business` column — audit + fate (Rob spotted it mostly empty in Supabase; verified):**
+
+- **Audit (prod Supabase, 2026-07-22):** 22 people rows → `business` empty on **17**; set on 5. Of those 5: 4 have no `org_id` (`rob-acheson` "AI VoiceTech / MLE", `david-cates` "The Cates Processing Group", `will` "MLE", `george-eu` "Guest Genie") and **1 contradicts its org link** (`gary-waskivich`: business says "Miga Food Manufacturing", `org_id` says `dececco-pasta`). It is pre-orgs-split legacy — the ERD called it the original bug (*"`business` is a free-text field on a person, not a real entity"*, `DATA-MODEL-crm-erd-2026-07-17.md` §1) — and it's already caused real defects: Rob's PropLogic→Proplogix rename didn't propagate into it (Q13 caveat), and free text can silently disagree with the org link (gary case).
+- **Fate: DERIVE FROM ORG LINK, THEN DROP.** (1) Resolve the 4 business-only rows to real orgs (create/link; gary's contradiction → human review, not auto-fix). (2) Remove `business` from all UI reads/writes — `PersonEditor` field, `PeopleTable` subtitle, `SearchBar` fallback; CSV export emits a **derived** company column from `org_id`. (3) Lead intake (`lib/leads/intakePlan.ts` currently writes `business: payload.company`) switches to org-match-or-create, preserving the raw string in `source_context.company_hint` — enrichment data, per §3.5 discipline. (4) Drop the DB column once 1–3 land. Not repurposed: a free-text company field existing next to a real FK is exactly how the gary contradiction happens.
 
 ---
 
@@ -114,8 +134,8 @@ Rob, 7.22.26-3 (gospel): *"Every Customer will have their own login showing thei
 
 ```
 PHASE 1 — Foundation                              ● ● ● ○ ○  3/5 live
-├─ components: [Website+AEO-SEO ●] [AI Receptionist ●] [GBP ●]
-│              [Reviews ○] [Booking ○]        (names TBD — OQ-1)
+├─ components: [Website+AEO-SEO ●] [Everything Agent ●] [Social ●]
+│              [Content ○] [Radar ○]   (drafted — see checklist doc)
 ├─ money:  Agreement #A-102 (Phase 1) · Invoiced $X · PAID ✓ 7/02
 ├─ refund: 30-day window — ACTIVE, 19 days left (started 7/10,
 │          website-live-with-AEO-SEO)     [state machine below]
@@ -149,7 +169,13 @@ The tracker renders the state + days remaining; VOIDED_BY_ADVANCE renders with a
 
 **Rep view of the same tracker:** lights + phase names + "NEXT UP" only — no invoice amounts, no refund mechanics. Rob: *"we will want the Rep to be able to see the progress update from the Entity Page or Company page."* (7.22.26-3)
 
-**Data model deltas:** `phases` (per company: phase_no, status, agreement_id, invoice_amount, invoiced_at, paid_at), `phase_components` (per phase: name, live_at, signal_source), refund fields on phase 1 row. The inbound signal is fully specified in **`docs/plans/PHASE-SIGNAL-WEBHOOK-CONTRACT.md`** (drafted, versioned, idempotent, secret-header auth per the n8n-email pattern — written for Will/partner to react to). The current `Person.phaseOne` field is superseded and migrates into `phases`.
+**Component checklists (✅ OQ-1 resolved: Max drafts, Rob edits):** drafted at **`docs/plans/PHASE-COMPONENT-CHECKLIST-DRAFT.md`** — P1 as a shared checklist (only `website-aeo-seo` is confirmed; the rest grounded in the demo and marked `[DRAFT — Rob confirm]`), P2/P3 as **per-customer slot structures** (`p2-auto-<n>`), since Rob picks the highest-ROI automations per customer. Component names are config, not code — Rob's edit pass renames labels without touching slugs.
+
+**Pricing (✅ OQ-3 resolved): standard list price per phase + per-customer override.** The tracker's "owed" reads the phase's standard price from config unless the deal carries an override value; when an override exists, the master tracker shows both ("$X — standard $Y") so discounts are visible, never silent.
+
+**Interim toggles (✅ OQ-4 resolved: YES):** until Will's tools send phase-signal webhooks, Rob flips component lights manually — Master View only, audit-logged as `source: "manual-rob"`, sharing the exact write path the webhook uses (one function, can't diverge).
+
+**Data model deltas:** `phases` (per company: phase_no, status, agreement_id, invoice_amount, invoiced_at, paid_at, standard_price_override), `phase_components` (per phase: slug, name, live_at, signal_source), refund fields on phase 1 row. The inbound signal is fully specified in **`docs/plans/PHASE-SIGNAL-WEBHOOK-CONTRACT.md`** (drafted, versioned, idempotent, secret-header auth per the n8n-email pattern — written for Will/partner to react to). The current `Person.phaseOne` field is superseded and migrates into `phases`.
 
 ### 3.2 People at this company (right rail, top)
 
@@ -231,7 +257,7 @@ Data source is the existing `people.referredById` self-FK (`lib/types.ts`; ERD: 
 
 Seeded rows — live in **prod Supabase** (verified 2026-07-22 against the `orgs`/`deals`/`tasks` tables; they are NOT in the repo's `data/network.json`, and increment 10's DoD re-proves they render): `spinoff-homeclonevault` (Alex, 40/60, AGREED-unsigned, task due 7/29) · `deal-gulf-coast-equity-phase4` (30%, PROBABLE, unsigned, task due 7/29). Caleb's CRM enters as DISCUSSED.
 
-**Rep-hiding:**
+**Rep-hiding (✅ OQ-5 resolved: route-hidden pre-ACCESS APPROVED by Rob — ship at the unlinked owners route now; real auth locks it at ACCESS rollout):**
 - **Pre-ACCESS (now):** the dashboard has no per-user auth yet (Rob 7.21: no logins until rollout, from his admin portal). Interim: `/registry` and the company-page equity section render **only outside `/rep/*` routes**, the registry route is unlinked from any rep-visible nav, and equity deals are excluded from every rep-facing API response shape (the `RepAccountListItem` DTO pattern already strips sensitive fields server-side — extend it: equity deals never serialize into rep payloads). Honest limitation, stated for the record: pre-ACCESS this is separation-by-route, not security.
 - **Post-ACCESS:** `book_protected`-style RLS — equity deals get `owners_only = true`; policy grants Rob + Will (`super_admin`/owner roles) and nobody else, per the RLS sketch in `DATA-MODEL-crm-erd-2026-07-17.md` §5. Reps can still *sell* spinoff products later without seeing cap-table details — the product, not the split (Rob: *"they are going to be able to sell it and take advantage of it when the time is right"*).
 
@@ -247,6 +273,17 @@ Spec:
 - Whole card wrapped as the link (RepAccountsList already solved this exact pattern for rows: "a row can be the whole click target with zero conflict against inline-edit affordances" — read-only card, edits live one click deeper). Call/Email buttons sit above the link with `stopPropagation` so one-tap contact still works.
 - Same treatment for any DealsBoard cards surfaced in a rep context: card click → lead detail; drag still drags (click vs drag disambiguated by movement threshold, the standard board pattern).
 - DoD (per Q42): every pipeline card navigates to its lead detail; prod-verified click path.
+
+### 7b. Meeting Booked stage (Q45 — Rob direct ask, 2026-07-22)
+
+**Decision: `meeting_booked` sits between `contacted` and `meeting_held` on the stage ladder and must be visible everywhere a stage is — board column, company lead view (master + rep), and the aging rules.**
+
+Honest current state: the stage **already exists** in the ladder — `lib/types.ts` `DealStage`, `lib/crm.ts` stage list, `lib/scoring/deal.ts` `STAGE_LADDER` (`meeting_booked: 35`, correctly between `contacted: 25` and `meeting_held: 45`), and `components/DealsBoard.tsx` labels ("Meeting booked"). What Q45 actually adds:
+
+1. **Company lead view (master + rep):** the §3.3 deals section and the rep account workspace render the deal's stage chip including Meeting booked; the rep's inline stage edit offers it in ladder order.
+2. **Stage-aging rung (the real gap):** `lib/tasks/todayRules.ts` `STAGE_AGING_DAYS` currently has **no** `meeting_booked` entry — a booked-then-ghosted deal never surfaces. Proposed thresholds: **primary rule — booked meeting datetime + 2 days with the deal still in `meeting_booked` (no advance to `meeting_held`) → aging item ("meeting was 2+ days ago — held? log it or rebook")**, reading the meeting datetime from the linked activity/task; **fallback — plain `meeting_booked: 7` days-in-stage when no meeting datetime is attached** (days-in-stage alone would false-positive on meetings legitimately booked a week out, hence the two tiers). Thresholds live in the same exported constant, pure and test-pinned.
+3. **Scoring:** no weight change needed — `STAGE_LADDER` already ranks it; DoD includes the gate test asserting ladder order `contacted < meeting_booked < meeting_held`.
+4. **Existing deals unaffected** (per Q45): no data migration; the stage is additive.
 
 ---
 
@@ -265,30 +302,39 @@ Sequenced so nothing waits on Rob that doesn't have to. **A = buildable on doc a
 | 5b | **Company deals section.** Services deals list w/ per-deal phase, stage, value, key dates + phase↔invoice mismatch flags. | A | Deals render on company page; a phase-less deal produces a flag |
 | 5c | **Company notes/enrichment order.** Timeline → Notes (human, prominent) → details grid (demoted) → enrichment collapsed at very bottom (most-recent + expander). | A | §3 section order onscreen; passes Q43 discipline |
 | 5d | **Person page slim-down.** Person record re-cut per §4: relationship-forward header, lineage centerpiece, company link; no phase UI, no money. | A | See enumerated ≠-test below |
-| 6 | **Status vocabulary.** Apply §2b Option A label maps; reclassify ~54 rows (ERD §3 heuristic, ambiguous → review queue); Client-without-deal flag wired to Things to Address. | **R** (OQ-2) | Labels live per object; reconciliation report zero-drop |
-| 7 | **Refund state machine + phase schema.** `lib/phases/refund.ts` pure FSM (time as param) + tests; `phases`/`phase_components` migration; manual component toggles as interim signal. | A (schema) / **R** (component list, OQ-1) | FSM tests cover all 4 states incl. VOIDED_BY_ADVANCE |
-| 8a | **Tracker — master variant.** §3.1 card on company record: component lights, per-phase invoiced/paid/owed row, refund-window state line, phase↔agreement↔invoice cross-check. | **R** (OQ-1, OQ-3) | Master tracker renders lights + money + refund state for a seeded company |
-| 8b | **Tracker — rep variant.** Lights + phase names + NEXT UP only on `/rep/accounts/[id]`; inline `Phase` field on the deal (§3.3 decision). | **R** (OQ-1) | Rep page shows lights, zero money strings in payload; phase editable inline |
-| 8c | **Tracker — demo-grammar states + Top Automations slot.** Live / NEXT UP / locked-quiet phase card states matching the demo; "Top Automations we recommend" slot rendered between P1 and P2. | A (states) / **R** (OQ-6 slot content) | Three visual states match demo grammar; slot renders between phases |
-| 9 | **Signal webhook.** Inbound `POST /api/webhooks/phase-signal` per the drafted contract — **`docs/plans/PHASE-SIGNAL-WEBHOOK-CONTRACT.md`** (payload, idempotency, secret header, 503-inert) — flipping `phase_components.live_at`; armed but inert until the secret is set. | A (contract drafted) / **R** (OQ-4 interim toggles) | Test payload lights a component end-to-end; duplicate eventId no-ops |
-| 10 | **Phase-4 registry.** `/registry` owners route + company-page equity section; rep-payload exclusion; seeded rows render; overdue paperwork flags. | A (interim hiding) / **R** (OQ-5 for prod exposure) | Registry lists HomeCloneVault + Gulf Coast; `/rep/*` payloads verifiably equity-free |
+| 6 | **Status vocabulary.** Apply §2b Option A label maps (✅ Rob-approved); reclassify ~54 rows (ERD §3 heuristic, ambiguous → review queue); Client-without-deal flag wired to Things to Address; solopreneur rule enforced. | **A** (OQ-2 resolved) | Labels live per object; reconciliation report zero-drop |
+| 6b | **Person ROLE model + `business` retirement (§2c).** `billing_contact` boolean + migration; Role/Relationship split in header + lists; invoice-recipient badge on company People-rail + tracker money row; `business` fate steps 1–3 (org-resolve 4 rows, gary contradiction → review; UI reads/writes removed; intake → org-match + `company_hint`). Column drop = its own later increment (step 4). | **A** (amendment is Rob's own ask) | Header renders Relationship · Role @ Company; invoice badge visible; zero UI reads of `business`; 4 rows org-resolved |
+| 7 | **Refund state machine + phase schema.** `lib/phases/refund.ts` pure FSM (time as param) + tests; `phases`/`phase_components` migration seeded from the checklist draft slugs; manual toggles (✅ approved) share the webhook write path. | **A** (OQ-1 resolved: draft exists; Rob's edit pass renames config, not code) | FSM tests cover all 4 states incl. VOIDED_BY_ADVANCE; components seeded from `PHASE-COMPONENT-CHECKLIST-DRAFT.md` |
+| 8a | **Tracker — master variant.** §3.1 card on company record: component lights, per-phase invoiced/paid/owed row (standard price + override rendering, ✅ OQ-3), refund-window state line, phase↔agreement↔invoice cross-check. | **A** (OQ-1/3 resolved) | Master tracker renders lights + money (override shows "standard $Y") + refund state for a seeded company |
+| 8b | **Tracker — rep variant.** Lights + phase names + NEXT UP only on `/rep/accounts/[id]`; inline `Phase` field on the deal (§3.3 decision). | **A** (OQ-1 resolved) | Rep page shows lights, zero money strings in payload; phase editable inline |
+| 8c | **Tracker — demo-grammar states + Top Automations slot.** Live / NEXT UP / locked-quiet phase card states matching the demo; "Top Automations we recommend" slot rendered between P1 and P2. | A (states) / **R** (OQ-6 slot content — the one still-open question) | Three visual states match demo grammar; slot renders between phases |
+| 9 | **Signal webhook.** Inbound `POST /api/webhooks/phase-signal` per the drafted contract — **`docs/plans/PHASE-SIGNAL-WEBHOOK-CONTRACT.md`** (payload, idempotency, secret header, 503-inert) — flipping `phase_components.live_at`; manual toggles interim ✅ approved. | **A** (OQ-4 resolved) | Test payload lights a component end-to-end; duplicate eventId no-ops; manual toggle writes `source: "manual-rob"` |
+| 10 | **Phase-4 registry.** `/registry` owners route + company-page equity section; rep-payload exclusion; seeded rows render; overdue paperwork flags. | **A** (OQ-5 resolved: route-hide approved for prod) | Registry lists HomeCloneVault + Gulf Coast; `/rep/*` payloads verifiably equity-free |
+| 11 | **Meeting Booked surfacing (Q45, §7b).** `STAGE_AGING_DAYS` two-tier `meeting_booked` rung (booked-datetime+2d primary / 7d-in-stage fallback) + stage chip on company lead view (master + rep) + inline stage edit offers it in ladder order. | **A** | Aging item fires in tests for both tiers; ladder-order gate test green; stage visible master + rep; existing deals untouched |
 | — | *(Q44 — customer Blueprint portal: out of scope here; gated on 8a-c + ACCESS; see §1.)* | | |
 
 **The increment-5 "company page ≠ person page" test, enumerated (testable):** (1) company page renders the Phase Blueprint tracker + people-here rail; (2) person page renders the attribution-lineage centerpiece and neither tracker nor people rail; (3) the two pages share **zero** centerpiece components (shared primitives like timeline/inline fields are fine — no shared page-layout component); (4) both pass Q43 notes/enrichment discipline (notes prominent, enrichment collapsed at bottom with most-recent visible + expander).
 
-Each sub-increment is independently shippable and demoable inside one driver session; 1–5d need no Rob input beyond this doc's approval.
+**Unblocked status after Rob's 2026-07-22 decision batch (verified against the gates above):** every increment is now **A** — buildable on doc approval — **except** 8c's Top Automations slot *content* (OQ-6, the sole open question; 8c's visual states are A) and the out-of-scope Q44 customer portal (gated on 8a-c + ACCESS). Post-ACCESS registry lockdown (§6) also stays ACCESS-gated by nature. Rob's checklist edit pass (OQ-1 resolution mode) can rename/strike components at any time — it's config, so it never re-blocks 7/8a/8b.
 
 ---
 
-## 9. Open questions for Rob (only the blocking ones)
+## 9. Open questions for Rob
 
-1. **Phase component lists.** What are the named components of Phase 1 (and 2/3 when known)? e.g. Website+AEO-SEO, AI Receptionist, GBP, Reviews, Booking…? We need the canonical checklist to render the lights — is this yours to define or do we pull it from Will's build sheet? *(Blocks increments 7–8.)*
-2. **Status labels.** Approve §2b Option A (Companies: Prospect/Client/Partner Org/Spinoff/Vertical Anchor/Dormant · People: Owner/Champion/Connector/Partner/Rep Candidate/Lead) — or edit the words. Includes the solopreneur rule (auto-create a company shell on signing; Client never lands on a person). *(Blocks increment 6.)*
-3. **Per-phase pricing.** Are Phase 1/2/3 invoice amounts standard prices, or quoted per customer? (Determines whether the tracker's "owed" is a config value or per-deal entry.) *(Blocks increment 8's money row.)*
-4. **Interim manual toggles.** The webhook payload contract is **already drafted** — `docs/plans/PHASE-SIGNAL-WEBHOOK-CONTRACT.md`, written for Will/partner to react to. The only blocking question: until the partner wires it, are **manual component toggles (Master View only, audit-logged as `source: "manual-rob"`)** an acceptable interim so the tracker is usable day one? *(Blocks increment 9's interim path only.)*
-5. **Phase-4 exposure pre-ACCESS.** Until real logins land, the registry is hidden by route/nav only — not real security. OK to ship to prod that way, or hold `/registry` behind the basic-auth wall / local-only until ACCESS? *(Blocks increment 10 in prod.)*
-6. **Top Automations slot content.** Who defines the "Top Automations we recommend" list shown between P1 and P2 — you, Will's build sheet, or per-vertical defaults Max drafts for your edit? *(Blocks only increment 8c's slot content; the visual states ship without it.)*
+**OQ-1 through OQ-5: ALL RESOLVED 2026-07-22 (Rob decision batch — recorded in BUILD-QUEUE.md "ROB DECISIONS 2026-07-22 late"), answers folded into the sections above:**
+
+| # | Was | Resolution | Folded into |
+|---|---|---|---|
+| OQ-1 | Phase component lists | **Max drafts, Rob edits** → draft shipped: `docs/plans/PHASE-COMPONENT-CHECKLIST-DRAFT.md` (P1 confirmed to include website-live-w/-AEO-SEO — starts the refund clock) | §3.1, increments 7/8a/8b |
+| OQ-2 | Status labels | **Option A approved + ROLE amendment** (VP/Bookkeeper case → functional role + invoice-recipient flag; plus the `business` column fate) | §2b, §2c, increments 6/6b |
+| OQ-3 | Per-phase pricing | **Standard list price per phase + per-customer override** | §3.1 pricing block, increment 8a |
+| OQ-4 | Interim manual toggles | **YES** — acceptable until Will's tools send phase-signal webhooks | §3.1 toggles block, increments 7/9 |
+| OQ-5 | Phase-4 exposure pre-ACCESS | **Route-hidden pre-ACCESS approved** — ship at unlinked owners route now; real auth at ACCESS | §6, increment 10 |
+
+**Still open (one):**
+
+6. **Top Automations slot content.** Who defines the "Top Automations we recommend" list shown between P1 and P2 — you, Will's build sheet, or per-vertical defaults Max drafts for your edit? *(Blocks only increment 8c's slot content; the visual states ship without it. Natural default candidate: the customer's `growth-scan` output — say the word and Max drafts per-vertical lists for your edit, same mode as OQ-1.)*
 
 ---
 
-*Approval of this doc unlocks Q40–Q43 builds in the §8 order (Q44 customer portal stays gated separately). Nothing in §3–§7 gets built before Rob signs off (Q39 DoD).*
+*Approval of this doc unlocks Q40–Q43 + Q45 builds in the §8 order (Q44 customer portal stays gated separately). Nothing in §3–§7b gets built before Rob signs off (Q39 DoD).*
