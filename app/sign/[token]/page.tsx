@@ -4,7 +4,7 @@ import { buildEvent } from "@/lib/esign/events";
 import { ROB_COPY_ADDRESS } from "@/lib/esign/sender";
 import { hashToken, verifyToken } from "@/lib/esign/token";
 import { canTransition, type DocumentStatus } from "@/lib/esign/status";
-import { esignDb, getRequestByTokenHash, insertEvent } from "@/lib/esign/db";
+import { esignDb, getRequestByTokenHash, insertEvent, listEvents } from "@/lib/esign/db";
 import { signedUrlFor } from "@/lib/esign/storage";
 import SignerClient from "./SignerClient";
 
@@ -55,10 +55,21 @@ export default async function SignPage({
   const { request, document } = found;
   const verdict = verifyToken(token, request, new Date());
   if (!verdict.ok) {
+    // Copy delivery is best-effort — only CLAIM it when a copy_delivered
+    // event actually exists (critic-rob punch #4).
+    let signedBody =
+      "A copy of the completed agreement is sent to the signer's email — contact us if it hasn't arrived or you need another copy.";
+    if (verdict.reason === "signed") {
+      const events = await listEvents([request.id]).catch(() => []);
+      if (events.some((e) => e.type === "copy_delivered")) {
+        signedBody =
+          "A copy of the completed agreement was delivered to the signer's email. Contact us if you need another copy.";
+      }
+    }
     const msg: Record<string, { title: string; body: string }> = {
       signed: {
         title: "This agreement has already been signed",
-        body: "A copy of the completed agreement was delivered to the signer's email. Contact us if you need another copy.",
+        body: signedBody,
       },
       voided: {
         title: "This signing link was replaced",

@@ -3,8 +3,7 @@ import { sha256Hex } from "./hash";
 
 // Q47 e-sign signing-link tokens. The raw token lives ONLY in the emailed
 // link; the database stores its sha256 (0008 signature_requests.token_hash,
-// unique) — a DB leak yields no usable signing links (freesign-style
-// hash-at-rest, reimplemented clean-room; no AGPL code copied).
+// unique) — hash-at-rest, so a DB leak yields no usable signing links.
 // verifyToken is pure: the caller passes `now` (CR-3 / scoring-pattern rule —
 // no clock reads here), plus the request row fields it read from the DB.
 

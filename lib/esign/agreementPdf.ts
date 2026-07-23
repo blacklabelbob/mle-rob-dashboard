@@ -33,9 +33,10 @@ import { PDFDocument, PDFFont, PDFPage, StandardFonts, rgb } from "@cantoo/pdf-l
 // docs/plans/ESIGN-BUILD-LOG-2026-07-23.md):
 // * ReportLab's ¶-justification algorithm is reimplemented (word-spacing
 //   distribution); line-break positions may differ by a word here and there.
-// * The §5 heading's ★ (&#9733;) is drawn via ZapfDingbats (WinAnsi Helvetica
-//   cannot encode it — ReportLab silently dropped it too: the reference PDF's
-//   extracted text shows no star).
+// * The §5 heading's ★ (&#9733;) is drawn via ZapfDingbats because WinAnsi
+//   Helvetica cannot encode U+2605. ReportLab renders it through its own
+//   encoding path — BOTH engines' PDFs extract the ★ (parity re-verified
+//   2026-07-23 after critic-rob caught an earlier wrong claim here).
 // * List indent metrics are visually matched, not metric-identical.
 // ============================================================================
 

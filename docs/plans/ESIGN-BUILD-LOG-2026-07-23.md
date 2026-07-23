@@ -55,9 +55,11 @@ normalized-char similarity; all 13 clauses + parties + fee + scope lines present
 entire remaining diff is (a) header/footer text-extraction order and (b) ReportLab's
 bullet glyph extracting as \x7f vs our •. Zero substantive text differences.** Cosmetic
 deviations on record: justification line-break positions may differ by a word; §5's ★
-drawn via ZapfDingbats (WinAnsi Helvetica can't encode U+2605 — ReportLab silently
-dropped it, per the reference PDF's own extracted text); list indent metrics visually
-matched, not metric-identical.
+drawn via ZapfDingbats because WinAnsi Helvetica can't encode U+2605 — **correction
+(critic-rob punch #3, re-verified 2026-07-23): ReportLab renders the ★ via its own
+encoding path and BOTH engines' PDFs extract it (1 occurrence each in the parity
+texts); an earlier version of this line wrongly said ReportLab dropped it**; list
+indent metrics visually matched, not metric-identical.
 
 Wired as **`POST /api/esign/generate`** (admin; intake-gate refusals return verbatim as
 the 400 body — the error doubles as the fix-it instruction). The **upload path stays**
@@ -149,8 +151,17 @@ consumer sends hard-blocked 403 behind `ESIGN_CONSUMER_ENABLED` (unset = busines
 react-pdf reports the document rendered (render failure keeps it locked and points at
 the paper-copy option); sign route REJECTS consumer signatures lacking render evidence;
 consent event meta carries pdf_rendered_at/disclosure_shown_at/viewport (§7001(c)(1)(C)(ii)
-evidence); certificate reproduces the full disclosure text + evidence line (§3.4). All
-seven §7001(c) checklist elements test-asserted against the disclosure text.
+evidence); certificate reproduces the full disclosure text + evidence line (§3.4).
+**Truth correction (critic-rob punch #2):** the original claim "all seven elements
+test-asserted" was one short — element 6 (demonstrable access) was a dangling comment
+with no assertion. Closed 2026-07-23: element 6 is now asserted against
+`ESIGN_CONSUMER_CONSENT_TEXT` (the checking-this-box-in-the-rendering-browser
+mechanic), the render-lock itself is pinned at component level
+(`signerGate.test.ts`, pure gate + SignerClient source-drift guard) and server level
+(`signRoute.test.ts`: consumer without render evidence → 400 before the latch), and
+the spec-§3.4 DoD "certificate reproduces the disclosure verbatim" is proven by
+pdf.js text-extraction of a stamped consumer certificate. NOW all seven are
+test-asserted.
 
 Migration `0009_esign_comms_consent.sql` APPLIED TO PROD (tracked `20260723100000`),
 columns verified live; events DDL gate test now parses 0009's superseding constraint.
@@ -244,6 +255,31 @@ completed against prod ✅ (synthetic, fully cleaned, evidence above)** · CI gr
 (and note: CI was RED before this build — SearchBar set-state-in-effect — root-caused
 and fixed) · engine decision recorded ✅ (amended by Rob to TS port; shipped with
 proven parity) · this log current ✅.
+
+## Critic-rob punch list (92/100 REVISE, 2026-07-23) — ALL SIX CLOSED
+
+1. **Post-latch failure could strand a signature** (loudest): the single-use latch was
+   consumed before the stamped PDF existed. Fixed in `app/api/esign/sign/route.ts` —
+   stamp/upload/doc-flip now run in a guarded critical section; on failure the latch
+   is REVERTED to the exact pre-latch snapshot (link lives again, immediate retry),
+   a high flag is filed, and the signer gets an honest 500. Revert-failure sub-case:
+   flag says the link is stuck + signer told to request a fresh link. Design choice on
+   record in-code: can't lose a signature (nothing durable existed at failure) and
+   can't double-sign (the atomic latch just re-arms). Post-durability event-write
+   failures now file "audit gap" flags instead of 500ing a completed signature.
+   Pinned by `signRoute.test.ts` (stamp-fail, upload-fail, revert-fail, happy path).
+2. **"All 7 asserted" was 6/7** — corrected above; element 6 + certificate-verbatim
+   assertions added.
+3. **★ parity micro-claim was wrong** — corrected above and in agreementPdf.ts's
+   header; both engines render AND extract the star.
+4. **"Already signed" page over-claimed copy delivery** — now checks `copy_delivered`
+   events and only claims delivery when one exists; otherwise honest soft wording.
+5. **Upstream attribution in token.ts comment** — reworded to "hash-at-rest";
+   provenance stays in the scout doc only.
+6. **Render-lock untested** — `lib/esign/signerGate.ts` (pure gate: consentLocked +
+   canSign, comms structurally absent) + `signerGate.test.ts` (lock rules + SignerClient
+   source-drift guard pinning checkbox/button/submit wiring) + server-side consumer-400
+   test. Required before `ESIGN_CONSUMER_ENABLED` ever flips.
 
 ## Morning queue (what remains)
 

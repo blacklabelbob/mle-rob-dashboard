@@ -14,9 +14,12 @@ import {
 } from "../agreementPdf";
 import {
   COMMS_CONSENT_TEXT,
+  CONSUMER_CONSENT_VERSION,
+  ESIGN_CONSUMER_CONSENT_TEXT,
   ESIGN_CONSUMER_DISCLOSURE_TEXT,
   renderConsumerDisclosure,
 } from "../consent";
+import { stampAndCertify } from "../stamp";
 
 // CG-Roofing-shaped fixture (the battle-tested reference input; parity vs the
 // Python engine's PDF is logged in ESIGN-BUILD-LOG — 4/4 pages, 94.6% char
@@ -215,7 +218,16 @@ describe("consumer disclosure (§7001(c) checklist — spec §3.5)", () => {
     expect(t).toMatch(/by emailing\s+\{SENDER_EMAIL\}/); // 4 withdrawal procedure
     expect(t).toMatch(/web browser able to display PDF files/); // 5 hw/sw requirements
     expect(t).toMatch(/requirements ever change .* notify you of the new requirements/s); // 7 change notice
-    // 6 (demonstrable access) lives in the consent checkbox mechanic + text:
+    // 6 (demonstrable access): the consent-checkbox text itself carries the
+    // §7001(c)(1)(C)(ii) mechanic — checking the box in the browser that just
+    // rendered the PDF IS the demonstration (spec §3.3.1); the render-lock
+    // that enforces it is pinned in signerGate.test.ts + signRoute.test.ts.
+    expect(ESIGN_CONSUMER_CONSENT_TEXT).toMatch(
+      /checking this\s+box in the browser in which this agreement is displayed/
+    );
+    expect(ESIGN_CONSUMER_CONSENT_TEXT).toMatch(
+      /I confirm\s+that I can access documents in this electronic \(PDF\) form/
+    );
   });
   it("placeholder rendering resolves sender + company", () => {
     const r = renderConsumerDisclosure("rob@aivoicetech.io", "My Local Everything");
@@ -223,6 +235,57 @@ describe("consumer disclosure (§7001(c) checklist — spec §3.5)", () => {
     expect(r).toContain("My Local Everything representative");
     expect(r).not.toContain("{SENDER_EMAIL}");
     expect(r).not.toContain("{COMPANY}");
+  });
+
+  it("certificate reproduces the consumer disclosure VERBATIM (spec §3.4 DoD)", async () => {
+    // Build a real 1-page original, stamp it with consumer args, then extract
+    // the certificate text with pdf.js and compare whitespace-normalized —
+    // line wrapping moves, the words may not.
+    const { PDFDocument: PD, StandardFonts: SF } = await import("@cantoo/pdf-lib");
+    const orig = await PD.create();
+    const p = orig.addPage([612, 792]);
+    p.drawText("Original agreement body", { x: 72, y: 700, size: 12, font: await orig.embedFont(SF.Helvetica) });
+    const originalPdf = await orig.save();
+
+    const disclosure = renderConsumerDisclosure("rob@aivoicetech.io", "My Local Everything");
+    const signed = await stampAndCertify({
+      originalPdf,
+      documentTitle: "Consumer Test Agreement",
+      documentId: "doc-consumer-test",
+      version: 1,
+      phase: "phase-1",
+      signerName: "Casey Consumer",
+      signerEmail: "casey@example.com",
+      typedName: "Casey Consumer",
+      signedAtIso: "2026-07-23T12:00:00Z",
+      consentAtIso: "2026-07-23T12:00:00Z",
+      signerIp: "1.2.3.4",
+      signerUserAgent: "test-ua",
+      sha256AtUpload: "a".repeat(64),
+      sha256AtSign: "a".repeat(64),
+      events: [{ type: "signed", at: "2026-07-23T12:00:00Z", ip: "1.2.3.4" }],
+      consumer: {
+        disclosureText: disclosure,
+        disclosureVersion: CONSUMER_CONSENT_VERSION,
+        pdfRenderedAt: "2026-07-23T11:59:00Z",
+        disclosureShownAt: "2026-07-23T11:58:00Z",
+      },
+    });
+
+    const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
+    const doc = await pdfjs.getDocument({ data: new Uint8Array(signed) }).promise;
+    let text = "";
+    for (let i = 2; i <= doc.numPages; i++) {
+      // pages after the original = the certificate
+      const page = await doc.getPage(i);
+      const content = await page.getTextContent();
+      text +=
+        content.items.map((it) => ("str" in it ? it.str : "")).join(" ") + " ";
+    }
+    const norm = (s: string) => s.replace(/\s+/g, " ").trim();
+    expect(norm(text)).toContain(norm(disclosure)); // full text, verbatim
+    expect(norm(text)).toContain(CONSUMER_CONSENT_VERSION);
+    expect(norm(text)).toContain("15 U.S.C. §7001(c)(1)(C)(ii)");
   });
 });
 
