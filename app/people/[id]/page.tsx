@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getStore } from "@/lib/storage";
 import ActivityTimeline from "@/components/ActivityTimeline";
+import DocumentsSection from "@/components/esign/DocumentsSection";
 import EnrichmentSection from "@/components/EnrichmentSection";
 import EstimatePanel from "@/components/EstimatePanel";
 import PersonEditor from "@/components/PersonEditor";
@@ -72,6 +73,13 @@ export default async function PersonPage({
           />
 
           <ActivityTimeline personId={person.id} demoEntries={[]} isDemo={false} />
+
+          {/* Q47 e-sign: agreements on the record — company rows anchor as org
+              (0008 mirrors the activities ≤1-of-person/org rule). */}
+          <DocumentsSection
+            personId={person.entityKind === "company" ? undefined : person.id}
+            orgId={person.entityKind === "company" ? person.id : undefined}
+          />
 
           <section className="rounded-xl border border-white/10 bg-white/5 p-5">
             <h2 className="font-semibold text-white">Connections</h2>

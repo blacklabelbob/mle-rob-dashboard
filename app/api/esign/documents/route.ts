@@ -16,6 +16,19 @@ export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   const p = req.nextUrl.searchParams;
+  const view = p.get("view");
+  if (view) {
+    // Time-limited signed URL for one document (signed copy when it exists).
+    const { data: doc, error } = await esignDb()
+      .from("documents")
+      .select("storage_path,signed_path")
+      .eq("id", view)
+      .maybeSingle();
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (!doc) return NextResponse.json({ error: "document not found" }, { status: 404 });
+    const url = await signedUrlFor(doc.signed_path ?? doc.storage_path, 3600);
+    return NextResponse.json({ url });
+  }
   const person = p.get("person");
   const org = p.get("org");
   const deal = p.get("deal");

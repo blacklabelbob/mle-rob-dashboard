@@ -155,14 +155,37 @@ seven §7001(c) checklist elements test-asserted against the disclosure text.
 Migration `0009_esign_comms_consent.sql` APPLIED TO PROD (tracked `20260723100000`),
 columns verified live; events DDL gate test now parses 0009's superseding constraint.
 
+## Increment 5 — n8n sender workflow LIVE ✅ DONE
+
+**"MLE — agreement link sender"** (`EIR0mgUWcn26rsjD`, published/activated): Webhook
+POST `/webhook/esign-send` (responseNode mode) → `Authorized?` IF on
+`headers["x-esign-secret"]` → Gmail send via cred `zafHNwGNRYD8V9aq`
+(rob@aivoicetech.io — identity rule; attribution footer off) → Respond 200
+`{ok:true}`; false branch → Respond 401. `errorWorkflow → VoOFOPGqObGWe5Jr` backstop
+(house pattern). **Proven live:** wrong secret → 401; right secret → 200 + real email
+delivered to rob@aivoicetech.io. One real bug caught: the create-API call had its IF
+expression quotes eaten by shell quoting (`headers[x-esign-secret]`) — first live 401
+exposed it, fixed via workflow PUT, re-proven. ⚠️ registry note (same as the other
+bearer workflows): the secret is hardcoded in the IF node (API can't create n8n creds);
+rotation must update the workflow AND both env stores by hand.
+Env wired: `ESIGN_SENDER_WEBHOOK_URL` + `ESIGN_SENDER_SECRET` in `.env.local` and
+Vercel production. Copy-to-Rob on signed was already in the sign route (inc.4).
+
+## Increment 6 — DocumentsSection on the record page ✅ DONE
+
+`components/esign/DocumentsSection.tsx` (the one allowed component) mounted on
+`app/people/[id]` (company rows anchor as org per the 0008 ≤1-of-person/org rule):
+version list w/ status chips (draft/sent/viewed/signed/voided/archived), View via
+time-limited signed URL (`GET /api/esign/documents?view=<id>` — signed copy when it
+exists), Upload PDF (base64 → the upload route), Send/Resend opening the PRE-SEND CHECK
+popup (walkthrough step 2): legal name / DBA / address / entity descriptor / signer
+name+email prefilled from the last request's remembered `presend_answers`; signer-type
+select (consumer visible but server-blocked pending counsel); channel select (Email
+live, SMS/Both disabled pending Twilio Q5b); server 409s (changed answers → new
+version; consumer gate) surface verbatim; mailer-down path shows the manual signUrl.
+
 ## Remaining increments (planned, in order)
 
-5. n8n workflow "MLE — agreement link sender" (Gmail cred zafHNwGNRYD8V9aq, from
-   rob@aivoicetech.io; copy-to-Rob on signed) + ESIGN_SENDER_WEBHOOK_URL/SECRET env
-   (local + Vercel).
-6. `components/esign/DocumentsSection.tsx` on the person record: version list w/ status
-   chips, signed-URL view, send/resend wired to the pre-send check popup (remembered
-   answers + signer_type from presend_answers jsonb).
 7. Deploy → E2E signed test agreement on prod (synthetic, cleaned) → nudge lib if the
    night allows.
 
