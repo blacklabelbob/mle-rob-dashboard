@@ -5,11 +5,14 @@
 import { describe, expect, it } from "vitest";
 import type { Activity, Deal, Task } from "../types";
 import {
+  MEETING_BOOKED_GRACE_DAYS,
+  STAGE_AGING_DAYS,
   meetingUnloggedItems,
   nextStepItems,
   stageAgingItems,
   whoDoITouchToday,
 } from "../tasks/todayRules";
+import { STAGE_LADDER } from "../scoring/deal";
 
 const TODAY = "2026-07-22";
 const NOW = new Date("2026-07-22T15:00:00Z");
@@ -105,6 +108,50 @@ describe("Task 1.7 — who do I touch today", () => {
       "stage_aging",
     ]);
     expect(run()).toEqual(items); // two runs on the same input match exactly
+  });
+
+  // Q45 / design §7b — meeting_booked ages on two tiers.
+  describe("meeting_booked two-tier aging", () => {
+    const booked = (id: string, updatedAt: string): Deal =>
+      deal({ id, name: `${id} deal`, stage: "meeting_booked", updatedAt });
+
+    it("PRIMARY: meeting datetime + grace fires once the meeting is 2d past", () => {
+      const d = booked("b1", "2026-07-21T00:00:00Z"); // fresh in stage — fallback would NOT fire
+      const items = stageAgingItems(
+        [d],
+        TODAY,
+        [meeting({ id: "bm1", occurredAt: "2026-07-20T14:00:00Z", dealId: "b1" })]
+      );
+      expect(items.map((i) => i.dealId)).toEqual(["b1"]);
+      expect(items[0].reason).toBe(
+        '"b1 deal" meeting was 2026-07-20 (2d ago) and it\'s still in meeting_booked — held? log it or rebook'
+      );
+    });
+
+    it("PRIMARY: a meeting booked a week out does NOT fire (the false-positive the tier exists to stop)", () => {
+      const d = booked("b2", "2026-07-01T00:00:00Z"); // 21d in stage — fallback WOULD fire
+      const items = stageAgingItems(
+        [d],
+        TODAY,
+        [meeting({ id: "bm2", occurredAt: "2026-07-29T14:00:00Z", dealId: "b2" })]
+      );
+      expect(items).toEqual([]);
+    });
+
+    it("FALLBACK: no meeting attached → plain days-in-stage at the 7d rung", () => {
+      expect(stageAgingItems([booked("b3", "2026-07-14T00:00:00Z")], TODAY)).toHaveLength(1);
+      expect(stageAgingItems([booked("b4", "2026-07-19T00:00:00Z")], TODAY)).toEqual([]);
+    });
+
+    it("ladder order holds: contacted < meeting_booked < meeting_held", () => {
+      expect(STAGE_LADDER.contacted).toBeLessThan(STAGE_LADDER.meeting_booked);
+      expect(STAGE_LADDER.meeting_booked).toBeLessThan(STAGE_LADDER.meeting_held);
+    });
+
+    it("thresholds are exported constants, not inlined magic numbers", () => {
+      expect(STAGE_AGING_DAYS.meeting_booked).toBe(7);
+      expect(MEETING_BOOKED_GRACE_DAYS).toBe(2);
+    });
   });
 
   it("rejects a malformed today (clock is the caller's job)", () => {

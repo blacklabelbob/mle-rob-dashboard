@@ -36,9 +36,18 @@ const isDemo = (id: string | undefined) => !!id && id.startsWith("demo-");
 // "entered stage" is proxied by deal.updatedAt — documented limitation.
 export const STAGE_AGING_DAYS: Partial<Record<Deal["stage"], number>> = {
   contacted: 3,
+  meeting_booked: 7,
   quote_sent: 5,
   negotiating: 7,
 };
+
+// Q45 / MASTER-VIEW-2.0-DESIGN §7b — `meeting_booked` ages on TWO tiers,
+// because days-in-stage alone false-positives on a meeting legitimately
+// booked a week out. PRIMARY: a meeting activity is linked → the clock is
+// the meeting's own datetime + this grace (booked, then ghosted). FALLBACK:
+// no datetime attached → plain STAGE_AGING_DAYS.meeting_booked days in
+// stage. A future-dated meeting yields a negative age, so it never fires.
+export const MEETING_BOOKED_GRACE_DAYS = 2;
 
 // Meeting held but nothing logged after it within this window → trigger.
 export const MEETING_LOG_WINDOW_MS = 24 * 60 * 60 * 1000;
@@ -116,8 +125,30 @@ export function meetingUnloggedItems(
   return items;
 }
 
-// Rule 4 — stage aging: deal sat in a thresholded stage too long.
-export function stageAgingItems(deals: Deal[], today: string): TodayItem[] {
+// Latest meeting activity anchored to this deal — the booked-meeting datetime
+// the primary tier clocks from. Anchor match mirrors meetingUnloggedItems.
+function latestMeetingFor(deal: Deal, activities: Activity[]): Activity | undefined {
+  let latest: Activity | undefined;
+  for (const a of activities) {
+    if (a.type !== "meeting" || isDemo(a.id)) continue;
+    const anchored =
+      a.dealId === deal.id ||
+      (!!deal.personId && a.personId === deal.personId) ||
+      (!!deal.orgId && a.orgId === deal.orgId);
+    if (!anchored) continue;
+    if (!latest || a.occurredAt > latest.occurredAt) latest = a;
+  }
+  return latest;
+}
+
+// Rule 4 — stage aging: deal sat in a thresholded stage too long. `activities`
+// is optional: supplied, `meeting_booked` uses the primary (meeting-datetime)
+// tier; omitted, every stage ages on days-in-stage alone.
+export function stageAgingItems(
+  deals: Deal[],
+  today: string,
+  activities: Activity[] = []
+): TodayItem[] {
   if (!ISO_DATE.test(today)) {
     throw new Error(`stageAgingItems: invalid today "${today}"`);
   }
@@ -126,14 +157,23 @@ export function stageAgingItems(deals: Deal[], today: string): TodayItem[] {
     if (isDemo(d.id) || isDemo(d.personId) || isDemo(d.orgId)) continue;
     const threshold = STAGE_AGING_DAYS[d.stage];
     if (!threshold) continue;
-    const days = daysBetween(d.updatedAt.slice(0, 10), today);
-    if (days < threshold) continue;
+
+    const booked =
+      d.stage === "meeting_booked" ? latestMeetingFor(d, activities) : undefined;
+    const days = booked
+      ? daysBetween(booked.occurredAt.slice(0, 10), today)
+      : daysBetween(d.updatedAt.slice(0, 10), today);
+    const limit = booked ? MEETING_BOOKED_GRACE_DAYS : threshold;
+    if (days < limit) continue;
+
     items.push({
       trigger: "stage_aging",
       dealId: d.id,
       personId: d.personId,
       orgId: d.orgId,
-      reason: `"${d.name}" has sat in ${d.stage} ${days}d (limit ${threshold}d)`,
+      reason: booked
+        ? `"${d.name}" meeting was ${booked.occurredAt.slice(0, 10)} (${days}d ago) and it's still in meeting_booked — held? log it or rebook`
+        : `"${d.name}" has sat in ${d.stage} ${days}d (limit ${limit}d)`,
     });
   }
   return items;
@@ -159,7 +199,7 @@ export function whoDoITouchToday(
   return [
     ...nextStepItems(input.tasks, today),
     ...meetingUnloggedItems(input.activities, input.tasks, now),
-    ...stageAgingItems(input.deals, today),
+    ...stageAgingItems(input.deals, today, input.activities),
   ].sort(
     (a, b) =>
       rank[a.trigger] - rank[b.trigger] ||
