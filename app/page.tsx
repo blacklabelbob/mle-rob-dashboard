@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getStore } from "@/lib/storage";
 import ThingsToAddress from "@/components/ThingsToAddress";
 import DedupQueue from "@/components/DedupQueue";
+import NeedsActionPanel from "@/components/NeedsActionPanel";
 import { computeStats, contribution, isDemo, money } from "@/lib/stats";
 import type { Person, Project, WillItem } from "@/lib/types";
 
@@ -111,13 +112,7 @@ export default async function Overview() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <section className="rounded-xl border border-dashed border-white/15 bg-black/20 p-4">
-          <h2 className="text-sm font-semibold text-slate-300">Daily priorities</h2>
-          <p className="mt-1 text-xs text-slate-500">
-            Not built yet — lands in Phase 5.1: AI ranks each morning&apos;s actions (nodes to light,
-            follow-ups, Will nudges) with reasons. Until then, work &quot;Nodes to light next&quot; below.
-          </p>
-        </section>
+        <NeedsActionPanel />
         <section className="rounded-xl border border-dashed border-white/15 bg-black/20 p-4">
           <h2 className="text-sm font-semibold text-slate-300">Events</h2>
           <p className="mt-1 text-xs text-slate-500">
