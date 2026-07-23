@@ -2,10 +2,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getStore } from "@/lib/storage";
 import ActivityTimeline from "@/components/ActivityTimeline";
+import EnrichmentSection from "@/components/EnrichmentSection";
 import EstimatePanel from "@/components/EstimatePanel";
 import PersonEditor from "@/components/PersonEditor";
 import ThingsToAddress from "@/components/ThingsToAddress";
 import { typeLabel } from "@/lib/labels";
+import { splitNotes } from "@/lib/notes";
 
 export const dynamic = "force-dynamic";
 
@@ -109,6 +111,10 @@ export default async function PersonPage({
               </div>
             </div>
           </section>
+
+          {/* Q43: machine-gathered provenance quarantined at the very bottom,
+              collapsed — most recent visible, rest behind the expander. */}
+          <EnrichmentSection blocks={splitNotes(person.notes).enrichment} />
         </div>
 
         <div className="space-y-6">

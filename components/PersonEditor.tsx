@@ -1,6 +1,7 @@
 "use client";
 
 import { contribution, money } from "@/lib/stats";
+import { composeNotes, splitNotes } from "@/lib/notes";
 import type { Person, Vertical } from "@/lib/types";
 import { TYPE_LABELS } from "@/lib/labels";
 import {
@@ -34,6 +35,11 @@ export default function PersonEditor({
   verticals: Vertical[];
   peopleOptions: { id: string; name: string }[];
 }) {
+  // Q43 discipline: the Notes box shows + edits ONLY Rob's own words; the
+  // machine-appended enrichment blocks render collapsed at the bottom of the
+  // record page and are recomposed untouched on every notes save.
+  const { human: humanNotes, enrichment } = splitNotes(person.notes);
+
   const typeOptions = Object.entries(TYPE_LABELS).map(([value, l]) => ({ value, label: l }));
   const verticalOptions = verticals.map((v) => ({ value: v.id, label: v.name }));
   const referrerOptions = peopleOptions
@@ -204,7 +210,13 @@ export default function PersonEditor({
         <div className="mt-5">
           <div className={label}>Notes</div>
           <div className="mt-1 text-sm text-slate-300">
-            <InlineTextarea personId={person.id} field="notes" value={person.notes} placeholder="+ add notes" />
+            <InlineTextarea
+              personId={person.id}
+              field="notes"
+              value={humanNotes}
+              placeholder="+ add notes"
+              serialize={(draft) => composeNotes(draft, enrichment)}
+            />
           </div>
         </div>
       </section>
