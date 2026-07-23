@@ -1,6 +1,6 @@
 # PRD: MLE CRM — The Network + Self-Made CRM (Unified)
 
-**Version:** 3.1.54 | **Created:** 2026-07-16 | **Updated:** 2026-07-22
+**Version:** 3.1.55 | **Created:** 2026-07-16 | **Updated:** 2026-07-22
 **Status:** ACTIVE
 **Owner:** Rob + Max
 **Project:** mle-rob-dashboard
@@ -199,7 +199,7 @@ dependence on GoHighLevel, Close, or any rented CRM core.
 
 ### Phase 5: Lead Intake & Routing API (Engineering)
 
-- [ ] Task 5.1 [Engineering] - `POST /api/leads` with per-product bearer tokens (AIDRE key, AIVA key): creates/updates Person + logs activity + opens deal at intake stage, payload includes `source_context` per Task 1.15 | DoD: AIDRE test key creates person+deal with source details populated; missing/wrong token → 401
+- [ ] Task 5.1 [Engineering] - `POST /api/leads` with per-product bearer tokens (AIDRE key, AIVA key): creates/updates Person + logs activity + opens deal at intake stage, payload includes `source_context` per Task 1.15 | DoD: AIDRE test key creates person+deal with source details populated; missing/wrong token → 401 **Progress 2026-07-22 (Q36 inc.1):** intake PLANNER shipped as pure code (CR-3) — `lib/leads/intakePlan.ts` `planLeadIntake(payload, ledger, verticals, now)` → exact plan: match-or-create person (Task 3.5 matcher, email/phone-exact only — name-only collision CREATES, dedup queue is the safety net; demo excluded), contact-only empty-field fills (whitelist phone/email/role/business — money structurally unreachable), deal pinned at `INTAKE_STAGE`, one intake activity carrying source_context+product (`aidre` source; AIVA rides `api` — ActivitySource lacks aiva), vertical free-text → registry map w/ honest `verticalUnmatched`, `[lead: product]` notes tag, deterministic ids from (personId, now). 9 tests, 402/402. Remaining: route (bearer auth per product key → parseLeadIntake → execute plan), env keys, prod DoD
 - [ ] Task 5.2 [Engineering] - Rate-limit + idempotency key on `/api/leads` | DoD: Same idempotency key twice → one person, one deal, one activity
 - [ ] Task 5.3 [Operations] - Enrichment refresh: lead-enricher re-runs on contacts stale >90 days, results logged as timeline entries (no silent overwrite) | DoD: Stale contact re-enriched on schedule; diff visible in timeline
 - [ ] Task 5.4 [Operations] - Dead-lead recycling: no-activity-180-days contacts auto-tag `recycle_candidate`, surfaced in weekly digest (piggybacks base-PRD digest infra) | DoD: Seeded stale contact appears in next weekly digest recycle section
@@ -408,6 +408,7 @@ dependence on GoHighLevel, Close, or any rented CRM core.
 
 | Version | Date | What Changed | By |
 |---------|------|--------------|-----|
+| 3.1.55 | 2026-07-22 | **Task 5.1 opened (Q36 inc.1): lead-intake planner as pure code** — `lib/leads/intakePlan.ts` composes parseLeadIntake (1.11) + Task-3.5 matcher + sourceContext (1.15): match-or-create person (email/phone-exact only; name-only creates — dedup queue is the net), contact-only fill whitelist (money unreachable), deal at INTAKE_STAGE, intake activity w/ source_context+product, vertical registry map w/ honest unmatched report. 9 tests, 402/402, build green; route + bearer keys next | Max (driver) |
 | 3.1.54 | 2026-07-22 | **Task 4.4 CLOSED (Q35 inc.2): real-list import UX LIVE, DoD prod-proven zero-write** — `/people` plan panel shows header mapping + amber ignored-columns line + optional import tag (`[import: tag]` in notes). Prod dry-run: 50-row real-header sample w/ 3 dupes planted vs live records → 47+3+0 sum 50, Fax ignored-reported, committed:false, ledger re-parse 34 records / 0 fixtures. 393/393, build green, deployed | Max (driver) |
 | 3.1.53 | 2026-07-22 | **Task 4.4 opened (Q35 inc.1): field-mapping pipeline shipped pure** — `lib/csvMapping.ts` maps Rob's real-list headers (aliases + First/Last combine) onto the proven Task-4.3 planner; `?tag=` stamps attributable inserts; unmapped columns reported never silent. DoD case (50 rows, 3 planted dupes → 47+3+0, buckets sum) proven in-suite. 9 tests, 393/393, build green; no deploy (panel must render ignoredColumns first — inc.2) | Max (driver) |
 | 3.1.52 | 2026-07-22 | **Task 4.3 CLOSED (Q34 inc.3):** `/people` Export/Import CSV buttons live (`CsvButtons.tsx`, two-step dry-run→confirm import UI). Deployed; DoD prod-proven without writing fixtures: 100-row dry-run plans 100 clean inserts; prod-export round-trip → all 34 rows dupe-flagged, 0 inserts. 384/384 vitest, build green. Next unblocked: Task 4.4 (or queue order) | Max (driver) |
