@@ -1,5 +1,5 @@
 # MASTER VIEW 2.0 — Design Doc
-**Date:** 2026-07-22 · **Status:** DRAFT rev 3 — Rob's decision batch (2026-07-22 late) folded: OQ-1..5 RESOLVED, labels Option A + ROLE amendment, Q45 meeting_booked, phase checklists drafted for his edit. Awaiting the visual companion + final sign-off (Q39 gate) · **Owner:** Max
+**Date:** 2026-07-22 · **Status:** DRAFT rev 4 — Rob reviewed the visual mockup ("not bad for a Master View") and his amendments are folded: always-full 3-phase layouts, phase lifecycle triggers, P4 inline-edit, Master-Admin edit-anything, owner-who-is-also-rep, kickoff steps replacing Met. OQ-1..5 resolved; awaiting final sign-off (Q39 gate) · **Owner:** Max
 **Sources:** Rob dumps `sources/7.22.26-2.md`, `sources/7.22.26-3.md` (gospel), `sources/ROB-CRM-VISION-DUMP-2026-07-17.md`, `sources/DATA-MODEL-crm-erd-2026-07-17.md`, BUILD-QUEUE Q39–Q45 + "ROB DECISIONS 2026-07-22 late", live demo `https://mylocaleverything.com/app?demo=1` · **Companions:** `PHASE-SIGNAL-WEBHOOK-CONTRACT.md`, `PHASE-COMPONENT-CHECKLIST-DRAFT.md`
 **Design research:** Attio, Folk, Twenty, HubSpot, Pipedrive, Affinity — every borrowed pattern cited inline.
 
@@ -53,7 +53,7 @@ This is how every best-in-class CRM works — none of them interleave:
 |---|---|
 | Name · Vertical · Status · **Phase (P1 ●●○○)** · Owed/Paid · Assigned rep · Last touch | Name · **Role @ Company** (link) · Relationship label · Status · Referred-by chain (compact, §5) · Last touch |
 
-The graph (`/network`) is untouched: mixed nodes stay, per Rob. The existing dedup/CSV/search tooling moves with the People list.
+The graph (`/network`) is untouched: mixed nodes stay, per Rob. The existing dedup/CSV/search tooling moves with the People list. *(For the record, 2026-07-22: the reviewed mockup simply didn't replicate the network graph; the real app's graph is unchanged by this design and Rob is OK with that.)*
 
 ### 2b. Status vocabulary — replacing the shared "Client" label
 
@@ -96,6 +96,10 @@ Migration note: `node_type` slugs stay in the DB; this is a label-map + per-obje
 
 Header grammar: **"Karen Diaz — Champion · Bookkeeper @ Miga Food Manufacturing ⧉ invoices"**. Relationship answers "why do I care", role answers "what do they do", the flag answers Rob's exact bookkeeper case: the tracker's per-phase money row names the invoice recipient so nobody hunts for who to bill. Role stays free text (Attio/Folk treat job title as an open attribute, not an enum — titles are too varied to enumerate; the structure lives in the other three fields).
 
+**Worked example (real, Rob-confirmed; data already corrected in prod): Chris Acheson — Connector (relationship) · Co-Owner @ Gulf Coast (role).** Two different facts about the same man: what he is to us (opens doors) and what he is at his company. Under the old single-label model these fought over one field; here they coexist by design.
+
+**Owner-who-is-also-rep (real case: Jonathan Polk — Owner of Naples Spine & Joint AND an MLE rep, comped):** Rob: *"It might not be uncommon to sign an owner who then wants to sell our services."* The §2c fields already carry it — relationship (Owner) + role (Owner @ Naples Spine & Joint) + **a rep flag** (`is_rep` / rep-profile link, the same identity the ACCESS rollout will use for rep logins) can coexist on one person; none of the three excludes the others. His company is a normal Client with a normal tracker. **Comped deals get a first-class render state:** the deal shows a **COMPED** badge, and the tracker's money row reads "COMPED" instead of invoice amounts — no fake $0 invoices, no pretending it's owed. How comped value counts in rollups (pipeline/signed totals) is **Rob's open value-ruling — flag #17**; the design only commits to the render state, not the accounting.
+
 **The `business` column — audit + fate (Rob spotted it mostly empty in Supabase; verified):**
 
 - **Audit (prod Supabase, 2026-07-22):** 22 people rows → `business` empty on **17**; set on 5. Of those 5: 4 have no `org_id` (`rob-acheson` "AI VoiceTech / MLE", `david-cates` "The Cates Processing Group", `will` "MLE", `george-eu` "Guest Genie") and **1 contradicts its org link** (`gary-waskivich`: business says "Miga Food Manufacturing", `org_id` says `dececco-pasta`). It is pre-orgs-split legacy — the ERD called it the original bug (*"`business` is a free-text field on a person, not a real entity"*, `DATA-MODEL-crm-erd-2026-07-17.md` §1) — and it's already caused real defects: Rob's PropLogic→Proplogix rename didn't propagate into it (Q13 caveat), and free text can silently disagree with the org link (gary case).
@@ -128,22 +132,30 @@ Layout skeleton (HubSpot's proven 3-area record anatomy — left properties, cen
 
 Rob, 7.22.26-3 (gospel): *"Every Customer will have their own login showing their own Blueprint. Phase 1 for everyone will largely be the same. As each of the components go live, we get closer to the completion of phase 1. When they are ALL lit, Phase 1 is complete."* And: *"please take the steps from the demo I am giving you to be shown in a similair manner as to the one in the demo."*
 
-**What the demo shows** (fetched 2026-07-22, `mylocaleverything.com/app?demo=1`): a three-phase blueprint rail — **Phase 1 "live now"** (green LIVE state), **Phase 2 "high-ROI automation" badged "NEXT UP"**, **Phase 3 "the 95% business" subtitled "THE DEEP END"** (future/locked, with a "Browse the full automation database" link). Current phase uses operational live-status language; future phases are visually quieter aspirational cards. Our tracker mirrors that grammar: **lit components for the active phase, a "NEXT UP" card for the following phase, a quiet locked card for the one after.**
+**What the demo shows** (fetched 2026-07-22, `mylocaleverything.com/app?demo=1`): a three-phase blueprint rail — **Phase 1 "live now"** (green LIVE state), **Phase 2 "high-ROI automation" badged "NEXT UP"**, **Phase 3 "the 95% business" subtitled "THE DEEP END"** (future/locked, with a "Browse the full automation database" link). Current phase uses operational live-status language; future phases are visually quieter.
 
-**Per-phase card spec (master view):**
+**All three phases ALWAYS render as FULL sections (Rob mockup amendment, 2026-07-22): even a not-started phase shows its complete fillable layout — component slots (unlit), money row placeholders (no agreement yet · not invoiced), the works — never a slim summary card.** Rob: *"At least we'll have the layout that can be filled in."* The demo grammar (LIVE / NEXT UP / locked-quiet) survives as **visual states applied to full sections** — tone and badge change, structure never does. This also serves the Master-Admin edit-anything rule (§3.7): every slot on a future phase is already there to be filled in.
+
+**Per-phase section spec (master view — P2/P3 render this same full structure with empty slots):**
 
 ```
-PHASE 1 — Foundation                              ● ● ● ○ ○  3/5 live
+KICKOFF STEPS  Meeting booked ✓ → Quote ✓ → Signed ✓ → Invoiced ✓ → Paid ✓
+               (pre-P1 sales journey as a strip — see "Kickoff steps" below)
+PHASE 1 — Foundation                    [LIVE]    ● ● ● ○ ○  3/5 live
 ├─ components: [Website+AEO-SEO ●] [Everything Agent ●] [Social ●]
 │              [Content ○] [Radar ○]   (drafted — see checklist doc)
 ├─ money:  Agreement #A-102 (Phase 1) · Invoiced $X · PAID ✓ 7/02
 ├─ refund: 30-day window — ACTIVE, 19 days left (started 7/10,
 │          website-live-with-AEO-SEO)     [state machine below]
 └─ ── between P1 and P2: "TOP AUTOMATIONS WE RECOMMEND" slot ──
-PHASE 2 — High-ROI Automations                    NEXT UP
-├─ money: not yet invoiced · ROI guarantee: 3 months (calcs — Rob)
-PHASE 3 — (locked, quiet)
+PHASE 2 — High-ROI Automations          [NEXT UP]  ○ ○ ○  0/3 slots
+├─ components: [p2-auto-1 — empty slot] [p2-auto-2 —] [p2-auto-3 —]
+├─ money:  no agreement yet · not invoiced · ROI guarantee: 3 months
+PHASE 3 — The 95% Business              [locked, quiet tone]  ○ ○ ○
+├─ components: [p3-auto-1 — empty slot] [p3-auto-2 —] [p3-auto-3 —]
+├─ money:  no agreement yet · not invoiced
 ```
+*(P2/P3 above are the SAME full structure as P1 — empty slots and placeholder money rows, quieter visual tone. Nothing collapses.)*
 
 Rules, each traceable to the dump:
 
@@ -167,6 +179,19 @@ ACTIVE ──(P2 agreement signed OR P2 invoice paid)──▶ VOIDED_BY_ADVANCE
 ```
 The tracker renders the state + days remaining; VOIDED_BY_ADVANCE renders with an explicit note ("advanced to P2 on {date} — refund voided") so nobody has to reconstruct why.
 
+**Kickoff steps — the pre-P1 sales journey, and the end of "Met" (Rob mockup amendment):** the standalone key-dates chips felt out of place to Rob; his fix: render the pre-Phase-1 journey — **Meeting booked → Quote → Signed → Invoiced → Paid** — as a **"Phase 1 kickoff steps" strip directly ABOVE the Phase 1 section**, same visual language as the component lights (a done step is a lit step). And **"Met" is retired as a tracked concept** — Rob: *"lets get rid of MET. Over the phone is fine. What I care about is booked meetings whether in person or over the phone."* Booked meetings, channel-agnostic, are the tracked event (which is exactly Q45's `meeting_booked` stage — the kickoff strip's first light reads from it). Migration implication: `key_dates.met` stays in the DB as **historical data only** — no UI reads or writes it anywhere (PersonEditor's "Met" chip and the rep workspace's "Met" date field are removed); no destructive migration needed.
+
+**Phase lifecycle triggers (Rob mockup amendment — "or do whatever action we want"):** phase events fire configurable actions. Triggers are **CODE on the phase state machine** (CR-3): every FSM transition emits a typed event; a declarative config table maps events to actions — adding a mapping is config, adding an event/action type is code + test.
+
+| Event (enum) | Fires when | Action (enum) → first configured use |
+|---|---|---|
+| `refund_window_complete` | Refund FSM → EXPIRED (30 days survived) | **`rep_alert`** → flag to the assigned rep's Things to Address: **"Refund window closed — time to reach out for Phase 2"** (the first concrete trigger, per Rob) |
+| `phase_complete` | ALL components of a phase lit | any of the three |
+| `phase_paid` | Phase invoice paid_at set | any of the three |
+| `early_advance` | Refund FSM → VOIDED_BY_ADVANCE | any of the three |
+
+Actions: **`rep_alert`** (a flag via the existing flags/Things-to-Address ledger — no new alert plumbing), **`task_create`** (tasks table, assigned + due date), **`email`** (rides the n8n seam once Comms lands; until then config can't select it — honest gap, not a stub). Both enums are extensible by design; the trigger runner is idempotent per (event, phase, action) so FSM re-evaluation never double-fires.
+
 **Rep view of the same tracker:** lights + phase names + "NEXT UP" only — no invoice amounts, no refund mechanics. Rob: *"we will want the Rep to be able to see the progress update from the Entity Page or Company page."* (7.22.26-3)
 
 **Component checklists (✅ OQ-1 resolved: Max drafts, Rob edits):** drafted at **`docs/plans/PHASE-COMPONENT-CHECKLIST-DRAFT.md`** — P1 as a shared checklist (only `website-aeo-seo` is confirmed; the rest grounded in the demo and marked `[DRAFT — Rob confirm]`), P2/P3 as **per-customer slot structures** (`p2-auto-<n>`), since Rob picks the highest-ROI automations per customer. Component names are config, not code — Rob's edit pass renames labels without touching slugs.
@@ -185,7 +210,7 @@ Owner first (label from §2b), then champions/others; each name links to the per
 
 - **Services:** the Phase 1–3 deals, each showing its associated phase, stage, value, key dates. This is where the phase ↔ agreement ↔ invoice cross-check surfaces mismatches ("agreement says Phase 2, no Phase 2 invoice").
 - **Where the rep notes the phase (decision):** Rob — *"the Rep should be noting the Associated Phase for the Associated Agreement"* (7.22.26-3). The UI home is an **inline `Phase` field on the deal card in `/rep/accounts/[id]`** — click-to-edit select (P1/P2/P3), autosave, per Rob's inline-edit standard (no edit mode, no Save button). That rep-entered value is exactly what the master-side cross-check above compares against invoices; a deal missing its phase flags in Things to Address.
-- **Phase 4 / Equity — owners-only:** rendered only for owner role; reps never see this section (mechanics in §6). Rob: *"these Spinoff Companies and the details of them are not something I necessarily want our Reps to see."* (7.22.26-2)
+- **Phase 4 / Equity — owners-only, and CLICKABLE-EDITABLE (Rob mockup amendment):** rendered only for owner role; reps never see this section (mechanics in §6). Rob: *"these Spinoff Companies and the details of them are not something I necessarily want our Reps to see."* (7.22.26-2). The equity card is **not read-only**: owners click any value and edit inline — split (40/60), state (DISCUSSED/AGREED/SIGNED), notes — per the inline-edit standard (click, edit, autosave; no edit mode, no Save button). These are the same rows the §6 registry reads, so an edit here is instantly correct there — one write path, two surfaces.
 
 ### 3.4 Activity timeline
 
@@ -201,7 +226,24 @@ One more Rob rule lands here (7.22.26-2): *"When you pick up from either notes I
 
 ### 3.6 Details grid + enrichment
 
-The current 16-field inline-edit grid (`PersonEditor`) survives but **demoted** below Notes, trimmed to company-relevant fields (website, phone, vertical, assigned rep, key dates). Inline click-to-edit autosave is retained everywhere — Rob's law, no Save buttons.
+The current 16-field inline-edit grid (`PersonEditor`) survives but **demoted** below Notes, trimmed to company-relevant fields (website, phone, vertical, assigned rep). Inline click-to-edit autosave is retained everywhere — Rob's law, no Save buttons. ("Met" is gone from the date chips per §3.1's kickoff-steps amendment; the remaining sales-journey dates render as the kickoff strip, not a chip row.)
+
+### 3.7 Master-Admin edit-anything (Rob mockup amendment — new requirement)
+
+**Decision: on master surfaces, Rob + Will can fill or correct ANY stored field on any record inline** — Rob: *"until we figure out the easiest way to capture them."* Manual entry is the honest interim capture path, so no master surface may be read-only for stored data.
+
+**Surfaces getting the full inline treatment:**
+
+| Surface | Inline-editable |
+|---|---|
+| Details grid (company + person, §3.6) | every field, as today |
+| People-here rail (§3.2) | relationship, role, `billing_contact` flag — editable in place on the rail, not just on the person's own page |
+| Phase sections (§3.1) | component toggles (manual-rob path), agreement link, invoice amount/dates, standard-price override — on ALL three phases incl. not-started (the always-full layout exists precisely to be filled in) |
+| Kickoff steps strip (§3.1) | each step's date, click-to-set |
+| Equity cards + registry rows (§3.3/§6) | split, state, notes — owners only |
+| Deals sections | stage, phase, value, key dates |
+
+**Exclusions (the only ones):** (1) **derived/computed values** — est. contribution, deal scores, lineage chains, refund-window state, phase-complete state: these are outputs of code and render read-only (editing them would be editing a lie; you edit their inputs instead); (2) **demo/mock records** — `(DEMO)` book rows keep their existing guardrails and don't accept master edits into real rollups; (3) **webhook-stamped `live_at` timestamps once the partner signal is armed** — correctable only via an explicit manual-override that logs `source: "manual-rob"` over the top, so a hand edit is never mistaken for a partner signal. Everything else: click it, fix it, autosaved.
 
 ---
 
@@ -253,7 +295,7 @@ Data source is the existing `people.referredById` self-FK (`lib/types.ts`; ERD: 
 
 **Decision: a dedicated `/registry` (owners-only) table — one row per spinoff/equity position — plus the owners-only equity section on each company page. Structured fields, never notes-crammed.** Rob (7.22.26-2): *"we will typically spin this up into a new entity and get an equity split. Calebs CRM is one example. Alex's HomeCloneVault is another... with Homevault, we have agreed to a 40/60 Split... we have not signed off on it yet... we need to make sure we are getting that paperwork signed. But we need to record the details of it."*
 
-**Columns:** Spinoff entity · Partner (person link) · Origin client (company link) · Equity split (e.g. 40/60) · State: **DISCUSSED → AGREED → SIGNED** · Paperwork task (link, due date, overdue flag) · Notes.
+**Columns:** Spinoff entity · Partner (person link) · Origin client (company link) · Equity split (e.g. 40/60) · State: **DISCUSSED → AGREED → SIGNED** · Paperwork task (link, due date, overdue flag) · Notes. **All owner-editable inline** — registry rows and the company-page equity cards (§3.3) are the same records behind one write path; edit in either place, both render it.
 
 Seeded rows — live in **prod Supabase** (verified 2026-07-22 against the `orgs`/`deals`/`tasks` tables; they are NOT in the repo's `data/network.json`, and increment 10's DoD re-proves they render): `spinoff-homeclonevault` (Alex, 40/60, AGREED-unsigned, task due 7/29) · `deal-gulf-coast-equity-phase4` (30%, PROBABLE, unsigned, task due 7/29). Caleb's CRM enters as DISCUSSED.
 
@@ -305,12 +347,15 @@ Sequenced so nothing waits on Rob that doesn't have to. **A = buildable on doc a
 | 6 | **Status vocabulary.** Apply §2b Option A label maps (✅ Rob-approved); reclassify ~54 rows (ERD §3 heuristic, ambiguous → review queue); Client-without-deal flag wired to Things to Address; solopreneur rule enforced. | **A** (OQ-2 resolved) | Labels live per object; reconciliation report zero-drop |
 | 6b | **Person ROLE model + `business` retirement (§2c).** `billing_contact` boolean + migration; Role/Relationship split in header + lists; invoice-recipient badge on company People-rail + tracker money row; `business` fate steps 1–3 (org-resolve 4 rows, gary contradiction → review; UI reads/writes removed; intake → org-match + `company_hint`). Column drop = its own later increment (step 4). | **A** (amendment is Rob's own ask) | Header renders Relationship · Role @ Company; invoice badge visible; zero UI reads of `business`; 4 rows org-resolved |
 | 7 | **Refund state machine + phase schema.** `lib/phases/refund.ts` pure FSM (time as param) + tests; `phases`/`phase_components` migration seeded from the checklist draft slugs; manual toggles (✅ approved) share the webhook write path. | **A** (OQ-1 resolved: draft exists; Rob's edit pass renames config, not code) | FSM tests cover all 4 states incl. VOIDED_BY_ADVANCE; components seeded from `PHASE-COMPONENT-CHECKLIST-DRAFT.md` |
-| 8a | **Tracker — master variant.** §3.1 card on company record: component lights, per-phase invoiced/paid/owed row (standard price + override rendering, ✅ OQ-3), refund-window state line, phase↔agreement↔invoice cross-check. | **A** (OQ-1/3 resolved) | Master tracker renders lights + money (override shows "standard $Y") + refund state for a seeded company |
+| 8a | **Tracker — master variant.** §3.1 on company record: component lights, per-phase invoiced/paid/owed row (standard price + override rendering, ✅ OQ-3), refund-window state line, phase↔agreement↔invoice cross-check. **All three phases render as FULL sections** — not-started phases show empty component slots + placeholder money rows (Rob amendment). | **A** (OQ-1/3 resolved) | Master tracker renders lights + money (override shows "standard $Y") + refund state; P2/P3 render full fillable sections while not started |
 | 8b | **Tracker — rep variant.** Lights + phase names + NEXT UP only on `/rep/accounts/[id]`; inline `Phase` field on the deal (§3.3 decision). | **A** (OQ-1 resolved) | Rep page shows lights, zero money strings in payload; phase editable inline |
 | 8c | **Tracker — demo-grammar states + Top Automations slot.** Live / NEXT UP / locked-quiet phase card states matching the demo; "Top Automations we recommend" slot rendered between P1 and P2. | A (states) / **R** (OQ-6 slot content — the one still-open question) | Three visual states match demo grammar; slot renders between phases |
 | 9 | **Signal webhook.** Inbound `POST /api/webhooks/phase-signal` per the drafted contract — **`docs/plans/PHASE-SIGNAL-WEBHOOK-CONTRACT.md`** (payload, idempotency, secret header, 503-inert) — flipping `phase_components.live_at`; manual toggles interim ✅ approved. | **A** (OQ-4 resolved) | Test payload lights a component end-to-end; duplicate eventId no-ops; manual toggle writes `source: "manual-rob"` |
-| 10 | **Phase-4 registry.** `/registry` owners route + company-page equity section; rep-payload exclusion; seeded rows render; overdue paperwork flags. | **A** (OQ-5 resolved: route-hide approved for prod) | Registry lists HomeCloneVault + Gulf Coast; `/rep/*` payloads verifiably equity-free |
+| 10 | **Phase-4 registry.** `/registry` owners route + company-page equity section; rep-payload exclusion; seeded rows render; overdue paperwork flags. **Equity fields inline-editable** (split/state/notes, one write path shared by card + registry — Rob amendment). | **A** (OQ-5 resolved: route-hide approved for prod) | Registry lists HomeCloneVault + Gulf Coast; `/rep/*` payloads verifiably equity-free; split edited inline on the company card renders changed in the registry |
 | 11 | **Meeting Booked surfacing (Q45, §7b).** `STAGE_AGING_DAYS` two-tier `meeting_booked` rung (booked-datetime+2d primary / 7d-in-stage fallback) + stage chip on company lead view (master + rep) + inline stage edit offers it in ladder order. | **A** | Aging item fires in tests for both tiers; ladder-order gate test green; stage visible master + rep; existing deals untouched |
+| 12 | **Kickoff steps strip + Met retirement (§3.1 amendment).** Pre-P1 journey (Meeting booked → Quote → Signed → Invoiced → Paid) as a lit-steps strip above Phase 1, click-to-set dates; remove every UI read/write of `key_dates.met` (PersonEditor chip, rep workspace field); `met` stays DB-historical. | **A** | Strip renders above P1 with first light fed by `meeting_booked`; repo-wide grep shows zero UI references to `met`; existing `met` data untouched |
+| 13 | **Phase lifecycle trigger engine (§3.1 amendment).** Typed events off the FSM transitions (`refund_window_complete`, `phase_complete`, `phase_paid`, `early_advance`) × actions (`rep_alert`, `task_create`; `email` enum-reserved until Comms) via declarative config; idempotent per (event, phase, action). First config row: refund_window_complete → rep_alert "time to reach out for Phase 2". | **A** (rides increment 7's FSM) | FSM test drives EXPIRED → assigned rep gets the Things-to-Address flag exactly once across re-runs; config-only mapping addition needs no code change |
+| 14 | **Master-Admin edit-anything (§3.7).** Inline-edit coverage audit + fill-in across master surfaces: people-here rail (relationship/role/billing flag), all phase-section fields on all three phases, kickoff dates, deal fields; §3.7 exclusions enforced (computed values read-only; DEMO guardrails; `live_at` override logs `manual-rob`). Includes the owner-rep pattern surface: rep flag on person + **COMPED** deal render state (value ruling = Rob flag #17, accounting untouched until ruled). | **A** | Every §3.7 table row click-editable on a real record; excluded fields verifiably read-only; Polk renders Owner+rep with COMPED badge and no $ owed on the tracker |
 | — | *(Q44 — customer Blueprint portal: out of scope here; gated on 8a-c + ACCESS; see §1.)* | | |
 
 **The increment-5 "company page ≠ person page" test, enumerated (testable):** (1) company page renders the Phase Blueprint tracker + people-here rail; (2) person page renders the attribution-lineage centerpiece and neither tracker nor people rail; (3) the two pages share **zero** centerpiece components (shared primitives like timeline/inline fields are fine — no shared page-layout component); (4) both pass Q43 notes/enrichment discipline (notes prominent, enrichment collapsed at bottom with most-recent visible + expander).
