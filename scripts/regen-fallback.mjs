@@ -3,7 +3,11 @@
 // so the no-stall fallback serves truth, not stale seed data (Critic Rob R1-#7).
 // Field mapping mirrors lib/storage/supabaseStore.ts toPerson/toProject exactly —
 // keep the two in sync when the schema changes.
-// Usage: node scripts/regen-fallback.mjs   (reads .env.local if env not set)
+// Usage: node scripts/regen-fallback.mjs                (source: live table reads)
+//        node scripts/regen-fallback.mjs --from-backup  (source: latest verified
+//          nightly backup — `latest.json` in the private `backups` bucket, MC.16.
+//          This is the restore path: backup → fallback file → deploy bundles it →
+//          a store outage serves exactly the last verified backup.)
 import { createClient } from "@supabase/supabase-js";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 
@@ -91,9 +95,28 @@ async function allOrgs() {
   return data;
 }
 
-const [verticals, people, edges, projects, orgs] = await Promise.all([
-  all("verticals"), all("people"), all("edges"), all("projects"), allOrgs(),
-]);
+// --from-backup: rows come from the last VERIFIED nightly snapshot instead of
+// live tables. Same raw Supabase row shape either way, so the mappers above
+// apply unchanged; refuse anything that doesn't look like a Q47 snapshot.
+async function fromBackup() {
+  const { data, error } = await db.storage.from("backups").download("latest.json");
+  if (error) throw new Error(`backups/latest.json download: ${error.message}`);
+  const snap = JSON.parse(await data.text());
+  if (!snap?.takenAt || typeof snap.tables !== "object" || !Array.isArray(snap.tables.people) || snap.tables.people.length === 0) {
+    throw new Error("latest.json is not a usable snapshot (missing takenAt/tables or empty people) — refusing to write a bad fallback");
+  }
+  const t = snap.tables;
+  return {
+    takenAt: snap.takenAt,
+    rows: [t.verticals ?? [], t.people, t.edges ?? [], t.projects ?? [], t.orgs ?? []],
+  };
+}
+
+const useBackup = process.argv.includes("--from-backup");
+const source = useBackup
+  ? await fromBackup()
+  : { takenAt: null, rows: await Promise.all([all("verticals"), all("people"), all("edges"), all("projects"), allOrgs()]) };
+const [verticals, people, edges, projects, orgs] = source.rows;
 
 const out = {
   verticals: verticals.map((r) => ({ id: r.id, name: r.name, color: r.color })),
@@ -108,7 +131,9 @@ const out = {
 const target = new URL("../data/network.json", import.meta.url);
 writeFileSync(target, JSON.stringify(out, null, 2) + "\n", "utf8");
 console.log(
-  `✓ data/network.json regenerated from live Supabase: ` +
+  `✓ data/network.json regenerated from ${
+    useBackup ? `last verified backup (taken ${source.takenAt})` : "live Supabase"
+  }: ` +
     `${out.people.length} people, ${out.edges.length} edges, ` +
     `${out.verticals.length} verticals, ${out.projects.length} projects`
 );
