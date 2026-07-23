@@ -1,5 +1,5 @@
 # MASTER VIEW 2.0 — Design Doc
-**Date:** 2026-07-22 · **Status:** DRAFT — awaiting Rob sign-off (Q39 gate for Q40–Q43) · **Owner:** Max
+**Date:** 2026-07-22 · **Status:** DRAFT rev 2 (critic-rob 88/100 punch list applied) — awaiting re-review + Rob sign-off (Q39 gate for Q40–Q43) · **Owner:** Max
 **Sources:** Rob dumps `sources/7.22.26-2.md`, `sources/7.22.26-3.md` (gospel), `sources/ROB-CRM-VISION-DUMP-2026-07-17.md`, `sources/DATA-MODEL-crm-erd-2026-07-17.md`, BUILD-QUEUE Q39–Q43, live demo `https://mylocaleverything.com/app?demo=1`
 **Design research:** Attio, Folk, Twenty, HubSpot, Pipedrive, Affinity — every borrowed pattern cited inline.
 
@@ -18,16 +18,18 @@ This is derived, not invented:
 - *"the Rep should be noting the Associated Phase for the Associated Agreement"* and *"we will want the Rep to be able to see the progress update from the Entity Page"* — 7.22.26-3. Phase state is visible to both audiences; invoice/refund/equity mechanics are Rob's.
 - *"I dont want sales reps getting bogged down by having to look at a bunch of stuff that is not going to be beneficial to them"* — 7.17 vision dump. The rep view's charter is unchanged; the Master View is the layer above it (the "super Admin" top layer from the same dump).
 
-**Master View vs Rep View, one table:**
+**There are THREE audiences, not two.** Rob flagged the third as critical (7.22.26-3): *"Now this is very important....Every Customer will have their own login showing their own Blueprint."* The customer-facing Blueprint portal is a **portal variant of the same phase tracker — lights + phase names + "NEXT UP", NO money, no internal notes** — rendered behind the customer's own login. It is **explicitly OUT of Master View 2.0 scope** (it gates on Q40's tracker existing and on the ACCESS rollout for customer logins) and is tracked as **BUILD-QUEUE Q44** so it cannot be lost. Master View 2.0 builds the tracker component such that the customer portal is a third render variant of it, not a rebuild.
 
-| | Master View (Rob) | Rep View (rep) |
-|---|---|---|
-| Purpose | Operate the whole network | Close the next deal |
-| Companies | All, with phase + money + equity state | Own book only, phase progress visible |
-| Phase tracker | Full: paid/owed, refund window, invoice cross-check | Progress lights only |
-| Phase 4 / spinoffs | Full registry | **Hidden** (until ACCESS; see §6) |
-| Attribution | Full chain back to Rob | "Referred by X" is enough |
-| Notes | Human notes prominent, enrichment collapsed | Same discipline |
+**Master View vs Rep View vs Customer portal, one table:**
+
+| | Master View (Rob) | Rep View (rep) | Customer portal (Q44, out of scope here) |
+|---|---|---|---|
+| Purpose | Operate the whole network | Close the next deal | See their own Blueprint progress |
+| Companies | All, with phase + money + equity state | Own book only, phase progress visible | Their own company only |
+| Phase tracker | Full: paid/owed, refund window, invoice cross-check | Progress lights only | Lights + phase names only — **no financials** |
+| Phase 4 / spinoffs | Full registry | **Hidden** (until ACCESS; see §6) | Never |
+| Attribution | Full chain back to Rob | "Referred by X" is enough | None |
+| Notes | Human notes prominent, enrichment collapsed | Same discipline | None |
 
 ---
 
@@ -145,7 +147,7 @@ The tracker renders the state + days remaining; VOIDED_BY_ADVANCE renders with a
 
 **Rep view of the same tracker:** lights + phase names + "NEXT UP" only — no invoice amounts, no refund mechanics. Rob: *"we will want the Rep to be able to see the progress update from the Entity Page or Company page."* (7.22.26-3)
 
-**Data model deltas:** `phases` (per company: phase_no, status, agreement_id, invoice_amount, invoiced_at, paid_at), `phase_components` (per phase: name, live_at, signal_source), refund fields on phase 1 row. Webhook endpoint follows the existing n8n-email inbound pattern (per Q40). The current `Person.phaseOne` field is superseded and migrates into `phases`.
+**Data model deltas:** `phases` (per company: phase_no, status, agreement_id, invoice_amount, invoiced_at, paid_at), `phase_components` (per phase: name, live_at, signal_source), refund fields on phase 1 row. The inbound signal is fully specified in **`docs/plans/PHASE-SIGNAL-WEBHOOK-CONTRACT.md`** (drafted, versioned, idempotent, secret-header auth per the n8n-email pattern — written for Will/partner to react to). The current `Person.phaseOne` field is superseded and migrates into `phases`.
 
 ### 3.2 People at this company (right rail, top)
 
@@ -154,6 +156,7 @@ Owner first (label from §2b), then champions/others; each name links to the per
 ### 3.3 Deals — services and equity are separate sections
 
 - **Services:** the Phase 1–3 deals, each showing its associated phase, stage, value, key dates. This is where the phase ↔ agreement ↔ invoice cross-check surfaces mismatches ("agreement says Phase 2, no Phase 2 invoice").
+- **Where the rep notes the phase (decision):** Rob — *"the Rep should be noting the Associated Phase for the Associated Agreement"* (7.22.26-3). The UI home is an **inline `Phase` field on the deal card in `/rep/accounts/[id]`** — click-to-edit select (P1/P2/P3), autosave, per Rob's inline-edit standard (no edit mode, no Save button). That rep-entered value is exactly what the master-side cross-check above compares against invoices; a deal missing its phase flags in Things to Address.
 - **Phase 4 / Equity — owners-only:** rendered only for owner role; reps never see this section (mechanics in §6). Rob: *"these Spinoff Companies and the details of them are not something I necessarily want our Reps to see."* (7.22.26-2)
 
 ### 3.4 Activity timeline
@@ -164,7 +167,7 @@ Existing `ActivityTimeline` component, kept. Center-column chronological activit
 
 **Decision: NOTES = human words only, prominent, directly under the timeline. Enrichment/provenance = collapsed section at the very bottom: most recent line visible + "show all (N)" expander. Never mixed.** BUILD-QUEUE Q39(d), from Rob's evening message: *"NOTES section = real human notes that mean something, never enrichment dumps."*
 
-Precedent: Attio keeps Notes as their own tab/section while enriched data lives in identified attribute chips (purple background + sparkle icon — visually **marked as machine-produced**, never prose-dumped into notes) ([Attio enriched data](https://attio.com/help/reference/managing-your-data/enriched-data)). We adopt the same contract: machine-derived facts are data, styled as data, quarantined at the bottom; the Notes box is sacred.
+Precedent: Attio keeps Notes as their own tab/section while enriched data lives in identified attribute cells — per their docs, lilac colored cells represent enriched data points automatically populated by Attio, with a sparkle icon next to enriched attribute names in table views — i.e. machine-produced values are visually **marked as machine-produced**, never prose-dumped into notes ([Attio enriched data](https://attio.com/help/reference/managing-your-data/enriched-data)). We adopt the same contract: machine-derived facts are data, styled as data, quarantined at the bottom; the Notes box is sacred.
 
 One more Rob rule lands here (7.22.26-2): *"When you pick up from either notes I've inputted or meeting or email notes you've seen its Important you highlight the FUTURE opportunities outside of just working phase 1-3."* → any detected Phase-4 opportunity renders as a **highlighted "Future opportunity (Phase 4)" callout** above Notes on the company page (owners-only), feeding the §6 registry — not buried in enrichment.
 
@@ -236,7 +239,7 @@ Seeded rows (already in data per Q41): `spinoff-homeclonevault` (Alex, 40/60, AG
 
 **Decision: every card in the rep pipeline is one whole click target opening `/rep/accounts/[id]` — not just the name text.** Rob: *"you cant even click into them in the pipeline."*
 
-Current state: on `/rep` (Today queue) only the name `<Link>` inside the card navigates; the card body, source-context block, and phase bar are dead zones. The industry norm is card-click-opens-detail ([Pipedrive: "To see full details, click the deal card, which opens the deal detail view"](https://support.pipedrive.com/en/article/pipeline-view)).
+Current state: on `/rep` (Today queue) only the name `<Link>` inside the card navigates; the card body, source-context block, and phase bar are dead zones. The industry norm is card-click-opens-detail ([Pipedrive: "To see full details, click the deal card. This opens the deal detail view."](https://support.pipedrive.com/en/article/pipeline-view)).
 
 Spec:
 - Whole card wrapped as the link (RepAccountsList already solved this exact pattern for rows: "a row can be the whole click target with zero conflict against inline-edit affordances" — read-only card, edits live one click deeper). Call/Email buttons sit above the link with `stopPropagation` so one-tap contact still works.
@@ -254,15 +257,24 @@ Sequenced so nothing waits on Rob that doesn't have to. **A = buildable on doc a
 | 1 | **Rep card click-through (Q42).** Whole-card link on `/rep` queue cards; buttons stopPropagation. | A (buildable now) | Click any card body in prod → lead detail opens |
 | 2 | **Notes/enrichment retrofit (Q43).** On current record page: Notes prominent; enrichment/provenance collapsed at bottom, most-recent visible + expander. | A (buildable now) | Record renders notes-first; critic-rob readability pass |
 | 3 | **Lineage engine.** `lib/lineage.ts` pure chain-walk + cycle guard + tests; breadcrumb component; mount on person page + "doors opened" lines. | A | Unit tests green; person page shows `ROB → … → X` |
-| 4 | **List split.** `/companies` + `/people` filtered views with per-object columns (incl. compact chain + phase columns); graph untouched; nav updated. | A | Both lists live; zero interleaving; row counts reconcile to old ledger |
-| 5 | **Company record v1.** New `app/companies/[id]` layout per §3 skeleton: header, people-here rail, services deals, timeline, notes/enrichment discipline. Person page slims per §4. | A | Company page ≠ person page; both pass Q43 discipline |
+| 4a | **`/companies` list.** New route + table with company columns (name, vertical, status, phase, owed/paid, rep, last touch); nav entry. | A | `/companies` live, companies only, zero people rows |
+| 4b | **`/people` re-filter.** Existing ledger filtered to humans only; person columns per §2a (role @ company, chain, relationship label); dedup/CSV/search tooling verified on the filtered view. | A | `/people` shows zero companies; companies+people row counts reconcile to old ledger total |
+| 5a | **Company record shell.** New `app/companies/[id]`: header (status/vertical/rep) + people-here right rail + Things to Address. | A | Company route renders header + people rail from `orgId` links |
+| 5b | **Company deals section.** Services deals list w/ per-deal phase, stage, value, key dates + phase↔invoice mismatch flags. | A | Deals render on company page; a phase-less deal produces a flag |
+| 5c | **Company notes/enrichment order.** Timeline → Notes (human, prominent) → details grid (demoted) → enrichment collapsed at very bottom (most-recent + expander). | A | §3 section order onscreen; passes Q43 discipline |
+| 5d | **Person page slim-down.** Person record re-cut per §4: relationship-forward header, lineage centerpiece, company link; no phase UI, no money. | A | See enumerated ≠-test below |
 | 6 | **Status vocabulary.** Apply §2b Option A label maps; reclassify ~54 rows (ERD §3 heuristic, ambiguous → review queue); Client-without-deal flag wired to Things to Address. | **R** (OQ-2) | Labels live per object; reconciliation report zero-drop |
 | 7 | **Refund state machine + phase schema.** `lib/phases/refund.ts` pure FSM (time as param) + tests; `phases`/`phase_components` migration; manual component toggles as interim signal. | A (schema) / **R** (component list, OQ-1) | FSM tests cover all 4 states incl. VOIDED_BY_ADVANCE |
-| 8 | **Phase Blueprint tracker UI.** §3.1 card on company record — master variant (money+refund) and rep variant (lights only); "Top Automations next" slot; demo-grammar states (live / NEXT UP / locked). | **R** (OQ-1, OQ-3) | Tracker on both views matches demo grammar; per-phase paid/owed renders |
-| 9 | **Signal webhook.** Inbound endpoint (n8n-email pattern) flipping `phase_components.live_at`; armed but tolerant of the contract landing later. | **R** (OQ-4, partner contract) | Test payload lights a component end-to-end |
+| 8a | **Tracker — master variant.** §3.1 card on company record: component lights, per-phase invoiced/paid/owed row, refund-window state line, phase↔agreement↔invoice cross-check. | **R** (OQ-1, OQ-3) | Master tracker renders lights + money + refund state for a seeded company |
+| 8b | **Tracker — rep variant.** Lights + phase names + NEXT UP only on `/rep/accounts/[id]`; inline `Phase` field on the deal (§3.3 decision). | **R** (OQ-1) | Rep page shows lights, zero money strings in payload; phase editable inline |
+| 8c | **Tracker — demo-grammar states + Top Automations slot.** Live / NEXT UP / locked-quiet phase card states matching the demo; "Top Automations we recommend" slot rendered between P1 and P2. | **R** (OQ-3) | Three visual states match demo grammar; slot renders between phases |
+| 9 | **Signal webhook.** Inbound `POST /api/webhooks/phase-signal` per the drafted contract — **`docs/plans/PHASE-SIGNAL-WEBHOOK-CONTRACT.md`** (payload, idempotency, secret header, 503-inert) — flipping `phase_components.live_at`; armed but inert until the secret is set. | A (contract drafted) / **R** (OQ-4 interim toggles) | Test payload lights a component end-to-end; duplicate eventId no-ops |
 | 10 | **Phase-4 registry.** `/registry` owners route + company-page equity section; rep-payload exclusion; seeded rows render; overdue paperwork flags. | A (interim hiding) / **R** (OQ-5 for prod exposure) | Registry lists HomeCloneVault + Gulf Coast; `/rep/*` payloads verifiably equity-free |
+| — | *(Q44 — customer Blueprint portal: out of scope here; gated on 8a-c + ACCESS; see §1.)* | | |
 
-Each increment is independently shippable and demoable in a driver session; 1–5 need no Rob input beyond this doc's approval.
+**The increment-5 "company page ≠ person page" test, enumerated (testable):** (1) company page renders the Phase Blueprint tracker + people-here rail; (2) person page renders the attribution-lineage centerpiece and neither tracker nor people rail; (3) the two pages share **zero** centerpiece components (shared primitives like timeline/inline fields are fine — no shared page-layout component); (4) both pass Q43 notes/enrichment discipline (notes prominent, enrichment collapsed at bottom with most-recent visible + expander).
+
+Each sub-increment is independently shippable and demoable inside one driver session; 1–5d need no Rob input beyond this doc's approval.
 
 ---
 
@@ -271,9 +283,9 @@ Each increment is independently shippable and demoable in a driver session; 1–
 1. **Phase component lists.** What are the named components of Phase 1 (and 2/3 when known)? e.g. Website+AEO-SEO, AI Receptionist, GBP, Reviews, Booking…? We need the canonical checklist to render the lights — is this yours to define or do we pull it from Will's build sheet? *(Blocks increments 7–8.)*
 2. **Status labels.** Approve §2b Option A (Companies: Prospect/Client/Partner Org/Spinoff/Vertical Anchor/Dormant · People: Owner/Champion/Connector/Partner/Rep Candidate/Lead) — or edit the words. *(Blocks increment 6.)*
 3. **Per-phase pricing.** Are Phase 1/2/3 invoice amounts standard prices, or quoted per customer? (Determines whether the tracker's "owed" is a config value or per-deal entry.) *(Blocks increment 8's money row.)*
-4. **Partner signal.** Should Max draft the webhook payload contract for Will to react to, or wait for Will's spec? Until it exists, are manual component toggles (master view only) acceptable? *(Blocks increment 9.)*
+4. **Interim manual toggles.** The webhook payload contract is **already drafted** — `docs/plans/PHASE-SIGNAL-WEBHOOK-CONTRACT.md`, written for Will/partner to react to. The only blocking question: until the partner wires it, are **manual component toggles (Master View only, audit-logged as `source: "manual-rob"`)** an acceptable interim so the tracker is usable day one? *(Blocks increment 9's interim path only.)*
 5. **Phase-4 exposure pre-ACCESS.** Until real logins land, the registry is hidden by route/nav only — not real security. OK to ship to prod that way, or hold `/registry` behind the basic-auth wall / local-only until ACCESS? *(Blocks increment 10 in prod.)*
 
 ---
 
-*Approval of this doc unlocks Q40–Q43 builds in the §8 order. Nothing in §3–§7 gets built before Rob signs off (Q39 DoD).*
+*Approval of this doc unlocks Q40–Q43 builds in the §8 order (Q44 customer portal stays gated separately). Nothing in §3–§7 gets built before Rob signs off (Q39 DoD).*
