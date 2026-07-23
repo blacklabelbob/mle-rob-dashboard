@@ -3,6 +3,8 @@ import {
   MAX_CUSTOMER_TOUCHES,
   isBusinessHoursET,
   planNudges,
+  toNudgeRequestRows,
+  toPriorNudges,
   type NudgeRequestRow,
   type PriorNudge,
 } from "../nudges";
@@ -141,5 +143,84 @@ describe("planNudges ladder", () => {
     const p2 = planNudges([b, a], [], BIZ_NOW);
     expect(p1).toEqual(p2);
     expect(p1.map((x) => x.requestId)).toEqual(["req-a", "req-b"]);
+  });
+});
+
+// --- row mappers (cron-route wiring, 2026-07-23) ---------------------------
+
+describe("toNudgeRequestRows", () => {
+  const raw = {
+    id: "req-1",
+    document_id: "doc-1",
+    status: "pending",
+    sent_to: "s@example.com",
+    signer_name: "Sam Signer",
+    created_at: "2026-07-21T15:00:00Z",
+    viewed_at: null,
+    signed_at: null,
+    voided_at: null,
+    expires_at: "2026-08-20T15:00:00Z",
+  };
+
+  it("reads the title from an embedded object OR a one-element array", () => {
+    const asObject = toNudgeRequestRows([{ ...raw, documents: { title: "Phase 1 — CG" } }]);
+    const asArray = toNudgeRequestRows([{ ...raw, documents: [{ title: "Phase 1 — CG" }] }]);
+    expect(asObject[0].document_title).toBe("Phase 1 — CG");
+    expect(asArray).toEqual(asObject);
+  });
+
+  it("never fabricates a title — falls back to the document id", () => {
+    expect(toNudgeRequestRows([{ ...raw, documents: null }])[0].document_title).toBe("doc-1");
+    expect(toNudgeRequestRows([{ ...raw, documents: { title: "" } }])[0].document_title).toBe(
+      "doc-1"
+    );
+    expect(toNudgeRequestRows([{ ...raw }])[0].document_title).toBe("doc-1");
+  });
+
+  it("carries the ladder fields through unchanged", () => {
+    const [row] = toNudgeRequestRows([
+      { ...raw, viewed_at: "2026-07-22T15:00:00Z", documents: { title: "T" } },
+    ]);
+    expect(row).toEqual({
+      id: "req-1",
+      document_id: "doc-1",
+      document_title: "T",
+      status: "pending",
+      sent_to: "s@example.com",
+      signer_name: "Sam Signer",
+      created_at: "2026-07-21T15:00:00Z",
+      viewed_at: "2026-07-22T15:00:00Z",
+      signed_at: null,
+      voided_at: null,
+      expires_at: "2026-08-20T15:00:00Z",
+    });
+  });
+});
+
+describe("toPriorNudges", () => {
+  it("maps meta.rung and drops rows without a usable rung", () => {
+    expect(
+      toPriorNudges([
+        { request_id: "req-1", meta: { rung: "customer_sent_2d" } },
+        { request_id: "req-1", meta: { rung: "" } },
+        { request_id: "req-1", meta: { rung: 7 } },
+        { request_id: "req-1", meta: {} },
+        { request_id: "req-1", meta: null },
+      ])
+    ).toEqual([{ request_id: "req-1", rung: "customer_sent_2d" }]);
+  });
+
+  it("a junk event can never suppress a real rung", () => {
+    const row = req({ created_at: daysAgo(2.5, BIZ_NOW) });
+    const prior = toPriorNudges([{ request_id: "req-1", meta: { note: "no rung here" } }]);
+    expect(planNudges([row], prior, BIZ_NOW).map((a) => a.rung)).toEqual(["customer_sent_2d"]);
+  });
+
+  it("a recorded rung IS suppressed (round-trip with the planner)", () => {
+    const row = req({ created_at: daysAgo(2.5, BIZ_NOW) });
+    const prior = toPriorNudges([
+      { request_id: "req-1", meta: { rung: "customer_sent_2d", audience: "customer" } },
+    ]);
+    expect(planNudges([row], prior, BIZ_NOW)).toEqual([]);
   });
 });

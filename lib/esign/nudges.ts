@@ -152,7 +152,7 @@ function flagCopy(rung: NudgeRung, r: NudgeRequestRow): { title: string; detail:
     case "rob_sent_14d":
       return {
         title: `E-sign STALLED: unsigned 14d — ${r.id}`,
-        detail: `"${r.document_title}" (→ ${r.sent_to}) is 14 days unsigned. Deal flagged Stalled — Rob decision needed: chase personally, re-cut the deal, or void.`,
+        detail: `"${r.document_title}" (→ ${r.sent_to}) is 14 days unsigned — treat the deal as stalled. Rob decision needed: chase personally, re-cut the deal, or void. (No automatic stage change: the deal ladder has no Stalled stage, so nothing was moved on your board.)`,
       };
     default:
       return {
@@ -160,6 +160,60 @@ function flagCopy(rung: NudgeRung, r: NudgeRequestRow): { title: string; detail:
         detail: `Nudge ${rung} for "${r.document_title}" → ${r.sent_to}.`,
       };
   }
+}
+
+// --- row mappers (pure; the cron route reads, these shape) -----------------
+
+// PostgREST embed shape: signature_requests + documents(title). Supabase types
+// the embed as object OR array depending on the relationship it infers, so both
+// are accepted here rather than trusting one shape at runtime.
+export interface RawNudgeRequestRow {
+  id: string;
+  document_id: string;
+  status: string;
+  sent_to: string;
+  signer_name: string | null;
+  created_at: string;
+  viewed_at: string | null;
+  signed_at: string | null;
+  voided_at: string | null;
+  expires_at: string;
+  documents?: { title?: string | null } | { title?: string | null }[] | null;
+}
+
+export function toNudgeRequestRows(rows: RawNudgeRequestRow[]): NudgeRequestRow[] {
+  return rows.map((r) => {
+    const doc = Array.isArray(r.documents) ? r.documents[0] : r.documents;
+    return {
+      id: r.id,
+      document_id: r.document_id,
+      // Never fabricate a title — untitled documents read as the id, so a nudge
+      // email can't quote a name the document doesn't have.
+      document_title: doc?.title || r.document_id,
+      status: r.status,
+      sent_to: r.sent_to,
+      signer_name: r.signer_name,
+      created_at: r.created_at,
+      viewed_at: r.viewed_at,
+      signed_at: r.signed_at,
+      voided_at: r.voided_at,
+      expires_at: r.expires_at,
+    };
+  });
+}
+
+// `nudge` events are the idempotency ledger: meta.rung identifies the rung.
+// Events without a usable rung are dropped rather than mapped to "" — a junk
+// row must never masquerade as a completed rung and silently suppress a nudge.
+export function toPriorNudges(
+  events: { request_id: string; meta: unknown }[]
+): PriorNudge[] {
+  const out: PriorNudge[] = [];
+  for (const e of events) {
+    const rung = (e.meta as { rung?: unknown } | null)?.rung;
+    if (typeof rung === "string" && rung) out.push({ request_id: e.request_id, rung });
+  }
+  return out;
 }
 
 // The planner. `prior` = every `nudge` event already written (meta.rung).
