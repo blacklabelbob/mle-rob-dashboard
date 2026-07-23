@@ -1,5 +1,5 @@
 # MC.6 — Systems & Webhook Field Inventory
-**Date:** 2026-07-23 · **Author:** Max (CRM build driver, Q56 inc.1) · **Status:** IN PROGRESS — internal legs + Cal.com row done; Fathom/Documenso/Twilio/Retell webhook rows pending (inc.2, each needs fetched doc-URL evidence)
+**Date:** 2026-07-23 · **Author:** Max (CRM build driver, Q56 inc.1+2) · **Status:** COMPLETE — all systems inventoried with source URLs; two leaf-level items deliberately deferred to MC.9 build time (Fathom payload leaf fields, Documenso secret-header name — both behind JS-rendered doc pages, exact URLs pinned below)
 **Task:** PRD Task MC.6 *(was base 8.1)* — inventory onboarding-PRD data (`clients/<slug>.json` schema, Documenso IDs + signed-PDF URLs, CRM adapter fields) + Cal.com/Fathom/Documenso/Twilio/Retell webhook payload fields with doc URLs.
 **Consumers:** MC.9 ingestion workflows (field bindings) · MC.8 read-model contract (source columns) · MC.12 ops panels · Q40 phase tracker (agreement/invoice fields)
 
@@ -60,17 +60,55 @@ Adapter surface: `crm/adapter.py` ABC — `create_contact / create_deal / update
 ### 4a. Cal.com — ✅ DONE (evidence via MC.4 spike)
 Full field table + evidence URLs: `docs/research/CALCOM-UTM-PASSTHROUGH-VERDICT-2026-07-23.md`. Summary: `BOOKING_CREATED` carries top-level `responses` object (`{<identifier>: {label, value, isHidden}}`) — the SIX hidden-field identifiers (`utm_source/medium/campaign/term/content` + `campaign_ref`) arrive there and ONLY there (Tracking table not in payloads — open calcom#24759; `metadata[...]` carrier rejected — calcom#16140). Docs: https://cal.com/docs/developing/guides/automation/webhooks · https://cal.com/help/bookings/utm-tracking · https://cal.com/docs/core-features/bookings/prefill-fields
 
-### 4b. Fathom — ⏳ PENDING (inc.2)
-Needs: recording-ready webhook payload fields with doc URLs. Local head start: Fathom MCP tools exist (transcript/summary pulls) but MC.9 needs the *webhook* shape.
+### 4b. Fathom — ✅ (fetched 2026-07-23)
+**One webhook event: "New Meeting Content Ready"** — fires after a meeting ends, for own and/or shared meetings. Payload *sections* are opt-in at webhook-creation time (`include_transcript`, `include_summary`, `include_action_items`, `include_crm_matches` — at least one required), so MC.9's webhook must be created with the sections it wants.
 
-### 4c. Documenso — ⏳ PENDING (inc.2)
-Needs: `document.sent/viewed/signed/declined` (naming TBC against docs) payload fields + HMAC header, with doc URLs.
+| Item | Value | Source URL |
+|---|---|---|
+| Event | New Meeting Content Ready (meeting data + opted-in transcript / summary / action items / CRM matches) | https://developers.fathom.ai/webhooks |
+| Signature headers | `webhook-id` (unique msg id) · `webhook-timestamp` (epoch secs) · `webhook-signature` (Base64, space-delimited, version-prefixed) | https://developers.fathom.ai/webhooks |
+| Verification | HMAC-SHA256 over `id.timestamp.body` with the Base64-decoded secret after the `whsec_` prefix; constant-time compare; ~5-min timestamp tolerance (Svix-standard scheme) | https://developers.fathom.ai/webhooks |
+| Payload leaf fields | ⚠️ payload page is JS-rendered (headless fetch returns the OpenAPI shell, `paths: {}`) — exact leaf names to be read in-browser at MC.9 build time | https://developers.fathom.ai/api-reference/webhook-payloads/new-meeting-content-ready |
+| Webhook creation API | opt-in flags above set here | https://developers.fathom.ai/api-reference/webhooks/create-a-webhook |
 
-### 4d. Twilio — ⏳ PENDING (inc.2)
-Local head start (already consumed by shipped code, `lib/twilio.ts` `recordingToActivity`): `CallSid`, `RecordingSid`, `RecordingUrl` (+`.mp3`), `RecordingDuration`, `From`, `To` — validated via `X-Twilio-Signature` (HMAC-SHA1). inc.2 adds the official doc URLs so every field carries a source per Rob's rule.
+Local head start: Fathom MCP tools (transcript/summary pulls) exist for on-demand reads; the webhook is the push channel MC.9 needs.
 
-### 4e. Retell — ⏳ PENDING (inc.2) — ⚠️ likely OBE
-Stack decision is Twilio+Vapi HYBRID (Rob #40). Vapi's `end-of-call-report` is already handled in `lib/vapi.ts`/`POST /api/webhooks/vapi`. inc.2 should confirm with Rob (flag, not silent drop) whether the Retell row is replaced by a **Vapi** row — base-PRD 8.1 predates the dialer decision.
+### 4c. Documenso — ✅ (fetched 2026-07-23)
+**Events cover the full document lifecycle** — created, sent, opened, signed, completed, rejected, cancelled — plus template events (created, updated, deleted, used). Constant naming pattern observed in docs: `DOCUMENT_<STATUS>` (e.g. `DOCUMENT_COMPLETED`) / `TEMPLATE_<ACTION>`.
+
+| Item | Value | Source URL |
+|---|---|---|
+| Envelope shape | `{ event, payload, createdAt, webhookEndpoint }` | https://docs.documenso.com/developers/webhooks |
+| `payload` fields (example shown in docs) | `id` (number — **this is the `documenso_document_id` §2 plans to store**), `title`, `status`, `completedAt` (ISO), `recipients[]` (`{id, email, signingStatus}`) | https://docs.documenso.com/developers/webhooks |
+| Verification | Docs name a dedicated "Webhook Verification" section; the exact secret-header name sits behind a JS-rendered subsection (direct paths 404 to headless fetch) — confirm in-browser at MC.9 build; onboarding PRD already commits to HMAC-verified handling | https://docs.documenso.com/developers/webhooks |
+
+Note for MC.9: the docs' example payload does NOT show a signed-PDF URL field — the signed-PDF fetch may need the REST API (`GET /api/documents/{id}` family) after `DOCUMENT_COMPLETED` rather than reading it off the webhook. Verify at build time.
+
+### 4d. Twilio — ✅ (fetched 2026-07-23)
+Already consumed by shipped code (`lib/twilio.ts` `recordingToActivity`), now with official sources:
+
+| Callback param | Notes | Source URL |
+|---|---|---|
+| `AccountSid` | account owning the recording | https://www.twilio.com/docs/voice/api/recording#recordingstatuscallback |
+| `CallSid` | call the recording belongs to | same |
+| `RecordingSid` | unique recording id | same |
+| `RecordingUrl` | audio URL (append `.mp3` — our code does) | same |
+| `RecordingStatus` | `in-progress` / `completed` / `absent` | same |
+| `RecordingDuration` | seconds; only when status=`completed` | same |
+| `RecordingChannels` / `RecordingStartTime` / `RecordingSource` / `RecordingTrack` | channel count · start ts · initiation method · `inbound`/`outbound`/`both` | same |
+| `From` / `To` | consumed by our handler (standard voice-request params) | https://www.twilio.com/docs/usage/webhooks/voice-webhooks |
+| Auth | `X-Twilio-Signature` (HMAC-SHA1 over URL+params w/ auth token) — already validated in `lib/twilio.ts` | https://www.twilio.com/docs/usage/webhooks/webhooks-security |
+
+### 4e. Retell — ⚠️ OBE, FLAGGED TO ROB (2026-07-23) → provisional **Vapi** row below
+Base-PRD 8.1 named Retell, but the stack decision is **Twilio+Vapi HYBRID** (Rob #40, post-dating 8.1). Zero Retell code/creds/plans exist in the repo. **Flag posted to /api/admin/flags (low, "Things to Address")** per findings protocol — Rob confirms strike-or-keep; not silently dropped.
+
+**Vapi (provisional replacement row)** — already partially consumed by shipped code (`app/api/webhooks/vapi/route.ts` handles `assistant-request`, `tool-calls`, logs `end-of-call-report`):
+
+| Item | Value | Source URL |
+|---|---|---|
+| Server message types (MC.9-relevant) | `assistant-request` · `tool-calls` · `status-update` · `end-of-call-report` · `transcript` · `hang` (full list in docs) | https://docs.vapi.ai/server-url/events |
+| `end-of-call-report` fields | `message.type`, `call` (metadata), `endedReason`, `artifact.recording` (URLs), `artifact.transcript`, `artifact.messages[]` (roles+content) | https://docs.vapi.ai/server-url/events |
+| CRM binding | end-of-call artifact → activities-ready payload (rides Task 2.1 activities lake, same seam as the Twilio recording webhook) — Q15's DoD | local: `BUILD-QUEUE.md` Q15 |
 
 ---
-**DoD scorecard (MC.6):** consolidated field table per system, each with source URL — §1 ✅ (local source) · §2 ✅ (honest: none exist) · §3 ✅ (local source) · §4a ✅ · §4b–e ⏳ inc.2.
+**DoD scorecard (MC.6): ✅ COMPLETE** — consolidated field table per system, each with source URL — §1 ✅ (local source) · §2 ✅ (honest: none exist) · §3 ✅ (local source) · §4a ✅ · §4b ✅ (leaf fields deferred to MC.9 in-browser read, URL pinned) · §4c ✅ (secret-header name deferred likewise) · §4d ✅ · §4e ✅ (Retell OBE flagged to Rob; Vapi row provisional pending his confirm).
