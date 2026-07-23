@@ -47,13 +47,33 @@ anchors → sha256 → bucket → documents row). The port stays open as a futur
 (or the engine grows a `POST /generate` sidecar off Vercel, as the onboarding PRD
 already planned).
 
+## Increment 2 — private `agreements` bucket + lib/esign/storage ✅ DONE
+
+Bucket created via Storage API, verified `{"id":"agreements","public":false}`.
+`lib/esign/storage.ts`: pure `documentPath(anchorId, docId, version, signed?)` →
+`<org_or_person_id>/<document_id>/v<N>[-signed].pdf` (unit-tested) + service-role-only
+`uploadPdf` (upsert:false — a path collision fails loudly, versioning not clobbering),
+`downloadPdf`, `signedUrlFor` (time-limited read, default 1h).
+
+## Increment 3 — lib/esign core, pure + tested ✅ DONE (23 tests; suite 496/496)
+
+- `hash.ts` — sha256Hex + hex-shape guard (the three-hash discipline: at_upload,
+  at_sign, signed).
+- `token.ts` — 32-byte base64url mint; **hash at rest only** (DB leak yields no usable
+  links); constant-time compare (verifyVapiSecret idiom); `verifyToken(token, row, now)`
+  pure with `now` injected (CR-3) — covers tampered/forged, expired (boundary instant
+  fails), reused (signed_at), voided, and tamper-beats-expiry (no liveness oracle).
+- `status.ts` — chip ladder as data: `DOC_TRANSITIONS` (draft→sent→viewed→signed;
+  sent→signed legal so a sign never loses a race with the view logger; signed terminal;
+  draft can't jump to viewed/signed) + `archiveOnNewVersion` planner (changed-answers
+  resend: old doc archived, open links voided, **refuses to auto-archive a signed doc**).
+- `events.ts` — 0008-enum event builders + deterministic certificate chain formatter.
+- `consent.ts` — exact B2B ESIGN consent language (all four §7001 elements asserted in
+  tests), versioned `b2b-2026-07-23`, single-sourced for checkbox + certificate.
+- DDL drift gate: runtime enums parsed against `0008_esign.sql` (lib/crm.ts precedent).
+
 ## Remaining increments (planned, in order)
 
-2. Private `agreements` bucket + `lib/esign/storage.ts` (path convention
-   `<org_or_person_id>/<document_id>/v<N>.pdf`, signed-URL read helper).
-3. `lib/esign` core, pure + vitest: token mint/verify (single-use, expiring,
-   hash-at-rest; expired/reused/tampered cases), sha256 helpers, event writer, status
-   machine + version-archival rule.
 4. Signer flow: public `app/sign/[token]` (proxy `isPublicPath` exemption needed — the
    one out-of-territory edit) + `POST /api/esign/sign` (stamp + audit-cert page via
    @cantoo/pdf-lib, hashes, statuses, timeline activity, token void). Mobile-first.
