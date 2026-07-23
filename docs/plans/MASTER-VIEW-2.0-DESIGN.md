@@ -248,7 +248,7 @@ Spec:
 
 ---
 
-## 8. Build plan — ordered increments (10-minute driver sized)
+## 8. Build plan — ordered increments (≤6-min driver sized)
 
 Sequenced so nothing waits on Rob that doesn't have to. **A = buildable on doc approval · R = needs a Rob decision first.**
 
