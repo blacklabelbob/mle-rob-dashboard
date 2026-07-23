@@ -184,11 +184,76 @@ select (consumer visible but server-blocked pending counsel); channel select (Em
 live, SMS/Both disabled pending Twilio Q5b); server 409s (changed answers → new
 version; consumer gate) surface verbatim; mailer-down path shows the manual signUrl.
 
-## Remaining increments (planned, in order)
+## Increment 7 — PROD E2E: full signed agreement, verified end-to-end, then cleaned ✅ DONE
 
-7. Deploy → E2E signed test agreement on prod (synthetic, cleaned) → nudge lib if the
-   night allows.
+Deployed (git auto-deploy of inc.5+6; health ok/66ms; `/sign/<bogus>` publicly reachable
+and renders the honest invalid-link page). **The whole loop ran against prod:**
 
-DoD for the night: migrations live+verified ✅ (0008+0009) · core lib tested ✅ (43
-esign tests; suite 530) · E2E on prod pending · CI green (SearchBar lint fix landed —
-CI was red before this build started) · this log current.
+1. `POST /api/esign/generate` — synthetic config (Synthetic Roofing Co LLC, $1 fee,
+   intake block present) anchored to `demo-priya-nair` → **TS engine ran ON VERCEL**:
+   `doc-mrxce9e3-b7d4ce`, 4 pages, sha256 `a9dd3149…de01`.
+2. `POST /api/esign/send` → `req-mrxceexy-52284a`, `emailSent:true` — and the link was
+   recovered FROM THE DELIVERED EMAIL (Gmail: rob+esigntest@aivoicetech.io, sender
+   rob@aivoicetech.io, n8n workflow) — the delivery leg is part of the proof, not
+   assumed.
+3. `GET /sign/<token>` → 200, `viewed` logged w/ IP.
+4. `POST /api/esign/sign` — typed signature + ESIGN consent + PEWC comms opt-in
+   (phone (239) 555-0142) → `{ok:true, downloadUrl}`.
+5. **Verified in prod DB + storage:** token reuse → 409 "signing link signed"
+   (single-use held) · document `signed` w/ `v1-signed.pdf` + both hashes · request
+   `signed` w/ signer name/IP/UA, consent_at/viewed_at/signed_at, sha256_at_sign,
+   signer_type business, all 7 remembered presend_answers keys · event chain exactly
+   `created → sent → viewed → consent → comms_consent → signed → copy_delivered ×2`
+   (signer + Rob copies both 200'd through the sender) · both timeline activities on
+   the anchor · `people.comms_consent` populated w/ phone + language version + source.
+6. **Signed PDF pulled from the bucket:** sha256 `7e32ffb9…1ca9` == `sha256_signed`
+   byte-exact; 5 pages (4 agreement + certificate); certificate page carries signature,
+   server-stamped UTC date, full consent text, matching digests line, IP/UA, the
+   Communications-opt-in block w/ full PEWC language + number, and the audit event
+   chain.
+7. **Cleaned per honest-ledger precedent:** events (trigger transiently disabled) +
+   request + document + both activities deleted; `comms_consent` reset to null;
+   both storage objects deleted; final counts 0/0/0/0, bucket empty. Test emails left
+   in Rob's inbox (tagged [E2E TEST] — they're the delivery evidence).
+
+**Security finding (filed, not fixed):** during E2E setup, prod admin routes answered
+WITHOUT credentials — `DASHBOARD_PASSWORD` exists in NO Vercel env target, so the
+proxy Basic gate is inert and the entire dashboard (not just e-sign) is open. Filed as
+**high flag #30** ("Things to Address") with the exact fix; not set unilaterally — a
+password Rob doesn't know would lock him out. `/sign` is unaffected (token-authed by
+design).
+
+## Increment 8 — nudge ladder as pure lib ✅ DONE (no cron wiring — morning increment by design)
+
+`lib/esign/nudges.ts` — `planNudges(requests, priorNudgeEvents, now)`, overdue-watcher
+pattern (caller reads rows + clock; module is pure): full walkthrough ladder
+(rep@viewed+24h · customer@sent+2d/+5d(+rep)/+10d-with-real-expiry-date ·
+Rob-escalation+`markStalled`@+14d), max-3 customer touches (hard cap), business-hours
+guard (09–18 ET Mon–Fri; customer sends DEFERRED not skipped — internal flags file
+anytime), instant stop on signed/voided/expired, DEMO-row exclusion, per-(request,rung)
+idempotency against prior `nudge` events, deterministic flag titles (= flags-ledger
+dedupe keys) and ordering. 11 tests. Morning increment: a cron route + n8n schedule
+that executes the plan (emails via the sender workflow, flags via /api/admin/flags,
+`nudge` events as the ledger).
+
+## Night DoD — MET
+
+Migrations live+verified ✅ (0008 + 0009, tracked, constraint-gated, test rows cleaned) ·
+core lib tested ✅ (77 esign tests; suite 541/541) · **E2E signed test agreement
+completed against prod ✅ (synthetic, fully cleaned, evidence above)** · CI green ✅
+(and note: CI was RED before this build — SearchBar set-state-in-effect — root-caused
+and fixed) · engine decision recorded ✅ (amended by Rob to TS port; shipped with
+proven parity) · this log current ✅.
+
+## Morning queue (what remains)
+
+- Nudge cron wiring: route (CRON_SECRET bearer) + n8n schedule executing
+  `planNudges` (emails / flags / events / Stalled flip).
+- Countersign flow (MLE rep signature — walkthrough step 5's provider side).
+- Skill packaging of `lib/esign/agreementPdf.ts` (Rob: "make a Skill out of it").
+- Org-record + deal-record mounts of DocumentsSection (person/company page shipped).
+- SMS channel + SMS nudges (Q5b Twilio creds).
+- Consumer flow enablement: counsel review of the two DRAFT language versions
+  (§3.5 disclosure + PEWC comms text) → flip `ESIGN_CONSUMER_ENABLED`.
+- Rob decisions: DASHBOARD_PASSWORD (flag #30) · walkthrough-HTML step-5 bullet
+  update to link the consumer spec (spec DoD item).
