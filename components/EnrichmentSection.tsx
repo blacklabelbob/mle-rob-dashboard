@@ -23,8 +23,12 @@ export default function EnrichmentSection({ blocks }: { blocks: string[] }) {
           <span aria-hidden className="text-slate-600">✦</span>
           Enrichment &amp; provenance
         </h2>
+        {/* "auto-appended" not "machine-gathered" (critic-rob Q43 punch #5):
+            the splitter correctly parks Rob-confirmed addenda (daniella's ALIAS
+            line) inside the last enrichment block, so the badge must describe
+            HOW the text got here, not who authored it. */}
         <span className="text-[11px] uppercase tracking-wide text-slate-600">
-          machine-gathered
+          auto-appended
         </span>
       </div>
       <div className="mt-3 space-y-3">

@@ -84,7 +84,10 @@ export interface NoteLint {
 
 // Same marker vocabulary as MARKER, matched anywhere after some leading text.
 const MID_LINE_MARKER = /\S\s+(ENRICHED\b|Enrichment\b|Sources:)/;
-const LEADING_SEPARATOR = /^\s*[|;,·-]+\s*\S/;
+// Column/field separators only. `-` and `*` are DELIBERATELY absent: Rob writes
+// bullet lists in his notes ("- Replace Boomtown" on gulf-coast is a real human
+// line), and a watchdog that flags his own bullets is noise, not a guard.
+const LEADING_SEPARATOR = /^\s*[|;,·]+\s*\S/;
 
 export function lintNotes(raw: string | null | undefined): NoteLint[] {
   const { human } = splitNotes(raw);

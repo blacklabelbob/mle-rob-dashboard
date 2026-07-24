@@ -6,6 +6,11 @@ import {
   checkCredentials,
   credentialFlagTitle,
 } from "@/lib/integrity/credentials";
+import {
+  findNoteShapeIssues,
+  noteShapeFlagDetail,
+  noteShapeFlagTitle,
+} from "@/lib/integrity/notes";
 
 // Nightly orphan check (PRD Task 3.7) + credential-expiry check (Task 3.8),
 // fired by Vercel cron (vercel.json) — 3.8 rides this cron because Vercel
@@ -43,8 +48,8 @@ export async function GET(req: NextRequest) {
   const client = createClient(url, key, { auth: { persistSession: false } });
 
   const [people, orgs, deals, activities, tasks] = await Promise.all([
-    client.from("people").select("id"),
-    client.from("orgs").select("id"),
+    client.from("people").select("id,name,notes"),
+    client.from("orgs").select("id,name,notes"),
     client.from("deals").select("id"),
     client.from("activities").select("id,person_id,org_id,deal_id"),
     client.from("tasks").select("id,person_id,deal_id,activity_id"),
@@ -66,6 +71,14 @@ export async function GET(req: NextRequest) {
     WATCHED_CREDENTIALS.map((name) => ({ name, token: process.env[name] })),
     Date.now()
   );
+
+  // Notes-shape watchdog (Q43 punch #2): stored notes whose shape defeats the
+  // notes/enrichment split. These flags land on the RECORD itself, not on the
+  // "CRM integrity" pseudo-entity, so Rob sees them where he reads the note.
+  const noteFindings = findNoteShapeIssues([
+    ...(people.data ?? []),
+    ...(orgs.data ?? []),
+  ]);
 
   // One flag per finding ever: deterministic title = idempotency key.
   const candidates = [
@@ -102,10 +115,41 @@ export async function GET(req: NextRequest) {
     }
   }
 
+  // Same idempotency contract, keyed on (entity_id, title) because these are
+  // per-record rather than per-system.
+  let notesFlagged = 0;
+  if (noteFindings.length > 0) {
+    const ids = [...new Set(noteFindings.map((f) => f.entityId))];
+    const { data: existing, error: exErr } = await client
+      .from("flags")
+      .select("entity_id,title")
+      .in("entity_id", ids);
+    if (exErr) return NextResponse.json({ error: exErr.message }, { status: 500 });
+    const seen = new Set((existing ?? []).map((f) => `${f.entity_id}|${f.title}`));
+    const fresh = noteFindings.filter(
+      (f) => !seen.has(`${f.entityId}|${noteShapeFlagTitle(f)}`)
+    );
+    if (fresh.length > 0) {
+      const { error } = await client.from("flags").insert(
+        fresh.map((f) => ({
+          entity_id: f.entityId,
+          entity_name: f.entityName,
+          title: noteShapeFlagTitle(f),
+          detail: noteShapeFlagDetail(f),
+          severity: "low",
+        }))
+      );
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      notesFlagged = fresh.length;
+    }
+  }
+
   return NextResponse.json({
     ok: true,
     orphans: findings.length,
     credsExpiring: credFindings.length,
+    noteShapeIssues: noteFindings.length,
     flagged,
+    notesFlagged,
   });
 }
