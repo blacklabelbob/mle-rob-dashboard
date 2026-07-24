@@ -64,6 +64,20 @@ export function composeNotes(human: string, enrichment: string[]): string {
   return parts.join("\n\n");
 }
 
+// Server-side save path (critic-rob Q43 punch #3, 2026-07-23). The Notes box
+// shows/edits only the human part, so the enrichment blocks have to be put back
+// on save. Doing that in the browser recomposes against what was on SCREEN when
+// the tab loaded — so an enrichment paragraph appended server-side afterwards
+// (overnight agent runs: exactly Rob's pattern) was silently dropped by the next
+// save. The client now sends ONLY the human draft (`notesHuman`) and the API
+// route calls this against the row as STORED at save time.
+export function applyHumanNotesEdit(
+  stored: string | null | undefined,
+  humanDraft: string
+): string {
+  return composeNotes(humanDraft, splitNotes(stored).enrichment);
+}
+
 // ── Stored-shape lint (critic-rob Q43 punch #3, 2026-07-23) ─────────────────
 // The splitter is line-anchored BY DESIGN (deterministic, CR-3). That means a
 // marker written MID-LINE — e.g. `Rob 2026-07-17: … . Sources: Sunbiz …` on one

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { buildPatchRow, shapeRowForTable } from "@/lib/adminEdit";
+import { applyHumanNotesEdit } from "@/lib/notes";
 
 // Admin edits from the People table (Rob's 2026-07-17 dev-chat request).
 // Talks to Supabase directly — folds into the StorageAdapter contract with Task 2.3.
@@ -30,12 +31,28 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "need { id, changes }" }, { status: 400 });
   }
   const row = buildPatchRow(changes);
-  if (!Object.keys(row).length) {
+  // `notesHuman` is a virtual field, not a column: the Notes editor sends only
+  // Rob's own words and the server recomposes the enrichment blocks from the
+  // STORED row (Q43 punch #3) so provenance appended after his tab loaded is
+  // never lost. It is deliberately absent from FIELD_MAP.
+  const humanNotes = (changes as Record<string, unknown>).notesHuman;
+  if (humanNotes !== undefined && typeof humanNotes !== "string") {
+    return NextResponse.json({ error: "notesHuman must be a string" }, { status: 400 });
+  }
+  if (!Object.keys(row).length && humanNotes === undefined) {
     return NextResponse.json({ error: "no editable fields in changes" }, { status: 400 });
   }
   const s = db();
   try {
     const target = (await isOrgId(s, id)) ? "orgs" : "people";
+    if (typeof humanNotes === "string") {
+      const cur = await s.from(target).select("notes").eq("id", id).maybeSingle();
+      if (cur.error) return NextResponse.json({ error: cur.error.message }, { status: 500 });
+      if (!cur.data) {
+        return NextResponse.json({ error: `no record matched id ${id}` }, { status: 404 });
+      }
+      row.notes = applyHumanNotesEdit(cur.data.notes as string | null, humanNotes) || null;
+    }
     const referrerIsOrg =
       typeof row.referred_by_id === "string" && row.referred_by_id
         ? await isOrgId(s, row.referred_by_id)

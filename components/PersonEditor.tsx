@@ -1,7 +1,7 @@
 "use client";
 
 import { contribution, money } from "@/lib/stats";
-import { composeNotes, splitNotes } from "@/lib/notes";
+import { splitNotes } from "@/lib/notes";
 import type { Person, Vertical } from "@/lib/types";
 import { TYPE_LABELS } from "@/lib/labels";
 import {
@@ -37,8 +37,10 @@ export default function PersonEditor({
 }) {
   // Q43 discipline: the Notes box shows + edits ONLY Rob's own words; the
   // machine-appended enrichment blocks render collapsed at the bottom of the
-  // record page and are recomposed untouched on every notes save.
-  const { human: humanNotes, enrichment } = splitNotes(person.notes);
+  // record page. The save sends just this human draft (`notesHuman`) and the
+  // API route recomposes the enrichment from the stored row — recomposing here
+  // would use render-time state and drop anything appended since (punch #3).
+  const { human: humanNotes } = splitNotes(person.notes);
 
   const typeOptions = Object.entries(TYPE_LABELS).map(([value, l]) => ({ value, label: l }));
   const verticalOptions = verticals.map((v) => ({ value: v.id, label: v.name }));
@@ -212,10 +214,9 @@ export default function PersonEditor({
           <div className="mt-1 text-sm text-slate-300">
             <InlineTextarea
               personId={person.id}
-              field="notes"
+              field="notesHuman"
               value={humanNotes}
               placeholder="+ add notes"
-              serialize={(draft) => composeNotes(draft, enrichment)}
             />
           </div>
         </div>

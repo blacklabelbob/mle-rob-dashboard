@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { composeNotes, isEnrichmentMarker, lintNotes, splitNotes } from "@/lib/notes";
+import { applyHumanNotesEdit, composeNotes, isEnrichmentMarker, lintNotes, splitNotes } from "@/lib/notes";
 
 // Fixtures mirror real prod shapes observed 2026-07-23 (rob-acheson,
 // michael-jaenvega, gary-waskivich, david-cates, trent-brands, daniella-roach).
@@ -159,5 +159,39 @@ describe("isEnrichmentMarker", () => {
     expect(isEnrichmentMarker("PAID 2026-07-23: check")).toBe(false);
     expect(isEnrichmentMarker("Enriches the story")).toBe(false);
     expect(isEnrichmentMarker("sourcess: typo")).toBe(false);
+  });
+});
+
+describe("applyHumanNotesEdit (Q43 punch #3 — server-side recompose)", () => {
+  // The exact loss the critic named: Rob opens a record, an overnight agent
+  // appends a NEW enrichment block server-side, then Rob saves his notes.
+  // Recomposing against the stored row keeps the new block; recomposing against
+  // what was on screen (the old client behavior) would have dropped it.
+  const atLoad = "Rob 2026-07-17: owns Miga.\n\nENRICHED 2026-07-17: Sunbiz officer record.";
+  const storedAtSave = `${atLoad}\n\nENRICHED 2026-07-23: LinkedIn title confirmed.`;
+
+  it("keeps enrichment appended after the editor loaded", () => {
+    const out = applyHumanNotesEdit(storedAtSave, "Rob 2026-07-17: owns Miga. Called him 7/23.");
+    expect(out).toContain("ENRICHED 2026-07-23: LinkedIn title confirmed.");
+    expect(out).toContain("ENRICHED 2026-07-17: Sunbiz officer record.");
+    expect(splitNotes(out).human).toBe("Rob 2026-07-17: owns Miga. Called him 7/23.");
+    expect(splitNotes(out).enrichment).toHaveLength(2);
+  });
+
+  it("clearing the human notes never touches enrichment", () => {
+    const out = applyHumanNotesEdit(storedAtSave, "");
+    expect(splitNotes(out).human).toBe("");
+    expect(splitNotes(out).enrichment).toEqual(splitNotes(storedAtSave).enrichment);
+  });
+
+  it("is a no-op round trip when the human part is unchanged", () => {
+    expect(applyHumanNotesEdit(storedAtSave, splitNotes(storedAtSave).human)).toBe(
+      composeNotes(splitNotes(storedAtSave).human, splitNotes(storedAtSave).enrichment)
+    );
+  });
+
+  it("handles an empty/absent stored row", () => {
+    expect(applyHumanNotesEdit(null, "first note")).toBe("first note");
+    expect(applyHumanNotesEdit("", "")).toBe("");
   });
 });

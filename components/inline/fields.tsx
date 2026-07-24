@@ -304,17 +304,12 @@ export function InlineTextarea({
   value,
   placeholder,
   className = "",
-  serialize,
 }: {
   personId: string;
   field: string;
   value: string | null | undefined;
   placeholder: string;
   className?: string;
-  /** Map the edited draft to the stored value on save — e.g. the Notes box
-   * shows/edits only the human part while save recomposes the enrichment
-   * blocks underneath it (Q43: an edit must never wipe enrichment). */
-  serialize?: (draft: string) => string;
 }) {
   const { save, state } = useRecordSave(personId);
   const [editing, setEditing] = useState(false);
@@ -335,7 +330,7 @@ export function InlineTextarea({
     if (draft === shown) return;
     const prev = shown;
     setShown(draft);
-    const ok = await save({ [field]: serialize ? serialize(draft) : draft });
+    const ok = await save({ [field]: draft });
     if (!ok) setShown(prev);
   }
 
