@@ -63,3 +63,39 @@ export function composeNotes(human: string, enrichment: string[]): string {
   const parts = [human.trim(), ...enrichment.map((b) => b.trim())].filter(Boolean);
   return parts.join("\n\n");
 }
+
+// ── Stored-shape lint (critic-rob Q43 punch #3, 2026-07-23) ─────────────────
+// The splitter is line-anchored BY DESIGN (deterministic, CR-3). That means a
+// marker written MID-LINE — e.g. `Rob 2026-07-17: … . Sources: Sunbiz …` on one
+// line, which is exactly how daniella-roach's row was stored — never splits,
+// and the provenance dump renders inside the Notes box: the wall of text Rob
+// banned. Vigilance already missed that once, so the guard is code: lintNotes
+// reports bad stored shapes so they can be surfaced (Things to Address) and the
+// DATA fixed, rather than making the split rule fuzzy.
+
+export interface NoteLint {
+  /** Machine-stable issue code. */
+  code: "mid-line-marker" | "leading-separator";
+  /** 0-based index of the offending line within the human part. */
+  line: number;
+  /** The marker/text that triggered it, for a human-readable flag. */
+  detail: string;
+}
+
+// Same marker vocabulary as MARKER, matched anywhere after some leading text.
+const MID_LINE_MARKER = /\S\s+(ENRICHED\b|Enrichment\b|Sources:)/;
+const LEADING_SEPARATOR = /^\s*[|;,·-]+\s*\S/;
+
+export function lintNotes(raw: string | null | undefined): NoteLint[] {
+  const { human } = splitNotes(raw);
+  if (!human) return [];
+
+  const issues: NoteLint[] = [];
+  human.split("\n").forEach((line, i) => {
+    const mid = MID_LINE_MARKER.exec(line);
+    if (mid) issues.push({ code: "mid-line-marker", line: i, detail: mid[1] });
+    const lead = LEADING_SEPARATOR.exec(line);
+    if (lead) issues.push({ code: "leading-separator", line: i, detail: line.trim().slice(0, 40) });
+  });
+  return issues;
+}
