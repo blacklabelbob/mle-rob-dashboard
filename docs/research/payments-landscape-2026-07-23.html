@@ -1,0 +1,288 @@
+<title>Payments Deep Research 2026 — BoostUp</title>
+<style>
+  :root{
+    --ink:#0B1220; --paper:#F5F7FB; --card:#FFFFFF; --line:#DCE2EE;
+    --tx:#18202F; --tx2:#55617A; --tx3:#8A94AB;
+    --accent:#3E6FE0; --accent-soft:#E5EBFB;
+    --ok:#199A55; --ok-bg:#E3F4EA;
+    --bad:#D64545; --bad-bg:#FBE7E7;
+    --warn:#C98A1B; --warn-bg:#F9F0DC;
+    --own:#7C4DD8; --own-bg:#EFE8FB;
+    --code-bg:#EEF1F8;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#0B1220; --card:#131C2E; --line:#243350;
+      --tx:#E6EBF5; --tx2:#9AA7C2; --tx3:#66738F;
+      --accent:#6E96F5; --accent-soft:#1B2A4A;
+      --ok:#4CC98A; --ok-bg:#12301F;
+      --bad:#F07575; --bad-bg:#3A1A1A;
+      --warn:#E5B355; --warn-bg:#332708;
+      --own:#A784EC; --own-bg:#261A40;
+      --code-bg:#0F1728;
+    }
+  }
+  :root[data-theme="light"]{
+    --paper:#F5F7FB; --card:#FFFFFF; --line:#DCE2EE;
+    --tx:#18202F; --tx2:#55617A; --tx3:#8A94AB;
+    --accent:#3E6FE0; --accent-soft:#E5EBFB;
+    --ok:#199A55; --ok-bg:#E3F4EA;
+    --bad:#D64545; --bad-bg:#FBE7E7;
+    --warn:#C98A1B; --warn-bg:#F9F0DC;
+    --own:#7C4DD8; --own-bg:#EFE8FB;
+    --code-bg:#EEF1F8;
+  }
+  :root[data-theme="dark"]{
+    --paper:#0B1220; --card:#131C2E; --line:#243350;
+    --tx:#E6EBF5; --tx2:#9AA7C2; --tx3:#66738F;
+    --accent:#6E96F5; --accent-soft:#1B2A4A;
+    --ok:#4CC98A; --ok-bg:#12301F;
+    --bad:#F07575; --bad-bg:#3A1A1A;
+    --warn:#E5B355; --warn-bg:#332708;
+    --own:#A784EC; --own-bg:#261A40;
+    --code-bg:#0F1728;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--tx);font-family:-apple-system,"SF Pro Text",system-ui,"Segoe UI",Roboto,sans-serif;font-size:15px;line-height:1.55}
+  .mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+  .wrap{max-width:1100px;margin:0 auto;padding:0 24px 96px}
+  a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
+  a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+  code{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;background:var(--code-bg);padding:1px 6px;border-radius:4px}
+
+  header.hero{background:#0B1220;color:#E6EBF5}
+  header.hero .wrap{padding-top:52px;padding-bottom:44px}
+  .eyebrow{font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#7FA0F2;margin:0 0 14px}
+  h1{font-size:clamp(26px,4.2vw,42px);font-weight:800;letter-spacing:-.02em;line-height:1.13;margin:0 0 14px;max-width:24ch;text-wrap:balance;color:#F2F5FC}
+  .hero p.thesis{max-width:66ch;color:#AAB6D3;margin:0 0 20px;font-size:16px}
+  .hero strong{color:#F2F5FC}
+  .statrow{display:flex;flex-wrap:wrap;gap:10px}
+  .stat{background:rgba(110,150,245,.10);border:1px solid rgba(110,150,245,.28);border-radius:6px;padding:8px 14px;font-family:ui-monospace,Menlo,monospace;font-size:12.5px;color:#C7D4F0}
+  .stat b{color:#fff}
+
+  section{margin-top:54px}
+  h2{font-size:13px;font-family:ui-monospace,Menlo,monospace;letter-spacing:.16em;text-transform:uppercase;color:var(--tx2);margin:0 0 6px;display:flex;align-items:baseline;gap:10px}
+  h2::after{content:"";flex:1;height:1px;background:var(--line)}
+  .sec-lede{font-size:17px;font-weight:700;letter-spacing:-.01em;margin:0 0 18px;max-width:74ch;text-wrap:balance}
+
+  .grid{display:grid;gap:14px}
+  .grid.cols3{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+  .card h3{margin:0 0 6px;font-size:14.5px;font-weight:800;letter-spacing:-.01em}
+  .card .k{font-family:ui-monospace,Menlo,monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:8px}
+  .card p{margin:0;color:var(--tx2);font-size:13px}
+  .card p b{color:var(--tx)}
+
+  .tblwrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--card)}
+  table{border-collapse:collapse;width:100%;font-size:13px}
+  th{text-align:left;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--tx3);padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap;background:var(--card)}
+  td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  td.num{font-family:ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums;white-space:nowrap}
+  td .muted{color:var(--tx2);font-size:12.5px}
+  td.take{color:var(--tx2);font-size:12.5px;min-width:220px}
+  td.take b{color:var(--tx)}
+  tr.win td{background:color-mix(in srgb,var(--ok-bg) 50%,transparent)}
+  tr.win td:first-child{font-weight:800;color:var(--ok)}
+
+  .chip{display:inline-block;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;letter-spacing:.08em;padding:2px 8px;border-radius:4px;white-space:nowrap}
+  .chip.mit{background:var(--ok-bg);color:var(--ok)}
+  .chip.agpl{background:var(--bad-bg);color:var(--bad)}
+  .chip.warn{background:var(--warn-bg);color:var(--warn)}
+  .chip.own{background:var(--own-bg);color:var(--own)}
+  .chip.none{background:var(--code-bg);color:var(--tx2)}
+
+  .note{border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:0 8px 8px 0;padding:12px 16px;font-size:13.5px;margin-top:14px}
+  .note.warn{border-left-color:var(--warn);background:var(--warn-bg)}
+  .note.ok{border-left-color:var(--ok);background:var(--ok-bg)}
+  .note.bad{border-left-color:var(--bad);background:var(--bad-bg)}
+
+  details{border:1px solid var(--line);border-radius:10px;background:var(--card);margin-top:10px}
+  summary{cursor:pointer;padding:13px 18px;font-weight:700;font-size:14px;list-style:none;display:flex;align-items:center;gap:10px}
+  summary::before{content:"▸";color:var(--accent);transition:transform .15s}
+  details[open] summary::before{transform:rotate(90deg)}
+  details .inner{padding:0 18px 16px;color:var(--tx2);font-size:13.5px}
+  details .inner ul{margin:6px 0;padding-left:18px}
+  details .inner li{margin:5px 0}
+  @media (prefers-reduced-motion:reduce){summary::before{transition:none}}
+
+  .src{columns:2;column-gap:32px;font-size:12.5px}
+  @media(max-width:640px){.src{columns:1}}
+  .src li{margin:4px 0;break-inside:avoid}
+  footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--line);color:var(--tx3);font-size:12px}
+</style>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="eyebrow">BoostUp Payments · Deep Research Swarm · 2026-07-23</p>
+    <h1>The 2026 payments map: cards, crypto, and how to own the rails.</h1>
+    <p class="thesis">4 research agents · ~130 sources · every GitHub repo verified live, every license read from the LICENSE file. Three answers inside: <strong>what to use TODAY</strong> (chatbot checkout + invoices, no Stripe), <strong>how crypto→fiat actually works now</strong> (stablecoins won; the GENIUS Act made it legal territory), and <strong>the realistic ladder to being the payments company</strong> (agent → ISO → PayFac, with the 3 programs to call first).</p>
+    <div class="statrow" role="list">
+      <span class="stat" role="listitem"><b>15</b> agent/ISO programs mapped</span>
+      <span class="stat" role="listitem"><b>10</b> crypto processors compared</span>
+      <span class="stat" role="listitem"><b>7</b> PayFac-aaS platforms</span>
+      <span class="stat" role="listitem"><b>43k★</b> biggest OSS find (Hyperswitch)</span>
+      <span class="stat" role="listitem"><b>$0</b> to start as an agent</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <section id="missed">
+    <h2>What you missed since ~2023 — the six big shifts</h2>
+    <div class="grid cols3">
+      <div class="card"><span class="k">01 · Law</span><h3>Stablecoins got a federal framework</h3><p><b>GENIUS Act signed 2025-07-18</b> — permitted issuers, 1:1 reserves, stablecoins declared not-securities (<a href="https://www.wilmerhale.com/en/insights/client-alerts/20250718-what-the-genius-act-means-for-payment-stablecoin-issuers-banks-and-custodians">WilmerHale</a>, <a href="https://www.occ.gov/news-issuances/bulletins/2026/bulletin-2026-3.html">OCC rulemaking</a>). May reduce state-by-state MTL burden for payment companies.</p></div>
+      <div class="card"><span class="k">02 · Rails</span><h3>Card networks settle in stablecoins</h3><p><b>Visa: US USDC settlement Dec 2025</b> (<a href="https://investor.visa.com/news/news-details/2025/Visa-Launches-Stablecoin-Settlement-in-the-United-States-Marking-a-Breakthrough-for-Stablecoin-Integration/default.aspx">Visa IR</a>); <b>Mastercard June 2026</b> (USDC/PYUSD/USDG/RLUSD). Practical takeaway: <b>USDC, not BTC, is the crypto-acceptance answer now.</b> Coinbase Commerce is dead (2026-03-31).</p></div>
+      <div class="card"><span class="k">03 · OSS</span><h3>Hyperswitch happened</h3><p>Juspay open-sourced its payment switch: <b>43,347★, Apache-2.0, 148 processor connectors</b>, checkout SDK, open-source PCI vault. The software layer of a payments company, free — but it never replaces the sponsor-bank relationship (<a href="https://ithandbook.ffiec.gov/it-booklets/retail-payment-systems/retail-payment-systems-risk-management/retail-payment-instrument-specific-risk-management-controls/merchant-acquiring">FFIEC</a>).</p></div>
+      <div class="card"><span class="k">04 · Sales</span><h3>Dual pricing is the #1 SMB pitch</h3><p>Surcharging legal in ~48 states; <b>dual pricing legal in all 50</b> (<a href="https://merchantcostconsulting.com/lower-credit-card-processing-fees/credit-card-surcharge-laws-by-state/">neutral state-by-state guide</a>); &gt;60% SMB adoption per <a href="https://intellipay.com/passing-card-fees-to-customers-in-2026-surcharging-dual-pricing-and-convenience-fees-explained/">industry data</a>. Agents earn 2–3x residuals on it. And NMI bought <b>Fee Navigator</b> (June 2026) — AI statement audits, i.e. your PVP "show them their leaking money" play, productized.</p></div>
+      <div class="card"><span class="k">05 · AI</span><h3>Agentic commerce is a standard now</h3><p>Mastercard Agent Pay, Visa Intelligent Commerce + Trusted Agent Protocol, Google AP2 (60+ partners) all landed 2025 (<a href="https://appliedtechnologyindex.com/research/2026-comparative-analysis-agentic-commerce-payment-protocols/">comparison</a>). Chatbot-initiated payments — AIVA's lane — are becoming a first-class category, not a hack.</p></div>
+      <div class="card"><span class="k">06 · M&amp;A</span><h3>Consolidation = your recruiting thesis</h3><p>Global Payments closed <b>$24.3B Worldpay</b> (Jan 2026); Shift4 bought Global Blue; Nuvei acquiring Payoneer ($2.75B); Block cut ~10% incl. Square field sales (<a href="https://www.paymentsdive.com/news/block-to-chop-up-to-10-of-employees/811703/">Payments Dive</a>). Displaced reps + orphaned merchants everywhere — exactly The Network's hiring pool.</p></div>
+    </div>
+  </section>
+
+  <section id="today">
+    <h2>Use TODAY — chatbot checkout &amp; invoices (no Stripe)</h2>
+    <p class="sec-lede">Ranked for: a payment link that drops into an AIVA chat bubble, and getting consulting invoices paid without eating 3%.</p>
+    <div class="tblwrap">
+      <table>
+        <thead><tr><th>Rank</th><th>Provider</th><th>Chatbot fit</th><th>Pricing</th><th>Crypto</th><th>Watch out</th></tr></thead>
+        <tbody>
+          <tr class="win"><td>1 · Checkout</td><td><a href="https://developer.squareup.com/reference/square/checkout-api/create-payment-link">Square</a></td><td class="take">Purpose-built: one API call → <code>square.link/u/…</code> short URL made for SMS/chat; active TS SDK; instant onboarding</td><td class="num">2.9% + 30¢</td><td class="take"><b>BTC/Lightning auto-enabled Mar 2026, USD settlement, 0 fees thru 2026</b> (<a href="https://www.coindesk.com/business/2026/03/30/jack-dorsey-s-square-auto-enables-bitcoin-payments-for-millions-of-u-s-businesses">CoinDesk</a>; <a href="https://squareup.com/us/en/press/block-to-roll-out-bitcoin-payments-on-square">rollout press</a>)</td><td class="take">Flat rate costs more at volume</td></tr>
+          <tr><td>2 · Checkout</td><td><a href="https://www.helcim.com/pricing/">Helcim</a></td><td class="take">HelcimPay.js = card entry <em>inside</em> the widget; Payment Requests by text/email</td><td class="num">IC+ 0.50%+25¢ → 0.15%+15¢ · $0/mo</td><td class="take">none</td><td class="take">No official SDKs — write a thin client</td></tr>
+          <tr class="win"><td>1 · Invoices</td><td><a href="https://learn.helcim.com/docs/process-a-payment-with-helcim-invoices">Helcim</a></td><td class="take">Free invoicing w/ hosted pay page</td><td class="num"><b>ACH 0.5% capped $6</b> — a $5K invoice costs $6 vs ~$145 on card</td><td class="take">none</td><td class="take">—</td></tr>
+          <tr><td>2 · Invoices</td><td><a href="https://developer.squareup.com/docs/invoices-api/overview">Square Invoices</a></td><td class="take">Free, hosted invoice page, card+ACH</td><td class="num">card rates apply</td><td class="take">BTC via Square</td><td class="take">API can't trigger SMS delivery (dashboard only)</td></tr>
+          <tr><td>3 · Invoices</td><td>PayPal/Braintree</td><td class="take">Consumer trust; free PayPal invoicing</td><td class="num">2.59%+49¢ · ACH 0.75% capped $5</td><td class="take">PYUSD consumer-side only</td><td class="take">🚨 Braintree Drop-in SDK <b>unsupported as of this month</b> (<a href="https://developer.paypal.com/braintree/docs/start/drop-in">docs</a>)</td></tr>
+          <tr><td>—</td><td>Adyen / Checkout.com</td><td class="take">Clean Pay-by-Link APIs; Checkout.com added USDC/USDT via Coinbase (Jun 2026)</td><td class="num">IC++ · enterprise minimums (~€1k/mo Adyen)</td><td class="take">stablecoins (CKO)</td><td class="take">Enterprise-gated; Adyen banned iframing links Nov 2025. Baseline knowledge only</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note ok"><b>The simple play this quarter:</b> Square for chatbot payment links (cards + BTC in one relationship, free to start today) · Helcim ACH for invoices (capped $6). Both slot behind the CRM invoice flow we spec'd — "Pay Now" button on the hosted invoice = one API call.</p>
+  </section>
+
+  <section id="crypto">
+    <h2>Crypto acceptance + crypto→fiat</h2>
+    <p class="sec-lede">The one structural truth: <b>no open-source software can convert crypto→fiat by itself</b> — conversion always requires a regulated counterparty (<a href="https://docs.btcpayserver.org/FAQ/General/">BTCPay's own FAQ</a>). OSS automates the handoff; a licensed company does the conversion.</p>
+    <div class="tblwrap">
+      <table>
+        <thead><tr><th>Lane</th><th>Pick</th><th>Fee</th><th>USD in bank?</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr class="win"><td>Multi-coin, boring &amp; licensed</td><td><a href="https://developer.bitpay.com/docs/settlement">BitPay</a></td><td class="num">2/1.5/1% + 25¢</td><td>Next-day ACH</td><td class="take">The US incumbent; mature invoice API</td></tr>
+          <tr><td>Bitcoin/Lightning, cheapest</td><td><a href="https://opennode.com/">OpenNode</a></td><td class="num">1% flat</td><td><a href="https://help.opennode.com/en/articles/3703687-automatic-conversion-to-usd">Auto-convert at txn</a></td><td class="take">Shutdown rumors checked — <b>unfounded</b>, active 2026</td></tr>
+          <tr><td>BTC w/ clean API</td><td><a href="https://docs.strike.me/walkthrough/receiving-payments/">Strike</a></td><td class="num">~1% spread</td><td>Hold/settle USD</td><td class="take">Best dev experience of the BTC lane</td></tr>
+          <tr><td>Stablecoin-modern</td><td><a href="https://www.radom.com/pricing">Radom</a> / <a href="https://spherepay.co/">Sphere</a></td><td class="num">from 0.5%</td><td>Instant off-ramp</td><td class="take">Young; pricing from 3rd-party comparisons — verify at contract</td></tr>
+          <tr><td>Self-hosted / sovereignty</td><td><a href="https://github.com/btcpayserver/btcpayserver">BTCPay Server</a> <span class="chip mit">MIT</span></td><td class="num">$0 software</td><td>Only via Kraken plugin / Strike (you hold the exchange account)</td><td class="take">7,666★, pushed daily, org-backed — the only serious OSS; self-custody by design</td></tr>
+          <tr><td>Agentic/chatbot USDC</td><td><a href="https://github.com/x402-foundation/x402">x402</a> <span class="chip mit">Apache-2.0</span></td><td class="num">protocol</td><td>USDC to wallet — pair with off-ramp</td><td class="take">6,387★, TS-first, HTTP-402 payments — the forward bet for AIVA agent-commerce</td></tr>
+          <tr><td>Rails to BUILD on (BoostUp)</td><td><a href="https://zerohash.com/">Zero Hash</a></td><td class="num">B2B</td><td>They carry MSB + 51-jurisdiction licenses</td><td class="take">Powers Stripe, Shift4, DraftKings, MoonPay — the "ride their licenses" answer. (BVNK being bought by <a href="https://www.americanbanker.com/payments/news/mastercard-boosts-agentic-commerce-adds-crypto-network">Mastercard ~$1.8B</a>)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note bad"><b>Avoid:</b> NOWPayments for a US entity (St. Vincent registration, no US licensing posture) · anything built on Coinbase Commerce (shut down 2026-03-31) · Solana Pay merchant SDK (repo repurposed) · Helio SDKs as "OSS" (no license file; MoonPay-owned).</p>
+  </section>
+
+  <section id="oss">
+    <h2>The GitHub shelf — verified OSS worth knowing</h2>
+    <div class="tblwrap">
+      <table>
+        <thead><tr><th>Repo</th><th>Stars</th><th>License</th><th>What it is</th><th>For Rob</th></tr></thead>
+        <tbody>
+          <tr class="win"><td><a href="https://github.com/juspay/hyperswitch">juspay/hyperswitch</a></td><td class="num">43,347</td><td><span class="chip mit">Apache-2.0</span></td><td class="take">Self-hostable payment orchestrator (Rust): routing, retries, vault, checkout SDK, <b>148 connectors</b> incl. Authorize.net, NMI, Elavon, Fiserv, GP, Shift4, Square</td><td class="take"><b>The owned tech layer if BoostUp scales</b> — connect any processor that underwrites you. Self-host = your PCI scope</td></tr>
+          <tr><td><a href="https://github.com/btcpayserver/btcpayserver">btcpayserver/btcpayserver</a></td><td class="num">7,666</td><td><span class="chip mit">MIT</span></td><td class="take">Self-hosted BTC/Lightning payment server, self-custody</td><td class="take">Sovereignty option; white-label chassis + Zero Hash/Kraken for conversion</td></tr>
+          <tr><td><a href="https://github.com/x402-foundation/x402">x402-foundation/x402</a></td><td class="num">6,387</td><td><span class="chip mit">Apache-2.0</span></td><td class="take">HTTP-402 stablecoin payment protocol (TS)</td><td class="take">Watch/prototype for AIVA agentic checkout</td></tr>
+          <tr><td><a href="https://github.com/killbill/killbill">killbill/killbill</a></td><td class="num">5,629</td><td><span class="chip mit">Apache-2.0</span></td><td class="take">Enterprise billing/invoicing engine (used inside Square — <a href="https://news.ycombinator.com/item?id=33263603">HN</a>)</td><td class="take">Ledger layer if BoostUp needs real billing infra later</td></tr>
+          <tr><td><a href="https://github.com/moov-io">moov-io (org)</a></td><td class="num">ach 554</td><td><span class="chip mit">Apache-2.0</span></td><td class="take">Go libs for US rails: ACH, ISO-8583, OFAC screening, wire, RTP/FedNow</td><td class="take">Processor plumbing; Moov-the-company = <a href="https://moov.io/pricing/">licensed 4-network acquirer, $500/mo min, published pricing</a></td></tr>
+          <tr><td><a href="https://github.com/juspay/hyperswitch-card-vault">hyperswitch-card-vault</a></td><td class="num">61</td><td><span class="chip mit">Apache-2.0</span></td><td class="take">The only real OSS PCI card vault ("Tartarus")</td><td class="take">Basis Theory/VGS are SaaS-only — this is the self-host exception</td></tr>
+          <tr><td><a href="https://github.com/jpos/jPOS">jpos/jPOS</a></td><td class="num">711</td><td><span class="chip agpl">AGPL dual</span></td><td class="take">The classic ISO-8583 switch real processors are built on</td><td class="take">Year-3 problem, and a license cost line</td></tr>
+          <tr><td><a href="https://github.com/invoiceninja/invoiceninja">invoiceninja</a></td><td class="num">9,898</td><td><span class="chip warn">Elastic 2.0</span></td><td class="take">Self-hosted invoicing w/ pay-now via many gateways</td><td class="take">Fine for internal use; not OSI. We're building invoicing into the CRM anyway</td></tr>
+          <tr><td>Rejected</td><td class="num">—</td><td><span class="chip none">—</span></td><td class="take" colspan="2">Primer (SDKs only, core closed) · Polar (10k★ but built ON Stripe) · gringotts (dormant since 2018) · moov-io/paygate (archived 2021) · Lago (AGPL) for embedding · OpenPPS (doesn't exist)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note"><b>The hard truth (sourced):</b> no OSS gets you card acceptance without an acquiring-bank relationship — networks require sponsor-bank membership for every merchant, ISO, and PayFac (<a href="https://ithandbook.ffiec.gov/it-booklets/retail-payment-systems/retail-payment-systems-risk-management/retail-payment-instrument-specific-risk-management-controls/merchant-acquiring">FFIEC</a>, <a href="https://www.digitaltransactions.net/for-isos-and-other-acquirers-picking-a-sponsor-bank-entails-understanding-banks/">Digital Transactions</a>). Software is the moat you can own; the rails are always rented from a bank.</p>
+  </section>
+
+  <section id="processor">
+    <h2>BE the processor — the 2026 ladder</h2>
+    <p class="sec-lede">Ranked by capital and commitment. The rep-network model you're already building (displaced Square/Worldpay reps) slots exactly into rungs 1–2.</p>
+    <div class="tblwrap">
+      <table>
+        <thead><tr><th>Rung</th><th>Cost</th><th>Liability</th><th>You keep</th><th>Verdict</th></tr></thead>
+        <tbody>
+          <tr class="win"><td>1 · Independent agent (under 1–2 ISOs)</td><td class="num">$0</td><td>None</td><td class="num">50–70%</td><td class="take"><b>Start here, now.</b> Contract non-negotiables: lifetime vested residuals · no production minimums · portfolio sale rights · sub-agent Schedule A rights</td></tr>
+          <tr class="win"><td>2 · Registered retail ISO</td><td class="num">~$20–30k/yr (Visa $10k yr-1/$5k after + MC + legal)</td><td>Sales only</td><td class="num">70–90%</td><td class="take"><b>The natural home for The Network</b> — own brand, roll sub-agents under your paper. Trigger: when sub-agent count justifies it (<a href="https://www.riandalaw.com/articles/so-you-want-to-register-as-an-iso/">Rianda Law</a>)</td></tr>
+          <tr><td>3 · Wholesale ISO</td><td class="num">$250k+ capital + risk staff</td><td>Shares losses/fines</td><td class="num">~90%+</td><td class="take">Buy at true cost. Sponsor banks active now: <a href="https://esquirebank.com/merchant-services/independent-sales-organization/">Esquire</a>, Merrick, <a href="https://cbcal.com/acquiring-partners/">CBCal</a>, <a href="https://www.pathward.com/banking/acquiring-solutions/">Pathward</a>, <a href="https://www.prosperitybankusa.com/iso-sponsorship/">Prosperity</a></td></tr>
+          <tr><td>4 · Registered PayFac</td><td class="num">$500k–$2M+ · 6–18 mo · $200–500k/yr compliance</td><td>ALL sub-merchant risk</td><td class="num">full spread</td><td class="take">Only pencils in the ~$10–100M/yr band — ~$50M is the working rule of thumb (<a href="https://www.business-money.com/announcements/finix-review-is-this-payfac-a-good-stripe-alternative/">Finix review</a>, <a href="https://www.rainforestpay.com/blog/hidden-costs-of-becoming-a-payfac">Rainforest</a>). Use PFaaS first: Rainforest (vertical SaaS, $29M Series B) · Moov ($500/mo) · Finix ($250/mo Starter) · Tilled (66%+ share)</td></tr>
+          <tr><td>5 · Acquirer/bank</td><td class="num">a bank charter</td><td>—</td><td class="num">—</td><td class="take">Never — that's why Stripe and Fiserv chased charters</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <details open>
+      <summary>The 15 active agent/ISO programs (recruiting now, 2025–26)</summary>
+      <div class="inner">
+        <div class="tblwrap" style="margin-top:6px">
+          <table>
+            <thead><tr><th>Program</th><th>Split (public)</th><th>Tech</th><th>Niche</th><th>Signal</th></tr></thead>
+            <tbody>
+              <tr class="win"><td><a href="https://maverickpayments.com/isos-and-agents">Maverick Payments</a></td><td>custom Schedule A (negotiate)</td><td class="num">A</td><td class="take">White-label dashboard + APIs, <b>free unlimited sub-agent hierarchy</b>, in-house high-risk underwriting, multi-bank</td><td class="take">Active Green Sheet recruiting; <a href="https://www.digitaltransactions.net/powering-the-next-generation-of-payment-monetization-maverick-payments-empowers-isvs-with-a-white-labeled-payment-stack/">DT coverage</a></td></tr>
+              <tr class="win"><td><a href="https://signapay.com/partners/">SignaPay (PayLo)</a></td><td><b>up to 90%</b> + portfolio loans/buyouts</td><td class="num">B+</td><td class="take">Dual-pricing flagship ("3x residuals"), high-risk, EmpowerU training for green reps</td><td class="take"><a href="https://signapay.com/blog/signapay-expands-iso-program-ahead-of-2026-opening-doors-for-new-partners-seeking-a-true-growth-partnership/">Expanding ISO intake Nov 2025</a></td></tr>
+              <tr class="win"><td><a href="https://www.shift4.com/become-a-pos-reseller">Shift4</a></td><td>residuals + upfront (unquantified)</td><td class="num">A−/C</td><td class="take"><b>Only one-stop cards+crypto toggle</b> (Pay-with-Crypto: BTC/ETH/SOL/USDC→USD, Zero Hash-powered) + SkyTab POS</td><td class="take">⚠️ <a href="https://reformingretail.com/index.php/2022/02/24/in-less-than-two-weeks-shift4-sends-second-lopsided-partner-communication/">partner-hostile contract history</a> — product line, not umbrella</td></tr>
+              <tr><td><a href="https://payroc.com/industries/sales-partners-agent/">Payroc</a></td><td>up to 80% of true residual</td><td class="num">B+</td><td class="take">Safe wholesale generalist; RewardPay surcharging</td><td class="take">Live agent onboarding</td></tr>
+              <tr><td><a href="https://www.nuvei.com/offers/isv-and-iso-partnerships">Nuvei</a></td><td><a href="https://info.nuvei.com/hubfs/White_papers_and_reports/ISO%20Playbook.pdf">ISO playbook</a></td><td class="num">A−</td><td class="take">40 cryptos + stablecoin ramps; AI merchant onboarding (Oct 2025); eCom/intl/high-risk</td><td class="take">Mid-Payoneer integration; enterprise-tilted</td></tr>
+              <tr><td><a href="https://partners.north.com/">North (fka NAB)</a></td><td>not published; bonuses + 15th-of-month residuals</td><td class="num">B</td><td class="take">SMB volume, own processor (EPX), Edge cash-discount</td><td class="take">⚠️ <a href="https://www.cardpaymentoptions.com/credit-card-processors/north-american-bancard-complaints-review-and-rating/">agent-conduct complaints</a></td></tr>
+              <tr><td><a href="https://paymentcloudinc.com/partners/">PaymentCloud</a></td><td>not published</td><td class="num">B</td><td class="take">High-risk/hard-to-place incl. <b>crypto-adjacent merchants</b>; 98% approval claim</td><td class="take">The overflow desk for declined deals</td></tr>
+              <tr><td><a href="https://electronicpayments.com/partner-programs/iso-agent-programs/">Electronic Payments (EPI)</a></td><td>lifetime residuals; $500M+ paid</td><td class="num">B</td><td class="take">Dual pricing (ProCharge) + free Exatouch POS placement</td><td class="take">IMPACT25 agent conference</td></tr>
+              <tr><td><a href="https://www.emscorporate.com/agent-interest-landing">EMS</a></td><td><b>daily</b> residual payouts</td><td class="num">B−</td><td class="take">Generalist</td><td class="take">State-by-state recruiting PR</td></tr>
+              <tr><td><a href="https://prioritycommerce.com/iso-services/">Priority (MX)</a></td><td>commission engine built-in</td><td class="num">A−</td><td class="take">Scale ISO infrastructure (MX Connect hierarchies)</td><td class="take">Take-private chatter unverified</td></tr>
+              <tr><td><a href="https://clearent.com/financial-institutions/">Clearent by Xplor</a></td><td>not published</td><td class="num">B+</td><td class="take">ISVs/FIs; 2025 automated onboarding</td><td class="take">Rebrand to Xplor Pay in flux</td></tr>
+              <tr><td><a href="https://celerocommerce.com/independent-agents-isos/">Celero</a></td><td>same/next-day commission funding</td><td class="num">B</td><td class="take">Explicitly invites "build your own sales team"</td><td class="take">Bank-channel strength</td></tr>
+              <tr><td><a href="https://www.cardconnect.com/sales-partners/">Fiserv/CardConnect</a></td><td>not published</td><td class="num">B+</td><td class="take">Clover distribution at scale</td><td class="take">Legacy First Data channel</td></tr>
+              <tr><td><a href="https://www.globalpayments.com/partners/independent-sales-organizations">Global Payments (Genius)</a></td><td>not published</td><td class="num">B+</td><td class="take">Largest pure-play acquirer post-Worldpay</td><td class="take">Integration churn = risk + rep-poaching opportunity</td></tr>
+              <tr><td><a href="https://agent.nationalprocessing.com/">National Processing</a></td><td>affiliate ≤10%</td><td class="num">C+</td><td class="take">Low-cost SMB</td><td class="take">⚠️ main partner page unreachable — verify before engaging</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin-top:10px">Honorables: <a href="https://payzli.com/independent-sales-agents/">Payzli</a> (real-time residuals) · <a href="https://www.paysafe.com/us-en/partners/isos-and-agents/">Paysafe</a> · <a href="https://www.beaconpayments.com/blog/how-to-recruit-sub-agents-and-build-your-iso-network">Beacon</a> (publishes the sub-agent recruiting playbook) · Merchants Bancard ("up to 100% lifetime" — read the buy rates) · 2Accept (high-risk; sponsor claims unverified).</p>
+      </div>
+    </details>
+
+    <p class="note ok"><b>First three calls (my recommendation):</b> 1) <b>Maverick</b> — white-label + APIs you can wrap AI tooling around, free unlimited sub-agent hierarchy for The Network's reps; negotiate splits hard, confirm crypto-merchant appetite. 2) <b>SignaPay</b> — 90% splits, actively expanding ISO intake, and PayLo dual pricing is the strongest SMB door-opener to pair with AI-voice outbound. 3) <b>Shift4</b> — the cards+crypto product line (not the umbrella). Structure: agent on two Schedule A's now ($0) → registered retail ISO (~$20–30k/yr) when the rep count earns the brand → BoostUp's own tech on Hyperswitch + Zero Hash when volume earns the infrastructure.</p>
+    <p class="note warn"><b>Confidence flags:</b> splits marked "up to" are advertised, not contractual — the Schedule A is the only truth. "Central Bank of St. Louis" as a sponsor could NOT be verified (treat stale). Block layoff totals verified only to ~10% (~1,100); bigger figures are secondary-source. High-risk niche just got taxed: MC specialty registration doubled to $1,000/merchant + new per-txn fees (June 2026).</p>
+  </section>
+
+  <section id="fit">
+    <h2>How it snaps into what you're already building</h2>
+    <div class="grid cols3">
+      <div class="card"><span class="k">AIVA</span><h3>Chatbot checkout</h3><p>Square payment link in a chat bubble this quarter; x402/agentic-commerce protocols as the 2027 bet. Payments <b>inside the avatar conversation</b> becomes an AIVA differentiator no roofing chatbot has.</p></div>
+      <div class="card"><span class="k">CRM / MLE</span><h3>Invoice pay-now</h3><p>Helcim ACH (capped $6) or Square on the hosted invoice page from the e-sign flow — one API call added to the completion step. Kills the check-chasing on installment plans.</p></div>
+      <div class="card"><span class="k">BoostUp + The Network</span><h3>The processor play</h3><p>Your displaced-rep recruiting research + Maverick's free sub-agent hierarchy + PayLo dual pricing + NMI-style AI statement audits = a <b>PVP-native ISO</b>: show the merchant their own processing statement bleeding, with an AI voice agent booking the appointment. Nobody in the program table has that stack.</p></div>
+    </div>
+  </section>
+
+  <section id="sources">
+    <h2>Method &amp; sources</h2>
+    <p class="sec-lede" style="font-size:14px">4 parallel research agents, 2026-07-23. Every GitHub number from live <code>gh api</code>; licenses read from LICENSE files; program/pricing claims cite official pages or 2024–26 trade press. Full evidence: <code>docs/research/agents/2026-07-23-payments-slice{1–4}-*.md</code> (canonical repo) + synthesis <code>payments-deep-research-2026-07-23.md</code>.</p>
+    <ul class="src">
+      <li><a href="https://www.riandalaw.com/articles/so-you-want-to-register-as-an-iso/">Rianda Law — ISO registration costs</a></li>
+      <li><a href="https://usa.visa.com/dam/VCOM/download/merchants/tpa-registration-program-faqs.pdf">Visa TPA registration FAQ (PDF)</a></li>
+      <li><a href="https://www.unisonpayment.com/blog/merchant-services-agent-program-residual-income">Agent split norms (Unison 2026)</a> · <a href="https://www.ccsalespro.com/blog/much-residual-can-make-selling-merchant-services-merchant-services-sales-commission">CCSalesPro</a></li>
+      <li><a href="https://www.business-money.com/announcements/finix-review-is-this-payfac-a-good-stripe-alternative/">PayFac threshold (~$50M rule of thumb — Finix review)</a> · <a href="https://www.rainforestpay.com/blog/hidden-costs-of-becoming-a-payfac">Rainforest — hidden PayFac costs</a></li>
+      <li><a href="https://flagshipadvisorypartners.com/insights/u-s-acquiring-bin-sponsorship-to-sponsor-or-not-to-sponsor/">Flagship — BIN sponsorship market</a></li>
+      <li><a href="https://www.wilmerhale.com/en/insights/client-alerts/20250718-what-the-genius-act-means-for-payment-stablecoin-issuers-banks-and-custodians">GENIUS Act (WilmerHale)</a> · <a href="https://www.occ.gov/news-issuances/bulletins/2026/bulletin-2026-3.html">OCC bulletin</a></li>
+      <li><a href="https://investor.visa.com/news/news-details/2025/Visa-Launches-Stablecoin-Settlement-in-the-United-States-Marking-a-Breakthrough-for-Stablecoin-Integration/default.aspx">Visa USDC settlement</a> · <a href="https://cointelegraph.com/news/mastercard-stablecoin-settlement-usdc-pyusd-rlusd">Mastercard stablecoin settlement</a></li>
+      <li><a href="https://squareup.com/us/en/press/block-to-roll-out-bitcoin-payments-on-square">Square BTC rollout</a> · <a href="https://www.coindesk.com/business/2026/03/30/jack-dorsey-s-square-auto-enables-bitcoin-payments-for-millions-of-u-s-businesses">CoinDesk</a></li>
+      <li><a href="https://help.coinbase.com/en/migrating-to-the-onchain-payment-protocol">Coinbase Commerce shutdown</a></li>
+      <li><a href="https://www.finextra.com/blogposting/29034/deep-dive-bvnk-vs-bridge-vs-zero-hash---stablecoin-payment-infrastructure">BVNK vs Bridge vs Zero Hash</a> · <a href="https://zerohash.com/">Zero Hash</a></li>
+      <li><a href="https://www.businesswire.com/news/home/20260602447713/en/NMI-Acquires-Fee-Navigator-Adding-AI-Powered-Pricing-Intelligence-to-Its-Embedded-Payments-Platform">NMI acquires Fee Navigator</a></li>
+      <li><a href="https://merchantcostconsulting.com/lower-credit-card-processing-fees/credit-card-surcharge-laws-by-state/">Surcharge laws by state</a> · <a href="https://www.signapayse.com/post/surcharge-cash-discount-or-dual-pricing-which-is-actually-legal-in-2026">Dual-pricing legality 2026</a></li>
+      <li><a href="https://www.americanbanker.com/payments/news/global-payments-closes-worldpay-purchase-issuer-sale-to-fis">GP closes Worldpay</a> · <a href="https://www.nuvei.com/posts/nuvei-to-acquire-payoneer-for-2-75-billion-creating-a-leading-global-platform-for-local-and-cross-border-commerce">Nuvei–Payoneer</a></li>
+      <li><a href="https://ithandbook.ffiec.gov/it-booklets/retail-payment-systems/retail-payment-systems-risk-management/retail-payment-instrument-specific-risk-management-controls/merchant-acquiring">FFIEC merchant-acquiring handbook</a></li>
+      <li><a href="https://docs.hyperswitch.io/self-hosting">Hyperswitch self-hosting docs</a> · <a href="https://news.ycombinator.com/item?id=36942447">HN open-core thread</a></li>
+      <li><a href="https://moov.io/pricing/">Moov published pricing</a> · <a href="https://www.tilled.com/pricing">Tilled</a> · <a href="https://fiska.com/blog/finix-pricing/">Finix pricing review</a> · <a href="https://www.businesswire.com/news/home/20250908143729/en/">Rainforest Series B</a></li>
+    </ul>
+  </section>
+
+  <footer>
+    <span class="mono">PAYMENTS DEEP RESEARCH · 2026-07-23 · 4-agent swarm · ~130 sources · repos gh-verified, licenses from LICENSE files · not legal or financial advice — splits/fees verified at contract time · BoostUp Payments lane (keep aivoicetech + boostuppayments identities separate per standing rule)</span>
+  </footer>
+</div>
