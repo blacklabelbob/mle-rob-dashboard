@@ -15,6 +15,7 @@
 // weekly-digest surfacing in the DoD rides base-PRD digest infra (MC.15 /
 // M4.3) which does not exist yet — this module is its single rule source.
 
+import { appendMachineNote } from "../notes";
 import type { Activity, Person } from "../types";
 
 // >=180: "no activity in 180 days" — a touch exactly 180 days ago means
@@ -56,10 +57,12 @@ export const hasRecycleTag = (notes: string | undefined): boolean =>
   !!notes && notes.includes(TAG_PREFIX);
 
 // The exact notes write the tagging cron (inc.2) applies — kept here so the
-// tag format has one source. Appends `[recycle_candidate YYYY-MM-DD]`.
+// tag format has one source. Appends `[recycle_candidate YYYY-MM-DD]` as its
+// OWN block (Q43 punch #4): it used to be jammed onto the end of Rob's last
+// human line, which the line-anchored splitter can't see, so a machine tag
+// rendered inside the Notes box — the cramming Q43 exists to stop.
 export function withRecycleTag(notes: string | undefined, today: string): string {
-  const tag = `${TAG_PREFIX} ${today}]`;
-  return notes && notes.trim().length > 0 ? `${notes} ${tag}` : tag;
+  return appendMachineNote(notes, `${TAG_PREFIX} ${today}]`);
 }
 
 // Newest provable touch day for a person, or null when nothing is provable.

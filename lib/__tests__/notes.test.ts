@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { applyHumanNotesEdit, composeNotes, isEnrichmentMarker, lintNotes, splitNotes } from "@/lib/notes";
+import {
+  appendMachineNote,
+  applyHumanNotesEdit,
+  composeNotes,
+  isEnrichmentMarker,
+  lintNotes,
+  splitNotes,
+} from "@/lib/notes";
 
 // Fixtures mirror real prod shapes observed 2026-07-23 (rob-acheson,
 // michael-jaenvega, gary-waskivich, david-cates, trent-brands, daniella-roach).
@@ -114,6 +121,46 @@ describe("lintNotes", () => {
   it("empty / null → no issues", () => {
     expect(lintNotes(null)).toEqual([]);
     expect(lintNotes("  ")).toEqual([]);
+  });
+
+  // Q43 punch #4: the recycle cron and the CSV importer used to jam their tags
+  // onto the end of Rob's line. Both write their own block now — the lint is
+  // the net that catches any writer (or hand-edit) that regresses.
+  it("flags a mid-line [recycle_candidate] / [import:] tag", () => {
+    const recycle = lintNotes("cold expo lead [recycle_candidate 2026-07-22]");
+    expect(recycle).toHaveLength(1);
+    expect(recycle[0].code).toBe("mid-line-marker");
+
+    const imported = lintNotes("met at expo [import: roofing-list-2026-07]");
+    expect(imported).toHaveLength(1);
+    expect(imported[0].code).toBe("mid-line-marker");
+  });
+});
+
+describe("appendMachineNote (Q43 punch #4 — the one machine write path)", () => {
+  it("always opens its own block, and the marker files it as enrichment", () => {
+    const out = appendMachineNote("Rob: met at expo.", "[import: list-a]");
+    expect(out).toBe("Rob: met at expo.\n\n[import: list-a]");
+    expect(splitNotes(out).human).toBe("Rob: met at expo.");
+    expect(splitNotes(out).enrichment).toEqual(["[import: list-a]"]);
+    expect(lintNotes(out)).toEqual([]);
+  });
+
+  it("empty stored notes → the block alone; empty block → notes untouched", () => {
+    expect(appendMachineNote(null, "[recycle_candidate 2026-07-22]")).toBe(
+      "[recycle_candidate 2026-07-22]"
+    );
+    expect(appendMachineNote("Rob: keep.", "   ")).toBe("Rob: keep.");
+  });
+
+  it("stacks after existing enrichment without disturbing the human part", () => {
+    const stored = "Rob: owns Miga.\n\nENRICHED 2026-07-17: Sunbiz officer record.";
+    const out = appendMachineNote(stored, "[recycle_candidate 2026-07-22]");
+    expect(splitNotes(out).human).toBe("Rob: owns Miga.");
+    expect(splitNotes(out).enrichment).toEqual([
+      "ENRICHED 2026-07-17: Sunbiz officer record.",
+      "[recycle_candidate 2026-07-22]",
+    ]);
   });
 });
 

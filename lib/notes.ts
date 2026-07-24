@@ -22,7 +22,29 @@ export interface SplitNotes {
 // A line starts a machine block iff it begins with one of the appenders'
 // markers. Explicit list, not vibes — extend it only when a new appender
 // pattern actually ships.
-const MARKER = /^\s*(enriched\b|enrichment\b|sources:)/i;
+//
+// `[recycle_candidate …]` (lib/leads/recycle.ts) and `[import: …]`
+// (lib/csvMapping.ts) joined the vocabulary on 2026-07-23 (critic-rob Q43
+// punch #4): both are machine tags that were being crammed onto the end of
+// Rob's human line, where the line-anchored splitter could never see them.
+// They now append as their own block via appendMachineNote() below, and the
+// lint catches any mid-line stragglers.
+const MARKER = /^\s*(enriched\b|enrichment\b|sources:|\[recycle_candidate\b|\[import:)/i;
+
+// The one way a machine appends to a notes field. Always its own block, always
+// blank-line separated, so splitNotes() files it under enrichment instead of
+// leaving it inside Rob's prose. Callers pass a line that STARTS with a marker
+// the vocabulary above recognizes — appendMachineNote is the plumbing, not a
+// licence to invent new tag shapes.
+export function appendMachineNote(
+  notes: string | null | undefined,
+  block: string
+): string {
+  const existing = (notes ?? "").trim();
+  const addition = block.trim();
+  if (!addition) return existing;
+  return existing ? `${existing}\n\n${addition}` : addition;
+}
 
 export function isEnrichmentMarker(line: string): boolean {
   return MARKER.test(line);
@@ -97,7 +119,8 @@ export interface NoteLint {
 }
 
 // Same marker vocabulary as MARKER, matched anywhere after some leading text.
-const MID_LINE_MARKER = /\S\s+(ENRICHED\b|Enrichment\b|Sources:)/;
+const MID_LINE_MARKER =
+  /\S\s+(ENRICHED\b|Enrichment\b|Sources:|\[recycle_candidate\b|\[import:)/;
 // Column/field separators only. `-` and `*` are DELIBERATELY absent: Rob writes
 // bullet lists in his notes ("- Replace Boomtown" on gulf-coast is a real human
 // line), and a watchdog that flags his own bullets is noise, not a guard.

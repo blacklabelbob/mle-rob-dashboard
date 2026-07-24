@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { mapRealCsv, planRealImport } from "../csvMapping";
 import { peopleToCsv } from "../csv";
+import { lintNotes, splitNotes } from "../notes";
 import { Person } from "../types";
 
 function person(overrides: Partial<Person>): Person {
@@ -80,10 +81,14 @@ describe("planRealImport — tagged insert", () => {
       [],
       { tag: "roofing-list-2026-07" },
     );
+    // Q43 punch #4: the stamp is its own block, so the splitter files it as
+    // machine text instead of leaving it inside the human note.
     expect(plan.inserts.map((p) => p.notes)).toEqual([
-      "met at expo [import: roofing-list-2026-07]",
+      "met at expo\n\n[import: roofing-list-2026-07]",
       "[import: roofing-list-2026-07]",
     ]);
+    expect(splitNotes(plan.inserts[0].notes).human).toBe("met at expo");
+    expect(lintNotes(plan.inserts[0].notes)).toEqual([]);
   });
 
   it("does not stamp dupes or touch existing records (dupes are never inserted)", () => {

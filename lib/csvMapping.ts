@@ -14,6 +14,7 @@
 import { Person } from "./types";
 import { parseCsv, csvEscape, PEOPLE_CSV_COLUMNS, PeopleCsvColumn } from "./csv";
 import { planImport, ImportPlan } from "./csvImport";
+import { appendMachineNote } from "./notes";
 
 // alias (normalized: lowercase, alnum only) → canonical column. Canonical
 // names map to themselves via CANONICAL below, so a Task-4.3 export passes
@@ -153,7 +154,10 @@ export interface RealImportPlan extends ImportPlan {
 
 /** Task 4.4 pipeline: map Rob's real-list headers → run the Task-4.3
  * planner → optionally stamp each clean insert with an import tag (lands in
- * notes as `[import: <tag>]`, so every imported row stays attributable). */
+ * notes as `[import: <tag>]`, so every imported row stays attributable).
+ * The stamp is its own notes block via appendMachineNote (Q43 punch #4) —
+ * previously appended mid-line, where the splitter couldn't file it as
+ * machine text and it rendered inside the human Notes box. */
 export function planRealImport(
   csvText: string,
   existing: Person[],
@@ -164,8 +168,7 @@ export function planRealImport(
   const tag = opts.tag?.trim();
   if (tag) {
     for (const p of plan.inserts) {
-      const stamp = `[import: ${tag}]`;
-      p.notes = p.notes ? `${p.notes} ${stamp}` : stamp;
+      p.notes = appendMachineNote(p.notes, `[import: ${tag}]`);
     }
   }
   return { ...plan, mapping: mapped.mapping, ignoredColumns: mapped.ignored };

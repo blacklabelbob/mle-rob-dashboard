@@ -11,6 +11,7 @@ import {
   RECYCLE_STALE_DAYS,
   type RecyclablePerson,
 } from "../leads/recycle";
+import { lintNotes, splitNotes } from "../notes";
 
 const TODAY = "2026-07-22";
 
@@ -133,9 +134,20 @@ describe("findRecycleCandidates (Task 5.4)", () => {
 
   it("tag helpers: append format + detection round-trip", () => {
     const tagged = withRecycleTag("cold expo lead", TODAY);
-    expect(tagged).toBe("cold expo lead [recycle_candidate 2026-07-22]");
+    // Q43 punch #4: own block, never crammed onto Rob's line.
+    expect(tagged).toBe("cold expo lead\n\n[recycle_candidate 2026-07-22]");
     expect(withRecycleTag(undefined, TODAY)).toBe("[recycle_candidate 2026-07-22]");
     expect(hasRecycleTag(tagged)).toBe(true);
     expect(hasRecycleTag("no tag here")).toBe(false);
+  });
+
+  it("Q43: the tag files as enrichment and leaves the human note clean", () => {
+    const tagged = withRecycleTag("cold expo lead", TODAY);
+    expect(splitNotes(tagged).human).toBe("cold expo lead");
+    expect(splitNotes(tagged).enrichment).toEqual(["[recycle_candidate 2026-07-22]"]);
+    expect(lintNotes(tagged)).toEqual([]);
+    // Re-tagging a row that already carries enrichment stays clean too.
+    const withEnrichment = "cold expo lead\n\nENRICHED 2026-07-17: Sunbiz officer record.";
+    expect(splitNotes(withRecycleTag(withEnrichment, TODAY)).human).toBe("cold expo lead");
   });
 });
