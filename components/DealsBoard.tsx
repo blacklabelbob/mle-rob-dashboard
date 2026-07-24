@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { STAGE_LABELS } from "@/lib/labels";
 import { money } from "@/lib/stats";
 import { scoreDeal, STAGE_LADDER, type DealScore } from "@/lib/scoring/deal";
 import type { Deal, DealStage } from "@/lib/types";
@@ -11,21 +12,6 @@ import type { Deal, DealStage } from "@/lib/types";
 // (stage-only route). A failed save snaps the card back and says so — never
 // a false "saved". While a drag is live, the empty ladder stages appear as
 // slim drop targets so any stage is reachable without 12 permanent columns.
-
-const STAGE_LABELS: Record<DealStage, string> = {
-  new_lead: "New lead",
-  contacted: "Contacted",
-  meeting_booked: "Meeting booked",
-  meeting_held: "Meeting held",
-  quote_sent: "Quote sent",
-  negotiating: "Negotiating",
-  signed: "Signed",
-  invoiced: "Invoiced",
-  paid: "Paid",
-  delivering: "Delivering",
-  stalled: "Stalled",
-  lost: "Lost",
-};
 
 const GRADE_STYLES: Record<DealScore["grade"], string> = {
   A: "bg-emerald-500/15 text-emerald-300 ring-emerald-400/30",
