@@ -15,6 +15,14 @@ describe("buildPatchRow", () => {
     const row = buildPatchRow({ keyDates: { paid: "2026-07-01" } });
     expect(row.node_type).toBe("client");
   });
+
+  // Q43: notes may ONLY be written through the virtual `notesHuman` field, which
+  // the PATCH route recomposes against the stored row. A `notes` entry in
+  // FIELD_MAP would let a caller overwrite the whole column and drop enrichment.
+  it("refuses a raw notes write — the provenance guarantee has one door", () => {
+    expect(FIELD_MAP.notes).toBeUndefined();
+    expect(buildPatchRow({ notes: "wipes enrichment" })).toEqual({});
+  });
 });
 
 describe("shapeRowForTable", () => {

@@ -224,6 +224,8 @@ Precedent: Attio keeps Notes as their own tab/section while enriched data lives 
 
 One more Rob rule lands here (7.22.26-2): *"When you pick up from either notes I've inputted or meeting or email notes you've seen its Important you highlight the FUTURE opportunities outside of just working phase 1-3."* → any detected Phase-4 opportunity renders as a **highlighted "Future opportunity (Phase 4)" callout** above Notes on the company page (owners-only), feeding the §6 registry — not buried in enrichment.
 
+**INHERITED DEFECT — Q43 punch #7, this section owns it now (added 2026-07-24).** The Q43 retrofit put the enrichment section last in DOM order, which is correct on desktop but *not* on mobile: the single-column stack collapses the two-column grid, so on a phone the collapsed enrichment block currently renders **above** the EstimatePanel instead of beneath everything. The critic-rob re-score accepted deferring it here rather than churning a grid this redesign rebuilds — but "at the very bottom" above is not satisfied until it is true at every breakpoint. **This §3.5 DoD does not close while enrichment can appear above live record content on any viewport.** Fix belongs in the §3.6 grid rebuild, not in a one-off media query.
+
 ### 3.6 Details grid + enrichment
 
 The current 16-field inline-edit grid (`PersonEditor`) survives but **demoted** below Notes, trimmed to company-relevant fields (website, phone, vertical, assigned rep). Inline click-to-edit autosave is retained everywhere — Rob's law, no Save buttons. ("Met" is gone from the date chips per §3.1's kickoff-steps amendment; the remaining sales-journey dates render as the kickoff strip, not a chip row.)

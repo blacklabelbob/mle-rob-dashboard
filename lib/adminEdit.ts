@@ -21,7 +21,11 @@ export const FIELD_MAP: Record<string, string> = {
   assignedRep: "assigned_rep",
   phaseOne: "phase_one",
   keyDates: "key_dates",
-  notes: "notes",
+  // `notes` is deliberately NOT here (Q43 punch #1 of the re-score). Notes are
+  // written only via the virtual `notesHuman` field, which the PATCH route
+  // recomposes against the STORED row so enrichment blocks survive. A raw
+  // `notes` mapping would be a second door straight past that guarantee — a
+  // whole-column overwrite that silently drops provenance. Pinned by a test.
   description: "description",
   meetingVideoUrl: "meeting_video_url",
   transcriptUrl: "transcript_url",
