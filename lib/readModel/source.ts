@@ -23,6 +23,7 @@ import {
   isCreatable,
   type ReadModelId,
 } from "./contract";
+import { buildKpiSummaryPanel, type KpiSummaryPanel } from "./kpiSummary";
 import {
   buildActionItemsPanel,
   buildEsignPanel,
@@ -84,6 +85,9 @@ export type PanelsPayload = {
   pipeline: PipelinePanel | null;
   actionItems: ActionItemsPanel | null;
   esign: EsignPanel | null;
+  /** Summary of the panels above plus the KPIs that aren't computable yet.
+   *  Derived, never separately read — it can't disagree with the panels. */
+  kpiSummary: KpiSummaryPanel;
   /** Real panels for the read models with no backing store — named, not
    *  dropped (MC.8 honest-coverage rule). */
   unavailable: PanelHeader[];
@@ -123,12 +127,18 @@ export async function fetchPanels(
     read<RmEsignRow>(reader, "rm_esign_status", errors),
   ]);
 
+  const pipeline = pipelineRows ? buildPipelinePanel(pipelineRows) : null;
+  const actionItems = actionRows ? buildActionItemsPanel(actionRows, todayISO) : null;
+  const esign = esignRows ? buildEsignPanel(esignRows) : null;
+  const unavailable = BLOCKED_PANELS.map(buildUnavailablePanel);
+
   return {
     todayISO,
-    pipeline: pipelineRows ? buildPipelinePanel(pipelineRows) : null,
-    actionItems: actionRows ? buildActionItemsPanel(actionRows, todayISO) : null,
-    esign: esignRows ? buildEsignPanel(esignRows) : null,
-    unavailable: BLOCKED_PANELS.map(buildUnavailablePanel),
+    pipeline,
+    actionItems,
+    esign,
+    kpiSummary: buildKpiSummaryPanel({ pipeline, actionItems, esign, unavailable, todayISO }),
+    unavailable,
     errors,
   };
 }

@@ -1,4 +1,5 @@
 import { STAGE_LABELS } from "@/lib/labels";
+import type { KpiSummaryPanel, KpiTile } from "@/lib/readModel/kpiSummary";
 import type {
   ActionItemsPanel,
   EsignPanel,
@@ -228,6 +229,75 @@ function Esign({ panel }: { panel: EsignPanel }) {
   );
 }
 
+/** A KPI is a real number, a named blank, or nothing at all — the three states
+ *  look different on purpose, so a blank can never be read as a zero. */
+function KpiCell({ tile }: { tile: KpiTile }) {
+  const value =
+    tile.status === "computed" && tile.value !== null
+      ? tile.format === "currency"
+        ? dollars(tile.value)
+        : String(tile.value)
+      : tile.status === "no_data"
+        ? "nothing yet"
+        : "no number yet";
+  const tone =
+    tile.status === "computed"
+      ? "text-slate-100"
+      : tile.status === "no_data"
+        ? "text-slate-500"
+        : "text-slate-600";
+  return (
+    <div className="rounded-lg border border-white/5 bg-black/20 px-3 py-2">
+      <div className={`text-lg font-semibold ${tone}`}>{value}</div>
+      <div className="mt-0.5 text-[11px] uppercase tracking-wide text-slate-500">{tile.label}</div>
+      <p className="mt-1 text-[11px] leading-relaxed text-slate-600">
+        {tile.note}
+        {tile.unblockedBy && <span className="text-slate-700"> Unblocked by {tile.unblockedBy}.</span>}
+      </p>
+    </div>
+  );
+}
+
+function KpiSummary({ panel }: { panel: KpiSummaryPanel }) {
+  const real = panel.tiles.filter((t) => t.status === "computed");
+  const rest = panel.tiles.filter((t) => t.status !== "computed");
+  return (
+    <Card
+      title="KPI summary"
+      right={
+        <span className="text-[11px] text-slate-500">
+          {panel.counts.computed} computable today · {panel.counts.noData + panel.counts.notComputable}{" "}
+          not yet
+        </span>
+      }
+    >
+      {real.length === 0 ? (
+        <p className="text-xs leading-relaxed text-slate-500">
+          Nothing is computable today — every KPI below names what it is waiting on.
+        </p>
+      ) : (
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {real.map((t) => (
+            <KpiCell key={t.id} tile={t} />
+          ))}
+        </div>
+      )}
+      {rest.length > 0 && (
+        <>
+          <p className="mt-4 text-[11px] uppercase tracking-wide text-slate-500">
+            Not computable today
+          </p>
+          <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {rest.map((t) => (
+              <KpiCell key={t.id} tile={t} />
+            ))}
+          </div>
+        </>
+      )}
+    </Card>
+  );
+}
+
 function Unavailable({ header }: { header: PanelHeader }) {
   return (
     <Card title={header.label}>
@@ -243,6 +313,7 @@ export default function PanelsView({ payload }: { payload: PanelsPayload }) {
       <p className="text-xs text-slate-500">
         Live from the read-model views as of {payload.todayISO} (Eastern).
       </p>
+      <KpiSummary panel={payload.kpiSummary} />
       {payload.pipeline ? (
         <Pipeline panel={payload.pipeline} />
       ) : (

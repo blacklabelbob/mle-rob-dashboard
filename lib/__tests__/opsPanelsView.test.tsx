@@ -10,6 +10,7 @@ import {
   type RmEsignRow,
   type RmPipelineRow,
 } from "@/lib/readModel/panels";
+import { buildKpiSummaryPanel } from "@/lib/readModel/kpiSummary";
 import type { PanelsPayload } from "@/lib/readModel/source";
 
 // PRD Task MC.12 — the per-screen smoke test. Renders the real panel view off
@@ -97,7 +98,7 @@ const ESIGN_ROWS: RmEsignRow[] = [
 ];
 
 function payload(overrides: Partial<PanelsPayload> = {}): PanelsPayload {
-  return {
+  const base = {
     todayISO: TODAY,
     pipeline: buildPipelinePanel(PIPELINE_ROWS),
     actionItems: buildActionItemsPanel(ACTION_ROWS, TODAY),
@@ -109,6 +110,9 @@ function payload(overrides: Partial<PanelsPayload> = {}): PanelsPayload {
     errors: [],
     ...overrides,
   };
+  // The summary is derived from the same panels the screen renders, exactly as
+  // fetchPanels does it — so the test can't drift from the real payload shape.
+  return { ...base, kpiSummary: buildKpiSummaryPanel({ ...base, todayISO: TODAY }) };
 }
 
 const render = (p: PanelsPayload) => renderToStaticMarkup(<PanelsView payload={p} />);
@@ -159,6 +163,35 @@ describe("ops panels view", () => {
     expect(html).toContain("permission denied for view rm_pipeline");
     expect(html).toContain("no number to show");
     expect(html).not.toContain("Nothing in here yet");
+  });
+
+  it("renders the KPI summary with computable numbers separated from the rest", () => {
+    const html = render(payload());
+    expect(html).toContain("KPI summary");
+    expect(html).toContain("computable today");
+    expect(html).toContain("Not computable today");
+    // A KPI that isn't computable says what it's waiting on, and shows no digit.
+    expect(html).toContain("Weighted pipeline");
+    expect(html).toContain("no number yet");
+    expect(html).toContain("Task MC.1");
+  });
+
+  it("shows a failed-read KPI as no number, never as a zero", () => {
+    const html = render(
+      payload({
+        actionItems: null,
+        errors: [{ id: "rm_action_items", message: "permission denied for view rm_action_items" }],
+      })
+    );
+    expect(html).toContain("failed read, not a zero");
+    // The tile for the view that failed shows words, never a digit — checked on
+    // that cell alone, because a live panel's real 0 is a legitimate number.
+    const cell = html
+      .split('<div class="rounded-lg')
+      .find((c) => c.includes("Overdue action items"));
+    expect(cell).toBeDefined();
+    expect(cell).toContain("no number yet");
+    expect(cell).not.toMatch(/>\s*\d/);
   });
 
   it("renders an empty-but-correct view as empty on purpose, with its reason", () => {
