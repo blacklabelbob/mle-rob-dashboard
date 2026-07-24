@@ -13,6 +13,7 @@ export const EVENT_TYPES = [
   "nudge",
   "copy_delivered",
   "comms_consent", // PEWC comms opt-in (0009) — optional, never gates signing
+  "countersigned", // MLE-side second signature (0010) — internal, never re-dates the signer
 ] as const;
 export type EventType = (typeof EVENT_TYPES)[number];
 

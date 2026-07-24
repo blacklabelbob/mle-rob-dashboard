@@ -205,9 +205,9 @@ describe("0008 DDL gate", () => {
       ...REQUEST_STATUSES,
     ]);
   });
-  it("event types match the DDL (0009 superseded the 0008 list)", () => {
+  it("event types match the DDL (0010 superseded the 0009 list)", () => {
     const ddl9 = readFileSync(
-      join(__dirname, "../../../supabase/migrations/0009_esign_comms_consent.sql"),
+      join(__dirname, "../../../supabase/migrations/0010_esign_countersign.sql"),
       "utf8"
     );
     const m = ddl9.match(/add constraint signature_events_type_check check \(type in\s*\(([^)]+)\)\)/);
