@@ -22,6 +22,11 @@ interface DocRow {
   status: string;
   signed_path: string | null;
   created_at: string;
+  // 0010 countersign columns — `signed` stays terminal, so "executed" is
+  // derived here from countersigned_at, never from a sixth status.
+  countersigned_at: string | null;
+  countersigner_name: string | null;
+  countersigner_title: string | null;
 }
 
 interface ReqRow {
@@ -41,6 +46,7 @@ const chipStyle: Record<string, string> = {
   sent: "border-sky-400/40 bg-sky-400/10 text-sky-300",
   viewed: "border-amber-400/40 bg-amber-400/10 text-amber-300",
   signed: "border-emerald-400/40 bg-emerald-400/10 text-emerald-300",
+  executed: "border-emerald-400/60 bg-emerald-500/20 text-emerald-200",
   voided: "border-red-400/40 bg-red-400/10 text-red-300",
   archived: "border-slate-600/40 bg-slate-800 text-slate-500",
 };
@@ -62,6 +68,19 @@ interface PresendForm {
   channel: string;
 }
 
+interface CountersignForm {
+  name: string;
+  title: string;
+  email: string;
+}
+
+const EMPTY_COUNTERSIGN: CountersignForm = { name: "", title: "", email: "" };
+
+// The countersigner is the same handful of people every time, so the last
+// answers are remembered locally (never invented — blank until Rob types them
+// once). The server planner still refuses a blank name or authority title.
+const CS_MEMORY_KEY = "mle.esign.countersigner";
+
 const EMPTY_FORM: PresendForm = {
   legal_name: "",
   dba: "",
@@ -82,6 +101,9 @@ export default function DocumentsSection({ personId, orgId, dealId }: Props) {
   const [popupDoc, setPopupDoc] = useState<DocRow | null>(null);
   const [form, setForm] = useState<PresendForm>(EMPTY_FORM);
   const [sendResult, setSendResult] = useState<{ ok: boolean; note: string } | null>(null);
+  const [csDoc, setCsDoc] = useState<DocRow | null>(null);
+  const [csForm, setCsForm] = useState<CountersignForm>(EMPTY_COUNTERSIGN);
+  const [csResult, setCsResult] = useState<{ ok: boolean; note: string; url?: string } | null>(null);
 
   const anchorQuery = personId
     ? `person=${personId}`
@@ -181,6 +203,56 @@ export default function DocumentsSection({ personId, orgId, dealId }: Props) {
     }
   }
 
+  function openCountersign(doc: DocRow) {
+    let remembered = EMPTY_COUNTERSIGN;
+    try {
+      const raw = window.localStorage.getItem(CS_MEMORY_KEY);
+      if (raw) remembered = { ...EMPTY_COUNTERSIGN, ...JSON.parse(raw) };
+    } catch {
+      // corrupt/blocked storage is not a reason to block signing
+    }
+    setCsForm(remembered);
+    setCsResult(null);
+    setCsDoc(doc);
+  }
+
+  async function countersign() {
+    if (!csDoc) return;
+    setBusy(true);
+    setCsResult(null);
+    try {
+      const r = await fetch("/api/esign/countersign", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          documentId: csDoc.id,
+          name: csForm.name,
+          title: csForm.title,
+          email: csForm.email || null,
+        }),
+      });
+      const json = await r.json();
+      if (!r.ok) {
+        // Refusals from the planner are the fix-it text — surfaced verbatim.
+        setCsResult({ ok: false, note: json.error ?? `countersign failed (${r.status})` });
+        return;
+      }
+      try {
+        window.localStorage.setItem(CS_MEMORY_KEY, JSON.stringify(csForm));
+      } catch {
+        // remembering is a convenience, never a gate
+      }
+      setCsResult({
+        ok: true,
+        note: `Executed ${String(json.countersignedAt).slice(0, 10)} — countersigned copy saved beside the signed one.`,
+        url: json.downloadUrl,
+      });
+      await load();
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function upload(file: File) {
     setBusy(true);
     try {
@@ -261,11 +333,24 @@ export default function DocumentsSection({ personId, orgId, dealId }: Props) {
                       {last.status === "pending" && ` · link expires ${last.expires_at.slice(0, 10)}`}
                     </p>
                   )}
+                  {d.countersigned_at ? (
+                    <p className="text-xs text-emerald-400/80">
+                      countersigned by {d.countersigner_name}
+                      {d.countersigner_title ? `, ${d.countersigner_title}` : ""} ·{" "}
+                      {d.countersigned_at.slice(0, 10)}
+                    </p>
+                  ) : (
+                    d.status === "signed" && (
+                      <p className="text-xs text-amber-400/80">awaiting your countersignature</p>
+                    )
+                  )}
                 </div>
                 <span
-                  className={`rounded-full border px-2 py-0.5 text-[11px] ${chipStyle[d.status] ?? chipStyle.draft}`}
+                  className={`rounded-full border px-2 py-0.5 text-[11px] ${
+                    d.countersigned_at ? chipStyle.executed : (chipStyle[d.status] ?? chipStyle.draft)
+                  }`}
                 >
-                  {d.status}
+                  {d.countersigned_at ? "executed" : d.status}
                 </span>
                 <button
                   type="button"
@@ -283,10 +368,101 @@ export default function DocumentsSection({ personId, orgId, dealId }: Props) {
                     {latestRequestFor(d.id) ? "Resend" : "Send"}
                   </button>
                 )}
+                {d.status === "signed" && !d.countersigned_at && (
+                  <button
+                    type="button"
+                    onClick={() => openCountersign(d)}
+                    className="rounded-md bg-emerald-500/20 px-2 py-1 text-xs text-emerald-300 hover:bg-emerald-500/30"
+                  >
+                    Countersign
+                  </button>
+                )}
               </li>
             );
           })}
         </ul>
+      )}
+
+      {csDoc && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-md rounded-xl border border-white/15 bg-slate-900 p-5">
+            <h3 className="text-sm font-semibold text-white">
+              Countersign — {csDoc.title} v{csDoc.version}
+            </h3>
+            <p className="mt-1 text-xs text-slate-500">
+              The counterparty is already bound. This appends one COUNTERSIGNATURE page
+              beside their signed copy — their copy is never altered, and this can only
+              be done once.
+            </p>
+            <div className="mt-3 grid gap-2.5">
+              {(
+                [
+                  ["name", "Printed name (who executes for MLE)", "Rob Acheson"],
+                  ["title", "Authority / title", "Managing Member"],
+                  ["email", "Email (optional, for the record)", "rob@aivoicetech.io"],
+                ] as const
+              ).map(([key, label, placeholder]) => (
+                <label key={key} className="block text-xs text-slate-400">
+                  {label}
+                  <input
+                    value={csForm[key]}
+                    placeholder={placeholder}
+                    onChange={(e) => setCsForm({ ...csForm, [key]: e.target.value })}
+                    className="mt-1 w-full rounded-lg border border-white/15 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none focus:border-emerald-500"
+                  />
+                </label>
+              ))}
+            </div>
+
+            {csResult && (
+              <p
+                className={`mt-3 break-all rounded-lg border px-3 py-2 text-xs ${
+                  csResult.ok
+                    ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
+                    : "border-amber-400/30 bg-amber-400/10 text-amber-300"
+                }`}
+              >
+                {csResult.note}
+                {csResult.url && (
+                  <>
+                    {" "}
+                    <a
+                      href={csResult.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline"
+                    >
+                      Download executed copy
+                    </a>
+                  </>
+                )}
+              </p>
+            )}
+
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setCsDoc(null)}
+                className="rounded-md px-3 py-1.5 text-xs text-slate-400 hover:text-slate-200"
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                disabled={
+                  busy ||
+                  csResult?.ok === true ||
+                  csForm.name.trim().length < 2 ||
+                  csForm.title.trim().length < 2
+                }
+                onClick={() => void countersign()}
+                className="rounded-md bg-emerald-500 px-4 py-1.5 text-xs font-semibold text-white enabled:hover:bg-emerald-400 disabled:opacity-40"
+              >
+                {busy ? "Countersigning…" : "Countersign"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {popupDoc && (
