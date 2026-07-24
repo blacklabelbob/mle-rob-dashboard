@@ -23,6 +23,17 @@ export function documentPath(
   return `${anchorId}/${documentId}/v${version}${signed ? "-signed" : ""}.pdf`;
 }
 
+// The fully-executed copy sits beside the signed copy rather than replacing
+// it — the signer's copy stays byte-identical to what they were emailed
+// (0010: countersigning never rewrites the counterparty's record).
+export function countersignedPath(
+  anchorId: string,
+  documentId: string,
+  version: number
+): string {
+  return documentPath(anchorId, documentId, version).replace(/\.pdf$/, "-countersigned.pdf");
+}
+
 let client: SupabaseClient | null = null;
 function db(): SupabaseClient {
   const url = process.env.SUPABASE_URL;
