@@ -566,7 +566,105 @@ hard, sourced disqualifier for jumping rungs on 8/8.
 
 ---
 
+## 🔴 3h. WHICH ENTITY SIGNS — recommendation pre-drafted, and the card-brand rule reframes the question (Max, 2026-07-25)
+
+This pre-answers **Q61 rec (2)** — the last of the packet's four recommendations without a draft — and it
+turns out the entity question is **not** primarily a tax/branding choice. Visa's own agent-registration
+program constrains, in writing, *who may say what to a merchant*, and that constraint lands directly on the
+$0-agent rung §3f–§3g have been hardening.
+
+### The governing rule, quoted
+
+> *"ISO registration is required for any entity that solicits on behalf of a Visa client. An ISO is any entity
+> that solicits merchant or cardholder accounts, discusses pricing, fees or rates, processes merchant or
+> cardholder accounts, discusses terms and agreements, manages and/or drafts contracts, submits contracts to
+> the acquirer or issuer… A registered ISO may use referral entities or sales representatives to solicit on
+> their behalf; however, **those entities may only solicit and market in the name of the registered ISO**…
+> **Referral entities or sales representatives who market in their own name may only generate leads** to
+> registered ISOs and **may not provide ISO services** such as direct solicitation of merchant or cardholder
+> accounts, discuss pricing, fees or rates… manage/draft contracts, submit contracts to an acquirer or issuer."*
+> — [Visa, *Third Party Agent Registration Program FAQs*](https://usa.visa.com/dam/VCOM/download/merchants/tpa-registration-program-faqs.pdf)
+
+| Verified fact | Source |
+|---|---|
+| An unregistered referral entity may market **in its own name** only to **generate leads** — it may **not** discuss pricing/fees/rates, draft contracts, or submit applications | [Visa TPA FAQs](https://usa.visa.com/dam/VCOM/download/merchants/tpa-registration-program-faqs.pdf) |
+| To do those things unregistered, the entity must **solicit and market in the name of the registered ISO** — i.e. under the ISO's brand, not its own | same |
+| *"Acquirers must not process applications from any entity that they have not registered as an ISO with Visa"*; clients *"may be subject to fines and penalties for using an unregistered agent"* | same |
+| ISO registration is **$5,000 USD initial + $5,000 annual renewal**, assessed to the acquirer **per agent per region** (PF and **HRIPF** carry the same $5,000; ESO/TPS $1,000) | same |
+| A **DBA "is not a separate legal entity"** and must have *"the same operational management"*; a separate legal entity therefore cannot ride on another entity's registration as a trade name | same |
+| A **High Risk ISO (HR-ISO)** is a distinct registered type for portfolios of *"high-brand risk merchants"* | same |
+
+⚠️ **Currency caveat, stated rather than smoothed:** the copy read is the **May 2016** edition of the FAQ
+(`usa.visa.com` serves the same filename but returns **HTTP 403** to automated fetch — retrieved from Visa's
+`visa.pt` mirror of the identical document). The Visa Rules themselves govern; a human browser pull of the
+current US edition belongs in the same bucket as the Shift4 T&C and cardpaymentoptions pulls. The fee
+figures in particular should be re-confirmed before they are used as anything but an order of magnitude.
+
+### What that does to the question
+
+The entity question has been framed as *"BoostUp vs MLE/AI VoiceTech — who signs?"*. The rule says the
+signature is the **smaller** half. The bigger half is **whose name is on the pitch**:
+
+- If MLE/AIVA **markets processing in its own name** at rung 1 — "MLE takes card payments for you" — that is
+  ISO activity by an unregistered entity the moment anyone quotes a rate, and it is the **acquirer** that
+  eats the fine. This is exactly the bundled-brand story the add-on is attractive for.
+- If Rob's entity **markets in the ISO's name**, no registration is needed — but then the merchant's
+  processing relationship is visibly the ISO's, which is **weaker** brand-wise and (per §3f) adds no
+  switching cost anyway at rung 1.
+- Registering to escape the fork costs **$5,000/yr at Visa alone**, per entity, per region — before
+  Mastercard's own program, and **before** §3g's ~$20–30k/yr all-in ISO figure. Registering **two** entities
+  so both can market in their own names doubles it, and the DBA route is closed by the *"a DBA is not a
+  separate legal entity"* rule.
+
+### Recommendation for Q61 rec (2) — ONE entity signs, and it is BoostUp Payments
+
+1. **BoostUp Payments signs the Schedule A and owns the residual.** It is the entity built for payments
+   (7/23 filing), and §3g establishes the residual book is a **saleable asset at 25–40× monthly** — an asset
+   should not be split across two signatures, and non-negotiable #3 (the right to sell the portfolio to a
+   third party) is exercised by whoever signed.
+2. **MLE and AI VoiceTech never appear on the processor paper.** They are the **distribution** side, and at
+   rung 1 they must operate within the rule above: either lead-gen in their own name (introduce, hand off,
+   quote nothing), or solicit under the registered ISO's name. **Which of those two is chosen is a real
+   decision with brand consequences — it is not a formality**, and it is the part of rec (2) Rob actually
+   needs to rule on.
+3. **A written intercompany referral agreement** between BoostUp and MLE/AIVT, arm's-length, because MLE's
+   own customers are the merchants (§3g's denominator is our own CRM) — MLE sits on the **merchant** side of
+   the same relationship BoostUp earns on. Undocumented, that is a conflict sitting inside one owner's head;
+   documented, it is an ordinary referral fee.
+4. **Plumbing stays uncrossed regardless** — no shared email, DNS, or tooling between the identities
+   (`~/.claude/rules/email-identity.md`, post-2026-07-08 crossover incident). Strategy may span the
+   businesses; infrastructure may not.
+5. **New call-agenda item, from the HR-ISO row:** §3c established the operating substance behind Amplipay
+   appears to be **eDataPay, a high-risk / hard-to-place specialist**. Ask which **agent type** Rob's book
+   would be boarded under — ordinary ISO or **HR-ISO** — because a roofing/title portfolio boarded through a
+   high-risk channel inherits that channel's reserve and pricing posture. This joins the sponsor-bank and
+   who-counter-signs questions already on the 7/28 list.
+
+### What this changes
+
+- **Q61 rec (2) is pre-drafted**; with rec (1), (3) and (4) already drafted (§3f, §3g), **all four
+  recommendations now exist in evidence form** and Q61 reduces to building the one-screen visual + Rob's
+  own two calls (rung confirmation, own-name vs ISO-name marketing).
+- **Rec (1) gains a fourth independent leg.** Rungs were being compared on cost and lock-in; the card-brand
+  rule adds a **capability** axis: at rung 1 the unregistered entity may not even quote a rate in its own
+  name. "$0 agent" is not merely cheap-and-limited, it is **speech-limited** — which must be said plainly in
+  the packet rather than discovered after a rep quotes a rate on a call.
+- **No entity was chosen and nothing was signed** — this is a recommendation with its evidence, for Rob.
+
+**House limit honoured:** nothing signed, no processor committed, no money field moved. No code touched.
+
+**Sources:** [Visa — Third Party Agent Registration Program FAQs](https://usa.visa.com/dam/VCOM/download/merchants/tpa-registration-program-faqs.pdf) (read via the identical [visa.pt mirror](https://www.visa.pt/dam/VCOM/download/merchants/tpa-registration-program-faqs.pdf), May 2016 edition — `usa.visa.com` 403s automated fetch) · residual-as-asset and ISO-rung cost: §3g · switching cost at rung 1: §3f · eDataPay high-risk finding: §3c · identity rule: `~/.claude/rules/email-identity.md`.
+
+---
+
 ## 4. Identity / entity structure — decision Rob must make
+
+> ✅ **PRE-DRAFTED 2026-07-25 — see §3h.** Recommendation: **BoostUp Payments signs alone and owns the
+> residual; MLE/AIVT are distribution only and never appear on the processor paper.** §3h also reframes the
+> question: Visa's agent rules constrain *whose name is on the pitch*, not just whose name is on the
+> signature — an unregistered entity marketing **in its own name** may only generate leads, and may not
+> quote rates or submit applications. Rob's remaining call is own-name-lead-gen vs. marketing under the
+> registered ISO's name. Section below preserved as originally written.
 
 The 7/23 research explicitly filed the processor play in the **BoostUp Payments** lane
 (rob@boostuppayments.com), with this standing note:
@@ -598,12 +696,12 @@ strategy that spans the businesses. Do not let the two get conflated in either d
 - [ ] **Amplipay**: sponsor bank named in writing — ⬆️ **the top agenda item** (§3a: an ~$82k-cap issuer means the sponsor bank is the only capitalized party in the chain). **PUBLIC RECORD EXHAUSTED 2026-07-25, see §3e** — no sponsor/acquiring/member bank is named on any of five properties (`amplipay.ai`, `amplipaygroup.com`, `edatapay.com/about`, `/partners`, `/banking-partnerships-and-lucrative-residual-commissions`), and the **card-brand-mandated *"registered ISO/MSP of [Bank], [City], [State]"* disclosure is absent entirely** from a company that self-describes as a *"Bankcard ISO"*. Line now **company-blocked, not unworked**: converts to a **call gate** for the 7/28 chase — *sponsor bank + acquiring BIN in writing, plus your published ISO/MSP disclosure language* — before any Schedule A review is worth doing
 - [x] **Amplipay**: OTC:APGP financials pulled (going-concern, cash, dilution) — **CLOSED 2026-07-25, see §3a.** Answer: *there are none to pull.* Not an SEC reporting company (only EDGAR "Osyka" registrant filed Form 15-15D in 2008; last financials on EDGAR are a 10-QSB for Q3 2000). Issuer is a **1990 oil-and-gas shell renamed from Osyka Corporation on 2025-06-12** with a 1-for-500 reverse split, **market cap ≈ US$82,190**, net income ≈ −$127k/qtr
 - [x] **Amplipay**: merchant count / volume independently verified — **CLOSED 2026-07-25, see §3c.** Answer: *there is no count to verify.* No third-party figure exists; the company's own corporate site (`amplipaygroup.com`, a second domain alongside `amplipay.ai`) renders **"0+ Customers / 0+ World Active User / 0% Satisfaction"** template placeholders. Operating substance appears to sit in named brand **eDataPay** (Boca Raton) — a **high-risk / hard-to-place merchant specialist** claiming "over 18 years" but publishing no merchant count, no volume, and no acquiring bank. Two new agenda items: merchant count + volume **in writing**, and **which entity (AmpliPay Inc. vs eDataPay) counter-signs the Schedule A**
-- [ ] **Amplipay**: read the two **OTC Markets alternative-reporting disclosure documents** (report ids `484380`, `506506`) — they exist (refines §3a's "no financials": none at the **SEC**, but OTC alt-reporting filings are on file). **Still unread after a 3rd consecutive retry (2026-07-25 inc.7)** — otcmarkets.com continues to serve its site-wide *"Temporarily Unavailable"* page (HTTP 200 + outage HTML on `/otcapi/company/financial-report/484380/content`; a platform outage, not a block on us). **Retry next run** — no figure from them is quoted anywhere until read. If still down by 7/28, fold into the Amplipay chase call as "send us your OTC disclosure filings directly"
+- [ ] **Amplipay**: read the two **OTC Markets alternative-reporting disclosure documents** (report ids `484380`, `506506`) — they exist (refines §3a's "no financials": none at the **SEC**, but OTC alt-reporting filings are on file). **Still unread after a 4th consecutive retry (2026-07-25 inc.8)** — otcmarkets.com continues to serve its site-wide *"Temporarily Unavailable"* page (HTTP 200 + outage HTML on `/otcapi/company/financial-report/484380/content`; a platform outage, not a block on us). **Retry next run** — no figure from them is quoted anywhere until read. If still down by 7/28, fold into the Amplipay chase call as "send us your OTC disclosure filings directly"
 - [ ] **Amplipay**: booking held (submitted 7/24 — chase if no reply by 7/28)
 - [x] **Shift4**: partner-contract history flag investigated (7/23 raised it, never closed) — **CLOSED 2026-07-25, see §3b.** Answer: *the history is real and adverse.* Feb 2022 Shift4 unilaterally discontinued ancillary-fee residual streams effective 4/1/2022 and replaced them with a one-time buyout carrying a **10-year** merchant non-solicit (industry norm 16–42 months); SEC filings describe buying out **"over a hundred"** partners' residual obligations plus non-solicitation rights; 2018 antitrust suit (Payment Logistics, S.D. Cal.) over cutting independent interfaces out of the channel; Jan 2025 **$750k SEC penalty** for undisclosed related-person residual commissions. **Fails non-negotiables 1 and 3 on conduct; 2 and 4 remain unknown (T&C PDFs are 403 to automated fetch).**
 - [ ] **Both**: Schedule A obtained and scored against the 4 non-negotiables — *Shift4 partially scored from public conduct (§3b); the actual Authorized Partner T&Cs PDF needs a human/browser download (HTTP 403)*
 - [ ] Rung decision: start as **$0 agent** (7/23 recommendation) vs. jump straight to ISO/PFaaS
-- [ ] Entity decision: which entity signs (§4)
+- [x] Entity decision: which entity signs (§4) — **RECOMMENDATION PRE-DRAFTED 2026-07-25, see §3h.** Answer: **BoostUp Payments signs the Schedule A and owns the residual** (it is the payments entity, and §3g's residual book is a saleable asset at 25–40× monthly that must not be split across two signatures); **MLE / AI VoiceTech never appear on the processor paper** — they are distribution, under a written arm's-length intercompany referral agreement, because MLE's own customers *are* the merchants. **The card-brand rule reframes the question:** Visa's TPA program says an unregistered referral entity marketing **in its own name** *"may only generate leads"* and **may not** discuss pricing/fees/rates, draft contracts or submit applications — to do those unregistered it must *"solicit and market in the name of the registered ISO."* Registering to escape that fork is **$5,000/yr at Visa alone, per entity, per region**, and the DBA workaround is closed (*"a DBA is not a separate legal entity"*). **Rob's remaining call is therefore not "who signs" but own-name lead-gen vs. marketing under the ISO's name.** New agenda item: ISO vs **HR-ISO** boarding type, given §3c's eDataPay high-risk finding
 - [x] Switching-cost mechanic specified: what *concretely* makes a merchant unable to leave once processing is bundled? — **CLOSED 2026-07-25, see §3f.** Answer: **the AI agent transacting** (AIDRE takes the deposit on the call / AIVA closes the booking with a card) — the sold outcome is *a booked-and-paid job*, which cannot survive moving the rail; second-strongest is the second brain as revenue system-of-record (Q40). Dual pricing is **not** lock-in, it is the acquisition wedge, and is symmetric. **The finding with teeth: every mechanic requires that Rob's software can PROGRAM the rail (PFaaS posture) — so at the $0-independent-agent rung, switching cost added is ZERO.** Rob's thesis splits: revenue half is available now at rung 1; switching-cost half is a Phase-2+ engineering decision, not a signature
 - [x] Revenue model: expected residual per merchant × realistic merchant count = is this worth the distraction from P1? — **CLOSED 2026-07-25, see §3g.** Answer: **$35–$50 per merchant per month** (two independent routes converge: $70 gross margin × the stated ~50% industry-average split; and $30k/mo volume × the 15 bps floor). Denominator taken **first-party from our own CRM — 19 orgs, 8 deals today** — with §3f's Apideck sub-20% attach → **~4 merchants ≈ $140–200/month near-term**, i.e. *not* a revenue stream at today's size. **The payoff shape is the finding: a residual book sells at 25–40× monthly, and every scenario scales with MLE's customer count — so the add-on is downstream of P1, not competing with it.** Hard sourced disqualifier for jumping rungs: the **registered-ISO rung (~$20–30k/yr) needs ~50–70 merchants just to break even ≈ 3× the entire current network.** A widely-circulated *"$23,000 average monthly card spend"* figure was **rejected** — it measures small businesses *spending on* business cards, not merchant *acceptance* volume
 
@@ -718,3 +816,23 @@ add-on with a switching-cost story attached, which is a materially different (an
   §3b–§3e, zero switching cost at rung 1 §3f, negative ISO-rung unit economics §3g). Explicitly noted: **none of
   this model moves if the Rob-blocked legs open** — transcripts/OTC/Schedule A's change *which counterparty*, not
   *how much per merchant* — so the line closes rather than staying provisional. Posted to the ledger as a flag.
+- 2026-07-25 (driver inc.8) — **§3h added; the ENTITY line is PRE-ANSWERED, and Q61's fourth and last
+  undrafted recommendation now exists in evidence form.** OTC retry ran first for the **4th consecutive run**
+  — otcmarkets.com still serves its site-wide "Temporarily Unavailable" page (HTTP 200 + outage HTML on
+  `/otcapi/company/financial-report/484380/content`), so that line stays open, unread, nothing quoted.
+  **Recommendation: BoostUp Payments signs alone and owns the residual; MLE / AI VoiceTech are distribution
+  only and never appear on the processor paper, under a written arm's-length intercompany referral agreement
+  (MLE's own customers are the merchants — §3g's denominator).** The finding that reframes the line is
+  Visa's own TPA registration program: an unregistered referral entity marketing **in its own name** *"may
+  only generate leads"* and **may not** discuss pricing/fees/rates, draft contracts or submit applications;
+  to do those unregistered it must *"solicit and market in the name of the registered ISO."* Registering to
+  escape that fork is **$5,000 initial + $5,000 annual at Visa alone, per agent per region**, and the DBA
+  workaround is closed by Visa's own *"a DBA is not a separate legal entity"* rule. **So rec (1) gains a
+  fourth independent leg — a capability one: the $0-agent rung is not just cheap-and-limited, it is
+  speech-limited**, which the packet must say plainly rather than let a rep discover it mid-call. Rob's
+  remaining entity call is **own-name lead-gen vs. marketing under the ISO's name**, not "who signs".
+  Currency caveat recorded rather than smoothed: the FAQ read is the **May 2016** edition via Visa's
+  `visa.pt` mirror (`usa.visa.com` 403s automated fetch) — a human browser pull of the current US edition
+  joins the Shift4 T&C / cardpaymentoptions bucket, and the fee figures are order-of-magnitude until then.
+  New 7/28 agenda item from the HR-ISO row: **ISO or HR-ISO boarding type**, given §3c's eDataPay high-risk
+  finding. Posted to the ledger as a flag. Docs-only; nothing signed, no processor committed.
