@@ -158,6 +158,53 @@ itself the finding, and it means every remaining Amplipay fact has to come from 
 
 ---
 
+## 🔴 3b. Shift4 — partner-contract history flag: CHECKLIST LINE CLOSED (Max, 2026-07-25)
+
+The 7/23 swarm named Shift4 a top-3 first call but attached an unclosed caveat — *"treat as a product
+line, not umbrella; **partner-contract history**."* That flag is now investigated and closed. **The
+history is real, documented, and it collides head-on with three of Rob's four non-negotiables.**
+
+### The record
+
+| Date | Event | Source |
+|---|---|---|
+| 2018-04-24 | **Payment Logistics v. Shift4 Payments / Shift4 Corp / Lighthouse Network** — antitrust suit, S.D. Cal., No. 3:18-cv-00786-L-AGS. Alleged that after Lighthouse acquired Shift4, defendants stopped supporting independent payment interfaces, forcing restaurants onto Shift4's proprietary interface or "debilitating monthly and transaction costs," and that the merger let them "unilaterally increase pricing" and cut competitors out of the channel. Sought an injunction against the acquisition. Outcome not stated in the source. | [Mogin Law LLP](https://moginlawllp.com/payment-logistics-files-antitrust-lawsuit-shift4-payments-shift4-corp-lighthouse-network/) |
+| 2022-02 (two comms in <2 weeks) | **Shift4 unilaterally discontinued ancillary-fee residual streams to channel partners effective 2022-04-01** — Authorize.net, Crosscheck, Tableside, TabbedOut, Association Rate, Assessments, UBC Gateway, Monthly Service, NABU, Non-Acquiring Gateway, HT Online Ordering — replacing an ongoing stream with a **one-time buyout** pitched as "a substantial premium over your typical monthly Ancillary Fee residual payment." | [Reforming Retail](https://reformingretail.com/index.php/2022/02/24/in-less-than-two-weeks-shift4-sends-second-lopsided-partner-communication/) |
+| 2022-02 (same comms) | The buyout carried a **10-year non-compete/non-solicit**: partner may not solicit merchants Shift4 acquired, may not advise merchants when Shift4 contracts expire, may not refer them to competing processors, may not contact previously-referred merchants — for a decade. Reforming Retail called it *"the longest we've literally ever heard of,"* against an industry norm of **16–42 months**. Acceptance mechanics were left ambiguous (did cashing the lump sum bind you?). | same |
+| 2022-06 | Shift4 entered a **$3.6M residual commission buyout** with distribution partner Tiffany Caramico — a related party. | Shift4 SEC filings (see below) |
+| 2020–2022 | Shift4 SEC filings describe residual buyouts as insourcing distribution: it **acquired the residual-commission obligations of "over a hundred" partners**, buying "ongoing merchant relationships and **non-solicitation rights**." | [Shift4 DEF 14A FY2025](https://www.sec.gov/Archives/edgar/data/1794669/000119312525105572/d859431ddef14a.htm) · [10-Q FY2024](https://www.sec.gov/Archives/edgar/data/1794669/000179466924000016/four-20240331.htm) |
+| 2025-01 | **SEC settled enforcement action** — Shift4 violated §13(a) and §14(a) / Item 404(a) Reg S-K by failing to disclose related-person transactions: a sibling of an executive officer/director paid **$1.1M in compensation 2020–2022**, and another sibling paid **over $1M in "residual commissions while acting as an independent sales agent"** in the same period. Neither appeared in the 10-Ks or proxies. **$750,000 civil penalty**, settled without admitting or denying. | [Dodd-Frank.com / SEC settlement](https://www.dodd-frank.com/2025/01/sec-settles-charges-against-shift4-after-failing-to-disclose-related-person-transactions/) |
+
+### Scored against Rob's four non-negotiables
+
+| # | Non-negotiable | Shift4 verdict |
+|---|---|---|
+| 1 | **Lifetime vested residuals** | ❌ **Contradicted by conduct.** A residual stream that the counterparty can discontinue by memo — twice inside two weeks, effective in ~5 weeks — is not vested in any operative sense, whatever the contract's caption says. The buyout is *evidence of the power*, not a cure for it. |
+| 2 | No production minimums that claw | ⚠️ **Unknown** — the public Authorized Partner Program T&Cs PDF is served but blocks automated fetch (HTTP 403, both the [Authorized Partner](https://www.shift4.com/pdf/Authorized-Partner-Program-Terms-and-Conditions.pdf) and [SkyTab Partner](https://www.shift4.com/pdf/Authorized-SkyTab-Partner-Program-Terms-and-Conditions.pdf) documents). Needs a human download. |
+| 3 | **Portfolio sale rights** | ❌ **Structurally hostile.** Shift4's documented strategy is to *be* the buyer of partner portfolios and to bolt a 10-year non-solicit onto the sale. A partner who takes the buyout cannot rebuild the book they sold; a partner who declines has watched the stream be cancelled anyway. |
+| 4 | Sub-agent Schedule A rights | ⚠️ **Unknown** — same 403 blocker. |
+
+### What this changes
+
+- **Shift4 is not disqualified; it is repriced.** The one-stop cards+crypto property that put it in the
+  top 3 is unchanged. What changes is that Shift4 must be treated as a **product line you resell**, not a
+  **residual counterparty you retire on** — which is precisely the 7/23 note ("product line, not umbrella"),
+  now with evidence under it.
+- **This directly informs Q61 recommendation (1) — the rung.** It is an argument *for* the $0 independent
+  agent start on multiple Schedule A's: concentration risk on any single processor's residual stream is the
+  exact failure mode the record above documents.
+- **Symmetry check with Amplipay (§3a):** the two candidates fail counterparty durability from opposite
+  ends — Amplipay may lack the *balance sheet* to honour a lifetime residual, Shift4 has the balance sheet
+  and a documented history of *choosing not to*. Neither is a reason to stop; both are reasons the
+  Schedule A, not the pitch, is the deciding document.
+- **Still open for Shift4:** the actual Schedule A / Authorized Partner T&Cs (403-blocked to automated
+  retrieval — Rob or a browser session must pull the PDF), which is the only thing that can close
+  non-negotiables 2 and 4.
+
+**House limit honoured:** nothing signed, no processor committed, no money field moved.
+
+---
+
 ## 4. Identity / entity structure — decision Rob must make
 
 The 7/23 research explicitly filed the processor play in the **BoostUp Payments** lane
@@ -190,8 +237,8 @@ strategy that spans the businesses. Do not let the two get conflated in either d
 - [x] **Amplipay**: OTC:APGP financials pulled (going-concern, cash, dilution) — **CLOSED 2026-07-25, see §3a.** Answer: *there are none to pull.* Not an SEC reporting company (only EDGAR "Osyka" registrant filed Form 15-15D in 2008; last financials on EDGAR are a 10-QSB for Q3 2000). Issuer is a **1990 oil-and-gas shell renamed from Osyka Corporation on 2025-06-12** with a 1-for-500 reverse split, **market cap ≈ US$82,190**, net income ≈ −$127k/qtr
 - [ ] **Amplipay**: merchant count / volume independently verified
 - [ ] **Amplipay**: booking held (submitted 7/24 — chase if no reply by 7/28)
-- [ ] **Shift4**: partner-contract history flag investigated (7/23 raised it, never closed)
-- [ ] **Both**: Schedule A obtained and scored against the 4 non-negotiables
+- [x] **Shift4**: partner-contract history flag investigated (7/23 raised it, never closed) — **CLOSED 2026-07-25, see §3b.** Answer: *the history is real and adverse.* Feb 2022 Shift4 unilaterally discontinued ancillary-fee residual streams effective 4/1/2022 and replaced them with a one-time buyout carrying a **10-year** merchant non-solicit (industry norm 16–42 months); SEC filings describe buying out **"over a hundred"** partners' residual obligations plus non-solicitation rights; 2018 antitrust suit (Payment Logistics, S.D. Cal.) over cutting independent interfaces out of the channel; Jan 2025 **$750k SEC penalty** for undisclosed related-person residual commissions. **Fails non-negotiables 1 and 3 on conduct; 2 and 4 remain unknown (T&C PDFs are 403 to automated fetch).**
+- [ ] **Both**: Schedule A obtained and scored against the 4 non-negotiables — *Shift4 partially scored from public conduct (§3b); the actual Authorized Partner T&Cs PDF needs a human/browser download (HTTP 403)*
 - [ ] Rung decision: start as **$0 agent** (7/23 recommendation) vs. jump straight to ISO/PFaaS
 - [ ] Entity decision: which entity signs (§4)
 - [ ] Switching-cost mechanic specified: what *concretely* makes a merchant unable to leave once processing is bundled?
