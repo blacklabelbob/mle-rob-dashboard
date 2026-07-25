@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fromOrgRow, routeReferrer, toEdge, toOrgPerson, toPerson } from "../supabaseStore";
+import { fromOrgRow, fromPerson, routeReferrer, toEdge, toOrgPerson, toPerson } from "../supabaseStore";
 import type { Person } from "@/lib/types";
 
 // Task 2.0 dual-schema mapping (0003_orgs_split): orgs rows must round-trip as
@@ -73,5 +73,43 @@ describe("orgs split mappers", () => {
     const row = routeReferrer({ referred_by_id: "gulf-coast" }, true);
     expect(row.referred_by_id).toBeNull();
     expect(row.referred_by_org_id).toBe("gulf-coast");
+  });
+});
+
+// 2026-07-25 (MV2.0 §8 inc.5a): the org LINK was missing from both mappers, so
+// prod people all read back orgId: undefined — the company headcount and the
+// People-here rail could never populate, and any person save wrote NULL over
+// the link. Read and write are pinned together here.
+describe("person→org link round-trips", () => {
+  const personRow = {
+    id: "daniella-roach",
+    name: "Daniella Roach",
+    vertical_id: "roofing",
+    status: "lit",
+    signed: false,
+    key_dates: {},
+    phase_one: "not-started",
+    org_id: "miga-food-manufacturing",
+  };
+
+  it("reads org_id into orgId", () => {
+    expect(toPerson(personRow).orgId).toBe("miga-food-manufacturing");
+  });
+
+  it("treats a null org_id as unlinked, never as a company id", () => {
+    expect(toPerson({ ...personRow, org_id: null }).orgId).toBeUndefined();
+  });
+
+  it("writes the link back so an upsert cannot silently unlink a person", () => {
+    const p = toPerson(personRow);
+    const write = fromPerson(p);
+    expect(write.org_id).toBe("miga-food-manufacturing");
+    // An unlinked person writes an explicit null, not a missing column.
+    expect(fromPerson(toPerson({ ...personRow, org_id: null })).org_id).toBeNull();
+  });
+
+  it("strips the column for orgs, which have no org_id", () => {
+    const orgWrite = fromOrgRow(toOrgPerson(orgRow), false);
+    expect("org_id" in orgWrite).toBe(false);
   });
 });

@@ -68,10 +68,18 @@ export function toPerson(r: any): Person {
     estimate: r.estimate ?? undefined,
     notes: r.notes ?? undefined,
     assignedRep: r.assigned_rep ?? undefined,
+    // person→org link. Omitted here until 2026-07-25, which meant every person
+    // read out of Supabase carried orgId: undefined — so the company ledger's
+    // headcount and the §3.2 People-here rail were structurally always empty on
+    // prod while passing every test against the fallback file (which HAS the
+    // field). Read and write are paired below on purpose: an upsert that omits
+    // the column writes NULL, i.e. reading it back is what stops a save from
+    // silently unlinking a person from their company.
+    orgId: r.org_id ?? undefined,
   };
 }
 
-function fromPerson(p: Person) {
+export function fromPerson(p: Person) {
   return {
     id: p.id,
     name: p.name,
@@ -96,6 +104,7 @@ function fromPerson(p: Person) {
     estimate: p.estimate ?? null,
     notes: p.notes ?? null,
     assigned_rep: p.assignedRep ?? null,
+    org_id: p.orgId ?? null,
   };
 }
 
@@ -111,6 +120,8 @@ const ORG_NODE_TYPES = new Set(["partner", "lead", "client", "connector", "verti
 export function fromOrgRow(p: Person, referrerIsOrg: boolean) {
   const row: any = fromPerson(p);
   delete row.entity_kind;
+  // `orgs` has no org_id column — a company is not a member of a company.
+  delete row.org_id;
   if (row.node_type && !ORG_NODE_TYPES.has(row.node_type)) row.node_type = null;
   return routeReferrer(row, referrerIsOrg);
 }

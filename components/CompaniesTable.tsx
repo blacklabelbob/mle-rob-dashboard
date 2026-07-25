@@ -64,7 +64,7 @@ export default function CompaniesTable({ rows }: { rows: CompanyRow[] }) {
             >
               <td className="px-4 py-3">
                 <Link
-                  href={`/people/${r.id}`}
+                  href={`/companies/${r.id}`}
                   className="font-medium text-white hover:text-amber-300"
                 >
                   {r.name}
