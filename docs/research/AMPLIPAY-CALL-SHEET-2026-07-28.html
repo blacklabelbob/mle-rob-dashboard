@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Amplipay chase — call sheet · 2026-07-28</title>
+<style>
+  :root{
+    --paper:#F5F7FB; --card:#FFFFFF; --line:#DCE2EE;
+    --tx:#18202F; --tx2:#55617A; --tx3:#8A94AB;
+    --accent:#3E6FE0; --accent-soft:#E5EBFB;
+    --ok:#199A55; --ok-bg:#E3F4EA;
+    --bad:#D64545; --bad-bg:#FBE7E7;
+    --warn:#C98A1B; --warn-bg:#F9F0DC;
+    --code-bg:#EEF1F8;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#0B1220; --card:#131C2E; --line:#243350;
+      --tx:#E6EBF5; --tx2:#9AA7C2; --tx3:#66738F;
+      --accent:#6E96F5; --accent-soft:#1B2A4A;
+      --ok:#4CC98A; --ok-bg:#12301F;
+      --bad:#F07575; --bad-bg:#3A1A1A;
+      --warn:#E5B355; --warn-bg:#332708;
+      --code-bg:#0F1728;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--tx);
+       font-family:-apple-system,"SF Pro Text",system-ui,"Segoe UI",Roboto,sans-serif;font-size:15px;line-height:1.5}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 22px 60px}
+  a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
+  a:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+  .mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+
+  header.hero{background:#0B1220;color:#E6EBF5}
+  header.hero .wrap{padding-top:32px;padding-bottom:28px}
+  .eyebrow{font-family:ui-monospace,Menlo,monospace;font-size:10.5px;letter-spacing:.18em;
+           text-transform:uppercase;color:#7FA0F2;margin:0 0 11px;display:flex;flex-wrap:wrap;gap:14px}
+  h1{font-size:clamp(23px,3.3vw,32px);font-weight:800;letter-spacing:-.022em;line-height:1.14;
+     margin:0 0 12px;max-width:32ch;text-wrap:balance;color:#F2F5FC}
+  h1 em{font-style:normal;color:#8FB0F7}
+  .hero p{max-width:80ch;color:#AAB6D3;margin:0 0 16px;font-size:15.5px}
+  .hero strong{color:#F2F5FC}
+  .statrow{display:flex;flex-wrap:wrap;gap:8px}
+  .stat{background:rgba(110,150,245,.10);border:1px solid rgba(110,150,245,.28);border-radius:6px;
+        padding:6px 12px;font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#C7D4F0}
+  .stat b{color:#fff}
+
+  section{margin-top:28px}
+  h2{font-size:11.5px;font-family:ui-monospace,Menlo,monospace;letter-spacing:.16em;text-transform:uppercase;
+     color:var(--tx2);margin:0 0 14px;display:flex;align-items:baseline;gap:10px}
+  h2::after{content:"";flex:1;height:1px;background:var(--line)}
+
+  .q{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--accent);
+     border-radius:9px;padding:13px 16px;margin-bottom:11px}
+  .q.gate{border-left-color:var(--bad);background:linear-gradient(0deg,var(--card),var(--card))}
+  .q .n{font-family:ui-monospace,Menlo,monospace;font-size:10.5px;letter-spacing:.14em;
+        text-transform:uppercase;color:var(--tx3);margin:0 0 5px}
+  .q .ask{font-size:16px;font-weight:650;letter-spacing:-.01em;margin:0 0 7px;text-wrap:pretty}
+  .q .why{color:var(--tx2);font-size:13.6px;margin:0 0 7px}
+  .q .why b{color:var(--tx)}
+  .q .ev{font-size:12.4px;color:var(--tx3);font-family:ui-monospace,Menlo,monospace}
+
+  .callout{border-radius:9px;padding:13px 16px;margin:0 0 14px;font-size:14px}
+  .callout.bad{background:var(--bad-bg);border:1px solid var(--bad);color:var(--tx)}
+  .callout.warn{background:var(--warn-bg);border:1px solid var(--warn);color:var(--tx)}
+  .callout b{font-weight:700}
+
+  table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);
+        border-radius:9px;overflow:hidden;font-size:13.8px}
+  th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-family:ui-monospace,Menlo,monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;
+     color:var(--tx2);background:var(--accent-soft)}
+  tr:last-child td{border-bottom:none}
+  .pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;font-weight:700;
+        font-family:ui-monospace,Menlo,monospace}
+  .pill.unk{background:var(--warn-bg);color:var(--warn);border:1px solid var(--warn)}
+  .pill.no{background:var(--bad-bg);color:var(--bad);border:1px solid var(--bad)}
+
+  footer{margin-top:34px;padding-top:16px;border-top:1px solid var(--line);color:var(--tx3);font-size:12.6px}
+  footer p{margin:0 0 7px}
+</style>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="eyebrow"><span>Payments DD · add-on</span><span>Chase due 2026-07-28</span><span>DD complete 2026-08-04</span><span>Decision 2026-08-08</span></p>
+    <h1>Amplipay chase — <em>the call sheet</em></h1>
+    <p>Booking submitted <strong>2026-07-24</strong>, chase falls due <strong>2026-07-28</strong>. Five diligence passes produced
+       one pattern: <strong>the public record settles none of the four non-negotiables</strong> for any candidate, and for this one it
+       cannot even establish a sponsor bank or a merchant count. So this call is not a pitch review — it is
+       <strong>three gate answers in writing</strong>, and only then the paper.</p>
+    <div class="statrow">
+      <span class="stat">Counterparty verifiability <b>5-for-5 unverifiable</b></span>
+      <span class="stat">Market cap <b>≈ US$82,190</b></span>
+      <span class="stat">Merchant count published <b>“0+ Customers”</b></span>
+      <span class="stat">Sponsor bank named anywhere <b>no</b></span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<section>
+  <h2>The gate — no Schedule A review is worth doing before these three land in writing</h2>
+  <div class="callout bad">
+    <b>Say this up front:</b> “Before we look at a Schedule A, I need three things in writing — the sponsor bank,
+    the entity that counter-signs, and what you publish for disclosure. Everything else follows from those.”
+    All four non-negotiables are claims against <b>whoever’s paper the residual sits on</b>; until that party is named,
+    the terms describe nothing.
+  </div>
+
+  <div class="q gate">
+    <p class="n">Gate 1 · the only capitalized party in the chain</p>
+    <p class="ask">Name the <b>sponsor / acquiring bank and the acquiring BIN, in writing</b> — and send me the ISO/MSP disclosure language you publish.</p>
+    <p class="why">No sponsor, acquiring or member bank is named on <b>any of five live properties</b>. Visa/Mastercard require the
+       “[Company] is a registered ISO/MSP of [Bank], [City], [State]” disclosure on website and marketing material — and across five
+       properties of a self-described bankcard ISO it appears nowhere. Absence from marketing is <b>not</b> proof there is no sponsor bank;
+       what it establishes is that the bank is unlearnable from the public record and the required disclosure is missing.</p>
+    <p class="ev">DD §3e · <a href="https://amplipay.ai/">amplipay.ai</a> · <a href="https://amplipaygroup.com/">amplipaygroup.com</a> ·
+       <a href="https://edatapay.com/about/">edatapay.com/about</a> · <a href="https://edatapay.com/banking-partnerships-and-lucrative-residual-commissions/">the page titled “banking partnerships and lucrative residual commissions”</a></p>
+  </div>
+
+  <div class="q gate">
+    <p class="n">Gate 2 · whose signature is on the residual</p>
+    <p class="ask">What is the relationship between <b>AmpliPay Group Inc.</b> and <b>eDataPay</b> — ownership, acquisition or brand licence — and <b>which entity counter-signs my Schedule A</b>?</p>
+    <p class="why">The operating substance appears to sit in eDataPay (Boca Raton, same city), a high-risk / hard-to-place merchant
+       specialist running its own ISO program. If eDataPay is the operator and AmpliPay the listed shell, <b>the entity on the residual
+       paper decides whether the residual is worth anything</b>. Five live domains plus a LinkedIn identity of “eData Financial Systems Inc.”;
+       affiliated <span class="mono">panamapayments.net</span> no longer resolves.</p>
+    <p class="ev">DD §3c, §3e · <a href="https://edatapay.com/">edatapay.com</a> · <a href="https://edatapay.com/partners/">edatapay.com/partners</a></p>
+  </div>
+
+  <div class="q gate">
+    <p class="n">Gate 3 · what disclosure actually exists</p>
+    <p class="ask">Are you an <b>SEC reporting company, and what is your CIK</b>? If not — what disclosure do you publish, where, and is it audited? <b>Send me the OTC filings directly.</b></p>
+    <p class="why">There are no SEC financials to pull: APGP is the renamed <b>Osyka Corporation</b> (name change + 1-for-500 reverse split
+       effective 2025-06-12), a 1990 oil-and-gas registrant repositioned into payments ~13 months ago, at ≈US$82,190 market cap with
+       ≈−$127k net income in each of the last two reported quarters. Two OTC alternative-reporting disclosure documents (ids
+       <span class="mono">484380</span>, <span class="mono">506506</span>) <b>do</b> exist — but otcmarkets.com has served a site-wide
+       “Temporarily Unavailable” page on <b>five consecutive attempts</b>, so they are unread and nothing is quoted from them.
+       <b>Asking for them on this call is the fallback.</b></p>
+    <p class="ev">DD §3a, §3c · <a href="https://www.otcmarkets.com/financialReportViewer?symbol=APGP&amp;id=506506">OTC financial report viewer, APGP</a> ·
+       <a href="https://simplywall.st/stocks/us/energy/otc-apgp/amplipay-group">market data (still classified Energy)</a></p>
+  </div>
+</section>
+
+<section>
+  <h2>Then the rest — in this order</h2>
+
+  <div class="q">
+    <p class="n">Q4 · the number nobody publishes</p>
+    <p class="ask">How many <b>live merchants</b>, and what <b>monthly processed volume</b> — in writing?</p>
+    <p class="why">There is no count to verify — not a low one, none at all. No third-party figure exists anywhere public, and the
+       corporate site publishes its own scale as literal template placeholders: <b>“0+ World Active User”, “0+ Customers”, “0% Satisfaction”</b>.
+       eDataPay claims “over 18 years” while publishing no count, no volume and no founding year.</p>
+    <p class="ev">DD §3c · <a href="https://amplipaygroup.com/">amplipaygroup.com</a></p>
+  </div>
+
+  <div class="q">
+    <p class="n">Q5 · where the payments business came from</p>
+    <p class="ask">What was the payments business <b>before June 2025</b> — was it acquired into the shell, and from whom?</p>
+    <p class="why">A 1990 oil-and-gas registrant did not organically become a PCI DSS L1 processor. “PCI DSS L1 Certified” and
+       “KYC / KYB Verified” appear as self-descriptions, not third-party designations.</p>
+    <p class="ev">DD §3a, §3e</p>
+  </div>
+
+  <div class="q">
+    <p class="n">Q6 · which channel my book gets boarded through</p>
+    <p class="ask">Would a roofing / title SMB portfolio board as an ordinary <b>ISO</b> or as <b>HR-ISO</b> (high-risk)?</p>
+    <p class="why">High-risk acquiring pays the fattest agent splits — plausibly what makes this attractive — and carries the worst
+       attrition, chargeback exposure and reserve/clawback posture. A normal SMB book boarded through a high-risk channel
+       <b>inherits that channel’s reserve and pricing posture</b>. It also changes non-negotiable #2: “no production minimums that claw”
+       is a different question against a high-risk portfolio.</p>
+    <p class="ev">DD §3c</p>
+  </div>
+
+  <div class="q">
+    <p class="n">Q7 · asked of every candidate, concrete because of the BBB record elsewhere</p>
+    <p class="ask">What happens to my residual <b>when YOU terminate the merchant</b>?</p>
+    <p class="why">A residual is a claim on a <i>living</i> merchant. Under Rob’s model those merchants are <b>his own MLE customers</b>,
+       so freeze-and-close conduct runs backwards into P1. Maverick’s BBB record (23 complaints in 3 years, dominated by held reserves
+       and abrupt closures) is what makes this a named question rather than a vibe.</p>
+    <p class="ev">DD §3d · <a href="https://www.bbb.org/us/ca/calabasas/profile/payment-processing-services/maverick-payments-1216-437050/complaints">BBB — Maverick complaints</a></p>
+  </div>
+
+  <div class="q">
+    <p class="n">Q8 · put it in the contract, not on the call</p>
+    <p class="ask">If you are <b>delisted, acquired or insolvent</b>, what happens to my residual stream — and where does the contract say so?</p>
+    <p class="why">Escalated from prudent to essential by §3a: the four non-negotiables are promises about a stream that outlives the
+       relationship, and they are worth exactly the balance sheet behind them. An answer on a call is not an answer.</p>
+    <p class="ev">DD §3a</p>
+  </div>
+
+  <div class="q">
+    <p class="n">Q9 · last, and only after the gate</p>
+    <p class="ask">Send the <b>Schedule A</b> — scored against the four non-negotiables below.</p>
+    <p class="why">Precedent for why this is last: Shift4 has the balance sheet and still discontinued partner ancillary residual streams
+       by memo (Feb 2022, ~5 weeks’ notice), swapping the stream for a one-time buyout carrying a 10-year merchant non-solicit.
+       <b>The Schedule A decides, not the pitch.</b></p>
+    <p class="ev">DD §3b</p>
+  </div>
+</section>
+
+<section>
+  <h2>The four non-negotiables — Amplipay scorecard entering the call</h2>
+  <table>
+    <tr><th>#</th><th>Non-negotiable</th><th>State</th><th>What the public record shows</th></tr>
+    <tr>
+      <td class="mono">1</td><td>Lifetime <b>vested</b> residuals</td>
+      <td><span class="pill unk">UNKNOWN</span></td>
+      <td>The page literally titled <i>banking partnerships and lucrative residual commissions</i> offers one sentence —
+          “Residual income means you earn money every time a transaction is made” — with nothing on ownership, duration,
+          portability or assignability.</td>
+    </tr>
+    <tr>
+      <td class="mono">2</td><td>No production minimums that claw</td>
+      <td><span class="pill unk">UNKNOWN</span></td>
+      <td>Not published. Must be asked as a <b>high-risk-portfolio</b> question (Q6), not a standard one.</td>
+    </tr>
+    <tr>
+      <td class="mono">3</td><td>Portfolio sale rights <b>to a third party</b></td>
+      <td><span class="pill unk">UNKNOWN — deal-breaker clause</span></td>
+      <td>Promoted to the deal-breaker: the book is a saleable asset at 25–40× monthly, and §3d already caught a peer publishing
+          “portfolio buyouts” meaning <b>itself as buyer</b> — which does not carry the outside multiple.</td>
+    </tr>
+    <tr>
+      <td class="mono">4</td><td>Sub-agent Schedule A rights</td>
+      <td><span class="pill unk">UNKNOWN</span></td>
+      <td>Not published. Elsewhere in the set, sub-agent conduct surfaced as <b>liability</b>, not just permission.</td>
+    </tr>
+  </table>
+</section>
+
+<section>
+  <h2>What this call can and cannot change</h2>
+  <div class="callout warn">
+    <b>It decides WHICH counterparty — it does not move the rung or the arithmetic.</b>
+    The 8/8 recommendation stands independently of every answer above: <b>$0 independent agent across multiple Schedule A’s</b>
+    (the ISO rung needs ~50–70 merchants — roughly 3× the entire current network — just to clear its ~$20–30k/yr fixed cost), and
+    <b>$35–50 per merchant per month</b> against a first-party denominator of 19 orgs → ~4 merchants ≈ $140–200/mo near-term.
+    A good call improves the counterparty; it does not make payments compete with P1 for Rob’s hours.
+    → <a href="./PAYMENTS-DECISION-PACKET-2026-08-08.html">the 8/8 decision packet</a> · <a href="./PAYMENTS-LAYER-DD-2026-07-25.md">the DD tracker</a>
+  </div>
+  <div class="callout bad">
+    <b>House limit, on the face of this sheet:</b> this call produces <b>evidence, never a signature</b>. Nothing is signed,
+    no processor is committed to, and no money field moves without Rob’s explicit instruction.
+  </div>
+</section>
+
+<footer>
+  <p><b>Built 2026-07-25</b> from the payments DD tracker (§3a–§3h) for the 2026-07-28 chase. Every claim on this sheet carries its source;
+     nothing is quoted from the two OTC disclosure documents, which remain unread after five consecutive otcmarkets outages.</p>
+  <p>Still unread and marked so: Shift4 Authorized Partner / SkyTab T&amp;C PDFs (HTTP 429/403 to automated fetch), cardpaymentoptions’
+     SignaPay review (403), and the current US edition of Visa’s Third Party Agent FAQ (403 — the fee figures we hold come from the
+     <a href="https://www.visa.pt/dam/VCOM/download/merchants/tpa-registration-program-faqs.pdf">May 2016 edition via Visa’s .pt mirror</a>).
+     Each needs a human browser pull.</p>
+</footer>
+
+</div>
+</html>

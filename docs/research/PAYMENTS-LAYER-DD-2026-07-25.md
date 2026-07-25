@@ -753,6 +753,50 @@ strategy that spans the businesses. Do not let the two get conflated in either d
 
 ---
 
+## 🟢 3j. THE 7/28 CHASE — the call sheet exists, and the agenda has a GATE, not a list (Max, 2026-07-25)
+
+The Amplipay booking (submitted 7/24) is the **only live non-Rob leg left on this DD** — everything else is
+Rob-only, human-browser-403, or otcmarkets-outage-blocked. Eight call-agenda items had accumulated across
+§3a, §3c, §3d, §3e and §3h with **no single place they were written down in the order they have to be asked**,
+which is how a 20-minute call ends with the pitch answered and the four non-negotiables still unknown.
+
+**Deliverable:** [`AMPLIPAY-CALL-SHEET-2026-07-28.html`](./AMPLIPAY-CALL-SHEET-2026-07-28.html) — one screen,
+HTML because Rob does not read markdown (house rule 9), every claim carrying its source URL (house rule 10).
+
+**Nothing on it is new evidence.** It is §3a–§3h assembled, and the one thing the assembly adds is the
+structure the evidence already implies:
+
+1. **Three GATE questions, answered in writing, before any Schedule A is worth reading** — (1) sponsor bank +
+   acquiring BIN + your published ISO/MSP disclosure language (§3e); (2) AmpliPay Group Inc. vs eDataPay —
+   relationship, and **which entity counter-signs** (§3c, §3e); (3) SEC reporting status + CIK, and *send the
+   OTC filings directly* (§3a — now the standing fallback after **six consecutive** otcmarkets outages).
+   The reason they are a gate and not questions 1–3 of 9: **all four non-negotiables are claims against
+   whoever's paper the residual sits on.** Until that party is named, the terms describe nothing.
+2. **Six follow-ups in order** — merchant count + volume in writing (§3c); what the payments business was
+   before June 2025 (§3a); **ISO vs HR-ISO boarding type** (§3c); *what happens to my residual when YOU
+   terminate the merchant?* (§3d); residual survivability on delisting/acquisition/insolvency, answered **in
+   the contract** (§3a); and the Schedule A **last** — with §3b printed as the reason it goes last (Shift4 had
+   the balance sheet and still ended partner residual streams by memo).
+3. **The four-non-negotiable scorecard entering the call: 4× UNKNOWN**, each row saying what the public
+   record actually shows rather than leaving a blank — including that the page titled *banking partnerships
+   and lucrative residual commissions* offers exactly one sentence on the residual and says nothing about
+   ownership, duration, portability or assignability.
+4. **What the call cannot change, printed on the sheet:** it decides **which counterparty**, never the rung
+   ($0 independent agent — the ISO rung needs ~50–70 merchants, ~3× the current network, to clear its
+   ~$20–30k/yr) and never the arithmetic ($35–50/merchant/mo × ~4 merchants ≈ $140–200/mo, §3g). A good call
+   improves the counterparty; it does not make payments compete with P1 for Rob's hours.
+
+**Retries run first this increment, and both failed honestly:** otcmarkets served the site-wide *"Temporarily
+Unavailable"* page for the **6th consecutive** attempt (HTTP 200 + outage HTML, verified by direct request —
+platform outage, not a block on us), and the three human-browser pulls were re-attempted with full browser
+headers — Shift4 partner T&Cs now **HTTP 429**, cardpaymentoptions/SignaPay **403**, current Visa TPA FAQ
+**403**. Nothing is quoted from any of them; the May-2016 `.pt` mirror caveat on the Visa fee figures stands.
+
+**House limit unchanged and printed on the artifact's own face: this call produces evidence, never a
+signature.** No processor committed, no money field moved, nothing signed.
+
+---
+
 ## 5. Open DD checklist — to close by 2026-08-04
 
 - [ ] Rob exports/pastes the **OpenRouter** + **ChatGPT** candidate long-lists (Max cannot read either — 403 / session-scoped)
@@ -761,8 +805,8 @@ strategy that spans the businesses. Do not let the two get conflated in either d
 - [ ] **Amplipay**: sponsor bank named in writing — ⬆️ **the top agenda item** (§3a: an ~$82k-cap issuer means the sponsor bank is the only capitalized party in the chain). **PUBLIC RECORD EXHAUSTED 2026-07-25, see §3e** — no sponsor/acquiring/member bank is named on any of five properties (`amplipay.ai`, `amplipaygroup.com`, `edatapay.com/about`, `/partners`, `/banking-partnerships-and-lucrative-residual-commissions`), and the **card-brand-mandated *"registered ISO/MSP of [Bank], [City], [State]"* disclosure is absent entirely** from a company that self-describes as a *"Bankcard ISO"*. Line now **company-blocked, not unworked**: converts to a **call gate** for the 7/28 chase — *sponsor bank + acquiring BIN in writing, plus your published ISO/MSP disclosure language* — before any Schedule A review is worth doing
 - [x] **Amplipay**: OTC:APGP financials pulled (going-concern, cash, dilution) — **CLOSED 2026-07-25, see §3a.** Answer: *there are none to pull.* Not an SEC reporting company (only EDGAR "Osyka" registrant filed Form 15-15D in 2008; last financials on EDGAR are a 10-QSB for Q3 2000). Issuer is a **1990 oil-and-gas shell renamed from Osyka Corporation on 2025-06-12** with a 1-for-500 reverse split, **market cap ≈ US$82,190**, net income ≈ −$127k/qtr
 - [x] **Amplipay**: merchant count / volume independently verified — **CLOSED 2026-07-25, see §3c.** Answer: *there is no count to verify.* No third-party figure exists; the company's own corporate site (`amplipaygroup.com`, a second domain alongside `amplipay.ai`) renders **"0+ Customers / 0+ World Active User / 0% Satisfaction"** template placeholders. Operating substance appears to sit in named brand **eDataPay** (Boca Raton) — a **high-risk / hard-to-place merchant specialist** claiming "over 18 years" but publishing no merchant count, no volume, and no acquiring bank. Two new agenda items: merchant count + volume **in writing**, and **which entity (AmpliPay Inc. vs eDataPay) counter-signs the Schedule A**
-- [ ] **Amplipay**: read the two **OTC Markets alternative-reporting disclosure documents** (report ids `484380`, `506506`) — they exist (refines §3a's "no financials": none at the **SEC**, but OTC alt-reporting filings are on file). **Still unread after a 4th consecutive retry (2026-07-25 inc.8)** — otcmarkets.com continues to serve its site-wide *"Temporarily Unavailable"* page (HTTP 200 + outage HTML on `/otcapi/company/financial-report/484380/content`; a platform outage, not a block on us). **Retry next run** — no figure from them is quoted anywhere until read. If still down by 7/28, fold into the Amplipay chase call as "send us your OTC disclosure filings directly"
-- [ ] **Amplipay**: booking held (submitted 7/24 — chase if no reply by 7/28)
+- [ ] **Amplipay**: read the two **OTC Markets alternative-reporting disclosure documents** (report ids `484380`, `506506`) — they exist (refines §3a's "no financials": none at the **SEC**, but OTC alt-reporting filings are on file). **Still unread after a 6th consecutive retry (2026-07-25 inc.10; the 5th timed out, the 6th returned the outage page again)** — otcmarkets.com continues to serve its site-wide *"Temporarily Unavailable"* page (HTTP 200 + outage HTML on `/otcapi/company/financial-report/484380/content`; a platform outage, not a block on us). **Retry next run** — no figure from them is quoted anywhere until read. If still down by 7/28, fold into the Amplipay chase call as "send us your OTC disclosure filings directly"
+- [ ] **Amplipay**: booking held (submitted 7/24 — chase if no reply by 7/28). **CALL SHEET BUILT 2026-07-25 (§3j): [`AMPLIPAY-CALL-SHEET-2026-07-28.html`](./AMPLIPAY-CALL-SHEET-2026-07-28.html)** — the three gate questions, six follow-ups, and the four-non-negotiable scorecard, each with its source; nothing on it is new evidence, it is §3a–§3h assembled into the order the call has to run in
 - [x] **Shift4**: partner-contract history flag investigated (7/23 raised it, never closed) — **CLOSED 2026-07-25, see §3b.** Answer: *the history is real and adverse.* Feb 2022 Shift4 unilaterally discontinued ancillary-fee residual streams effective 4/1/2022 and replaced them with a one-time buyout carrying a **10-year** merchant non-solicit (industry norm 16–42 months); SEC filings describe buying out **"over a hundred"** partners' residual obligations plus non-solicitation rights; 2018 antitrust suit (Payment Logistics, S.D. Cal.) over cutting independent interfaces out of the channel; Jan 2025 **$750k SEC penalty** for undisclosed related-person residual commissions. **Fails non-negotiables 1 and 3 on conduct; 2 and 4 remain unknown (T&C PDFs are 403 to automated fetch).**
 - [ ] **Both**: Schedule A obtained and scored against the 4 non-negotiables — *Shift4 partially scored from public conduct (§3b); the actual Authorized Partner T&Cs PDF needs a human/browser download (HTTP 403)*
 - [ ] Rung decision: start as **$0 agent** (7/23 recommendation) vs. jump straight to ISO/PFaaS
@@ -1166,3 +1210,20 @@ served at $0, and the rung that would serve the *other* half has no sourced econ
   (Q62), not a **rung** decision (Q61); rec (1) untouched. Standing otcmarkets retry **timed out** this run
   (5th consecutive failure) — nothing quoted, line stays open. Docs-only; nothing signed, no processor
   committed, no money field moved.
+- 2026-07-25 (driver inc.11) — **§3j added: the 7/28 Amplipay chase now has a CALL SHEET —
+  `AMPLIPAY-CALL-SHEET-2026-07-28.html`, one screen, every claim sourced.** Picked because the chase is the
+  only live non-Rob leg on this DD and it is 3 days out. Retries ran first and both failed honestly:
+  otcmarkets served its site-wide "Temporarily Unavailable" page for the **6th consecutive** attempt (HTTP 200
+  + outage HTML, direct request — platform outage, not a block on us), and the three human-browser pulls were
+  re-attempted with full browser headers → Shift4 partner T&Cs **429**, cardpaymentoptions/SignaPay **403**,
+  current Visa TPA FAQ **403**; nothing quoted from any of them. **No new evidence was produced and none was
+  needed** — eight agenda items had accumulated across §3a/§3c/§3d/§3e/§3h with nowhere they were written in
+  the order they must be asked. The sheet's one contribution is structure the evidence already implied:
+  **three GATE questions in writing before any Schedule A is read** (sponsor bank + BIN + published ISO/MSP
+  disclosure language · which entity counter-signs, AmpliPay vs eDataPay · SEC reporting status/CIK and *send
+  the OTC filings directly*), because all four non-negotiables are claims against whoever's paper the residual
+  sits on; then six follow-ups in order with the Schedule A **last** and §3b printed as the reason; then the
+  four-non-negotiable scorecard entering the call — **4× UNKNOWN**, each row stating what the record does show
+  rather than leaving a blank. **What the call cannot change is printed on the sheet:** it decides *which
+  counterparty*, never the rung and never the arithmetic (§3g). House limit on the artifact's face — this call
+  produces evidence, never a signature. Docs-only; nothing signed, no processor committed, no money field moved.
