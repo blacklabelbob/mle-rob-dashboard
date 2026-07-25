@@ -486,6 +486,86 @@ decision"** — rather than presenting one rung as delivering both of Rob's stat
 
 ---
 
+## 🔴 3g. The REVENUE MODEL — line CLOSED, and it reverses the framing of the whole add-on (Max, 2026-07-25)
+
+The last purely-analytic line on the §5 checklist: *"expected residual per merchant × a defensible merchant
+count — is this worth the distraction from P1?"* It is answered here with a **first-party denominator** (our own
+CRM, not an industry guess) so the number cannot be inflated by a favourable assumption.
+
+### Per-merchant residual — two independent routes, converging
+
+| Route | Inputs (each with an originator) | Result |
+|---|---|---|
+| **A — margin share** | Gross margin per merchant **$70/mo** (CCSalesPro's own worked calculator example) × the split it states verbatim as *"The industry average right now is probably about 50%"* | **~$35/mo** |
+| **A′ — aggressive split** | Same $70 margin at the *"70% or 80% residual in exchange for no up-front bonus"* tier CCSalesPro describes | **$49–56/mo** |
+| **B — basis points** | A merchant at $30k/mo processing × the **15 bps** Strictly's 2026 ISO guide calls the floor: *"maintaining a spread of at least 15 basis points is vital for long term ISO profitability"* | **~$45/mo** |
+
+Two unrelated methods land in the same place. **Model band: $35–$50 per merchant per month**, net of split.
+Both routes are *before* the deductions Strictly enumerates (BIN sponsorship **1–5 bps**, network/per-item fees,
+equipment) — so $35 is the honest planning number and $50 is the ceiling, not the midpoint.
+
+**One widely-repeated figure was REJECTED, not banked.** Search surfaces *"average monthly credit card spend rose
+from $10,000 in 2020 to $23,000"* across a 2025 study of 1.6m U.S. small businesses (traceable to the Akcigit /
+Chhina / Cilasun *Credit Card Entrepreneurs* work, BFI/NBER). It is **the wrong metric** — that is small businesses
+**spending on** business credit cards *as buyers*, not merchant **card-acceptance volume** *as sellers*. Using it
+here would inflate the model with a number measuring the opposite side of the transaction. Not used.
+
+### The denominator — from our own CRM, 2026-07-25
+
+**MLE Network today: 19 organisations, 8 deals** (direct count against prod Supabase this run — first-party, not
+estimated). Against that, §3f's already-banked Apideck finding: payment attach rates *"often remain below 20%"*
+when a platform sells payments on its own.
+
+| Scenario | Merchants | Monthly residual @ $35–50 | Portfolio value @ 25–40× |
+|---|---|---|---|
+| **Realistic near-term** (sub-20% attach on 19 orgs) | ~4 | **$140 – $200** | ~$4k – $8k |
+| Every current org converts (100% attach — not a forecast) | 19 | $665 – $950 | ~$17k – $38k |
+| The industry "successful agent" portfolio | 100 | $3,500 – $5,000 | ~$88k – $200k |
+
+Portfolio multiple from the same Strictly 2026 guide: *"the total monthly residual income multiplied by an
+industry-standard multiple, typically ranging from 25x to 40x."* (Vendor calculators also circulate a **25–40%/yr
+attrition** norm; that is **search-summary level, not verbatim-read, and is NOT used in the table** — the model
+uses §3f's directly-quoted **15–30%/yr contractor churn on a 3–6 year life** instead.)
+
+### The answer to Rob's question — and it is not the one the question expects
+
+**"Is this worth the distraction from P1?" On monthly revenue at today's network size: no.** Four merchants at
+$140–200/month is not a revenue stream; it is a rounding error against a single $2,000 Phase 1 (Q57) or the
+$10,000 CG Roofing contract. At 15–30%/yr churn Rob is also replacing ~1 in 5 merchants annually just to stay flat.
+
+**But the payoff shape is wrong-footed by asking about monthly cash.** The residual portfolio is an **asset that
+sells at 25–40× its monthly figure**, and every scenario above is driven by exactly one variable: **how many
+merchants MLE has.** Which produces the finding:
+
+> **The payments add-on does not compete with P1 — it is a multiplier that sits downstream of it.** Its entire
+> value is a function of MLE's customer count, so an hour moved from P1 to payments lowers the payments outcome
+> too. The correct sequencing is not "payments vs. P1"; it is **P1 builds the denominator, payments monetises it
+> later** — which is also, independently, what §3f concluded about the switching-cost half (rung 1 now, integration
+> as a Phase-2+ decision).
+
+This is consistent with, and strengthens, the 7/23 recommendation: at the **$0-independent-agent** rung the
+carrying cost is zero, so the add-on can be *started* now precisely because it costs nothing to hold while the
+denominator grows — whereas the **registered-ISO rung at ~$20–30k/yr would require ~50–70 merchants at $35–50/mo
+just to break even**, i.e. roughly **3× the entire current MLE Network**, before a dollar of profit. That is a
+hard, sourced disqualifier for jumping rungs on 8/8.
+
+### What this changes
+
+1. §5's revenue-model line **CLOSES**; **Q61 rec (4) is now pre-drafted** with its arithmetic and its sources.
+2. **Q61 rec (1) gains a second, independent argument** for starting at $0 — the ISO rung's fixed cost needs ~3×
+   the current network to break even. rec (1) now rests on three legs: unverifiable counterparties (§3b–§3e),
+   zero switching cost at rung 1 (§3f), and negative unit economics at the ISO rung (here).
+3. The framing Rob's dump used — *"revenue stream and increase switching costs"* — is now answered on **both**
+   halves, and **both** resolve the same way: real, but later, and gated on customer count rather than on a signature.
+4. **No line of this model changes if the Rob-blocked legs open.** The transcripts, the OTC filings and the
+   Schedule A's affect *which counterparty*, not *how much per merchant* — so this line is closed, not provisional.
+
+**House limit honoured:** nothing signed, no processor committed, no money field moved. No code touched.
+
+**Sources:** [CCSalesPro — merchant services commission](https://www.ccsalespro.com/blog/much-residual-can-make-selling-merchant-services-merchant-services-sales-commission) · [Strictly — How to Calculate Payment Residuals: The Definitive ISO Guide for 2026](https://strictlyzero.com/announcements/payments-announcements/how-to-calculate-payment-residuals-the-definitive-iso-guide-for-2026/) · [BFI — Credit Card Entrepreneurs (the REJECTED metric, recorded for traceability)](https://bfi.uchicago.edu/working-papers/credit-card-entrepreneurs) · Apideck attach rate + Clearly Payments churn: banked verbatim in §3f · Merchant/deal counts: prod Supabase, 2026-07-25.
+
+---
+
 ## 4. Identity / entity structure — decision Rob must make
 
 The 7/23 research explicitly filed the processor play in the **BoostUp Payments** lane
@@ -518,14 +598,14 @@ strategy that spans the businesses. Do not let the two get conflated in either d
 - [ ] **Amplipay**: sponsor bank named in writing — ⬆️ **the top agenda item** (§3a: an ~$82k-cap issuer means the sponsor bank is the only capitalized party in the chain). **PUBLIC RECORD EXHAUSTED 2026-07-25, see §3e** — no sponsor/acquiring/member bank is named on any of five properties (`amplipay.ai`, `amplipaygroup.com`, `edatapay.com/about`, `/partners`, `/banking-partnerships-and-lucrative-residual-commissions`), and the **card-brand-mandated *"registered ISO/MSP of [Bank], [City], [State]"* disclosure is absent entirely** from a company that self-describes as a *"Bankcard ISO"*. Line now **company-blocked, not unworked**: converts to a **call gate** for the 7/28 chase — *sponsor bank + acquiring BIN in writing, plus your published ISO/MSP disclosure language* — before any Schedule A review is worth doing
 - [x] **Amplipay**: OTC:APGP financials pulled (going-concern, cash, dilution) — **CLOSED 2026-07-25, see §3a.** Answer: *there are none to pull.* Not an SEC reporting company (only EDGAR "Osyka" registrant filed Form 15-15D in 2008; last financials on EDGAR are a 10-QSB for Q3 2000). Issuer is a **1990 oil-and-gas shell renamed from Osyka Corporation on 2025-06-12** with a 1-for-500 reverse split, **market cap ≈ US$82,190**, net income ≈ −$127k/qtr
 - [x] **Amplipay**: merchant count / volume independently verified — **CLOSED 2026-07-25, see §3c.** Answer: *there is no count to verify.* No third-party figure exists; the company's own corporate site (`amplipaygroup.com`, a second domain alongside `amplipay.ai`) renders **"0+ Customers / 0+ World Active User / 0% Satisfaction"** template placeholders. Operating substance appears to sit in named brand **eDataPay** (Boca Raton) — a **high-risk / hard-to-place merchant specialist** claiming "over 18 years" but publishing no merchant count, no volume, and no acquiring bank. Two new agenda items: merchant count + volume **in writing**, and **which entity (AmpliPay Inc. vs eDataPay) counter-signs the Schedule A**
-- [ ] **Amplipay**: read the two **OTC Markets alternative-reporting disclosure documents** (report ids `484380`, `506506`) — they exist (refines §3a's "no financials": none at the **SEC**, but OTC alt-reporting filings are on file). Unread this run: otcmarkets.com served a site-wide *"Temporarily Unavailable"* page all session. **Retry next run** — no figure from them is quoted anywhere until read
+- [ ] **Amplipay**: read the two **OTC Markets alternative-reporting disclosure documents** (report ids `484380`, `506506`) — they exist (refines §3a's "no financials": none at the **SEC**, but OTC alt-reporting filings are on file). **Still unread after a 3rd consecutive retry (2026-07-25 inc.7)** — otcmarkets.com continues to serve its site-wide *"Temporarily Unavailable"* page (HTTP 200 + outage HTML on `/otcapi/company/financial-report/484380/content`; a platform outage, not a block on us). **Retry next run** — no figure from them is quoted anywhere until read. If still down by 7/28, fold into the Amplipay chase call as "send us your OTC disclosure filings directly"
 - [ ] **Amplipay**: booking held (submitted 7/24 — chase if no reply by 7/28)
 - [x] **Shift4**: partner-contract history flag investigated (7/23 raised it, never closed) — **CLOSED 2026-07-25, see §3b.** Answer: *the history is real and adverse.* Feb 2022 Shift4 unilaterally discontinued ancillary-fee residual streams effective 4/1/2022 and replaced them with a one-time buyout carrying a **10-year** merchant non-solicit (industry norm 16–42 months); SEC filings describe buying out **"over a hundred"** partners' residual obligations plus non-solicitation rights; 2018 antitrust suit (Payment Logistics, S.D. Cal.) over cutting independent interfaces out of the channel; Jan 2025 **$750k SEC penalty** for undisclosed related-person residual commissions. **Fails non-negotiables 1 and 3 on conduct; 2 and 4 remain unknown (T&C PDFs are 403 to automated fetch).**
 - [ ] **Both**: Schedule A obtained and scored against the 4 non-negotiables — *Shift4 partially scored from public conduct (§3b); the actual Authorized Partner T&Cs PDF needs a human/browser download (HTTP 403)*
 - [ ] Rung decision: start as **$0 agent** (7/23 recommendation) vs. jump straight to ISO/PFaaS
 - [ ] Entity decision: which entity signs (§4)
 - [x] Switching-cost mechanic specified: what *concretely* makes a merchant unable to leave once processing is bundled? — **CLOSED 2026-07-25, see §3f.** Answer: **the AI agent transacting** (AIDRE takes the deposit on the call / AIVA closes the booking with a card) — the sold outcome is *a booked-and-paid job*, which cannot survive moving the rail; second-strongest is the second brain as revenue system-of-record (Q40). Dual pricing is **not** lock-in, it is the acquisition wedge, and is symmetric. **The finding with teeth: every mechanic requires that Rob's software can PROGRAM the rail (PFaaS posture) — so at the $0-independent-agent rung, switching cost added is ZERO.** Rob's thesis splits: revenue half is available now at rung 1; switching-cost half is a Phase-2+ engineering decision, not a signature
-- [ ] Revenue model: expected residual per merchant × realistic merchant count = is this worth the distraction from P1?
+- [x] Revenue model: expected residual per merchant × realistic merchant count = is this worth the distraction from P1? — **CLOSED 2026-07-25, see §3g.** Answer: **$35–$50 per merchant per month** (two independent routes converge: $70 gross margin × the stated ~50% industry-average split; and $30k/mo volume × the 15 bps floor). Denominator taken **first-party from our own CRM — 19 orgs, 8 deals today** — with §3f's Apideck sub-20% attach → **~4 merchants ≈ $140–200/month near-term**, i.e. *not* a revenue stream at today's size. **The payoff shape is the finding: a residual book sells at 25–40× monthly, and every scenario scales with MLE's customer count — so the add-on is downstream of P1, not competing with it.** Hard sourced disqualifier for jumping rungs: the **registered-ISO rung (~$20–30k/yr) needs ~50–70 merchants just to break even ≈ 3× the entire current network.** A widely-circulated *"$23,000 average monthly card spend"* figure was **rejected** — it measures small businesses *spending on* business cards, not merchant *acceptance* volume
 
 ## 6. The question nobody has asked yet — ✅ ANSWERED 2026-07-25 (see §3f)
 
@@ -618,3 +698,23 @@ add-on with a switching-cost story attached, which is a materially different (an
   Q61 rec (3) is now pre-drafted, rec (1) gains a mandatory caveat, rec (4) gets an honest denominator
   (model against a 3–6 yr merchant life, and apply the retention multiple only to a rung that integrates).
   Posted to the ledger as a flag.
+- 2026-07-25 (driver inc.7) — **§3g added; the REVENUE MODEL line is CLOSED — the last purely-analytic line on
+  the checklist.** OTC retry ran first for the 3rd consecutive run and otcmarkets.com **still serves the site-wide
+  "Temporarily Unavailable" page** (HTTP 200 + outage HTML), so that line stays open, unread, nothing quoted;
+  it now carries a fallback — ask Amplipay for the filings directly on the 7/28 chase. **Per-merchant residual:
+  $35–$50/month**, from two independent routes that converge — CCSalesPro's worked **$70 gross margin** × its
+  verbatim *"industry average right now is probably about 50%"* split, and a $30k/mo merchant × Strictly's 2026
+  **15 bps** profitability floor. **Denominator taken first-party rather than from industry averages: 19 orgs /
+  8 deals counted directly against prod Supabase this run**, then discounted by §3f's already-banked Apideck
+  *"attach often remain below 20%"* → **~4 merchants ≈ $140–200/month near-term.** A widely-repeated *"$10,000
+  (2020) → $23,000 average monthly credit card spend"* study (Akcigit/Chhina/Cilasun, BFI/NBER, 1.6m businesses)
+  was **rejected, not banked** — it measures small businesses *spending on* business cards as buyers, the opposite
+  side of the transaction from merchant acceptance volume. **The finding that reframes the add-on: monthly cash is
+  the wrong question. A residual book sells at 25–40× monthly (Strictly 2026), and every scenario is driven by one
+  variable — MLE's customer count — so the payments layer is DOWNSTREAM of P1, not competing with it; an hour moved
+  from P1 to payments lowers the payments outcome too.** Second hard number for Q61 rec (1): the **registered-ISO
+  rung at ~$20–30k/yr needs ~50–70 merchants to break even ≈ 3× the entire current MLE Network**, a sourced
+  disqualifier for jumping rungs on 8/8. rec (1) now rests on three independent legs (unverifiable counterparties
+  §3b–§3e, zero switching cost at rung 1 §3f, negative ISO-rung unit economics §3g). Explicitly noted: **none of
+  this model moves if the Rob-blocked legs open** — transcripts/OTC/Schedule A's change *which counterparty*, not
+  *how much per merchant* — so the line closes rather than staying provisional. Posted to the ledger as a flag.
