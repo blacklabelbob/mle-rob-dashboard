@@ -168,16 +168,32 @@
 <main>
 
 <div class="cover" id="cover">
-  <div class="eyebrow">Drawing Set · Rev 2026-07-22 · Source: PRD-mle-crm.md (unified) v3.1 + Rob's dumps 07-17 / 7.21.26-1 (verbatim)</div>
+  <div class="eyebrow">Drawing Set · Rev 2026-07-22 · <b>counts re-verified against live prod 2026-07-25</b> · Source: PRD-mle-crm.md (unified) v3.1+ + Rob's dumps 07-17 / 7.21.26-1 (verbatim)</div>
   <h2>The MLE CRM, mapped end to end</h2>
   <p class="thesis">A self-owned CRM whose only job is helping reps close more deals — The Network graph as Rob's super-admin lens, every call recorded and searchable, proposals and signatures sent while still on the phone. Thirteen sheets: what talks to what, where the data lives, how a lead becomes cash, and what ships when.</p>
   <div class="statrow">
-    <div class="stat"><div class="n">22 + 16</div><div class="l">People + Orgs (live prod)</div></div>
-    <div class="stat"><div class="n">47</div><div class="l">Referral edges (live)</div></div>
-    <div class="stat"><div class="n">4</div><div class="l">Migrations applied</div></div>
-    <div class="stat"><div class="n">108</div><div class="l">Tasks · 6 done</div></div>
+    <div class="stat"><div class="n">22 + 19</div><div class="l">People + Orgs (live prod, 7/25)</div></div>
+    <div class="stat"><div class="n">47</div><div class="l">Referral edges (live, 7/25)</div></div>
+    <div class="stat"><div class="n">13</div><div class="l">Migrations applied</div></div>
+    <div class="stat"><div class="n">108</div><div class="l">Tasks · 6 done <i>(7/22 figure, not re-verified)</i></div></div>
     <div class="stat"><div class="n">15</div><div class="l">Build phases</div></div>
-    <div class="stat"><div class="n">68</div><div class="l">Tests · CI live</div></div>
+    <div class="stat"><div class="n">861</div><div class="l">Tests · 75 files · CI live</div></div>
+  </div>
+
+  <div class="legend" style="margin-top:18px; padding:12px 14px; border:1px dashed #C9762B; border-radius:6px; background:#FFF8F0; display:block; line-height:1.55;">
+    <b>⚠️ Currency notice — read before quoting this Atlas (added 2026-07-25).</b>
+    The <b>drawings</b> are Rev 2026-07-22. Only the <b>live-prod counts above</b> were re-verified today
+    (2026-07-25, direct query against prod Supabase): <b>orgs 16&nbsp;→&nbsp;19</b>, <b>migrations 4&nbsp;→&nbsp;13</b>,
+    <b>tests 68&nbsp;→&nbsp;861</b>; people (22) and edges (47) were already correct. Migration-history figures
+    elsewhere on these sheets (e.g. <span class="mono">D-003a</span>'s "22 people + 16 orgs out") are the
+    <i>7/21 event</i> and are deliberately <b>left as written</b> — they are history, not current state.
+    <br><b>Shipped since Rev 2026-07-22 and NOT yet drawn on any sheet</b> — named here so absence never reads as
+    non-existence: the read-model seam and its <span class="mono">rm_*</span> ops panels (MC.8/MC.12) ·
+    the invoice/AR ledger parse+aging layer (MC.9, migrations 0012–0013) ·
+    the Phase&nbsp;2 ROI engine + Estimator (<span class="mono">lib/roi/*</span>, Q63) ·
+    the payment-processing due-diligence track and its 8/8 decision packet (Q60–Q62) ·
+    e-sign countersign + comms-consent (migrations 0009–0010, extending the e-sign sheets that <i>are</i> drawn).
+    Next full re-draw is the Atlas refresh pass; republishing the artifact requires the interactive session.
   </div>
   <div class="legend">
     <span><span class="sw"></span> owned code / data</span>
@@ -856,7 +872,7 @@
   </div>
 </section>
 
-<p style="margin-top:40px; font-size:12.5px; color:var(--ink-soft);" class="mono">MLE CRM Architecture Atlas · Rev 2026-07-22 (living doc — refresh duty per PRD v3.1) · sources: docs/plans/PRD-mle-crm.md v3.1 (unified 07-21, MERGE-LEDGER-2026-07-21.md) · ROB-CRM-VISION-DUMP-2026-07-17 + dump 7.21.26-1 (verbatim) · migrations 0001–0004 (0003 orgs split + 0004 flags APPLIED) · .github/workflows/ci.yml · vitest 68/68 · mle-network live counts (22 people (incl. 5 demo) + 16 orgs, 47 edges, prod-verified). Every sheet traceable to a PRD task ID.</p>
+<p style="margin-top:40px; font-size:12.5px; color:var(--ink-soft);" class="mono">MLE CRM Architecture Atlas · Drawings Rev 2026-07-22 (living doc — refresh duty per PRD v3.1) · <b>counts re-verified 2026-07-25 (PRD 3.1.142)</b> · sources: docs/plans/PRD-mle-crm.md v3.1 (unified 07-21, MERGE-LEDGER-2026-07-21.md) · ROB-CRM-VISION-DUMP-2026-07-17 + dump 7.21.26-1 (verbatim) · migrations 0001–0013 (0003 orgs split + 0004 flags + 0011 read models + 0012–0013 invoice/AR APPLIED) · .github/workflows/ci.yml · vitest 861/861 across 75 files (was 68/68 at Rev 07-22) · mle-network live counts as of 2026-07-25 (22 people (incl. 5 demo) + <b>19 orgs</b>, 47 edges, 8 deals, 8 verticals, 12 projects — direct prod query, not inferred; the 16-org figure on these sheets is the 7/21 migration event and is left as history). Every sheet traceable to a PRD task ID.</p>
 
 </main>
 </div>
