@@ -279,6 +279,43 @@
   </div>
 </section>
 
+<section>
+  <h2>Addendum · added 2026-07-25 pm — the deliverable-side question</h2>
+  <div class="callout">
+    <h3>🛒 New input, recorded after the four recommendations were built — it changes none of them</h3>
+    <p>Rob, 2026-07-25 evening: <em>"adding a payment processor to the MLE's deliverables — a website with a
+    chatbot where the chatbot serves as a personal shopper and the user can checkout right from within the
+    chatbox."</em> This is the <strong>product layer</strong>; recs 1–4 above are the <strong>business
+    layer</strong> (whose paper Rob signs, what he earns, at which rung). They are separate decisions and are
+    kept separate. Full working: <a href="./PAYMENTS-LAYER-DD-2026-07-25.md">DD tracker §7</a> ·
+    queue item Q62.</p>
+    <table>
+      <tr><th>What it changes</th><th>Effect on the 8/8 decision</th></tr>
+      <tr><td><strong>Rec 1 — the rung</strong></td>
+        <td><strong>Nothing.</strong> Rung 1 can already ship in-chat checkout on hosted rails (Square payment
+        links / Helcim HelcimPay.js, per the 7/23 research) and earn the residual if the merchant boards on
+        Rob's Schedule A. Still <strong>zero</strong> switching cost — programming the rail needs PFaaS (§3f).</td></tr>
+      <tr><td><strong>Rec 3 — the switching-cost mechanic</strong></td>
+        <td>Gains a concrete, sellable MLE-side form: <em>the client's own site closes the sale in the chat.</em>
+        Same PFaaS caveat, unchanged.</td></tr>
+      <tr><td><strong>Rec 4 — the revenue model</strong></td>
+        <td>Moves its <strong>softest term</strong>. The ~4-merchant denominator comes from Apideck's
+        <em>"attach often remain below 20%"</em> — a figure about platforms that <strong>sell</strong> payments
+        separately. Delivered <em>as product</em>, boarding becomes an onboarding step, not a second close.
+        Recorded as a <strong>hypothesis with no number</strong>: no attach figure for product-delivered
+        payments has been sourced, and none was invented.</td></tr>
+      <tr><td>🚫 <strong>Blocked on Rob — which vertical?</strong></td>
+        <td>"Personal shopper" implies a <strong>catalog</strong>, and neither stated vertical has one: roofing's
+        in-chat money moment is a <strong>deposit</strong>, title/RE's is <strong>fees</strong> (escrow/licensing
+        untouched here), and a catalog vertical would be a <strong>new ICP — a strategy call, not a build call</strong>.
+        Nothing is built until Rob picks.</td></tr>
+    </table>
+    <p style="margin-bottom:0">Placement follows the same rule as the rest of this packet: <strong>downstream of
+    P1.</strong> Q62 sits below Q60/Q61 and below all P1 work, and nothing was written into any client-facing
+    scope — Phase One's delivered scope is generated from signed agreements.</p>
+  </div>
+</section>
+
 <footer>
   Sources and full working: <a href="./PAYMENTS-LAYER-DD-2026-07-25.md">DD tracker §3a–§3h + §5 checklist</a> ·
   <a href="./payments-deep-research-2026-07-23.md">4-agent / ~130-source landscape research (2026-07-23)</a> ·

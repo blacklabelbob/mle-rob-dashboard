@@ -704,6 +704,7 @@ strategy that spans the businesses. Do not let the two get conflated in either d
 - [x] Entity decision: which entity signs (§4) — **RECOMMENDATION PRE-DRAFTED 2026-07-25, see §3h.** Answer: **BoostUp Payments signs the Schedule A and owns the residual** (it is the payments entity, and §3g's residual book is a saleable asset at 25–40× monthly that must not be split across two signatures); **MLE / AI VoiceTech never appear on the processor paper** — they are distribution, under a written arm's-length intercompany referral agreement, because MLE's own customers *are* the merchants. **The card-brand rule reframes the question:** Visa's TPA program says an unregistered referral entity marketing **in its own name** *"may only generate leads"* and **may not** discuss pricing/fees/rates, draft contracts or submit applications — to do those unregistered it must *"solicit and market in the name of the registered ISO."* Registering to escape that fork is **$5,000/yr at Visa alone, per entity, per region**, and the DBA workaround is closed (*"a DBA is not a separate legal entity"*). **Rob's remaining call is therefore not "who signs" but own-name lead-gen vs. marketing under the ISO's name.** New agenda item: ISO vs **HR-ISO** boarding type, given §3c's eDataPay high-risk finding
 - [x] Switching-cost mechanic specified: what *concretely* makes a merchant unable to leave once processing is bundled? — **CLOSED 2026-07-25, see §3f.** Answer: **the AI agent transacting** (AIDRE takes the deposit on the call / AIVA closes the booking with a card) — the sold outcome is *a booked-and-paid job*, which cannot survive moving the rail; second-strongest is the second brain as revenue system-of-record (Q40). Dual pricing is **not** lock-in, it is the acquisition wedge, and is symmetric. **The finding with teeth: every mechanic requires that Rob's software can PROGRAM the rail (PFaaS posture) — so at the $0-independent-agent rung, switching cost added is ZERO.** Rob's thesis splits: revenue half is available now at rung 1; switching-cost half is a Phase-2+ engineering decision, not a signature
 - [x] Revenue model: expected residual per merchant × realistic merchant count = is this worth the distraction from P1? — **CLOSED 2026-07-25, see §3g.** Answer: **$35–$50 per merchant per month** (two independent routes converge: $70 gross margin × the stated ~50% industry-average split; and $30k/mo volume × the 15 bps floor). Denominator taken **first-party from our own CRM — 19 orgs, 8 deals today** — with §3f's Apideck sub-20% attach → **~4 merchants ≈ $140–200/month near-term**, i.e. *not* a revenue stream at today's size. **The payoff shape is the finding: a residual book sells at 25–40× monthly, and every scenario scales with MLE's customer count — so the add-on is downstream of P1, not competing with it.** Hard sourced disqualifier for jumping rungs: the **registered-ISO rung (~$20–30k/yr) needs ~50–70 merchants just to break even ≈ 3× the entire current network.** A widely-circulated *"$23,000 average monthly card spend"* figure was **rejected** — it measures small businesses *spending on* business cards, not merchant *acceptance* volume
+- [ ] 🆕 **DELIVERABLE-SIDE LINE (added 2026-07-25 pm from Rob's chat-commerce dump — see §7):** (a) **Rob-only:** which vertical is *"personal shopper"* aimed at — contractor deposits, title/RE fees, or a new catalog ICP? (§7.5 — do not build until answered). (b) **Research:** source an attach rate for payments **delivered as part of the product** vs. §3g's banked Apideck *"often remain below 20%"* for payments **sold separately** — this is the highest-leverage term in the §3g model and is currently a named hypothesis with **no number** (§7.3). (c) Confirm the 7/23 rail shortlist (Square payment links / Helcim HelcimPay.js) still holds for an in-chat flow at rung 1, and that hosted checkout keeps MLE **out of PCI scope** (§7.4)
 
 ## 6. The question nobody has asked yet — ✅ ANSWERED 2026-07-25 (see §3f)
 
@@ -719,6 +720,103 @@ raises switching costs if the *integration* is what's sticky, not the processing
 
 **Before the 8/8 decision, that mechanic needs to be named explicitly.** Otherwise this is a revenue
 add-on with a switching-cost story attached, which is a materially different (and smaller) case.
+
+---
+
+## 7. 🆕 THE DELIVERABLE-SIDE QUESTION — payments *inside* what MLE ships (Rob, 2026-07-25 evening)
+
+**Source:** `docs/plans/sources/ROB-CHAT-COMMERCE-DUMP-2026-07-25.md` (verbatim). Rob: *"adding a payment
+processor to the MLE's deliverables, for example creating a website with a chatbot where the chatbot serves as
+a personal shopper and then the user can checkout right from within the chatbox."*
+
+**This is a different question from §1–§6 and is kept separate on purpose.** §1–§6 diligence the **business
+layer** — whose paper Rob signs, what residual he earns, at which rung. §7 is the **product layer** — what a
+client actually receives. They interact (below) but they are not the same decision and must not be merged into
+one recommendation on 8/8.
+
+### 7.1 What was already on record (NOT overwritten — these stand)
+
+| Where | What it already says |
+|---|---|
+| `payments-deep-research-2026-07-23.md` (line 16) | *"Chatbot checkout (AIVA), today: Square (API payment links `square.link/u/…` built for SMS/chat…). Runner-up Helcim (in-widget HelcimPay.js, cheapest IC+). Forward bet: x402 (Apache-2.0, TS) for agentic USDC."* |
+| same, line 12 | *"Agentic commerce standards landed 2025 — Mastercard Agent Pay, Visa Intelligent Commerce/TAP, Google AP2. Chatbot payments becoming first-class (AIVA-relevant)."* |
+| `agents/2026-07-23-payments-slice3-checkout-payfac.md` §5 | the same three protocols with dates + comparison sources — *"chatbot-initiated payments are becoming a standardized category. Directly relevant to AIVA."* |
+| `agents/2026-07-23-payments-slice2-crypto-fiat.md` | crypto/agentic rails ranked for chatbot checkout (Strike, Radom, x402, BitPay hosted) |
+| §3f above, mechanic #1 | *"the AI agent transacts — AIDRE takes the deposit on the call; **AIVA closes the booking with a card in the chat**"* |
+
+### 7.2 What was NOT on record — the actual gap
+
+Searched every file in `~/Projects/MyLocalEverything` (see the dump's search table): **zero hits** for
+*shopper*, *cart*, *storefront*, *e-commerce*. More important than the vocabulary:
+
+- **Phase One's delivered scope** (`docs/training/phase-one-explainer.md` §2, pulled from
+  `phase1_engine.py build_scope()`) is websites · Living Second Brain · per-agent sites/brains/social ·
+  the automations library. **No commerce component and no payment component exist in any delivered scope.**
+- **The Q40 phase model** (per-customer Blueprint, components that "light up") has **no commerce component**
+  in its checklist.
+- Every prior mention of in-chat checkout is filed under **AIVA the product**, never under **MLE the
+  deliverable** — i.e. as a rail we might *use*, never as a line item a client *buys*.
+
+**So the idea is genuinely new here, and it is now recorded.** Nothing above was edited to make room for it.
+
+### 7.3 Why this matters to the 8/8 decision — it fixes §3g's weakest number
+
+§3g closed the revenue model on a denominator problem: attach rate. Apideck's banked finding is that payments
+attach *"often remain below 20%"* **when a platform sells payments on its own** — which is exactly what rung 1
+does (refer the merchant, hope they board). That is how ~19 orgs became **~4 merchants ≈ $140–200/mo**.
+
+If checkout is **part of the deliverable**, the merchant is not being *sold* payments — the merchant is being
+*shipped* a store that already transacts. The boarding is a step in onboarding, not a second close.
+**This is the highest-leverage variable in the entire §3g model** and it moves the one term §3g flagged as
+soft. It is stated here as a hypothesis with a named mechanism, **not** as a number: no attach figure for
+"payments delivered as product" has been sourced yet, and none is invented. → new §5 checklist line.
+
+### 7.4 The constraint that carries over — and the part that does not
+
+The §3f finding still binds: **switching cost requires programming the rail (PFaaS posture)**. A client whose
+chatbot merely links out to a hosted checkout can move processors next week.
+
+But the **revenue** half survives at rung 1 intact, and this is the distinction to hold on 8/8:
+
+| | Rung 1 ($0 agent) | PFaaS rung |
+|---|---|---|
+| Ship a chatbot that takes payment | ✅ yes — hosted payment links / hosted fields (Square, Helcim per 7/23) | ✅ yes |
+| Earn residual on those transactions | ✅ yes — **if the merchant is boarded on Rob's Schedule A** | ✅ yes |
+| Own the checkout state / charge programmatically | ❌ no | ✅ yes |
+| Adds switching cost | ❌ **zero** (§3f) | ✅ yes |
+| PCI scope on MLE | stays out of scope with hosted checkout | expands — needs its own review |
+
+**Rec (1) is unchanged by this.** Rec (3)'s switching-cost mechanic gains a concrete MLE-side embodiment
+(*the client's own site closes the sale in the chat*), and rec (4) gains the attach lever above. Nothing here
+argues for jumping a rung.
+
+### 7.5 The open question Rob has to answer — WHICH VERTICAL
+
+This is flagged, not assumed. *"Personal shopper"* implies a **product catalog** — browse, compare, cart,
+checkout. Rob's two stated verticals do not obviously have one:
+
+- **Roofing / contractors:** no catalog. The in-chat money moment is a **deposit or a scheduled job**, not a
+  cart — which is precisely §3f mechanic #1 (AIDRE deposit-on-call / AIVA card-in-chat), already banked.
+- **Real estate / title:** no catalog either; the money moments are **fees and earnest-money-adjacent**
+  flows, which carry escrow/licensing questions this tracker has not touched.
+- **A catalog vertical** (retail/e-comm local businesses) would be a **new ICP**, not a new feature — that is
+  a strategy call, not a build call, and it belongs to Rob.
+
+**Do not build against "personal shopper" until Rob says which of those three he meant.** Max is not choosing
+one; all three are written down so the choice is visible.
+
+### 7.6 What was done with this (2026-07-25) — and what deliberately was not
+
+- ✅ Dump captured verbatim → `docs/plans/sources/ROB-CHAT-COMMERCE-DUMP-2026-07-25.md`
+- ✅ Folded here as §7 (additive — no existing section, figure, or recommendation edited)
+- ✅ New line added to the §5 checklist (attach-rate evidence + vertical question)
+- ✅ Queue item **Q62** opened in `BUILD-QUEUE.md`, classified ADD-ON and placed **below** Q60/Q61 and below
+  all P1 work — §3g's rule applies here too: this is downstream of P1
+- ✅ Addendum panel added to the 8/8 decision packet (dated, additive; the four recommendations untouched)
+- ❌ **NOT** added to `phase-one-explainer.md` §2 or to any client-facing scope — that section is generated
+  from signed agreements (`phase1_engine.py build_scope()`), and nothing enters it that is not in a signed
+  agreement. This is a **Phase-2+ / add-on candidate** until Rob decides otherwise
+- ❌ Nothing built, nothing signed, no processor committed, no money field touched
 
 ---
 
@@ -836,3 +934,27 @@ add-on with a switching-cost story attached, which is a materially different (an
   joins the Shift4 T&C / cardpaymentoptions bucket, and the fee figures are order-of-magnitude until then.
   New 7/28 agenda item from the HR-ISO row: **ISO or HR-ISO boarding type**, given §3c's eDataPay high-risk
   finding. Posted to the ledger as a flag. Docs-only; nothing signed, no processor committed.
+- 2026-07-25 (Rob dump #2, evening) — **§7 added: the DELIVERABLE-SIDE question is now on record for the
+  first time.** Rob asked whether he had ever referenced putting a payment processor *inside MLE's
+  deliverables* — specifically a client website whose chatbot acts as a **personal shopper with checkout
+  inside the chat**. Searched: **0 hits** for *shopper / cart / storefront / e-commerce* anywhere in
+  `~/Projects/MyLocalEverything`; Phase One's delivered scope (`phase-one-explainer.md` §2, generated from
+  `phase1_engine.py build_scope()`) and the Q40 phase model both contain **no commerce and no payment
+  component**. What *did* exist — and was **not overwritten** — is the rail-level work from 7/23 (Square
+  payment links / Helcim HelcimPay.js / x402 for chatbot checkout; Mastercard Agent Pay, Visa Intelligent
+  Commerce/TAP, Google AP2) plus §3f mechanic #1 (*AIVA card-in-chat*), all of which is filed under **AIVA
+  the product**, never under **MLE the deliverable**. **Why it matters to 8/8: it moves §3g's softest term.**
+  §3g's ~4-merchant denominator rests on Apideck's banked *"attach often remain below 20%"* — a figure about
+  platforms that **sell** payments separately. Shipping checkout as part of the deliverable makes boarding an
+  onboarding step rather than a second close; recorded as a **named hypothesis with no number attached** (no
+  attach figure for product-delivered payments has been sourced, and none was invented) → new §5 line.
+  **§3f's constraint carries over unchanged:** switching cost still needs a programmable rail, so rung 1 can
+  ship in-chat checkout and earn the residual but adds **zero** lock-in — rec (1) is unchanged, rec (3) gains
+  a concrete MLE-side embodiment, rec (4) gains the attach lever. **Flagged, not assumed: "personal shopper"
+  implies a catalog, and neither roofing nor title/RE has one** — the three readings (contractor deposits /
+  RE-title fees / a new catalog ICP) are written down side by side as a Rob-only call, and nothing is built
+  until he picks. Deliberately NOT added to `phase-one-explainer.md` or any client-facing scope (that section
+  is generated from signed agreements). Queue item **Q62** opened below Q60/Q61 and below all P1 work.
+  Both re-fed links (OpenRouter room, ChatGPT conversation) re-checked: **still unreadable** (session-scoped /
+  HTTP 403) — same two links already logged in the morning dump; the export ask is now twice-asked.
+  Docs-only: nothing built, nothing signed, no processor committed, no money field touched.
