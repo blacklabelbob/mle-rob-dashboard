@@ -704,7 +704,9 @@ strategy that spans the businesses. Do not let the two get conflated in either d
 - [x] Entity decision: which entity signs (§4) — **RECOMMENDATION PRE-DRAFTED 2026-07-25, see §3h.** Answer: **BoostUp Payments signs the Schedule A and owns the residual** (it is the payments entity, and §3g's residual book is a saleable asset at 25–40× monthly that must not be split across two signatures); **MLE / AI VoiceTech never appear on the processor paper** — they are distribution, under a written arm's-length intercompany referral agreement, because MLE's own customers *are* the merchants. **The card-brand rule reframes the question:** Visa's TPA program says an unregistered referral entity marketing **in its own name** *"may only generate leads"* and **may not** discuss pricing/fees/rates, draft contracts or submit applications — to do those unregistered it must *"solicit and market in the name of the registered ISO."* Registering to escape that fork is **$5,000/yr at Visa alone, per entity, per region**, and the DBA workaround is closed (*"a DBA is not a separate legal entity"*). **Rob's remaining call is therefore not "who signs" but own-name lead-gen vs. marketing under the ISO's name.** New agenda item: ISO vs **HR-ISO** boarding type, given §3c's eDataPay high-risk finding
 - [x] Switching-cost mechanic specified: what *concretely* makes a merchant unable to leave once processing is bundled? — **CLOSED 2026-07-25, see §3f.** Answer: **the AI agent transacting** (AIDRE takes the deposit on the call / AIVA closes the booking with a card) — the sold outcome is *a booked-and-paid job*, which cannot survive moving the rail; second-strongest is the second brain as revenue system-of-record (Q40). Dual pricing is **not** lock-in, it is the acquisition wedge, and is symmetric. **The finding with teeth: every mechanic requires that Rob's software can PROGRAM the rail (PFaaS posture) — so at the $0-independent-agent rung, switching cost added is ZERO.** Rob's thesis splits: revenue half is available now at rung 1; switching-cost half is a Phase-2+ engineering decision, not a signature
 - [x] Revenue model: expected residual per merchant × realistic merchant count = is this worth the distraction from P1? — **CLOSED 2026-07-25, see §3g.** Answer: **$35–$50 per merchant per month** (two independent routes converge: $70 gross margin × the stated ~50% industry-average split; and $30k/mo volume × the 15 bps floor). Denominator taken **first-party from our own CRM — 19 orgs, 8 deals today** — with §3f's Apideck sub-20% attach → **~4 merchants ≈ $140–200/month near-term**, i.e. *not* a revenue stream at today's size. **The payoff shape is the finding: a residual book sells at 25–40× monthly, and every scenario scales with MLE's customer count — so the add-on is downstream of P1, not competing with it.** Hard sourced disqualifier for jumping rungs: the **registered-ISO rung (~$20–30k/yr) needs ~50–70 merchants just to break even ≈ 3× the entire current network.** A widely-circulated *"$23,000 average monthly card spend"* figure was **rejected** — it measures small businesses *spending on* business cards, not merchant *acceptance* volume
-- [ ] 🆕 **DELIVERABLE-SIDE LINE (added 2026-07-25 pm from Rob's chat-commerce dump — see §7):** (a) **Rob-only:** which vertical is *"personal shopper"* aimed at — contractor deposits, title/RE fees, or a new catalog ICP? (§7.5 — do not build until answered). (b) **Research:** source an attach rate for payments **delivered as part of the product** vs. §3g's banked Apideck *"often remain below 20%"* for payments **sold separately** — this is the highest-leverage term in the §3g model and is currently a named hypothesis with **no number** (§7.3). (c) Confirm the 7/23 rail shortlist (Square payment links / Helcim HelcimPay.js) still holds for an in-chat flow at rung 1, and that hosted checkout keeps MLE **out of PCI scope** (§7.4)
+- [ ] 🆕 **DELIVERABLE-SIDE LINE (added 2026-07-25 pm from Rob's chat-commerce dump — see §7).** ~~(a) **Rob-only:** which vertical?~~ **(a) CLOSED by Rob the same evening — there is no vertical gate (§7.5): the paying chatbot is a HORIZONTAL add-on to the websites MLE spins up, across every vertical; e-commerce/apparel was one example, and the general principle is Amazon's Buy Now button — collect payment before the customer reaches a checkout page.** (b) **Research:** source an attach rate for payments **delivered as part of the product** vs. §3g's banked Apideck *"often remain below 20%"* for payments **sold separately** — this is the highest-leverage term in the §3g model and is currently a named hypothesis with **no number** (§7.3). (c) Confirm the 7/23 rail shortlist (Square payment links / Helcim HelcimPay.js) still holds for an in-chat flow at rung 1, and that hosted checkout keeps MLE **out of PCI scope** — target posture **SAQ-A, card data never in the LLM context or our logs** (§7.4, §7.7)
+- [ ] 🆕 **PFaaS ECONOMICS — the missing half of Rob's rung question (added 2026-07-25 pm, §7.7).** Rob is explicitly weighing *"ISO or a PayFac or whatever."* Rung 1 and the registered-ISO rung both have sourced economics here (§3g); **PayFac-as-a-Service does not.** Needed before 8/8 so the comparison is honest: published revenue-share / per-transaction economics, minimums, underwriting + liability posture, and time-to-live for **Rainforest / Moov / Finix / Tilled** — and specifically whether a platform-of-record model pays *more* than an agent residual on the same volume, since that is the only thing that would justify moving off the $0 rung for the in-chat Buy Now use case
+- [ ] 🆕 **NN#3 IS NOW THE DEAL-BREAKER CLAUSE, not the third checkbox (§7.7).** Rob cites portfolio resale value (25–40× monthly, §3g) as a stated reason for the whole initiative → on **every** Schedule A, verify the sale right is a **third-party** sale right, not the processor's own buyback (the exact trap §3d found in SignaPay's published *"portfolio buyouts"*). A book sellable only back to the processor does not carry the outside multiple
 
 ## 6. The question nobody has asked yet — ✅ ANSWERED 2026-07-25 (see §3f)
 
@@ -790,20 +792,42 @@ But the **revenue** half survives at rung 1 intact, and this is the distinction 
 (*the client's own site closes the sale in the chat*), and rec (4) gains the attach lever above. Nothing here
 argues for jumping a rung.
 
-### 7.5 The open question Rob has to answer — WHICH VERTICAL
+### 7.5 ~~The open question — WHICH VERTICAL~~ → **CORRECTED BY ROB, 2026-07-25 (same evening)**
 
-This is flagged, not assumed. *"Personal shopper"* implies a **product catalog** — browse, compare, cart,
-checkout. Rob's two stated verticals do not obviously have one:
+**Max's first read was wrong and is struck rather than quietly rewritten.** Max treated *"personal shopper"*
+as implying a catalog and therefore a vertical choice (contractor deposits vs. title/RE fees vs. a new
+retail ICP), and gated the item on Rob picking one. **There is no vertical gate.** Rob, verbatim:
 
-- **Roofing / contractors:** no catalog. The in-chat money moment is a **deposit or a scheduled job**, not a
-  cart — which is precisely §3f mechanic #1 (AIDRE deposit-on-call / AIVA card-in-chat), already banked.
-- **Real estate / title:** no catalog either; the money moments are **fees and earnest-money-adjacent**
-  flows, which carry escrow/licensing questions this tracker has not touched.
-- **A catalog vertical** (retail/e-comm local businesses) would be a **new ICP**, not a new feature — that is
-  a strategy call, not a build call, and it belongs to Rob.
+> *"one of the things we'll be adding for a lot of customers for the websites we spin up is an embedded
+> chatbot. We have customers across every vertical. Some of those will inevitably be ecommerce… I was just
+> using an eCommerce site as an example."*
 
-**Do not build against "personal shopper" until Rob says which of those three he meant.** Max is not choosing
-one; all three are written down so the choice is visible.
+**The correct framing — a horizontal capability on an add-on MLE already plans to ship.** The embedded
+chatbot rides the websites MLE spins up. Once AIVA is finished it can be **trained per vertical**, including
+as an e-commerce site chatbot. Rob's apparel walkthrough is one training target, not the target:
+
+> *"oh, you want a hoodie, great. what color? Red. what size do you generally wear? XL. ok cool, here are some
+> of our best-selling Red XL hoodies"* — pulling **product image + description** into the chat — *"then give
+> them the ability to make the purchase right from the chatbot."*
+
+**The design principle he named is the general case:** Amazon carries a **Buy Now** button *alongside* Add to
+Cart because it removes steps. Rob: *"there's utility for all sorts of ways to accept payments… we can
+collect payment before the customer even gets to the checkout page."* One capability, one money moment per
+customer type:
+
+| MLE customer type | The in-chat money moment |
+|---|---|
+| E-commerce / apparel / retail | product purchase — the Buy Now analogue Rob described |
+| Roofing / contractors | deposit on a booked job (= §3f mechanic #1, already banked) |
+| Title / real estate | fee payment (escrow-adjacent flows still untouched by this tracker) |
+| Services generally | invoice pay · booking deposit · retainer |
+
+**And his three stated reasons, verbatim: *"a convenience to the customer, a way to convert on more sales for
+the business owner, and a profit center for MLE."*** Those are three different beneficiaries and the packet
+should say all three — the first two are why a client buys it; only the third needs a processor decision.
+
+**Net effect: Q62 is NOT Rob-blocked.** What remains is engineering (§7.4's rail + the constraint in §7.7)
+and the rung question, which is Q60/Q61's, not a new one.
 
 ### 7.6 What was done with this (2026-07-25) — and what deliberately was not
 
@@ -817,6 +841,56 @@ one; all three are written down so the choice is visible.
   from signed agreements (`phase1_engine.py build_scope()`), and nothing enters it that is not in a signed
   agreement. This is a **Phase-2+ / add-on candidate** until Rob decides otherwise
 - ❌ Nothing built, nothing signed, no processor committed, no money field touched
+
+*(§7.6 written before Rob's correction in §7.5. The "not added to client-facing scope" and "nothing built"
+lines still stand; the Rob-gated-on-vertical line does not — superseded by §7.5 and §7.7.)*
+
+### 7.7 🔴 Rob's own "why" — and the direct answer to *"I'm debating signing up as an ISO or a PayFac or whatever"*
+
+Rob, 2026-07-25: *"if I'm going to offer that service, I would like to get a piece of the profit from the
+processing fee… Merchant accounts that you have in your portfolio also have a high multiple attached to them
+for resale."* That is the clearest statement of the thesis yet, and it lands on evidence already banked here.
+
+**Answer, stated plainly: you do not need to be an ISO or a PayFac to take a piece of the processing profit.**
+The residual comes from the **Schedule A**, not from the rung. At the **$0 independent-agent** rung, every
+merchant boarded on Rob's code pays him a residual for the life of the account — that is §3g's $35–50 per
+merchant per month, at **zero** carrying cost. The rungs buy *other* things:
+
+| What Rob wants | $0 agent (rec 1) | Registered ISO (~$20–30k/yr) | **PFaaS** (Rainforest/Moov/Finix/Tilled) | Registered PayFac |
+|---|---|---|---|---|
+| "A piece of the profit from the processing fee" | ✅ **yes, today** | ✅ better splits | ✅ per-transaction economics | ✅ |
+| Portfolio with a resale multiple (25–40× monthly, §3g) | ✅ **but only if NN#3 is in the paper** | ✅ same caveat | ⚠️ different asset shape | ✅ |
+| Chatbot takes the payment (hosted checkout / payment link) | ✅ yes | ✅ yes | ✅ yes | ✅ yes |
+| MLE **owns** the in-chat checkout UX + programs the charge | ❌ no | ❌ no — registration ≠ a rail | ✅ **this is the one** | ✅ |
+| Adds switching cost (§3f) | ❌ zero | ❌ zero | ✅ yes | ✅ yes |
+| Rep may quote rates / submit apps in MLE's own name (§3h) | ❌ speech-limited | ✅ | ✅ | ✅ |
+| Cost to stand up | **$0** | ~$20–30k/yr → needs **50–70 merchants** to break even ≈ 3× today's network (§3g) | not yet sourced → new §5 line | only in the ~$10–100M band (7/23) |
+
+**Two consequences that change how the 8/8 packet reads, without changing rec 1:**
+
+1. **The re-sale point re-ranks the non-negotiables.** Rob is explicitly buying a *saleable asset*, so
+   **NN#3 — third-party portfolio sale rights — stops being fourth on a checklist and becomes the deal-breaker
+   clause.** §3d already found the trap: SignaPay's published *"portfolio buyouts"* is **SignaPay as buyer**,
+   which is not the right to sell to a third party. A residual book you may only sell back to the processor
+   does not carry the 25–40× outside multiple. **This is now the first thing to check on any Schedule A.**
+2. **His goal splits across rungs the same way §3f's did — and the split is now cleaner:** *"get a piece of
+   the processing profit"* is available **at rung 1, immediately, for $0**. *"MLE owns the in-chat Buy Now
+   experience across the whole book"* is the **PFaaS** conversation. They are sequential, not either/or, and
+   nothing about starting at rung 1 forecloses PFaaS later — but PFaaS becomes worth pricing only when the
+   number of live MLE sites running a paying chatbot is real, which is the same denominator §3g identified.
+
+**Engineering constraint that must be in the spec (new, from this framing):** *"collect payment before the
+customer even gets to the checkout page"* means card data would be captured inside a chat surface driven by an
+LLM. **Card data must never enter the model's context or our logs** — the chat hands off to a hosted field /
+hosted payment page / tokenized element (Square payment links or Helcim's HelcimPay.js per 7/23), and the bot
+only ever sees a token and a status. That posture is also what keeps MLE at **PCI SAQ-A** instead of dragging
+the whole dashboard into PCI scope. The 2025 agentic-commerce standards banked on 7/23 (Mastercard Agent Pay,
+Visa Intelligent Commerce/TAP, Google AP2) exist for exactly this transaction shape — worth tracking as the
+standardized version of what Rob is describing, not as a dependency.
+
+**What this does NOT do:** it does not add a number to §7.3's attach hypothesis (still unsourced, still not
+invented), and it does not move rec 1. If anything it hardens rec 1 — Rob's stated near-term goal is fully
+served at $0, and the rung that would serve the *other* half has no sourced economics yet.
 
 ---
 
@@ -958,3 +1032,32 @@ one; all three are written down so the choice is visible.
   Both re-fed links (OpenRouter room, ChatGPT conversation) re-checked: **still unreadable** (session-scoped /
   HTTP 403) — same two links already logged in the morning dump; the export ask is now twice-asked.
   Docs-only: nothing built, nothing signed, no processor committed, no money field touched.
+- 2026-07-25 (Rob correction, same evening) — **§7.5 STRUCK AND REWRITTEN, §7.7 ADDED. Max's vertical gate was
+  wrong and is recorded as wrong rather than quietly replaced.** Max read *"personal shopper"* as implying a
+  catalog and therefore a vertical choice, and blocked Q62 on it. Rob: *"we have customers across every
+  vertical… some of those will inevitably be ecommerce… I was just using an eCommerce site as an example."*
+  **The correct framing is a HORIZONTAL capability on an add-on MLE already plans to ship** — the embedded
+  chatbot rides the websites MLE spins up, AIVA gets trained per vertical once finished (e-commerce being one
+  training target: *"what color? Red. what size? XL"* → pull product image + description into the chat →
+  buy in-chat), and the money moment varies while the capability does not (product purchase · deposit on a
+  booked job · fee payment · invoice/retainer). **The design principle is Amazon's Buy Now button beside Add to
+  Cart — fewer steps, payment collected before the customer reaches a checkout page.** Rob's three reasons,
+  verbatim: *"a convenience to the customer, a way to convert on more sales for the business owner, and a
+  profit center for MLE."* **§7.7 answers his actual open debate — *"I'm debating signing up as an ISO or a
+  PayFac or whatever"* — from banked evidence: you do NOT need to be either to take a piece of the processing
+  profit. The residual comes from the Schedule A, not the rung; rung 1 pays it at $0 on every merchant boarded
+  on Rob's code. What PFaaS buys, and neither the agent nor the registered-ISO rung does, is OWNING the in-chat
+  checkout and programming the charge — i.e. the switching cost. Sequential, not either/or; rec 1 is unchanged
+  and arguably hardened, since Rob's stated near-term goal is fully served at $0.** Two knock-ons, both new §5
+  lines: **(1) NN#3 (third-party portfolio sale rights) is promoted from fourth checkbox to DEAL-BREAKER
+  CLAUSE** — Rob explicitly cites the 25–40× resale multiple as a reason for the initiative, and §3d already
+  caught SignaPay publishing *"portfolio buyouts"* meaning **itself as buyer**, which does not carry an outside
+  multiple; **(2) PFaaS revenue-share economics (Rainforest/Moov/Finix/Tilled) are UNSOURCED** — rung 1 and the
+  ISO rung both have sourced economics here, PFaaS does not, so the ISO-vs-PayFac comparison is not honest
+  until they exist. **New engineering constraint written into the spec:** collecting payment inside an
+  LLM-driven chat means **card data must never enter the model context or our logs** — hosted field / hosted
+  page / tokenized element only (Square payment links, Helcim HelcimPay.js per 7/23), bot sees a token and a
+  status, target posture **PCI SAQ-A**; the 2025 agentic-commerce standards (Agent Pay, Visa TAP, Google AP2)
+  are the standardized version of this transaction shape, tracked not depended on. **No new number was
+  invented:** §7.3's attach hypothesis is still unsourced and still labelled as such. Q62 unblocked and
+  rewritten horizontally; packet addendum updated (recs 1–4 still untouched). Docs-only.

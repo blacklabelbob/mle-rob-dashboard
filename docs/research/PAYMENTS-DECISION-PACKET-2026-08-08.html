@@ -280,7 +280,7 @@
 </section>
 
 <section>
-  <h2>Addendum · added 2026-07-25 pm — the deliverable-side question</h2>
+  <h2>Addendum · added 2026-07-25 pm — the deliverable-side question <span class="mono" style="font-weight:400">(updated same evening with Rob's correction)</span></h2>
   <div class="callout">
     <h3>🛒 New input, recorded after the four recommendations were built — it changes none of them</h3>
     <p>Rob, 2026-07-25 evening: <em>"adding a payment processor to the MLE's deliverables — a website with a
@@ -304,11 +304,32 @@
         separately. Delivered <em>as product</em>, boarding becomes an onboarding step, not a second close.
         Recorded as a <strong>hypothesis with no number</strong>: no attach figure for product-delivered
         payments has been sourced, and none was invented.</td></tr>
-      <tr><td>🚫 <strong>Blocked on Rob — which vertical?</strong></td>
-        <td>"Personal shopper" implies a <strong>catalog</strong>, and neither stated vertical has one: roofing's
-        in-chat money moment is a <strong>deposit</strong>, title/RE's is <strong>fees</strong> (escrow/licensing
-        untouched here), and a catalog vertical would be a <strong>new ICP — a strategy call, not a build call</strong>.
-        Nothing is built until Rob picks.</td></tr>
+      <tr><td><strong>Scope — corrected by Rob, same evening</strong></td>
+        <td><strong>Not a vertical pick — a horizontal capability.</strong> The embedded chatbot rides the
+        websites MLE spins up, across every vertical; AIVA gets trained per vertical (e-commerce is one training
+        target, and apparel was just the example). The capability is constant, the money moment varies:
+        <strong>product purchase</strong> (retail) · <strong>deposit on a booked job</strong> (contractors) ·
+        <strong>fee payment</strong> (title/RE) · <strong>invoice or retainer</strong> (services). The design
+        principle is Amazon's <strong>Buy Now</strong> button next to Add to Cart — fewer steps, payment collected
+        before the customer ever reaches a checkout page. Rob's three reasons: <em>convenience to the customer,
+        more conversions for the business owner, a profit center for MLE.</em></td></tr>
+      <tr><td>💡 <strong>"ISO or PayFac or whatever?"</strong> — the direct answer</td>
+        <td><strong>You do not need to be either to take a piece of the processing profit.</strong> The residual
+        comes from the <strong>Schedule A</strong>, not the rung — rung 1 pays it at <strong>$0</strong> on every
+        merchant boarded on your code. What <strong>PFaaS</strong> buys, and neither the agent nor the registered-ISO
+        rung does, is <strong>owning the in-chat checkout and programming the charge</strong> (and with it the
+        switching cost). Sequential, not either/or. <strong>Gap named:</strong> PFaaS revenue-share economics are
+        <em>unsourced</em> — that comparison is not honest until they are, and it is now a DD checklist line.</td></tr>
+      <tr><td>🔑 <strong>Resale value re-ranks the non-negotiables</strong></td>
+        <td>Rob cites portfolio resale (<strong>25–40× monthly</strong>) as a reason for the whole initiative, so
+        <strong>NN#3 — third-party portfolio sale rights — is now the deal-breaker clause, not the third checkbox.</strong>
+        §3d already caught the trap: SignaPay's published <em>"portfolio buyouts"</em> means <strong>SignaPay as
+        buyer</strong>. A book you may only sell back to the processor does not carry the outside multiple.</td></tr>
+      <tr><td>🔒 <strong>Engineering constraint for the spec</strong></td>
+        <td>Collecting payment inside an LLM-driven chat means <strong>card data must never enter the model's
+        context or our logs</strong> — hosted field / hosted page / tokenized element only (Square payment links,
+        Helcim HelcimPay.js), bot sees a token and a status. That posture is also what keeps MLE at
+        <strong>PCI SAQ-A</strong> instead of pulling the dashboard into scope.</td></tr>
     </table>
     <p style="margin-bottom:0">Placement follows the same rule as the rest of this packet: <strong>downstream of
     P1.</strong> Q62 sits below Q60/Q61 and below all P1 work, and nothing was written into any client-facing
