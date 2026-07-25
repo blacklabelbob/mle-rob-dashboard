@@ -1,5 +1,4 @@
-# Marketing KPI Spec (Task MC.2, base 7.3)
-
+AQZSWX≥÷PZ
 **Date:** 2026-07-23 · **Canonical source:** `lib/kpis/marketingKpis.ts` (this doc narrates — it never re-states a formula or threshold; if this doc and the code disagree, the code wins and this doc has a bug).
 
 ## What this is
