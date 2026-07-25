@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Phase 2 ROI Estimator — MLE</title>
+<style>
+  :root{
+    --paper:#F5F7FB; --card:#FFFFFF; --line:#DCE2EE; --line2:#EDF1F8;
+    --tx:#18202F; --tx2:#55617A; --tx3:#8A94AB;
+    --accent:#3E6FE0; --accent-soft:#E5EBFB;
+    --ok:#199A55; --ok-bg:#E3F4EA;
+    --bad:#D64545; --bad-bg:#FBE7E7;
+    --warn:#C98A1B; --warn-bg:#F9F0DC;
+    --field:#FFFFFF; --field-line:#C6D0E3;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#0B1220; --card:#131C2E; --line:#243350; --line2:#1B2740;
+      --tx:#E6EBF5; --tx2:#9AA7C2; --tx3:#66738F;
+      --accent:#6E96F5; --accent-soft:#1B2A4A;
+      --ok:#4CC98A; --ok-bg:#12301F;
+      --bad:#F07575; --bad-bg:#3A1A1A;
+      --warn:#E5B355; --warn-bg:#332708;
+      --field:#0F1728; --field-line:#2C3A58;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#0B1220; --card:#131C2E; --line:#243350; --line2:#1B2740;
+    --tx:#E6EBF5; --tx2:#9AA7C2; --tx3:#66738F;
+    --accent:#6E96F5; --accent-soft:#1B2A4A;
+    --ok:#4CC98A; --ok-bg:#12301F;
+    --bad:#F07575; --bad-bg:#3A1A1A;
+    --warn:#E5B355; --warn-bg:#332708;
+    --field:#0F1728; --field-line:#2C3A58;
+  }
+  :root[data-theme="light"]{
+    --paper:#F5F7FB; --card:#FFFFFF; --line:#DCE2EE; --line2:#EDF1F8;
+    --tx:#18202F; --tx2:#55617A; --tx3:#8A94AB;
+    --accent:#3E6FE0; --accent-soft:#E5EBFB;
+    --ok:#199A55; --ok-bg:#E3F4EA;
+    --bad:#D64545; --bad-bg:#FBE7E7;
+    --warn:#C98A1B; --warn-bg:#F9F0DC;
+    --field:#FFFFFF; --field-line:#C6D0E3;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--tx);
+       font-family:-apple-system,"SF Pro Text",system-ui,"Segoe UI",Roboto,sans-serif;font-size:15px;line-height:1.5}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 22px 64px}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  a:focus-visible,input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+  .mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+
+  header.hero{background:#0B1220;color:#E6EBF5}
+  header.hero .wrap{padding-top:30px;padding-bottom:26px}
+  .eyebrow{font-family:ui-monospace,Menlo,monospace;font-size:10.5px;letter-spacing:.18em;
+           text-transform:uppercase;color:#7FA0F2;margin:0 0 11px;display:flex;flex-wrap:wrap;gap:14px}
+  h1{font-size:clamp(22px,3.1vw,31px);font-weight:800;letter-spacing:-.022em;line-height:1.15;
+     margin:0 0 10px;max-width:32ch;text-wrap:balance;color:#F2F5FC}
+  h1 em{font-style:normal;color:#8FB0F7}
+  .hero p{max-width:80ch;color:#AAB6D3;margin:0;font-size:14.5px}
+  .hero code{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;color:#C7D4F0;
+             background:rgba(110,150,245,.12);border:1px solid rgba(110,150,245,.26);border-radius:5px;padding:1px 6px}
+
+  section{margin-top:26px}
+  h2{font-size:11.5px;font-family:ui-monospace,Menlo,monospace;letter-spacing:.16em;text-transform:uppercase;
+     color:var(--tx2);margin:0 0 13px;display:flex;align-items:baseline;gap:10px}
+  h2::after{content:"";flex:1;height:1px;background:var(--line)}
+
+  /* ---- control bar ---- */
+  .controls{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:15px 17px;
+            display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));align-items:end}
+  .field label{display:block;font-family:ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:.13em;
+               text-transform:uppercase;color:var(--tx3);margin-bottom:5px}
+  .field input[type=number],.field select{width:100%;background:var(--field);color:var(--tx);
+       border:1px solid var(--field-line);border-radius:7px;padding:8px 10px;font-size:15px;
+       font-family:ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums}
+  .field .hint{font-size:11.5px;color:var(--tx3);margin-top:5px;line-height:1.35}
+  input[type=range]{width:100%;accent-color:var(--accent);margin-top:6px}
+  .dayrow{display:flex;align-items:center;gap:9px}
+  .dayrow input[type=number]{width:88px}
+  .daynote{font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:var(--tx2);white-space:nowrap}
+
+  /* ---- headline readout ---- */
+  .readout{display:grid;gap:13px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));margin-top:13px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--tx3);
+       border-radius:10px;padding:13px 15px}
+  .kpi.good{border-left-color:var(--ok)} .kpi.bad{border-left-color:var(--bad)}
+  .kpi .k{font-family:ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;
+          color:var(--tx3);margin:0 0 6px}
+  .kpi .v{font-family:ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums;
+          font-size:clamp(24px,3.4vw,32px);font-weight:700;letter-spacing:-.02em;line-height:1.05;margin:0}
+  .kpi .v.good{color:var(--ok)} .kpi .v.bad{color:var(--bad)}
+  .kpi .sub{font-size:12px;color:var(--tx2);margin:6px 0 0;line-height:1.4}
+  .meter{height:7px;border-radius:4px;background:var(--line2);overflow:hidden;margin-top:9px}
+  .meter i{display:block;height:100%;background:var(--accent);border-radius:4px}
+
+  .flag{margin-top:11px;border-radius:8px;padding:10px 13px;font-size:13px;line-height:1.5;
+        background:var(--warn-bg);border:1px solid var(--warn);color:var(--tx)}
+  .flag b{color:var(--tx)}
+
+  /* ---- table ---- */
+  .tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--card)}
+  table{width:100%;border-collapse:collapse;min-width:940px}
+  th{text-align:left;font-family:ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:.11em;
+     text-transform:uppercase;color:var(--tx3);font-weight:600;padding:10px 12px;
+     border-bottom:1px solid var(--line);white-space:nowrap;vertical-align:bottom}
+  td{padding:10px 12px;border-bottom:1px solid var(--line2);color:var(--tx2);vertical-align:top;font-size:13.5px}
+  tbody tr:last-child td{border-bottom:none}
+  td.num,th.num{text-align:right;font-family:ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums;white-space:nowrap}
+  td.name{color:var(--tx);font-weight:600;min-width:190px}
+  td.name .what{display:block;font-weight:400;color:var(--tx3);font-size:12px;margin-top:2px;line-height:1.35}
+  td.role{min-width:170px}
+  td.role .rate{display:block;font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:var(--tx3);margin-top:2px}
+  table input{width:74px;background:var(--field);color:var(--tx);border:1px solid var(--field-line);
+              border-radius:6px;padding:5px 7px;font-family:ui-monospace,Menlo,monospace;font-size:13px;text-align:right;
+              font-variant-numeric:tabular-nums}
+  tfoot td{border-top:1px solid var(--line);font-weight:700;color:var(--tx);background:var(--accent-soft)}
+  .cover{display:inline-block;min-width:52px;text-align:right}
+
+  td .suggest{display:block;font-family:-apple-system,system-ui,sans-serif;font-size:11px;color:var(--tx3);
+              margin-top:4px;text-align:right;max-width:150px;margin-left:auto;line-height:1.35}
+  .btnrow{display:flex;flex-wrap:wrap;gap:9px;margin-top:11px}
+  .btnrow button{background:var(--card);color:var(--tx);border:1px solid var(--field-line);border-radius:7px;
+                 padding:7px 13px;font-size:13px;font-family:inherit;cursor:pointer}
+  .btnrow button:hover{border-color:var(--accent);color:var(--accent)}
+  .note{font-size:12.5px;color:var(--tx3);margin:9px 2px 0;line-height:1.5}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:15px 17px}
+  .panel h3{font-size:14.5px;margin:0 0 8px;letter-spacing:-.01em}
+  .panel p,.panel li{font-size:13.5px;color:var(--tx2);margin:0 0 8px;line-height:1.55}
+  .panel strong{color:var(--tx)}
+  .panel ul{margin:0;padding-left:19px}
+  .formula{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;background:var(--accent-soft);
+           border:1px solid var(--line);border-radius:8px;padding:11px 13px;color:var(--tx);
+           white-space:pre-wrap;line-height:1.6;overflow-x:auto}
+  .two{display:grid;gap:13px;grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+  footer{margin-top:30px;padding-top:16px;border-top:1px solid var(--line);font-size:12.5px;color:var(--tx3);line-height:1.6}
+  @media print{header.hero{background:#fff;color:#000} body{font-size:11pt}}
+</style>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="eyebrow">
+      <span>Phase 2 · 91-day ROI guarantee</span>
+      <span>Rob's formula, 2026-07-25</span>
+      <span>Engine: lib/roi/phase2.ts · 20 tests</span>
+    </p>
+    <h1>Phase 2 pays for itself on a clock — <em>so the target moves every day.</em></h1>
+    <p>On day 30 of 91 the client is owed <code>30/91</code> of their investment back, not all of it. Everything
+    below is measured against that pro-rated line: surplus is green, shortfall is red. Change the investment or
+    the day count and every number re-runs.</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+<section>
+  <h2>Inputs</h2>
+  <div class="controls">
+    <div class="field">
+      <label for="inv">Est Investment (Phase 2 fee)</label>
+      <input type="number" id="inv" value="9100" min="0" step="100">
+      <p class="hint">Phase 2 Investment <b>=</b> the ROI target. Placeholder only — Phase 2 pricing is still open
+      (Rob, 7/25: partner is writing the pricing logic).</p>
+    </div>
+    <div class="field">
+      <label for="days">Days into Phase 2</label>
+      <div class="dayrow">
+        <input type="number" id="days" value="30" min="0" max="182" step="1">
+        <span class="daynote" id="dayPct">of 91</span>
+      </div>
+      <input type="range" id="daysRange" value="30" min="0" max="182" step="1" aria-label="Days into Phase 2">
+    </div>
+    <div class="field">
+      <label for="region">Wage region</label>
+      <select id="region">
+        <option value="naples" selected>Naples–Marco Island, FL metro</option>
+        <option value="fl">Florida (statewide)</option>
+        <option value="us">United States (national)</option>
+      </select>
+      <p class="hint">BLS OEWS median hourly wage, <b>May 2025</b> release. Every rate links to its source.</p>
+    </div>
+    <div class="field">
+      <label for="window">Guarantee window (days)</label>
+      <input type="number" id="window" value="91" min="1" step="1">
+      <p class="hint">91 = the 3-month guarantee. Parameterised because Rob said the formula may change.</p>
+    </div>
+  </div>
+
+  <div class="readout">
+    <div class="kpi" id="kpiPct">
+      <p class="k">Running ROI — %</p>
+      <p class="v" id="roiPct">—</p>
+      <p class="sub" id="roiPctSub">against the pro-rated target</p>
+    </div>
+    <div class="kpi" id="kpiDol">
+      <p class="k">Running ROI — $</p>
+      <p class="v" id="roiDol">—</p>
+      <p class="sub">value delivered minus what's owed to date</p>
+    </div>
+    <div class="kpi">
+      <p class="k">Target to date</p>
+      <p class="v" id="target">—</p>
+      <p class="sub" id="targetSub">—</p>
+      <div class="meter"><i id="meter" style="width:0%"></i></div>
+    </div>
+    <div class="kpi">
+      <p class="k">Value delivered to date</p>
+      <p class="v" id="value">—</p>
+      <p class="sub" id="valueSub">—</p>
+    </div>
+  </div>
+  <div class="flag" id="beyond" style="display:none"></div>
+</section>
+
+<section>
+  <h2>Recommended automations — the estimate, one row each</h2>
+  <div class="tablewrap">
+    <table id="tbl">
+      <thead>
+        <tr>
+          <th>Automation</th>
+          <th>Who normally does this</th>
+          <th class="num">Human hrs<br>/ week</th>
+          <th class="num">Hrs saved<br>to date</th>
+          <th class="num">Labor value<br>to date</th>
+          <th class="num">Est. revenue<br>lift / mo</th>
+          <th class="num">Revenue<br>to date</th>
+          <th class="num">Total value<br>to date</th>
+          <th class="num">% of target<br>covered</th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+      <tfoot>
+        <tr>
+          <td colspan="3">Totals</td>
+          <td class="num" id="tHrs">—</td>
+          <td class="num" id="tLabor">—</td>
+          <td class="num" id="tLift">—</td>
+          <td class="num" id="tRev">—</td>
+          <td class="num" id="tValue">—</td>
+          <td class="num" id="tCover">—</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+  <div class="btnrow">
+    <button type="button" id="loadSuggest">Load conservative revenue estimates</button>
+    <button type="button" id="clearRev">Clear revenue back to $0</button>
+  </div>
+  <p class="note"><b>Revenue lift starts at $0 on every row, on purpose.</b> The labor half is sourced (BLS
+  wages × hours you can defend); the revenue half is judgement, so nothing is claimed until a human types it or
+  clicks the button above. <b>Hours/week and revenue lift are editable — change any cell and the whole page
+  re-runs. One property to know: with fixed rates every term scales linearly with the day count, so moving the
+  days slider changes the dollars, not the percentage — the % only moves when you change hours, lift, or the
+  investment.</b> Hourly rates are not assumptions: they are BLS published medians for the selected region, linked
+  per row. Where BLS publishes no metro figure the row says which level it fell back to, rather than passing a
+  national number off as local.</p>
+</section>
+
+<section>
+  <h2>Summary</h2>
+  <div class="two">
+    <div class="panel">
+      <h3 id="sumHead">—</h3>
+      <p id="sumBody">—</p>
+      <div class="formula" id="sumMath">—</div>
+    </div>
+    <div class="panel">
+      <h3>The formula, as Rob wrote it</h3>
+      <div class="formula">Phase 2 Investment  =  ROI Target
+
+value to date   =  (labor hours saved × labor cost/hr)  +  revenue since Phase 2 start
+target to date  =  Investment ÷ 91  ×  days elapsed
+
+ROI %  =  value to date ÷ target to date  −  1
+ROI $  =  value to date  −  target to date</div>
+      <p style="margin-top:9px">Surplus reads green, shortfall reads red, and the target never exceeds the full
+      investment — past day 91 it stops growing rather than pretending the guarantee keeps compounding.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Open — flagged, not silently decided</h2>
+  <div class="panel">
+    <ul>
+      <li><strong>"Total Revenue since start of Phase 2" — total, or attributable?</strong> Taken here as
+      <em>attributable</em> revenue. Crediting Phase 2 with the client's entire top line would clear the
+      guarantee on day one for any business already making money, which would make the number meaningless to
+      show them. Say the word and it flips.</li>
+      <li><strong>Where do the actuals come from?</strong> Estimates are what you sell on; the running ROI needs
+      real hours-saved and revenue per client. That is the plumbing Q40's component webhooks were already
+      going to carry — worth wiring the same seam rather than a second one.</li>
+      <li><strong>Phase 2 price is open</strong> (Rob, 7/25 — partner is writing the pricing logic). The $9,100
+      default here is a placeholder chosen so the per-day target reads cleanly at $100/day.</li>
+      <li><strong>Revenue-lift figures are the softest inputs on the page</strong> — they are per-automation
+      judgement, not published data, which is exactly why every one of them is an editable field and why the
+      labor half is sourced separately.</li>
+    </ul>
+  </div>
+</section>
+
+<footer>
+  Wage data: U.S. Bureau of Labor Statistics, <a href="https://www.bls.gov/oes/">Occupational Employment and Wage
+  Statistics</a>, May 2025 release — median hourly wage, pulled via the BLS public API 2026-07-25. Arithmetic
+  source of truth: <span class="mono">lib/roi/phase2.ts</span> (pure, 20 passing tests) — this page mirrors it.
+  Formula from Rob's dump of 2026-07-25 (<span class="mono">docs/plans/sources/ROB-PHASE2-ROI-DUMP-2026-07-25.md</span>),
+  spec in <span class="mono">docs/plans/PHASE2-ROI-ENGINE-SPEC.md</span>. Built by Max · 2026-07-25.
+</footer>
+
+</div>
+
+<script>
+"use strict";
+const DAYS_PER_MONTH = 30.4375;
+
+// BLS OEWS median hourly wage, May 2025 release (mirrors lib/roi/laborRates.ts).
+const ROLES = {
+  "434171": {t:"Receptionists & Information Clerks", r:{naples:18.75, fl:17.70, us:18.27}},
+  "434051": {t:"Customer Service Representatives",   r:{naples:21.00, fl:19.44, us:21.53}},
+  "436014": {t:"Secretaries & Admin Assistants",     r:{naples:22.84, fl:22.07, us:22.86}},
+  "433031": {t:"Bookkeeping & Accounting Clerks",    r:{naples:24.52, fl:23.72, us:24.36}},
+  "435032": {t:"Dispatchers",                        r:{naples:23.29, fl:22.06, us:24.20}},
+  "273031": {t:"Public Relations Specialists",       r:{naples:32.59, fl:30.61, us:35.94}},
+  "131161": {t:"Marketing Specialists / Analysts",   r:{naples:36.19, fl:36.27, us:37.87}},
+  "414012": {t:"Sales Reps, Wholesale & Mfg.",       r:{naples:30.93, fl:30.04, us:34.65}},
+  "419041": {t:"Telemarketers",                      r:{naples:null,  fl:17.10, us:17.04}}
+};
+const REGION_LABEL = {naples:"Naples metro", fl:"Florida", us:"National"};
+const SRC = soc => "https://www.bls.gov/oes/current/oes" + soc + ".htm";
+
+// Seeded from MLE's own offer. Hours and lift are ESTIMATES and editable.
+// hrs = hours a human would spend per week. Deliberately sized for ONE small business
+// (~32 h/wk total ≈ 0.8 FTE), not for a company big enough to have a department.
+// lift = estimated ADDITIONAL revenue per month. Defaults to 0 on purpose — see `suggest`.
+const AUTOMATIONS = [
+  {id:"recep", name:"24/7 AI receptionist", what:"answers every inbound call, books the job", soc:"434171", hrs:7,   lift:0, suggest:1200, why:"~1 after-hours job/mo that would have gone to voicemail"},
+  {id:"mctb",  name:"Missed-call text-back", what:"instant SMS on any missed call, speed-to-lead", soc:"434051", hrs:2,   lift:0, suggest:800,  why:"recovers a share of missed calls that never call back"},
+  {id:"chat",  name:"Website AI chat agent", what:"qualifies and books visitors who would leave", soc:"434051", hrs:4,   lift:0, suggest:600,  why:"conservative: a fraction of one job/mo from web traffic"},
+  {id:"intake",name:"Lead intake → CRM", what:"every form/call/DM lands as a record, no typing", soc:"436014", hrs:3,   lift:0, suggest:0,    why:"time only — no revenue claimed"},
+  {id:"quote", name:"Quote follow-up sequence", what:"chases every unaccepted estimate on a cadence", soc:"414012", hrs:4,   lift:0, suggest:900,  why:"re-closes a small share of dormant estimates"},
+  {id:"review",name:"Review request engine", what:"asks at the right moment, routes the unhappy ones", soc:"273031", hrs:1.5, lift:0, suggest:300,  why:"indirect — rating lift feeding inbound"},
+  {id:"social",name:"Automated social posting", what:"daily posts per profile, no human in the loop", soc:"273031", hrs:5,   lift:0, suggest:0,    why:"time only — attribution too weak to claim revenue"},
+  {id:"invoice",name:"Invoice send + payment chase", what:"issues, reminds, reconciles paid state", soc:"433031", hrs:3,   lift:0, suggest:0,    why:"cash timing, not new revenue"},
+  {id:"remind",name:"Appointment reminders", what:"cuts no-shows on booked jobs", soc:"435032", hrs:2,   lift:0, suggest:400,  why:"recovered no-shows only"}
+];
+
+const $ = id => document.getElementById(id);
+const money = n => (n<0?"-":"") + "$" + Math.abs(n).toLocaleString("en-US",{maximumFractionDigits:0});
+const money2 = n => (n<0?"-":"") + "$" + Math.abs(n).toLocaleString("en-US",{minimumFractionDigits:0,maximumFractionDigits:0});
+const pct = n => (n>=0?"+":"") + (n*100).toFixed(1) + "%";
+const num = (n,d=0) => n.toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});
+
+function rateFor(soc, region){
+  const role = ROLES[soc];
+  const direct = role.r[region];
+  if (direct != null) return {rate:direct, used:region, fellBack:false};
+  const chain = region === "naples" ? ["fl","us"] : ["us"];
+  for (const nx of chain){ if (role.r[nx] != null) return {rate:role.r[nx], used:nx, fellBack:true}; }
+  return null;
+}
+
+function buildRows(){
+  const rows = $("rows");
+  rows.innerHTML = "";
+  for (const a of AUTOMATIONS){
+    const tr = document.createElement("tr");
+    tr.innerHTML =
+      '<td class="name">' + a.name + '<span class="what">' + a.what + '</span></td>' +
+      '<td class="role" id="role-' + a.id + '"></td>' +
+      '<td class="num"><input type="number" min="0" step="0.5" id="hrs-' + a.id + '" value="' + a.hrs + '" aria-label="Human hours per week for ' + a.name + '"></td>' +
+      '<td class="num" id="hsd-' + a.id + '">—</td>' +
+      '<td class="num" id="lab-' + a.id + '">—</td>' +
+      '<td class="num"><input type="number" min="0" step="100" id="lift-' + a.id + '" value="' + a.lift + '" aria-label="Estimated revenue lift per month for ' + a.name + '">' +
+        (a.suggest ? '<span class="suggest">suggest ' + money(a.suggest) + '<br>' + a.why + '</span>' : '<span class="suggest">' + a.why + '</span>') + '</td>' +
+      '<td class="num" id="rev-' + a.id + '">—</td>' +
+      '<td class="num" id="val-' + a.id + '">—</td>' +
+      '<td class="num"><span class="cover" id="cov-' + a.id + '">—</span></td>';
+    rows.appendChild(tr);
+    $("hrs-" + a.id).addEventListener("input", run);
+    $("lift-" + a.id).addEventListener("input", run);
+  }
+}
+
+function run(){
+  const inv = Math.max(0, Number($("inv").value) || 0);
+  const win = Math.max(1, Number($("window").value) || 91);
+  const daysRaw = Math.max(0, Number($("days").value) || 0);
+  const region = $("region").value;
+
+  const effDays = Math.min(daysRaw, win);
+  const perDay = inv / win;
+  const target = perDay * effDays;
+
+  let tHrs = 0, tLabor = 0, tRev = 0, tLift = 0;
+
+  for (const a of AUTOMATIONS){
+    const hpw = Math.max(0, Number($("hrs-" + a.id).value) || 0);
+    const lift = Number($("lift-" + a.id).value) || 0;
+    const rf = rateFor(a.soc, region);
+    const rate = rf ? rf.rate : 0;
+
+    const hrs = (hpw / 7) * daysRaw;
+    const labor = hrs * rate;
+    const rev = (lift / DAYS_PER_MONTH) * daysRaw;
+    const val = labor + rev;
+
+    $("role-" + a.id).innerHTML = ROLES[a.soc].t +
+      '<span class="rate">' + (rf ? "$" + rf.rate.toFixed(2) + "/hr · " + REGION_LABEL[rf.used] +
+      (rf.fellBack ? " (no metro figure published)" : "") : "no published rate") +
+      ' · <a href="' + SRC(a.soc) + '" target="_blank" rel="noopener">BLS</a></span>';
+    $("hsd-" + a.id).textContent = num(hrs, 0);
+    $("lab-" + a.id).textContent = money(labor);
+    $("rev-" + a.id).textContent = money(rev);
+    $("val-" + a.id).textContent = money(val);
+    $("cov-" + a.id).textContent = target === 0 ? "—" : (val / target * 100).toFixed(0) + "%";
+
+    tHrs += hrs; tLabor += labor; tRev += rev; tLift += lift;
+  }
+
+  const value = tLabor + tRev;
+  const roiDollars = value - target;
+  const roiPct = target === 0 ? null : value / target - 1;
+  const good = roiDollars > 0, bad = roiDollars < 0;
+
+  $("tHrs").textContent = num(tHrs, 0);
+  $("tLabor").textContent = money(tLabor);
+  $("tLift").textContent = money(tLift);
+  $("tRev").textContent = money(tRev);
+  $("tValue").textContent = money(value);
+  $("tCover").textContent = target === 0 ? "—" : (value / target * 100).toFixed(0) + "%";
+
+  const pctEl = $("roiPct"), dolEl = $("roiDol");
+  pctEl.textContent = roiPct === null ? "—" : pct(roiPct);
+  pctEl.className = "v " + (roiPct === null ? "" : good ? "good" : bad ? "bad" : "");
+  $("roiPctSub").textContent = roiPct === null
+    ? "day 0 — nothing is owed yet, so there is no ratio to show"
+    : good ? "ahead of the pro-rated target" : bad ? "behind the pro-rated target" : "exactly on the line";
+  dolEl.textContent = money2(roiDollars);
+  dolEl.className = "v " + (good ? "good" : bad ? "bad" : "");
+  $("kpiPct").className = "kpi " + (roiPct === null ? "" : good ? "good" : bad ? "bad" : "");
+  $("kpiDol").className = "kpi " + (good ? "good" : bad ? "bad" : "");
+
+  $("target").textContent = money(target);
+  $("targetSub").textContent = money(perDay) + "/day × " + num(effDays, 0) + " day" + (effDays === 1 ? "" : "s") +
+    " · full target " + money(inv);
+  $("meter").style.width = (win === 0 ? 0 : Math.min(effDays / win, 1) * 100) + "%";
+  $("value").textContent = money(value);
+  $("valueSub").textContent = money(tLabor) + " labor (" + num(tHrs, 0) + " hrs) + " + money(tRev) + " revenue";
+  $("dayPct").textContent = "of " + win + (daysRaw > win ? " — past window" : "");
+
+  const beyond = $("beyond");
+  if (daysRaw > win){
+    beyond.style.display = "block";
+    beyond.innerHTML = "<b>Past the " + win + "-day window.</b> The target stops at the full " + money(inv) +
+      " — it does not keep growing. Read this as final-period performance, not a running clock.";
+  } else { beyond.style.display = "none"; }
+
+  const head = roiPct === null
+    ? "Day 0 — the clock hasn't started"
+    : good ? "Surplus: Phase 2 is ahead by " + money2(roiDollars)
+    : bad ? "Shortfall: Phase 2 is behind by " + money2(Math.abs(roiDollars))
+    : "Exactly on the line";
+  $("sumHead").textContent = head;
+  $("sumBody").innerHTML = "Across <b>" + AUTOMATIONS.length + " automations</b>, day <b>" + num(daysRaw,0) +
+    "</b> of " + win + ": the client is owed <b>" + money(target) + "</b> back so far and has received an estimated <b>" +
+    money(value) + "</b> — " + num(tHrs,0) + " labor hours that nobody had to work (" + money(tLabor) +
+    " at " + REGION_LABEL[region] + " wages) plus " + money(tRev) + " of attributable revenue.";
+  $("sumMath").textContent =
+    "value  = " + money(tLabor) + " labor  +  " + money(tRev) + " revenue  =  " + money(value) + "\n" +
+    "target = " + money(inv) + " ÷ " + win + " × " + num(effDays,0) + " days           =  " + money(target) + "\n" +
+    "ROI $  = " + money(value) + " − " + money(target) + " = " + money2(roiDollars) + "\n" +
+    "ROI %  = " + (roiPct === null ? "n/a on day 0" : money(value) + " ÷ " + money(target) + " − 1 = " + pct(roiPct));
+}
+
+$("days").addEventListener("input", () => { $("daysRange").value = $("days").value; run(); });
+$("daysRange").addEventListener("input", () => { $("days").value = $("daysRange").value; run(); });
+["inv","window","region"].forEach(id => $(id).addEventListener("input", run));
+$("loadSuggest").addEventListener("click", () => {
+  for (const a of AUTOMATIONS) $("lift-" + a.id).value = a.suggest || 0;
+  run();
+});
+$("clearRev").addEventListener("click", () => {
+  for (const a of AUTOMATIONS) $("lift-" + a.id).value = 0;
+  run();
+});
+buildRows();
+run();
+</script>
+</html>
