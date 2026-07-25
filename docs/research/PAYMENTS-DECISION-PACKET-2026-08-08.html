@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Payment Processing Layer — Go/No-Go Packet · decision 2026-08-08</title>
+<style>
+  :root{
+    --paper:#F5F7FB; --card:#FFFFFF; --line:#DCE2EE;
+    --tx:#18202F; --tx2:#55617A; --tx3:#8A94AB;
+    --accent:#3E6FE0; --accent-soft:#E5EBFB;
+    --ok:#199A55; --ok-bg:#E3F4EA;
+    --bad:#D64545; --bad-bg:#FBE7E7;
+    --warn:#C98A1B; --warn-bg:#F9F0DC;
+    --own:#7C4DD8; --own-bg:#EFE8FB;
+    --code-bg:#EEF1F8;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#0B1220; --card:#131C2E; --line:#243350;
+      --tx:#E6EBF5; --tx2:#9AA7C2; --tx3:#66738F;
+      --accent:#6E96F5; --accent-soft:#1B2A4A;
+      --ok:#4CC98A; --ok-bg:#12301F;
+      --bad:#F07575; --bad-bg:#3A1A1A;
+      --warn:#E5B355; --warn-bg:#332708;
+      --own:#A784EC; --own-bg:#261A40;
+      --code-bg:#0F1728;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--tx);
+       font-family:-apple-system,"SF Pro Text",system-ui,"Segoe UI",Roboto,sans-serif;font-size:15px;line-height:1.5}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 22px 64px}
+  a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
+  a:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+  .mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+
+  header.hero{background:#0B1220;color:#E6EBF5}
+  header.hero .wrap{padding-top:34px;padding-bottom:30px}
+  .eyebrow{font-family:ui-monospace,Menlo,monospace;font-size:10.5px;letter-spacing:.18em;
+           text-transform:uppercase;color:#7FA0F2;margin:0 0 11px;display:flex;flex-wrap:wrap;gap:14px}
+  h1{font-size:clamp(23px,3.3vw,33px);font-weight:800;letter-spacing:-.022em;line-height:1.14;
+     margin:0 0 12px;max-width:30ch;text-wrap:balance;color:#F2F5FC}
+  h1 em{font-style:normal;color:#8FB0F7}
+  .hero p{max-width:78ch;color:#AAB6D3;margin:0 0 16px;font-size:15.5px}
+  .hero strong{color:#F2F5FC}
+  .statrow{display:flex;flex-wrap:wrap;gap:8px}
+  .stat{background:rgba(110,150,245,.10);border:1px solid rgba(110,150,245,.28);border-radius:6px;
+        padding:6px 12px;font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#C7D4F0}
+  .stat b{color:#fff}
+
+  section{margin-top:30px}
+  h2{font-size:11.5px;font-family:ui-monospace,Menlo,monospace;letter-spacing:.16em;text-transform:uppercase;
+     color:var(--tx2);margin:0 0 14px;display:flex;align-items:baseline;gap:10px}
+  h2::after{content:"";flex:1;height:1px;background:var(--line)}
+
+  .grid{display:grid;gap:13px;grid-template-columns:repeat(auto-fit,minmax(272px,1fr))}
+  .rec{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--accent);
+       border-radius:9px;padding:14px 16px 13px;display:flex;flex-direction:column}
+  .rec .n{font-family:ui-monospace,Menlo,monospace;font-size:10.5px;letter-spacing:.14em;
+          text-transform:uppercase;color:var(--tx3);margin:0 0 6px}
+  .rec h3{font-size:16px;font-weight:750;letter-spacing:-.012em;margin:0 0 8px;line-height:1.28;text-wrap:balance}
+  .rec p{margin:0 0 9px;font-size:13.5px;color:var(--tx2)}
+  .rec p strong{color:var(--tx)}
+  .rec ul{margin:0 0 9px;padding-left:17px;font-size:13px;color:var(--tx2)}
+  .rec li{margin-bottom:4px}
+  .rec .num{font-family:ui-monospace,Menlo,monospace;font-size:19px;font-weight:700;
+            color:var(--tx);letter-spacing:-.02em;margin:0 0 2px}
+  .rec .num span{font-size:12px;color:var(--tx3);font-weight:400;letter-spacing:0}
+  .ev{margin-top:auto;padding-top:9px;border-top:1px dashed var(--line);
+      font-size:11.5px;color:var(--tx3);font-family:ui-monospace,Menlo,monospace;line-height:1.7}
+  .ev b{color:var(--tx2);font-weight:600}
+
+  .pill{display:inline-block;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;
+        letter-spacing:.06em;text-transform:uppercase;padding:2.5px 7px;border-radius:4px;margin:0 4px 4px 0}
+  .pill.ok{background:var(--ok-bg);color:var(--ok)} .pill.bad{background:var(--bad-bg);color:var(--bad)}
+  .pill.warn{background:var(--warn-bg);color:var(--warn)} .pill.own{background:var(--own-bg);color:var(--own)}
+
+  .callout{background:var(--card);border:1px solid var(--line);border-radius:9px;padding:15px 17px;margin-top:13px}
+  .callout.hot{border-left:3px solid var(--warn);background:var(--warn-bg)}
+  .callout.stop{border-left:3px solid var(--bad);background:var(--bad-bg)}
+  .callout h3{font-size:15px;font-weight:750;margin:0 0 7px;letter-spacing:-.01em}
+  .callout p,.callout li{font-size:13.5px;color:var(--tx2);margin:0 0 7px}
+  .callout ul{margin:0;padding-left:18px}
+  .callout strong{color:var(--tx)}
+
+  table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);
+        border-radius:9px;overflow:hidden;font-size:13px}
+  th{text-align:left;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;letter-spacing:.1em;
+     text-transform:uppercase;color:var(--tx3);padding:9px 12px;border-bottom:1px solid var(--line);font-weight:600}
+  td{padding:9px 12px;border-bottom:1px solid var(--line);color:var(--tx2);vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  td strong{color:var(--tx)}
+  td.r{text-align:right;font-family:ui-monospace,Menlo,monospace}
+  tr.hi td{background:var(--accent-soft)}
+
+  footer{margin-top:34px;padding-top:16px;border-top:1px solid var(--line);
+         font-size:11.5px;color:var(--tx3);font-family:ui-monospace,Menlo,monospace;line-height:1.85}
+  footer a{color:var(--tx2)}
+  @media print{header.hero{background:#0B1220 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+               body{font-size:11pt} section{margin-top:16px}}
+</style>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="eyebrow">
+      <span>Payment Processing Layer · ADD-ON</span>
+      <span>DD closed 2026-08-04 · <b style="color:#F2F5FC">DECISION 2026-08-08</b></span>
+      <span>Packet built 2026-07-25</span>
+    </p>
+    <h1>Start as a $0 independent agent. Take the revenue now — <em>buy the switching costs later.</em></h1>
+    <p>Four recommendations, each with its evidence. The headline: this add-on is <strong>downstream of P1, not
+    in competition with it</strong> — every scenario below scales with one variable, MLE's customer count, so an
+    hour moved off P1 lowers the payments outcome too. Nothing here is signed, no processor is committed, and
+    no money field moved. <strong>Two calls are yours to make</strong> (bottom right).</p>
+    <div class="statrow">
+      <div class="stat">Residual <b>$35–50</b>/merchant/mo</div>
+      <div class="stat">Today: <b>~4</b> merchants ≈ <b>$140–200</b>/mo</div>
+      <div class="stat">Book sells at <b>25–40×</b> monthly</div>
+      <div class="stat">ISO rung breakeven <b>50–70</b> merchants (<b>3×</b> the network)</div>
+      <div class="stat">Counterparties verifiable: <b>0 of 5</b></div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<section>
+  <h2>The four recommendations</h2>
+  <div class="grid">
+
+    <div class="rec">
+      <p class="n">Rec 1 · the rung</p>
+      <h3>$0 independent agent — on multiple Schedule A's</h3>
+      <p><span class="pill ok">recommend</span><span class="pill bad">not registered ISO</span><span class="pill bad">not PayFac</span></p>
+      <p>Four independent legs, none of which depend on the blocked research:</p>
+      <ul>
+        <li><strong>Counterparty risk</strong> — 5 of 5 candidates settle none of the four non-negotiables in
+          public. $0 across several papers is the only rung where an unverifiable counterparty is survivable.</li>
+        <li><strong>Unit economics</strong> — the registered-ISO rung's ~$20–30k/yr needs <strong>50–70
+          merchants</strong> to break even ≈ 3× today's whole network.</li>
+        <li><strong>Zero carrying cost</strong> — hold it free while the denominator grows.</li>
+        <li><strong>Capability limit (must be said out loud)</strong> — at this rung Rob's entity is
+          <strong>speech-limited</strong>: marketing in its own name it may only generate leads, and may not
+          quote a rate, draft or submit a contract. A rep must know this <em>before</em> a call, not during one.</li>
+      </ul>
+      <p><strong>What this rung does NOT buy: any switching cost at all</strong> (see rec 3).</p>
+      <div class="ev"><b>Evidence:</b> DD tracker §3b–§3e (counterparties) · §3g (ISO breakeven) ·
+        §3f (zero lock-in) · §3h + <a href="https://usa.visa.com/dam/VCOM/download/merchants/tpa-registration-program-faqs.pdf">Visa TPA FAQs</a> (speech limit)</div>
+    </div>
+
+    <div class="rec">
+      <p class="n">Rec 2 · the entity</p>
+      <h3>BoostUp Payments signs, alone. MLE and AIVT never touch the processor paper.</h3>
+      <p><span class="pill own">BoostUp signs</span><span class="pill warn">Rob's call inside</span></p>
+      <ul>
+        <li><strong>One signature.</strong> The residual book is a saleable asset (25–40× monthly) and
+          non-negotiable #3 — the right to sell the portfolio — is exercised by whoever signed. Don't split an asset.</li>
+        <li><strong>MLE / AI VoiceTech are distribution only</strong>, under a <strong>written arm's-length
+          intercompany referral agreement</strong> — MLE's own customers <em>are</em> the merchants, so MLE sits
+          on the merchant side of the relationship BoostUp earns on. Undocumented that's a conflict in one
+          owner's head; documented it's an ordinary referral fee.</li>
+        <li><strong>Plumbing stays uncrossed</strong> — no shared email/DNS/tooling between the identities
+          (post-2026-07-08 crossover incident). Strategy may span the businesses; infrastructure may not.</li>
+      </ul>
+      <p><strong>The real question isn't who signs — it's whose NAME is on the pitch.</strong> "MLE takes card
+      payments for you" becomes unregistered ISO activity the second anyone quotes a rate, and the
+      <em>acquirer</em> eats the fine. Escaping that fork = $5,000 initial + $5,000/yr at Visa alone, per entity,
+      per region; the DBA shortcut is closed — <em>"a DBA is not a separate legal entity."</em></p>
+      <div class="ev"><b>Evidence:</b> §3h · <a href="https://usa.visa.com/dam/VCOM/download/merchants/tpa-registration-program-faqs.pdf">Visa TPA Registration FAQs</a>
+        (read via the identical <a href="https://www.visa.pt/dam/VCOM/download/merchants/tpa-registration-program-faqs.pdf">visa.pt mirror</a>, May 2016 ed. — usa.visa.com 403s automated fetch; <b>fees are order-of-magnitude until a human pull</b>) · <code>rules/email-identity.md</code></div>
+    </div>
+
+    <div class="rec">
+      <p class="n">Rec 3 · the switching-cost mechanic</p>
+      <h3>It's the AI agent transacting — and it is <em>not</em> available at rung 1</h3>
+      <p><span class="pill ok">mechanic named</span><span class="pill bad">zero at rung 1</span></p>
+      <p><strong>Named concretely:</strong> AIDRE takes the deposit on the call; AIVA closes the booking with a
+      card in the chat. What Rob sells is <em>a booked-and-paid job</em>, inseparable from the rail the agent
+      charges on — a roofer can't keep "the receptionist that collects the deposit" and move processing. This
+      mechanic is unique to Rob's stack and unavailable to an ordinary ISO.</p>
+      <ul>
+        <li>✅ #2 second brain as revenue system-of-record (Q40) — real, medium, half-built</li>
+        <li>⚠️ #3 data-derived money products — the strongest in the industry, out of reach (needs PayFac-band volume + capital)</li>
+        <li>❌ #4 dual pricing is <strong>not</strong> lock-in — it's the acquisition wedge, and it's symmetric: whatever it lets Rob take, it lets the next agent take back</li>
+      </ul>
+      <p><strong>The catch that governs rec 1:</strong> every mechanic needs Rob's software to <em>program</em>
+      the rail — a PayFac-as-a-Service posture. At the $0 rung he refers to someone else's rail and adds
+      <strong>zero</strong> switching cost. So Rob's thesis splits: <strong>revenue half = now; switching-cost
+      half = a Phase-2+ engineering decision, not a signature.</strong></p>
+      <div class="ev"><b>Evidence:</b> §3f ·
+        <a href="https://www.visa.co.uk/content/dam/VCOM/regional/ve/unitedkingdom/PDF/vca/uk-vca-verticalization-whitepaper.pdf">Visa VCA</a> +19pp vol / 5% less attrition ·
+        <a href="https://www.bcg.com/publications/2025/moving-embedded-finance-from-promise-practice">BCG×Adyen 2025</a> 2.5× retention ·
+        <a href="https://www.clearlypayments.com/blog/what-merchant-churn-looks-like-by-vertical-2026-industry-report/">Clearly Payments 2026</a> 2–4× retention, contractors churn <b>15–30%/yr</b> ·
+        <a href="https://www.apideck.com/blog/embedded-finance-vertical-saas">Apideck</a> attach <i>"below 20%"</i></div>
+    </div>
+
+    <div class="rec">
+      <p class="n">Rec 4 · the revenue model</p>
+      <h3>~4 merchants ≈ $140–200/mo today. Worth starting; not worth an hour off P1.</h3>
+      <p class="num">$35–50 <span>per merchant / month, net of split</span></p>
+      <p>Two unrelated methods converge: $70 gross margin × the <em>"about 50%"</em> industry split (~$35), and
+      $30k/mo processing × the <strong>15 bps</strong> ISO profitability floor (~$45). Both are <em>before</em>
+      BIN sponsorship (1–5 bps) and per-item fees — so <strong>$35 is the planning number, $50 the ceiling.</strong></p>
+      <table style="margin:2px 0 9px">
+        <tr><th>Scenario</th><th class="r">Merch.</th><th class="r">$/mo</th><th class="r">Book @25–40×</th></tr>
+        <tr class="hi"><td><strong>Realistic near-term</strong><br><span style="font-size:11.5px">sub-20% attach on 19 orgs</span></td><td class="r">~4</td><td class="r"><strong>140–200</strong></td><td class="r">4–8k</td></tr>
+        <tr><td>Every current org converts <span style="font-size:11.5px">(not a forecast)</span></td><td class="r">19</td><td class="r">665–950</td><td class="r">17–38k</td></tr>
+        <tr><td>Industry "successful agent"</td><td class="r">100</td><td class="r">3.5–5k</td><td class="r">88–200k</td></tr>
+      </table>
+      <p><strong>Denominator is first-party</strong> — 19 orgs / 8 deals counted directly against prod Supabase
+      on 2026-07-25, not an industry guess. At 15–30%/yr churn Rob replaces ~1 in 5 merchants a year just to
+      stay flat. A circulating <em>"$23,000 avg monthly card spend"</em> figure was <strong>rejected</strong>:
+      it measures businesses <em>spending on</em> cards as buyers, not accepting them as sellers.</p>
+      <p><strong>So monthly cash is the wrong question.</strong> The book is an asset at 25–40× monthly, driven
+      by exactly one variable — how many customers MLE has.</p>
+      <div class="ev"><b>Evidence:</b> §3g ·
+      <a href="https://www.ccsalespro.com/blog/much-residual-can-make-selling-merchant-services-merchant-services-sales-commission">CCSalesPro margin+split</a> ·
+      <a href="https://strictlyzero.com/announcements/payments-announcements/how-to-calculate-payment-residuals-the-definitive-iso-guide-for-2026/">Strictly 2026 ISO guide</a>
+      (15 bps floor, 25–40× multiple) · prod Supabase count 2026-07-25</div>
+    </div>
+
+  </div>
+</section>
+
+<section>
+  <h2>What is still open — and what it can and cannot change</h2>
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(330px,1fr))">
+    <div>
+      <div class="callout hot">
+        <h3>⏱ Rob's two calls — these are the packet</h3>
+        <ul>
+          <li><strong>1. Confirm the rung:</strong> $0 independent agent now, switching-cost integration
+            re-opened as a separate Phase-2+ engineering decision. (Recommended.)</li>
+          <li><strong>2. Own-name lead-gen vs. marketing under the ISO's name.</strong> Real brand consequence,
+            not a formality: own-name means MLE/AIVT introduce and hand off and <em>quote nothing</em>;
+            ISO-name means the merchant sees the ISO's brand on the relationship.</li>
+        </ul>
+        <p style="margin-bottom:0">Once ruled, the decision is recorded in the PRD Decisions Log and the daily
+        nudge lines delete themselves.</p>
+      </div>
+      <div class="callout stop">
+        <h3>🔒 House limit — restated</h3>
+        <p style="margin-bottom:0">This packet produces <strong>evidence, never a signature</strong>. No
+        agreement signed, no processor committed, no money field moved. No entity chosen — rec 2 is a
+        recommendation for Rob, not an action taken.</p>
+      </div>
+    </div>
+    <div>
+      <table>
+        <tr><th>Open leg</th><th>Why it's open</th><th>Moves a rec?</th></tr>
+        <tr><td><strong>Amplipay chase</strong> — sponsor bank + acquiring BIN <em>in writing</em>, ISO/MSP
+            disclosure language, who counter-signs (AmpliPay Inc. vs eDataPay), ISO vs HR-ISO boarding, count
+            + volume, residual on <em>their</em> termination</td>
+          <td>Booking submitted 7/24 — <strong>chase 7/28</strong> if silent. No Schedule A review is worth
+            doing before the bank answer lands.</td>
+          <td><strong>Which counterparty</strong> — not the rung, not the arithmetic</td></tr>
+        <tr><td>OTC:APGP disclosure docs <span class="mono">484380 / 506506</span></td>
+          <td>otcmarkets.com has served a site-wide <em>"Temporarily Unavailable"</em> page for 4 consecutive
+            runs (platform outage, verified — not a block on us). Unread, nothing quoted. Fallback: ask
+            Amplipay for the filings on the 7/28 call.</td>
+          <td>No</td></tr>
+        <tr><td>3 human-browser pulls: Shift4 Authorized-Partner / SkyTab T&amp;Cs · cardpaymentoptions SignaPay review · current US Visa TPA FAQ</td>
+          <td>All HTTP 403 to automated fetch. Needs a real browser session.</td>
+          <td>Sharpens rec 2's fee figures; does not reverse a rec</td></tr>
+        <tr><td>Rob's OpenRouter room + the ChatGPT conversation behind "Amplipay + Shift4 still in the running"</td>
+          <td><strong>Rob-only</strong> — session-scoped / 403. His own match criteria are invisible to Max and
+            are never inferred.</td>
+          <td>Explains <em>why those two</em>; changes no number</td></tr>
+      </table>
+      <div class="callout">
+        <h3>The pattern that decided rec 1</h3>
+        <p style="margin-bottom:0">Five counterparties diligenced — Amplipay/eDataPay, Shift4, Maverick,
+        SignaPay — and <strong>the public record settles none of the four non-negotiables for any of them</strong>
+        (lifetime vested residuals · no clawing production minimums · portfolio sale rights · sub-agent
+        Schedule A rights). Shift4 is the sharpest case: it has the balance sheet and has a documented record
+        of cancelling ancillary residual streams by memo. <strong>The Schedule A decides, not the pitch.</strong></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  Sources and full working: <a href="./PAYMENTS-LAYER-DD-2026-07-25.md">DD tracker §3a–§3h + §5 checklist</a> ·
+  <a href="./payments-deep-research-2026-07-23.md">4-agent / ~130-source landscape research (2026-07-23)</a> ·
+  <a href="./payments-landscape-2026-07-23.html">landscape visual</a> · queue items Q60 (DD) / Q61 (this packet).<br>
+  Every figure above carries a traceable originator; rejected figures are named as rejected, not quietly dropped.
+  Fee figures from the May-2016 Visa FAQ edition are order-of-magnitude pending a human pull of the current US edition.<br>
+  Built by Max · 2026-07-25 · decision due <strong style="color:var(--tx2)">2026-08-08</strong> · nothing in this document has been signed or committed.
+</footer>
+
+</div>
+</html>
