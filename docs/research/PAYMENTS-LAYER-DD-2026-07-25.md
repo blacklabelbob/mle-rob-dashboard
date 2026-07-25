@@ -205,6 +205,58 @@ history is real, documented, and it collides head-on with three of Rob's four no
 
 ---
 
+## 🔴 3c. Amplipay — merchant count / processing volume: CHECKLIST LINE CLOSED (Max, 2026-07-25)
+
+Item 4 of the five in §3 ("actual merchant count / processing volume — verifiable, third-party, not
+self-reported"). **Answer: there is no merchant count to verify — not a low one, none at all.** No
+third-party figure exists, and the company's own corporate site publishes its scale as literal zeros.
+
+| Verified fact | Source |
+|---|---|
+| The corporate site's own metrics band renders **"0+ World Active User", "0+ Customers", "0% Satisfaction"** — unpopulated template placeholders standing where a scale claim belongs | [amplipaygroup.com](https://amplipaygroup.com/) (fetched 2026-07-25) |
+| A **second, separate domain** exists alongside the `amplipay.ai` site used for §3 — `amplipaygroup.com` — with the `.ai` site listed only as the support-email domain (`support@amplipay.ai`). Two front doors, one company, no shared numbers | [amplipaygroup.com](https://amplipaygroup.com/) |
+| The operating substance appears to sit in a named brand/subsidiary: **eDataPay** (Boca Raton — same city as Amplipay per §3) | [amplipaygroup.com](https://amplipaygroup.com/) "Our Brands" |
+| eDataPay is a **high-risk / hard-to-place merchant specialist** ("high-risk, high-volume, and hard-to-place merchants", US + international acquiring), running its own ISO/reseller program | [edatapay.com](https://edatapay.com/), [edatapay.com/partners](https://edatapay.com/partners/) |
+| eDataPay claims **"over 18 years of experience"** but publishes **no merchant count, no founding year, no processing volume, and names no acquiring or sponsor bank** — only a "broad U.S. and international banking network" | [edatapay.com/about](https://edatapay.com/about/) (fetched 2026-07-25) |
+| eDataPay markets a joint dispute-management product **"with AmpliPay Group tools"** (Visa/Mastercard/Verifi/Ethoca) — an independent corroboration that the two are operationally linked, and the only one found | [edatapay.com](https://edatapay.com/) |
+| The ticker also surfaces as **OSKAD** on a market-data vendor — the temporary D-suffix symbol used after a name change / reverse split, independently corroborating §3a's 2025-06-12 Osyka→AmpliPay event | [marketscreener.com](https://www.marketscreener.com/quote/stock/AMPLIPAY-GROUP-INC-120793168/) |
+
+### Refinement of §3a — one claim there was too broad
+
+§3a said there are "no financials to pull." That is exactly right **for SEC filings** and stands. But this
+run surfaced **two OTC Markets disclosure-report documents for APGP** (report ids `484380` and `506506`) —
+so the issuer *does* appear to file under OTC's **alternative reporting** standard, which is not SEC
+reporting and is not audited to the same bar, but is not nothing. **Their contents are unread**: OTC
+Markets was returning a site-wide *"Temporarily Unavailable"* page for the whole session (verified by
+direct request, not an access block on us). Recorded as a **retry**, not a finding — no number from those
+documents is quoted or implied anywhere in this tracker. Next driver run should re-attempt both URLs.
+
+### What this changes
+
+- **The merchant-count line closes as a negative, and that is itself the finding.** Every other candidate
+  in the 7/23 field can be sized from public data. This one cannot be sized at all — the residual counter-
+  party's book is invisible from outside, and after §3a the balance sheet behind it is ~$82k.
+- **The high-risk profile is a new, unasked-for fact and it cuts both ways.** High-risk acquiring carries
+  the fattest agent splits in the industry — which is plausibly what makes Amplipay attractive — and also
+  the highest attrition, chargeback exposure, and reserve/clawback risk. It is materially different from
+  the roofing/title SMB book Rob would actually be bundling. **Non-negotiable #2 (no production minimums
+  that claw) is a different question against a high-risk portfolio than a standard one**, and must be
+  asked that way.
+- **Two new call-agenda items** (joining the three from §3a): (1) *how many live merchants and what monthly
+  processed volume, in writing?* (2) *what is the relationship between AmpliPay Group Inc. and eDataPay —
+  ownership, acquisition, or brand licence — and which entity would counter-sign the Schedule A?* That
+  second one is now as load-bearing as the sponsor-bank question: if eDataPay is the operator and AmpliPay
+  the listed shell, **the entity on the residual paper decides whether the residual is worth anything.**
+
+**NOT a disqualification.** A privately-held book being invisible to search is normal; a *public* issuer's
+book being invisible while its own site reads "0 Customers" is a question, and Rob's 7/24 booking is the
+right place to ask it. Everything in this section is public-record only — **nothing here reflects the
+OpenRouter/ChatGPT criteria Max still cannot read.**
+
+**House limit honoured:** nothing signed, no processor committed, no money field moved.
+
+---
+
 ## 4. Identity / entity structure — decision Rob must make
 
 The 7/23 research explicitly filed the processor play in the **BoostUp Payments** lane
@@ -235,7 +287,8 @@ strategy that spans the businesses. Do not let the two get conflated in either d
 - [ ] Resolve: were **Maverick** and **SignaPay** rejected on merits, or never surfaced?
 - [ ] **Amplipay**: sponsor bank named in writing — ⬆️ **now the top agenda item** (§3a: an ~$82k-cap issuer means the sponsor bank is the only capitalized party in the chain); re-searched 2026-07-25, nowhere public
 - [x] **Amplipay**: OTC:APGP financials pulled (going-concern, cash, dilution) — **CLOSED 2026-07-25, see §3a.** Answer: *there are none to pull.* Not an SEC reporting company (only EDGAR "Osyka" registrant filed Form 15-15D in 2008; last financials on EDGAR are a 10-QSB for Q3 2000). Issuer is a **1990 oil-and-gas shell renamed from Osyka Corporation on 2025-06-12** with a 1-for-500 reverse split, **market cap ≈ US$82,190**, net income ≈ −$127k/qtr
-- [ ] **Amplipay**: merchant count / volume independently verified
+- [x] **Amplipay**: merchant count / volume independently verified — **CLOSED 2026-07-25, see §3c.** Answer: *there is no count to verify.* No third-party figure exists; the company's own corporate site (`amplipaygroup.com`, a second domain alongside `amplipay.ai`) renders **"0+ Customers / 0+ World Active User / 0% Satisfaction"** template placeholders. Operating substance appears to sit in named brand **eDataPay** (Boca Raton) — a **high-risk / hard-to-place merchant specialist** claiming "over 18 years" but publishing no merchant count, no volume, and no acquiring bank. Two new agenda items: merchant count + volume **in writing**, and **which entity (AmpliPay Inc. vs eDataPay) counter-signs the Schedule A**
+- [ ] **Amplipay**: read the two **OTC Markets alternative-reporting disclosure documents** (report ids `484380`, `506506`) — they exist (refines §3a's "no financials": none at the **SEC**, but OTC alt-reporting filings are on file). Unread this run: otcmarkets.com served a site-wide *"Temporarily Unavailable"* page all session. **Retry next run** — no figure from them is quoted anywhere until read
 - [ ] **Amplipay**: booking held (submitted 7/24 — chase if no reply by 7/28)
 - [x] **Shift4**: partner-contract history flag investigated (7/23 raised it, never closed) — **CLOSED 2026-07-25, see §3b.** Answer: *the history is real and adverse.* Feb 2022 Shift4 unilaterally discontinued ancillary-fee residual streams effective 4/1/2022 and replaced them with a one-time buyout carrying a **10-year** merchant non-solicit (industry norm 16–42 months); SEC filings describe buying out **"over a hundred"** partners' residual obligations plus non-solicitation rights; 2018 antitrust suit (Payment Logistics, S.D. Cal.) over cutting independent interfaces out of the channel; Jan 2025 **$750k SEC penalty** for undisclosed related-person residual commissions. **Fails non-negotiables 1 and 3 on conduct; 2 and 4 remain unknown (T&C PDFs are 403 to automated fetch).**
 - [ ] **Both**: Schedule A obtained and scored against the 4 non-negotiables — *Shift4 partially scored from public conduct (§3b); the actual Authorized Partner T&Cs PDF needs a human/browser download (HTTP 403)*
@@ -265,3 +318,23 @@ add-on with a switching-cost story attached, which is a materially different (an
   deregistered via Form 15-15D in 2008). EDGAR CIK linkage explicitly marked unconfirmed — address/SIC
   mismatch stated rather than smoothed. Sponsor-bank line promoted to top agenda item; residual-
   survivability line escalated to essential. Posted to the ledger as a high-severity flag.
+- 2026-07-25 (driver inc.2) — **§3b added; the Shift4 partner-contract-history line is CLOSED**
+  *(row backfilled by inc.3 — inc.2 wrote §3b and the checklist but missed this changelog entry; the
+  omission is recorded rather than silently patched).* Feb 2022 unilateral discontinuation of ancillary-
+  fee residual streams effective 4/1/2022, replaced by a one-time buyout with a **10-year** merchant
+  non-solicit; SEC filings describe buying out "over a hundred" partners' residual obligations; 2018
+  antitrust suit (Payment Logistics, S.D. Cal.); Jan 2025 **$750k SEC penalty** for undisclosed
+  related-person residual commissions. **Fails non-negotiables 1 and 3 on conduct; 2 and 4 UNKNOWN**
+  (Authorized Partner / SkyTab T&C PDFs are HTTP 403 to automated fetch — needs a human browser pull).
+  Posted to the ledger as a high-severity flag.
+- 2026-07-25 (driver inc.3) — **§3c added; the Amplipay merchant-count/volume line is CLOSED, as a
+  negative.** No third-party figure exists and the corporate site `amplipaygroup.com` (a **second domain**
+  beside `amplipay.ai`) publishes **"0+ Customers / 0+ World Active User / 0% Satisfaction"** placeholders.
+  Operating substance appears to be brand/subsidiary **eDataPay** (Boca Raton) — a **high-risk merchant
+  specialist** claiming "over 18 years", publishing no count, no volume, no acquiring bank; its joint
+  "with AmpliPay Group tools" dispute product is the only independent corroboration of the link. Ticker
+  **OSKAD** corroborates §3a's name-change/reverse-split. **§3a refined:** two OTC alternative-reporting
+  disclosure docs (`484380`, `506506`) DO exist — none at the SEC still stands — but they are **unread**
+  (otcmarkets.com served a site-wide "Temporarily Unavailable" page all session); logged as a retry with
+  no figure quoted. Two new agenda items: count+volume in writing, and **which entity counter-signs the
+  Schedule A**. Posted to the ledger as a high-severity flag.
