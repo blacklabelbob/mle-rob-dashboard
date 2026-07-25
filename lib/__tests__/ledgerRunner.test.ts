@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import type { InvoiceLedgerRow } from "../readModel/invoiceLedger";
 import {
+  previewLedgerSync,
   runLedgerSync,
   runNeedsAttention,
   type LedgerRunRecord,
@@ -255,5 +256,46 @@ describe("runNeedsAttention", () => {
     expect(runNeedsAttention(second)).toBe(true);
     if (second.outcome !== "applied") throw new Error("expected applied");
     expect(second.plan.summary.material).toBe(1);
+  });
+});
+
+describe("previewLedgerSync", () => {
+  it("returns the same plan the run would apply, and writes nothing", async () => {
+    const preview = harness();
+    const previewed = await previewLedgerSync(preview.input);
+    expect(previewed.outcome).toBe("planned");
+    // The whole point: a preview that touched prod would be a write nobody asked for.
+    expect(preview.calls.applied).toHaveLength(0);
+    expect(preview.calls.recorded).toHaveLength(0);
+
+    const run = harness();
+    const applied = await runLedgerSync(run.input);
+    if (previewed.outcome !== "planned" || applied.outcome !== "applied") {
+      throw new Error("expected planned + applied");
+    }
+    // Preview and run share one code path — a clean preview cannot become a
+    // surprise write, and vice versa.
+    expect(previewed.plan).toEqual(applied.plan);
+    expect(previewed.log).toBe(applied.log);
+  });
+
+  it("surfaces a read failure instead of pretending there is nothing to sync", async () => {
+    const h = harness({ readThrows: "ENOENT: no such file" });
+    const previewed = await previewLedgerSync(h.input);
+    expect(previewed.outcome).toBe("read_failed");
+    expect(previewed.log).toContain("ENOENT");
+    expect(h.calls.recorded).toHaveLength(0);
+  });
+
+  it("previews a refusal without recording the run the real path would record", async () => {
+    // Empty read against a stored ledger — the decision core's refusal.
+    const seeded = await runLedgerSync(harness().input);
+    if (seeded.outcome !== "applied") throw new Error("expected applied");
+    const header = REAL_LEDGER.split("\n")[0] + "\n";
+    const h = harness({ text: header, stored: seeded.plan.writes, sha256: "c".repeat(64) });
+    const previewed = await previewLedgerSync(h.input);
+    if (previewed.outcome !== "planned") throw new Error("expected planned");
+    expect(previewed.plan.refusalReason).toBeTruthy();
+    expect(h.calls.recorded).toHaveLength(0);
   });
 });

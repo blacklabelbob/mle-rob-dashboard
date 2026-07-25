@@ -62,6 +62,15 @@ flowchart LR
 | **AI Voice Call Law Monitor** `KKDnWT0gYVB1YFvA` | ✅ | Cron `0 13 * * 1` (Mon 9am ET) | 4 RSS reads (FCC, FTC, TCPAWorld, NatLawReview) → merge → AI-voice keyword filter → digest email to Rob + `Package for CRM` → POST `/api/webhooks/voice-law` | x-n8n-secret | `flags` (medium, headline-title dedupe → one flag per story ever) + Gmail to rob@aivoicetech.io | `Has Matches?` false = silent (Rob's "IF theres changes") |
 | **Error Alarm backstop** `VoOFOPGqObGWe5Jr` | ✅ | errorTrigger (registered errorWorkflow of Uptime Watch, Nightly Backup, Gmail capture) | POST `/api/webhooks/n8n-error` | x-n8n-secret | `flags` (Task 3.6 <15-min alerting DoD) | it IS the failure path |
 
+## Jobs that deliberately are NOT n8n workflows (local, added 2026-07-25)
+
+The 1:1 DoD is about the n8n instance, but a reader looking for "how does the AR data get in?" must not
+come away thinking nothing ingests it. One MC.9 leg runs OFF n8n on purpose:
+
+| Job | Trigger | Reads | Writes | Why not n8n / not a Vercel cron |
+|---|---|---|---|---|
+| **Invoice-ledger sync** `scripts/sync-invoice-ledger.mjs` | manual today (`node scripts/sync-invoice-ledger.mjs` = preview, `--apply` = write); a local scheduler is the MC.14 increment | `invoices/invoice-ledger.csv` in the **contracts** repo (fs + `git rev-parse` for the provenance tag) | `invoice_ledger` + `invoice_ledger_sync_runs` (service role; upsert + withdrawal marks, never a delete) | The contracts repo is not deployed with the dashboard and n8n cloud cannot see the local filesystem either — any hosted trigger could only report a read failure. Runs on the machine holding both checkouts. Exit 1 = needs a human (refusal / read failure / apply failure / requiresReview). |
+
 ## Secret-rotation coupling (registry)
 
 - **CRON_SECRET** rotation touches **3** hardcoded-bearer workflows: `ozMXSpftU2lIbhp2`, `EsDSJQoJwzLkJOhR`, `f99xNvSpKIy95k4Q` (registered Q47).

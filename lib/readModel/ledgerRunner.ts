@@ -101,10 +101,14 @@ export type LedgerRunOutcome =
 
 const errText = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
-/** One pass of the invoicing sync. Never throws: every failure is a named
- *  outcome with a log line, because the caller is a cron route whose only job
- *  is to report what happened. */
-export async function runLedgerSync(input: LedgerRunnerInput): Promise<LedgerRunOutcome> {
+/** The read→digest→plan half, with every failure already turned into its
+ *  outcome. Shared so the preview a human runs before writing money and the
+ *  run that writes it cannot disagree about what the plan is. */
+type Prepared =
+  | { ok: true; plan: LedgerSyncPlan; log: string; record: LedgerRunRecord }
+  | { ok: false; outcome: Extract<LedgerRunOutcome, { outcome: "read_failed" }> };
+
+async function prepareLedgerSync(input: LedgerRunnerInput): Promise<Prepared> {
   const { source, store, syncedAt, sourceRepo, sourcePath } = input;
 
   let read: LedgerRead;
@@ -113,9 +117,12 @@ export async function runLedgerSync(input: LedgerRunnerInput): Promise<LedgerRun
   } catch (e) {
     const error = errText(e);
     return {
-      outcome: "read_failed",
-      error,
-      log: `NO RUN — could not read ${sourceRepo}/${sourcePath}: ${error} · nothing written, no run recorded (no bytes to digest); the previous run remains the newest`,
+      ok: false,
+      outcome: {
+        outcome: "read_failed",
+        error,
+        log: `NO RUN — could not read ${sourceRepo}/${sourcePath}: ${error} · nothing written, no run recorded (no bytes to digest); the previous run remains the newest`,
+      },
     };
   }
 
@@ -127,9 +134,12 @@ export async function runLedgerSync(input: LedgerRunnerInput): Promise<LedgerRun
     // Unknown store state is not an empty store: diffing against a failed load
     // would withdraw every invoice prod holds. Treat it like a failed read.
     return {
-      outcome: "read_failed",
-      error,
-      log: `NO RUN — could not load stored invoices: ${error} · nothing written; an unreadable store is never treated as an empty one`,
+      ok: false,
+      outcome: {
+        outcome: "read_failed",
+        error,
+        log: `NO RUN — could not load stored invoices: ${error} · nothing written; an unreadable store is never treated as an empty one`,
+      },
     };
   }
 
@@ -151,20 +161,53 @@ export async function runLedgerSync(input: LedgerRunnerInput): Promise<LedgerRun
   } catch (e) {
     const error = errText(e);
     return {
-      outcome: "read_failed",
-      error,
-      log: `NO RUN — ${error} · nothing written, no run recorded; an untagged sync looks current forever`,
+      ok: false,
+      outcome: {
+        outcome: "read_failed",
+        error,
+        log: `NO RUN — ${error} · nothing written, no run recorded; an untagged sync looks current forever`,
+      },
     };
   }
 
-  const log = describeSyncPlan(plan);
-  const record: LedgerRunRecord = {
-    provenance: plan.provenance,
-    refusalReason: plan.refusalReason,
-    summary: plan.summary,
-    requiresReview: plan.requiresReview,
-    conflicts: plan.conflicts,
+  return {
+    ok: true,
+    plan,
+    log: describeSyncPlan(plan),
+    record: {
+      provenance: plan.provenance,
+      refusalReason: plan.refusalReason,
+      summary: plan.summary,
+      requiresReview: plan.requiresReview,
+      conflicts: plan.conflicts,
+    },
   };
+}
+
+/** What the sync WOULD do, with nothing written and no run recorded — the
+ *  preview a human reads before authorising money to move. It is the same
+ *  read→digest→plan the real run performs, so a clean preview cannot become a
+ *  surprise write. A read failure surfaces identically. */
+export async function previewLedgerSync(
+  input: LedgerRunnerInput,
+): Promise<
+  | { outcome: "planned"; plan: LedgerSyncPlan; log: string }
+  | Extract<LedgerRunOutcome, { outcome: "read_failed" }>
+> {
+  const prepared = await prepareLedgerSync(input);
+  if (!prepared.ok) return prepared.outcome;
+  return { outcome: "planned", plan: prepared.plan, log: prepared.log };
+}
+
+/** One pass of the invoicing sync. Never throws: every failure is a named
+ *  outcome with a log line, because the caller is a scheduled job whose only
+ *  job is to report what happened. */
+export async function runLedgerSync(input: LedgerRunnerInput): Promise<LedgerRunOutcome> {
+  const { store } = input;
+
+  const prepared = await prepareLedgerSync(input);
+  if (!prepared.ok) return prepared.outcome;
+  const { plan, log, record } = prepared;
 
   if (plan.refusalReason) {
     try {
