@@ -1061,3 +1061,15 @@ served at $0, and the rung that would serve the *other* half has no sourced econ
   are the standardized version of this transaction shape, tracked not depended on. **No new number was
   invented:** §7.3's attach hypothesis is still unsourced and still labelled as such. Q62 unblocked and
   rewritten horizontally; packet addendum updated (recs 1–4 still untouched). Docs-only.
+- 2026-07-25 (driver inc.9) — **§7's deliverable-side capability now has a written spec:
+  `docs/plans/IN-CHAT-COMMERCE-SPEC.md`** (BUILD-QUEUE Q62 DoD legs 1 + 2; PRD 3.1.133). Flow written ONCE,
+  horizontally, money moment as a parameter (discover-or-quote → select-or-scope → pay-in-chat → receipt →
+  CRM activity; stages 3–4 identical in every vertical). Rail named from the 7/23 short-list (Square payment
+  links / Helcim HelcimPay.js) with the posture that **rail selection follows the Schedule A** — a rail Rob
+  cannot board under his own code pays him nothing (§7.7). §7.7's card-data rule promoted to a hard,
+  consequence-pinned constraint (PCI SAQ-A; a card field in our DOM = a new decision; non-collection is the
+  control, redaction only a backstop; the rule binds voice too). The storefront leg is written up with its
+  catch printed: platform-checkout shape can deliver the convenience with **no residual**; charge-then-write
+  shape must answer partial failure first. **No new number invented** — §7.3's attach hypothesis and the
+  matching §5 checklist line stay open and unsourced. Docs-only; nothing signed, no processor committed,
+  no money field moved.
