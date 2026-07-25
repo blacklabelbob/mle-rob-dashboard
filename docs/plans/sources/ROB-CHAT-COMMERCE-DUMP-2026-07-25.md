@@ -50,3 +50,49 @@ status is unchanged and they remain unreadable by Max:
 candidate long-list behind "Amplipay + Shift4 still in the running" — and, if the chat-commerce idea came out
 of the same sessions, they may also hold the *rail* candidates Rob saw for in-chat checkout. Max never infers
 what a transcript said.
+
+---
+
+## ADDENDUM — Rob's correction, same evening (2026-07-25)
+
+**Provenance stated honestly:** the quotes below are **transcribed from the fold in
+`docs/research/PAYMENTS-LAYER-DD-2026-07-25.md` §7.5/§7.7**, written by the run that received them. That run
+was cut off before it captured the raw channel text here, so this addendum is a **faithful copy of the folded
+quotes, not a fresh raw capture** — unlike the block above, which is verbatim-as-received. No quote has been
+paraphrased, extended, or invented; anything Rob said that the fold did not preserve is simply not here.
+
+Rob corrected Max's first read of the dump above. Max had treated *"personal shopper"* as implying a product
+catalog, concluded a **vertical had to be chosen**, and gated Q62 on Rob. **That gate was wrong and is struck,
+not quietly rewritten.**
+
+> *"one of the things we'll be adding for a lot of customers for the websites we spin up is an embedded
+> chatbot. We have customers across every vertical. Some of those will inevitably be ecommerce… I was just
+> using an eCommerce site as an example."*
+
+> *"oh, you want a hoodie, great. what color? Red. what size do you generally wear? XL. ok cool, here are some
+> of our best-selling Red XL hoodies"* — pulling **product image + description** into the chat — *"then give
+> them the ability to make the purchase right from the chatbot."*
+
+> *"there's utility for all sorts of ways to accept payments… we can collect payment before the customer even
+> gets to the checkout page."*
+
+> *"a convenience to the customer, a way to convert on more sales for the business owner, and a profit center
+> for MLE."*
+
+> *"if I'm going to offer that service, I would like to get a piece of the profit from the processing fee…
+> Merchant accounts that you have in your portfolio also have a high multiple attached to them for resale."*
+> (in the context of *"I'm debating signing up as an ISO or a PayFac or whatever"*)
+
+**What changed as a result** — all folded 2026-07-25, same day:
+
+| | Before | After Rob's correction |
+|---|---|---|
+| Q62 status | 🚫 blocked-on-Rob (pick a vertical) | ✅ **not blocked** — engineering + research only |
+| The capability | vertical-specific storefront | **horizontal** add-on to the embedded chatbot on MLE-built sites, trained per vertical |
+| The money moment | undecided | a **parameter**: purchase (retail) · deposit (contractors) · fee (title/RE) · invoice/retainer (services) |
+| Rob's "why" | one reason assumed (MLE revenue) | **three named beneficiaries** — customer convenience, owner conversion, MLE profit center |
+| ISO/PayFac question | open, treated as new | **answered** (§7.7): the residual comes from the **Schedule A, not the rung** — rung 1 pays it at $0; PFaaS is what buys *ownership of the in-chat checkout* |
+
+Two consequences now tracked as §5 checklist lines rather than prose: **NN#3 (third-party portfolio sale
+rights) is promoted to the deal-breaker clause**, and **PFaaS revenue-share economics are UNSOURCED** — the
+one gap that keeps the ISO-vs-PayFac comparison from being honest before 8/8.
