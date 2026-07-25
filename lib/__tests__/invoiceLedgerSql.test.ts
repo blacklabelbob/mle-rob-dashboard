@@ -105,12 +105,16 @@ describe("0012_invoice_ledger.sql holds every field the sync writes", () => {
     expect(SQL).not.toMatch(/to authenticated\b/);
   });
 
-  it("does NOT create rm_invoices_ar yet, and the contract still says blocked", () => {
-    // The panel is test-pinned to `unavailable` until rows actually reach prod.
-    // A view created here would let it claim `live` over an empty table.
+  it("creates the table only — the view stayed out of this migration", () => {
+    // 0012 deliberately shipped the destination WITHOUT the read model: a view
+    // over an empty table is how a fake fifth panel ships. `rm_invoices_ar`
+    // waited for 0013, after the sync had actually run and prod held Rob's real
+    // invoices. Keeping this assertion means the ordering can't be collapsed in
+    // hindsight by someone tidying migrations together.
     expect(SQL).not.toMatch(/create (or replace )?view rm_invoices_ar/);
     const ar = READ_MODELS.find((m) => m.id === "rm_invoices_ar");
-    expect(ar?.coverage).toBe("blocked_no_source");
+    expect(ar?.coverage).toBe("buildable_now");
+    expect(ar?.sourceTables).toEqual(["invoice_ledger"]);
   });
 
   it("accepts a provenance tag built from this table's own constraints", () => {

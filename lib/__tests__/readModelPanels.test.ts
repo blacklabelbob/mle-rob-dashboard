@@ -47,10 +47,21 @@ const PROD_PIPELINE: RmPipelineRow[] = [
 
 describe("panelHeader", () => {
   it("marks a blocked read model unavailable and names what unblocks it", () => {
-    const h = panelHeader("rm_invoices_ar", 0);
+    // AR held this role until 2026-07-25; delivery phases carries it now.
+    const h = panelHeader("rm_delivery_phases", 0);
     expect(h.status).toBe("unavailable");
-    expect(h.unblockedBy).toMatch(/MC\.9/);
-    expect(h.note).toMatch(/invoice-ledger\.csv/);
+    expect(h.unblockedBy).toMatch(/Q40/);
+    expect(h.note).toMatch(/No phase\/component store exists/);
+  });
+
+  it("says empty, not unavailable, for AR now that it has a real table", () => {
+    // The distinction is the whole honest-coverage posture: "we can't build
+    // this" and "we built it and Rob has no invoices" are different sentences.
+    const h = panelHeader("rm_invoices_ar", 0);
+    expect(h.status).toBe("empty");
+    expect(h.unblockedBy).toBeNull();
+    const live = panelHeader("rm_invoices_ar", 2);
+    expect(live.status).toBe("live");
   });
 
   it("marks a live-but-rowless model empty WITH its reason, not live", () => {
@@ -243,12 +254,15 @@ describe("buildEsignPanel", () => {
 });
 
 describe("buildUnavailablePanel", () => {
-  it("returns a real panel for both blocked read models", () => {
-    expect(buildUnavailablePanel("rm_invoices_ar").status).toBe("unavailable");
+  it("returns a real panel for the remaining blocked read model", () => {
+    expect(buildUnavailablePanel("rm_delivery_phases").status).toBe("unavailable");
     expect(buildUnavailablePanel("rm_delivery_phases").unblockedBy).toMatch(/Q40/);
   });
 
   it("refuses to placeholder a read model that is actually buildable", () => {
     expect(() => buildUnavailablePanel("rm_pipeline")).toThrow(/not blocked/);
+    // AR is the live case of this: once it got a table, an "unavailable"
+    // placeholder for it became a lie in the other direction.
+    expect(() => buildUnavailablePanel("rm_invoices_ar")).toThrow(/not blocked/);
   });
 });

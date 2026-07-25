@@ -21,6 +21,7 @@
 // instead of approximated.
 
 import { MARKETING_KPIS } from "../kpis/marketingKpis";
+import type { InvoicesArPanel } from "./invoiceLedger";
 import type {
   ActionItemsPanel,
   EsignPanel,
@@ -228,18 +229,63 @@ function salesKpiTiles(): KpiTile[] {
   ];
 }
 
-/** Revenue and AR have no backing store at all — the invoicing ledger is a CSV
- *  in the contracts repo (MC.7 GATE G3), so this is blocked, not empty. */
-function invoicingTiles(unavailable: readonly PanelHeader[]): KpiTile[] {
-  const ar = unavailable.find((h) => h.id === "rm_invoices_ar");
-  if (!ar) return [];
+/** AR was blocked until MC.9 built the ingestion; now it is a real number off
+ *  `rm_invoices_ar`. The blocked branch is kept rather than deleted: if the
+ *  read model is ever pulled back out of coverage, the tile must say WHY it
+ *  went away instead of quietly disappearing from the summary. */
+function invoicingTiles(
+  panel: InvoicesArPanel | null,
+  unavailable: readonly PanelHeader[]
+): KpiTile[] {
+  const blockedHeader = unavailable.find((h) => h.id === "rm_invoices_ar");
+  if (blockedHeader) {
+    return [
+      blocked(
+        "ar_outstanding",
+        "Outstanding AR",
+        "currency",
+        blockedHeader.note ?? "no invoicing store exists in this repo yet.",
+        blockedHeader.unblockedBy ?? "MC.9 invoicing leg"
+      ),
+    ];
+  }
+  if (!panel) {
+    return [unreadable("ar_outstanding", "Outstanding AR", "currency", "the AR view")];
+  }
+  if (panel.status !== "live") {
+    return [
+      noData(
+        "ar_outstanding",
+        "Outstanding AR",
+        "currency",
+        panel.note ?? "the invoice ledger mirror holds no invoices yet."
+      ),
+    ];
+  }
+  // Two honesty carve-outs travel with this number, both inherited from the
+  // ledger parse rather than invented here: an invoice whose amount cell is
+  // unreadable is EXCLUDED from the total and said out loud (never zeroed),
+  // and an invoice whose free-text status doesn't explicitly say paid counts
+  // as outstanding — guessing "probably paid" is how AR gets understated.
+  const caveats: string[] = [];
+  if (panel.unreadableAmountCount > 0) {
+    caveats.push(
+      `${panel.unreadableAmountCount} invoice(s) had an unreadable amount and are excluded from this total`
+    );
+  }
+  if (panel.unclassifiedCount > 0) {
+    caveats.push(
+      `${panel.unclassifiedCount} invoice(s) have no explicit payment state and are counted as outstanding`
+    );
+  }
   return [
-    blocked(
+    computed(
       "ar_outstanding",
       "Outstanding AR",
+      panel.outstandingTotal,
       "currency",
-      ar.note ?? "no invoicing store exists in this repo yet.",
-      ar.unblockedBy ?? "MC.9 invoicing leg"
+      `Everything not explicitly marked paid in Rob's invoice ledger — ${panel.rows.length} invoice(s) mirrored into \`invoice_ledger\` by the MC.9 sync.` +
+        (caveats.length ? ` ${caveats.join("; ")}.` : "")
     ),
   ];
 }
@@ -269,6 +315,7 @@ export function buildKpiSummaryPanel(input: {
   pipeline: PipelinePanel | null;
   actionItems: ActionItemsPanel | null;
   esign: EsignPanel | null;
+  invoicesAr: InvoicesArPanel | null;
   unavailable: readonly PanelHeader[];
   todayISO: string;
 }): KpiSummaryPanel {
@@ -277,7 +324,7 @@ export function buildKpiSummaryPanel(input: {
     ...actionItemTiles(input.actionItems),
     ...esignTiles(input.esign),
     ...salesKpiTiles(),
-    ...invoicingTiles(input.unavailable),
+    ...invoicingTiles(input.invoicesAr, input.unavailable),
     ...marketingKpiTiles(),
   ];
   const counts = {

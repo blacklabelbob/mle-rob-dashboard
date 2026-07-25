@@ -79,6 +79,17 @@ export const SOURCE_COLUMNS: Record<string, readonly string[]> = {
   signature_events: ["id", "request_id", "type", "at", "ip", "meta"],
   people: ["id", "name", "business", "email", "phone", "org_id", "status", "assigned_rep"],
   orgs: ["id", "name", "business", "email", "phone", "status", "assigned_rep"],
+  // Written by the MC.9 sync from Rob's contracts-repo ledger, per 0012. There
+  // is deliberately no `balance`/`amount_due`/`amount_paid` here: invoice
+  // 100122's "2 x $5,000" is prose, and a derived balance would be a fabricated
+  // number on a money panel. 0012 forbids those columns; this list agreeing
+  // with it is what stops one being added back through the read side.
+  invoice_ledger: [
+    "invoice_number", "issue_date", "client_slug", "client_legal_name", "owner",
+    "amount", "currency", "status_text", "payment_state", "due_date",
+    "payment_plan_note", "pdf", "source_sha256", "source_commit", "synced_at",
+    "withdrawn_at", "created_at", "updated_at",
+  ],
 };
 
 /** Read models never expose these, whatever the panel asks for: single-use
@@ -186,12 +197,28 @@ export const READ_MODELS: readonly ReadModel[] = [
     id: "rm_invoices_ar",
     label: "Invoices / AR",
     purpose: "Issued invoices, amounts, due dates and aging buckets.",
-    sourceTables: [],
-    columns: [],
-    coverage: "blocked_no_source",
+    sourceTables: ["invoice_ledger"],
+    columns: [
+      { name: "invoice_number", source: "invoice_ledger.invoice_number" },
+      { name: "issue_date", source: "invoice_ledger.issue_date" },
+      { name: "client_slug", source: "invoice_ledger.client_slug" },
+      { name: "client_legal_name", source: "invoice_ledger.client_legal_name" },
+      { name: "owner", source: "invoice_ledger.owner" },
+      { name: "amount", source: "invoice_ledger.amount", note: "nullable ON PURPOSE — an unreadable amount cell is excluded from every total and counted, never zeroed. PostgREST returns numeric as a string; `readAmount` refuses anything non-finite so `Number(\"\") === 0` cannot become a real $0.00." },
+      { name: "currency", source: "invoice_ledger.currency" },
+      { name: "status_text", source: "invoice_ledger.status_text", note: "Rob's free-text ledger cell, mirrored verbatim and never parsed for money" },
+      { name: "payment_state", source: "invoice_ledger.payment_state", note: "explicit-only paid/outstanding; anything else reads back as `unknown` rather than a state we would act on" },
+      { name: "due_date", source: "invoice_ledger.due_date", note: "nullable — missing is its own aging bucket, NOT 'not yet due'" },
+      { name: "payment_plan_note", source: "invoice_ledger.payment_plan_note", note: "prose split plans (\"2 x $5,000\") stay prose; no balance column exists to derive, by design" },
+      { name: "pdf", source: "invoice_ledger.pdf" },
+      { name: "source_sha256", source: "invoice_ledger.source_sha256", note: "provenance — a panel that cannot say which ledger bytes it mirrors looks current forever" },
+      { name: "source_commit", source: "invoice_ledger.source_commit", note: "nullable on purpose: a dirty-tree read is recorded honestly, never as a nearby revision that did not produce these bytes" },
+      { name: "synced_at", source: "invoice_ledger.synced_at", note: "when the sync last ran — 'no overdue invoices' and 'the sync broke Tuesday' must not look identical" },
+    ],
+    coverage: "buildable_now",
     coverageNote:
-      "GATE G3 (MC.7, 2026-07-23) settled this: the ONLY live invoicing store is `invoice-ledger.csv` in the contracts repo — Supabase has no invoice/AR table (all 12 backup tables checked; invoices/invoice/ar/ledger/payments/billing all 404 on REST). A SQL view is structurally impossible, so the AR panel reads a CSV-diff ingestion, not this contract. Named here rather than silently dropped.",
-    unblockedBy: "MC.9 invoicing leg (scheduled CSV diff → a real table)",
+      "UNBLOCKED 2026-07-25 (MC.9 half 2 complete). GATE G3 (MC.7) was right at the time — the only invoicing store was `invoice-ledger.csv` in the contracts repo, so no SQL view was possible. MC.9 built the ingestion: `scripts/sync-invoice-ledger.mjs` diffs that CSV into `invoice_ledger` with a content digest and source commit, and has run against prod. `rm_invoices_ar` (0013) is a view over that table filtering `withdrawn_at is null` — the sync never deletes, so hiding withdrawn rows is the VIEW's job, not the store's. Aging is computed in code against an injected today (CR-3), never in SQL with now().",
+    unblockedBy: null,
   },
   {
     id: "rm_nudge_activity",

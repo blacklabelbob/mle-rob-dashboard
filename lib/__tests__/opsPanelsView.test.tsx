@@ -10,6 +10,10 @@ import {
   type RmEsignRow,
   type RmPipelineRow,
 } from "@/lib/readModel/panels";
+import {
+  buildInvoicesArPanel,
+  type InvoiceLedgerRow,
+} from "@/lib/readModel/invoiceLedger";
 import { buildKpiSummaryPanel } from "@/lib/readModel/kpiSummary";
 import type { PanelsPayload } from "@/lib/readModel/source";
 
@@ -97,16 +101,55 @@ const ESIGN_ROWS: RmEsignRow[] = [
   },
 ];
 
+// Rob's two real invoices, exactly as the MC.9 sync mirrored them into
+// `invoice_ledger` — the panel is smoke-tested against the real shapes, not
+// invented ones.
+// Verified field-by-field against `rm_invoices_ar` on prod (2026-07-25), not
+// typed from memory: they are two DIFFERENT clients, and 100123 has no owner
+// on the ledger at all — an earlier draft of this fixture made both of them
+// Gulf Coast and gave both an owner, which would have let the nullable-owner
+// path go untested while the comment claimed real-world fidelity.
+const AR_ROWS: InvoiceLedgerRow[] = [
+  {
+    invoiceNumber: "MLE-2026-100122",
+    issueDate: "2026-06-26",
+    clientSlug: "cg_roofing",
+    clientLegalName: "CG Roofing and Waterproofing LLC and Red Rock Roofing LLC",
+    owner: "Caleb",
+    amount: 10000,
+    currency: "USD",
+    statusText:
+      "issued — split-payment plan approved 2026-07-16 (2 x $5,000, first due by 2026-07-24; Mgmt Change Approval on file)",
+    paymentState: "outstanding",
+    dueDate: "2026-07-24",
+    paymentPlanNote:
+      "issued — split-payment plan approved 2026-07-16 (2 x $5,000, first due by 2026-07-24; Mgmt Change Approval on file)",
+    pdf: "invoices/Phase 1 Invoice - CG Roofing & Red Rock Roofing - MLE-2026-100122.pdf",
+  },
+  {
+    invoiceNumber: "MLE-2026-100123",
+    issueDate: "2026-07-16",
+    clientSlug: "gulf_coast",
+    clientLegalName: "Gulf Coast RE Group",
+    owner: null,
+    amount: 19000,
+    currency: "USD",
+    statusText: "paid",
+    paymentState: "paid",
+    dueDate: null,
+    paymentPlanNote: null,
+    pdf: "invoices/paid/Phase 1 Invoice - Gulf Coast RE Group - MLE-2026-100123 (PAID).pdf",
+  },
+];
+
 function payload(overrides: Partial<PanelsPayload> = {}): PanelsPayload {
   const base = {
     todayISO: TODAY,
     pipeline: buildPipelinePanel(PIPELINE_ROWS),
     actionItems: buildActionItemsPanel(ACTION_ROWS, TODAY),
     esign: buildEsignPanel(ESIGN_ROWS),
-    unavailable: [
-      buildUnavailablePanel("rm_invoices_ar"),
-      buildUnavailablePanel("rm_delivery_phases"),
-    ],
+    invoicesAr: buildInvoicesArPanel(AR_ROWS, TODAY),
+    unavailable: [buildUnavailablePanel("rm_delivery_phases")],
     errors: [],
     ...overrides,
   };
@@ -197,5 +240,42 @@ describe("ops panels view", () => {
   it("renders an empty-but-correct view as empty on purpose, with its reason", () => {
     const html = render(payload({ esign: buildEsignPanel([]) }));
     expect(html).toContain("Nothing in here yet");
+  });
+
+  it("renders AR off Rob's real invoices, outstanding and paid kept apart", () => {
+    const html = render(payload());
+    expect(html).toContain("Invoicing / AR");
+    // $10,000 is outstanding and $19,000 is paid — the panel must never add
+    // them into one $29,000 number.
+    expect(html).toContain("$10,000");
+    expect(html).toContain("$19,000");
+    expect(html).not.toContain("$29,000");
+    // 100122 came due 2026-07-24 and TODAY is 2026-07-24: due today, NOT overdue.
+    expect(html).toContain("Due today");
+  });
+
+  it("never prints an outstanding total for an AR mirror that holds nothing", () => {
+    const html = render(payload({ invoicesAr: buildInvoicesArPanel([], TODAY) }));
+    // Scoped to the AR card alone: e-sign legitimately renders "1 outstanding",
+    // and a whole-page assertion would fail on that instead of on this panel.
+    const card = html.split("<section").find((s) => s.includes("Invoicing / AR"));
+    expect(card).toBeDefined();
+    // The empty mirror totals to 0. Printing "$0.00 outstanding" would read as
+    // "Rob is fully paid" — the panel must stay silent on the number instead.
+    expect(card).not.toContain("outstanding");
+    expect(card).not.toMatch(/\$\d/);
+    expect(card).toContain("Nothing in here yet");
+  });
+
+  it("says an AR read failed instead of showing a paid-off $0", () => {
+    const html = render(
+      payload({
+        invoicesAr: null,
+        errors: [{ id: "rm_invoices_ar", message: "permission denied for view rm_invoices_ar" }],
+      })
+    );
+    expect(html).toContain("permission denied for view rm_invoices_ar");
+    const card = html.split("<section").find((s) => s.includes("Invoicing / AR"));
+    expect(card).not.toMatch(/\$\d/);
   });
 });

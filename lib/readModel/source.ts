@@ -23,7 +23,13 @@ import {
   isCreatable,
   type ReadModelId,
 } from "./contract";
+import {
+  buildInvoicesArPanel,
+  type InvoiceLedgerRow,
+  type InvoicesArPanel,
+} from "./invoiceLedger";
 import { buildKpiSummaryPanel, type KpiSummaryPanel } from "./kpiSummary";
+import { fromDbRow } from "./ledgerRows";
 import {
   buildActionItemsPanel,
   buildEsignPanel,
@@ -85,6 +91,9 @@ export type PanelsPayload = {
   pipeline: PipelinePanel | null;
   actionItems: ActionItemsPanel | null;
   esign: EsignPanel | null;
+  /** Rob's real invoices, mirrored from the contracts-repo ledger by the MC.9
+   *  sync. Aged here against `todayISO`, never in SQL. */
+  invoicesAr: InvoicesArPanel | null;
   /** Summary of the panels above plus the KPIs that aren't computable yet.
    *  Derived, never separately read — it can't disagree with the panels. */
   kpiSummary: KpiSummaryPanel;
@@ -121,15 +130,25 @@ export async function fetchPanels(
   todayISO: string
 ): Promise<PanelsPayload> {
   const errors: { id: ReadModelId; message: string }[] = [];
-  const [pipelineRows, actionRows, esignRows] = await Promise.all([
+  const [pipelineRows, actionRows, esignRows, arRows] = await Promise.all([
     read<RmPipelineRow>(reader, "rm_pipeline", errors),
     read<RmActionItemRow>(reader, "rm_action_items", errors),
     read<RmEsignRow>(reader, "rm_esign_status", errors),
+    read<Record<string, unknown>>(reader, "rm_invoices_ar", errors),
   ]);
 
   const pipeline = pipelineRows ? buildPipelinePanel(pipelineRows) : null;
   const actionItems = actionRows ? buildActionItemsPanel(actionRows, todayISO) : null;
   const esign = esignRows ? buildEsignPanel(esignRows) : null;
+  // One mapping, shared with the writer (ledgerRows.ts): the panel reads back
+  // exactly what the sync wrote, so a drifted column name would show a wrong
+  // number rather than an error.
+  const invoicesAr = arRows
+    ? buildInvoicesArPanel(
+        arRows.map((r) => fromDbRow(r) as InvoiceLedgerRow),
+        todayISO
+      )
+    : null;
   const unavailable = BLOCKED_PANELS.map(buildUnavailablePanel);
 
   return {
@@ -137,7 +156,15 @@ export async function fetchPanels(
     pipeline,
     actionItems,
     esign,
-    kpiSummary: buildKpiSummaryPanel({ pipeline, actionItems, esign, unavailable, todayISO }),
+    invoicesAr,
+    kpiSummary: buildKpiSummaryPanel({
+      pipeline,
+      actionItems,
+      esign,
+      invoicesAr,
+      unavailable,
+      todayISO,
+    }),
     unavailable,
     errors,
   };
@@ -150,6 +177,7 @@ export function allReadsFailed(payload: PanelsPayload): boolean {
     payload.errors.length > 0 &&
     payload.pipeline === null &&
     payload.actionItems === null &&
-    payload.esign === null
+    payload.esign === null &&
+    payload.invoicesAr === null
   );
 }

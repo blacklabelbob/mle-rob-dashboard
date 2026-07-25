@@ -77,9 +77,13 @@ describe("MC.8 read-model contract", () => {
     }
   });
 
-  it("the two known-blocked models are the AR and delivery-phase ones", () => {
+  // AR came off this list on 2026-07-25: MC.9's sync gave it a real table
+  // (`invoice_ledger`) and 0013 built the view. Delivery phases stay blocked
+  // until Q40 builds a phase store. The pin is kept, not deleted — the set of
+  // things we admit we cannot show must not drift in either direction.
+  it("delivery phases is the one remaining model with no backing store", () => {
     const blocked = READ_MODELS.filter((m) => m.coverage === "blocked_no_source").map((m) => m.id);
-    expect(blocked.sort()).toEqual(["rm_delivery_phases", "rm_invoices_ar"]);
+    expect(blocked.sort()).toEqual(["rm_delivery_phases"]);
   });
 
   it("dashboard_ro grants no write of any kind", () => {

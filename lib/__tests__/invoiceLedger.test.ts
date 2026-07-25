@@ -153,10 +153,21 @@ describe("buildInvoicesArPanel", () => {
     expect(broken.byAging.find((g) => g.bucket === "due_today")!.unreadableAmounts).toBe(1);
   });
 
-  it("stays `unavailable` until MC.9's ingest half lands — shaping rows earns no claim of live", () => {
-    // The header comes from the MC.8 contract, not from the row count. Until
-    // the CSV actually reaches prod, the panel must keep saying so on screen.
-    expect(panel.status).toBe("unavailable");
-    expect(panel.unblockedBy).toMatch(/MC\.9/);
+  // This pin used to assert `unavailable`: shaping rows earned no claim of
+  // live while the ledger was still only a CSV in another repo. MC.9's sync
+  // landed the rows in `invoice_ledger` and 0013 built the view, so the claim
+  // is now earned. What the pin PROTECTS is unchanged — the header comes from
+  // the MC.8 contract and the row count, never from the panel's own opinion.
+  it("claims live only with rows, and says empty rather than live-with-nothing", () => {
+    expect(panel.status).toBe("live");
+    expect(panel.unblockedBy).toBeNull();
+
+    const none = buildInvoicesArPanel([], "2026-07-24");
+    expect(none.status).toBe("empty");
+    // An empty AR panel is a claim ("Rob has no invoices"), so it must carry
+    // the contract's reason rather than render as a confident set of zeros.
+    expect(none.note).toBeTruthy();
+    expect(none.outstandingTotal).toBe(0);
+    expect(none.rows).toHaveLength(0);
   });
 });

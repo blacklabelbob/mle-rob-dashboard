@@ -15,10 +15,15 @@ import {
 // reverse), this fails. If someone exposes a token hash or signer IP, this
 // fails. That is the whole guarantee.
 
-const SQL = readFileSync(
-  path.join(process.cwd(), "supabase/migrations/0011_read_models.sql"),
-  "utf8",
-);
+// The read-model DDL surface is now TWO files, and the gate reads both: 0011
+// built the first four views, 0013 added `rm_invoices_ar` once MC.9's sync gave
+// it a real table to stand on. Reading only 0011 would let a view added in a
+// later migration escape every check below, which is exactly backwards — the
+// newest view is the one most likely to drift from the contract.
+const MIGRATIONS = ["0011_read_models.sql", "0013_rm_invoices_ar.sql"];
+const SQL = MIGRATIONS.map((f) =>
+  readFileSync(path.join(process.cwd(), "supabase/migrations", f), "utf8"),
+).join("\n");
 
 /** Column aliases of a `create or replace view <name> as select ... from ...`. */
 function viewColumns(name: string): string[] {
@@ -41,7 +46,7 @@ function viewBody(name: string): string {
 const CREATABLE = READ_MODELS.filter(isCreatable);
 const BLOCKED = READ_MODELS.filter((m) => !isCreatable(m));
 
-describe("0011_read_models.sql implements the contract", () => {
+describe("the read-model migrations implement the contract", () => {
   it("creates a view for every creatable read model and no others", () => {
     const created = [...SQL.matchAll(/create or replace view (\w+) as/g)].map((m) => m[1]);
     expect(created.sort()).toEqual(CREATABLE.map((m) => m.id).sort());
@@ -59,7 +64,11 @@ describe("0011_read_models.sql implements the contract", () => {
     // Named in the header comment (deliberately absent ≠ forgotten), but never
     // created — a zero-row view would read like a working feature (MC.8 rule).
     for (const m of BLOCKED) expect(SQL).not.toContain(`view ${m.id}`);
-    expect(BLOCKED.map((m) => m.id)).toEqual(["rm_delivery_phases", "rm_invoices_ar"]);
+    // AR left this list on 2026-07-25 when MC.9's sync landed real invoices in
+    // `invoice_ledger`; delivery phases stay blocked until Q40 builds a phase
+    // store. The assertion is kept rather than deleted so the set can't grow or
+    // shrink silently.
+    expect(BLOCKED.map((m) => m.id)).toEqual(["rm_delivery_phases"]);
   });
 
   it("selects only from tables the contract declares as sources", () => {
@@ -133,8 +142,14 @@ describe("dashboard_ro role", () => {
   });
 
   it("revokes base-table access explicitly rather than relying on defaults", () => {
-    const revoke = SQL.slice(SQL.indexOf("revoke all on"), SQL.indexOf("grant usage"));
-    for (const table of Object.keys(SOURCE_COLUMNS)) expect(revoke).toContain(table);
-    expect(revoke).toContain(DASHBOARD_RO_ROLE.name);
+    // Every revoke across both migrations, not just 0011's: a base table added
+    // by a later migration (invoice_ledger, 0012) is exactly the one whose
+    // revoke is easiest to forget.
+    const revokes = [...SQL.matchAll(/revoke all on[\s\S]*?;/g)].map((m) => m[0]);
+    expect(revokes.length).toBeGreaterThan(0);
+    for (const table of Object.keys(SOURCE_COLUMNS)) {
+      expect(revokes.join("\n"), `${table} never revoked`).toContain(table);
+    }
+    for (const r of revokes) expect(r).toContain(DASHBOARD_RO_ROLE.name);
   });
 });

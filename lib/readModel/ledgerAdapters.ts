@@ -32,8 +32,7 @@ import { execFileSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import type { InvoiceLedgerRow } from "./invoiceLedger";
-import type { LedgerSyncPlan, SyncedInvoiceRow } from "./ledgerSync";
+import type { LedgerSyncPlan } from "./ledgerSync";
 import type {
   LedgerRead,
   LedgerRunRecord,
@@ -42,68 +41,14 @@ import type {
 } from "./ledgerRunner";
 
 // ── Row mapping ─────────────────────────────────────────────────────────────
+// Lives in `ledgerRows.ts` (pure, node-free) because the AR panel read path
+// reads back exactly what this writes and must share ONE mapping. Re-exported
+// here so every existing import keeps its address.
 
-/** Domain row → `invoice_ledger` columns. Explicit on purpose: see note 1. */
-export function toDbRow(row: SyncedInvoiceRow): Record<string, unknown> {
-  return {
-    invoice_number: row.invoiceNumber,
-    issue_date: row.issueDate,
-    client_slug: row.clientSlug,
-    client_legal_name: row.clientLegalName,
-    owner: row.owner,
-    amount: row.amount,
-    currency: row.currency,
-    status_text: row.statusText,
-    payment_state: row.paymentState,
-    due_date: row.dueDate,
-    payment_plan_note: row.paymentPlanNote,
-    pdf: row.pdf,
-    source_sha256: row.sourceSha256,
-    source_commit: row.sourceCommit,
-    synced_at: row.syncedAt,
-    withdrawn_at: row.withdrawnAt,
-    updated_at: row.syncedAt,
-  };
-}
-
-/** `numeric` arrives as a string. Unreadable stays unreadable — never 0. */
-export function readAmount(value: unknown): number | null {
-  if (value === null || value === undefined) return null;
-  if (typeof value === "number") return Number.isFinite(value) ? value : null;
-  if (typeof value !== "string") return null;
-  const trimmed = value.trim();
-  if (!trimmed) return null;
-  const n = Number(trimmed);
-  return Number.isFinite(n) ? n : null;
-}
-
-const str = (value: unknown): string => (typeof value === "string" ? value : "");
-const nullableStr = (value: unknown): string | null =>
-  typeof value === "string" && value !== "" ? value : null;
-
-/** `invoice_ledger` row → the domain row the diff compares against. Withdrawn
- *  rows are loaded too: an invoice that reappears must diff against what we
- *  already hold rather than come back as brand new. */
-export function fromDbRow(db: Record<string, unknown>): InvoiceLedgerRow {
-  const paymentState = str(db.payment_state);
-  return {
-    invoiceNumber: str(db.invoice_number),
-    issueDate: str(db.issue_date),
-    clientSlug: str(db.client_slug),
-    clientLegalName: str(db.client_legal_name),
-    owner: nullableStr(db.owner),
-    amount: readAmount(db.amount),
-    currency: str(db.currency),
-    statusText: str(db.status_text),
-    // The CHECK constraint is the guarantee; anything else came from a hand
-    // edit and must not be read as a state we can act on.
-    paymentState:
-      paymentState === "paid" || paymentState === "outstanding" ? paymentState : "unknown",
-    dueDate: nullableStr(db.due_date),
-    paymentPlanNote: nullableStr(db.payment_plan_note),
-    pdf: nullableStr(db.pdf),
-  };
-}
+export { toDbRow, readAmount, fromDbRow } from "./ledgerRows";
+import { fromDbRow, toDbRow } from "./ledgerRows";
+import type { InvoiceLedgerRow } from "./invoiceLedger";
+import type { SyncedInvoiceRow } from "./ledgerSync";
 
 /** Run record → `invoice_ledger_sync_runs` columns. A refusal is a row too. */
 export function toRunRow(record: LedgerRunRecord): Record<string, unknown> {

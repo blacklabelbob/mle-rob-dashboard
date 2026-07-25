@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { MARKETING_KPIS } from "@/lib/kpis/marketingKpis";
+import {
+  buildInvoicesArPanel,
+  type InvoiceLedgerRow,
+} from "@/lib/readModel/invoiceLedger";
 import { buildKpiSummaryPanel, type KpiTile } from "@/lib/readModel/kpiSummary";
 import {
   buildActionItemsPanel,
@@ -94,9 +98,41 @@ const ESIGN_ROWS: RmEsignRow[] = [
   },
 ];
 
-const UNAVAILABLE = [
-  buildUnavailablePanel("rm_invoices_ar"),
-  buildUnavailablePanel("rm_delivery_phases"),
+// AR left this list on 2026-07-25 (MC.9's sync + view 0013); delivery phases
+// is the one read model still without a backing store.
+const UNAVAILABLE = [buildUnavailablePanel("rm_delivery_phases")];
+
+// Rob's two real invoices as the sync mirrored them into `invoice_ledger`:
+// $10,000 outstanding due 7/24 and $19,000 paid.
+const AR_ROWS: InvoiceLedgerRow[] = [
+  {
+    invoiceNumber: "MLE-2026-100122",
+    issueDate: "2026-06-24",
+    clientSlug: "gulf-coast",
+    clientLegalName: "Gulf Coast RE Group",
+    owner: "Rob",
+    amount: 10000,
+    currency: "USD",
+    statusText: "outstanding — 2 x $5,000",
+    paymentState: "outstanding",
+    dueDate: "2026-07-24",
+    paymentPlanNote: "2 x $5,000",
+    pdf: null,
+  },
+  {
+    invoiceNumber: "MLE-2026-100123",
+    issueDate: "2026-07-01",
+    clientSlug: "gulf-coast",
+    clientLegalName: "Gulf Coast RE Group",
+    owner: "Rob",
+    amount: 19000,
+    currency: "USD",
+    statusText: "paid",
+    paymentState: "paid",
+    dueDate: null,
+    paymentPlanNote: null,
+    pdf: null,
+  },
 ];
 
 function summary(
@@ -106,6 +142,7 @@ function summary(
     pipeline: buildPipelinePanel(PIPELINE_ROWS),
     actionItems: buildActionItemsPanel(ACTION_ROWS, TODAY),
     esign: buildEsignPanel(ESIGN_ROWS),
+    invoicesAr: buildInvoicesArPanel(AR_ROWS, TODAY),
     unavailable: UNAVAILABLE,
     todayISO: TODAY,
     ...overrides,
@@ -163,12 +200,39 @@ describe("KPI summary panel", () => {
     expect(t.unblockedBy).toContain("MC.1");
   });
 
-  it("carries AR through as blocked, quoting the read model's own unblocker", () => {
+  it("computes AR off the synced ledger, counting unknowns as outstanding", () => {
     const t = tile(summary().tiles, "ar_outstanding");
+    expect(t.status).toBe("computed");
+    expect(t.value).toBe(10000); // the paid $19,000 is not outstanding
+    expect(t.unblockedBy).toBeNull();
+  });
+
+  it("never turns a failed AR read into $0 outstanding", () => {
+    // The failure mode this guards is specific and expensive: a read that
+    // errored rendering as "nothing owed" is Rob not chasing money he is owed.
+    const t = tile(summary({ invoicesAr: null }).tiles, "ar_outstanding");
     expect(t.status).toBe("not_computable");
-    expect(t.unblockedBy).toBe(
-      UNAVAILABLE.find((h) => h.id === "rm_invoices_ar")!.unblockedBy
+    expect(t.value).toBeNull();
+  });
+
+  it("says AR is empty rather than $0 when the ledger mirror holds nothing", () => {
+    const t = tile(summary({ invoicesAr: buildInvoicesArPanel([], TODAY) }).tiles, "ar_outstanding");
+    expect(t.status).toBe("no_data");
+    expect(t.value).toBeNull();
+  });
+
+  it("names the carve-outs baked into the AR total instead of hiding them", () => {
+    const withHoles = buildInvoicesArPanel(
+      [
+        { ...AR_ROWS[0], amount: null },
+        { ...AR_ROWS[1], invoiceNumber: "MLE-2026-100124", paymentState: "unknown", amount: 500 },
+      ],
+      TODAY
     );
+    const t = tile(summary({ invoicesAr: withHoles }).tiles, "ar_outstanding");
+    expect(t.value).toBe(500);
+    expect(t.note).toMatch(/unreadable amount/);
+    expect(t.note).toMatch(/no explicit payment state/);
   });
 
   it("carries every MC.2 marketing KPI onto the panel, none of them faked", () => {
@@ -182,7 +246,15 @@ describe("KPI summary panel", () => {
   });
 
   it("never emits a value on a tile that isn't computed — the whole contract", () => {
-    const panel = summary({ pipeline: null, actionItems: null, esign: buildEsignPanel([]) });
+    // Every readable panel absent — `invoicesAr: null` included, since AR
+    // became a real read in MC.12 and a forgotten override here would let the
+    // panel call itself live off one surviving tile.
+    const panel = summary({
+      pipeline: null,
+      actionItems: null,
+      esign: buildEsignPanel([]),
+      invoicesAr: null,
+    });
     for (const t of panel.tiles) {
       if (t.status !== "computed") expect(t.value).toBeNull();
       expect(t.note.length).toBeGreaterThan(0);

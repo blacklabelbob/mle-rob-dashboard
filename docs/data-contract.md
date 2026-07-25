@@ -13,7 +13,7 @@ The Mission-Control panels (MC.12) read these views and nothing else. Two of the
 | `rm_esign_status` | 🟡 buildable, zero rows today | `documents`, `signature_requests` | — |
 | `rm_action_items` | ✅ buildable now | `tasks` | — |
 | `rm_delivery_phases` | ⛔ blocked — no backing store | — | Q40 (customer Phase 1-3 model + component completion webhook) |
-| `rm_invoices_ar` | ⛔ blocked — no backing store | — | MC.9 invoicing leg (scheduled CSV diff → a real table) |
+| `rm_invoices_ar` | ✅ buildable now | `invoice_ledger` | — |
 | `rm_nudge_activity` | 🟡 buildable, zero rows today | `signature_events`, `signature_requests` | — |
 
 ## `rm_pipeline` — Pipeline
@@ -95,11 +95,25 @@ _No columns — the view is not creatable against today's schema._
 
 Issued invoices, amounts, due dates and aging buckets.
 
-**Coverage:** ⛔ blocked — no backing store — GATE G3 (MC.7, 2026-07-23) settled this: the ONLY live invoicing store is `invoice-ledger.csv` in the contracts repo — Supabase has no invoice/AR table (all 12 backup tables checked; invoices/invoice/ar/ledger/payments/billing all 404 on REST). A SQL view is structurally impossible, so the AR panel reads a CSV-diff ingestion, not this contract. Named here rather than silently dropped.
+**Coverage:** ✅ buildable now — UNBLOCKED 2026-07-25 (MC.9 half 2 complete). GATE G3 (MC.7) was right at the time — the only invoicing store was `invoice-ledger.csv` in the contracts repo, so no SQL view was possible. MC.9 built the ingestion: `scripts/sync-invoice-ledger.mjs` diffs that CSV into `invoice_ledger` with a content digest and source commit, and has run against prod. `rm_invoices_ar` (0013) is a view over that table filtering `withdrawn_at is null` — the sync never deletes, so hiding withdrawn rows is the VIEW's job, not the store's. Aging is computed in code against an injected today (CR-3), never in SQL with now().
 
-**Unblocked by:** MC.9 invoicing leg (scheduled CSV diff → a real table)
-
-_No columns — the view is not creatable against today's schema._
+| Column | Source | Note |
+| --- | --- | --- |
+| `invoice_number` | `invoice_ledger.invoice_number` |  |
+| `issue_date` | `invoice_ledger.issue_date` |  |
+| `client_slug` | `invoice_ledger.client_slug` |  |
+| `client_legal_name` | `invoice_ledger.client_legal_name` |  |
+| `owner` | `invoice_ledger.owner` |  |
+| `amount` | `invoice_ledger.amount` | nullable ON PURPOSE — an unreadable amount cell is excluded from every total and counted, never zeroed. PostgREST returns numeric as a string; `readAmount` refuses anything non-finite so `Number("") === 0` cannot become a real $0.00. |
+| `currency` | `invoice_ledger.currency` |  |
+| `status_text` | `invoice_ledger.status_text` | Rob's free-text ledger cell, mirrored verbatim and never parsed for money |
+| `payment_state` | `invoice_ledger.payment_state` | explicit-only paid/outstanding; anything else reads back as `unknown` rather than a state we would act on |
+| `due_date` | `invoice_ledger.due_date` | nullable — missing is its own aging bucket, NOT 'not yet due' |
+| `payment_plan_note` | `invoice_ledger.payment_plan_note` | prose split plans ("2 x $5,000") stay prose; no balance column exists to derive, by design |
+| `pdf` | `invoice_ledger.pdf` |  |
+| `source_sha256` | `invoice_ledger.source_sha256` | provenance — a panel that cannot say which ledger bytes it mirrors looks current forever |
+| `source_commit` | `invoice_ledger.source_commit` | nullable on purpose: a dirty-tree read is recorded honestly, never as a nearby revision that did not produce these bytes |
+| `synced_at` | `invoice_ledger.synced_at` | when the sync last ran — 'no overdue invoices' and 'the sync broke Tuesday' must not look identical |
 
 ## `rm_nudge_activity` — Nudge activity
 

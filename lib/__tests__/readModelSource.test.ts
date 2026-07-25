@@ -75,8 +75,11 @@ describe("read-model seam whitelist", () => {
   });
 
   it("refuses read models with no backing store", () => {
-    expect(() => assertReadable("rm_invoices_ar")).toThrow(/not a readable view/);
     expect(() => assertReadable("rm_delivery_phases")).toThrow(/not a readable view/);
+    // AR became readable on 2026-07-25 the moment the contract said it was
+    // creatable — the whitelist is derived, never hand-maintained, which is
+    // what stops a view being readable in code but blocked in the contract.
+    expect(assertReadable("rm_invoices_ar")).toBe("rm_invoices_ar");
   });
 
   it("asks for exactly the contract's columns, in contract order", () => {
@@ -110,7 +113,6 @@ describe("fetchPanels", () => {
     expect(payload.esign?.note).toMatch(/ZERO documents/);
     expect(payload.unavailable.map((p) => p.id).sort()).toEqual([
       "rm_delivery_phases",
-      "rm_invoices_ar",
     ]);
     for (const panel of payload.unavailable) {
       expect(panel.status).toBe("unavailable");
@@ -144,11 +146,32 @@ describe("fetchPanels", () => {
           rm_pipeline: "permission denied",
           rm_action_items: "permission denied",
           rm_esign_status: "permission denied",
+          rm_invoices_ar: "permission denied",
+        }
+      ),
+      "2026-07-24"
+    );
+    expect(payload.errors).toHaveLength(4);
+    expect(allReadsFailed(payload)).toBe(true);
+  });
+
+  // The asymmetry is the point: one surviving panel is a DEGRADED dashboard,
+  // not a dead one, and answering 502 for it would hide three working screens.
+  // AR joining the payload had to widen this check, not ride on the old three.
+  it("is not a total failure while any one view still reads", async () => {
+    const payload = await fetchPanels(
+      readerFor(
+        { rm_invoices_ar: [] },
+        {
+          rm_pipeline: "permission denied",
+          rm_action_items: "permission denied",
+          rm_esign_status: "permission denied",
         }
       ),
       "2026-07-24"
     );
     expect(payload.errors).toHaveLength(3);
-    expect(allReadsFailed(payload)).toBe(true);
+    expect(payload.invoicesAr?.status).toBe("empty");
+    expect(allReadsFailed(payload)).toBe(false);
   });
 });

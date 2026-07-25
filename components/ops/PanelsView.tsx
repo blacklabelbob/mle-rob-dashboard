@@ -1,4 +1,8 @@
 import { STAGE_LABELS } from "@/lib/labels";
+import type {
+  AgingBucket,
+  InvoicesArPanel,
+} from "@/lib/readModel/invoiceLedger";
 import type { KpiSummaryPanel, KpiTile } from "@/lib/readModel/kpiSummary";
 import type {
   ActionItemsPanel,
@@ -229,6 +233,95 @@ function Esign({ panel }: { panel: EsignPanel }) {
   );
 }
 
+/** Bucket names in Rob's words, worst first. `no_due_date` is deliberately not
+ *  softened into "not due yet" — the whole reason it is its own bucket is that
+ *  we do NOT know when it's due, and that is the one he has to chase. */
+const AGING_LABEL: Record<AgingBucket, string> = {
+  overdue_60_plus: "60+ days overdue",
+  overdue_31_60: "31–60 days overdue",
+  overdue_1_30: "1–30 days overdue",
+  due_today: "Due today",
+  not_yet_due: "Not yet due",
+  no_due_date: "No due date on the ledger",
+  paid: "Paid",
+};
+
+const AGING_TONE: Record<AgingBucket, string> = {
+  overdue_60_plus: "text-rose-300",
+  overdue_31_60: "text-rose-300/80",
+  overdue_1_30: "text-amber-300",
+  due_today: "text-amber-300",
+  not_yet_due: "text-slate-300",
+  no_due_date: "text-sky-300",
+  paid: "text-emerald-300/80",
+};
+
+function InvoicesAr({ panel }: { panel: InvoicesArPanel }) {
+  return (
+    <Card
+      title="Invoicing / AR"
+      right={
+        // Only when the panel is actually live. An empty or unreadable mirror
+        // totals to 0, and "$0.00 outstanding" in the header is indistinguishable
+        // from "Rob is fully paid" — the one lie this panel exists to refuse.
+        panel.status === "live" ? (
+          <span className="text-[11px] text-slate-500">
+            {dollars(panel.outstandingTotal)} outstanding
+          </span>
+        ) : null
+      }
+    >
+      <CoverageNote header={panel} />
+      {panel.status === "live" && (
+        <>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            <Stat
+              label="Outstanding"
+              value={dollars(panel.outstandingTotal)}
+              tone="text-amber-300"
+            />
+            <Stat label="Paid" value={dollars(panel.paidTotal)} tone="text-emerald-300" />
+            <Stat label="Invoices" value={String(panel.rows.length)} />
+          </div>
+          <ul className="mt-3 divide-y divide-white/5">
+            {panel.byAging.map((g) => (
+              <li key={g.bucket} className="flex items-center justify-between py-1.5">
+                <span className={`text-xs ${AGING_TONE[g.bucket]}`}>
+                  {AGING_LABEL[g.bucket]}
+                  {g.unreadableAmounts > 0 && (
+                    <span className="text-slate-600">
+                      {" "}
+                      · {g.unreadableAmounts} amount not readable
+                    </span>
+                  )}
+                </span>
+                <span className="text-xs text-slate-400">
+                  {g.count} · {dollars(g.amount)}
+                </span>
+              </li>
+            ))}
+          </ul>
+          {/* Every carve-out the totals make gets said out loud. A quiet
+              exclusion on a money panel is the number Rob quotes being wrong
+              without anything looking wrong. */}
+          {(panel.unclassifiedCount > 0 ||
+            panel.noDueDateCount > 0 ||
+            panel.unreadableAmountCount > 0) && (
+            <p className="mt-3 text-xs leading-relaxed text-slate-500">
+              {panel.unreadableAmountCount > 0 &&
+                `${panel.unreadableAmountCount} invoice(s) had an amount we couldn't read — excluded from every total, never counted as $0. `}
+              {panel.unclassifiedCount > 0 &&
+                `${panel.unclassifiedCount} invoice(s) don't explicitly say paid, so they count as outstanding rather than being guessed. `}
+              {panel.noDueDateCount > 0 &&
+                `${panel.noDueDateCount} outstanding invoice(s) have no due date stated on the ledger.`}
+            </p>
+          )}
+        </>
+      )}
+    </Card>
+  );
+}
+
 /** A KPI is a real number, a named blank, or nothing at all — the three states
  *  look different on purpose, so a blank can never be read as a zero. */
 function KpiCell({ tile }: { tile: KpiTile }) {
@@ -333,6 +426,14 @@ export default function PanelsView({ payload }: { payload: PanelsPayload }) {
         <FailedPanel
           title="Onboarding / e-sign"
           message={failed.get("rm_esign_status") ?? "no rows returned"}
+        />
+      )}
+      {payload.invoicesAr ? (
+        <InvoicesAr panel={payload.invoicesAr} />
+      ) : (
+        <FailedPanel
+          title="Invoicing / AR"
+          message={failed.get("rm_invoices_ar") ?? "no rows returned"}
         />
       )}
       {payload.unavailable.map((h) => (
