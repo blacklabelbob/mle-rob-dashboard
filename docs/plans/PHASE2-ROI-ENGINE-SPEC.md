@@ -5,7 +5,9 @@ standalone interactive page — [`PHASE2-ROI-ESTIMATOR.html`](./PHASE2-ROI-ESTIM
 mounted in the app**
 **Source (verbatim, do not edit):** [`sources/ROB-PHASE2-ROI-DUMP-2026-07-25.md`](./sources/ROB-PHASE2-ROI-DUMP-2026-07-25.md)
 **Implementation:** [`lib/roi/phase2.ts`](../../lib/roi/phase2.ts) (arithmetic) + [`lib/roi/laborRates.ts`](../../lib/roi/laborRates.ts) (BLS rate table)
-**Tests:** [`lib/__tests__/phase2Roi.test.ts`](../../lib/__tests__/phase2Roi.test.ts)
+**Tests:** [`lib/__tests__/phase2Roi.test.ts`](../../lib/__tests__/phase2Roi.test.ts) (arithmetic) +
+[`lib/__tests__/phase2RoiEstimatorParity.test.ts`](../../lib/__tests__/phase2RoiEstimatorParity.test.ts)
+(the page ↔ module drift guard, §4b)
 **Answers:** BUILD-QUEUE **Q40**'s long-open *"P2 = 3-month ROI guarantee (calcs forthcoming from Rob)"*. Build item: **Q63**.
 
 ---
@@ -123,6 +125,36 @@ or the investment change.
 
 **Remaining for Q63:** mount it on the company record (master + rep views) beside the Q40 phase tracker, and
 feed the running-ROI view from real actuals rather than modelled inputs (§5 question C's sibling).
+
+## 4b. The parity guard — and the honest caveat on §4 point 5 (2026-07-25)
+
+§4 point 5 says the UI never re-derives arithmetic. **The standalone page cannot literally honour that**, and
+pretending otherwise would be the lie: being self-contained with no build step — the property that lets Rob open
+it and publish it as an artifact — *requires* it to carry its own copy of the rate table and its own inline
+formula. That is a second implementation of a money-facing calculation, and drift would be **silent**: the page
+would go on rendering confident numbers in front of a client.
+
+So the rule is enforced from outside instead:
+[`lib/__tests__/phase2RoiEstimatorParity.test.ts`](../../lib/__tests__/phase2RoiEstimatorParity.test.ts) reads
+the HTML **as text** (no DOM, no jsdom, no new dependency), extracts the page's own `ROLES`, `AUTOMATIONS`,
+`DAYS_PER_MONTH` and input defaults, and **re-runs the page's defaults through `estimatePhase2Roi`** — so the
+assertion is that the *module* reproduces what the *page* prints. Edit either side alone and the suite fails
+naming the figure that moved. **7 tests, green as of 2026-07-25; nothing had drifted — this is a guard, not a
+repair.**
+
+What is pinned, and why each one is worth a test:
+
+| Pinned | Why |
+|---|---|
+| Rate table matches `LABOR_ROLES` row-for-row, **nulls included** | BLS publishes no Naples figure for Telemarketers; back-filling the Florida rate as if it were local is the most tempting silent lie in the table |
+| `DAYS_PER_MONTH` = 30.4375 | a rounded 30 quietly inflates every revenue figure |
+| Every seeded lift is `$0`, at least one `suggest` is non-zero | the opt-in is real; nothing is claimed by default |
+| Seed totals **31.5 h/wk**, under one FTE | keeps the day-30 read at a believable **+11.6%** instead of the first pass's **+477%** — the tuning becomes enforced, not just a commit-message anecdote |
+| **+11.6%** and **+149.6%** to one decimal | the two figures §4a publishes |
+| `target = investment ÷ window × days` | Rob's rule, asserted against the page's own inputs |
+
+When the Estimator is mounted **inside the app** (the remaining Q63 work), it should render module output
+directly and §4 point 5 applies literally — at which point this guard covers only the standalone artifact.
 
 ## 4. UI contract (§4a records what was built against this)
 
