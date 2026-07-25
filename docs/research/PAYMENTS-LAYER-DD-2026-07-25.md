@@ -797,6 +797,99 @@ signature.** No processor committed, no money field moved, nothing signed.
 
 ---
 
+## 🔴 3k. PFaaS ECONOMICS — the missing half of Rob's rung question is now priced, and the break-even is an order of magnitude closer than the ISO rung (Max, 2026-07-25)
+
+**The line this closes:** §5's *"PFaaS ECONOMICS — the missing half of Rob's rung question"* (added 7/25 pm,
+§7.7). Rob is explicitly weighing *"ISO or a PayFac or whatever."* Rung 1 ($0 agent) and rung 2 (registered
+ISO) both had sourced economics from §3g. **Rung 3-alt — PayFac-as-a-Service — had none**, which meant the
+comparison Rob is being asked to make on 8/8 was missing a leg. It now has one.
+
+### What each provider actually publishes
+
+| Provider | Model | Platform's economics | Fixed monthly cost | Published? |
+|---|---|---|---|---|
+| **Tilled** | **Revenue share** | **70%** of the spread under $5M/mo processing; **80%** over $5M/mo | **$500/mo** SaaS fee (Start-Up); **$2,500/mo** (Scaling) | ✅ Both tiers public — [tilled.com/pricing](https://www.tilled.com/pricing) |
+| **Moov** | **Buy-rate** — platform sets merchant price, keeps the spread | Card online **interchange+ 0.60% + 15¢**; Tap to Pay **interchange+ 0.50% + 15¢**; ACH same-day 40¢ | **$500/mo minimum**, + $5.00/mo per merchant processing account, + $2.00/mo per business PCI | ✅ Full rate card public — [moov.io/pricing](https://moov.io/pricing/) |
+| **Rainforest** | **Buy-rate, and explicitly NOT rev-share** — verbatim: *"No, we offer a buy-rate, interchange-plus pricing model giving you the most control over your revenue"* | **0.30% + per-item** at $0–5M/mo, stepping to 0.25% ($5–15M) and 0.20% ($15–25M); disputes $15/item | **Not disclosed**; a **"Risk Management Fee — risk dependent"** is named but unpriced | ⚠️ Rates public, minimums and risk fee **not** — [rainforestpay.com/pricing](https://www.rainforestpay.com/pricing) |
+| **Finix** | *"flat rate, dynamic, or custom"* | **Not published** — gated to a sales call | Not published | ❌ **Unpublished.** [finix.com/pricing](https://finix.com/pricing) — recorded as unknown, not estimated |
+
+### The per-merchant number, built only from figures the vendor prints
+
+Tilled is the only provider publishing **both** halves (share % *and* the spread it applies to), so it carries
+the calculation. Its own pricing page states the illustrative assumption: *"merchant pricing is set as 2.9% +
+$0.30 with no monthly account fee and all-in partner costs are set at 2.27% + $0.15."*
+
+- Spread = **0.63% + $0.15/txn**
+- At §3g's **$30,000/mo** per-merchant volume → **$189.00/mo** gross spread on the volume component
+- Platform keeps **70%** → **≈ $132/merchant/month**
+
+⚠️ **This is a FLOOR, and deliberately so.** The **$0.15-per-transaction** half of the spread is excluded
+because transaction *count* per merchant is not in evidence — only volume is. Inventing an average ticket to
+monetize it would be a fabricated number on a money model. **The 2.9%+$0.30 / 2.27%+$0.15 figures are Tilled's
+own calculator assumptions, not a quoted rate to us** — they are labelled as such here and must stay labelled
+on the 8/8 packet.
+
+### The finding — PFaaS break-even sits AT today's merchant count, not 3× the network
+
+| Rung | Fixed annual cost | Per merchant / month | Merchants to break even |
+|---|---|---|---|
+| 1 — $0 independent agent | **$0** | **$35–$50** (§3g, two converging routes) | **1** — profitable from the first merchant |
+| 3-alt — **PFaaS (Tilled Start-Up)** | **$6,000/yr** ($500/mo) | **≈ $132** (floor, above) | **≈ 4** to cover the fee · **≈ 6** to beat staying at rung 1 |
+| 2 — registered ISO | **$20–30k/yr** (§3g) | $35–$50 | **≈ 50–70** (§3g) — *≈ 3× the entire current network* |
+
+**Rung 2 is disqualified by a factor of ~12; rung 3-alt is not disqualified at all.** §3g's own planning
+denominator is **~4 merchants near-term** — which lands exactly on the PFaaS fee break-even and just under the
+~6 needed to beat rung 1. The registered-ISO rung needs 50–70. **That is the whole answer to *"ISO or a PayFac
+or whatever"*: the ISO rung is out on arithmetic, and the PayFac-like rung is a live option that today is
+roughly a wash — not a loss.**
+
+### Why "roughly a wash" is the *bullish* reading, not the bearish one
+
+§3f established that **every switching-cost mechanic Rob wants requires his software to program the rail — and
+that at the $0-agent rung the switching cost added is ZERO.** §3f left revenue and switching cost sitting on
+different rungs with no price on the gap. **That price is now known: ~$6,000/yr, break-even ≈4–6 merchants.**
+
+So the two halves of Rob's stated thesis resolve like this:
+
+- **Revenue half** — rung 1 wins today on pure arithmetic (no fixed cost, profitable at merchant #1).
+- **Switching-cost half** — only rung 3-alt delivers it, and it costs **$6k/yr and ~2 extra merchants** to
+  unlock, *not* the $20–30k/yr and 50–70 merchants that the ISO framing implied.
+- **And rung 3-alt is the one that makes Q62's in-chat Buy Now possible at all** — a programmable rail is the
+  precondition for an AI agent taking a card mid-conversation (§3f, §7.4).
+
+### What this changes
+
+- **The 8/8 packet's rung recommendation must now be a THREE-way comparison, not the two-way it currently
+  implies.** 7/23's *"start at rung 1"* survives as the **revenue** answer and is not overturned — but it was
+  formed without a price on rung 3-alt, and the honest statement is: *rung 1 today, rung 3-alt is the trigger
+  to pre-plan, and the trigger is a merchant count (~6), not a date.*
+- **A concrete, checkable trigger now exists** and should go on the packet: **when boarded merchants reach ~6,
+  PFaaS turns net-positive AND unlocks the switching-cost half.** That is the first decision rule in this
+  whole DD that Rob can act on without another research pass.
+- **The rung question is no longer Rob-blocked on evidence** — it is now a judgment call between a known $0
+  option and a known $6k/yr option, which is exactly the shape a go/no-go needs.
+- **Rainforest is the structural alternative to watch**: buy-rate with *no* rev-share cap means the platform
+  sets merchant pricing and keeps 100% of its own spread — better upside than Tilled's 70%, **but its monthly
+  minimum is unpublished**, so it cannot be compared on break-even. That becomes an RFP question, not a
+  research question.
+- **Finix stays unknown, on purpose.** Nothing was estimated for it.
+
+### What is NOT established — three items that convert to RFP questions, not open research
+
+Every provider omits the same three things, so no amount of further public research closes them:
+
+1. **Liability posture** — who eats a chargeback/fraud loss when the platform is merchant-of-record-adjacent.
+   Rainforest prices a *"Risk Management Fee"* but publishes neither the fee nor the liability allocation.
+2. **Time-to-live** — **not published by any of the four.**
+3. **Minimums beyond the headline** — Tilled's $500/$2,500 are SaaS fees, not stated processing minimums;
+   Rainforest publishes no minimum at all.
+
+**House limit honoured:** nothing signed, no processor contacted, no money field moved. Docs-only, no code.
+
+**Sources:** [Tilled pricing](https://www.tilled.com/pricing) · [Moov pricing](https://moov.io/pricing/) · [Rainforest pricing](https://www.rainforestpay.com/pricing) · [Finix pricing (gated)](https://finix.com/pricing) · per-merchant volume, agent-residual range, and ISO break-even: §3g (banked).
+
+---
+
 ## 5. Open DD checklist — to close by 2026-08-04
 
 - [ ] Rob exports/pastes the **OpenRouter** + **ChatGPT** candidate long-lists (Max cannot read either — 403 / session-scoped)
@@ -805,7 +898,7 @@ signature.** No processor committed, no money field moved, nothing signed.
 - [ ] **Amplipay**: sponsor bank named in writing — ⬆️ **the top agenda item** (§3a: an ~$82k-cap issuer means the sponsor bank is the only capitalized party in the chain). **PUBLIC RECORD EXHAUSTED 2026-07-25, see §3e** — no sponsor/acquiring/member bank is named on any of five properties (`amplipay.ai`, `amplipaygroup.com`, `edatapay.com/about`, `/partners`, `/banking-partnerships-and-lucrative-residual-commissions`), and the **card-brand-mandated *"registered ISO/MSP of [Bank], [City], [State]"* disclosure is absent entirely** from a company that self-describes as a *"Bankcard ISO"*. Line now **company-blocked, not unworked**: converts to a **call gate** for the 7/28 chase — *sponsor bank + acquiring BIN in writing, plus your published ISO/MSP disclosure language* — before any Schedule A review is worth doing
 - [x] **Amplipay**: OTC:APGP financials pulled (going-concern, cash, dilution) — **CLOSED 2026-07-25, see §3a.** Answer: *there are none to pull.* Not an SEC reporting company (only EDGAR "Osyka" registrant filed Form 15-15D in 2008; last financials on EDGAR are a 10-QSB for Q3 2000). Issuer is a **1990 oil-and-gas shell renamed from Osyka Corporation on 2025-06-12** with a 1-for-500 reverse split, **market cap ≈ US$82,190**, net income ≈ −$127k/qtr
 - [x] **Amplipay**: merchant count / volume independently verified — **CLOSED 2026-07-25, see §3c.** Answer: *there is no count to verify.* No third-party figure exists; the company's own corporate site (`amplipaygroup.com`, a second domain alongside `amplipay.ai`) renders **"0+ Customers / 0+ World Active User / 0% Satisfaction"** template placeholders. Operating substance appears to sit in named brand **eDataPay** (Boca Raton) — a **high-risk / hard-to-place merchant specialist** claiming "over 18 years" but publishing no merchant count, no volume, and no acquiring bank. Two new agenda items: merchant count + volume **in writing**, and **which entity (AmpliPay Inc. vs eDataPay) counter-signs the Schedule A**
-- [ ] **Amplipay**: read the two **OTC Markets alternative-reporting disclosure documents** (report ids `484380`, `506506`) — they exist (refines §3a's "no financials": none at the **SEC**, but OTC alt-reporting filings are on file). **Still unread after a 6th consecutive retry (2026-07-25 inc.10; the 5th timed out, the 6th returned the outage page again)** — otcmarkets.com continues to serve its site-wide *"Temporarily Unavailable"* page (HTTP 200 + outage HTML on `/otcapi/company/financial-report/484380/content`; a platform outage, not a block on us). **Retry next run** — no figure from them is quoted anywhere until read. If still down by 7/28, fold into the Amplipay chase call as "send us your OTC disclosure filings directly"
+- [ ] **Amplipay**: read the two **OTC Markets alternative-reporting disclosure documents** (report ids `484380`, `506506`) — they exist (refines §3a's "no financials": none at the **SEC**, but OTC alt-reporting filings are on file). **Still unread after a 7th consecutive retry (2026-07-25 inc.12 — request TIMED OUT at 60s, no content served; 6th returned the outage page, 5th timed out)** — otcmarkets.com continues to serve its site-wide *"Temporarily Unavailable"* page (HTTP 200 + outage HTML on `/otcapi/company/financial-report/484380/content`; a platform outage, not a block on us). **Retry next run** — no figure from them is quoted anywhere until read. If still down by 7/28, fold into the Amplipay chase call as "send us your OTC disclosure filings directly"
 - [ ] **Amplipay**: booking held (submitted 7/24 — chase if no reply by 7/28). **CALL SHEET BUILT 2026-07-25 (§3j): [`AMPLIPAY-CALL-SHEET-2026-07-28.html`](./AMPLIPAY-CALL-SHEET-2026-07-28.html)** — the three gate questions, six follow-ups, and the four-non-negotiable scorecard, each with its source; nothing on it is new evidence, it is §3a–§3h assembled into the order the call has to run in
 - [x] **Shift4**: partner-contract history flag investigated (7/23 raised it, never closed) — **CLOSED 2026-07-25, see §3b.** Answer: *the history is real and adverse.* Feb 2022 Shift4 unilaterally discontinued ancillary-fee residual streams effective 4/1/2022 and replaced them with a one-time buyout carrying a **10-year** merchant non-solicit (industry norm 16–42 months); SEC filings describe buying out **"over a hundred"** partners' residual obligations plus non-solicitation rights; 2018 antitrust suit (Payment Logistics, S.D. Cal.) over cutting independent interfaces out of the channel; Jan 2025 **$750k SEC penalty** for undisclosed related-person residual commissions. **Fails non-negotiables 1 and 3 on conduct; 2 and 4 remain unknown (T&C PDFs are 403 to automated fetch).**
 - [ ] **Both**: Schedule A obtained and scored against the 4 non-negotiables — *Shift4 partially scored from public conduct (§3b); the actual Authorized Partner T&Cs PDF needs a human/browser download (HTTP 403)*
@@ -814,7 +907,7 @@ signature.** No processor committed, no money field moved, nothing signed.
 - [x] Switching-cost mechanic specified: what *concretely* makes a merchant unable to leave once processing is bundled? — **CLOSED 2026-07-25, see §3f.** Answer: **the AI agent transacting** (AIDRE takes the deposit on the call / AIVA closes the booking with a card) — the sold outcome is *a booked-and-paid job*, which cannot survive moving the rail; second-strongest is the second brain as revenue system-of-record (Q40). Dual pricing is **not** lock-in, it is the acquisition wedge, and is symmetric. **The finding with teeth: every mechanic requires that Rob's software can PROGRAM the rail (PFaaS posture) — so at the $0-independent-agent rung, switching cost added is ZERO.** Rob's thesis splits: revenue half is available now at rung 1; switching-cost half is a Phase-2+ engineering decision, not a signature
 - [x] Revenue model: expected residual per merchant × realistic merchant count = is this worth the distraction from P1? — **CLOSED 2026-07-25, see §3g.** Answer: **$35–$50 per merchant per month** (two independent routes converge: $70 gross margin × the stated ~50% industry-average split; and $30k/mo volume × the 15 bps floor). Denominator taken **first-party from our own CRM — 19 orgs, 8 deals today** — with §3f's Apideck sub-20% attach → **~4 merchants ≈ $140–200/month near-term**, i.e. *not* a revenue stream at today's size. **The payoff shape is the finding: a residual book sells at 25–40× monthly, and every scenario scales with MLE's customer count — so the add-on is downstream of P1, not competing with it.** Hard sourced disqualifier for jumping rungs: the **registered-ISO rung (~$20–30k/yr) needs ~50–70 merchants just to break even ≈ 3× the entire current network.** A widely-circulated *"$23,000 average monthly card spend"* figure was **rejected** — it measures small businesses *spending on* business cards, not merchant *acceptance* volume
 - [ ] 🆕 **DELIVERABLE-SIDE LINE (added 2026-07-25 pm from Rob's chat-commerce dump — see §7).** ~~(a) **Rob-only:** which vertical?~~ **(a) CLOSED by Rob the same evening — there is no vertical gate (§7.5): the paying chatbot is a HORIZONTAL add-on to the websites MLE spins up, across every vertical; e-commerce/apparel was one example, and the general principle is Amazon's Buy Now button — collect payment before the customer reaches a checkout page.** (b) ✅ **CLOSED 2026-07-25 — see §3i.** Attach for payments **delivered as part of the product** now has sourced bounds: **Shopify Payments = 67% of GMV, Q1 2026 (SEC 10-Q)** against §3g's banked Apideck *"often remain below 20%"* for payments **sold separately**, with Clio's COO putting the observed vertical-SaaS spread at ***"20% to 90+%"*** and naming the driver — payments as a **core product** vs. a SPIFF'd secondary one. **Direction corroborated, magnitude for OUR delivery mode still unpublished and not invented; §3g's sub-20% denominator therefore stands as the planning number.** (c) Confirm the 7/23 rail shortlist (Square payment links / Helcim HelcimPay.js) still holds for an in-chat flow at rung 1, and that hosted checkout keeps MLE **out of PCI scope** — target posture **SAQ-A, card data never in the LLM context or our logs** (§7.4, §7.7)
-- [ ] 🆕 **PFaaS ECONOMICS — the missing half of Rob's rung question (added 2026-07-25 pm, §7.7).** Rob is explicitly weighing *"ISO or a PayFac or whatever."* Rung 1 and the registered-ISO rung both have sourced economics here (§3g); **PayFac-as-a-Service does not.** Needed before 8/8 so the comparison is honest: published revenue-share / per-transaction economics, minimums, underwriting + liability posture, and time-to-live for **Rainforest / Moov / Finix / Tilled** — and specifically whether a platform-of-record model pays *more* than an agent residual on the same volume, since that is the only thing that would justify moving off the $0 rung for the in-chat Buy Now use case
+- [x] 🆕 **PFaaS ECONOMICS — the missing half of Rob's rung question (added 2026-07-25 pm, §7.7) — CLOSED 2026-07-25, see §3k.** Answer to *"does a platform-of-record model pay MORE than an agent residual on the same volume?"* → **YES, roughly 3×: ≈$132/merchant/month (Tilled, floor) vs §3g's $35–50 agent residual** — but it carries a **$500/mo SaaS fee**, so break-even is **≈4 merchants** to cover the fee and **≈6** to beat staying at rung 1. **Against the registered-ISO rung's 50–70, PFaaS is an order of magnitude closer — it lands AT §3g's own ~4-merchant planning denominator.** Tilled 70%/80% rev share + $500/$2,500 mo published; Moov buy-rate interchange+0.60%+15¢, $500/mo minimum published; Rainforest **explicitly not rev-share** (buy-rate, 0.30%+item at $0–5M) but **minimum unpublished**; **Finix unpublished entirely, recorded as unknown and not estimated.** **The decision-grade output is a trigger, not a date: at ~6 boarded merchants PFaaS turns net-positive AND unlocks §3f's switching-cost half, which rung 1 cannot deliver at any merchant count.** Three items are unpublished by ALL four (liability allocation, time-to-live, minimums beyond the headline) → they convert to **RFP questions, not open research**
 - [ ] 🆕 **NN#3 IS NOW THE DEAL-BREAKER CLAUSE, not the third checkbox (§7.7).** Rob cites portfolio resale value (25–40× monthly, §3g) as a stated reason for the whole initiative → on **every** Schedule A, verify the sale right is a **third-party** sale right, not the processor's own buyback (the exact trap §3d found in SignaPay's published *"portfolio buyouts"*). A book sellable only back to the processor does not carry the outside multiple
 
 ## 6. The question nobody has asked yet — ✅ ANSWERED 2026-07-25 (see §3f)
