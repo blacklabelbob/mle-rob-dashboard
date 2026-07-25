@@ -408,6 +408,84 @@ load-bearing rather than administrative.
 
 ---
 
+## 🔴 3f. The SWITCHING-COST MECHANIC — named, and it contradicts the rung recommendation (Max, 2026-07-25)
+
+This closes §5's *"Switching-cost mechanic specified: what concretely makes a merchant unable to leave once
+processing is bundled?"* — the line §6 calls **the question nobody has asked**, and it is half of Rob's own
+stated rationale (*"serve Both as a revenue stream and increase switching costs"*). It is answered here from
+banked evidence rather than left for Q61, because the answer changes what Q61 rec (1) can honestly claim.
+
+### The mechanic exists and is measurable — but it is NOT payments
+
+The industry evidence says stickiness comes from the **software the payment flows through**, never from the
+processing itself:
+
+| Evidence | Figure | Source |
+|---|---|---|
+| Verticalized vs. horizontal acquirers, 5 European markets (Visa) | **+19pp** payment-volume growth, **5% less** merchant attrition | [Visa VCA verticalization whitepaper](https://www.visa.co.uk/content/dam/VCOM/regional/ve/unitedkingdom/PDF/vca/uk-vca-verticalization-whitepaper.pdf) |
+| Embedded-payment SaaS platforms vs. traditional payment providers (BCG × Adyen, 2025) | **2.5×** customer retention | [BCG, *Moving Embedded Finance From Promise to Practice*](https://www.bcg.com/publications/2025/moving-embedded-finance-from-promise-practice) |
+| Embedded vs. standalone merchant retention, 2026 industry report | *"2x to 4x higher retention rates due to increased switching friction and deeper integration into daily workflows"*; embedded platforms *"90%+ retention"* | [Clearly Payments, merchant churn by vertical 2026](https://www.clearlypayments.com/blog/what-merchant-churn-looks-like-by-vertical-2026-industry-report/) |
+| Baseline churn in **Rob's own verticals** | contractors / home services **15–30%/yr** (3–6 yr life); property management **8–12%/yr** (7–12 yr life); legal & accounting **5–10%/yr** | [Clearly Payments (same)](https://www.clearlypayments.com/blog/what-merchant-churn-looks-like-by-vertical-2026-industry-report/) |
+| Payments attach when the platform sells payments alone | *"often remain below 20%"* | [Apideck, embedded finance for vertical SaaS](https://www.apideck.com/blog/embedded-finance-vertical-saas) |
+
+**Explicitly NOT used:** a widely-repeated *"merchants using 3+ software layers have 5% annual churn vs 18%
+for payment-only"* / *"40% lower churn"* pair surfaced in search and traces to a vendor blog whose own text
+carries **no attribution** for those numbers (its cited sources — TSG, Nilson, McKinsey — are listed at the
+foot but tied to no specific claim). Not quoted, not banked. The four rows above are kept because each names
+a traceable originator.
+
+### The four candidate mechanics for MLE/AIVA, ranked by whether they actually bind
+
+1. ✅ **The AI agent transacts.** AIDRE takes the deposit on the call; AIVA closes the booking with a card in
+   the chat. The deliverable Rob sells is *a booked-and-paid job*, not *a call answered* — and that outcome is
+   inseparable from the rail the agent charges on. A roofer cannot keep "the receptionist that collects the
+   deposit" and move processing; the agent breaks. **This is the strongest mechanic and it is unique to Rob's
+   stack** — it is not available to an ordinary ISO, and it is why the payments question is even interesting.
+2. ✅ **The second brain becomes the revenue system-of-record.** If quotes, invoices, deposits and
+   paid/unpaid state originate in the Blueprint (Q40) and reconcile there, leaving processing forfeits
+   reconciliation history and forces re-onboarding. Real, medium-strength, and already half-built.
+3. ⚠️ **Data-derived money products** (instant payout, working capital priced off processing history). The
+   strongest lock-in in the industry (the Toast/Shopify mechanic) and **out of reach** — it needs capital,
+   underwriting, and the PayFac-band volume the 7/23 research put at ~$10–100M.
+4. ❌ **Dual pricing / surcharge configuration is NOT a switching cost — it is the opposite.** It is the
+   door-opener reps use to *win* accounts off incumbents (§1). It is symmetric: whatever it lets Rob take, it
+   lets the next agent take back. Counting it as lock-in would be counting the attack as the armour.
+
+### The finding that matters for 8/8 — rung (1) and switching cost are in direct conflict
+
+Every mechanic above requires that **Rob's software can program the payment rail** — issue the charge, hold
+the state, read the history. That is the PayFac-as-a-Service posture (Rainforest / Moov / Finix / Tilled).
+
+At the **$0 independent-agent rung** — the 7/23 recommendation, and the rung §3b–§3e have been *hardening*
+because it is the only one that survives an unverifiable counterparty — Rob **refers** the merchant to
+someone else's rail. He earns a residual and adds **zero** switching cost. Nothing integrates; the merchant
+can move processing next week and keep every MLE deliverable intact.
+
+**So the honest statement of Rob's own thesis is that it splits in two, and the two halves sit on different
+rungs:**
+
+- **Revenue half** — available immediately, at $0, at rung 1. Real, small, uncontroversial.
+- **Switching-cost half** — **unavailable at rung 1 by construction.** It requires PFaaS and the engineering
+  to make the AI agent transact. It is a Phase-2+ build, not a signature.
+
+This is not an argument against the add-on. It is the argument that **Q61 rec (1) must be stated as
+"$0 agent NOW for the revenue, with the switching-cost mechanic named as a later, separate, engineering
+decision"** — rather than presenting one rung as delivering both of Rob's stated goals, which it cannot.
+
+### What this changes
+
+1. §5's switching-cost line **CLOSES with a named mechanic** (mechanic #1, the transacting agent) rather than
+   remaining the open hole §6 flagged.
+2. **Q61 rec (3) is now pre-drafted** and rec (1) acquires a mandatory caveat it did not have before.
+3. **Q61 rec (4) (revenue model) gets its denominator honestly**: contractor merchants churn **15–30%/yr**
+   at baseline, so residual-per-merchant must be modelled against a 3–6 year life, not perpetuity — and the
+   retention multiple (2.5×–4×) may **only** be applied to the rung that actually integrates.
+4. The dual-pricing pitch is demoted from "lock-in" to "acquisition wedge" wherever it appears.
+
+**House limit honoured:** nothing signed, no processor committed, no money field moved. No code touched.
+
+---
+
 ## 4. Identity / entity structure — decision Rob must make
 
 The 7/23 research explicitly filed the processor play in the **BoostUp Payments** lane
@@ -446,10 +524,15 @@ strategy that spans the businesses. Do not let the two get conflated in either d
 - [ ] **Both**: Schedule A obtained and scored against the 4 non-negotiables — *Shift4 partially scored from public conduct (§3b); the actual Authorized Partner T&Cs PDF needs a human/browser download (HTTP 403)*
 - [ ] Rung decision: start as **$0 agent** (7/23 recommendation) vs. jump straight to ISO/PFaaS
 - [ ] Entity decision: which entity signs (§4)
-- [ ] Switching-cost mechanic specified: what *concretely* makes a merchant unable to leave once processing is bundled?
+- [x] Switching-cost mechanic specified: what *concretely* makes a merchant unable to leave once processing is bundled? — **CLOSED 2026-07-25, see §3f.** Answer: **the AI agent transacting** (AIDRE takes the deposit on the call / AIVA closes the booking with a card) — the sold outcome is *a booked-and-paid job*, which cannot survive moving the rail; second-strongest is the second brain as revenue system-of-record (Q40). Dual pricing is **not** lock-in, it is the acquisition wedge, and is symmetric. **The finding with teeth: every mechanic requires that Rob's software can PROGRAM the rail (PFaaS posture) — so at the $0-independent-agent rung, switching cost added is ZERO.** Rob's thesis splits: revenue half is available now at rung 1; switching-cost half is a Phase-2+ engineering decision, not a signature
 - [ ] Revenue model: expected residual per merchant × realistic merchant count = is this worth the distraction from P1?
 
-## 6. The question nobody has asked yet
+## 6. The question nobody has asked yet — ✅ ANSWERED 2026-07-25 (see §3f)
+
+> **Resolved.** The mechanic is **the AI agent transacting** — and the answer carried a second finding the
+> question did not anticipate: the mechanic is **unavailable at the $0-agent rung**, because every version of
+> it requires Rob's software to program the payment rail. Revenue and switching cost therefore sit on
+> *different rungs*, and Q61 must say so. Original framing preserved below for the record.
 
 Rob's stated value is **revenue + switching costs**. The switching-cost claim is the stronger half and
 it is currently unquantified. Processing is famously *easy* to switch (that's the entire premise of the
@@ -516,3 +599,22 @@ add-on with a switching-cost story attached, which is a materially different (an
   *which entity counter-signs* load-bearing. Line converted to a **call gate** for the 7/28 chase: sponsor
   bank + acquiring BIN in writing before any Schedule A review. Counterparty pattern is now **5-for-5**
   unverifiable → hardens Q61 rec (1). Posted to the ledger as a flag.
+- 2026-07-25 (driver inc.6) — **§3f added; the SWITCHING-COST MECHANIC line is CLOSED, and §6 is answered.**
+  OTC retry attempted first and otcmarkets.com **still serves the site-wide "Temporarily Unavailable" page**
+  (2nd consecutive run; verified by direct request to both `/otcapi/company/financial-report/{484380,506506}/content`
+  — HTTP 200 but the outage HTML body, i.e. a platform outage, not a block on us), so that line stays open,
+  unread, nothing quoted. Mechanic named: **the AI agent transacting** (AIDRE deposit-on-call, AIVA
+  card-in-chat) — the sold outcome is a *booked-and-paid job*, inseparable from the rail; #2 the second brain
+  as revenue system-of-record (Q40); #3 data-derived money products, out of reach (needs PayFac-band volume +
+  capital); #4 **dual pricing is NOT lock-in** — it is the acquisition wedge, and it is symmetric. Evidence
+  banked with traceable originators only (Visa VCA: +19pp volume growth / 5% less attrition for verticalized
+  acquirers; BCG × Adyen 2025: 2.5× retention; Clearly Payments 2026: 2–4× retention, 90%+ for embedded
+  platforms, and the baseline that matters — **contractors/home services churn 15–30%/yr, 3–6 yr life**;
+  Apideck: attach *"often remain below 20%"* when a platform sells payments alone). A widely-repeated
+  *"5% vs 18% churn / 40% lower"* pair was **rejected** — vendor blog, no attribution on those claims.
+  **The finding with teeth: every mechanic requires Rob's software to PROGRAM the rail (PFaaS posture), so at
+  the $0-independent-agent rung — the rung §3b–§3e keep hardening — switching cost added is ZERO.** Rob's
+  thesis splits across rungs: revenue now at rung 1, switching cost as a Phase-2+ engineering decision.
+  Q61 rec (3) is now pre-drafted, rec (1) gains a mandatory caveat, rec (4) gets an honest denominator
+  (model against a 3–6 yr merchant life, and apply the retention multiple only to a rung that integrates).
+  Posted to the ledger as a flag.
