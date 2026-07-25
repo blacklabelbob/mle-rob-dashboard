@@ -205,7 +205,13 @@ function DealCard({
       } ${dragging ? "opacity-40" : ""}`}
     >
       <div className="flex items-start justify-between gap-2">
-        <p className="min-w-0 truncate text-sm font-medium text-white">{deal.name}</p>
+        {/* Q47: the deal name opens the deal record (agreements live there too). */}
+        <Link
+          href={`/deals/${deal.id}`}
+          className="min-w-0 truncate text-sm font-medium text-white hover:underline"
+        >
+          {deal.name}
+        </Link>
         <span
           title={breakdownTitle(score)}
           className={`shrink-0 cursor-help rounded-full px-2 py-0.5 text-xs font-semibold ring-1 ${GRADE_STYLES[score.grade]}`}
