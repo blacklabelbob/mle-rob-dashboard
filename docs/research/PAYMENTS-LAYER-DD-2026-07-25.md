@@ -257,6 +257,92 @@ OpenRouter/ChatGPT criteria Max still cannot read.**
 
 ---
 
+## 🟠 3d. Maverick + SignaPay — the MERITS half of the "rejected or never surfaced?" line (Max, 2026-07-25)
+
+**What this section does and does not close.** The checklist line reads *"were Maverick and SignaPay
+rejected on merits, or never surfaced?"* — the **rejected-vs-never-surfaced** half is answerable only by
+Rob (his OpenRouter room and ChatGPT conversation remain unreadable to Max: session-scoped / HTTP 403,
+re-verified 7/25). What Max can do without him — and did here — is **pre-answer the merits half**, so that
+whichever one-word answer Rob gives, the line resolves the same run instead of starting a fresh DD.
+Nothing below infers what those transcripts said.
+
+### Maverick Payments (7/23 pick #1)
+
+| Non-negotiable | Public evidence | Verdict |
+|---|---|---|
+| 1. Lifetime **vested** residuals | Nothing published — the ISO/agent page markets *portfolio and residual **tracking*** (dashboards), never residual **ownership** | ⚠️ UNKNOWN — contract-only |
+| 2. No production minimums | Nothing published | ⚠️ UNKNOWN — contract-only |
+| 3. Portfolio sale rights | Nothing published | ⚠️ UNKNOWN — contract-only |
+| 4. Sub-agent Schedule A rights | *"free unlimited downstream sub-agent management"* / sub-ISO onboarding, sub-agents and resellers free of charge | 🟡 **Marketing-supported only** — the 7/23 claim survives contact with the public record, but a dashboard feature is not a contractual right |
+
+Sources: [Maverick ISOs & Agents](https://maverickpayments.com/isos-and-agents) ·
+[Maverick partner lander](https://maverickpayments.com/partner-greensheet).
+
+**The adverse finding is merchant-side, not agent-side — and it still matters.**
+[BBB complaints, Maverick Payments (Calabasas CA)](https://www.bbb.org/us/ca/calabasas/profile/payment-processing-services/maverick-payments-1216-437050/complaints):
+**23 complaints in 3 years, 9 closed in the last 12 months**, and the dominant theme is **held settlement
+funds / reserves and abrupt account closures** — verbatim from complainants: *"held $23,357.45 of my
+merchant reserve funds despite no chargebacks, no refunds, no fraud"*; *"closed my merchant account
+today…without any warning or clear reason and is holding $3,600"*; one alleges Maverick used *"their own
+mishandling of a single fraudulent chargeback to justify seizing 100% of our revenue indefinitely"*, and
+states *"I have now joined other merchants in a joint lawsuit against Maverick"* (that suit is a
+complainant's assertion on a BBB page — **not independently verified, and it is not cited here as
+established fact**).
+
+**Why merchant conduct lands on an agent decision:** a residual is a claim on a **living merchant**. An
+acquirer that freezes reserves and closes accounts is churning the exact book the agent gets paid on — and
+under Rob's model those merchants would be **his own roofing/title customers**, arriving through MLE.
+Reputational blast radius runs backwards into the P1 business in a way it never does for a pure agent play.
+This is the same shape as the §3c note about eDataPay's high-risk book: **fat splits and volatile merchants
+are the same trade.**
+
+### SignaPay (7/23 pick #2)
+
+| Non-negotiable | Public evidence | Verdict |
+|---|---|---|
+| 1. Lifetime vested residuals | *"residual splits up to 90%"* — a **rate**, never a **vesting** claim | ⚠️ UNKNOWN — contract-only |
+| 2. No production minimums | Nothing published | ⚠️ UNKNOWN — contract-only |
+| 3. Portfolio sale rights | *"flexible payouts, loans, and **portfolio buyouts**"* | ⚠️ **UNKNOWN, and note the substitution** — a buyout SignaPay offers is *SignaPay as the buyer*; non-negotiable #3 is the right to sell **to a third party**. Shift4's §3b record is what that substitution looks like when it goes wrong |
+| 4. Sub-agent Schedule A rights | Nothing published | ⚠️ UNKNOWN — contract-only |
+
+Sources: [SignaPay ISO program expansion, 2025-11-10/12](https://signapay.com/blog/signapay-expands-iso-program-ahead-of-2026-opening-doors-for-new-partners-seeking-a-true-growth-partnership/) ·
+[same release, PR Newswire](https://www.prnewswire.com/news-releases/signapay-expands-iso-program-ahead-of-2026--opening-doors-for-new-partners-seeking-a-true-growth-partnership-302609009.html).
+
+**Counterparty record — thin, old, and two items worth carrying to a call.**
+[BBB, SignaPay (Irving TX)](https://www.bbb.org/us/tx/irving/profile/credit-card-processing-services/signapay-0875-90041862/complaints):
+**3 complaints, 2 negative reviews** — materially quieter than Maverick's 23. One alleges escrowed funds
+were transferred to a third party that then went bankrupt (SignaPay's answer: records show a check was
+sent); one alleges **a salesperson signed an equipment lease in the merchant's name** (SignaPay's answer:
+sold by a third party, not them). Separately, **Nov 2015 Priority Payment Systems of Georgia v. SignaPay**
+alleged misappropriation of merchant-management-system data — inter-ISO, 11 years old, **not agent-facing**,
+and carried here only so it isn't "discovered" later.
+The equipment-lease allegation is the one that scales: **if Rob runs sub-agents, third-party lease
+misconduct is the classic way an agent's own portfolio and licence get contaminated** — so non-negotiable #4
+must be asked as *"what are my liabilities for a sub-agent's conduct?"*, not only *"can I have sub-agents?"*
+
+### What this changes
+
+1. **Four candidates diligenced, four times the same answer: the public record cannot settle a single one
+   of the four non-negotiables.** Amplipay (§3a/§3c) can't be sized at all; Shift4 (§3b) is settled *against*
+   two of them by conduct; Maverick and SignaPay publish **nothing** on any of them. This is now an
+   evidence-backed pattern, not an impression, and it is the strongest affirmative argument yet for
+   **Q61 rec (1): start as a $0 independent agent on *multiple* Schedule A's** — the only rung where being
+   unable to verify the counterparty in advance is survivable.
+2. **Neither candidate is disqualified.** Maverick's free unlimited sub-agent hierarchy — the property that
+   won it pick #1 — survives the check; SignaPay's 90% and its dual-pricing PayLo door-opener are intact.
+   Both now carry a **named** question to put on a call rather than a vibe.
+3. **The call agenda gains one question that applies to every candidate:** *what happens to my residual when
+   YOU terminate the merchant?* Maverick's BBB record is what makes it concrete.
+4. **New human-browser-pull line** (same bucket as Shift4's 403'd T&C PDFs): cardpaymentoptions.com's
+   SignaPay review returns **HTTP 403** to automated fetch — the agent-side detail there is unread and
+   nothing from it is quoted.
+
+**Still Rob-only, unchanged:** whether he ever saw these two. The merits are now on the record either way.
+
+**House limit honoured:** nothing signed, no processor committed, no money field moved.
+
+---
+
 ## 4. Identity / entity structure — decision Rob must make
 
 The 7/23 research explicitly filed the processor play in the **BoostUp Payments** lane
@@ -284,7 +370,8 @@ strategy that spans the businesses. Do not let the two get conflated in either d
 ## 5. Open DD checklist — to close by 2026-08-04
 
 - [ ] Rob exports/pastes the **OpenRouter** + **ChatGPT** candidate long-lists (Max cannot read either — 403 / session-scoped)
-- [ ] Resolve: were **Maverick** and **SignaPay** rejected on merits, or never surfaced?
+- [ ] Resolve: were **Maverick** and **SignaPay** rejected on merits, or never surfaced? — **MERITS HALF CLOSED 2026-07-25, see §3d** (both scored on public evidence: Maverick's *"free unlimited downstream sub-agent management"* survives the check ✅ marketing-level, but **23 BBB complaints in 3 years** dominated by held reserves / abrupt merchant closures; SignaPay is quieter — **3 complaints** — but its "portfolio buyouts" is *SignaPay as buyer*, **not** the third-party sale right of non-negotiable #3, and a 2015 BBB complaint alleges a rep signed an equipment lease in a merchant's name → NN#4 must be asked as sub-agent **liability**, not just sub-agent permission. **Neither disqualified.** Remaining half is Rob-only: did his OpenRouter/ChatGPT searches ever surface them?)
+- [ ] **SignaPay**: cardpaymentoptions.com review returns **HTTP 403** to automated fetch — needs a human browser pull (same bucket as the Shift4 T&C PDFs); nothing from it is quoted until read
 - [ ] **Amplipay**: sponsor bank named in writing — ⬆️ **now the top agenda item** (§3a: an ~$82k-cap issuer means the sponsor bank is the only capitalized party in the chain); re-searched 2026-07-25, nowhere public
 - [x] **Amplipay**: OTC:APGP financials pulled (going-concern, cash, dilution) — **CLOSED 2026-07-25, see §3a.** Answer: *there are none to pull.* Not an SEC reporting company (only EDGAR "Osyka" registrant filed Form 15-15D in 2008; last financials on EDGAR are a 10-QSB for Q3 2000). Issuer is a **1990 oil-and-gas shell renamed from Osyka Corporation on 2025-06-12** with a 1-for-500 reverse split, **market cap ≈ US$82,190**, net income ≈ −$127k/qtr
 - [x] **Amplipay**: merchant count / volume independently verified — **CLOSED 2026-07-25, see §3c.** Answer: *there is no count to verify.* No third-party figure exists; the company's own corporate site (`amplipaygroup.com`, a second domain alongside `amplipay.ai`) renders **"0+ Customers / 0+ World Active User / 0% Satisfaction"** template placeholders. Operating substance appears to sit in named brand **eDataPay** (Boca Raton) — a **high-risk / hard-to-place merchant specialist** claiming "over 18 years" but publishing no merchant count, no volume, and no acquiring bank. Two new agenda items: merchant count + volume **in writing**, and **which entity (AmpliPay Inc. vs eDataPay) counter-signs the Schedule A**
@@ -338,3 +425,16 @@ add-on with a switching-cost story attached, which is a materially different (an
   (otcmarkets.com served a site-wide "Temporarily Unavailable" page all session); logged as a retry with
   no figure quoted. Two new agenda items: count+volume in writing, and **which entity counter-signs the
   Schedule A**. Posted to the ledger as a high-severity flag.
+- 2026-07-25 (driver inc.4) — **§3d added; the Maverick/SignaPay line is HALF-CLOSED — the MERITS half.**
+  The rejected-vs-never-surfaced half stays Rob-only (transcripts still unreadable), so the merits were
+  pre-answered instead: **neither company publishes a single one of the four non-negotiables.** Maverick's
+  *"free unlimited downstream sub-agent management"* survives the check at marketing level (NN#4 🟡), but
+  **23 BBB complaints in 3 years** are dominated by **held reserves and abrupt merchant closures** — which
+  under Rob's model would be his own roofing/title customers, so it runs backwards into P1. SignaPay is far
+  quieter (**3 complaints**); its published *"portfolio buyouts"* is **SignaPay as buyer**, not the
+  third-party sale right NN#3 means, and a BBB complaint alleging **a rep signed an equipment lease in a
+  merchant's name** reframes NN#4 as sub-agent **liability**, not just permission. 2015 Priority Payment
+  Systems v. SignaPay logged as inter-ISO and 11 years old, not agent-facing. **Neither disqualified.**
+  Headline: **4 candidates, 4× the public record cannot settle the non-negotiables** → the strongest
+  affirmative argument yet for Q61 rec (1), $0 independent agent across **multiple** Schedule A's. New
+  human-browser-pull line (cardpaymentoptions 403). Posted to the ledger as a flag.
