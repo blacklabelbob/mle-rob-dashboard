@@ -1,6 +1,8 @@
 # Phase 2 ROI Engine + the Estimator — SPEC
 
-**Created:** 2026-07-25 · **Owner:** Rob + Max · **Status:** ENGINE BUILT (`lib/roi/*`), UI NOT BUILT
+**Created:** 2026-07-25 · **Owner:** Rob + Max · **Status:** ENGINE BUILT (`lib/roi/*`) · **UI BUILT** as a
+standalone interactive page — [`PHASE2-ROI-ESTIMATOR.html`](./PHASE2-ROI-ESTIMATOR.html) (§4a) · **not yet
+mounted in the app**
 **Source (verbatim, do not edit):** [`sources/ROB-PHASE2-ROI-DUMP-2026-07-25.md`](./sources/ROB-PHASE2-ROI-DUMP-2026-07-25.md)
 **Implementation:** [`lib/roi/phase2.ts`](../../lib/roi/phase2.ts) (arithmetic) + [`lib/roi/laborRates.ts`](../../lib/roi/laborRates.ts) (BLS rate table)
 **Tests:** [`lib/__tests__/phase2Roi.test.ts`](../../lib/__tests__/phase2Roi.test.ts)
@@ -94,7 +96,35 @@ Fallback is **explicit, never silent**: `rateFor()` returns `usedRegion` + `fell
 *"national figure — BLS publishes no Naples number for Telemarketers"* rather than presenting a national rate
 as if it were local. A missing metro figure stays `null`; it is never back-filled from the state number.
 
-## 4. UI contract (NOT YET BUILT — Q63 legs 3–5)
+## 4a. The UI as built — `docs/plans/PHASE2-ROI-ESTIMATOR.html` (2026-07-25)
+
+Standalone, self-contained, no build step — opens in a browser and is publishable as a persistent artifact,
+which is the form Rob asked for. It **mirrors** `lib/roi/phase2.ts` and never re-derives the arithmetic; the
+module stays the source of truth (CR-3). Against the contract in §4: all five points met.
+
+**What it does:** *Est Investment*, *days into Phase 2* (number + slider), *wage region*, and *guarantee window*
+across the top; four KPI tiles (ROI %, ROI $, target-to-date with a window meter, value delivered); a row per
+automation with editable hours/week and revenue-lift and a live BLS link per rate; totals; a summary that
+prints its own arithmetic line by line; and an explicit **Open — flagged, not silently decided** panel.
+
+**Defaults, and the tuning that got them there — recorded rather than quietly fixed:**
+
+| Pass | Seeded assumptions | Day-30 read |
+|---|---|---|
+| First | 58 h/wk displaced · $11.5k/mo revenue lift | **+477%** — the number a client stops believing |
+| **Shipped** | **31.5 h/wk (≈0.8 FTE)** · **revenue lift $0 on every row** | **+11.6% labor-only**, or **+149.6%** after clicking *Load conservative revenue estimates* |
+
+Revenue defaults to **$0 on every row on purpose**: the labor half is defensible from published BLS wages, the
+revenue half is judgement, so nothing is claimed until a human types it or opts in with the button.
+
+**Linearity, stated on the page so it isn't mistaken for a bug:** with fixed rates every term scales with the
+day count, so the days field moves the dollars but not the percentage. The percentage moves when hours, lift,
+or the investment change.
+
+**Remaining for Q63:** mount it on the company record (master + rep views) beside the Q40 phase tracker, and
+feed the running-ROI view from real actuals rather than modelled inputs (§5 question C's sibling).
+
+## 4. UI contract (§4a records what was built against this)
 
 1. Two typed inputs, exactly as Rob named them: **Est Investment** and **days so far in Phase 2**. Changing
    either recomputes **everything** on screen (per-automation rows AND the summary).
