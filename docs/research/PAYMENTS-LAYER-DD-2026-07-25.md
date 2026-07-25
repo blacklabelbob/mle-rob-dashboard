@@ -657,6 +657,68 @@ signature is the **smaller** half. The bigger half is **whose name is on the pit
 
 ---
 
+## 🔴 3i. THE ATTACH RATE — §3g's softest number now has sourced bounds, and the spread is the finding (Max, 2026-07-25)
+
+**The line this closes:** §5's deliverable-side line (b), added 7/25 pm — *source an attach rate for payments
+**delivered as part of the product** vs. §3g's banked Apideck *"often remain below 20%"* for payments **sold
+separately***. §7.3 called this *"the highest-leverage variable in the entire §3g model"* and left it a named
+hypothesis with **no number**. It is no longer numberless.
+
+### What was found — four figures, ordered by how much weight they can bear
+
+| # | Figure | What it actually measures | Weight it bears | Source |
+|---|---|---|---|---|
+| 1 | **67% of GMV** ran through Shopify Payments in Q1 2026 (vs **64%** in Q1 2025) | Payments penetration on a platform where checkout ships **as part of the product**, merchant opts in | **Highest — first-party, SEC-filed, audited-issuer disclosure.** Not a vendor claim | [Shopify Inc. Form 10-Q, FY2026 Q1](https://www.sec.gov/Archives/edgar/data/0001594805/000159480526000019/shop-20260331.htm) |
+| 2 | **"attach can range from 20% to 90+%"** across vertical SaaS players | The observed spread, from an operator | High — named originator, **Ronnie Gurion, COO of Clio**, a vertical SaaS company that sells payments | [Tidemark — How to sell payments in vertical SaaS](https://www.tidemarkcap.com/post/how-to-sell-payments-vertical-saas) |
+| 3 | Payments treated as a **core product inside sales quotas** yields *"maximum attach"*; a **SPIFF** model yields *"a decent amount of attach, but… it still gets treated like a secondary product"* | The **mechanism** behind the spread — how it is sold, not what it is | High for direction, **zero for magnitude** — no percentages attached to either mode | [Tidemark / Gurion, same piece](https://www.tidemarkcap.com/post/how-to-sell-payments-vertical-saas) |
+| 4 | *"The median payments attach rate has doubled in 1 year"*; 87% of vertical SaaS companies offering fintech now offer payments (from 30% a year earlier) | Direction of travel across 200+ vertical SaaS companies | Medium — **the absolute median is not published on the public page**, only the doubling | [Stripe / 2025 Tidemark Vertical & SMB SaaS Benchmark](https://stripe.com/lp/vertical-saas-benchmark-2025) |
+
+**Toast is the structural ceiling and is recorded as a contrast, not a benchmark:** Toast requires its own
+processing — a merchant cannot bring another processor — so its attach is ~100% **by contract, not by
+product quality**. That is a mandatory-bundling model, which is a different (and legally different) proposition
+from MLE shipping a chatbot that happens to transact. Sourced from third-party reviews, not Toast filings,
+so it is cited as context only: [Merchant Insiders — Toast fees](https://merchantinsiders.com/blogs/toast-fees/).
+
+### The answer, stated at the precision the evidence supports
+
+**§7.3's hypothesis is CORROBORATED IN DIRECTION AND UNQUANTIFIED IN MAGNITUDE — and that is the honest
+answer, not a placeholder.** Apideck's *sub-20%* sits at the **bottom** of Gurion's observed 20–90+% range,
+and it describes exactly the mode Gurion names as the weak one (payments as a secondary product / SPIFF).
+Shopify — checkout shipped inside the product — sits at **67%**, in the upper half of the same range. Two
+independent sources, one an SEC filing, agree that **how payments is delivered moves attach by multiples, not
+by percentage points.**
+
+**What is NOT established, and is not being invented:** there is no published attach figure for the specific
+thing Rob would ship — *a third-party-built website whose chatbot takes the payment, with the merchant boarded
+on the builder's Schedule A*. Shopify is a first-party platform monetizing its own checkout; Rob would be an
+agent earning a residual on someone else's rail. **The 67% is a directional ceiling, not our forecast.**
+
+### What this changes for the 8/8 packet
+
+- **§3g's ~4-merchant denominator stays as the planning number.** It was built on sub-20% attach, which is
+  the correct assumption for **rung 1 as it exists today** — refer the merchant, hope they board. Nothing
+  here justifies raising it, because nothing here describes our delivery mode.
+- **It converts the chat-commerce capability from "nice add-on" into the single identified lever on the one
+  number that makes the whole add-on small.** Moving from Apideck's floor toward Shopify's 67% is worth
+  ~3× on §3g's revenue model at a constant customer count — which is a **product decision (Q62), not a rung
+  decision (Q61)**, and does not argue for jumping a rung.
+- **Rec (4) gains a sourced range and keeps its honest bound:** state the model at sub-20% attach, name
+  20–90+% as the observed spread with the delivery mode as the driver, and print that our own mode has no
+  published figure.
+- **The mechanism finding is directly actionable and costs nothing:** attach follows whether payments is a
+  core product or a bolt-on. MLE shipping checkout *inside the site it builds* is the structural version of
+  Gurion's "core product," which is why §7.3's boarding-as-onboarding-step framing survives this check.
+
+**No number was invented, and one was deliberately not manufactured:** the tempting move — averaging Shopify's
+67% with Apideck's 20% to produce a "blended" attach — would be a fabricated statistic on a money model and
+was not made.
+
+**House limit honoured:** nothing signed, no processor committed, no money field moved. Docs-only, no code.
+
+**Sources:** [Shopify Inc. Form 10-Q FY2026 Q1 (SEC)](https://www.sec.gov/Archives/edgar/data/0001594805/000159480526000019/shop-20260331.htm) · [Tidemark — How to sell payments in vertical SaaS (Ronnie Gurion, COO, Clio)](https://www.tidemarkcap.com/post/how-to-sell-payments-vertical-saas) · [Stripe — 2025 Vertical SaaS benchmark](https://stripe.com/lp/vertical-saas-benchmark-2025) · [Merchant Insiders — Toast fees (context only)](https://merchantinsiders.com/blogs/toast-fees/) · Apideck sub-20% figure: banked verbatim in §3f/§3g.
+
+---
+
 ## 4. Identity / entity structure — decision Rob must make
 
 > ✅ **PRE-DRAFTED 2026-07-25 — see §3h.** Recommendation: **BoostUp Payments signs alone and owns the
@@ -704,7 +766,7 @@ strategy that spans the businesses. Do not let the two get conflated in either d
 - [x] Entity decision: which entity signs (§4) — **RECOMMENDATION PRE-DRAFTED 2026-07-25, see §3h.** Answer: **BoostUp Payments signs the Schedule A and owns the residual** (it is the payments entity, and §3g's residual book is a saleable asset at 25–40× monthly that must not be split across two signatures); **MLE / AI VoiceTech never appear on the processor paper** — they are distribution, under a written arm's-length intercompany referral agreement, because MLE's own customers *are* the merchants. **The card-brand rule reframes the question:** Visa's TPA program says an unregistered referral entity marketing **in its own name** *"may only generate leads"* and **may not** discuss pricing/fees/rates, draft contracts or submit applications — to do those unregistered it must *"solicit and market in the name of the registered ISO."* Registering to escape that fork is **$5,000/yr at Visa alone, per entity, per region**, and the DBA workaround is closed (*"a DBA is not a separate legal entity"*). **Rob's remaining call is therefore not "who signs" but own-name lead-gen vs. marketing under the ISO's name.** New agenda item: ISO vs **HR-ISO** boarding type, given §3c's eDataPay high-risk finding
 - [x] Switching-cost mechanic specified: what *concretely* makes a merchant unable to leave once processing is bundled? — **CLOSED 2026-07-25, see §3f.** Answer: **the AI agent transacting** (AIDRE takes the deposit on the call / AIVA closes the booking with a card) — the sold outcome is *a booked-and-paid job*, which cannot survive moving the rail; second-strongest is the second brain as revenue system-of-record (Q40). Dual pricing is **not** lock-in, it is the acquisition wedge, and is symmetric. **The finding with teeth: every mechanic requires that Rob's software can PROGRAM the rail (PFaaS posture) — so at the $0-independent-agent rung, switching cost added is ZERO.** Rob's thesis splits: revenue half is available now at rung 1; switching-cost half is a Phase-2+ engineering decision, not a signature
 - [x] Revenue model: expected residual per merchant × realistic merchant count = is this worth the distraction from P1? — **CLOSED 2026-07-25, see §3g.** Answer: **$35–$50 per merchant per month** (two independent routes converge: $70 gross margin × the stated ~50% industry-average split; and $30k/mo volume × the 15 bps floor). Denominator taken **first-party from our own CRM — 19 orgs, 8 deals today** — with §3f's Apideck sub-20% attach → **~4 merchants ≈ $140–200/month near-term**, i.e. *not* a revenue stream at today's size. **The payoff shape is the finding: a residual book sells at 25–40× monthly, and every scenario scales with MLE's customer count — so the add-on is downstream of P1, not competing with it.** Hard sourced disqualifier for jumping rungs: the **registered-ISO rung (~$20–30k/yr) needs ~50–70 merchants just to break even ≈ 3× the entire current network.** A widely-circulated *"$23,000 average monthly card spend"* figure was **rejected** — it measures small businesses *spending on* business cards, not merchant *acceptance* volume
-- [ ] 🆕 **DELIVERABLE-SIDE LINE (added 2026-07-25 pm from Rob's chat-commerce dump — see §7).** ~~(a) **Rob-only:** which vertical?~~ **(a) CLOSED by Rob the same evening — there is no vertical gate (§7.5): the paying chatbot is a HORIZONTAL add-on to the websites MLE spins up, across every vertical; e-commerce/apparel was one example, and the general principle is Amazon's Buy Now button — collect payment before the customer reaches a checkout page.** (b) **Research:** source an attach rate for payments **delivered as part of the product** vs. §3g's banked Apideck *"often remain below 20%"* for payments **sold separately** — this is the highest-leverage term in the §3g model and is currently a named hypothesis with **no number** (§7.3). (c) Confirm the 7/23 rail shortlist (Square payment links / Helcim HelcimPay.js) still holds for an in-chat flow at rung 1, and that hosted checkout keeps MLE **out of PCI scope** — target posture **SAQ-A, card data never in the LLM context or our logs** (§7.4, §7.7)
+- [ ] 🆕 **DELIVERABLE-SIDE LINE (added 2026-07-25 pm from Rob's chat-commerce dump — see §7).** ~~(a) **Rob-only:** which vertical?~~ **(a) CLOSED by Rob the same evening — there is no vertical gate (§7.5): the paying chatbot is a HORIZONTAL add-on to the websites MLE spins up, across every vertical; e-commerce/apparel was one example, and the general principle is Amazon's Buy Now button — collect payment before the customer reaches a checkout page.** (b) ✅ **CLOSED 2026-07-25 — see §3i.** Attach for payments **delivered as part of the product** now has sourced bounds: **Shopify Payments = 67% of GMV, Q1 2026 (SEC 10-Q)** against §3g's banked Apideck *"often remain below 20%"* for payments **sold separately**, with Clio's COO putting the observed vertical-SaaS spread at ***"20% to 90+%"*** and naming the driver — payments as a **core product** vs. a SPIFF'd secondary one. **Direction corroborated, magnitude for OUR delivery mode still unpublished and not invented; §3g's sub-20% denominator therefore stands as the planning number.** (c) Confirm the 7/23 rail shortlist (Square payment links / Helcim HelcimPay.js) still holds for an in-chat flow at rung 1, and that hosted checkout keeps MLE **out of PCI scope** — target posture **SAQ-A, card data never in the LLM context or our logs** (§7.4, §7.7)
 - [ ] 🆕 **PFaaS ECONOMICS — the missing half of Rob's rung question (added 2026-07-25 pm, §7.7).** Rob is explicitly weighing *"ISO or a PayFac or whatever."* Rung 1 and the registered-ISO rung both have sourced economics here (§3g); **PayFac-as-a-Service does not.** Needed before 8/8 so the comparison is honest: published revenue-share / per-transaction economics, minimums, underwriting + liability posture, and time-to-live for **Rainforest / Moov / Finix / Tilled** — and specifically whether a platform-of-record model pays *more* than an agent residual on the same volume, since that is the only thing that would justify moving off the $0 rung for the in-chat Buy Now use case
 - [ ] 🆕 **NN#3 IS NOW THE DEAL-BREAKER CLAUSE, not the third checkbox (§7.7).** Rob cites portfolio resale value (25–40× monthly, §3g) as a stated reason for the whole initiative → on **every** Schedule A, verify the sale right is a **third-party** sale right, not the processor's own buyback (the exact trap §3d found in SignaPay's published *"portfolio buyouts"*). A book sellable only back to the processor does not carry the outside multiple
 
@@ -772,6 +834,14 @@ If checkout is **part of the deliverable**, the merchant is not being *sold* pay
 **This is the highest-leverage variable in the entire §3g model** and it moves the one term §3g flagged as
 soft. It is stated here as a hypothesis with a named mechanism, **not** as a number: no attach figure for
 "payments delivered as product" has been sourced yet, and none is invented. → new §5 checklist line.
+
+> ✅ **UPDATE 2026-07-25 (driver inc.10) — the hypothesis now has sourced bounds; see §3i.** Shopify Payments
+> = **67% of GMV** (Q1 2026 SEC 10-Q) for checkout shipped inside the product, against Apideck's **sub-20%**
+> for payments sold alone, inside Clio-COO Ronnie Gurion's observed **20–90+%** vertical-SaaS range whose
+> stated driver is *core product vs. SPIFF'd secondary product*. **Direction confirmed; magnitude for our
+> specific mode (third-party-built site, merchant on the builder's Schedule A) is unpublished and was not
+> manufactured — §3g's sub-20% denominator stands.** The paragraph above is left as written rather than
+> retro-edited, so the state of knowledge at each date stays readable.
 
 ### 7.4 The constraint that carries over — and the part that does not
 
@@ -1073,3 +1143,23 @@ served at $0, and the rung that would serve the *other* half has no sourced econ
   shape must answer partial failure first. **No new number invented** — §7.3's attach hypothesis and the
   matching §5 checklist line stay open and unsourced. Docs-only; nothing signed, no processor committed,
   no money field moved.
+- 2026-07-25 (driver inc.10) — **§5's deliverable-side line (b) CLOSED → new §3i: the ATTACH RATE, §3g's
+  softest number, now has sourced bounds.** Shopify Payments = **67% of GMV, Q1 2026** (64% prior-year
+  quarter) for checkout shipped *inside* the product — [SEC Form 10-Q FY2026 Q1], first-party and audited,
+  the heaviest evidence in the file — against §3g's banked Apideck ***"often remain below 20%"*** for
+  payments **sold separately**. Both sit inside the ***"20% to 90+%"*** vertical-SaaS spread published by a
+  named operator (**Ronnie Gurion, COO of Clio**), who also supplies the mechanism: payments as a **core
+  product** in quotas → *"maximum attach"*; a **SPIFF** → *"still gets treated like a secondary product."*
+  Stripe's 200+-company 2025 benchmark corroborates direction (median attach *"has doubled in 1 year"*;
+  87% vs 30% offering payments) and is weighted **medium** because the absolute median is not published.
+  **Toast recorded as a CONTRAST not a benchmark** — ~100% attach by contractual requirement, third-party
+  sourced. **Direction corroborated, magnitude for OUR mode unpublished and not invented:** no figure exists
+  for a third-party-built site whose chatbot takes the payment with the merchant on the *builder's*
+  Schedule A, so **67% is a directional ceiling and §3g's sub-20% denominator stands as the planning
+  number.** The tempting blend of 67% and 20% into a "realistic" attach was **explicitly refused and the
+  refusal written down**, so no later run can quietly manufacture it. §7.3 left as written with a dated
+  UPDATE block beneath it. Reclassifies chat-commerce from nice-add-on to **the single identified lever on
+  the term that makes the add-on small** (~3× on §3g at constant customer count) — a **product** decision
+  (Q62), not a **rung** decision (Q61); rec (1) untouched. Standing otcmarkets retry **timed out** this run
+  (5th consecutive failure) — nothing quoted, line stays open. Docs-only; nothing signed, no processor
+  committed, no money field moved.

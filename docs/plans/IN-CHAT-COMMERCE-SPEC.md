@@ -12,11 +12,14 @@
 > field, or enters `docs/training/phase-one-explainer.md` §2** (that section is generated from *signed*
 > agreements by `phase1_engine.py build_scope()` and is client-facing).
 >
-> **Still open on Q62 after this doc** (tracked in the queue item, not solved here):
-> leg (3) a **sourced** attach-rate figure for payments-delivered-as-product vs. Apideck's banked
-> *"often remain below 20%"* for payments-sold-separately — today a named hypothesis with **no number**, and
-> no number gets invented; leg (4) placement — Phase-2+ add-on vs. a component in the Q40 Blueprint phase
-> model — which is Rob's call, written into the PRD once made.
+> **Leg (3) CLOSED 2026-07-25 → §6.** The attach rate is no longer a numberless hypothesis: payments shipped
+> *inside* the product runs **67% of GMV** (Shopify, Q1 2026 SEC 10-Q) against Apideck's **sub-20%** for
+> payments sold separately, inside a published **20–90+%** vertical-SaaS spread. **What is still not
+> established — and is not invented — is the figure for OUR delivery mode**; see §6 for the bound.
+>
+> **Still open on Q62 after this doc** (tracked in the queue item, not solved here): leg (4) placement —
+> Phase-2+ add-on vs. a component in the Q40 Blueprint phase model — which is **Rob's call**, written into
+> the PRD once made.
 
 ---
 
@@ -143,10 +146,34 @@ legs answered in writing**, and (A) vs (B) is the difference between "convenient
 
 ---
 
-## 6. What this spec deliberately does NOT do
+## 6. The attach rate — why this capability is worth building at all (Q62 leg 3, CLOSED)
+
+Full evidence and sourcing: **DD tracker §3i**. The short version, because it is the business case for this spec:
+
+| Delivery mode | Attach | Source |
+|---|---|---|
+| Payments **sold separately** by a platform (refer the merchant, hope they board) | *"often remain below 20%"* | Apideck, banked in DD §3f/§3g |
+| Payments **shipped inside the product** (checkout is part of what the merchant bought) | **67% of GMV**, Q1 2026 (64% a year earlier) | [Shopify Inc. Form 10-Q FY2026 Q1 (SEC)](https://www.sec.gov/Archives/edgar/data/0001594805/000159480526000019/shop-20260331.htm) |
+| Observed spread across vertical SaaS | ***"20% to 90+%"*** | [Ronnie Gurion, COO of Clio, via Tidemark](https://www.tidemarkcap.com/post/how-to-sell-payments-vertical-saas) |
+| What moves a platform up that range | payments as a **core product** in quotas → *"maximum attach"*; a **SPIFF** → *"still gets treated like a secondary product"* | same |
+
+**Why it matters here:** the flow in §2 is the structural version of "core product" — the merchant is not
+sold payments, the merchant is shipped a site that already transacts. That is the only identified lever on
+the one number (attach) that makes the whole payments add-on small in DD §3g's revenue model.
+
+**The bound this spec must respect — stated, not buried:** there is **no published attach figure for our
+actual mode** (a third-party-built website whose chatbot takes the payment, merchant boarded on the builder's
+Schedule A). Shopify is a first-party platform monetizing its own checkout. **67% is a directional ceiling,
+never a forecast**, and DD §3g's sub-20% denominator remains the planning number until we have our own data.
+No blended or averaged attach figure was manufactured to fill the gap.
+
+---
+
+## 7. What this spec deliberately does NOT do
 
 - Does not commit to a processor, sign anything, or move any money field (house limit, restated).
-- Does not add a number to the §7.3 attach hypothesis — **still unsourced, still not invented** (Q62 leg 3).
+- Does not claim an attach rate for our own delivery mode — §6 gives the sourced **bounds** and says plainly
+  that the specific number is unpublished and was not invented.
 - Does not decide Phase-2+ add-on vs. Q40 Blueprint component (Q62 leg 4 — Rob's call).
 - Does not enter any client-facing scope surface; `phase-one-explainer.md` §2 remains generated from signed
   agreements only.
@@ -158,3 +185,11 @@ legs answered in writing**, and (A) vs (B) is the difference between "convenient
 **Changelog**
 - 2026-07-25 (driver inc.9) — Created. Q62 DoD legs (1) flow-as-parameter and (2) rail + card-data constraint
   written; storefront leg carried in from the queue note as §5. Legs (3) and (4) remain open by design.
+- 2026-07-25 (driver inc.10) — **Leg (3) CLOSED: §6 added, the attach-rate business case.** Sourced bounds
+  now replace the hypothesis — Shopify Payments **67% of GMV** Q1 2026 (SEC 10-Q) for checkout shipped inside
+  the product vs. Apideck's **sub-20%** for payments sold separately, inside Clio-COO Ronnie Gurion's observed
+  **20–90+%** vertical-SaaS range, whose stated driver is *core product vs. SPIFF'd secondary product*.
+  The bound is printed, not buried: **no published figure exists for our own delivery mode**, 67% is a
+  directional ceiling and never a forecast, DD §3g's sub-20% denominator stands, and no blended attach number
+  was manufactured. Old §6 renumbered to §7. Full evidence: DD tracker §3i. **Leg (4) placement remains
+  Rob's call and is the only open leg.**
