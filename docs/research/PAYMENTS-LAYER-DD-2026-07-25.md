@@ -343,6 +343,71 @@ must be asked as *"what are my liabilities for a sub-agent's conduct?"*, not onl
 
 ---
 
+## 🟠 3e. Amplipay / eDataPay — the SPONSOR BANK question: public record exhausted (Max, 2026-07-25)
+
+§3a promoted this to **the top question on the call** for a specific reason: if the residual is owed by an
+~$82k-market-cap issuer, the **sponsor bank is the only capitalized party in the chain**, so whose paper the
+residual actually sits on decides whether it is bankable. This run was the public-record pass. It is now
+exhausted, and the answer is a **documented negative with a compliance edge**.
+
+### What was checked, and what it says
+
+| Property | Sponsor / acquiring / member bank named? | What it says instead |
+|---|---|---|
+| `amplipay.ai` (incl. footer) | ❌ none | Footer is only *"© 2026 AmpliPay Group Inc. (OTC: APGP). All rights reserved."*; body references *"Visa & Mastercard Direct"* and *"acquiring networks"* — no institution named. Self-asserted *"PCI DSS L1 Certified"*, *"KYC / KYB Verified"* (self-descriptions, not third-party designations) |
+| `amplipaygroup.com` | ❌ none | The §3c placeholder site (*"0+ Customers"*) |
+| `edatapay.com/about/` | ❌ none | *"a broad U.S. and international banking network"* — plural, generic, unnamed; *"over 18 years of experience"* |
+| `edatapay.com/partners/` (the ISO/agent recruiting page) | ❌ none | *"Profitable Reseller & Affiliate Program"*, *"White Labeled Agent marketing and Gateways Tools"*, a *"Bonus program"* |
+| `edatapay.com/banking-partnerships-and-lucrative-residual-commissions/` — the page whose **title** is banking partnerships + residuals | ❌ none | *"Residual income means you earn money every time a transaction is made"* — and nothing about ownership, duration, portability, or assignability |
+| Web search, targeted (`sponsor bank` / `acquiring bank` / `member bank` / `registered ISO of`) | ❌ none | Returns only generic glossary pages plus eDataPay's own self-description as *"ISO/MSP USA"*, a *"Bankcard ISO in Boca Raton, FL"*, and *"an independent sales agent for US and International Bank Card acquirer"* (singular, unnamed) |
+
+### The new fact — it is not just that the bank isn't named
+
+Visa and Mastercard **require** an ISO/MSP to display the disclosure *"[Company] is a registered ISO/MSP of
+[Bank], [City], [State]"* on its website and marketing material; industry references put the penalty for a
+missing/non-visible disclosure at **up to $25,000**. Across five properties of a company that calls itself a
+*"Bankcard ISO"*, **that mandated disclosure does not appear anywhere** — no bank, no city, no state.
+Sources: [PaymentCloud, ISO/MSP explainer](https://paymentcloudinc.com/blog/iso-msp/) ·
+[eDataPay about](https://edatapay.com/about/) · [eDataPay partners](https://edatapay.com/partners/) ·
+[eDataPay banking-partnerships/residuals](https://edatapay.com/banking-partnerships-and-lucrative-residual-commissions/) ·
+[amplipay.ai](https://amplipay.ai/) · [amplipaygroup.com](https://amplipaygroup.com/)
+
+**Stated precisely, because the distinction matters:** absence from marketing pages does **not** prove there
+is no sponsor bank — a real merchant application or agreement would carry it, and that document is exactly
+what Rob does not have yet. What *is* established: (a) the bank cannot be learned from the public record, and
+(b) the disclosure that the card brands require to be public **is missing**, which is itself a
+compliance-posture signal on the counterparty, not a neutral gap.
+
+### Entity sprawl — compounding §3c's "who counter-signs?"
+
+The same operation presents across at least five domains — `amplipay.ai`, `amplipaygroup.com`,
+`edatapay.com`, `edatapay.net` (*"eDatapay Financial Group"*), `edatabankcard.com` — plus a LinkedIn page
+registered as **"eData Financial Systems Inc."** An eData-affiliated FAQ domain surfaced in search
+(`panamapayments.net`) **no longer resolves at all** (DNS `ENOTFOUND`, verified this run). §3c already asked
+*which entity counter-signs the Schedule A*; five live brands and one dead domain make that question
+load-bearing rather than administrative.
+
+### What this changes
+
+1. **The line does not close — it converts.** It moves from *"re-searched, nowhere public"* to
+   **"not obtainable from the public record; answerable only in writing by the company"**, which is the form
+   it needs to be in for the 8/4 DD deadline: a Rob/company-blocked line with the search work banked, not an
+   open line nobody worked.
+2. **It becomes a call gate, not a call question.** Recommended framing for the 7/28 chase: *name the
+   sponsor bank and the acquiring BIN in writing, and send the ISO/MSP disclosure language you publish* —
+   no Schedule A review is worth doing before that is answered, because the four non-negotiables are all
+   claims against whoever's paper the residual sits on.
+3. **The 4-for-4 pattern from §3d now holds on the bank too — 5-for-5 on the counterparty.** Four candidates
+   settle none of the four non-negotiables publicly; the one candidate Rob has a booking with will not name
+   its bank publicly either. Same conclusion, harder: **Q61 rec (1) $0 independent agent across multiple
+   Schedule A's** is the only rung where an unverifiable counterparty is survivable.
+4. **No new adverse claim about eDataPay's legitimacy is asserted here.** It is a real, findable operating
+   business with an 18-year claim; what is documented is what it does and does not publish.
+
+**House limit honoured:** nothing signed, no processor committed, no money field moved.
+
+---
+
 ## 4. Identity / entity structure — decision Rob must make
 
 The 7/23 research explicitly filed the processor play in the **BoostUp Payments** lane
@@ -372,7 +437,7 @@ strategy that spans the businesses. Do not let the two get conflated in either d
 - [ ] Rob exports/pastes the **OpenRouter** + **ChatGPT** candidate long-lists (Max cannot read either — 403 / session-scoped)
 - [ ] Resolve: were **Maverick** and **SignaPay** rejected on merits, or never surfaced? — **MERITS HALF CLOSED 2026-07-25, see §3d** (both scored on public evidence: Maverick's *"free unlimited downstream sub-agent management"* survives the check ✅ marketing-level, but **23 BBB complaints in 3 years** dominated by held reserves / abrupt merchant closures; SignaPay is quieter — **3 complaints** — but its "portfolio buyouts" is *SignaPay as buyer*, **not** the third-party sale right of non-negotiable #3, and a 2015 BBB complaint alleges a rep signed an equipment lease in a merchant's name → NN#4 must be asked as sub-agent **liability**, not just sub-agent permission. **Neither disqualified.** Remaining half is Rob-only: did his OpenRouter/ChatGPT searches ever surface them?)
 - [ ] **SignaPay**: cardpaymentoptions.com review returns **HTTP 403** to automated fetch — needs a human browser pull (same bucket as the Shift4 T&C PDFs); nothing from it is quoted until read
-- [ ] **Amplipay**: sponsor bank named in writing — ⬆️ **now the top agenda item** (§3a: an ~$82k-cap issuer means the sponsor bank is the only capitalized party in the chain); re-searched 2026-07-25, nowhere public
+- [ ] **Amplipay**: sponsor bank named in writing — ⬆️ **the top agenda item** (§3a: an ~$82k-cap issuer means the sponsor bank is the only capitalized party in the chain). **PUBLIC RECORD EXHAUSTED 2026-07-25, see §3e** — no sponsor/acquiring/member bank is named on any of five properties (`amplipay.ai`, `amplipaygroup.com`, `edatapay.com/about`, `/partners`, `/banking-partnerships-and-lucrative-residual-commissions`), and the **card-brand-mandated *"registered ISO/MSP of [Bank], [City], [State]"* disclosure is absent entirely** from a company that self-describes as a *"Bankcard ISO"*. Line now **company-blocked, not unworked**: converts to a **call gate** for the 7/28 chase — *sponsor bank + acquiring BIN in writing, plus your published ISO/MSP disclosure language* — before any Schedule A review is worth doing
 - [x] **Amplipay**: OTC:APGP financials pulled (going-concern, cash, dilution) — **CLOSED 2026-07-25, see §3a.** Answer: *there are none to pull.* Not an SEC reporting company (only EDGAR "Osyka" registrant filed Form 15-15D in 2008; last financials on EDGAR are a 10-QSB for Q3 2000). Issuer is a **1990 oil-and-gas shell renamed from Osyka Corporation on 2025-06-12** with a 1-for-500 reverse split, **market cap ≈ US$82,190**, net income ≈ −$127k/qtr
 - [x] **Amplipay**: merchant count / volume independently verified — **CLOSED 2026-07-25, see §3c.** Answer: *there is no count to verify.* No third-party figure exists; the company's own corporate site (`amplipaygroup.com`, a second domain alongside `amplipay.ai`) renders **"0+ Customers / 0+ World Active User / 0% Satisfaction"** template placeholders. Operating substance appears to sit in named brand **eDataPay** (Boca Raton) — a **high-risk / hard-to-place merchant specialist** claiming "over 18 years" but publishing no merchant count, no volume, and no acquiring bank. Two new agenda items: merchant count + volume **in writing**, and **which entity (AmpliPay Inc. vs eDataPay) counter-signs the Schedule A**
 - [ ] **Amplipay**: read the two **OTC Markets alternative-reporting disclosure documents** (report ids `484380`, `506506`) — they exist (refines §3a's "no financials": none at the **SEC**, but OTC alt-reporting filings are on file). Unread this run: otcmarkets.com served a site-wide *"Temporarily Unavailable"* page all session. **Retry next run** — no figure from them is quoted anywhere until read
@@ -438,3 +503,16 @@ add-on with a switching-cost story attached, which is a materially different (an
   Headline: **4 candidates, 4× the public record cannot settle the non-negotiables** → the strongest
   affirmative argument yet for Q61 rec (1), $0 independent agent across **multiple** Schedule A's. New
   human-browser-pull line (cardpaymentoptions 403). Posted to the ledger as a flag.
+- 2026-07-25 (driver inc.5) — **§3e added; the sponsor-bank line's public record is EXHAUSTED and converts
+  from "unworked" to "company-blocked".** No sponsor / acquiring / member bank is named on any of five
+  Amplipay/eDataPay properties — including the page literally titled *banking partnerships and lucrative
+  residual commissions*, which offers only *"Residual income means you earn money every time a transaction is
+  made"* with no ownership, duration, or portability terms. **The new fact: the Visa/Mastercard-mandated
+  *"registered ISO/MSP of [Bank], [City], [State]"* disclosure (missing = fineable up to $25,000) is absent
+  everywhere**, from a company that self-describes as a *"Bankcard ISO"* — a compliance-posture signal, not a
+  neutral gap. Stated with its limit: absence from marketing ≠ no sponsor bank; a merchant agreement would
+  carry it, and that document is what Rob doesn't have. Entity sprawl logged (five live domains + LinkedIn as
+  *"eData Financial Systems Inc."*; affiliated `panamapayments.net` no longer resolves), which makes §3c's
+  *which entity counter-signs* load-bearing. Line converted to a **call gate** for the 7/28 chase: sponsor
+  bank + acquiring BIN in writing before any Schedule A review. Counterparty pattern is now **5-for-5**
+  unverifiable → hardens Q61 rec (1). Posted to the ledger as a flag.
