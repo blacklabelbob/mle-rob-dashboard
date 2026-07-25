@@ -109,6 +109,53 @@ introduces a failure mode the 7/23 candidates don't obviously share.
 > This flag is DD input, **not** a recommendation to drop Amplipay. Rob has a booking in motion —
 > keep it, and use these five items as the call agenda.
 
+### 🔴 3a. OTC:APGP financials — CHECKLIST LINE CLOSED (Max, 2026-07-25)
+
+Item 2 of the five above is now answered, and the answer is worse than "thin disclosure." **There are no
+SEC financials to pull, because the issuer is not an SEC reporting company — and the payments business is
+a 13-month-old repositioning of a 1990 oil-and-gas shell.**
+
+| Verified fact | Source |
+|---|---|
+| Name changed **Osyka Corporation → AmpliPay Group, Inc. effective 2025-06-12**, with a **1-for-500 reverse stock split** + minimum-share adjustment (approved by stockholders Jan 2025) | [OTC Markets financial report viewer, APGP](https://www.otcmarkets.com/financialReportViewer?symbol=APGP&id=506506) |
+| The name change explicitly "reflects the Company's strategic repositioning **from natural resource development to financial technology and global payment solutions**" | same |
+| Predecessor filings are captioned "**OSYKA CORPORATION** A Nevada Corporation"; current ones "**AMPLIPAY GROUP INC.** A Nevada Corporation" | [OTC Markets company financial report](https://www.otcmarkets.com/file/company/financial-report/449536/content) |
+| Still profiled by data vendors as an **oil & gas** company (Houston TX, founded 1990, sector Energy) — the fintech identity has not propagated to the security's own classification | [Simply Wall St OTCPK:APGP](https://simplywall.st/stocks/us/energy/otc-apgp/amplipay-group) · [stockanalysis.com APGP](https://stockanalysis.com/quote/otc/APGP/company/) |
+| **Market cap ≈ US$82,190** on ~1.33m shares outstanding (post-split) | [Simply Wall St OTCPK:APGP](https://simplywall.st/stocks/us/energy/otc-apgp/amplipay-group) |
+| Net income ≈ **−$127k** in each of the two most recent reported quarters | [TradingView OTC:APGP](https://www.tradingview.com/symbols/OTC-APGP/) |
+| Ticker still resolves under the pre-change stub **OSKAD** at some vendors | [Yahoo Finance OSKAD](https://finance.yahoo.com/quote/OSKAD/) |
+| **Not an SEC reporting company.** EDGAR's only "Osyka" registrant (CIK 0001084486, `OSYKA Corp`, formerly `RX TECHNOLOGY HOLDINGS INC` to 2008-03-04) filed **Form 15-15D on 2008-03-04**, terminating its reporting duty. Its last financial statements on EDGAR are the **10-QSB for the quarter ended 2000-09-30**; the only filing in the 18 years since is a single 8-K (2019-02-07). | EDGAR submissions API, CIK 0001084486 (pulled 2026-07-25) |
+
+**One honest caveat, not smoothed over:** the EDGAR registrant carries a Mandeville, LA mailing address and
+SIC 7330 (mailing/reproduction/commercial art), which does **not** match the Houston/oil-and-gas profile the
+data vendors show. It is the *only* Osyka registrant on EDGAR, so the linkage is probable — but treat
+"CIK 0001084486 is this company" as **unconfirmed** until Amplipay states its own CIK (or confirms it has
+none). The conclusion does not depend on it either way: **no vendor and no filing index surfaces audited SEC
+financials for this issuer**, which is the thing that mattered.
+
+**What this changes.** The §1 non-negotiables are all *contractual promises about a residual stream that
+outlives the relationship* — lifetime vested residuals, portfolio sale rights, no clawing minimums. Those
+promises are worth exactly the balance sheet standing behind them. Here that balance sheet is (a) not
+audited by anyone the SEC supervises, (b) attached to a corporate vehicle whose payments business is ~13
+months old, and (c) carried at a market capitalization **smaller than a single mid-size merchant portfolio**.
+An ~$82k-cap counterparty cannot credibly guarantee a lifetime residual.
+
+**Concretely, for the booking (which stays — this is call agenda, not a rejection):**
+1. Ask directly: **is Amplipay an SEC reporting company, and what is its CIK?** If the answer is no, then
+   ask what disclosure *is* published and where (OTC alternative reporting tier, audited or not).
+2. Ask what the operating payments business actually was **before June 2025** — was it acquired into the
+   shell, and from whom? A 1990 oil-and-gas registrant did not organically become a PCI DSS L1 processor.
+3. The **sponsor bank question (item 1) is now the single highest-value question on the agenda**, not item 1
+   of 5. Re-searched this run and it is nowhere public. If Rob's residuals are contractually owed by an
+   $82k-cap issuer, the sponsor bank is the only party in the chain with real capital — so *whose paper the
+   residual is actually on* decides whether any of this is bankable.
+4. Item 3 (residual survivability on partner failure) escalates from prudent to **essential**, and the answer
+   belongs in the contract, not on the call.
+
+**Not concluded:** this does not resolve whether Amplipay is a real operating processor — a small public
+vehicle can sit on top of a genuine business. It resolves that **the public record cannot tell us**, which is
+itself the finding, and it means every remaining Amplipay fact has to come from the company in writing.
+
 ---
 
 ## 4. Identity / entity structure — decision Rob must make
@@ -139,8 +186,8 @@ strategy that spans the businesses. Do not let the two get conflated in either d
 
 - [ ] Rob exports/pastes the **OpenRouter** + **ChatGPT** candidate long-lists (Max cannot read either — 403 / session-scoped)
 - [ ] Resolve: were **Maverick** and **SignaPay** rejected on merits, or never surfaced?
-- [ ] **Amplipay**: sponsor bank named in writing
-- [ ] **Amplipay**: OTC:APGP financials pulled (going-concern, cash, dilution)
+- [ ] **Amplipay**: sponsor bank named in writing — ⬆️ **now the top agenda item** (§3a: an ~$82k-cap issuer means the sponsor bank is the only capitalized party in the chain); re-searched 2026-07-25, nowhere public
+- [x] **Amplipay**: OTC:APGP financials pulled (going-concern, cash, dilution) — **CLOSED 2026-07-25, see §3a.** Answer: *there are none to pull.* Not an SEC reporting company (only EDGAR "Osyka" registrant filed Form 15-15D in 2008; last financials on EDGAR are a 10-QSB for Q3 2000). Issuer is a **1990 oil-and-gas shell renamed from Osyka Corporation on 2025-06-12** with a 1-for-500 reverse split, **market cap ≈ US$82,190**, net income ≈ −$127k/qtr
 - [ ] **Amplipay**: merchant count / volume independently verified
 - [ ] **Amplipay**: booking held (submitted 7/24 — chase if no reply by 7/28)
 - [ ] **Shift4**: partner-contract history flag investigated (7/23 raised it, never closed)
@@ -165,3 +212,9 @@ add-on with a switching-cost story attached, which is a materially different (an
 **Changelog**
 - 2026-07-25 — Opened by Max on Rob's directive. Dump captured + folded, 7/23 prior work linked,
   Amplipay first-pass + OTC counterparty flag, gap analysis vs 7/23 short-list, reminder + itinerary armed.
+- 2026-07-25 (driver inc.1) — **§3a added; the OTC:APGP financials line is CLOSED.** APGP is a 1990
+  oil-and-gas shell (Osyka Corporation) renamed to AmpliPay Group on 2025-06-12 with a 1-for-500 reverse
+  split, ~US$82k market cap, and **no SEC financials at all** (the only EDGAR "Osyka" registrant
+  deregistered via Form 15-15D in 2008). EDGAR CIK linkage explicitly marked unconfirmed — address/SIC
+  mismatch stated rather than smoothed. Sponsor-bank line promoted to top agenda item; residual-
+  survivability line escalated to essential. Posted to the ledger as a high-severity flag.
