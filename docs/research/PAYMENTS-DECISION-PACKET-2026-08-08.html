@@ -213,10 +213,20 @@
       it measures businesses <em>spending on</em> cards as buyers, not accepting them as sellers.</p>
       <p><strong>So monthly cash is the wrong question.</strong> The book is an asset at 25–40× monthly, driven
       by exactly one variable — how many customers MLE has.</p>
-      <div class="ev"><b>Evidence:</b> §3g ·
+      <p style="margin-bottom:0"><strong>⚡ Update 7/25 pm — the one identified lever on the soft term.</strong>
+      The ~4 above rests on <em>sub-20% attach</em>, which describes payments <strong>sold separately</strong>.
+      Delivered <em>inside</em> the product, <a href="https://www.sec.gov/Archives/edgar/data/0001594805/000159480526000019/shop-20260331.htm">Shopify ran <b>67% of GMV</b> (Q1 2026 10-Q)</a>
+      — same customer count, ~3× the merchants. That makes <strong>in-chat commerce (Q62) the single lever that
+      changes this table</strong>, and it is a <em>product</em> decision, not a rung decision: <strong>rec 1 is
+      untouched.</strong> No figure exists for our exact mode, so <strong>sub-20% stays the planning number and
+      67% is a ceiling</strong> — see the addendum for the full bound.</p>
+      <div class="ev"><b>Evidence:</b> §3g + §3i ·
       <a href="https://www.ccsalespro.com/blog/much-residual-can-make-selling-merchant-services-merchant-services-sales-commission">CCSalesPro margin+split</a> ·
       <a href="https://strictlyzero.com/announcements/payments-announcements/how-to-calculate-payment-residuals-the-definitive-iso-guide-for-2026/">Strictly 2026 ISO guide</a>
-      (15 bps floor, 25–40× multiple) · prod Supabase count 2026-07-25</div>
+      (15 bps floor, 25–40× multiple) · prod Supabase count 2026-07-25 ·
+      <a href="https://www.sec.gov/Archives/edgar/data/0001594805/000159480526000019/shop-20260331.htm">Shopify 10-Q</a> 67% ·
+      <a href="https://www.tidemarkcap.com/post/how-to-sell-payments-vertical-saas">Clio COO</a> 20–90+% ·
+      <a href="https://stripe.com/lp/vertical-saas-benchmark-2025">Stripe 2025 benchmark</a></div>
     </div>
 
   </div>
@@ -280,7 +290,7 @@
 </section>
 
 <section>
-  <h2>Addendum · added 2026-07-25 pm — the deliverable-side question <span class="mono" style="font-weight:400">(updated same evening with Rob's correction)</span></h2>
+  <h2>Addendum · added 2026-07-25 pm — the deliverable-side question <span class="mono" style="font-weight:400">(updated same evening with Rob's correction, then with the attach-rate evidence)</span></h2>
   <div class="callout">
     <h3>🛒 New input, recorded after the four recommendations were built — it changes none of them</h3>
     <p>Rob, 2026-07-25 evening: <em>"adding a payment processor to the MLE's deliverables — a website with a
@@ -299,11 +309,27 @@
         <td>Gains a concrete, sellable MLE-side form: <em>the client's own site closes the sale in the chat.</em>
         Same PFaaS caveat, unchanged.</td></tr>
       <tr><td><strong>Rec 4 — the revenue model</strong></td>
-        <td>Moves its <strong>softest term</strong>. The ~4-merchant denominator comes from Apideck's
+        <td>Moves its <strong>softest term</strong>, and as of <strong>7/25 pm that term has sourced bounds</strong>
+        (was: an unsourced hypothesis). The ~4-merchant denominator comes from Apideck's
         <em>"attach often remain below 20%"</em> — a figure about platforms that <strong>sell</strong> payments
-        separately. Delivered <em>as product</em>, boarding becomes an onboarding step, not a second close.
-        Recorded as a <strong>hypothesis with no number</strong>: no attach figure for product-delivered
-        payments has been sourced, and none was invented.</td></tr>
+        separately. Shipped <em>inside</em> the product, <a href="https://www.sec.gov/Archives/edgar/data/0001594805/000159480526000019/shop-20260331.htm">Shopify Payments ran <strong>67% of GMV in Q1 2026</strong></a>
+        (SEC 10-Q, first-party audited — 64% a year earlier). Both sit inside the
+        <a href="https://www.tidemarkcap.com/post/how-to-sell-payments-vertical-saas"><em>"20% to 90+%"</em></a>
+        vertical-SaaS spread published by <strong>Ronnie Gurion, COO of Clio</strong>, who also names the driver:
+        payments as a <strong>core product</strong> in quotas → <em>"maximum attach"</em>; a <strong>SPIFF</strong>
+        → it <em>"still gets treated like a secondary product."</em> That is exactly the difference between MLE
+        shipping a site that transacts and MLE referring a merchant.
+        <a href="https://stripe.com/lp/vertical-saas-benchmark-2025">Stripe's 200+-company 2025 benchmark</a>
+        corroborates direction (median attach <em>"has doubled in 1 year"</em>), weighted <b>medium</b> — the
+        absolute median is unpublished and was not guessed. Toast's ~100% is a <strong>contrast, not a
+        benchmark</strong> (attach by contractual requirement).
+        <br><strong>The bound, printed not buried:</strong> there is <strong>no published figure for our actual
+        mode</strong> — third-party-built site, chatbot takes the payment, merchant boarded on the
+        <em>builder's</em> Schedule A. Shopify is a first-party platform monetizing its own checkout, so
+        <strong>67% is a directional ceiling, never a forecast</strong>, and the sub-20% denominator below
+        <strong>stands as the planning number</strong>. Blending 67% with 20% into a "realistic" attach would be
+        a fabricated statistic on a money model — refused deliberately, and the refusal is written into the DD
+        so no later pass can quietly invent it.</td></tr>
       <tr><td><strong>Scope — corrected by Rob, same evening</strong></td>
         <td><strong>Not a vertical pick — a horizontal capability.</strong> The embedded chatbot rides the
         websites MLE spins up, across every vertical; AIVA gets trained per vertical (e-commerce is one training
@@ -340,7 +366,8 @@
 <footer>
   Sources and full working: <a href="./PAYMENTS-LAYER-DD-2026-07-25.md">DD tracker §3a–§3h + §5 checklist</a> ·
   <a href="./payments-deep-research-2026-07-23.md">4-agent / ~130-source landscape research (2026-07-23)</a> ·
-  <a href="./payments-landscape-2026-07-23.html">landscape visual</a> · queue items Q60 (DD) / Q61 (this packet).<br>
+  <a href="./payments-landscape-2026-07-23.html">landscape visual</a> · queue items Q60 (DD) / Q61 (this packet) / Q62 (in-chat commerce, §3i + §7).<br>
+  Rec 4 refreshed 2026-07-25 pm with the attach-rate evidence (§3i); recs 1–3 unchanged.<br>
   Every figure above carries a traceable originator; rejected figures are named as rejected, not quietly dropped.
   Fee figures from the May-2016 Visa FAQ edition are order-of-magnitude pending a human pull of the current US edition.<br>
   Built by Max · 2026-07-25 · decision due <strong style="color:var(--tx2)">2026-08-08</strong> · nothing in this document has been signed or committed.

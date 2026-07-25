@@ -704,7 +704,10 @@ agent earning a residual on someone else's rail. **The 67% is a directional ceil
   decision (Q61)**, and does not argue for jumping a rung.
 - **Rec (4) gains a sourced range and keeps its honest bound:** state the model at sub-20% attach, name
   20–90+% as the observed spread with the delivery mode as the driver, and print that our own mode has no
-  published figure.
+  published figure. ✅ **APPLIED to the 8/8 packet 2026-07-25** (`PAYMENTS-DECISION-PACKET-2026-08-08.html`:
+  rec 4 `⚡ Update 7/25 pm` block + evidence line + the addendum's rec-4 row, which previously said
+  *"hypothesis with no number"*). Recs 1–3 untouched; the `~4 merchants ≈ $140–200/mo` planning row unchanged;
+  the refusal to blend 67% with 20% is now restated on the packet itself, not only here.
 - **The mechanism finding is directly actionable and costs nothing:** attach follows whether payments is a
   core product or a bolt-on. MLE shipping checkout *inside the site it builds* is the structural version of
   Gurion's "core product," which is why §7.3's boarding-as-onboarding-step framing survives this check.
