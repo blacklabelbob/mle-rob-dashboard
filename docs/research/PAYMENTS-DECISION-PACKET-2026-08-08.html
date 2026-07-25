@@ -105,9 +105,9 @@
     <p class="eyebrow">
       <span>Payment Processing Layer · ADD-ON</span>
       <span>DD closed 2026-08-04 · <b style="color:#F2F5FC">DECISION 2026-08-08</b></span>
-      <span>Packet built 2026-07-25</span>
+      <span>Packet built 2026-07-25 · <b style="color:#F2F5FC">rev. same evening — rung rec is now three-way (§3k)</b></span>
     </p>
-    <h1>Start as a $0 independent agent. Take the revenue now — <em>buy the switching costs later.</em></h1>
+    <h1>Start as a $0 independent agent. Take the revenue now — <em>and buy the switching costs at ~6 merchants, not at $20–30k/yr.</em></h1>
     <p>Four recommendations, each with its evidence. The headline: this add-on is <strong>downstream of P1, not
     in competition with it</strong> — every scenario below scales with one variable, MLE's customer count, so an
     hour moved off P1 lowers the payments outcome too. Nothing here is signed, no processor is committed, and
@@ -117,6 +117,7 @@
       <div class="stat">Today: <b>~4</b> merchants ≈ <b>$140–200</b>/mo</div>
       <div class="stat">Book sells at <b>25–40×</b> monthly</div>
       <div class="stat">ISO rung breakeven <b>50–70</b> merchants (<b>3×</b> the network)</div>
+      <div class="stat">PFaaS <b>≈$132</b>/merchant/mo — breakeven <b>~4</b>, beats rung 1 at <b>~6</b></div>
       <div class="stat">Counterparties verifiable: <b>0 of 5</b></div>
     </div>
   </div>
@@ -130,8 +131,8 @@
 
     <div class="rec">
       <p class="n">Rec 1 · the rung</p>
-      <h3>$0 independent agent — on multiple Schedule A's</h3>
-      <p><span class="pill ok">recommend</span><span class="pill bad">not registered ISO</span><span class="pill bad">not PayFac</span></p>
+      <h3>$0 independent agent now — PFaaS on a merchant-count trigger, never registered ISO</h3>
+      <p><span class="pill ok">recommend</span><span class="pill bad">not registered ISO</span><span class="pill warn">PFaaS at ~6 merchants</span></p>
       <p>Four independent legs, none of which depend on the blocked research:</p>
       <ul>
         <li><strong>Counterparty risk</strong> — 5 of 5 candidates settle none of the four non-negotiables in
@@ -144,7 +145,23 @@
           quote a rate, draft or submit a contract. A rep must know this <em>before</em> a call, not during one.</li>
       </ul>
       <p><strong>What this rung does NOT buy: any switching cost at all</strong> (see rec 3).</p>
+      <p style="margin-bottom:0"><strong>⚡ Update 7/25 pm — the rec is now three-way, and the third rung has a
+      number for the first time.</strong> PayFac-as-a-Service was previously recommended against on <em>no
+      published economics</em>; it now has them. <a href="https://www.tilled.com/pricing">Tilled</a> is the only
+      provider publishing both halves (<b>70%</b> rev share under $5M/mo on a <b>$500/mo</b> fee), so it carries the
+      math: on §3g's $30k/mo volume that is <b>≈$132/merchant/month</b> — <b>≈3× the $35–50 agent residual</b>.
+      <em>Deliberate floor: the $0.15/txn half of the spread is excluded because per-merchant transaction count is
+      not in evidence, and an invented average ticket would be a fabricated number on a money model. Tilled's
+      2.9%+$0.30 / 2.27%+$0.15 are its own calculator assumptions, not a rate quoted to us.</em>
+      <b>Break-even ≈4 merchants to cover the fee, ≈6 to beat staying at rung 1 — against the registered-ISO
+      rung's 50–70.</b> So: <b>rung 2 stays out by ~12×; rung 3-alt is not disqualified at all</b> and is the only
+      rung that ever delivers rec 3's switching-cost half — for <b>~$6k/yr and ~2 extra merchants</b>, not
+      $20–30k/yr and 50–70. <b>The decision rule is a trigger on merchant count, not a date: at ~6 boarded
+      merchants, revisit.</b> Moov: buy-rate, $500/mo minimum. Rainforest: explicitly <em>not</em> rev-share,
+      minimum unpublished. <b>Finix publishes nothing — recorded as unknown, not estimated.</b></p>
       <div class="ev"><b>Evidence:</b> DD tracker §3b–§3e (counterparties) · §3g (ISO breakeven) ·
+        §3k (<a href="https://www.tilled.com/pricing">Tilled</a> · <a href="https://moov.io/pricing/">Moov</a> ·
+        <a href="https://www.rainforestpay.com/pricing">Rainforest</a> · <a href="https://finix.com/pricing">Finix</a>) ·
         §3f (zero lock-in) · §3h + <a href="https://usa.visa.com/dam/VCOM/download/merchants/tpa-registration-program-faqs.pdf">Visa TPA FAQs</a> (speech limit)</div>
     </div>
 
@@ -187,6 +204,10 @@
       the rail — a PayFac-as-a-Service posture. At the $0 rung he refers to someone else's rail and adds
       <strong>zero</strong> switching cost. So Rob's thesis splits: <strong>revenue half = now; switching-cost
       half = a Phase-2+ engineering decision, not a signature.</strong></p>
+      <p><strong>⚡ Update 7/25 pm — that half now has a price tag.</strong> §3k puts the PFaaS unlock at
+      <strong>~$6k/yr and ~2 merchants past break-even</strong> (see rec 1), so the switching-cost half is not a
+      distant capital decision — it is <strong>a trigger at ~6 boarded merchants</strong>. Everything above about
+      the mechanic is unchanged; only its cost stopped being unknown.</p>
       <div class="ev"><b>Evidence:</b> §3f ·
         <a href="https://www.visa.co.uk/content/dam/VCOM/regional/ve/unitedkingdom/PDF/vca/uk-vca-verticalization-whitepaper.pdf">Visa VCA</a> +19pp vol / 5% less attrition ·
         <a href="https://www.bcg.com/publications/2025/moving-embedded-finance-from-promise-practice">BCG×Adyen 2025</a> 2.5× retention ·
@@ -239,8 +260,11 @@
       <div class="callout hot">
         <h3>⏱ Rob's two calls — these are the packet</h3>
         <ul>
-          <li><strong>1. Confirm the rung:</strong> $0 independent agent now, switching-cost integration
-            re-opened as a separate Phase-2+ engineering decision. (Recommended.)</li>
+          <li><strong>1. Confirm the rung — now a three-way, and the third option is cheap:</strong> $0
+            independent agent <em>now</em>; <strong>PFaaS revisited on a trigger at ~6 boarded merchants</strong>
+            (~$6k/yr buys the switching-cost half rung 1 can never deliver); registered ISO <strong>never</strong>
+            at this size (50–70 merchants to break even). (Recommended.) <em>The trigger is what makes this a
+            decision you don't have to re-litigate — it fires on a count, not a calendar.</em></li>
           <li><strong>2. Own-name lead-gen vs. marketing under the ISO's name.</strong> Real brand consequence,
             not a formality: own-name means MLE/AIVT introduce and hand off and <em>quote nothing</em>;
             ISO-name means the merchant sees the ISO's brand on the relationship.</li>
@@ -265,10 +289,14 @@
             doing before the bank answer lands.</td>
           <td><strong>Which counterparty</strong> — not the rung, not the arithmetic</td></tr>
         <tr><td>OTC:APGP disclosure docs <span class="mono">484380 / 506506</span></td>
-          <td>otcmarkets.com has served a site-wide <em>"Temporarily Unavailable"</em> page for 4 consecutive
-            runs (platform outage, verified — not a block on us). Unread, nothing quoted. Fallback: ask
-            Amplipay for the filings on the 7/28 call.</td>
+          <td>otcmarkets.com has served a site-wide <em>"Temporarily Unavailable"</em> page (or timed out) for
+            <strong>7 consecutive</strong> runs (platform outage, verified — not a block on us). Unread, nothing
+            quoted. Fallback: ask Amplipay for the filings on the 7/28 call.</td>
           <td>No</td></tr>
+        <tr><td><strong>PFaaS: liability allocation · time-to-live · minimums beyond the headline</strong></td>
+          <td><strong>Unpublished by all four providers</strong> (Tilled, Moov, Rainforest, Finix) — so these are
+            <strong>RFP questions, not open research</strong>. Nothing was estimated in their place.</td>
+          <td>Sizes the ~6-merchant trigger; does not reverse rec 1</td></tr>
         <tr><td>3 human-browser pulls: Shift4 Authorized-Partner / SkyTab T&amp;Cs · cardpaymentoptions SignaPay review · current US Visa TPA FAQ</td>
           <td>All HTTP 403 to automated fetch. Needs a real browser session.</td>
           <td>Sharpens rec 2's fee figures; does not reverse a rec</td></tr>
@@ -344,8 +372,12 @@
         comes from the <strong>Schedule A</strong>, not the rung — rung 1 pays it at <strong>$0</strong> on every
         merchant boarded on your code. What <strong>PFaaS</strong> buys, and neither the agent nor the registered-ISO
         rung does, is <strong>owning the in-chat checkout and programming the charge</strong> (and with it the
-        switching cost). Sequential, not either/or. <strong>Gap named:</strong> PFaaS revenue-share economics are
-        <em>unsourced</em> — that comparison is not honest until they are, and it is now a DD checklist line.</td></tr>
+        switching cost). Sequential, not either/or. <strong>⚡ Gap CLOSED same evening (§3k):</strong> PFaaS
+        revenue-share economics are now sourced — <strong>≈$132/merchant/mo (floor) vs $35–50 at rung 1</strong>,
+        on a <strong>$500/mo</strong> fee, so <strong>break-even ≈4 merchants and ≈6 to beat rung 1</strong>.
+        Direct answer to <em>"or whatever"</em>: <strong>the ISO rung is out on arithmetic (50–70); the PayFac-like
+        rung is a live option that today is roughly a wash, not a loss</strong> — take it on a
+        <strong>merchant-count trigger</strong>, not on 8/8.</td></tr>
       <tr><td>🔑 <strong>Resale value re-ranks the non-negotiables</strong></td>
         <td>Rob cites portfolio resale (<strong>25–40× monthly</strong>) as a reason for the whole initiative, so
         <strong>NN#3 — third-party portfolio sale rights — is now the deal-breaker clause, not the third checkbox.</strong>
@@ -367,7 +399,11 @@
   Sources and full working: <a href="./PAYMENTS-LAYER-DD-2026-07-25.md">DD tracker §3a–§3h + §5 checklist</a> ·
   <a href="./payments-deep-research-2026-07-23.md">4-agent / ~130-source landscape research (2026-07-23)</a> ·
   <a href="./payments-landscape-2026-07-23.html">landscape visual</a> · queue items Q60 (DD) / Q61 (this packet) / Q62 (in-chat commerce, §3i + §7).<br>
-  Rec 4 refreshed 2026-07-25 pm with the attach-rate evidence (§3i); recs 1–3 unchanged.<br>
+  Rec 4 refreshed 2026-07-25 pm with the attach-rate evidence (§3i). <b>Recs 1 and 3 refreshed later the same
+  evening with the PFaaS economics (§3k)</b> — rec 1's rung verdict became three-way and rec 3's unlock got a
+  price; rec 2 unchanged. Prior wording is superseded in place and dated, not retro-edited elsewhere.<br>
+  <b>Three items are unpublished by all four PFaaS providers</b> — liability allocation, time-to-live, and minimums
+  beyond the headline — so they are <b>RFP questions, not open research</b>, and no figure was estimated for them.<br>
   Every figure above carries a traceable originator; rejected figures are named as rejected, not quietly dropped.
   Fee figures from the May-2016 Visa FAQ edition are order-of-magnitude pending a human pull of the current US edition.<br>
   Built by Max · 2026-07-25 · decision due <strong style="color:var(--tx2)">2026-08-08</strong> · nothing in this document has been signed or committed.
