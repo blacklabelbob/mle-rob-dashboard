@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getStore } from "@/lib/storage";
 import ThingsToAddress from "@/components/ThingsToAddress";
+import DocumentsSection from "@/components/esign/DocumentsSection";
 import { companyRecordFromNetwork } from "@/lib/companyRecord";
 import { typeLabel } from "@/lib/labels";
 
@@ -79,6 +80,12 @@ export default async function CompanyPage({
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <ThingsToAddress mode="entity" person={company.id} />
+
+          {/* Q47 e-sign: the agreements live on the ORG anchor, and a company
+              row's id IS that anchor — the same one /people/[id] passes for a
+              company row. So this is the same list in both places, never a
+              second copy of the paper. */}
+          <DocumentsSection orgId={company.id} />
 
           <section className="rounded-xl border border-dashed border-white/10 bg-white/[0.02] p-5">
             <h2 className="font-semibold text-white">Phase Blueprint</h2>
