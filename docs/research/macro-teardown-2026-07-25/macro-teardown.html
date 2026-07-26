@@ -634,10 +634,56 @@ footer{
       are what enable moment search and playback sync); then Deepgram prerecorded plus one model
       call into the <code>summary</code> / <code>buying_signals</code> columns you already have.</p>
   </div>
-  <p style="margin-top:18px;font-size:14.5px;color:var(--ink-3)">
-    Full costed comparison — Twilio vs LiveKit SIP vs Telnyx vs the SaaS dialers, recording law by
-    state, and the live-coach architecture — is landing in a companion decision doc.
+  <h3>The stack decision, committed</h3>
+  <p style="margin-top:10px;color:var(--ink-2);font-size:15px">
+    One honest correction to the instinct you led with: <b>LiveKit yes — but for AIDRE, not for the
+    rep dialer.</b> It owns no carrier, needs a SIP trunk behind it anyway, and would meter you
+    twice for a plain phone call. It belongs in the AI-agent half of the stack.
   </p>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Component</th><th>Decision</th><th>Why it won</th><th>At your scale</th></tr></thead>
+      <tbody>
+        <tr class="s-go"><td>Rep dialer</td>
+          <td><b>Twilio Voice SDK</b><span class="sub">already built + env-gated</span></td>
+          <td>You've written and tested it. LiveKit is architecturally not a PSTN dialer.
+            SignalWire (TwiML-compatible) is a later bake-off, not a blocker.</td>
+          <td class="num">~$173/mo<span class="sub">5 reps &times; 100 min/day</span></td></tr>
+        <tr class="s-go"><td>Recording</td>
+          <td><b>Twilio dual-channel</b>, exported out fast</td>
+          <td>Already wired. The catch: Twilio bills storage <em>every month it stays there</em> —
+            roughly 22&times; S3. Export to S3/Supabase and delete within minutes.</td>
+          <td class="num">~$27/mo + $2&ndash;6<span class="sub">vs $150&ndash;217/mo by year 2&ndash;3 if left in place</span></td></tr>
+        <tr class="s-go"><td>Transcription</td>
+          <td><b>Deepgram <code>nova-3</code>, batch, direct</b></td>
+          <td>You don't need streaming for a recorded call, and going direct skips LiveKit
+            Inference's margin. <code>multichannel:true</code>, <code>redact:pci</code>, skip
+            diarization — dual-channel already separates the speakers better.</td>
+          <td class="num">~$126&ndash;189/mo</td></tr>
+        <tr class="s-care"><td>Live coach</td>
+          <td><b>Build it — post-call first</b></td>
+          <td>Post-call scorecard on the transcript you'll already have delivers <b>80&ndash;95% of
+            the value for near-zero extra build</b>. Live (Media Streams &rarr; Deepgram &rarr; a
+            fast model) is week 4+, ~1.0&ndash;1.8s latency. No incumbent — Gong, Chorus, Sybill —
+            does live coaching at all; only Nooks, and it's locked to its own dialer.</td>
+          <td class="num">~$0.09&ndash;0.25/call</td></tr>
+        <tr class="s-care"><td>Vapi</td>
+          <td><b>Keep — for AIDRE only</b></td>
+          <td>Its $0.05/min platform fee exceeds the entire underlying compute stack. That's the
+            "heavy" you felt, quantified. But DIY saves only ~$120/mo at 1,000 calls against a
+            5&ndash;7 week rebuild. Revisit at <b>10&ndash;15k AIDRE minutes/month</b>.</td>
+          <td class="num">payback 14+ yrs<span class="sub">at today's volume</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="call">
+    <div class="eyebrow">Flagged, not decided for you</div>
+    <p><b>Florida is an all-party-consent state</b>, and it's your primary market. The mechanics
+      are yours to choose; the standard move is a spoken pre-call announcement, which works in
+      one-party and two-party states alike.</p>
+    <p><b>Next action: provision the Twilio account.</b> Everything else is either already built
+      and waiting on the env vars, or a small specified addition on top of code you have.</p>
+  </div>
 </section>
 
 <section id="order">

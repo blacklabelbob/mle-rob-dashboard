@@ -36,7 +36,7 @@ copyrightable.
 | [`06-realtime-sync.md`](./06-realtime-sync.md) | CRDTs, sync, local-first, perf | Only the markdown editor uses CRDTs. Perceived speed is **~20% architecture, 80% frontend craft** — and the 80% ports cleanly to React/Supabase. |
 | [`07-comms.md`](./07-comms.md) | Email sync, chat, notifications, bots | Two rules worth copying verbatim: **receiving mail never creates a company, only sending does**, and every email row keyed by `link_id` (which turns Rob's two-identity rule into a schema invariant). |
 | [`08-license-market.md`](./08-license-market.md) | AGPL analysis, market/competitive frame | The risk ladder, and the free lunch: LiveKit (Apache-2.0), Lexical (MIT), Loro (MIT) are Macro's *dependencies*, usable freely with zero AGPL exposure. |
-| `09-voice-stack-decision.md` | Costed dialer/recording/transcription/live-coach decision | Companion decision doc (see file if present). |
+| [`09-voice-stack-decision.md`](./09-voice-stack-decision.md) | Costed dialer / recording / transcription / live-coach decision | **Twilio Voice SDK for the rep dialer** (already built, ~$173/mo at 5 reps) — LiveKit owns no carrier and is not a PSTN dialer; it belongs in the AIDRE half only. Recording: keep Twilio dual-channel but **export out fast** (Twilio bills storage monthly, ~22× S3). Deepgram `nova-3` **batch, direct**. Live coach: **build it, post-call first — 80–95% of the value for near-zero extra build**; no incumbent does live coaching at all. Vapi: keep for AIDRE, revisit at 10–15k min/mo. ⚠️ Florida is all-party consent. Next action: provision Twilio. |
 
 ## What shipped the same night
 
