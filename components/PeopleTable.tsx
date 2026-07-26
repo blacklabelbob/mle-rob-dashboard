@@ -7,6 +7,7 @@ import { contribution, money } from "@/lib/stats";
 import type { Person, Vertical } from "@/lib/types";
 import { TYPE_LABELS } from "@/lib/labels";
 import { InlineSelect, InlineText, InlineToggle } from "@/components/inline/fields";
+import { useTableRows } from "@/lib/filters/useTableRows";
 
 // People ledger — Attio/Linear standard: every cell is live. Click a value,
 // type, it saves on blur with an amber pulse. No edit mode, no Save button.
@@ -35,7 +36,19 @@ export default function PeopleTable({
   const [newVertical, setNewVertical] = useState("");
   const newVerticalRef = useRef<HTMLInputElement>(null);
 
-  const byId = useMemo(() => new Map(people.map((p) => [p.id, p])), [people]);
+  // Q67b — when `?view=`/`?share=` is in the URL the rows come from `/api/views/page`;
+  // with no view this is the server-rendered ledger, unchanged. `tableRows.ts` owns every
+  // rule about which of those two is showing.
+  const view = useTableRows(people);
+  const rows = view.rows;
+
+  // Built from BOTH lists on purpose: under a filter, the person who referred a visible row
+  // may not itself match the filter, and looking it up only in `rows` would silently blank
+  // the "Door (referred by)" cell for exactly the relationships this ledger exists to show.
+  const byId = useMemo(
+    () => new Map([...people, ...rows].map((p) => [p.id, p])),
+    [people, rows]
+  );
   const verticalById = useMemo(() => new Map(verticals.map((v) => [v.id, v])), [verticals]);
   const verticalOptions = useMemo(
     () => verticals.map((v) => ({ value: v.id, label: v.name })),
@@ -47,7 +60,7 @@ export default function PeopleTable({
   );
 
   const sorted = useMemo(() => {
-    const arr = [...people];
+    const arr = [...rows];
     switch (sortKey) {
       case "quoted":
         return arr.sort((a, b) => (b.quotedAmount ?? 0) - (a.quotedAmount ?? 0));
@@ -60,7 +73,7 @@ export default function PeopleTable({
       default:
         return arr.sort((a, b) => contribution(b) - contribution(a));
     }
-  }, [people, sortKey]);
+  }, [rows, sortKey]);
 
   function toggle(id: string) {
     setChecked((c) => {
@@ -168,6 +181,24 @@ export default function PeopleTable({
           </p>
         )}
       </div>
+
+      {view.filtered && (
+        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-sky-400/25 bg-sky-400/[0.07] px-3 py-2 text-xs">
+          <span className="font-medium text-sky-200">
+            {view.viewName ?? "Saved view"}
+          </span>
+          <span className="text-slate-400">
+            {view.loading
+              ? "loading…"
+              : view.error
+                ? view.error
+                : `${sorted.length} row${sorted.length === 1 ? "" : "s"}${view.canLoadMore ? "+" : ""}`}
+          </span>
+          <Link href="/people" className="ml-auto text-slate-500 transition hover:text-white">
+            clear view
+          </Link>
+        </div>
+      )}
 
       <div className="overflow-x-auto rounded-xl border border-white/10">
         <table className="w-full min-w-[1150px] text-left text-sm">
@@ -340,6 +371,20 @@ export default function PeopleTable({
           </tbody>
         </table>
       </div>
+
+      {/* Only drawn when the SERVER said there is another page — a button that fetches
+          nothing is worse than no button. `loadMore` is safe to click twice regardless. */}
+      {(view.canLoadMore || view.loadingMore) && (
+        <div className="flex justify-center">
+          <button
+            onClick={view.loadMore}
+            disabled={view.loadingMore}
+            className="rounded-md border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-300 transition hover:bg-white/10 disabled:opacity-40"
+          >
+            {view.loadingMore ? "loading…" : "Load more"}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
