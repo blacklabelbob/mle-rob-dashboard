@@ -2,12 +2,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getStore } from "@/lib/storage";
 import ActivityTimeline from "@/components/ActivityTimeline";
+import AttributionLineage from "@/components/AttributionLineage";
 import DocumentsSection from "@/components/esign/DocumentsSection";
 import EnrichmentSection from "@/components/EnrichmentSection";
 import EstimatePanel from "@/components/EstimatePanel";
 import PersonEditor from "@/components/PersonEditor";
 import ThingsToAddress from "@/components/ThingsToAddress";
 import { typeLabel } from "@/lib/labels";
+import { ORIGIN_ID, formatChain, indexNodes, lineage } from "@/lib/lineage";
 import { splitNotes } from "@/lib/notes";
 
 export const dynamic = "force-dynamic";
@@ -22,9 +24,16 @@ export default async function PersonPage({
   const person = data.people.find((p) => p.id === id);
   if (!person) notFound();
 
-  const referrer = data.people.find((p) => p.id === person.referredById);
   const doorsOpened = data.people.filter((p) => p.referredById === person.id);
   const vertical = data.verticals.find((v) => v.id === person.verticalId);
+  // §5: the chain is computed by the pure engine, once, off an index reused for
+  // every door below — the page never walks referredById itself.
+  const nodeIndex = indexNodes(data.people);
+  const chain = lineage(nodeIndex, person.id);
+  // §4 header: "role @ company", one click to the company context. Only a real
+  // org link renders — a role with no orgId stays plain text rather than
+  // implying a company we don't have on file.
+  const org = person.orgId ? data.people.find((p) => p.id === person.orgId) : undefined;
 
   return (
     <div className="space-y-6">
@@ -60,7 +69,19 @@ export default async function PersonPage({
             </span>
           )}
         </div>
-        {person.role && <p className="mt-1 text-sm text-slate-400">{person.role}</p>}
+        {(person.role || org) && (
+          <p className="mt-1 text-sm text-slate-400">
+            {person.role}
+            {org && (
+              <>
+                {person.role ? " @ " : ""}
+                <Link href={`/companies/${org.id}`} className="text-sky-400 hover:underline">
+                  {org.name}
+                </Link>
+              </>
+            )}
+          </p>
+        )}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
@@ -72,6 +93,48 @@ export default async function PersonPage({
             peopleOptions={data.people.map((p) => ({ id: p.id, name: p.name }))}
           />
 
+          {/* §4: the lineage IS the person page's centerpiece — it sits above
+              the timeline, where the company page puts its Phase tracker. The
+              two pages share no centerpiece component (increment-5 ≠-test #3). */}
+          <section className="rounded-xl border border-white/10 bg-white/5 p-5">
+            <h2 className="font-semibold text-white">How this door opened</h2>
+            <div className="mt-3">
+              <AttributionLineage lineage={chain} isOrigin={person.id === ORIGIN_ID} />
+            </div>
+
+            <div className="mt-5 border-t border-white/10 pt-4">
+              <div className="text-xs uppercase tracking-wide text-slate-500">
+                Doors opened ({doorsOpened.length})
+              </div>
+              <ul className="mt-2 space-y-1.5">
+                {doorsOpened.map((d) => {
+                  // §4: "each opened door also renders with its chain suffix so
+                  // the network math is visible" — the door's own chain, from
+                  // the same engine, not a re-derivation.
+                  const doorChain = lineage(nodeIndex, d.id);
+                  return (
+                    <li key={d.id} className="flex flex-wrap items-baseline gap-x-2">
+                      <Link href={`/people/${d.id}`} className="text-sm text-sky-400 hover:underline">
+                        {d.name}
+                      </Link>
+                      {d.relationship && (
+                        <span className="text-xs text-slate-500">{d.relationship}</span>
+                      )}
+                      <span className="text-xs text-slate-600">
+                        {doorChain.status === "rooted"
+                          ? formatChain(doorChain.path)
+                          : "⚠ broken chain"}
+                      </span>
+                    </li>
+                  );
+                })}
+                {doorsOpened.length === 0 && (
+                  <li className="text-sm text-slate-600">none yet — that&apos;s the job</li>
+                )}
+              </ul>
+            </div>
+          </section>
+
           <ActivityTimeline personId={person.id} demoEntries={[]} isDemo={false} />
 
           {/* Q47 e-sign: agreements on the record — company rows anchor as org
@@ -80,45 +143,6 @@ export default async function PersonPage({
             personId={person.entityKind === "company" ? undefined : person.id}
             orgId={person.entityKind === "company" ? person.id : undefined}
           />
-
-          <section className="rounded-xl border border-white/10 bg-white/5 p-5">
-            <h2 className="font-semibold text-white">Connections</h2>
-            <div className="mt-3 grid gap-4 sm:grid-cols-2">
-              <div>
-                <div className="text-xs uppercase tracking-wide text-slate-500">Came through</div>
-                {referrer ? (
-                  <Link
-                    href={`/people/${referrer.id}`}
-                    className="mt-1 block text-sm text-sky-400 hover:underline"
-                  >
-                    {referrer.name}
-                  </Link>
-                ) : (
-                  <div className="mt-1 text-sm text-slate-600">direct</div>
-                )}
-              </div>
-              <div>
-                <div className="text-xs uppercase tracking-wide text-slate-500">
-                  Doors opened ({doorsOpened.length})
-                </div>
-                <ul className="mt-1 space-y-1">
-                  {doorsOpened.map((d) => (
-                    <li key={d.id}>
-                      <Link href={`/people/${d.id}`} className="text-sm text-sky-400 hover:underline">
-                        {d.name}
-                      </Link>
-                      {d.relationship && (
-                        <span className="ml-2 text-xs text-slate-500">{d.relationship}</span>
-                      )}
-                    </li>
-                  ))}
-                  {doorsOpened.length === 0 && (
-                    <li className="text-sm text-slate-600">none yet — that&apos;s the job</li>
-                  )}
-                </ul>
-              </div>
-            </div>
-          </section>
 
           {/* Q43: machine-gathered provenance quarantined at the very bottom,
               collapsed — most recent visible, rest behind the expander. */}
