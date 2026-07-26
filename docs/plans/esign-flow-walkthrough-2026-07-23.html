@@ -150,7 +150,7 @@
       <div class="ans"><span class="q">Do they provide the app, or do we build?</span><span class="a own">WE BUILD (small)</span><p>No MIT vendor provides this app — that was the scout's finding. We assemble ~6 screens from 4 maintained MIT libraries. The AGPL alternative (DocuSeal) provides a full app but needs its own server + license discipline.</p></div>
       <div class="ans"><span class="q">Do we host it?</span><span class="a yes">ALREADY HOSTED</span><p>It ships inside the dashboard on Vercel + Supabase (storage, tables, auth) — the stack that's already running. Nothing new to stand up, no new bill.</p></div>
       <div class="ans"><span class="q">Can I use the Contracts folder templates &amp; rules?</span><span class="a yes">YES — it's the backbone</span><p>Same client JSON schema (<code>prospects/cg_roofing.json</code> shape), same engines, same <code>organize.py</code> filing rules, same ledgers. The CRM reads/writes them — your standing rule "read the JSONs/ledgers, never parse filenames" is honored.</p></div>
-      <div class="ans"><span class="q">Where does the file live?</span><span class="a own">SUPABASE STORAGE, ON THE LEAD</span><p>Private bucket, same auth as the dashboard, time-limited signed URLs — <b>not</b> Google Docs (that means leaving the CRM + a second login + no RLS). Every lead gets a Documents section; the Contracts folder stays the canonical local filing via a sync job.</p></div>
+      <div class="ans"><span class="q">Where does the file live?</span><span class="a own">SUPABASE STORAGE, ON THE LEAD</span><p>Private bucket, same auth as the dashboard, time-limited signed URLs — <b>not</b> Google Docs (second login, no RLS). Every lead gets a Documents section. <b>Supabase is the primary, not the only copy:</b> signed PDFs + audit certificates also mirror to the local Contracts folder and live with the e-sign provider and both parties' inboxes — three independent copies (see step 7).</p></div>
     </div>
   </section>
 
@@ -240,8 +240,8 @@
     <div class="step">
       <div class="stepnum">7</div><div class="stepline"></div>
       <div class="stepbody">
-        <h3>It never leaves the CRM — Documents on the lead, one-click resend</h3>
-        <span class="who">Automatic · reps stay inside the dashboard</span>
+        <h3>The <em>rep</em> never leaves the CRM — Documents on the lead, one-click resend</h3>
+        <span class="who">Automatic · reps stay inside the dashboard · (the file itself lives in more than one place — see below)</span>
         <div class="screen"><span class="t">Lead page: Documents section</span>
           <ul>
             <li>Every agreement version listed with a status chip — <b>draft → sent → viewed → signed</b> — tap to view the PDF right there (Supabase Storage signed URL)</li>
@@ -249,7 +249,39 @@
             <li>Every send/resend/view/sign lands on the lead's activity timeline (feeds the R2 timeline + audit trail)</li>
           </ul>
         </div>
-        <p><b>Storage decision:</b> Supabase Storage private bucket — same auth, RLS, signed URLs, effectively free at PDF sizes. Google Docs was considered and rejected: breaks "never leave the CRM," adds a second login, no row-level security. <b>The Contracts folder stays canonical for local filing</b> — a small sync job (extension of organize.py's world) mirrors signed PDFs + ledger rows down from Supabase, so the <code>(complete).pdf</code>/archive rules keep working invisibly.</p>
+        <p><b>Storage decision:</b> Supabase Storage private bucket — same auth, RLS, signed URLs, effectively free at PDF sizes. Google Docs was considered and rejected: breaks the rep's flow, adds a second login, no row-level security.</p>
+
+        <p><b>"Never leaves the CRM" is a statement about the <em>rep</em>, not about the file.</b> It means a rep never opens a second app to send, check, or resend an agreement. The signed PDF itself is deliberately in three independent places, so no single failure — including losing the CRM entirely — can take the executed document away from you.</p>
+
+        <div class="tblwrap">
+          <table>
+            <thead><tr><th>Copy</th><th>Where</th><th>Survives what</th><th>How you get it back</th></tr></thead>
+            <tbody>
+              <tr>
+                <td class="mono2"><b>1. Primary</b></td>
+                <td>Supabase Storage private bucket (<code>agreements/</code>), row in <code>documents</code> table with hash + version</td>
+                <td>App/CRM code being rebuilt, Vercel dying, dashboard being replaced</td>
+                <td>Supabase dashboard or CLI — the bucket is readable without any of our code existing</td>
+              </tr>
+              <tr>
+                <td class="mono2"><b>2. Local mirror</b></td>
+                <td><code>~/Projects/MyLocalEverything/contracts/…/(complete).pdf</code> + ledger row, pulled down by the sync job</td>
+                <td>Supabase project loss, billing lapse, account lockout</td>
+                <td>It's already on your Mac (and in Time Machine / iCloud, whatever backs that folder up)</td>
+              </tr>
+              <tr>
+                <td class="mono2"><b>3. Signer's copy</b></td>
+                <td>E-sign provider's own vault + the countersigned PDF emailed to <b>both</b> parties at execution</td>
+                <td>Everything above being gone at once</td>
+                <td>Your inbox, the client's inbox, and the provider's archive — three parties, not one</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="note"><b>The part that actually carries the legal weight:</b> a signed PDF alone is weaker evidence than most people assume. What makes it hold up is the <b>audit certificate</b> — signer identity, email, IP, user-agent, timestamps for sent/viewed/signed, and the consent-to-electronic-signature record (ESIGN/UETA). So the rule is: <b>the certificate is stored with the PDF, in all three copies, and the document hash is written to the <code>documents</code> row at execution.</b> If a PDF ever surfaces without its matching certificate + hash, treat it as unverified. Storing only the pretty PDF is the real single-point-of-failure — not storing it only in one system.</div>
+
+        <p><b>The Contracts folder stays canonical for local filing</b> — a small sync job (extension of organize.py's world) mirrors signed PDFs + certificates + ledger rows down from Supabase, so the <code>(complete).pdf</code>/archive rules keep working invisibly. Sync runs on execution and nightly; a failed sync raises rather than silently skipping, so "it's in both places" is verified, not assumed.</p>
       </div>
     </div>
   </section>

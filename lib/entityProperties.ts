@@ -80,6 +80,30 @@ export function systemPropertyId(suffix: number): string {
   return SYSTEM_PROPERTY_UUID_BASE + suffix.toString(16).padStart(2, "0");
 }
 
+/**
+ * Option ids get their own deterministic base so a definition suffix and an option
+ * suffix can never collide. Same append-only rule: a recycled suffix re-labels a stored
+ * choice.
+ */
+export const SYSTEM_OPTION_UUID_BASE = "00000002-0000-0000-0000-0000000000";
+
+export function systemOptionId(suffix: number): string {
+  if (!Number.isInteger(suffix) || suffix < 1 || suffix > 0xff) {
+    throw new Error(`system option suffix out of range (1..255): ${suffix}`);
+  }
+  return SYSTEM_OPTION_UUID_BASE + suffix.toString(16).padStart(2, "0");
+}
+
+/**
+ * The first real field on the spine (0016) — `status` on people AND orgs.
+ *
+ * The COLUMN remains the source of truth; the spine row is a trigger-maintained
+ * projection. Nothing renders from here yet, so no UI can accidentally read a stale
+ * copy — and once something does, the trigger is what makes it safe.
+ */
+export const NETWORK_STATUS_PROPERTY_ID = systemPropertyId(1);
+export const NETWORK_STATUS_OPTIONS = ["lit", "warm", "unlit"] as const;
+
 /** ISO date, date-only. Custom fields store a day, not an instant. */
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 

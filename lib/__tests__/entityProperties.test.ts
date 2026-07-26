@@ -8,8 +8,11 @@ import {
   definitionAppliesTo,
   formatPropertyValue,
   parsePropertyValue,
+  systemOptionId,
   systemPropertyId,
   validatePropertyValue,
+  NETWORK_STATUS_OPTIONS,
+  NETWORK_STATUS_PROPERTY_ID,
   type PropertyDefinition,
 } from "../entityProperties";
 
@@ -240,5 +243,89 @@ describe("containmentFilter", () => {
       kind: "TAG",
       items: ["storm-damage"],
     });
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+/* 0016 — the first real field on the spine: people.status / orgs.status       */
+/* -------------------------------------------------------------------------- */
+
+const SQL_0016 = readFileSync(
+  path.join(process.cwd(), "supabase/migrations/0016_status_on_property_spine.sql"),
+  "utf8",
+);
+
+describe("0016 status projection", () => {
+  it("seeds the definition under the id lib/entityProperties.ts computes", () => {
+    expect(NETWORK_STATUS_PROPERTY_ID).toBe("00000001-0000-0000-0000-000000000001");
+    expect(SQL_0016).toContain(`values ('${NETWORK_STATUS_PROPERTY_ID}', 'Network Status'`);
+  });
+
+  it("seeds exactly the three options, under the deterministic option ids", () => {
+    const seeded = [
+      ...SQL_0016.matchAll(
+        /\('(00000002-0000-0000-0000-[0-9a-f]{12})', '00000001-0000-0000-0000-000000000001', (\d+), '(\w+)'\)/g,
+      ),
+    ];
+    expect(seeded.map((m) => m[3])).toEqual([...NETWORK_STATUS_OPTIONS]);
+    expect(seeded.map((m) => m[1])).toEqual([1, 2, 3].map(systemOptionId));
+  });
+
+  /**
+   * The option list IS the NodeStatus union. If someone adds a fourth status to the
+   * column CHECK in a later migration and not here, the trigger writes a value no
+   * option row allows — this test is what fails first.
+   */
+  it("options match the status CHECK on both people and orgs", () => {
+    const network = readFileSync(
+      path.join(process.cwd(), "supabase/migrations/0001_network.sql"),
+      "utf8",
+    );
+    const orgsSplit = readFileSync(
+      path.join(process.cwd(), "supabase/migrations/0003_orgs_split.sql"),
+      "utf8",
+    );
+    const statuses = (sql: string) => {
+      const m = sql.match(/check \(status in \(([^)]*)\)\)/);
+      if (!m) throw new Error("status CHECK not found");
+      return [...m[1].matchAll(/'(\w+)'/g)].map((x) => x[1]);
+    };
+    expect(statuses(network).sort()).toEqual([...NETWORK_STATUS_OPTIONS].sort());
+    expect(statuses(orgsSplit).sort()).toEqual([...NETWORK_STATUS_OPTIONS].sort());
+  });
+
+  it("keeps the column authoritative: triggers on both tables, insert+update+delete", () => {
+    for (const [table, kind] of [
+      ["people", "person"],
+      ["orgs", "org"],
+    ]) {
+      expect(SQL_0016).toMatch(
+        new RegExp(
+          `after insert or update of status or delete on ${table}[\\s\\S]{0,120}sync_status_to_property_spine\\('${kind}'\\)`,
+        ),
+      );
+    }
+  });
+
+  it("writes a value the 0015 CHECK and the parser both accept", () => {
+    const written = { kind: "SELECT_STRING", items: ["warm"] };
+    const parsed = parsePropertyValue(written);
+    expect(parsed).toEqual(written);
+    const def: PropertyDefinition = {
+      id: NETWORK_STATUS_PROPERTY_ID,
+      display_name: "Network Status",
+      data_type: "SELECT_STRING",
+      specific_entity_type: null,
+      is_multi_select: false,
+      is_system: true,
+    };
+    expect(validatePropertyValue(def, parsed!, NETWORK_STATUS_OPTIONS)).toEqual({ ok: true });
+    // null specific_entity_type => legal on both kinds, which is why 0016 seeds it null
+    expect(definitionAppliesTo(def, "person")).toBe(true);
+    expect(definitionAppliesTo(def, "org")).toBe(true);
+    // a status outside the option list is refused at the validate layer
+    expect(
+      validatePropertyValue(def, { kind: "SELECT_STRING", items: ["hot"] }, NETWORK_STATUS_OPTIONS).ok,
+    ).toBe(false);
   });
 });
