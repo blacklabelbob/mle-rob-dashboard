@@ -3,16 +3,27 @@ import { notFound } from "next/navigation";
 import { getStore } from "@/lib/storage";
 import ThingsToAddress from "@/components/ThingsToAddress";
 import DocumentsSection from "@/components/esign/DocumentsSection";
+import ActivityTimeline from "@/components/ActivityTimeline";
+import EnrichmentSection from "@/components/EnrichmentSection";
+import { InlineText, InlineTextarea } from "@/components/inline/fields";
 import { companyRecordFromNetwork } from "@/lib/companyRecord";
 import { buildCompanyDeals } from "@/lib/companyDeals";
+import { splitNotes } from "@/lib/notes";
 import { typeLabel, STAGE_LABELS } from "@/lib/labels";
 
 export const dynamic = "force-dynamic";
 
-// Master View 2.0 §8 increments 5a + 5b — the company record: header, Things to
-// Address, the People-here rail, and the deals this company actually has. The
-// Phase Blueprint tracker (8a) and the notes/enrichment order (5c) land later;
-// this page shows what it has and names what is still to come, never stubbed.
+// Master View 2.0 §8 increments 5a + 5b + 5c — the company record: header,
+// Things to Address, the People-here rail, the deals this company actually has,
+// and (5c) the §3.4–§3.6 spine: timeline → Notes (human words only) → details
+// grid (demoted) → enrichment collapsed at the very bottom. The Phase Blueprint
+// tracker (8a) lands later; this page shows what it has and names what is still
+// to come, never stubbed.
+//
+// §3.5's inherited punch #7 is fixed here rather than inherited: the enrichment
+// block sits OUTSIDE the two-column grid, so "at the very bottom" is true at
+// every breakpoint — on a phone the grid collapses and anything left inside the
+// left column would render above the People rail.
 
 const money = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -39,6 +50,9 @@ export default async function CompanyPage({
     deals: allDeals,
     people: data.people,
   });
+  // Q43 discipline (§3.5): human words and machine provenance are split by the
+  // same pure function the person record uses — never re-implemented here.
+  const { human: humanNotes, enrichment } = splitNotes(company.notes);
 
   return (
     <div className="space-y-6">
@@ -197,6 +211,97 @@ export default async function CompanyPage({
               behind it today.
             </p>
           </section>
+
+          {/* §3.4 — the record spine. Company rows anchor activities the same way
+              a person row does (≤1-of-person/org), so this is the same feed the
+              person record shows, not a second copy. */}
+          <ActivityTimeline personId={company.id} demoEntries={[]} isDemo={false} />
+
+          {/* §3.5 — Notes: Rob's words only, directly under the timeline, and
+              prominent. `humanNotes` is what the editor sends back (field
+              `notesHuman`), so saving here can never overwrite the enrichment
+              blocks quarantined at the bottom of the page. */}
+          <section className="rounded-xl border border-white/10 bg-white/5 p-5">
+            <div className="flex items-baseline justify-between gap-2">
+              <h2 className="font-semibold text-white">Notes</h2>
+              <span className="text-[11px] text-slate-600">click to edit · autosaves</span>
+            </div>
+            <div className="mt-2 text-sm text-slate-300">
+              <InlineTextarea
+                personId={company.id}
+                field="notesHuman"
+                value={humanNotes}
+                placeholder="+ add notes"
+              />
+            </div>
+          </section>
+
+          {/* §3.6 — details grid, DEMOTED below Notes and trimmed to the fields
+              that mean something on a company. Vertical and rep are shown as
+              stored; changing which vertical a company belongs to is a graph
+              edit, not a field edit, so it is not offered inline here. */}
+          <section className="rounded-xl border border-white/10 bg-white/5 p-5">
+            <div className="flex items-baseline justify-between gap-2">
+              <h2 className="font-semibold text-white">Details</h2>
+              <span className="text-[11px] text-slate-600">click a value to edit</span>
+            </div>
+            <dl className="mt-3 grid gap-x-6 gap-y-3 text-sm sm:grid-cols-2">
+              <div>
+                <dt className="text-xs uppercase tracking-wide text-slate-500">Website</dt>
+                <dd className="text-slate-200">
+                  <InlineText
+                    personId={company.id}
+                    field="website"
+                    value={company.website}
+                    placeholder="+ url"
+                  />
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs uppercase tracking-wide text-slate-500">Phone</dt>
+                <dd className="text-slate-200">
+                  <InlineText
+                    personId={company.id}
+                    field="phone"
+                    value={company.phone}
+                    placeholder="+ phone"
+                  />
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs uppercase tracking-wide text-slate-500">Email</dt>
+                <dd className="text-slate-200">
+                  <InlineText
+                    personId={company.id}
+                    field="email"
+                    value={company.email}
+                    placeholder="+ email"
+                  />
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs uppercase tracking-wide text-slate-500">Assigned rep</dt>
+                <dd className="text-slate-200">
+                  <InlineText
+                    personId={company.id}
+                    field="assignedRep"
+                    value={company.assignedRep}
+                    placeholder="+ rep"
+                  />
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs uppercase tracking-wide text-slate-500">Vertical</dt>
+                <dd className="text-slate-300">{verticalName ?? "—"}</dd>
+              </div>
+              <div>
+                <dt className="text-xs uppercase tracking-wide text-slate-500">Record type</dt>
+                <dd className="text-slate-300">
+                  {company.nodeType ? typeLabel(company.nodeType) : "—"}
+                </dd>
+              </div>
+            </dl>
+          </section>
         </div>
 
         <div className="space-y-6">
@@ -238,6 +343,11 @@ export default async function CompanyPage({
           </section>
         </div>
       </div>
+
+      {/* §3.5/§3.6 — machine-gathered provenance, collapsed, BELOW the grid so it
+          is last on a phone as well as on a desktop (the punch #7 defect the
+          person record still carries). */}
+      <EnrichmentSection blocks={enrichment} />
     </div>
   );
 }
