@@ -17,7 +17,11 @@ import {
   type DeepgramOutcome,
 } from "./deepgramClient";
 import { persistTranscript, type TranscriptDb } from "./transcriptStore";
-import { transcriptKey, type TranscriptStatus } from "./transcriptSegments";
+import {
+  transcriptKey,
+  type TranscriptSegment,
+  type TranscriptStatus,
+} from "./transcriptSegments";
 
 export type TranscribeInput = {
   recordingSid: string | null | undefined;
@@ -48,6 +52,21 @@ export type TranscribeResult =
       transcriptId: string;
       segments: number;
       httpStatus?: number;
+      /**
+       * The segment rows that are now in 0021 — **the words this run persisted, in memory.**
+       *
+       * Carried on the result (inc.13) so the summariser can be handed the transcript of the
+       * call it is summarising without a second database round trip inside `after()`, where
+       * nothing retries and a re-read could return a *different* delivery's superseded words.
+       *
+       * Empty whenever the row does not carry words (`failed`, `pending`, or a genuinely
+       * silent `complete` call) — it mirrors what was written, never what the provider said
+       * before pruning, so a caller cannot summarise words the database does not have.
+       *
+       * **This is verbatim customer speech: never log it.** `transcribeLog` is the projection
+       * every caller should log instead.
+       */
+      words: readonly TranscriptSegment[];
     };
 
 /**
@@ -124,5 +143,21 @@ export async function transcribeRecording(
     transcriptId: result.transcriptId,
     segments: result.segments,
     ...(httpStatus !== undefined ? { httpStatus } : {}),
+    // What the database now holds, not what the provider sent: `persistTranscript` prunes a
+    // non-`complete` row's segments to zero, and a caller handed the pre-prune list would
+    // summarise words no reader of the call can ever see.
+    words: result.segments > 0 ? mapping.segments : [],
   };
+}
+
+/**
+ * The loggable projection of a transcription outcome — **counts and ids, never words.**
+ *
+ * Transcripts are the most sensitive rows in the database (a customer's own sentences), and a
+ * webhook log is the least access-controlled place they could land. Every caller logs this.
+ */
+export function transcribeLog(result: TranscribeResult): Record<string, unknown> {
+  if (result.kind !== "stored") return { ...result };
+  const { words: _words, ...rest } = result;
+  return rest;
 }

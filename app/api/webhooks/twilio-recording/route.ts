@@ -9,7 +9,7 @@ import {
   transcriptionLabel,
   type TranscriptionPlan,
 } from "@/lib/calls/recordingTranscription";
-import { transcribeRecording } from "@/lib/calls/transcribeRecording";
+import { callPipelineLog, processCallRecording } from "@/lib/calls/callPipeline";
 import { transcriptDb } from "@/lib/calls/transcriptDb";
 import { getStore } from "@/lib/storage";
 import {
@@ -122,23 +122,37 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "save failed" }, { status: 500 });
   }
 
-  // The call is on the timeline. Words come after the response — see the header note.
+  // The call is on the timeline. Words — and what they meant — come after the response.
   const transcription = plan(true);
   if (transcription.kind === "transcribe") {
     after(async () => {
       try {
-        const result = await transcribeRecording(transcriptDb(), {
-          recordingSid: transcription.recordingSid,
-          recordingUrl: transcription.recordingUrl,
-        });
+        // ONE await for the whole chain (inc.13): transcribe → gate → model → patch → row.
+        // The activity handed over is the one just written and still in memory, so the
+        // summary lands on the contact this response already named; re-deriving it here
+        // could move a filed call onto another person's timeline minutes later.
+        const result = await processCallRecording(
+          { db: transcriptDb(), saveActivity: (a) => getStore().upsertActivity(a) },
+          {
+            activity,
+            recordingSid: transcription.recordingSid,
+            recordingUrl: transcription.recordingUrl,
+          }
+        );
+        // The projection, never the result: the raw value carries verbatim customer speech
+        // and the summary prose, and this log is the least access-controlled place either
+        // could land.
         console.log(
-          "[twilio-recording] transcription",
-          JSON.stringify({ recordingSid: transcription.recordingSid, result })
+          "[twilio-recording] call pipeline",
+          JSON.stringify({
+            recordingSid: transcription.recordingSid,
+            ...callPipelineLog(result),
+          })
         );
       } catch (e) {
         // Nothing will ask again — this log is the only trace the call ever had words.
         console.error(
-          "[twilio-recording] transcription failed",
+          "[twilio-recording] call pipeline failed",
           transcription.recordingSid,
           e
         );

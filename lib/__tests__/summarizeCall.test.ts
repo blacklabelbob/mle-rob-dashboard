@@ -32,6 +32,9 @@ const STORED: TranscribeResult = {
   status: "complete",
   transcriptId: "t-1",
   segments: 2,
+  // inc.13 carries the persisted words on the outcome; this join is handed them separately,
+  // so what is pinned below is that it reads the STATUS and never this list.
+  words: SEGMENTS,
 };
 
 const OK: SummaryOutcome = {
@@ -57,6 +60,7 @@ describe("summaryOwed", () => {
       status: "failed",
       transcriptId: "t-1",
       segments: 0,
+      words: [],
     });
     const silent = summaryOwed({ ...STORED, segments: 0 });
     expect(failed).toEqual({ ok: false, reason: "transcript failed" });
@@ -65,7 +69,13 @@ describe("summaryOwed", () => {
 
   it("refuses a pending transcript", () => {
     expect(
-      summaryOwed({ kind: "stored", status: "pending", transcriptId: "t-1", segments: 0 })
+      summaryOwed({
+        kind: "stored",
+        status: "pending",
+        transcriptId: "t-1",
+        segments: 0,
+        words: [],
+      })
     ).toEqual({ ok: false, reason: "transcript pending" });
   });
 

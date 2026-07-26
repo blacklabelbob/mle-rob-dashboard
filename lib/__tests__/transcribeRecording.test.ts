@@ -86,6 +86,9 @@ describe("transcribeRecording — what is owed a row", () => {
       transcriptId: "t-1",
       segments: 2,
       httpStatus: 200,
+      // inc.13: the words that were just written come back on the result, so the summariser
+      // never re-reads them out of a table two deliveries may both be writing.
+      words: mappingOf(OK_BODY).segments,
     });
     expect(calls.map((c) => c.op)).toEqual(["transcript", "segments", "prune"]);
     // The prune uses the NEW count so a shrinking re-run cannot strand a stale tail.
