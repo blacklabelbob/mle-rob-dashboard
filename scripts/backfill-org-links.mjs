@@ -32,10 +32,14 @@ const LINKS = [
   ['joe-fleming', 'vive-health', true, 'Co-founder / owner', 'Vive Health LLC manager + registered agent (record role field)'],
   ['jonathan-burns', 'vive-health', true, 'Director of B2B Marketing', 'theorg.com/org/vive-health/org-chart/john-burns'],
   ['dix-thedevdix', 'dix-healthcare-ai', true, 'Founder', 'his own venture (7 healthcare-AI models) — 7/8 Dix call notes'],
+  // Added 2026-07-25: `the-title-base` org row was created 7/23 with the $2,000 PAID
+  // Phase 1 deal, which retired this person's SKIPPED reason ("no org row yet") without
+  // anyone re-running the backfill — so /companies/the-title-base rendered "Nobody is
+  // linked to this company yet" (flag #47). Ownership is Rob's own words, not inference.
+  ['trent-brands', 'the-title-base', true, 'Owner', 'Rob dev-chat #44 2026-07-23 verbatim: "Trent brands wo is the owner of the company \\"The Title Base\\" aka thetitlebase.com"'],
 ];
 
 const SKIPPED = [
-  ['trent-brands', 'Title Base (TB Florida LLC) has no org row yet'],
   ['david-cates', 'The Cates Processing Group has no org row yet'],
   ['george-eu', 'Guest Genie has no org row yet'],
   ['rob-acheson', 'MLE / AI VoiceTech has no org row (internal)'],
@@ -76,6 +80,9 @@ for (const [id, why] of SKIPPED) console.log(`skip    ${id} — ${why}`);
 
 const after = await (await fetch(`${URL}/rest/v1/people?select=id,org_id`, { headers: H })).json();
 const linked = after.filter((p) => p.org_id != null).length;
-console.log(`\nGATE: org_id set this run=${orgIdSet}, memberships upserted=${memberships}, people linked=${linked}/${after.length} (expected 11/16), skipped=${SKIPPED.length}`);
-if (linked !== 11) { console.error('GATE FAIL: linked count != 11'); process.exit(1); }
+// Expected count is derived, not a magic number: every primary link in LINKS must
+// end up carrying an org_id. It was a hard-coded 11 until trent-brands landed.
+const EXPECTED = new Set(LINKS.filter(([, , isPrimary]) => isPrimary).map(([personId]) => personId)).size;
+console.log(`\nGATE: org_id set this run=${orgIdSet}, memberships upserted=${memberships}, people linked=${linked}/${after.length} (expected ${EXPECTED}), skipped=${SKIPPED.length}`);
+if (linked !== EXPECTED) { console.error(`GATE FAIL: linked count != ${EXPECTED}`); process.exit(1); }
 console.log('GATE PASS');
