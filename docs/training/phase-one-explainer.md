@@ -25,11 +25,12 @@ Everything below is pulled directly from Section 2 of the actual agreement (`pha
    - designed to grow organic traffic; and
    - automatically updated on an ongoing basis.
 2. **A "Living" Second Brain Knowledge System (RAG)** for the company — a retrieval-augmented knowledge base that stays continuously current with everything about the business: its knowledge, market, competitors, personas, visuals, and more. Automatically kept up to date.
-3. **If the client has agents/salespeople** (optional, scoped per client):
+3. **Automated Social Media Posting** on **two (2) dedicated business profiles** of the client's choosing — **the standard on every Phase One deal** (Rob, 2026-07-25). More accounts can be added at any time for an additional fee. *Reps: lead with two; it is included, not an upsell. Where a client has an agent layer, per-agent social is scoped separately and on top (Gulf Coast: 45 individual accounts).* **Applies to deals scoped from 2026-07-25 forward** — CG Roofing/Red Rock signed before the standard existed and their agreement carries no social bullet; do not tell them it does.
+4. **If the client has agents/salespeople** (optional, scoped per client):
    - A **dedicated website for each agent**, built, optimized, and maintained on the same terms as the main website.
    - A **Living Second Brain** for each agent (same as above, per-agent).
    - **Automated social media posting** on a dedicated profile for each agent.
-4. We pull from a library of **44,000+ automations** and may add other high-impact ones we identify once we're in the account — Phase One is intentionally not a fixed checklist; we deploy whatever moves the needle first.
+5. We pull from a library of **44,000+ automations** and may add other high-impact ones we identify once we're in the account — Phase One is intentionally not a fixed checklist; we deploy whatever moves the needle first.
 
 **What Phase One is NOT:** it's not the full build-out. Later phases (booking systems, CRM automation, voice receptionist deployment, deeper integrations, etc.) get their own, more specific agreements once we know what's working. Phase One exists so nobody has to commit to those before we've proven value.
 
