@@ -127,3 +127,46 @@ export function nextPageCursor(rows: readonly unknown[], limit: number): string 
   }
   return encodePageCursor({ createdAt: row.created_at, id: row.id });
 }
+
+/* ------------------------------------------------------------------------------------ *
+ * Q67b — the list/delete half: whose views are being asked for.
+ * ------------------------------------------------------------------------------------ */
+
+/** Mirrors 0019's `length(btrim(owner_id)) > 0`, with a ceiling so a URL cannot carry a novel. */
+export const MAX_SUBJECT_ID_LENGTH = 200;
+
+/**
+ * `owner_id` / `team_id` are free text until Phase 4 (0019 says so), but they are also
+ * interpolated into a PostgREST `or(...)` filter string — where a comma closes the
+ * condition, a paren closes the group and a dot picks the operator. So the charset is
+ * closed here rather than escaped there: an id that could restructure the filter would be
+ * a caller choosing which rows come back.
+ */
+const SUBJECT_ID_RE = /^[A-Za-z0-9._@+:-]+$/;
+
+function parseSubjectId(value: unknown, what: string): string {
+  if (typeof value !== "string") fail(`?${what}= is required`);
+  const id = value.trim();
+  if (id === "") fail(`?${what}= is empty`);
+  if (id.length > MAX_SUBJECT_ID_LENGTH) {
+    fail(`?${what}= longer than ${MAX_SUBJECT_ID_LENGTH} characters`);
+  }
+  if (!SUBJECT_ID_RE.test(id)) fail(`?${what}= has characters that are not allowed in an id`);
+  return id;
+}
+
+/** The owner a list or delete is acting as. Required — there is no "everyone's views" door. */
+export function parseViewOwner(value: unknown): string {
+  return parseSubjectId(value, "owner");
+}
+
+/** Who the caller is, for a list: their own personal views plus one team's shared ones. */
+export type ViewListScope = { owner: string; team: string | null };
+
+export function parseViewListScope(params: URLSearchParams): ViewListScope {
+  const owner = parseViewOwner(params.get("owner"));
+  const team = params.get("team");
+  // Absent means "no team", which is a real answer. Present-but-blank is a client bug and
+  // is refused rather than treated as absent.
+  return { owner, team: team === null ? null : parseSubjectId(team, "team") };
+}

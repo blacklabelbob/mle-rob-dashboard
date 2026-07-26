@@ -102,6 +102,45 @@ export function parseSavedViewPayload(input: unknown): SavedViewPayload {
 }
 
 /**
+ * What a row carries beyond the travelling payload: who owns it and who it is shared
+ * with. This is `saved_views` minus `id` — i.e. exactly what an INSERT needs.
+ */
+export type SavedViewOwnership = {
+  scope: SavedViewScope;
+  owner_id: string;
+  team_id: string | null;
+};
+
+export type SavedViewInsert = SavedViewPayload & SavedViewOwnership;
+
+/**
+ * The ownership half of a row, validated once for both the read path and the write path.
+ *
+ * One copy on purpose: a rule enforced on read but not on write is a row the app can
+ * store and then refuse to open, and Q67's whole shape is "two doors, one validator".
+ */
+function parseSavedViewOwnership(row: Record<string, unknown>, what: string): SavedViewOwnership {
+  if (!isSavedViewScope(row.scope)) {
+    fail(`${what} has unknown scope ${JSON.stringify(row.scope)}`);
+  }
+  if (typeof row.owner_id !== "string" || row.owner_id.trim().length === 0) {
+    fail(`${what} has no owner_id`);
+  }
+
+  const teamId = row.team_id == null ? null : row.team_id;
+  if (teamId !== null && (typeof teamId !== "string" || teamId.trim().length === 0)) {
+    fail(`${what} has a blank team_id`);
+  }
+
+  // The same pairing 0019's `saved_views_scope_ids` enforces. Checked again here because
+  // a row can also arrive from a seed, a backfill, or a hand-written insert.
+  if (row.scope === "team" && teamId === null) fail("team view has no team_id");
+  if (row.scope === "personal" && teamId !== null) fail("personal view carries a team_id");
+
+  return { scope: row.scope, owner_id: row.owner_id.trim(), team_id: teamId?.trim() ?? null };
+}
+
+/**
  * Validate a full `saved_views` row. Used on the read path, because a row written before
  * a literal was renamed is exactly as untrusted as a stranger's URL.
  */
@@ -110,32 +149,24 @@ export function parseSavedViewRow(row: unknown): SavedView {
   const payload = parseSavedViewPayload(row);
 
   if (typeof row.id !== "string" || row.id.length === 0) fail("saved view row has no id");
-  if (!isSavedViewScope(row.scope)) {
-    fail(`saved view row has unknown scope ${JSON.stringify(row.scope)}`);
-  }
-  if (typeof row.owner_id !== "string" || row.owner_id.trim().length === 0) {
-    fail("saved view row has no owner_id");
-  }
+  const ownership = parseSavedViewOwnership(row, "saved view row");
 
-  const teamId = row.team_id == null ? null : row.team_id;
-  if (teamId !== null && (typeof teamId !== "string" || teamId.trim().length === 0)) {
-    fail("saved view row has a blank team_id");
-  }
+  return { id: row.id, ...payload, ...ownership };
+}
 
-  // The same pairing 0019's `saved_views_scope_ids` enforces. Checked again here because
-  // a row can also arrive from a seed, a backfill, or a hand-written insert.
-  if (row.scope === "team" && teamId === null) fail("team view has no team_id");
-  if (row.scope === "personal" && teamId !== null) fail("personal view carries a team_id");
-
-  return {
-    id: row.id,
-    target: payload.target,
-    name: payload.name,
-    filter: payload.filter,
-    scope: row.scope,
-    owner_id: row.owner_id,
-    team_id: teamId,
-  };
+/**
+ * Validate a create request body into the columns 0019 wants.
+ *
+ * `owner_id` is REQUIRED off the wire and never defaulted. There are no user records yet
+ * (Q64/Q6 own that), and a route that invented an owner would be inventing an authorship
+ * model Rob has not decided — the same line Q66 drew when it shipped SELECT policies and
+ * deliberately no write policies. `id`, `created_at` and `updated_at` are the database's
+ * to assign and are ignored if a caller sends them.
+ */
+export function parseSavedViewInsert(input: unknown): SavedViewInsert {
+  if (!isRecord(input)) fail("saved view must be an object");
+  const payload = parseSavedViewPayload(input);
+  return { ...payload, ...parseSavedViewOwnership(input, "saved view") };
 }
 
 /* ------------------------------------------------------------------------------------ *
