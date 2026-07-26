@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { TIMELINE_TYPE_STYLE, type TimelineEntry, type TimelineEntryType } from "@/lib/repSource";
 import { awaitingSummaryLine, callDetail, type CallTimelineDetail } from "@/lib/calls/callTimeline";
+import CallTranscript from "./CallTranscript";
 
 // Activity timeline on the account workspace. Tries the real feed first
 // (/api/admin/activities — empty until Phase 8/9 logging lands); DEMO records
@@ -86,6 +87,10 @@ function CallDetail({ detail }: { detail: CallTimelineDetail }) {
           {s.label} — <span className="text-slate-400">“{s.quote}”</span>
         </div>
       ))}
+
+      {/* Q68 inc.19: only rows that carry a recording sid can be asked about — a null sid
+          makes NO request rather than one the route would 400. */}
+      {detail.recordingSid && <CallTranscript recordingSid={detail.recordingSid} />}
     </div>
   );
 }

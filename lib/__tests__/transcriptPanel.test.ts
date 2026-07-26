@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   transcriptPanel,
+  transcriptPanelFromResponse,
   transcriptPanelUnavailable,
   UNCERTAIN_BELOW,
 } from "@/lib/calls/transcriptPanel";
@@ -165,5 +166,64 @@ describe("callDetail exposes the sid the panel asks with", () => {
   it("is null when the row carries none — no empty-sid request is ever made", () => {
     expect(callDetail({ type: "call", source_context: {} })!.recordingSid).toBeNull();
     expect(callDetail({ type: "call" })!.recordingSid).toBeNull();
+  });
+});
+
+// ── inc.19: the wire boundary ────────────────────────────────────────────────────────────
+// The component holds `await res.json()`, not a typed view. These pin that the parse is a
+// check and not a cast.
+describe("transcriptPanelFromResponse", () => {
+  const readyBody = {
+    recordingSid: "RE" + "a".repeat(32),
+    view: { state: "ready", turns: [turn()], speakerCount: 2, endMs: 9000 },
+  };
+
+  it("renders a well-formed ready body", () => {
+    const p = transcriptPanelFromResponse(200, readyBody);
+    expect(p.state).toBe("ready");
+    expect(p.turns).toHaveLength(1);
+    expect(p.turns[0].text).toContain("roof");
+    expect(p.speakerCount).toBe(2);
+    expect(p.headline).toBeNull();
+  });
+
+  it("carries diagnostics through as an operator notice, never as transcript text", () => {
+    const p = transcriptPanelFromResponse(200, { ...readyBody, diagnostics: { unreadable: "status" } });
+    expect(p.notice).toContain("status");
+    expect(p.turns.map((t) => t.text).join(" ")).not.toContain("status");
+  });
+
+  it("a non-200 is never a statement about the call", () => {
+    for (const status of [400, 404, 503]) {
+      const p = transcriptPanelFromResponse(status, { error: "nope" });
+      expect(p.state).toBe("unavailable");
+      expect(p.notice).toContain(String(status));
+      expect(p.turns).toHaveLength(0);
+    }
+  });
+
+  it("a 200 whose body is not a transcript is unavailable, not empty or failed", () => {
+    for (const body of [null, "text", { view: null }, { view: { state: "ready" } }, { view: { state: "weird", turns: [] } }]) {
+      const p = transcriptPanelFromResponse(200, body);
+      expect(p.state).toBe("unavailable");
+      expect(p.notice).toBe("Transcript response could not be read");
+    }
+  });
+
+  it("one malformed turn drops the WHOLE transcript — never a partial one", () => {
+    const p = transcriptPanelFromResponse(200, {
+      view: { state: "ready", turns: [turn(), { label: "Speaker 2" }], speakerCount: 2, endMs: 9000 },
+    });
+    expect(p.state).toBe("unavailable");
+    expect(p.turns).toHaveLength(0);
+  });
+
+  it("non-ready states keep their own sentence and carry no turns", () => {
+    for (const state of ["pending", "failed", "empty"] as const) {
+      const p = transcriptPanelFromResponse(200, { view: { state, turns: [turn()], speakerCount: 0, endMs: null } });
+      expect(p.state).toBe(state);
+      expect(p.turns).toHaveLength(0);
+      expect(p.headline).toBeTruthy();
+    }
   });
 });

@@ -145,3 +145,75 @@ export function transcriptPanelUnavailable(status?: number): TranscriptPanel {
     notice: typeof status === "number" ? `Transcript request failed (HTTP ${status})` : null,
   };
 }
+
+// ── inc.19: the wire boundary ────────────────────────────────────────────────────────────
+//
+// `transcriptPanel` takes a TYPED input, and TypeScript only guarantees that shape for
+// objects built in our own source. What the component actually holds is `await res.json()`
+// — a value typed by whatever answered the request. Casting it would make rule 1 above a
+// comment rather than a check, so the parse lives here, pure and tested, exactly as
+// `lib/filters/parse.ts` sits in front of `compile()`.
+
+const STATES = new Set(["ready", "pending", "failed", "empty"]);
+
+function obj(v: unknown): Record<string, unknown> | null {
+  return v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : null;
+}
+
+/**
+ * A turn off the wire, or null if any part of it is not what it claims.
+ *
+ * `text` may be empty-string only in the sense that we do not police its content — but a
+ * missing/non-string `text`, a non-numeric span, or a non-array `idx` means the payload is
+ * not a transcript, and the caller turns that into `unavailable`.
+ */
+function wireTurn(raw: unknown): TranscriptTurn | null {
+  const t = obj(raw);
+  if (!t) return null;
+  const { speaker, label, startMs, endMs, text, idx, minConfidence } = t;
+  if (typeof label !== "string" || typeof text !== "string") return null;
+  if (typeof startMs !== "number" || typeof endMs !== "number") return null;
+  if (!Array.isArray(idx) || idx.some((i) => typeof i !== "number")) return null;
+  if (minConfidence !== null && typeof minConfidence !== "number") return null;
+  if (speaker !== null && typeof speaker !== "string") return null;
+  return { speaker, label, startMs, endMs, text, idx: idx as number[], minConfidence };
+}
+
+/**
+ * `GET /api/calls/transcript`'s answer → what the panel renders.
+ *
+ * TWO RULES THAT ARE THE REASON THIS FUNCTION EXISTS:
+ *
+ *  1. A NON-200 IS NEVER A STATEMENT ABOUT THE CALL. 400/503/404 all mean *we could not
+ *     ask*; they land on `unavailable` carrying the status, never on `empty` or `failed`.
+ *
+ *  2. A BODY WE CANNOT FULLY PARSE YIELDS NO TRANSCRIPT AT ALL — never the turns that did
+ *     parse. A partly-rendered call reads as a complete one, and the quote a rep pulls out
+ *     of it is missing the sentence that changed its meaning. All or nothing, by design.
+ */
+export function transcriptPanelFromResponse(status: number, body: unknown): TranscriptPanel {
+  if (status !== 200) return transcriptPanelUnavailable(status);
+  const root = obj(body);
+  const view = obj(root?.view);
+  const state = view?.state;
+  if (!view || typeof state !== "string" || !STATES.has(state) || !Array.isArray(view.turns)) {
+    return { ...transcriptPanelUnavailable(), notice: "Transcript response could not be read" };
+  }
+  const turns = view.turns.map(wireTurn);
+  if (turns.some((t) => t === null)) {
+    return { ...transcriptPanelUnavailable(), notice: "Transcript response could not be read" };
+  }
+  const diag = obj(root?.diagnostics);
+  return transcriptPanel({
+    view: {
+      state: state as TranscriptView["state"],
+      turns: turns as TranscriptTurn[],
+      speakerCount: typeof view.speakerCount === "number" ? view.speakerCount : 0,
+      endMs: typeof view.endMs === "number" ? view.endMs : null,
+    },
+    diagnostics: {
+      unreadable: typeof diag?.unreadable === "string" ? diag.unreadable : undefined,
+      droppedSegments: typeof diag?.droppedSegments === "number" ? diag.droppedSegments : undefined,
+    },
+  });
+}
