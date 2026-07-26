@@ -27,6 +27,12 @@ export type CallTimelineDetail = {
   duration: string | null;
   direction: CallDirection | null;
   recordingUrl: string | null;
+  /**
+   * The key `/api/calls/transcript` is asked with (inc.18). Null when the row predates the
+   * dialer webhook or carried no sid — and a null here means NO transcript request is made
+   * at all, never a request with an empty sid that the route would 400.
+   */
+  recordingSid: string | null;
   /** null = never summarised. [] = summarised, nothing to do. */
   actionItems: string[] | null;
   /** null = never summarised. [] = summarised, no signal heard. */
@@ -100,6 +106,7 @@ export function callDetail(row: Record<string, unknown>): CallTimelineDetail | n
     duration: formatDuration(c.durationSec),
     direction,
     recordingUrl: str(row.recording_url ?? row.recordingUrl),
+    recordingSid: str(c.recordingSid),
     actionItems: action,
     signals: signals(row.buying_signals ?? row.buyingSignals),
     truncated: c.summaryTruncated === true,
