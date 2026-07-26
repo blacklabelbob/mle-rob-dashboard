@@ -1,8 +1,16 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import {
   buildCallActivity,
   resolveCallParty,
 } from "@/lib/calls/recordingActivity";
+import { deepgramConfigured, deepgramEnv } from "@/lib/calls/deepgramClient";
+import {
+  planTranscription,
+  transcriptionLabel,
+  type TranscriptionPlan,
+} from "@/lib/calls/recordingTranscription";
+import { transcribeRecording } from "@/lib/calls/transcribeRecording";
+import { transcriptDb } from "@/lib/calls/transcriptDb";
 import { getStore } from "@/lib/storage";
 import {
   recordingToActivity,
@@ -23,6 +31,20 @@ export const dynamic = "force-dynamic";
 // sid) answers 200 with `persisted:false` — no retry will ever make it
 // resolvable — while a storage failure answers 500 so the retry is used for
 // the one case it can fix.
+//
+// Q68 (c) inc.8: this route is now the ENTRY POINT to the transcription chain
+// (deepgramClient → transcribeRecording → transcriptStore → transcriptDb → 0021).
+// TRANSCRIPTION RUNS IN `after()`, NEVER INLINE, and that is a correctness choice
+// rather than a latency one: Twilio gives a webhook ~15s and treats anything slower
+// as a failure, while Deepgram is allowed 20s (deepgramClient). Awaiting it would
+// let a *successful* filing time out, and Twilio's re-POST would re-bill Deepgram
+// for a recording already being transcribed. The response contract is about the
+// activity, which is durable before we answer.
+//
+// The cost of `after()` is stated, not hidden: nothing retries what happens in
+// there. A database failure during the transcript write leaves NO transcript row
+// (inc.7's stated trade) and Twilio will never ask again — so it is logged loudly
+// rather than swallowed.
 export async function POST(req: Request) {
   const env = twilioEnv();
   // No auth token → dialer isn't set up; never accept unsigned payloads.
@@ -55,13 +77,30 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "storage unavailable" }, { status: 500 });
   }
 
+  // `filed` is threaded into the plan rather than assumed: an unfiled call is not
+  // transcribed, because its transcript would carry a derived activity_id pointing at
+  // an activity that does not exist (lib/calls/recordingTranscription.ts states why).
+  const plan = (filed: boolean): TranscriptionPlan =>
+    planTranscription({
+      configured: deepgramConfigured(deepgramEnv()),
+      filed,
+      recordingSid: payload.recordingSid,
+      recordingUrl: payload.recordingUrl,
+    });
+
   const resolution = resolveCallParty(people, payload, [env.callerId]);
   if (resolution.kind !== "resolved") {
     console.warn(
       "[twilio-recording] not filed",
       JSON.stringify({ resolution, callSid: payload.callSid, recordingSid: payload.recordingSid })
     );
-    return NextResponse.json({ ok: true, persisted: false, resolution, activity: payload });
+    return NextResponse.json({
+      ok: true,
+      persisted: false,
+      resolution,
+      transcription: transcriptionLabel(plan(false)),
+      activity: payload,
+    });
   }
 
   const activity = buildCallActivity(payload, resolution, new Date().toISOString());
@@ -71,6 +110,7 @@ export async function POST(req: Request) {
       ok: true,
       persisted: false,
       resolution: { kind: "unmatched", reason: "no-recording-sid" },
+      transcription: transcriptionLabel(plan(false)),
       activity: payload,
     });
   }
@@ -81,5 +121,36 @@ export async function POST(req: Request) {
     console.error("[twilio-recording] activity save failed", e);
     return NextResponse.json({ error: "save failed" }, { status: 500 });
   }
-  return NextResponse.json({ ok: true, persisted: true, id: activity.id, activity });
+
+  // The call is on the timeline. Words come after the response — see the header note.
+  const transcription = plan(true);
+  if (transcription.kind === "transcribe") {
+    after(async () => {
+      try {
+        const result = await transcribeRecording(transcriptDb(), {
+          recordingSid: transcription.recordingSid,
+          recordingUrl: transcription.recordingUrl,
+        });
+        console.log(
+          "[twilio-recording] transcription",
+          JSON.stringify({ recordingSid: transcription.recordingSid, result })
+        );
+      } catch (e) {
+        // Nothing will ask again — this log is the only trace the call ever had words.
+        console.error(
+          "[twilio-recording] transcription failed",
+          transcription.recordingSid,
+          e
+        );
+      }
+    });
+  }
+
+  return NextResponse.json({
+    ok: true,
+    persisted: true,
+    id: activity.id,
+    transcription: transcriptionLabel(transcription),
+    activity,
+  });
 }
