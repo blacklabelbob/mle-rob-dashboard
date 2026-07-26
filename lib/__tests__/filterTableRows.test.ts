@@ -20,8 +20,9 @@ function page(
   nextCursor: string | null,
   name = "Warm people",
   target: ViewPage["target"] = "person",
+  shareToken: string | null = "tok-1",
 ): ViewPage {
-  return { target, name, rows, nextCursor };
+  return { target, name, rows, nextCursor, shareToken };
 }
 
 /** One page of a person view on screen, cursor `c1` outstanding. */
@@ -133,5 +134,41 @@ describe("isPersonShapedTarget", () => {
     expect(isPersonShapedTarget("org")).toBe(true);
     expect(isPersonShapedTarget("deal")).toBe(false);
     expect(isPersonShapedTarget("activity")).toBe(false);
+  });
+});
+
+describe("selectTableRows — the share token (DoD (c): the Copy affordance)", () => {
+  it("hands back the token the ROUTE minted for the rows on screen", () => {
+    const v = selectTableRows(FALLBACK, ready());
+    expect(v.shareToken).toBe("tok-1");
+  });
+
+  it("survives loadingMore — the link a rep can see must not vanish mid-scroll", () => {
+    expect(selectTableRows(FALLBACK, beginLoadMore(ready())).shareToken).toBe("tok-1");
+  });
+
+  it("is null in every state where copying would hand over the WRONG view", () => {
+    const s = ready();
+    const loading = beginRequest(initialViewPageState, { kind: "view", id: "v2" });
+    const cases: Array<[string, ReturnType<typeof selectTableRows>]> = [
+      ["no view at all", selectTableRows(FALLBACK, initialViewPageState)],
+      ["first page in flight", selectTableRows(FALLBACK, loading)],
+      ["the view failed", selectTableRows(FALLBACK, applyError(s, s.requestId, "boom"))],
+      ["a malformed link", selectTableRows(FALLBACK, s, "pass ?view= or ?share=, not both")],
+      [
+        "a target this table cannot draw",
+        selectTableRows(FALLBACK, ready(page([row("d1")], null, "Open deals", "deal"))),
+      ],
+    ];
+    for (const [what, v] of cases) expect(v.shareToken, what).toBeNull();
+  });
+
+  it("is null when the route withheld a token but the rows are fine", () => {
+    // `pageClient` drops a token whose target disagrees; the rows still render, only the
+    // button is absent — a cosmetic loss, never a refused page.
+    const v = selectTableRows(FALLBACK, ready(page([row("a")], null, "Warm people", "person", null)));
+    expect(v.rows.map((r) => r.id)).toEqual(["a"]);
+    expect(v.shareToken).toBeNull();
+    expect(v.error).toBeNull();
   });
 });

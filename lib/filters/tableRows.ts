@@ -56,6 +56,14 @@ export type TableRowsView = {
   canLoadMore: boolean;
   /** True when a view is driving the rows (or trying to) — the banner shows. */
   filtered: boolean;
+  /**
+   * The server-minted share token for what is ON SCREEN, or `null` when there is nothing
+   * honest to copy. Deliberately null in every non-success state: a Copy button that is
+   * live while the next view loads, or after this one failed, hands a colleague the
+   * PREVIOUS view's rows under the name the rep was looking at. An absent button is a
+   * visible nothing; a wrong link is an invisible something.
+   */
+  shareToken: string | null;
 };
 
 /**
@@ -79,6 +87,7 @@ export function selectTableRows(
     error: null,
     canLoadMore: false,
     filtered: true,
+    shareToken: null,
   };
 
   // A URL we refused to parse outranks whatever the hook's state says: no request was ever
@@ -122,5 +131,8 @@ export function selectTableRows(
     // same cursor starts. `beginLoadMore` refuses it too; not drawing it is the kinder half.
     canLoadMore: page.nextCursor !== null && state.status !== "loadingMore" && state.status !== "loading",
     filtered: true,
+    // Survives `loadingMore` on purpose — `appendPage` holds page 1's token for the whole
+    // list, so the link stays the same one the rep could already see while more rows land.
+    shareToken: page.shareToken,
   };
 }

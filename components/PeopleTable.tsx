@@ -8,6 +8,7 @@ import type { Person, Vertical } from "@/lib/types";
 import { TYPE_LABELS } from "@/lib/labels";
 import { InlineSelect, InlineText, InlineToggle } from "@/components/inline/fields";
 import { useTableRows } from "@/lib/filters/useTableRows";
+import { withShareToken } from "@/lib/filters/browserView";
 
 // People ledger — Attio/Linear standard: every cell is live. Click a value,
 // type, it saves on blur with an amber pulse. No edit mode, no Save button.
@@ -20,6 +21,68 @@ const statusBadge: Record<Person["status"], string> = {
   warm: "bg-orange-900/40 text-orange-300 border-orange-400/20",
   unlit: "bg-slate-800 text-slate-400 border-slate-600/40",
 };
+
+/**
+ * Q67b DoD (c) — the affordance that turns a saved view into a link a colleague can open.
+ *
+ * The URL is built ON CLICK, never during render: there is no `window` on the server (a
+ * render-time build is a hydration mismatch), and the address bar changes under this
+ * component as the rep sorts or switches views — a URL frozen at first render would copy
+ * a link to a page they left. `withShareToken` drops any `?view=` and sets `?share=`, so
+ * the recipient never receives the one combination the route refuses.
+ *
+ * Clipboard access is NOT assumed. `navigator.clipboard` is absent outside a secure
+ * context and can reject outright; a Copy button that silently does nothing is the worst
+ * of the three outcomes, so a failure reveals the link itself, pre-selected, to copy by
+ * hand. The rep always leaves with the link one way or the other.
+ */
+function CopyShareLink({ token }: { token: string }) {
+  const [copied, setCopied] = useState(false);
+  const [manual, setManual] = useState<string | null>(null);
+
+  async function copy() {
+    let url: string;
+    try {
+      url = withShareToken(window.location.href, token);
+    } catch {
+      // Only reachable if the address bar itself is unparseable — say so rather than
+      // handing over a half-built string.
+      setManual(null);
+      setCopied(false);
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      setManual(null);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setManual(url);
+    }
+  }
+
+  if (manual !== null) {
+    return (
+      <input
+        readOnly
+        autoFocus
+        value={manual}
+        onFocus={(e) => e.currentTarget.select()}
+        onBlur={() => setManual(null)}
+        className="w-64 rounded border border-sky-400/30 bg-slate-950 px-2 py-1 text-[11px] text-sky-200"
+      />
+    );
+  }
+
+  return (
+    <button
+      onClick={copy}
+      className="rounded border border-sky-400/30 px-2 py-1 text-[11px] text-sky-200 transition hover:bg-sky-400/10"
+    >
+      {copied ? "link copied" : "Copy share link"}
+    </button>
+  );
+}
 
 export default function PeopleTable({
   people,
@@ -194,7 +257,18 @@ export default function PeopleTable({
                 ? view.error
                 : `${sorted.length} row${sorted.length === 1 ? "" : "s"}${view.canLoadMore ? "+" : ""}`}
           </span>
-          <Link href="/people" className="ml-auto text-slate-500 transition hover:text-white">
+          {/* Drawn only when the route handed back a token for THESE rows — see
+              `tableRows.shareToken`. No token means loading, failed, or a view this table
+              cannot draw, and in all three the honest button is no button. */}
+          {view.shareToken !== null && (
+            <div className="ml-auto">
+              <CopyShareLink token={view.shareToken} />
+            </div>
+          )}
+          <Link
+            href="/people"
+            className={`${view.shareToken !== null ? "" : "ml-auto "}text-slate-500 transition hover:text-white`}
+          >
             clear view
           </Link>
         </div>
