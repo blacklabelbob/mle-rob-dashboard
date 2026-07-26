@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { compile, isFilterError } from "@/lib/filters/ast";
+import { andFragments, compileDemoExclusion } from "@/lib/filters/demo";
 import { isFilterInputError } from "@/lib/filters/parse";
 import {
   decodeShareLink,
@@ -89,7 +90,26 @@ export async function GET(req: NextRequest) {
   // `EXECUTE … USING` — 0020 reads the params out of one jsonb array instead.
   let where, values;
   try {
-    ({ sql: where, params: values } = compile(view.filter, view.target, { bindStyle: "jsonb" }));
+    const filter = compile(view.filter, view.target, { bindStyle: "jsonb" });
+    // Q67b: the demo answer, decided HERE rather than in a client. `/people` hides the
+    // fabricated "(DEMO)" rep-training rows, so a saved view that returned them would be
+    // a second list disagreeing with the first about the same filter. Every consumer of
+    // this route — share link, UI, a later agent — inherits one answer.
+    // `?demo=include` is the deliberate way back in for the Rep Cockpit; anything else is
+    // a 400, because a typo'd opt-in that silently means "exclude" is unnoticeable.
+    const demoParam = params.get("demo");
+    if (demoParam !== null && demoParam !== "include") {
+      return NextResponse.json({ error: "demo must be omitted or 'include'" }, { status: 400 });
+    }
+    if (demoParam === "include") {
+      ({ sql: where, params: values } = filter);
+    } else {
+      const notDemo = compileDemoExclusion(view.target, {
+        bindStyle: "jsonb",
+        paramOffset: filter.params.length,
+      });
+      ({ sql: where, params: values } = andFragments(filter, notDemo));
+    }
   } catch (e) {
     if (isFilterError(e)) return NextResponse.json({ error: e.message }, { status: 400 });
     throw e;

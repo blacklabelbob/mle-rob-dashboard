@@ -153,7 +153,10 @@ const LITERAL_TARGET: Record<string, FilterTarget> = {
 
 export type CompiledFilter = { sql: string; params: unknown[] };
 
-class FilterError extends Error {}
+// Exported (Q67b) so a sibling fragment compiler — `demo.ts` — throws the SAME error
+// family this file does. A second error class would mean `isFilterError()` returns false
+// for a filter problem and the route answers 500 where 400 belonged.
+export class FilterError extends Error {}
 
 /** Thrown-on-invalid, so a malformed saved view fails loudly instead of widening a query. */
 export function isFilterError(e: unknown): e is Error {
