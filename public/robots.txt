@@ -1,0 +1,37 @@
+# The Network (MLE) — internal sales dashboard. Never a public website.
+#
+# Rob disarmed the Basic-Auth gate on prod 2026-07-21 (the sign-in popup interrupted
+# his dictation) and the dashboard is intentionally open until the ACCESS rollout —
+# that is his call and this file does not change it. What it changes is INDEXING:
+# without it, real people's names, phone numbers, employers and deal values were
+# reachable by any crawler and could land in search results, where they persist long
+# after the gate goes back on.
+#
+# This is harm reduction, not access control. Anyone with the URL still gets in.
+# The real fix is Phase 4 ACCESS (Supabase Auth + roles) or re-arming
+# DASHBOARD_PASSWORD — see BUILD-QUEUE Q10 / security flag #30.
+
+User-agent: *
+Disallow: /
+
+# Belt and braces for the AI crawlers, which do not all honour the wildcard above.
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: PerplexityBot
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
