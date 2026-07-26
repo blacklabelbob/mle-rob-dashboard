@@ -8,6 +8,7 @@ import {
   parseSavedViewRow,
   type SavedViewPayload,
 } from "@/lib/filters/savedViews";
+import { isRowMapError, mapPageRows } from "@/lib/filters/rows";
 import {
   nextPageCursor,
   parsePageCursor,
@@ -132,12 +133,28 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: page.error.message }, { status });
   }
 
-  const rows = (page.data ?? []) as unknown[];
+  const raw = (page.data ?? []) as unknown[];
+  // ORDER IS LOAD-BEARING: the cursor comes off the RAW rows, because `created_at` is a
+  // column and not a field of any domain type. Mapping first would throw "page row has no
+  // created_at" on page 1 of a perfectly good view.
   let next: string | null;
   try {
-    next = nextPageCursor(rows, limit);
+    next = nextPageCursor(raw, limit);
   } catch (e) {
     if (isFilterInputError(e)) return NextResponse.json({ error: e.message }, { status: 500 });
+    throw e;
+  }
+
+  // Q67b: rows leave here in the shape the UI renders, decided HERE for the same reason
+  // the demo exclusion is — every consumer (share link, table, export, a later agent)
+  // inherits one answer, and the browser cannot import the store's mappers anyway.
+  let rows;
+  try {
+    rows = mapPageRows(view.target, raw);
+  } catch (e) {
+    // Ours, not the caller's: the filter was valid and the query ran. A row we cannot map
+    // is a schema drift, and a 500 says so instead of blaming the request.
+    if (isRowMapError(e)) return NextResponse.json({ error: e.message }, { status: 500 });
     throw e;
   }
 
