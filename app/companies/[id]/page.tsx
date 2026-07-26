@@ -4,14 +4,21 @@ import { getStore } from "@/lib/storage";
 import ThingsToAddress from "@/components/ThingsToAddress";
 import DocumentsSection from "@/components/esign/DocumentsSection";
 import { companyRecordFromNetwork } from "@/lib/companyRecord";
-import { typeLabel } from "@/lib/labels";
+import { buildCompanyDeals } from "@/lib/companyDeals";
+import { typeLabel, STAGE_LABELS } from "@/lib/labels";
 
 export const dynamic = "force-dynamic";
 
-// Master View 2.0 §8 increment 5a — the company record SHELL: header, Things to
-// Address, and the People-here rail. The Phase Blueprint tracker (5b/8a), deals,
-// timeline, notes and enrichment land in later increments; this page shows what
-// it actually has and names what is still to come rather than stubbing it.
+// Master View 2.0 §8 increments 5a + 5b — the company record: header, Things to
+// Address, the People-here rail, and the deals this company actually has. The
+// Phase Blueprint tracker (8a) and the notes/enrichment order (5c) land later;
+// this page shows what it has and names what is still to come, never stubbed.
+
+const money = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  maximumFractionDigits: 0,
+});
 
 export default async function CompanyPage({
   params,
@@ -19,13 +26,19 @@ export default async function CompanyPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const data = await getStore().getNetwork();
+  const store = getStore();
+  const [data, allDeals] = await Promise.all([store.getNetwork(), store.listDeals()]);
   const record = companyRecordFromNetwork(data, id);
   // A person id must never render the company shell — buildCompanyRecord
   // returns null for one, and that is a 404 here.
   if (!record) notFound();
 
   const { company, verticalName, verticalColor, rep, peopleHere, ownerIdentified } = record;
+  const deals = buildCompanyDeals({
+    companyId: company.id,
+    deals: allDeals,
+    people: data.people,
+  });
 
   return (
     <div className="space-y-6">
@@ -87,12 +100,101 @@ export default async function CompanyPage({
               second copy of the paper. */}
           <DocumentsSection orgId={company.id} />
 
+          {/* §8 increment 5b — deals. Values are printed as stored; nothing here
+              computes a balance, and a deal with no value says so rather than
+              rendering $0. */}
+          <section className="rounded-xl border border-white/10 bg-white/5 p-5">
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <h2 className="font-semibold text-white">Deals</h2>
+              <span className="text-xs text-slate-500">
+                {deals.paidTotal > 0 && (
+                  <span className="text-emerald-400">{money.format(deals.paidTotal)} paid</span>
+                )}
+                {deals.paidTotal > 0 && deals.openTotal > 0 && " · "}
+                {deals.openTotal > 0 && (
+                  <span className="text-amber-300">{money.format(deals.openTotal)} open</span>
+                )}
+              </span>
+            </div>
+
+            {deals.rows.length === 0 ? (
+              <p className="mt-3 text-sm text-slate-500">
+                No deals are anchored to this company or to anyone linked to it.
+              </p>
+            ) : (
+              <ul className="mt-3 space-y-3">
+                {deals.rows.map((d) => (
+                  <li key={d.id} className="rounded-lg border border-white/5 bg-white/[0.02] p-3">
+                    <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                      <Link
+                        href={`/deals/${d.id}`}
+                        className="text-sm text-sky-400 hover:underline"
+                      >
+                        {d.name}
+                      </Link>
+                      <span className="rounded-full border border-slate-600/40 bg-slate-800 px-2 py-0.5 text-[11px] text-slate-300">
+                        {STAGE_LABELS[d.stage]}
+                      </span>
+                      <span className="text-sm text-slate-200">
+                        {d.value === undefined ? (
+                          <span className="text-slate-500">no value recorded</span>
+                        ) : (
+                          money.format(d.value)
+                        )}
+                      </span>
+                      {d.referralSourced && (
+                        <span className="text-[11px] text-violet-300">referral-sourced</span>
+                      )}
+                    </div>
+                    <p className="mt-1 text-xs text-slate-500">
+                      {d.anchoredVia && <>via {d.anchoredVia} · </>}
+                      {(
+                        [
+                          ["quoted", d.keyDates.quoted],
+                          ["signed", d.keyDates.signed],
+                          ["invoiced", d.keyDates.invoiced],
+                          ["paid", d.keyDates.paid],
+                        ] as const
+                      )
+                        .filter(([, v]) => Boolean(v))
+                        .map(([k, v]) => `${k} ${v}`)
+                        .join(" · ") || "no key dates on file"}
+                    </p>
+                    {d.flags.map((f) => (
+                      <p key={f.code} className="mt-1 text-xs text-amber-300">
+                        ⚠ {f.text}
+                      </p>
+                    ))}
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {deals.valueMissing > 0 && (
+              <p className="mt-3 text-xs text-slate-500">
+                {/* Built as one string, not interpolated fragments: JSX turns a
+                    line break mid-word into a space, which shipped "1 deal carr
+                    ies no value" to prod. */}
+                {deals.valueMissing === 1
+                  ? "1 deal carries no value and is excluded from the totals above"
+                  : `${deals.valueMissing} deals carry no value and are excluded from the totals above`}
+                {" — unknown, not $0."}
+              </p>
+            )}
+            {!deals.phaseStoreAvailable && (
+              <p className="mt-2 text-xs text-slate-600">
+                Per-deal phase is not shown because no phase store exists yet (§8
+                increment 7). Stated once here rather than as a warning on every row.
+              </p>
+            )}
+          </section>
+
           <section className="rounded-xl border border-dashed border-white/10 bg-white/[0.02] p-5">
             <h2 className="font-semibold text-white">Phase Blueprint</h2>
             <p className="mt-1 text-sm text-slate-500">
-              Not built yet — the phase tracker, deals and delivery money land in the
-              next increments. Nothing is being hidden here; there is simply no phase
-              store behind it today.
+              Not built yet — the phase tracker and delivery money land in increments
+              7/8a. Nothing is being hidden here; there is simply no phase store
+              behind it today.
             </p>
           </section>
         </div>
