@@ -21,6 +21,11 @@
 
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import type { SegmentRow, TranscriptDb, TranscriptRow } from "./transcriptStore";
+import {
+  SEGMENT_READ_COLUMNS,
+  TRANSCRIPT_READ_COLUMNS,
+  type TranscriptReader,
+} from "./transcriptRead";
 
 /** 0021's unique indexes, named once. These strings ARE the idempotence guarantee. */
 export const TRANSCRIPT_CONFLICT = "recording_sid";
@@ -122,6 +127,63 @@ export function supabaseTranscriptDb(client: TranscriptClient): TranscriptDb {
   };
 }
 
+/**
+ * The read half (inc.16), typed apart from the write client on purpose: the write path must
+ * not grow a `select` it can reach by accident, and this shape is what lets the keyset paging
+ * be asserted without Postgres.
+ */
+type ReadBuilder = PromiseLike<{ data: unknown[] | null; error: PostgrestError | null }> & {
+  eq(column: string, value: unknown): ReadBuilder;
+  gte(column: string, value: unknown): ReadBuilder;
+  order(column: string, options: { ascending: boolean }): ReadBuilder;
+  limit(count: number): ReadBuilder;
+  maybeSingle(): Promise<{ data: unknown; error: PostgrestError | null }>;
+};
+
+export type TranscriptReadClient = {
+  from(table: string): { select(columns: string): ReadBuilder };
+};
+
+function asRow(v: unknown): Record<string, unknown> | null {
+  return v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : null;
+}
+
+/**
+ * Bind inc.16's read path to a real database.
+ *
+ * `order("idx")` is issued on the SERVER, not sorted after the fact: the keyset cursor is
+ * only sound if each page arrives in idx order, and PostgREST's row order without an
+ * explicit `order` is whatever the plan produced.
+ */
+export function supabaseTranscriptReader(client: TranscriptReadClient): TranscriptReader {
+  return {
+    async fetchTranscript(recordingSid: string) {
+      const { data, error } = await client
+        .from("call_transcripts")
+        .select(TRANSCRIPT_READ_COLUMNS)
+        .eq("recording_sid", recordingSid)
+        .maybeSingle();
+      // A missing row is `data: null` with no error — the caller's `missing`, which is a
+      // real answer. Only a genuine failure throws, so "the query broke" can never be
+      // rendered as "this call was never transcribed".
+      if (error) throw new Error(`call_transcripts read: ${error.message}`);
+      return asRow(data);
+    },
+
+    async fetchSegments(transcriptId: string, fromIdx: number, limit: number) {
+      const { data, error } = await client
+        .from("call_transcript_segments")
+        .select(SEGMENT_READ_COLUMNS)
+        .eq("transcript_id", transcriptId)
+        .gte("idx", Math.max(0, Math.trunc(fromIdx)))
+        .order("idx", { ascending: true })
+        .limit(limit);
+      if (error) throw new Error(`call_transcript_segments read: ${error.message}`);
+      return (data ?? []).map(asRow).filter((r): r is Record<string, unknown> => r !== null);
+    },
+  };
+}
+
 let client: SupabaseClient | null = null;
 
 /** Service-role client for 0021. Server-side only — same idiom as supabaseStore/esignDb. */
@@ -138,4 +200,9 @@ export function transcriptClient(): SupabaseClient {
 /** The `TranscriptDb` inc.5's `persistTranscript` runs against in production. */
 export function transcriptDb(): TranscriptDb {
   return supabaseTranscriptDb(transcriptClient() as unknown as TranscriptClient);
+}
+
+/** The `TranscriptReader` inc.16's `loadTranscript` runs against in production. */
+export function transcriptReader(): TranscriptReader {
+  return supabaseTranscriptReader(transcriptClient() as unknown as TranscriptReadClient);
 }
