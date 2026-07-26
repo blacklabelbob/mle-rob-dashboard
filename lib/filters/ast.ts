@@ -209,11 +209,50 @@ const COLUMNS: Record<string, string> = {
 /** Every literal name that exists. Derived from COLUMNS so the two can never drift. */
 export const LITERAL_NAMES: readonly string[] = [...Object.keys(COLUMNS), "property"];
 
-type Ctx = { target: FilterTarget; params: unknown[]; alias: string };
+/**
+ * How a bound value is *rendered*. It is never how a value is *carried*: `params` is
+ * byte-identical under both styles, so a fragment can be re-rendered without re-binding.
+ *
+ *  - `pg`    — `$1, $2, …`, for a driver that takes positional parameters.
+ *  - `jsonb` — `((p_params->>0)::text)`, for `EXECUTE … USING <one jsonb array>`. plpgsql
+ *              cannot spread an N-element array into `USING` (the arity has to be written
+ *              at compile time), so a dynamic-SQL RPC has to read its parameters out of a
+ *              single value. This is that shape.
+ *
+ * We need `jsonb` because the Data API cannot serve this AST: a `property` literal is an
+ * EXISTS over `entity_properties`, and PostgREST has no way to express a correlated
+ * subquery inside an `or(...)` group. So custom-field filters — the whole point of B3 —
+ * require raw SQL behind an RPC, which requires this rendering.
+ */
+export type BindStyle = "pg" | "jsonb";
 
-function bind(ctx: Ctx, value: unknown): string {
+/** The SQL type each bound value is read back as under `jsonb` rendering. */
+type Cast = "text" | "numeric" | "boolean" | "timestamptz" | "jsonb";
+
+export type CompileOptions = {
+  /** Table alias the fragment qualifies its columns with. */
+  alias?: string;
+  /** Placeholder rendering. Defaults to `pg`. */
+  bindStyle?: BindStyle;
+  /** Identifier holding the jsonb parameter array under `jsonb` rendering. */
+  paramsExpr?: string;
+};
+
+type Ctx = {
+  target: FilterTarget;
+  params: unknown[];
+  alias: string;
+  bindStyle: BindStyle;
+  paramsExpr: string;
+};
+
+function bind(ctx: Ctx, value: unknown, cast: Cast = "text"): string {
   ctx.params.push(value);
-  return `$${ctx.params.length}`;
+  const ordinal = ctx.params.length; // 1-based, because `$n` is 1-based.
+  if (ctx.bindStyle === "pg") return `$${ordinal}`;
+  // A jsonb array is 0-based, so `$1` is element 0 — the one off-by-one in this file, and
+  // the reason params are never re-numbered between styles.
+  return `((${ctx.paramsExpr}->>${ordinal - 1})::${cast})`;
 }
 
 function compileLiteral(l: Literal, ctx: Ctx): string {
@@ -228,7 +267,11 @@ function compileLiteral(l: Literal, ctx: Ctx): string {
       `EXISTS (SELECT 1 FROM entity_properties ep WHERE ep.entity_id = ${ctx.alias}.id ` +
       `AND ep.entity_type = ${bind(ctx, l.entityType)} ` +
       `AND ep.property_definition_id = ${bind(ctx, defId)} ` +
-      `AND ep.values @> ${bind(ctx, JSON.stringify(containmentFilter(l.value)))}::jsonb)`
+      // The containment operand is carried as a JSON *string* under both styles, so the
+      // params array does not change shape with the rendering; only the cast moves.
+      `AND ep.values @> ${bind(ctx, JSON.stringify(containmentFilter(l.value)), "jsonb")}${
+        ctx.bindStyle === "pg" ? "::jsonb" : ""
+      })`
     );
   }
 
@@ -270,17 +313,17 @@ function compileLiteral(l: Literal, ctx: Ctx): string {
       return `${col} = ${bind(ctx, requireOneOf(raw, ACTIVITY_SOURCES, name))}`;
     case "deal.referralSourced":
       if (typeof raw !== "boolean") throw new FilterError(`${name}: expected a boolean`);
-      return `${col} = ${bind(ctx, raw)}`;
+      return `${col} = ${bind(ctx, raw, "boolean")}`;
     case "deal.valueGte":
       if (typeof raw !== "number" || !Number.isFinite(raw)) {
         throw new FilterError(`${name}: expected a finite number`);
       }
-      return `${col} >= ${bind(ctx, raw)}`;
+      return `${col} >= ${bind(ctx, raw, "numeric")}`;
     case "activity.occurredAfter":
       if (typeof raw !== "string" || !ISO_INSTANT.test(raw)) {
         throw new FilterError(`${name}: expected an ISO timestamp`);
       }
-      return `${col} > ${bind(ctx, raw)}`;
+      return `${col} > ${bind(ctx, raw, "timestamptz")}`;
     case "person.nameContains":
     case "org.nameContains": {
       if (typeof raw !== "string" || raw.trim() === "") {
@@ -317,24 +360,43 @@ function walk(e: Expr, ctx: Ctx, depth: number): string {
   }
 }
 
+const IDENTIFIER = /^[a-z_][a-z0-9_]*$/;
+
 /**
  * Compile a tree into a parameterized WHERE fragment for `target`.
  *
  * The caller supplies the FROM/alias; `alias` defaults to the target's table so the
- * fragment is drop-in for `SELECT … FROM people p WHERE <sql>` style RPCs.
+ * fragment is drop-in for `SELECT … FROM people p WHERE <sql>` style RPCs. The third
+ * argument stays back-compatible as a bare alias string.
+ *
+ * Values are re-validated here on every call — that is what makes this function safe to
+ * hand a tree that came off the wire, and why `parse.ts` deliberately owns structure only.
  */
 export function compile(
   expr: Expr,
   target: FilterTarget,
-  alias = DEFAULT_ALIAS[target],
+  aliasOrOptions: string | CompileOptions = {},
 ): CompiledFilter {
   if (!(FILTER_TARGETS as readonly string[]).includes(target)) {
     throw new FilterError(`unknown filter target ${JSON.stringify(target)}`);
   }
-  if (!/^[a-z_][a-z0-9_]*$/.test(alias)) {
+  const opts: CompileOptions =
+    typeof aliasOrOptions === "string" ? { alias: aliasOrOptions } : aliasOrOptions;
+  const alias = opts.alias ?? DEFAULT_ALIAS[target];
+  const bindStyle = opts.bindStyle ?? "pg";
+  const paramsExpr = opts.paramsExpr ?? "p_params";
+  if (!IDENTIFIER.test(alias)) {
     throw new FilterError(`illegal alias ${JSON.stringify(alias)}`);
   }
-  const ctx: Ctx = { target, params: [], alias };
+  // The params identifier is spelled by the RPC that owns the fragment, never by a
+  // request — but it is still gated, because it is the one other name reaching the SQL.
+  if (!IDENTIFIER.test(paramsExpr)) {
+    throw new FilterError(`illegal params identifier ${JSON.stringify(paramsExpr)}`);
+  }
+  if (bindStyle !== "pg" && bindStyle !== "jsonb") {
+    throw new FilterError(`unknown bind style ${JSON.stringify(bindStyle)}`);
+  }
+  const ctx: Ctx = { target, params: [], alias, bindStyle, paramsExpr };
   const sql = walk(expr, ctx, 0);
   return { sql, params: ctx.params };
 }

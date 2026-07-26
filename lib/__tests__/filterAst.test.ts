@@ -119,3 +119,86 @@ describe("filter AST — injection and validity defenses (§9.2 B4)", () => {
     reject(lit({ lit: "org.nameContains", value: "   " }), "org");
   });
 });
+
+/**
+ * Q67 inc.4 — the second rendering. plpgsql cannot spread an N-element array into
+ * `EXECUTE … USING`, so the RPC that will run these fragments reads its parameters out of
+ * one jsonb array. The contract these tests pin: the SQL text changes, the params never do.
+ */
+describe("filter AST — jsonb bind style", () => {
+  const jsonb = { bindStyle: "jsonb" as const };
+
+  it("renders $n as a 0-based read out of the params array, with a cast", () => {
+    const { sql, params } = compile(lit({ lit: "deal.stage", value: "paid" }), "deal", jsonb);
+    expect(sql).toBe("deals.stage = ((p_params->>0)::text)");
+    expect(params).toEqual(["paid"]);
+  });
+
+  it("keeps params byte-identical to the pg rendering", () => {
+    const tree = and(
+      lit({ lit: "deal.stage", value: "signed" }),
+      or(
+        lit({ lit: "deal.valueGte", value: 5000 }),
+        not(lit({ lit: "deal.referralSourced", value: true })),
+      ),
+    );
+    const pg = compile(tree, "deal");
+    const js = compile(tree, "deal", jsonb);
+    expect(js.params).toEqual(pg.params);
+    expect(js.sql).not.toEqual(pg.sql);
+    // Every ordinal keeps its slot; only the reader around it changes.
+    expect(js.sql).toContain("((p_params->>0)::text)");
+    expect(js.sql).toContain("((p_params->>1)::numeric)");
+    expect(js.sql).toContain("((p_params->>2)::boolean)");
+  });
+
+  it("casts a timestamp and a containment operand to their SQL types", () => {
+    const { sql } = compile(
+      lit({ lit: "activity.occurredAfter", value: "2026-07-25T00:00:00Z" }),
+      "activity",
+      jsonb,
+    );
+    expect(sql).toBe("activities.occurred_at > ((p_params->>0)::timestamptz)");
+
+    const prop = compile(
+      lit({
+        lit: "property",
+        entityType: "person",
+        propertyDefinitionId: "def-1",
+        value: { kind: "text", text: "storm" },
+      }) as Expr,
+      "person",
+      jsonb,
+    );
+    // One `::jsonb`, from the cast — not the trailing one the pg rendering appends.
+    expect(prop.sql).toContain("((p_params->>2)::jsonb)");
+    expect(prop.sql).not.toContain("::jsonb::jsonb");
+    expect(prop.sql.endsWith(")")).toBe(true);
+  });
+
+  it("still binds — a quote in a value never reaches the SQL text", () => {
+    const { sql, params } = compile(
+      lit({ lit: "org.nameContains", value: "o'brien'); DROP TABLE orgs;--" }),
+      "org",
+      jsonb,
+    );
+    expect(sql).toBe("orgs.name ILIKE ((p_params->>0)::text)");
+    expect(sql).not.toContain("DROP");
+    expect(params[0]).toContain("DROP");
+  });
+
+  it("gates the params identifier and the style itself", () => {
+    expect(() =>
+      compile(and(), "deal", { bindStyle: "jsonb", paramsExpr: "p; DROP TABLE deals" }),
+    ).toThrow();
+    expect(() =>
+      compile(and(), "deal", { bindStyle: "sqlite" as never }),
+    ).toThrow();
+  });
+
+  it("keeps the bare-alias third argument working", () => {
+    expect(compile(lit({ lit: "deal.stage", value: "paid" }), "deal", "d").sql).toBe(
+      "d.stage = $1",
+    );
+  });
+});
