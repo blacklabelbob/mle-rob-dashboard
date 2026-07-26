@@ -41,3 +41,4 @@ yarn-error.log*
 next-env.d.ts
 .build-heartbeat
 .vercel-DISABLED-2026-07-08/
+.driver-lock
