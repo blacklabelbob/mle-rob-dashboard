@@ -1,0 +1,694 @@
+<title>Macro teardown — what to take, what to leave</title>
+
+<style>
+:root{
+  --paper:#EDEFF2; --card:#FFFFFF; --sunk:#E3E7EC;
+  --ink:#111820; --ink-2:#3E4C5A; --ink-3:#68788A;
+  --rule:#CFD6DE; --rule-2:#DFE4EA;
+  --teal:#0E6F78; --teal-soft:#0E6F7815;
+  --signal:#B23C0B; --signal-soft:#B23C0B14;
+  --go:#1F6B4A; --go-soft:#1F6B4A14;
+  --care:#8A6106; --care-soft:#8A610614;
+  --stop:#A32218; --stop-soft:#A3221814;
+  --shadow:0 1px 2px #0d182208, 0 6px 16px -8px #0d182220;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#0A1013; --card:#111A1E; --sunk:#0D1518;
+    --ink:#DFE8EB; --ink-2:#A2B2B8; --ink-3:#71858D;
+    --rule:#1E2C31; --rule-2:#182428;
+    --teal:#4FC4C4; --teal-soft:#4FC4C418;
+    --signal:#F08A4B; --signal-soft:#F08A4B18;
+    --go:#5FBF8F; --go-soft:#5FBF8F18;
+    --care:#D9A63C; --care-soft:#D9A63C18;
+    --stop:#E86B5E; --stop-soft:#E86B5E18;
+    --shadow:0 1px 2px #0006, 0 8px 24px -12px #0008;
+  }
+}
+:root[data-theme="light"]{
+  --paper:#EDEFF2; --card:#FFFFFF; --sunk:#E3E7EC;
+  --ink:#111820; --ink-2:#3E4C5A; --ink-3:#68788A;
+  --rule:#CFD6DE; --rule-2:#DFE4EA;
+  --teal:#0E6F78; --teal-soft:#0E6F7815;
+  --signal:#B23C0B; --signal-soft:#B23C0B14;
+  --go:#1F6B4A; --go-soft:#1F6B4A14;
+  --care:#8A6106; --care-soft:#8A610614;
+  --stop:#A32218; --stop-soft:#A3221814;
+  --shadow:0 1px 2px #0d182208, 0 6px 16px -8px #0d182220;
+}
+:root[data-theme="dark"]{
+  --paper:#0A1013; --card:#111A1E; --sunk:#0D1518;
+  --ink:#DFE8EB; --ink-2:#A2B2B8; --ink-3:#71858D;
+  --rule:#1E2C31; --rule-2:#182428;
+  --teal:#4FC4C4; --teal-soft:#4FC4C418;
+  --signal:#F08A4B; --signal-soft:#F08A4B18;
+  --go:#5FBF8F; --go-soft:#5FBF8F18;
+  --care:#D9A63C; --care-soft:#D9A63C18;
+  --stop:#E86B5E; --stop-soft:#E86B5E18;
+  --shadow:0 1px 2px #0006, 0 8px 24px -12px #0008;
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+.mono{font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace}
+
+/* ---------- shell ---------- */
+.shell{max-width:1180px;margin:0 auto;padding:32px 22px 90px}
+@media(min-width:1000px){
+  .shell{display:grid;grid-template-columns:236px minmax(0,1fr);gap:44px;padding-top:44px}
+}
+.rail{display:none}
+@media(min-width:1000px){
+  .rail{display:block;position:sticky;top:44px;align-self:start;max-height:calc(100vh - 88px);overflow:auto}
+}
+.rail h4{
+  font:600 10.5px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);
+  margin:0 0 12px;padding-bottom:9px;border-bottom:1px solid var(--rule)
+}
+.rail a{
+  display:block;padding:6px 0;color:var(--ink-2);text-decoration:none;font-size:13.5px;
+  border-left:2px solid transparent;padding-left:11px;margin-left:-11px
+}
+.rail a:hover{color:var(--teal);border-left-color:var(--teal)}
+.rail a:focus-visible{outline:2px solid var(--teal);outline-offset:2px;border-radius:3px}
+
+/* ---------- masthead ---------- */
+.eyebrow{
+  font:600 10.5px/1 ui-monospace,SFMono-Regular,Menlo,monospace;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3)
+}
+h1{
+  font-size:clamp(30px,4.6vw,46px);line-height:1.04;letter-spacing:-.028em;
+  font-weight:760;margin:14px 0 0;text-wrap:balance;max-width:19ch
+}
+.dek{font-size:18px;color:var(--ink-2);max-width:62ch;margin:16px 0 0;text-wrap:pretty}
+.meta{
+  margin-top:22px;padding-top:16px;border-top:1px solid var(--rule);
+  display:flex;flex-wrap:wrap;gap:10px 26px;
+  font:500 11.5px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--ink-3)
+}
+.meta b{color:var(--ink-2);font-weight:600}
+
+/* ---------- verdict ---------- */
+.verdict{
+  margin:34px 0 0;background:var(--card);border:1px solid var(--rule);
+  border-left:4px solid var(--signal);border-radius:4px;padding:26px 28px;box-shadow:var(--shadow)
+}
+.verdict .eyebrow{color:var(--signal)}
+.verdict p{margin:12px 0 0;font-size:17px;color:var(--ink);max-width:66ch;text-wrap:pretty}
+.verdict p+p{margin-top:12px;font-size:15.5px;color:var(--ink-2)}
+.vgrid{
+  display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule);
+  border-radius:4px;margin-top:22px;grid-template-columns:1fr
+}
+@media(min-width:620px){.vgrid{grid-template-columns:repeat(3,1fr)}}
+.vcell{background:var(--card);padding:16px 18px}
+.vcell .k{
+  font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--ink-3)
+}
+.vcell .v{font-size:15px;font-weight:640;margin-top:7px;line-height:1.35}
+.vcell.go .v{color:var(--go)} .vcell.stop .v{color:var(--stop)} .vcell.care .v{color:var(--care)}
+
+/* ---------- sections ---------- */
+section{margin-top:64px;scroll-margin-top:24px}
+h2{
+  font-size:25px;letter-spacing:-.019em;font-weight:700;margin:0;
+  padding-bottom:11px;border-bottom:2px solid var(--ink);display:inline-block;text-wrap:balance
+}
+.lede{font-size:16.5px;color:var(--ink-2);max-width:66ch;margin:16px 0 0;text-wrap:pretty}
+h3{font-size:17px;font-weight:670;letter-spacing:-.01em;margin:34px 0 0}
+p{max-width:68ch}
+
+/* ---------- tables ---------- */
+.tw{overflow-x:auto;margin-top:20px;border:1px solid var(--rule);border-radius:4px;background:var(--card)}
+table{width:100%;border-collapse:collapse;font-size:14px;min-width:600px}
+thead th{
+  text-align:left;padding:11px 14px;background:var(--sunk);border-bottom:1px solid var(--rule);
+  font:600 10px/1.3 ui-monospace,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);
+  white-space:nowrap
+}
+tbody td{padding:12px 14px;border-bottom:1px solid var(--rule-2);vertical-align:top;color:var(--ink-2)}
+tbody tr:last-child td{border-bottom:0}
+tbody td:first-child{color:var(--ink);font-weight:590}
+td .sub{display:block;color:var(--ink-3);font-size:12.5px;margin-top:3px;line-height:1.45}
+.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.rank{
+  font:650 12px/1 ui-monospace,Menlo,monospace;color:var(--ink-3);
+  width:1%;padding-right:0;white-space:nowrap
+}
+
+/* severity stripe */
+tr.s-go td:first-child{box-shadow:inset 3px 0 0 var(--go)}
+tr.s-care td:first-child{box-shadow:inset 3px 0 0 var(--care)}
+tr.s-stop td:first-child{box-shadow:inset 3px 0 0 var(--stop)}
+
+/* ---------- pills ---------- */
+.pill{
+  display:inline-block;font:650 10.5px/1.5 ui-monospace,Menlo,monospace;letter-spacing:.06em;
+  padding:2px 8px;border-radius:3px;white-space:nowrap;text-transform:uppercase
+}
+.p-go{color:var(--go);background:var(--go-soft);border:1px solid var(--go)}
+.p-care{color:var(--care);background:var(--care-soft);border:1px solid var(--care)}
+.p-stop{color:var(--stop);background:var(--stop-soft);border:1px solid var(--stop)}
+.p-teal{color:var(--teal);background:var(--teal-soft);border:1px solid var(--teal)}
+
+/* ---------- myth cards ---------- */
+.myths{display:grid;gap:14px;margin-top:22px;grid-template-columns:1fr}
+@media(min-width:700px){.myths{grid-template-columns:1fr 1fr}}
+.myth{background:var(--card);border:1px solid var(--rule);border-radius:4px;padding:17px 19px}
+.myth .claim{
+  font:600 11px/1.4 ui-monospace,Menlo,monospace;color:var(--ink-3);
+  text-decoration:line-through;text-decoration-color:var(--stop);text-decoration-thickness:1.5px
+}
+.myth .truth{margin-top:9px;font-size:14.5px;color:var(--ink);line-height:1.5}
+.myth .truth b{color:var(--signal);font-weight:670}
+.myth code{
+  font-family:ui-monospace,Menlo,monospace;font-size:12.5px;
+  background:var(--sunk);padding:1px 5px;border-radius:3px;color:var(--ink-2)
+}
+
+/* ---------- callout ---------- */
+.call{
+  margin-top:24px;background:var(--sunk);border:1px solid var(--rule);
+  border-radius:4px;padding:18px 20px
+}
+.call .eyebrow{color:var(--teal)}
+.call p{margin:9px 0 0;font-size:14.5px;color:var(--ink-2)}
+.call p:first-of-type{color:var(--ink)}
+
+/* ---------- steps ---------- */
+ol.steps{list-style:none;margin:22px 0 0;padding:0;display:grid;gap:1px;background:var(--rule);
+  border:1px solid var(--rule);border-radius:4px}
+ol.steps li{background:var(--card);padding:16px 19px;display:grid;grid-template-columns:auto 1fr;gap:15px;align-items:start}
+ol.steps .n{
+  font:650 11px/1.9 ui-monospace,Menlo,monospace;color:var(--paper);background:var(--ink);
+  width:22px;height:22px;border-radius:3px;text-align:center
+}
+ol.steps .t{font-weight:640;color:var(--ink);font-size:15px}
+ol.steps .d{color:var(--ink-2);font-size:14px;margin-top:4px;line-height:1.5}
+ol.steps .w{
+  font:600 10.5px/1 ui-monospace,Menlo,monospace;color:var(--ink-3);
+  letter-spacing:.08em;text-transform:uppercase;margin-top:7px;display:block
+}
+
+code{font-family:ui-monospace,Menlo,monospace;font-size:13px}
+p code,li code{background:var(--sunk);padding:1px 5px;border-radius:3px;color:var(--ink-2)}
+a{color:var(--teal)}
+a:focus-visible{outline:2px solid var(--teal);outline-offset:2px;border-radius:2px}
+ul.plain{margin:14px 0 0;padding-left:19px;color:var(--ink-2);max-width:66ch}
+ul.plain li{margin:7px 0}
+ul.plain li::marker{color:var(--ink-3)}
+footer{
+  margin-top:74px;padding-top:20px;border-top:1px solid var(--rule);
+  font:12.5px/1.7 ui-monospace,Menlo,monospace;color:var(--ink-3)
+}
+</style>
+
+<div class="shell">
+
+<nav class="rail" aria-label="Contents">
+  <h4>Teardown</h4>
+  <a href="#verdict">The verdict</a>
+  <a href="#what">What Macro is</a>
+  <a href="#license">The licence wall</a>
+  <a href="#myths">Myths vs. the source</a>
+  <a href="#ahead">Where you're ahead</a>
+  <a href="#steal">The steal list</a>
+  <a href="#ui">The UI kit</a>
+  <a href="#voice">Voice &amp; calls</a>
+  <a href="#order">Build order</a>
+</nav>
+
+<main>
+
+<header>
+  <div class="eyebrow">Codebase teardown &middot; blacklabelbob/macro &middot; 2026-07-25</div>
+  <h1>Macro, read end to end</h1>
+  <p class="dek">
+    Eight parallel agents read the whole thing &mdash; 1.09&nbsp;million lines, 164 Rust crates,
+    42 services &mdash; against the MLE CRM. This is what's worth taking, what's a mirage, and
+    the one legal fact that decides the merge question.
+  </p>
+  <div class="meta">
+    <span><b>Repo</b> github.com/blacklabelbob/macro</span>
+    <span><b>Licence</b> AGPL-3.0</span>
+    <span><b>Backing</b> a16z, $30m</span>
+    <span><b>Read</b> 8 agents / ~1.97M tokens</span>
+  </div>
+</header>
+
+<div class="verdict" id="verdict">
+  <div class="eyebrow">The decision</div>
+  <p>
+    <b>Do not merge Macro. Do not port its code. Read it, then build your own.</b>
+    The blocker isn't taste or effort &mdash; it's AGPL&nbsp;&sect;13. The moment a roofing
+    contractor or title company logs into a CRM containing Macro-derived code, you owe that
+    customer the complete source of your modified version, including your own proprietary logic.
+  </p>
+  <p>
+    That's not a technicality you can engineer around. Translating Rust to TypeScript is still a
+    derivative work &mdash; translation is expressly covered by copyright. And your standing
+    &ldquo;no upstream attribution&rdquo; rule is <em>legally impossible</em> here: AGPL's
+    attribution and source-offer duties are the licence's whole enforcement mechanism, not a
+    courtesy you can strip like you would with MIT.
+  </p>
+  <p>
+    The good news is that almost nothing you actually want from Macro is Macro's code. It's their
+    <em>decisions</em> &mdash; a permission table shape, a dedup pipeline, an email-to-company
+    rule, a motion curve. Ideas aren't copyrightable. Take all of them.
+  </p>
+
+  <div class="vgrid">
+    <div class="vcell stop">
+      <div class="k">Merge / fork / port</div>
+      <div class="v">Stop</div>
+    </div>
+    <div class="vcell care">
+      <div class="k">Internal-only, own reps</div>
+      <div class="v">Permitted &mdash; but a trap</div>
+    </div>
+    <div class="vcell go">
+      <div class="k">Read, learn, reimplement</div>
+      <div class="v">Go, aggressively</div>
+    </div>
+  </div>
+</div>
+
+<section id="what">
+  <h2>What Macro actually is</h2>
+  <p class="lede">
+    Not a CRM company. An all-in-one workspace &mdash; email, chat, docs, tasks, calls &mdash;
+    whose CRM is a thin view over the team's email graph. Understanding that reframes everything
+    below: their CRM is the <em>least</em> impressive part of the repo.
+  </p>
+
+  <div class="tw">
+    <table>
+      <thead><tr><th>Dimension</th><th>Macro</th><th>MLE CRM</th></tr></thead>
+      <tbody>
+        <tr><td>Scale<span class="sub">the honest gap</span></td>
+          <td class="num">~1,087,000 LOC<span class="sub">560k Rust + 527k TS</span></td>
+          <td class="num">~33&times; smaller</td></tr>
+        <tr><td>Frontend</td>
+          <td>SolidJS + Vite + Tauri<span class="sub">Tailwind v4 + Kobalte</span></td>
+          <td>Next 16 / React 19<span class="sub">zero component reuse possible</span></td></tr>
+        <tr><td>Backend</td>
+          <td>164 Rust crates, 42 services<span class="sub">39 Pulumi stacks, AWS + Cloudflare + Fly</span></td>
+          <td>Next routes + Supabase</td></tr>
+        <tr><td>Datastores</td>
+          <td class="num">9<span class="sub">Postgres, DynamoDB, OpenSearch, Redis&hellip;</span></td>
+          <td class="num">1<span class="sub">Postgres</span></td></tr>
+        <tr><td>Team</td>
+          <td>11 engineers committing in a 31-hour window</td>
+          <td>You and a fleet of agents</td></tr>
+        <tr><td>Ops cost to self-host</td>
+          <td class="num">$4.5k&ndash;8.2k/mo<span class="sub">+ 11&ndash;18 engineer-weeks to stand up, ~1.5 days/week ongoing</span></td>
+          <td class="num">Vercel + Supabase</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="call">
+    <div class="eyebrow">The tell</div>
+    <p>Macro's own funded team is running production Postgres&nbsp;14 against dev&nbsp;16, with
+      publicly reachable RDS instances.</p>
+    <p>One founder plus agents can <em>build</em> something like this. Nobody solo can
+      <em>operate</em> it. That, not the code quality, is the real argument against adopting their
+      architecture wholesale.</p>
+  </div>
+</section>
+
+<section id="license">
+  <h2>The licence wall</h2>
+  <p class="lede">
+    Macro relicensed from BSL to AGPL-3.0 on 31 May 2026 &mdash; weeks ago. There's no CLA, so
+    contributions stay AGPL and even Macro can't relicense them. They run commercial licensing
+    (<code>licensing@macro.com</code>) as a named revenue line, so expect a real sales
+    conversation, not silence.
+  </p>
+
+  <h3>The risk ladder</h3>
+  <p style="margin-top:10px;color:var(--ink-2);font-size:15px">
+    Ordered by escalating exposure &mdash; each rung is strictly more dangerous than the one above it.
+  </p>
+  <div class="tw">
+    <table>
+      <thead><tr><th></th><th>What you'd do</th><th>Exposure</th><th>Call</th></tr></thead>
+      <tbody>
+        <tr class="s-go"><td class="rank">01</td><td>Read it for ideas</td>
+          <td>None. Ideas and architecture aren't copyrightable.</td>
+          <td><span class="pill p-go">Go</span></td></tr>
+        <tr class="s-go"><td class="rank">02</td><td>Copy UX &amp; interaction patterns</td>
+          <td>None. A keyboard shortcut and a motion curve aren't protected expression.</td>
+          <td><span class="pill p-go">Go</span></td></tr>
+        <tr class="s-go"><td class="rank">03</td><td>Copy a database <em>shape</em></td>
+          <td>Very low. Facts and functional layouts sit near the idea/expression line.</td>
+          <td><span class="pill p-go">Go</span></td></tr>
+        <tr class="s-care"><td class="rank">04</td><td>Clean-room reimplement a subsystem in TS</td>
+          <td>Low, and defensible &mdash; write from a description of behaviour, not with their file open.</td>
+          <td><span class="pill p-care">Care</span></td></tr>
+        <tr class="s-stop"><td class="rank">05</td><td>Port Rust &rarr; TypeScript</td>
+          <td><b>Derivative work.</b> Translation is expressly covered by copyright. This is the assumption that catches people.</td>
+          <td><span class="pill p-stop">Stop</span></td></tr>
+        <tr class="s-stop"><td class="rank">06</td><td>Vendor a crate or package</td>
+          <td>Full AGPL attaches to the combined work.</td>
+          <td><span class="pill p-stop">Stop</span></td></tr>
+        <tr class="s-stop"><td class="rank">07</td><td>Fork the whole thing</td>
+          <td>Every networked client can demand your complete source.</td>
+          <td><span class="pill p-stop">Stop</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Why &ldquo;internal only&rdquo; is a trap, not a loophole</h3>
+  <p style="margin-top:10px;color:var(--ink-2)">
+    AGPL's own text says &ldquo;mere interaction with a user through a computer network, with no
+    transfer of a copy, is not conveying,&rdquo; and your own W-2 reps aren't &ldquo;other
+    parties.&rdquo; So internal-only use genuinely doesn't trigger &sect;13 &mdash; today.
+    The trap is that your business model is <em>selling this to clients</em>. The day a
+    contractor logs in, or you white-label an instance onto a title company's site, the
+    obligation fires retroactively on everything you built on top. You'd be choosing, years in,
+    between open-sourcing your product and ripping out its foundations.
+  </p>
+
+  <div class="call">
+    <div class="eyebrow">The free lunch &mdash; take this part with both hands</div>
+    <p>AGPL attaches to <em>Macro's own code</em>, not to what Macro depends on. These are real,
+      current dependencies in their manifests, and all of them are yours to use with zero exposure:</p>
+    <p><b>LiveKit</b> (Apache-2.0) &middot; <b>Lexical</b> (MIT, Meta) &middot;
+       <b>Loro CRDT</b> (MIT) &middot; <b>Deepgram</b> (a paid API, not code at all).
+       Their <code>loro-mirror</code> package isn't even Macro IP &mdash; it's an MIT fork of
+       upstream that they plan to delete.</p>
+  </div>
+
+  <h3>Worth a real lawyer's hour</h3>
+  <ul class="plain">
+    <li>Does an internal-only deployment that later gains one external user create retroactive obligations on the intervening builds?</li>
+    <li>Where exactly is the line between a clean-room reimplementation and a derivative work when the same person read the source?</li>
+    <li>What would a commercial licence from Macro actually cost, and does it survive an acquisition of your company?</li>
+  </ul>
+  <p style="margin-top:14px;font-size:14.5px;color:var(--ink-3)">
+    Standard caveat: none of this is legal advice, and the agents that produced it aren't lawyers.
+  </p>
+</section>
+
+<section id="myths">
+  <h2>Myths vs. the source</h2>
+  <p class="lede">
+    The most valuable thing this teardown produced isn't a list of things to copy. It's the list
+    of things you were impressed by that turn out not to exist. Every one of these was checked in
+    code, not documentation.
+  </p>
+
+  <div class="myths">
+    <div class="myth">
+      <div class="claim">&ldquo;Shared team-level memory, everything @linked and queryable&rdquo;</div>
+      <div class="truth">It's a <code>TEXT</code> column. <code>pub type Memory = String</code>,
+        one row per user, LLM-written, regenerated when stale. <b>Not team-shared. Not a graph.
+        Not a vector store.</b></div>
+    </div>
+    <div class="myth">
+      <div class="claim">&ldquo;AI that never loses context&rdquo; &mdash; i.e. serious RAG</div>
+      <div class="truth">There is <b>no RAG</b>. OpenSearch holds zero vectors; search is keyword
+        matching sorted by <code>updated_at</code>, with the relevance score computed and then
+        <em>discarded</em>. The entire embedding stack exists for one feature: duplicate
+        <em>task</em> detection.</div>
+    </div>
+    <div class="myth">
+      <div class="claim">&ldquo;The fastest interface&rdquo; &mdash; local-first, CRDT-powered</div>
+      <div class="truth">CRDTs touch <b>only the markdown editor</b>. The ambitious local-first
+        cache is behind a feature flag, unfinished, and its stated goal is bounded memory, not
+        speed. Roughly <b>20% architecture, 80% frontend craft</b> &mdash; and the 80% ports
+        cleanly to React.</div>
+    </div>
+    <div class="myth">
+      <div class="claim">&ldquo;Calls&rdquo; as a telephony feature</div>
+      <div class="truth">Zero SIP, zero PSTN, zero DTMF in the entire repo. <b>They have no
+        phone system.</b> &ldquo;Calls&rdquo; are in-app WebRTC meetings on LiveKit Cloud.</div>
+    </div>
+    <div class="myth">
+      <div class="claim">A CRM with pipelines and deals</div>
+      <div class="truth">There is <b>no deal object</b> &mdash; the company <em>is</em> the deal,
+        so they can't model two jobs at one address. No activities table. No merge UI. Their CRM
+        list caps at <b>500 rows</b> and filters client-side.</div>
+    </div>
+    <div class="myth">
+      <div class="claim">An agent framework worth studying</div>
+      <div class="truth">They didn't write an agent loop &mdash; <code>crates/agent</code> is an
+        adapter over a forked <code>rig-core</code>. Structured output is prompted JSON,
+        <b>never validated against its schema</b>. Prompt caching fields exist and are never set
+        (the code comment reads <code>// who cares</code>).</div>
+    </div>
+  </div>
+
+  <div class="call">
+    <div class="eyebrow">What this means</div>
+    <p>Macro's moat isn't AI or CRDTs. It's boring and real: <b>one Postgres, one flattened
+      permission table, and one toolset reused by chat, bots, projections and MCP alike.</b></p>
+    <p>You were right to be impressed &mdash; but by the plumbing, not the magic. That's good
+      news, because plumbing is exactly what you can rebuild.</p>
+  </div>
+</section>
+
+<section id="ahead">
+  <h2>Where you're already ahead</h2>
+  <p class="lede">
+    Worth saying plainly, because the instinct after reading a $30m codebase is to assume you're
+    behind everywhere. On CRM specifically, you are not.
+  </p>
+  <ul class="plain">
+    <li><b>A real <code>deals</code> table with 12 stages.</b> Macro has none — one company, one stage.</li>
+    <li><b>Explainable weighted scoring</b> that ships its breakdown. They have frecency built and never exposed in the UI.</li>
+    <li><b>A DB-enforced e-sign audit chain</b> — nothing comparable exists there.</li>
+    <li><b>Referral lineage that refuses to guess</b>, and typed intake <code>source_context</code>.</li>
+    <li><b>Full-text search.</b> Macro <em>deleted</em> theirs.</li>
+    <li><b>Dedupe that refuses to merge money-carrying records.</b></li>
+    <li><b>An <code>activities</code> table anchored to person/org/deal</b>, with <code>summary</code>,
+      <code>action_items</code> and <code>buying_signals</code> columns already waiting. Macro
+      anchors calls to <em>channels</em> and has no call-to-company link at all.</li>
+    <li><b>Your inline click-to-edit kit is genuinely Attio-grade</b> and beats anything in their repo. Don't touch it.</li>
+  </ul>
+  <p style="margin-top:18px">
+    Your problem was never features. It's that you have eight strong vertical features and no
+    horizontal spine tying them together &mdash; which is precisely the one thing Macro does
+    better than anyone.
+  </p>
+</section>
+
+<section id="steal">
+  <h2>The steal list</h2>
+  <p class="lede">
+    Ranked by value &divide; effort. Every one of these is &ldquo;take the design, retype the
+    code&rdquo; &mdash; none involves pasting a line of theirs.
+  </p>
+  <div class="tw">
+    <table>
+      <thead><tr><th></th><th>What to take</th><th>Why it wins</th><th>Effort</th></tr></thead>
+      <tbody>
+        <tr class="s-go"><td class="rank">01</td>
+          <td><code>entity_access</code> as Supabase RLS</td>
+          <td>A nine-column grant table with a polymorphic subject and a <code>granted_from</code>
+            column recording <em>why</em> each grant exists, so a cascade revokes exactly the
+            inherited ones.
+            <span class="sub">Invert their choice: they enforce in application code, copy-pasted across
+            10+ query files with a 30-second stale cache. Put it in RLS, where it can't be forgotten.</span></td>
+          <td><span class="pill p-teal">2&ndash;3 d</span></td></tr>
+        <tr class="s-go"><td class="rank">02</td>
+          <td><code>entity_properties</code> — custom fields</td>
+          <td>A JSONB tagged union with a CHECK constraint and a GIN index. ~60 lines of SQL, runs
+            on Supabase unchanged.
+            <span class="sub">Your 0005 header admits the 12 deal stages aren't Rob-approved yet. This
+            turns every future stage change from a migration into a row insert.</span></td>
+          <td><span class="pill p-teal">1 d</span></td></tr>
+        <tr class="s-go"><td class="rank">03</td>
+          <td>Filter AST + saved views</td>
+          <td>You have <em>zero</em> segmentation today — only client-side sort toggles. ~150 lines
+            of TS buys &ldquo;my overdue quotes, storm-damage leads, unlit&rdquo;, shareable views,
+            and later the AI agent for free.
+            <span class="sub">Do it server-side. Their failure to is exactly why they're stuck at 500 rows.</span></td>
+          <td><span class="pill p-teal">M</span></td></tr>
+        <tr class="s-go"><td class="rank">04</td>
+          <td>Auto-create companies from the Gmail pipe</td>
+          <td>The demo moment. Domain-keyed upsert-as-merge with an advisory lock, plus a 490-domain
+            generic blocklist.
+            <span class="sub">The killer one-line rule: <b>receiving mail never creates a company —
+            only sending does.</b> Invert their gmail.com block for roofing.</span></td>
+          <td><span class="pill p-teal">M</span></td></tr>
+        <tr class="s-go"><td class="rank">05</td>
+          <td>Their dedup pipeline</td>
+          <td>pgvector &rarr; rerank &rarr; LLM judge, persisting both scores <em>and</em> the judge's
+            reasoning, gated by a 142-pair labelled eval corpus with 45 hard negatives. The best
+            code in the repo, and a direct upgrade to your <code>lib/dedup/</code>.</td>
+          <td><span class="pill p-teal">1 w</span></td></tr>
+        <tr class="s-go"><td class="rank">06</td>
+          <td>Prompt-hash answer cache</td>
+          <td>Cache LLM answers in Postgres keyed by <code>sha256(prompt‖model‖schema)</code>, so
+            editing a prompt auto-invalidates every stale answer. Zero vectors, huge saving.</td>
+          <td><span class="pill p-teal">S</span></td></tr>
+        <tr class="s-go"><td class="rank">07</td>
+          <td><code>SendEmail</code> as a <em>user</em> tool</td>
+          <td>Registered on a separate path from ordinary agent tools: the model drafts, a human
+            clicks. Enforced at the type level, not by prompt discipline. The single most important
+            line in the repo for anyone letting an agent near outbound.</td>
+          <td><span class="pill p-teal">S</span></td></tr>
+        <tr class="s-care"><td class="rank">08</td>
+          <td>The mailbox <code>link_id</code> invariant</td>
+          <td>Every email row keyed by which connected mailbox it came from. This turns your
+            aivoicetech-vs-boostuppayments separation from a code check you have to remember into a
+            schema invariant that can't be violated. Adopt it now, with one mailbox.</td>
+          <td><span class="pill p-teal">S</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Explicitly don't copy</h3>
+  <ul class="plain">
+    <li>The 42-service split and nine datastores — that's a 20-person org's shape, not yours.</li>
+    <li>The 164-crate explosion (57 crates are under 300 lines — that's Rust compile management, not architecture).</li>
+    <li>Company-as-deal. It's a <em>regression</em> from what you already have.</li>
+    <li>Their CRDT sync, WASM browser cache, and SharedWorker topology.</li>
+    <li>Self-hosted FusionAuth, and their REST+GraphQL dual transport.</li>
+  </ul>
+</section>
+
+<section id="ui">
+  <h2>The UI kit</h2>
+  <p class="lede">
+    You said the CRM looks raggedy. It mostly isn't &mdash; it's under-finished in four specific,
+    cheap ways. Three of them shipped tonight.
+  </p>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Fix</th><th>What was wrong</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr class="s-go"><td>Motion tokens</td>
+          <td>33 bare <code>transition</code> classes, zero durations, zero easings — all running
+            Tailwind's soft 150ms default. Two theme tokens retrofit a 130ms decelerating curve
+            onto all 33 without touching any JSX.</td>
+          <td><span class="pill p-go">Shipped</span></td></tr>
+        <tr class="s-go"><td>The silent save</td>
+          <td><code>useRecordSave</code> set a <code>"saving"</code> state that was never rendered.
+            On slow wifi, autosave with no Save button showed <em>nothing</em> between keystroke
+            and confirm.</td>
+          <td><span class="pill p-go">Shipped</span></td></tr>
+        <tr class="s-go"><td>Dead clicks</td>
+          <td>No <code>loading.tsx</code> anywhere, every page <code>force-dynamic</code>. Clicking
+            Companies left the old page frozen until Supabase returned.</td>
+          <td><span class="pill p-go">Shipped</span></td></tr>
+        <tr class="s-care"><td>OKLCH token layer</td>
+          <td>Macro runs the whole app on 15 OKLCH tokens in three ramps. Values can be computed to
+            land <em>exactly</em> on your current hexes — zero visual change, total future control.</td>
+          <td><span class="pill p-care">Queued</span></td></tr>
+        <tr class="s-care"><td>Derived status colours</td>
+          <td>Five hand-rolled chip palettes, two of them <em>verbatim duplicates</em>. One hue in,
+            three colours out via relative-colour syntax.</td>
+          <td><span class="pill p-care">Queued</span></td></tr>
+        <tr class="s-care"><td>&#8984;K + hotkey registry</td>
+          <td>You have zero global key handlers. Copy their <em>scope stack</em> shape (~200 lines,
+            not their 2,844) — and the real trick: <b>selection is instant, the expensive preview is
+            debounced 150ms.</b> That single detail is the &ldquo;fastest interface&rdquo; mechanism.</td>
+          <td><span class="pill p-care">Queued</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="voice">
+  <h2>Voice &amp; calls</h2>
+  <p class="lede">
+    Your instinct was right, and there's now hard evidence for it: an a16z-backed team building
+    exactly this picked <b>LiveKit + Deepgram</b> independently.
+  </p>
+  <ul class="plain">
+    <li><b>Transport is LiveKit Cloud</b> — <code>livekit-api</code> in Rust,
+      <code>livekit-client</code> in the browser, plus their Krisp noise filter. Apache-2.0, so
+      free of any AGPL concern.</li>
+    <li><b>Transcription is Deepgram <code>nova-3</code>, streaming</b> — but proxied through
+      LiveKit Inference, which takes a margin. Go direct to Deepgram and pay less.</li>
+    <li><b>Steal <code>endpointing: 400</code>.</b> Their code comment says the 25ms library default
+      &ldquo;cuts hesitant speakers mid-thought.&rdquo; Prospects hesitate constantly.</li>
+    <li><b>Skip their recording architecture.</b> RoomComposite egress runs a headless-Chrome
+      compositor per room — necessary for multi-party video, absurd for a two-party phone call.
+      Twilio's dual-channel recording gives you <em>better</em> speaker separation than their
+      inference-based diarization, for free.</li>
+    <li><b>They have zero real-time in-call AI</b> (<code>audio_output=False</code>). Your live
+      sales coach isn't something to copy from them — but the hard part, the streaming pipe,
+      is proven.</li>
+    <li><b>No retention policy on recordings at all</b> — no S3 lifecycle rule anywhere. Don't
+      inherit that; Florida is a two-party-consent state.</li>
+  </ul>
+  <div class="call">
+    <div class="eyebrow">Your dialer is further along than you think</div>
+    <p>Softphone, token minting, TwiML dual-channel recording and a signature-checked webhook are
+      all built and env-gated. The gap is one line: the recording webhook currently only
+      <code>console.log</code>s its payload.</p>
+    <p>Next three moves — persist that payload as a <code>dialer</code> activity via the existing
+      phone matcher; add a <b>segment-granular</b> transcripts table (not a text blob — segments
+      are what enable moment search and playback sync); then Deepgram prerecorded plus one model
+      call into the <code>summary</code> / <code>buying_signals</code> columns you already have.</p>
+  </div>
+  <p style="margin-top:18px;font-size:14.5px;color:var(--ink-3)">
+    Full costed comparison — Twilio vs LiveKit SIP vs Telnyx vs the SaaS dialers, recording law by
+    state, and the live-coach architecture — is landing in a companion decision doc.
+  </p>
+</section>
+
+<section id="order">
+  <h2>Build order</h2>
+  <p class="lede">
+    Sequenced by dependency, not excitement. The first item isn't from Macro at all &mdash; it
+    came out of the teardown as the thing blocking everything else.
+  </p>
+  <ol class="steps">
+    <li><span class="n">1</span><div>
+      <div class="t">Close the front door</div>
+      <div class="d">Prod is serving real names, phones and deal values to anyone with the URL —
+        by your own 7/21 order, so it stays your call. Crawler indexing is now blocked
+        (that part wasn't a decision, just a gap). Pick: re-arm the password tonight, or ship
+        Phase&nbsp;4 access properly.</div>
+      <span class="w">Blocks every user-facing deploy</span></div></li>
+    <li><span class="n">2</span><div>
+      <div class="t">Custom properties schema</div>
+      <div class="d">The <code>entity_properties</code> lift. Unblocks stage changes, tags and
+        custom fields without another migration.</div>
+      <span class="w">~1 day</span></div></li>
+    <li><span class="n">3</span><div>
+      <div class="t">Permissions as RLS</div>
+      <div class="d">Their table design, your enforcement point. This is also what makes multi-rep
+        logins safe, so it gates Phase 4.</div>
+      <span class="w">2&ndash;3 days</span></div></li>
+    <li><span class="n">4</span><div>
+      <div class="t">Filters and saved views</div>
+      <div class="d">The biggest day-to-day quality-of-life jump for a rep, and the foundation the
+        AI agent later queries through.</div>
+      <span class="w">~1 week</span></div></li>
+    <li><span class="n">5</span><div>
+      <div class="t">Close the call loop</div>
+      <div class="d">Recording webhook &rarr; activity row &rarr; segmented transcript &rarr;
+        summary and buying signals. Post-call coaching first: ~5% of the complexity of live, most
+        of the value.</div>
+      <span class="w">~1 week</span></div></li>
+    <li><span class="n">6</span><div>
+      <div class="t">Email &rarr; company graph</div>
+      <div class="d">Auto-create orgs and people from the Gmail pipe you already run, with the
+        &ldquo;only sending creates&rdquo; rule and the <code>link_id</code> invariant protecting
+        your two identities.</div>
+      <span class="w">~1 week</span></div></li>
+  </ol>
+</section>
+
+<footer>
+  Teardown by 8 parallel agents reading github.com/blacklabelbob/macro at commit depth 50 &middot;
+  every claim traced to a file path in the source, not to documentation &middot;
+  full per-agent reports retained alongside this page &middot; 2026-07-25
+</footer>
+
+</main>
+</div>

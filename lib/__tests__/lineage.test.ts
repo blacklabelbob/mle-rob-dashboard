@@ -4,6 +4,7 @@ import {
   doorsOpenedBy,
   formatChain,
   indexNodes,
+  isBrokenChain,
   isTrustworthy,
   lineage,
   MAX_HOPS,
@@ -77,6 +78,25 @@ describe("lineage — refuses to guess", () => {
     expect(l.path).toEqual([]);
     expect(l.root).toBeNull();
     expect(l.reason).toContain("nobody");
+  });
+
+  // The two states look alike (neither reaches Rob) and mean opposite things:
+  // one is a link that goes somewhere wrong, the other is a link that was never
+  // recorded. Only the first is a defect.
+  it("separates 'no referrer recorded' from a chain that roots elsewhere", () => {
+    const l = lineage([node("venture-entity")], "venture-entity");
+    expect(l.status).toBe("unattributed");
+    expect(isBrokenChain(l)).toBe(false);
+    expect(isTrustworthy(l)).toBe(false);
+    expect(l.reason).toContain("no referrer recorded");
+    expect(l.path.map((r) => r.id)).toEqual(["venture-entity"]);
+    expect(l.ancestors).toEqual([]);
+
+    // One recorded hop that lands on a stranger is still BROKEN, not merely
+    // unattributed — the guard that keeps this fix from swallowing real defects.
+    const orphaned = lineage([node("stranger"), node("lead-y", "stranger")], "lead-y");
+    expect(orphaned.status).toBe("broken_root");
+    expect(isBrokenChain(orphaned)).toBe(true);
   });
 
   it("flags a chain that roots somewhere other than Rob", () => {
@@ -158,6 +178,28 @@ describe("lineage — against the real network data", () => {
       .map((p) => ({ id: p.id, status: lineage(idx, p.id).status }))
       .filter((r) => r.status === "broken_cycle" || r.status === "broken_missing");
     expect(bad).toEqual([]);
+  });
+
+  // Flag #45: the two Phase-4 venture entities are their own root ON PURPOSE —
+  // nobody referred them into existence. They must never be reported as broken,
+  // or the record page stamps a warning chip on correct data.
+  it("Phase-4 spinoff entities read as unattributed, never as broken", () => {
+    const idx = indexNodes(people);
+    for (const id of ["spinoff-homeclonevault", "spinoff-caleb-crm"]) {
+      const l = lineage(idx, id);
+      expect(l.status, id).toBe("unattributed");
+      expect(isBrokenChain(l), id).toBe(false);
+      expect(isTrustworthy(l), id).toBe(false); // still not a chain back to Rob
+      expect(l.reason, id).toContain("no referrer recorded");
+    }
+  });
+
+  it("nothing in the live set is a genuinely broken chain", () => {
+    const idx = indexNodes(people);
+    const broken = people
+      .map((p) => ({ id: p.id, status: lineage(idx, p.id).status }))
+      .filter((r) => r.status.startsWith("broken_"));
+    expect(broken).toEqual([]);
   });
 
   it("real chains that ARE rooted read origin-first from Rob", () => {

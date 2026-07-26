@@ -131,6 +131,23 @@ export default function AttributionLineage({
     );
   }
 
+  // No referrer on file at all. Nothing is broken here — a Phase-4 venture
+  // entity genuinely IS its own origin — so this states the fact plainly
+  // instead of stamping correct data with a warning (flag #45). It still never
+  // implies the chain is complete: "not recorded" is said out loud.
+  if (lineage.status === "unattributed") {
+    return (
+      <div className="space-y-1.5">
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-xs text-slate-400">
+          origin not recorded
+        </span>
+        <p className="text-xs text-slate-500">
+          No referrer is on file — this record is the start of its own chain.
+        </p>
+      </div>
+    );
+  }
+
   // Broken: show what IS known (so the partial chain still has value) under an
   // explicit chip carrying the engine's reason. No guessing, per §5.
   return (

@@ -32,6 +32,7 @@ export interface LineageRef {
 export type LineageStatus =
   | "rooted" // walk reached ORIGIN — the only trustworthy state
   | "unknown_node" // the id isn't in the node set at all
+  | "unattributed" // no referrer recorded at all — nothing is broken, nothing is known
   | "broken_root" // walk ended at a node that isn't Rob (orphan chain)
   | "broken_missing" // referredById points at a node that doesn't exist
   | "broken_cycle" // A → B → A
@@ -155,6 +156,23 @@ export function lineage(
     };
   }
 
+  // Nothing was ever walked: this node carries no referrer at all. That is a
+  // different fact from a chain that runs somewhere and stops short of Rob, and
+  // conflating them is what flag #45 caught — the Phase-4 venture entities
+  // (`spinoff-homeclonevault`, `spinoff-caleb-crm`) are their own origin by
+  // design, and stamping them "broken chain" would call correct data corrupt.
+  // It stays honest for an ordinary record too: we report the referrer as NOT
+  // RECORDED, never as "fine" — the gap is still visible, just not mislabelled.
+  if (walked.length === 1 && !start.referredById) {
+    return {
+      status: "unattributed",
+      path,
+      ancestors,
+      root,
+      reason: `no referrer recorded — ${root.name} is the start of this chain`,
+    };
+  }
+
   return {
     status: "broken_root",
     path,
@@ -187,4 +205,13 @@ export function formatChain(
 /** True when the chain can be shown as fact rather than with a warning chip. */
 export function isTrustworthy(l: Lineage): boolean {
   return l.status === "rooted";
+}
+
+/**
+ * True only when the DATA is wrong (dangling id, loop, orphan root, over-deep).
+ * `unattributed` is deliberately excluded: an unrecorded referrer is a gap, not
+ * a defect, and only these states earn the ⚠ chip.
+ */
+export function isBrokenChain(l: Lineage): boolean {
+  return l.status.startsWith("broken_");
 }
