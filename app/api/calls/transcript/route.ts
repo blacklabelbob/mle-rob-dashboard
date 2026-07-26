@@ -6,11 +6,20 @@ import {
   transcriptReadLog,
   transcriptResponse,
 } from "@/lib/calls/transcriptResponse";
+import {
+  parseSearchQuery,
+  searchQueryError,
+  searchSection,
+  transcriptSearchLog,
+} from "@/lib/calls/transcriptSearchResponse";
 
 /**
  * Q68 (b) inc.17 — the transcript read route. The last hop of the read path:
  *
  *   ?recordingSid=RE…  →  supabaseTranscriptReader  →  loadTranscript  →  transcriptView
+ *
+ * inc.24 adds the optional `&q=` — moment search over the SAME load, never a second read, so
+ * the moments a caller is shown are moments of the transcript it was handed in the same body.
  *
  * Store I/O only; every decision lives in lib/calls/* (CR-3). It reads; it never writes.
  *
@@ -33,6 +42,14 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "recordingSid must be a Twilio recording SID" }, { status: 400 });
   }
 
+  // Refused BEFORE the read: an unanswerable question must not cost a database query, and a
+  // 400 that arrives after a successful transcript read is a 400 nobody can distinguish from
+  // "the call is missing".
+  const query = parseSearchQuery(req.nextUrl.searchParams.get("q"));
+  if (query.kind === "invalid") {
+    return NextResponse.json({ error: searchQueryError(query.reason) }, { status: 400 });
+  }
+
   let result;
   try {
     result = await readTranscriptView(transcriptReader(), recordingSid);
@@ -47,6 +64,17 @@ export async function GET(req: NextRequest) {
   }
 
   const { view, load } = result;
-  console.log(JSON.stringify(transcriptReadLog(recordingSid, view, load)));
-  return NextResponse.json(transcriptResponse(recordingSid, view, load));
+  const search = searchSection(view, load, query);
+  console.log(
+    JSON.stringify({
+      ...transcriptReadLog(recordingSid, view, load),
+      ...(search ? transcriptSearchLog(search) : {}),
+    })
+  );
+  return NextResponse.json({
+    ...transcriptResponse(recordingSid, view, load),
+    // Absent `q` means no `search` key — a caller must not render "0 results" for a question
+    // nobody asked (transcriptSearchResponse rule 1).
+    ...(search ? { search } : {}),
+  });
 }
