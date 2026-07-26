@@ -5,6 +5,7 @@ import { andFragments, compileDemoExclusion } from "@/lib/filters/demo";
 import { isFilterInputError } from "@/lib/filters/parse";
 import {
   decodeShareLink,
+  encodeShareLink,
   parseSavedViewRow,
   type SavedViewPayload,
 } from "@/lib/filters/savedViews";
@@ -162,6 +163,14 @@ export async function GET(req: NextRequest) {
     target: view.target,
     name: view.name,
     rows,
+    // Q67b (c): the Copy-share-link affordance. A page opened as `?view=<id>` never sees
+    // the filter tree — the row is read here and nowhere else — so the browser cannot mint
+    // its own link for the view on screen. Encoding it from the SAME object this query ran
+    // on is what makes "copy" and "what I am looking at" the same thing; a client that
+    // rebuilt the tree would be a second encoder, and a second encoder is how a shared
+    // link starts returning different rows than the view it came from. Bearer of a QUERY,
+    // never of DATA (0019) — the colleague who opens it still reads through the policies.
+    shareToken: encodeShareLink(view),
     // Present and null means "last page" — an absent key would be indistinguishable from
     // a client that forgot to read it.
     nextCursor: next,

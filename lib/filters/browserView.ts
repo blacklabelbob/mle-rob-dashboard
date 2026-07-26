@@ -117,7 +117,24 @@ export function buildPageRequestUrl(source: ViewSource, opts: PageRequestOptions
  * preserved, because they describe the page and not the view.
  */
 export function buildShareUrl(pageUrl: string, view: SavedViewPayload): string {
-  const token = encodeShareLink(view);
+  return withShareToken(pageUrl, encodeShareLink(view));
+}
+
+/**
+ * The same link, built from a token the SERVER already minted.
+ *
+ * A page opened as `?view=<id>` never sees the filter tree — the row lives in the
+ * database and only the route reads it — so the browser cannot encode a share link for
+ * the view it is currently showing. `/api/views/page` therefore returns the token it
+ * encoded from the very object it queried with, and this turns that into the URL.
+ *
+ * Splitting it out rather than teaching `buildShareUrl` a second input keeps one rule:
+ * **the token is minted in exactly one place** (`encodeShareLink`), whichever side of the
+ * wire that place happens to be on. Two encoders is how a shared link stops matching the
+ * view it was copied from.
+ */
+export function withShareToken(pageUrl: string, token: string): string {
+  if (typeof token !== "string" || token === "") fail("share link needs a token");
   // Relative bases are accepted so a caller can pass `/people` in a test or on the server;
   // the placeholder origin is stripped again below when the input had none.
   const relative = !/^[a-z][a-z0-9+.-]*:/i.test(pageUrl);

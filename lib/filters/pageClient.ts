@@ -19,6 +19,7 @@ import type { ViewSource } from "./page";
 import type { MappedRow } from "./rows";
 import type { FilterTarget } from "./ast";
 import { buildPageRequestUrl, type PageRequestOptions } from "./browserView";
+import { decodeShareLink } from "./savedViews";
 
 /** One response from `/api/views/page`, after it has been checked. */
 export type ViewPage = {
@@ -27,6 +28,12 @@ export type ViewPage = {
   rows: MappedRow[];
   /** `null` means last page. Never `undefined` — see `readNextCursor`. */
   nextCursor: string | null;
+  /**
+   * The token `withShareToken` turns into a copyable link, or `null` when this response
+   * did not carry one that survives a round trip. `null` costs a button; it never costs a
+   * row — see `readShareToken`.
+   */
+  shareToken: string | null;
 };
 
 /**
@@ -94,6 +101,34 @@ function readNextCursor(body: Record<string, unknown>): string | null {
 }
 
 /**
+ * `shareToken` is read as a VALUE, and the opposite way round from `nextCursor`.
+ *
+ * The asymmetry is the point. A missing cursor fabricates a *wrong list* (silently "last
+ * page"), so it throws. A missing share token costs a *button* — visibly absent, nothing
+ * misreported — so an older cached deploy, or any future response that drops the key,
+ * must still render the rep's rows. Refusing the whole page over a copy affordance would
+ * turn a cosmetic regression into an outage.
+ *
+ * A token that is present but does not decode back to THIS page's view is dropped for the
+ * same reason it is not thrown on: offering a link that 400s for the colleague who opens
+ * it is worse than offering no link. Decoding is pure and local — the codec that would
+ * have to agree at the far end is the one asked here.
+ */
+function readShareToken(body: Record<string, unknown>, target: FilterTarget): string | null {
+  const token = body.shareToken;
+  if (typeof token !== "string" || token === "") return null;
+  try {
+    // Cross-check the target, not the name: a view renamed between encode and render is
+    // still the same query, but a token describing a different target would hand a
+    // colleague a deal list from a people table.
+    if (decodeShareLink(token).target !== target) return null;
+  } catch {
+    return null;
+  }
+  return token;
+}
+
+/**
  * Fetch one page of a saved view.
  *
  * The URL is built by `buildPageRequestUrl`, so an illegal request (both doors, a limit
@@ -126,11 +161,13 @@ export async function fetchViewPage(
     throw new ViewPageRequestError(res.status, "view page response has no target");
   }
 
+  const target = obj.target as FilterTarget;
   return {
-    target: obj.target as FilterTarget,
+    target,
     name: typeof obj.name === "string" ? obj.name : "",
     rows: obj.rows as MappedRow[],
     nextCursor: readNextCursor(obj),
+    shareToken: readShareToken(obj, target),
   };
 }
 
@@ -140,6 +177,8 @@ export type ViewPageAccumulator = {
   name: string;
   rows: MappedRow[];
   nextCursor: string | null;
+  /** Page 1's token, held for the whole list — see `appendPage`. */
+  shareToken: string | null;
 };
 
 function rowId(row: MappedRow): string | null {
@@ -149,7 +188,13 @@ function rowId(row: MappedRow): string | null {
 
 /** The first page: the accumulator starts as exactly what arrived. */
 export function startAccumulator(page: ViewPage): ViewPageAccumulator {
-  return { target: page.target, name: page.name, rows: page.rows, nextCursor: page.nextCursor };
+  return {
+    target: page.target,
+    name: page.name,
+    rows: page.rows,
+    nextCursor: page.nextCursor,
+    shareToken: page.shareToken,
+  };
 }
 
 /**
@@ -195,6 +240,10 @@ export function appendPage(prev: ViewPageAccumulator, page: ViewPage, usedCursor
     name: prev.name,
     rows: prev.rows.concat(fresh),
     nextCursor: page.nextCursor,
+    // Page 1's token wins for the whole list. Every page of one view encodes the same
+    // object, so a LATER page disagreeing means something changed underneath — and the
+    // link a rep already sees should not silently become a different link mid-scroll.
+    shareToken: prev.shareToken,
   };
 }
 

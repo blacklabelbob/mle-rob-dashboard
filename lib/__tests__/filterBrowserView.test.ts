@@ -6,9 +6,10 @@ import {
   buildPageRequestUrl,
   buildShareUrl,
   readViewSource,
+  withShareToken,
 } from "@/lib/filters/browserView";
 import { MAX_PAGE_LIMIT, parsePageCursor, parsePageLimit, resolveViewSource } from "@/lib/filters/page";
-import { decodeShareLink } from "@/lib/filters/savedViews";
+import { decodeShareLink, encodeShareLink } from "@/lib/filters/savedViews";
 import type { SavedViewPayload } from "@/lib/filters/savedViews";
 
 // Q67b — the browser URL seam. Every assertion here is "the client cannot build a request
@@ -132,5 +133,25 @@ describe("buildShareUrl", () => {
     const accented: SavedViewPayload = { ...WARM, name: "Clientes — señales" };
     const token = query(buildShareUrl("/people", accented)).get(SHARE_PARAM);
     expect(decodeShareLink(token).name).toBe("Clientes — señales");
+  });
+});
+
+// Q67b inc.8 — the same link, built from the token the SERVER minted. A page opened as
+// `?view=<id>` never sees the filter tree, so this is the only way the Copy button can
+// exist for a saved view without the browser becoming a second encoder.
+describe("withShareToken", () => {
+  it("is exactly what buildShareUrl produces for the same view", () => {
+    const token = encodeShareLink(WARM);
+    expect(withShareToken("/people?sort=name", token)).toBe(buildShareUrl("/people?sort=name", WARM));
+  });
+
+  it("drops ?view= for the same reason — both doors is the one combination the route refuses", () => {
+    const params = query(withShareToken(`/people?${VIEW_PARAM}=v1`, encodeShareLink(WARM)));
+    expect(params.has(VIEW_PARAM)).toBe(false);
+    expect(readViewSource(params)?.kind).toBe("share");
+  });
+
+  it("refuses an empty token instead of copying a link to nothing", () => {
+    expect(() => withShareToken("/people", "")).toThrow(/token/);
   });
 });

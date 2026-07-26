@@ -8,6 +8,7 @@ import {
   type ViewPage,
 } from "@/lib/filters/pageClient";
 import { isFilterInputError } from "@/lib/filters/parse";
+import { encodeShareLink } from "@/lib/filters/savedViews";
 import type { MappedRow } from "@/lib/filters/rows";
 
 // Q67b inc.5 — the fetch seam. Every assertion here is a rule the table cannot express
@@ -45,7 +46,61 @@ const page = (over: Partial<ViewPage> = {}): ViewPage => ({
   name: "Warm",
   rows: [person("a")],
   nextCursor: null,
+  shareToken: null,
   ...over,
+});
+
+// Q67b inc.8 — a real token, minted by the same codec the route uses.
+const PERSON_TOKEN = encodeShareLink({
+  target: "person",
+  name: "Warm",
+  filter: { op: "lit", lit: { lit: "person.status", value: "warm" } },
+});
+const DEAL_TOKEN = encodeShareLink({
+  target: "deal",
+  name: "Open",
+  filter: { op: "lit", lit: { lit: "deal.stage", value: "quoted" } },
+});
+
+describe("fetchViewPage — the share token (Q67b inc.8)", () => {
+  const body = (over: Record<string, unknown> = {}) => ({
+    target: "person",
+    name: "Warm",
+    rows: [],
+    nextCursor: null,
+    ...over,
+  });
+
+  it("carries a token the route minted", async () => {
+    const { fetchImpl } = stub(res(200, body({ shareToken: PERSON_TOKEN })));
+    await expect(fetchViewPage(SOURCE, { fetchImpl })).resolves.toMatchObject({ shareToken: PERSON_TOKEN });
+  });
+
+  it("still returns the rows when the key is absent — a missing button is not an outage", async () => {
+    // The opposite rule from `nextCursor` on purpose: that one fabricates a wrong list, so
+    // it throws; this one costs an affordance, so an older cached deploy must still serve.
+    const { fetchImpl } = stub(res(200, body({ rows: [person("a")] })));
+    const got = await fetchViewPage(SOURCE, { fetchImpl });
+    expect(got.shareToken).toBeNull();
+    expect(got.rows).toHaveLength(1);
+  });
+
+  it("withholds a token that does not decode rather than offering a link that 400s", async () => {
+    const { fetchImpl } = stub(res(200, body({ shareToken: "not-base64url!!" })));
+    await expect(fetchViewPage(SOURCE, { fetchImpl })).resolves.toMatchObject({ shareToken: null });
+  });
+
+  it("withholds a token for a different target — a colleague would open deals in a people table", async () => {
+    const { fetchImpl } = stub(res(200, body({ shareToken: DEAL_TOKEN })));
+    await expect(fetchViewPage(SOURCE, { fetchImpl })).resolves.toMatchObject({ shareToken: null });
+  });
+
+  it("withholds an empty or non-string token", async () => {
+    for (const bad of ["", 7, null, {}]) {
+      const { fetchImpl } = stub(res(200, body({ shareToken: bad })));
+      await expect(fetchViewPage(SOURCE, { fetchImpl })).resolves.toMatchObject({ shareToken: null });
+    }
+  });
 });
 
 describe("fetchViewPage", () => {
@@ -138,6 +193,14 @@ describe("appendPage", () => {
     expect(got.rows.map((r) => (r as { id: string }).id)).toEqual(["a", "b", "c"]);
     expect(got.nextCursor).toBe("c2");
     expect(got.name).toBe("Warm");
+  });
+
+  it("holds page 1's share token for the whole list", () => {
+    // A later page disagreeing means something changed underneath; the link a rep can
+    // already see must not become a different link mid-scroll.
+    const withToken = startAccumulator(page({ rows: [person("a")], nextCursor: "c1", shareToken: PERSON_TOKEN }));
+    const got = appendPage(withToken, page({ rows: [person("c")], nextCursor: null, shareToken: null }), "c1");
+    expect(got.shareToken).toBe(PERSON_TOKEN);
   });
 
   it("drops a row already on screen instead of handing React a duplicate key", () => {
