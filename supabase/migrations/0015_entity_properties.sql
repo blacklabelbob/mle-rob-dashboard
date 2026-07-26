@@ -132,44 +132,68 @@ create index if not exists entity_properties_values_gin
 -- ---------------------------------------------------------------------------
 -- Enforced here and not only in TS because the service-role key reaches this table from
 -- scripts, n8n and future RPCs. A rule that only exists in one client is not a rule.
-alter table entity_properties drop constraint if exists check_values_structure;
-alter table entity_properties add constraint check_values_structure check (
-  jsonb_typeof(values) = 'object'
-  and values ? 'kind'
-  and values ? 'items'
-  and jsonb_typeof(values -> 'items') = 'array'
-  and (values ->> 'kind') in (
-    'TEXT','NUMBER','DATE','BOOLEAN','SELECT_STRING','TAG','ENTITY'
-  )
-  and (
+--
+-- It lives in an IMMUTABLE function because a CHECK constraint may not contain a
+-- subquery, and verifying "every element of this array is a number" requires unnesting
+-- the array. Postgres does not inspect a function body for the constraint, so the
+-- function is the supported way to express an element-wise rule. IMMUTABLE is honest
+-- here: same jsonb in, same boolean out, no table or setting is read.
+create or replace function check_property_values(v jsonb)
+returns boolean
+language sql
+immutable
+as $$
+  select
+    jsonb_typeof(v) = 'object'
+    and v ? 'kind'
+    and v ? 'items'
+    and jsonb_typeof(v -> 'items') = 'array'
+    and (v ->> 'kind') in (
+      'TEXT','NUMBER','DATE','BOOLEAN','SELECT_STRING','TAG','ENTITY'
+    )
     -- every item must be the literal type its `kind` promises
-    case values ->> 'kind'
-      when 'TEXT'          then not exists (select 1 from jsonb_array_elements(values -> 'items') e
+    and case v ->> 'kind'
+      when 'TEXT'          then not exists (select 1 from jsonb_array_elements(v -> 'items') e
                                             where jsonb_typeof(e.value) <> 'string')
-      when 'SELECT_STRING' then not exists (select 1 from jsonb_array_elements(values -> 'items') e
+      when 'SELECT_STRING' then not exists (select 1 from jsonb_array_elements(v -> 'items') e
                                             where jsonb_typeof(e.value) <> 'string')
-      when 'TAG'           then not exists (select 1 from jsonb_array_elements(values -> 'items') e
+      when 'TAG'           then not exists (select 1 from jsonb_array_elements(v -> 'items') e
                                             where jsonb_typeof(e.value) <> 'string')
-      when 'DATE'          then not exists (select 1 from jsonb_array_elements(values -> 'items') e
+      when 'DATE'          then not exists (select 1 from jsonb_array_elements(v -> 'items') e
                                             where jsonb_typeof(e.value) <> 'string')
-      when 'NUMBER'        then not exists (select 1 from jsonb_array_elements(values -> 'items') e
+      when 'NUMBER'        then not exists (select 1 from jsonb_array_elements(v -> 'items') e
                                             where jsonb_typeof(e.value) <> 'number')
-      when 'BOOLEAN'       then not exists (select 1 from jsonb_array_elements(values -> 'items') e
+      when 'BOOLEAN'       then not exists (select 1 from jsonb_array_elements(v -> 'items') e
                                             where jsonb_typeof(e.value) <> 'boolean')
       -- an ENTITY item is {"entity_type": "...", "entity_id": "..."} — a typed link,
       -- so a dangling half-reference cannot be stored
-      when 'ENTITY'        then not exists (select 1 from jsonb_array_elements(values -> 'items') e
+      when 'ENTITY'        then not exists (select 1 from jsonb_array_elements(v -> 'items') e
                                             where jsonb_typeof(e.value) <> 'object'
                                                or not (e.value ? 'entity_type')
                                                or not (e.value ? 'entity_id')
                                                or jsonb_typeof(e.value -> 'entity_type') <> 'string'
                                                or jsonb_typeof(e.value -> 'entity_id') <> 'string')
       else false
-    end
-  )
-);
+    end;
+$$;
+
+alter table entity_properties drop constraint if exists check_values_structure;
+alter table entity_properties add constraint check_values_structure
+  check (check_property_values(values));
 
 comment on column entity_properties.values is
   'Tagged union {kind, items[]} — see PropertyValue in lib/entityProperties.ts. Always an array, even single-select.';
+
+-- ---------------------------------------------------------------------------
+-- RLS, same posture as 0006 — mandatory, not optional
+-- ---------------------------------------------------------------------------
+-- The anon key ships in the client bundle (dev_chat uses it), so a new public table
+-- without RLS is anon-readable AND anon-writable through PostgREST the moment it
+-- exists. All app access is server-side service-role, which bypasses RLS, so enabling
+-- with no policies changes nothing for the app and shuts the anon path — identical to
+-- every other table. Real policies are Q66's job; this is the floor beneath it.
+alter table property_definitions enable row level security;
+alter table property_options     enable row level security;
+alter table entity_properties    enable row level security;
 
 commit;
