@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import CallButton from "@/components/CallButton";
 import PhaseEightBar from "@/components/PhaseEightBar";
 import ActivityTimeline from "@/components/ActivityTimeline";
+import Phase2RoiEstimator from "@/components/Phase2RoiEstimator";
 import QuotedAmountInline from "@/components/QuotedAmountInline";
 import DemoFooter from "@/components/DemoFooter";
 import { InlineDateChip, InlineSelect, InlineText } from "@/components/inline/fields";
@@ -117,6 +118,16 @@ export default async function RepAccountWorkspace({
           <section className="rounded-xl border border-white/10 bg-white/5 p-5">
             <PhaseEightBar />
           </section>
+
+          {/* Q63 — same estimator, same engine, same stored inputs as the master
+              company record. Rob asked for it on both views; mounting the one
+              component twice is what keeps a rep's typed investment and Rob's
+              from being two different numbers. */}
+          <Phase2RoiEstimator
+            recordId={person.id}
+            companyName={person.business || person.name}
+            initial={person.phase2Estimate}
+          />
         </div>
 
         <div className="space-y-6">

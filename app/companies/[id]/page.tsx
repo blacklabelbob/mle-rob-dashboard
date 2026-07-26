@@ -5,6 +5,7 @@ import ThingsToAddress from "@/components/ThingsToAddress";
 import DocumentsSection from "@/components/esign/DocumentsSection";
 import ActivityTimeline from "@/components/ActivityTimeline";
 import EnrichmentSection from "@/components/EnrichmentSection";
+import Phase2RoiEstimator from "@/components/Phase2RoiEstimator";
 import { InlineText, InlineTextarea } from "@/components/inline/fields";
 import { companyRecordFromNetwork } from "@/lib/companyRecord";
 import { buildCompanyDeals } from "@/lib/companyDeals";
@@ -203,12 +204,24 @@ export default async function CompanyPage({
             )}
           </section>
 
+          {/* Q63 — the Phase 2 ROI Estimator, mounted here on Rob's instruction
+              (2026-07-25: "yes definitely mounted inside the dashboard"). It renders
+              `estimatePhase2Roi` output directly, so §4 point 5 of the spec applies
+              literally in the app — unlike the standalone artifact, which has to carry
+              its own copy of the formula and is guarded by a parity test instead. */}
+          <Phase2RoiEstimator
+            recordId={company.id}
+            companyName={company.name}
+            initial={company.phase2Estimate}
+          />
+
           <section className="rounded-xl border border-dashed border-white/10 bg-white/[0.02] p-5">
             <h2 className="font-semibold text-white">Phase Blueprint</h2>
             <p className="mt-1 text-sm text-slate-500">
-              Not built yet — the phase tracker and delivery money land in increments
-              7/8a. Nothing is being hidden here; there is simply no phase store
-              behind it today.
+              The phase tracker and delivery money land in increments 7/8a — they need a
+              phase store, which does not exist yet. The ROI estimator above models the
+              Phase 2 guarantee <i>before</i> that: it runs on typed inputs, not on
+              actuals. Wiring it to real hours and real revenue is Q40-gated.
             </p>
           </section>
 

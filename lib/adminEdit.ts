@@ -21,6 +21,12 @@ export const FIELD_MAP: Record<string, string> = {
   assignedRep: "assigned_rep",
   phaseOne: "phase_one",
   keyDates: "key_dates",
+  // Q63 — the Phase 2 ROI estimator autosaves its whole input object through the
+  // same PATCH door every inline field uses. Whole-object replace is correct here
+  // (unlike `notes`, which is excluded above): the estimator owns every key in
+  // this column and always sends complete state, so there is no second writer
+  // whose data a replace could drop.
+  phase2Estimate: "phase2_estimate",
   // `notes` is deliberately NOT here (Q43 punch #1 of the re-score). Notes are
   // written only via the virtual `notesHuman` field, which the PATCH route
   // recomposes against the STORED row so enrichment blocks survive. A raw

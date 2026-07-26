@@ -18,6 +18,12 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { DAYS_PER_MONTH, estimatePhase2Roi } from "../roi/phase2";
 import { LABOR_ROLES, rateFor, type RateRegion } from "../roi/laborRates";
+import {
+  SEED_AUTOMATIONS,
+  buildAutomations,
+  enabledAutomations,
+  seededHoursPerWeek,
+} from "../roi/automations";
 
 const HTML_PATH = path.join(__dirname, "..", "..", "docs", "plans", "PHASE2-ROI-ESTIMATOR.html");
 const html = readFileSync(HTML_PATH, "utf8");
@@ -126,5 +132,113 @@ describe("Estimator HTML ↔ lib/roi parity", () => {
     const days = inputDefault("days");
     expect(summary.targetToDate).toBeCloseTo((inv / win) * days, 6);
     expect(summary.guaranteeDays).toBe(win);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Q63 (2026-07-25) — the mounted component made a THIRD copy of the catalogue a
+// real risk. The nine automations now live in lib/roi/automations.ts and the
+// in-app estimator reads them from there; the standalone artifact still carries
+// its own literal, because being self-contained is the property that lets Rob
+// open and publish it. So the artifact is now the copy under guard, and drift in
+// either direction fails here naming the row that moved.
+// ---------------------------------------------------------------------------
+describe("Estimator HTML ↔ SEED_AUTOMATIONS parity (Q63 mount)", () => {
+  it("holds the same nine automations, in the same order, with the same ids", () => {
+    expect(SEED_AUTOMATIONS.map((a) => a.id)).toEqual(AUTOMATIONS.map((a) => a.id));
+  });
+
+  it("matches every seeded row field-for-field", () => {
+    for (const page of AUTOMATIONS) {
+      const mod = SEED_AUTOMATIONS.find((a) => a.id === page.id);
+      expect(mod, `automation ${page.id} is on the page but not in SEED_AUTOMATIONS`).toBeDefined();
+      expect({
+        id: mod!.id,
+        name: mod!.name,
+        what: mod!.what,
+        soc: mod!.soc,
+        hrs: mod!.hoursPerWeek,
+        lift: mod!.revenueLiftPerMonth,
+        suggest: mod!.suggest,
+        why: mod!.why,
+      }).toEqual(page);
+    }
+  });
+
+  it("keeps the module's seeded total at the tuned 31.5 h/wk", () => {
+    // The first pass seeded 58 h/wk and printed +477% at day 30 — the number a
+    // client stops believing. Pinning the total makes that tuning enforced.
+    expect(seededHoursPerWeek()).toBeCloseTo(31.5, 2);
+    expect(seededHoursPerWeek()).toBeCloseTo(
+      AUTOMATIONS.reduce((s, a) => s + a.hrs, 0),
+      6,
+    );
+  });
+
+  it("builds rows whose rates and sources come from LABOR_ROLES, with fallback flagged", () => {
+    const built = buildAutomations(REGION);
+    expect(built.length).toBe(SEED_AUTOMATIONS.length); // no row silently dropped
+    for (const b of built) {
+      const role = LABOR_ROLES.find((r) => r.soc === b.soc)!;
+      expect(b.rateSource).toBe(role.source);
+      // Telemarketers has no Naples figure — the builder must SAY it stepped out
+      // rather than presenting the state number as if it were local.
+      expect(b.fellBack).toBe(role.medianHourly[REGION] == null);
+    }
+  });
+
+  it("reproduces the page's day-30 read from the module catalogue alone", () => {
+    // The strongest form of the guard: build from SEED_AUTOMATIONS (what the app
+    // renders) and assert it lands on the same +11.6% the artifact publishes.
+    const { summary } = estimatePhase2Roi({
+      estInvestment: inputDefault("inv"),
+      daysElapsed: inputDefault("days"),
+      guaranteeDays: inputDefault("window"),
+      automations: enabledAutomations(buildAutomations(REGION)),
+    });
+    expect((summary.roiPct! * 100).toFixed(1)).toBe("11.6");
+  });
+
+  // Caught in review 2026-07-25: the mounted component seeded $12,000 (the spec's
+  // §2a worked example) while the artifact opens at $9,100, so the SAME company read
+  // +11.6% on the page Rob emails a client and −15.3% on the record he opens in the
+  // dashboard. The test above could not see it — it feeds the module the PAGE's
+  // defaults, never the module's own. This one closes that hole.
+  it("opens on the artifact's defaults, so page and app agree before anyone types", () => {
+    expect(DEFAULT_PHASE2_ESTIMATE.estInvestment).toBe(inputDefault("inv"));
+    expect(DEFAULT_PHASE2_ESTIMATE.daysElapsed).toBe(inputDefault("days"));
+    expect(DEFAULT_PHASE2_ESTIMATE.guaranteeDays ?? 91).toBe(inputDefault("window"));
+    expect(DEFAULT_PHASE2_ESTIMATE.region).toBe(REGION);
+  });
+
+  it("an untouched company record therefore also reads +11.6%", () => {
+    const { summary } = estimatePhase2Roi({
+      estInvestment: DEFAULT_PHASE2_ESTIMATE.estInvestment,
+      daysElapsed: DEFAULT_PHASE2_ESTIMATE.daysElapsed,
+      guaranteeDays: DEFAULT_PHASE2_ESTIMATE.guaranteeDays,
+      automations: enabledAutomations(
+        buildAutomations(DEFAULT_PHASE2_ESTIMATE.region, DEFAULT_PHASE2_ESTIMATE.overrides),
+      ),
+    });
+    expect((summary.roiPct! * 100).toFixed(1)).toBe("11.6");
+    expect(summary.status).toBe("surplus");
+  });
+
+  it("drops a deselected automation from the estimate instead of zeroing it", () => {
+    const built = buildAutomations(REGION, { recep: { enabled: false } });
+    expect(built.length).toBe(SEED_AUTOMATIONS.length); // still rendered, greyed
+    expect(enabledAutomations(built).length).toBe(SEED_AUTOMATIONS.length - 1);
+    expect(enabledAutomations(built).some((a) => a.id === "recep")).toBe(false);
+  });
+
+  it("lets an operator override hours and lift without touching the seed", () => {
+    const built = buildAutomations(REGION, {
+      recep: { hoursPerWeek: 12, revenueLiftPerMonth: 2000 },
+    });
+    const row = built.find((a) => a.id === "recep")!;
+    expect(row.humanHoursPerWeek).toBe(12);
+    expect(row.revenueLiftPerMonth).toBe(2000);
+    // the catalogue itself is untouched — overrides are a layer, not a mutation
+    expect(SEED_AUTOMATIONS.find((a) => a.id === "recep")!.hoursPerWeek).toBe(7);
   });
 });

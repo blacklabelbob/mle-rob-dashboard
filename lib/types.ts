@@ -60,6 +60,12 @@ export interface Person {
   phaseOne: PhaseOneStatus;
   description?: string; // free text Rob types; feeds the AI estimator
   estimate?: Estimate;
+  // Q63: Phase 2 ROI estimator inputs, persisted per record so the rep's typed
+  // Est Investment survives the tab closing. Deliberately NOT the same thing as
+  // `estimate` above — that one scores a person's network value; this one is the
+  // client's 91-day ROI guarantee. Shape: Phase2Estimate in lib/roi/automations.ts
+  // (imported as a type only where needed, to keep lib/types.ts dependency-free).
+  phase2Estimate?: import("@/lib/roi/automations").Phase2Estimate;
   notes?: string;
   assignedRep?: string; // Phase 6
   orgId?: string; // person→org link (Task 2.2, backfilled by backfill-org-links.mjs)

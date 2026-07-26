@@ -66,6 +66,10 @@ export function toPerson(r: any): Person {
     phaseOne: r.phase_one,
     description: r.description ?? undefined,
     estimate: r.estimate ?? undefined,
+    // Q63. Read and write are paired below for the same reason orgId is: an
+    // upsert that omits the column writes NULL, so reading it back is what stops
+    // a save elsewhere on the record from wiping the rep's ROI inputs.
+    phase2Estimate: r.phase2_estimate ?? undefined,
     notes: r.notes ?? undefined,
     assignedRep: r.assigned_rep ?? undefined,
     // person→org link. Omitted here until 2026-07-25, which meant every person
@@ -102,6 +106,7 @@ export function fromPerson(p: Person) {
     phase_one: p.phaseOne,
     description: p.description ?? null,
     estimate: p.estimate ?? null,
+    phase2_estimate: p.phase2Estimate ?? null, // Q63 — paired with the read in toPerson
     notes: p.notes ?? null,
     assigned_rep: p.assignedRep ?? null,
     org_id: p.orgId ?? null,

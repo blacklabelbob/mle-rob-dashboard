@@ -57,13 +57,19 @@ describe("shapeRowForTable", () => {
   });
 
   it("every FIELD_MAP column exists on orgs (0003 mirrors people verbatim)", () => {
-    // orgs column list from supabase/migrations/0003_orgs_split.sql
+    // orgs column list from supabase/migrations/0003_orgs_split.sql, plus every
+    // additive ALTER since. A new FIELD_MAP entry whose column was only added to
+    // `people` fails here — which is the whole point: /companies/[id] resolves to
+    // either anchor, so a people-only column makes an inline edit save on some
+    // company records and silently no-op on others.
     const orgsCols = new Set([
       "id", "name", "business", "role", "vertical_id", "domain", "phone", "email",
       "website", "node_type", "status", "referred_by_id", "referred_by_org_id",
       "relationship", "quoted_amount", "signed", "meeting_video_url", "transcript_url",
       "key_dates", "phase_one", "est_time_to_payment_days", "description", "estimate",
       "notes", "assigned_rep", "created_at", "updated_at",
+      // 0014_phase2_estimate.sql — added to BOTH people and orgs (Q63).
+      "phase2_estimate",
     ]);
     for (const col of Object.values(FIELD_MAP)) {
       expect(orgsCols.has(col), `orgs missing column ${col}`).toBe(true);
