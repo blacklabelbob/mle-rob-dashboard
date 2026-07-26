@@ -40,11 +40,16 @@ copyrightable.
 
 ## What shipped the same night
 
-- **Q63** — the Phase 2 ROI Estimator mounted on the company record + rep view (`PRD 3.1.147`).
+- **Q63** — the Phase 2 ROI Estimator mounted on the company record + rep view (`PRD 3.1.148`, refinements at `3.1.150`). A defect caught in review: the component seeded $12,000 against the artifact's $9,100, so one company read +11.6% on the emailed page and −15.3% in the dashboard. Pinned by two new tests.
 - **Security** — prod was open *and* crawlable; indexing is now blocked (`robots.txt` + `X-Robots-Tag`).
   The open-access decision itself is Rob's, from 7/21, and was deliberately not reversed.
-- **UI pass** (`PRD 3.1.148`) — motion tokens across all 33 transitions, the never-rendered
+- **UI pass** (`PRD 3.1.150`) — motion tokens across all 33 transitions, the never-rendered
   `saving` state, route skeletons, and `router.refresh()` made optional.
+- **Voice stack decided** (`09-voice-stack-decision.md`) — Twilio dialer, Deepgram batch, post-call
+  coach first, Vapi kept for AIDRE only.
+
+*(Tonight's commit messages cite PRD 3.1.147/3.1.148 — numbers the driver had already used for
+different increments. The numbers above are the correct ones; see PRD 3.1.150.)*
 
 ## Standing caveat
 
