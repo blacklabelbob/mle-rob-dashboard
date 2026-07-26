@@ -206,6 +206,9 @@ const COLUMNS: Record<string, string> = {
   "activity.dealId": "deal_id",
 };
 
+/** Every literal name that exists. Derived from COLUMNS so the two can never drift. */
+export const LITERAL_NAMES: readonly string[] = [...Object.keys(COLUMNS), "property"];
+
 type Ctx = { target: FilterTarget; params: unknown[]; alias: string };
 
 function bind(ctx: Ctx, value: unknown): string {
@@ -227,6 +230,15 @@ function compileLiteral(l: Literal, ctx: Ctx): string {
       `AND ep.property_definition_id = ${bind(ctx, defId)} ` +
       `AND ep.values @> ${bind(ctx, JSON.stringify(containmentFilter(l.value)))}::jsonb)`
     );
+  }
+
+  // An unknown literal name has to die HERE, before the column lookup below. Without this
+  // guard `person.evil` resolves to `COLUMNS[...] === undefined` and compiles to the
+  // literal SQL text `people.undefined = $1` — not injectable, but a query that fails at
+  // the database with a column error instead of failing at the boundary with a filter
+  // error. Loud and early, per this file's thrown-on-invalid contract.
+  if (!LITERAL_NAMES.includes(l.lit)) {
+    throw new FilterError(`unknown filter literal ${JSON.stringify(l.lit)}`);
   }
 
   const prefix = l.lit.split(".")[0];
