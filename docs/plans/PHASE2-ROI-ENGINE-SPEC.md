@@ -1,8 +1,8 @@
 # Phase 2 ROI Engine + the Estimator — SPEC
 
-**Created:** 2026-07-25 · **Owner:** Rob + Max · **Status:** ENGINE BUILT (`lib/roi/*`) · **UI BUILT** as a
-standalone interactive page — [`PHASE2-ROI-ESTIMATOR.html`](./PHASE2-ROI-ESTIMATOR.html) (§4a) · **not yet
-mounted in the app**
+**Created:** 2026-07-25 · **Owner:** Rob + Max · **Status:** ENGINE BUILT (`lib/roi/*`) · **UI BUILT** both as a
+standalone interactive page — [`PHASE2-ROI-ESTIMATOR.html`](./PHASE2-ROI-ESTIMATOR.html) (§4a) — **and mounted
+in the app** on the master company record + rep account view (§4c, 2026-07-25)
 **Source (verbatim, do not edit):** [`sources/ROB-PHASE2-ROI-DUMP-2026-07-25.md`](./sources/ROB-PHASE2-ROI-DUMP-2026-07-25.md)
 **Implementation:** [`lib/roi/phase2.ts`](../../lib/roi/phase2.ts) (arithmetic) + [`lib/roi/laborRates.ts`](../../lib/roi/laborRates.ts) (BLS rate table)
 **Tests:** [`lib/__tests__/phase2Roi.test.ts`](../../lib/__tests__/phase2Roi.test.ts) (arithmetic) +
@@ -123,8 +123,47 @@ revenue half is judgement, so nothing is claimed until a human types it or opts 
 day count, so the days field moves the dollars but not the percentage. The percentage moves when hours, lift,
 or the investment change.
 
-**Remaining for Q63:** mount it on the company record (master + rep views) beside the Q40 phase tracker, and
-feed the running-ROI view from real actuals rather than modelled inputs (§5 question C's sibling).
+**Remaining for Q63:** ~~mount it on the company record (master + rep views)~~ **DONE 2026-07-25, see §4c** —
+still open: feed the running-ROI view from real actuals rather than modelled inputs (§5 question C's sibling).
+
+## 4c. Mounted in the app (2026-07-25) — Rob: *"yes definitely mounted inside the dashboard"*
+
+| Piece | Path |
+|---|---|
+| Component | [`components/Phase2RoiEstimator.tsx`](../../components/Phase2RoiEstimator.tsx) |
+| Automation catalogue (new) | [`lib/roi/automations.ts`](../../lib/roi/automations.ts) |
+| Master company record | [`app/companies/[id]/page.tsx`](../../app/companies/[id]/page.tsx) — above Phase Blueprint |
+| Rep account view | [`app/rep/accounts/[id]/page.tsx`](../../app/rep/accounts/[id]/page.tsx) — under the phase bar |
+| Persistence | `phase2_estimate jsonb` on **both** `people` and `orgs` — [`0014_phase2_estimate.sql`](../../supabase/migrations/0014_phase2_estimate.sql), applied to prod 2026-07-25 |
+
+**§4 point 5 now applies literally.** The component renders `estimatePhase2Roi` output directly — there is no
+arithmetic in it beyond formatting. The standalone artifact keeps its inline copy (that is what makes it
+self-contained and sendable), so the artifact is now the copy under guard, not the origin.
+
+**The nine automations moved out of the HTML `<script>` into `lib/roi/automations.ts`.** Mounting would
+otherwise have created a *third* copy of a money-facing table. Overrides are a layer over the catalogue, never
+a mutation of it, so a BLS rate refresh stays a code change rather than a backfill across every row.
+
+**Persistence, and why it needed a column.** Mounted on a record, inputs that die with the tab fail the
+standing UX bar (click-to-edit, autosaves, never a Save button). The whole input object autosaves through the
+same `/api/admin/people` PATCH door every inline field uses, debounced 800 ms. It never PATCHes on mount —
+only after a real edit — so browsing a company does not stamp a default estimate onto it, and `NULL` keeps
+meaning *never estimated*. Both tables got the column because `/companies/[id]` resolves to either anchor;
+a people-only column would have saved on some company records and silently no-op'd on others (a test now
+fails on exactly that).
+
+**A defect this caught, recorded rather than quietly fixed.** The component first seeded **$12,000** — the
+spec's §2a worked example — while the artifact opens at **$9,100**. The same untouched company therefore read
+**+11.6%** on the page Rob emails a client and **−15.3%** on the record he opens in the dashboard. The existing
+parity test could not see it: it feeds the module the *page's* defaults, never the module's own.
+`DEFAULT_PHASE2_ESTIMATE` is now pinned to the artifact's inputs by two new tests.
+
+**Guard extended:** `phase2RoiEstimatorParity.test.ts` now also asserts the HTML catalogue and
+`SEED_AUTOMATIONS` match row-for-row and field-for-field, that the seeded total stays 31.5 h/wk, that fallback
+rates are flagged rather than back-filled, that deselecting drops a row instead of zeroing it, and that an
+untouched record reads +11.6%. **879 tests green** (up from 870); `tsc --noEmit` adds zero new errors;
+`next build` clean; PATCH → Supabase → server-render rehydration verified end-to-end on a live record
+(test data cleared afterwards).
 
 ## 4b. The parity guard — and the honest caveat on §4 point 5 (2026-07-25)
 

@@ -19,6 +19,7 @@ import { describe, expect, it } from "vitest";
 import { DAYS_PER_MONTH, estimatePhase2Roi } from "../roi/phase2";
 import { LABOR_ROLES, rateFor, type RateRegion } from "../roi/laborRates";
 import {
+  DEFAULT_PHASE2_ESTIMATE,
   SEED_AUTOMATIONS,
   buildAutomations,
   enabledAutomations,

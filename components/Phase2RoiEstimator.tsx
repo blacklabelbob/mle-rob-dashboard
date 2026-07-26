@@ -300,15 +300,17 @@ export default function Phase2RoiEstimator({
       </div>
 
       <div className="mt-3 overflow-x-auto">
-        <table className="w-full min-w-[820px] text-sm">
+        {/* 5 columns, not 6: "% of target" rides under the value it is a share of.
+            At six the last column clipped inside the two-thirds record column, and a
+            number a client is shown must never be half off the edge. */}
+        <table className="w-full min-w-[700px] text-sm">
           <thead>
             <tr className="border-b border-white/10 text-left text-[11px] uppercase tracking-wide text-slate-500">
               <th className="pb-2 pr-3 font-medium">Automation</th>
               <th className="pb-2 pr-3 font-medium">Role it displaces · rate</th>
               <th className="pb-2 pr-3 text-right font-medium">Hrs/wk</th>
               <th className="pb-2 pr-3 text-right font-medium">Rev lift/mo</th>
-              <th className="pb-2 pr-3 text-right font-medium">Value to date</th>
-              <th className="pb-2 text-right font-medium">% of target</th>
+              <th className="pb-2 text-right font-medium">Value to date</th>
             </tr>
           </thead>
           <tbody>
@@ -392,18 +394,15 @@ export default function Phase2RoiEstimator({
                       </span>
                     )}
                   </td>
-                  <td className="py-3 pr-3 text-right text-slate-200">
+                  <td className="py-3 text-right text-slate-200">
                     {a.enabled && r ? usdCents.format(r.valueToDate) : "—"}
                     {a.enabled && r && (
                       <span className="mt-1 block text-[11px] text-slate-600">
                         {usdCents.format(r.laborValueToDate)} labour
+                        {r.shareOfTargetToDate !== null &&
+                          ` · ${(r.shareOfTargetToDate * 100).toFixed(1)}% of target`}
                       </span>
                     )}
-                  </td>
-                  <td className="py-3 text-right text-slate-400">
-                    {a.enabled && r && r.shareOfTargetToDate !== null
-                      ? `${(r.shareOfTargetToDate * 100).toFixed(1)}%`
-                      : "—"}
                   </td>
                 </tr>
               );
@@ -429,10 +428,9 @@ export default function Phase2RoiEstimator({
                 <span className="block text-[11px] font-normal text-slate-600">to date</span>
               </td>
               <td className="pt-3 pr-3 text-right">{usdCents.format(totals.revenueToDate)}</td>
-              <td className="pt-3 pr-3 text-right font-medium">
+              <td className="pt-3 text-right font-medium">
                 {usdCents.format(totals.valueToDate)}
               </td>
-              <td className="pt-3 text-right" />
             </tr>
           </tfoot>
         </table>
