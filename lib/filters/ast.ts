@@ -227,7 +227,7 @@ export const LITERAL_NAMES: readonly string[] = [...Object.keys(COLUMNS), "prope
 export type BindStyle = "pg" | "jsonb";
 
 /** The SQL type each bound value is read back as under `jsonb` rendering. */
-type Cast = "text" | "numeric" | "boolean" | "timestamptz" | "jsonb";
+type Cast = "text" | "numeric" | "boolean" | "timestamptz" | "jsonb" | "uuid";
 
 export type CompileOptions = {
   /** Table alias the fragment qualifies its columns with. */
@@ -266,7 +266,13 @@ function compileLiteral(l: Literal, ctx: Ctx): string {
     return (
       `EXISTS (SELECT 1 FROM entity_properties ep WHERE ep.entity_id = ${ctx.alias}.id ` +
       `AND ep.entity_type = ${bind(ctx, l.entityType)} ` +
-      `AND ep.property_definition_id = ${bind(ctx, defId)} ` +
+      // `uuid`, not `text`: `property_definition_id` is a uuid column (0015). Under `pg`
+      // rendering the cast is invisible — a bare `$n` is untyped and Postgres infers uuid
+      // from the comparison — but under `jsonb` rendering the placeholder carries its cast
+      // explicitly, and `uuid = text` has no operator, so a `::text` here made the ONE
+      // query this whole rendering exists for (the property EXISTS behind the RPC) fail
+      // with 42883 at runtime. Caught on prod, not in review.
+      `AND ep.property_definition_id = ${bind(ctx, defId, "uuid")} ` +
       // The containment operand is carried as a JSON *string* under both styles, so the
       // params array does not change shape with the rendering; only the cast moves.
       `AND ep.values @> ${bind(ctx, JSON.stringify(containmentFilter(l.value)), "jsonb")}${
