@@ -87,11 +87,6 @@ export default async function PersonPage({
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <ThingsToAddress mode="entity" person={person.id} />
-          <PersonEditor
-            person={person}
-            verticals={data.verticals}
-            peopleOptions={data.people.map((p) => ({ id: p.id, name: p.name }))}
-          />
 
           {/* §4: the lineage IS the person page's centerpiece — it sits above
               the timeline, where the company page puts its Phase tracker. The
@@ -144,12 +139,52 @@ export default async function PersonPage({
             orgId={person.entityKind === "company" ? person.id : undefined}
           />
 
+          {/* §4 ORDER: "...→ activity/notes → details grid → enrichment
+              collapsed". The edit grid is reference/maintenance, not the story
+              of the relationship, so it renders BELOW the timeline — it used to
+              sit second, pushing the lineage centerpiece under the fold. */}
+          <PersonEditor
+            person={person}
+            verticals={data.verticals}
+            peopleOptions={data.people.map((p) => ({ id: p.id, name: p.name }))}
+          />
+
           {/* Q43: machine-gathered provenance quarantined at the very bottom,
               collapsed — most recent visible, rest behind the expander. */}
           <EnrichmentSection blocks={splitNotes(person.notes).enrichment} />
         </div>
 
         <div className="space-y-6">
+          {/* §4 right rail: "Company card". §4's money ruling is "None directly
+              — link to their company's deals", so this card is the person page's
+              route to money: the company record is where deals/invoiced/paid
+              render. The rail deliberately does NOT repeat the referrer chain —
+              on this page the chain is the centerpiece two columns over, and
+              printing it twice is the kind of duplication Rob's bar rejects. */}
+          <section className="rounded-xl border border-white/10 bg-white/5 p-5">
+            <div className="text-xs uppercase tracking-wide text-slate-500">Company</div>
+            {org ? (
+              <>
+                <Link
+                  href={`/companies/${org.id}`}
+                  className="mt-2 block text-sm font-semibold text-sky-400 hover:underline"
+                >
+                  {org.name}
+                </Link>
+                <p className="mt-2 text-xs text-slate-500">
+                  Deals, invoiced and paid live on the company record — a person page
+                  carries no money of its own.
+                </p>
+              </>
+            ) : (
+              <p className="mt-2 text-sm text-slate-500">
+                {person.entityKind === "company"
+                  ? "This row is a business — its company record carries the money."
+                  : "Not linked to a company yet."}
+              </p>
+            )}
+          </section>
+
           <EstimatePanel
             personId={person.id}
             description={person.description ?? ""}
