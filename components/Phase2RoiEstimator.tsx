@@ -58,7 +58,11 @@ export default function Phase2RoiEstimator({
   /** Persisted inputs, or undefined when this company has never been estimated. */
   initial?: Phase2Estimate;
 }) {
-  const { save, state: saveState } = useRecordSave(recordId);
+  // refresh:false — this component holds the authoritative estimator state, so a
+  // server round-trip would only echo back what is already on screen. Without it,
+  // every debounced save (which fires while someone is dragging the day slider)
+  // re-runs the whole RSC tree and then resets the inputs from the refreshed prop.
+  const { save, state: saveState } = useRecordSave(recordId, { refresh: false });
   const [est, setEst] = useState<Phase2Estimate>(initial ?? DEFAULT_PHASE2_ESTIMATE);
 
   // Never PATCH on mount — only once the operator has actually changed something.

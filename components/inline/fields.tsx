@@ -10,7 +10,21 @@ import { useRouter } from "next/navigation";
 
 type SaveState = "idle" | "saving" | "saved" | "error";
 
-export function useRecordSave(personId: string) {
+/**
+ * @param opts.refresh  Re-run the server tree after a successful save. Default true,
+ *   which is right for the single-field editors below: the saved value can change
+ *   things the server rendered (a paid date promotes a row to Client, notes recompose
+ *   against stored provenance), so the page has to catch up.
+ *
+ *   Pass `false` when the caller already holds the authoritative state and the server
+ *   would only echo it back. Every `router.refresh()` re-runs the whole RSC tree on top
+ *   of unbounded `select("*")` reads under `force-dynamic` — cheap once per deliberate
+ *   field edit, wasteful on a debounced autosave that fires while someone drags a
+ *   slider, and it fights the optimistic mirror below (the refreshed prop lands and
+ *   resets local state, which is visible as flicker).
+ */
+export function useRecordSave(personId: string, opts: { refresh?: boolean } = {}) {
+  const { refresh = true } = opts;
   const router = useRouter();
   const [state, setState] = useState<SaveState>("idle");
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -27,7 +41,7 @@ export function useRecordSave(personId: string) {
       setState("saved");
       if (timer.current) clearTimeout(timer.current);
       timer.current = setTimeout(() => setState("idle"), 1200);
-      router.refresh();
+      if (refresh) router.refresh();
       return true;
     } catch {
       setState("error");
@@ -41,6 +55,10 @@ export function useRecordSave(personId: string) {
 }
 
 function pulseClass(state: SaveState) {
+  // "saving" was reachable but unrendered until 2026-07-25: a slow save showed
+  // nothing at all between the keystroke and the amber confirm. In a UI with no
+  // Save button, that silent gap is the whole trust problem.
+  if (state === "saving") return "inline-pulse-saving";
   if (state === "saved") return "inline-pulse-saved";
   if (state === "error") return "inline-pulse-error";
   return "";
