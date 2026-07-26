@@ -42,6 +42,12 @@ export type ViewPickerItem = {
   scope: SavedView["scope"];
   href: string;
   selected: boolean;
+  /**
+   * Who owns the row. Carried so the control can offer Delete on this rep's own views
+   * only: the route matches on id AND `owner_id` (service_role bypasses RLS), so a delete
+   * button on a colleague's team view is a button whose only outcome is a 404.
+   */
+  owner_id: string;
 };
 
 /**
@@ -171,6 +177,7 @@ export function selectViewPicker(input: ViewPickerInput): ViewPickerModel {
     scope: v.scope,
     href: buildViewHref(pageUrl, v.id),
     selected: v.id === selectedId,
+    owner_id: v.owner_id,
   }));
 
   if (source === null) {

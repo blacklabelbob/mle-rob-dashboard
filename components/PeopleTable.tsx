@@ -9,6 +9,7 @@ import { TYPE_LABELS } from "@/lib/labels";
 import { InlineSelect, InlineText, InlineToggle } from "@/components/inline/fields";
 import { useTableRows } from "@/lib/filters/useTableRows";
 import { withShareToken } from "@/lib/filters/browserView";
+import ViewPicker from "@/components/ViewPicker";
 
 // People ledger — Attio/Linear standard: every cell is live. Click a value,
 // type, it saves on blur with an amber pulse. No edit mode, no Save button.
@@ -206,6 +207,11 @@ export default function PeopleTable({
   return (
     <div className="space-y-2">
       <div className="flex min-h-[34px] flex-wrap items-center gap-3">
+        {/* Q67b DoD — the picker. Always present, including on the unfiltered ledger:
+            "All people" IS a state, and a control that only appears once you are already
+            filtered can only be reached by hand-editing the URL, which is the exact thing
+            this closes. `source` comes from `useTableRows` so one reader owns the URL. */}
+        <ViewPicker source={view.source} />
         {checked.size > 0 ? (
           <div className="selection-bar flex items-center gap-3 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5">
             <span className="text-xs font-medium text-white">{checked.size} selected</span>
