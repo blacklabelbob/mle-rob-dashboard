@@ -63,6 +63,14 @@ export default function ViewPicker({ source }: { source: ViewSource | null }) {
     <div className="relative flex flex-wrap items-center gap-2 text-[11px]">
       <button
         onClick={() => setOpen((o) => !o)}
+        // The visible label is the STATE ("All people", "Shared link: probe") — it never
+        // says what the control is, which is how inc.13 searched the rendered page for a
+        // view picker and concluded it had not mounted. A rep reads the same page. The
+        // accessible name carries the noun; the visible label keeps carrying the state.
+        aria-label={`Saved views — ${model.label}`}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        title="Saved views"
         className={`rounded border px-2 py-1 transition ${
           model.selection === "unknown-view"
             ? "border-red-400/40 text-red-300 hover:bg-red-400/10"
