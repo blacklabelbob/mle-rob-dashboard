@@ -139,7 +139,22 @@ export function backfillStates(
   transcriptRows: readonly Record<string, unknown>[],
   segmentRows: readonly Record<string, unknown>[]
 ): ReadonlyMap<string, BackfillState> {
-  const counts = tallySegmentCounts(segmentRows);
+  return backfillStatesFromCounts(transcriptRows, tallySegmentCounts(segmentRows));
+}
+
+/**
+ * The same mapping, from counts that were counted somewhere else (inc.36).
+ *
+ * The database can answer "how many segments" without shipping the segment rows at all, and
+ * a row-shipping count is additionally capped by PostgREST's max-rows — a cap that would
+ * silently turn a long call into `complete-but-empty`. So the counting is left to the
+ * caller and only the mapping lives here; `backfillStates` keeps the row-tallying form for
+ * callers that already hold rows.
+ */
+export function backfillStatesFromCounts(
+  transcriptRows: readonly Record<string, unknown>[],
+  counts: ReadonlyMap<string, number>
+): ReadonlyMap<string, BackfillState> {
   const states = new Map<string, BackfillState>();
   for (const raw of transcriptRows) {
     const row = transcriptStateRow(raw);
