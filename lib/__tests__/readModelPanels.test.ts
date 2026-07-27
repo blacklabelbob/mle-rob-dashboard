@@ -131,9 +131,9 @@ describe("buildActionItemsPanel", () => {
     },
     {
       task_id: "task-homeclonevault-equity-signoff",
-      title: "HomeCloneVault 40/60 equity split — get paperwork SIGNED",
+      title: "HomeCloneVault 35/65 equity split — get the LOI SIGNED",
       status: "open",
-      due_date: "2026-07-29",
+      due_date: "2026-07-31",
       assigned_to: "Rob",
       deal_id: null,
       person_id: null,

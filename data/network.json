@@ -903,8 +903,8 @@
       "signed": false,
       "keyDates": {},
       "phaseOne": "not-started",
-      "description": "Phase-4 spinoff with Alex Greenwood: equity venture, 40/60 split AGREED VERBALLY, NOT YET SIGNED (Rob 2026-07-22). OWNERS-ONLY: high-level details are confidential from reps until Rob opens them (Phase-4 rule).",
-      "notes": "OWNERS-ONLY (Rob+Will). Source: Rob dump 7.22.26-2. Paperwork = the open item; recorded in Things to Address."
+      "description": "Phase-4 spinoff with Alex Greenwood: equity venture, 35/65 split AGREED VERBALLY, NOT YET SIGNED (Rob dev-chat #53, 2026-07-27 — corrected from the 40/60 recorded on 7/22: \"I told you we have a 40% split, its actully 35%\"). OWNERS-ONLY: high-level details are confidential from reps until Rob opens them (Phase-4 rule).",
+      "notes": "OWNERS-ONLY (Rob+Will). Source: Rob dump 7.22.26-2; split corrected to 35/65 by Rob dev-chat #53 (2026-07-27). Open item = LOI SIGNED (task-homeclonevault-equity-signoff)."
     },
     {
       "id": "the-title-base",
