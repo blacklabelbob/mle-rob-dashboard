@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import OrgProposalCreate from "./OrgProposalCreate";
-import { proposalDomain } from "@/lib/comms/proposalFlag";
+import { proposalDomain, resolveControlCopy } from "@/lib/comms/proposalFlag";
 
 // "Things to Address" (Rob 2026-07-22): findings Max surfaces, resolved in-place
 // with an optional note. Resolved items are never removed — they archive into an
@@ -183,7 +183,13 @@ export default function ThingsToAddress({
       {open.length === 0 && <p className="mt-2 text-sm text-slate-500">Nothing open. 🎉</p>}
 
       <ul className="mt-3 space-y-2.5">
-        {open.map((f) => (
+        {open.map((f) => {
+          // inc.18: on a proposal row the emerald button is not housekeeping —
+          // it shuts the domain out of the CRM for good (the proposal dedupe
+          // counts resolved titles as existing). One contract drives its label,
+          // its tooltip, the line under it and the note prompt.
+          const copy = resolveControlCopy(f.title);
+          return (
           <li key={f.id} className={`rounded-lg border px-3 py-2.5 ${sevStyle[f.severity]}`}>
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div className="min-w-0">
@@ -226,7 +232,7 @@ export default function ThingsToAddress({
                         if (e.key === "Enter") resolve(f.id, note);
                         if (e.key === "Escape") setNoteFor(null);
                       }}
-                      placeholder="optional note…"
+                      placeholder={copy.notePlaceholder}
                       className="w-52 rounded-md border border-white/20 bg-black/40 px-2 py-1 text-xs text-white outline-none"
                     />
                     <button
@@ -242,9 +248,10 @@ export default function ThingsToAddress({
                     <button
                       onClick={() => resolve(f.id, "")}
                       disabled={busy}
+                      title={copy.tooltip}
                       className="rounded-md bg-emerald-500/90 px-2.5 py-1 text-xs font-semibold text-white transition hover:bg-emerald-400"
                     >
-                      Resolve
+                      {copy.label}
                     </button>
                     <button
                       onClick={() => {
@@ -257,10 +264,17 @@ export default function ThingsToAddress({
                     </button>
                   </div>
                 )}
+                {/* Read BEFORE the click, which is the only moment it helps —
+                    and quiet, because a modal on the ledger's most-used button
+                    would tax every ordinary finding to warn about this one. */}
+                {copy.hint && (
+                  <p className="max-w-[19rem] text-right text-[11px] leading-snug text-slate-400">{copy.hint}</p>
+                )}
               </div>
             </div>
           </li>
-        ))}
+          );
+        })}
       </ul>
 
       {resolved.length > 0 && (

@@ -3,6 +3,7 @@ import {
   addressFromDetail,
   createOutcomeMessage,
   proposalDomain,
+  resolveControlCopy,
   suggestedNameFromDetail,
   verticalPickerState,
 } from "@/lib/comms/proposalFlag";
@@ -222,5 +223,70 @@ describe("verticalPickerState (Q69 inc.17 — the dead end, said out loud)", () 
   it("allows the create exactly when a real list and both fields are present", () => {
     const ok = verticalPickerState("ready", 1, true, true);
     expect(ok).toEqual({ notice: "", canCreate: true, blockReason: "" });
+  });
+});
+
+describe("resolveControlCopy (inc.18 — the permanent click, labelled)", () => {
+  const proposal = proposalTitle("the-title-base.com");
+
+  it("leaves an ordinary finding's control exactly as it was", () => {
+    // 99% of the ledger is not proposals. A permanence warning on a row where
+    // nothing is permanent teaches Rob to ignore the line that matters.
+    expect(resolveControlCopy("PropLogix — business name mismatch")).toEqual({
+      label: "Resolve",
+      tooltip: "mark this handled",
+      hint: "",
+      notePlaceholder: "optional note…",
+    });
+  });
+
+  it("stops calling the proposal's button a resolve", () => {
+    // "Resolve" reads as ledger housekeeping; the click decides the domain is
+    // not a company, forever. The label has to be the decision.
+    expect(resolveControlCopy(proposal).label).not.toBe("Resolve");
+    expect(resolveControlCopy(proposal).label).toBe("Not a company");
+  });
+
+  it("names the permanence and the domain it applies to, before the click", () => {
+    const copy = resolveControlCopy(proposal);
+    expect(copy.hint).toContain("the-title-base.com");
+    expect(copy.hint).toContain("permanent");
+    expect(copy.hint).toContain("won't be proposed again");
+  });
+
+  it("points at the button that does the other thing", () => {
+    // A reviewer who reads "permanent" and wants the company must be told,
+    // in the same sentence, where the non-destructive click is.
+    expect(resolveControlCopy(proposal).hint).toContain("Create company");
+  });
+
+  it("never lets the tooltip and the hint claim different things (inc.17 rule)", () => {
+    const copy = resolveControlCopy(proposal);
+    for (const s of [copy.tooltip, copy.hint]) {
+      expect(s).toContain("the-title-base.com");
+      expect(s.toLowerCase()).toContain("permanent");
+      expect(s).toContain("again");
+    }
+  });
+
+  it("asks for the reason a domain was shut out, not an optional note", () => {
+    // The note is the ONLY record of why this domain can never come back.
+    // "optional note…" is an invitation to leave that record blank.
+    expect(resolveControlCopy(proposal).notePlaceholder).not.toContain("optional");
+    expect(resolveControlCopy(proposal).notePlaceholder).toContain("company");
+  });
+
+  it("treats a prefix-only title as an ordinary flag, never a half-written warning", () => {
+    // proposalDomain returns null for an empty domain; a hint reading
+    // "…: won't be proposed again" would be a warning about nothing.
+    expect(resolveControlCopy("New company domain: ").hint).toBe("");
+    expect(resolveControlCopy("New company domain: ").label).toBe("Resolve");
+  });
+
+  it("warns on exactly the flags whose dismissal is permanent", () => {
+    // The dedupe that makes it permanent keys on the title (existingTitles
+    // selects any status), so the same title contract must drive the copy.
+    const flag = proposalToFlag({ domain: "roofco.com", suggestedName: "Roofco", address: "a@roofco.com" });
+    expect(resolveControlCopy(flag.title).hint).not.toBe("");
   });
 });

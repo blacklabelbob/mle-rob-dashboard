@@ -164,3 +164,56 @@ export function verticalPickerState(
   if (!hasVertical) return { notice: "", canCreate: false, blockReason: "pick a vertical" };
   return { notice: "", canCreate: true, blockReason: "" };
 }
+
+/**
+ * Q69 inc.18 — the OTHER button on a proposal, and what it really does.
+ *
+ * inc.15 found that resolving a proposal silently loses a company and answered
+ * it by ADDING the Create control beside it. The destructive click itself was
+ * never touched: on a proposal row, "Resolve" still reads as ordinary ledger
+ * housekeeping ("done with this for now") while doing something permanent.
+ * `supabaseProposalSink.existingTitles` selects flags at ANY status — its own
+ * comment: "resolved means 'no'" — so once this title is resolved, inc.3's
+ * dedupe never proposes that domain again. Every future email to the company
+ * is deduped against a flag Rob dismissed in a hurry, and no surface anywhere
+ * says the door closed. Same class as inc.16/inc.17: a real outcome the
+ * interface erased, this time the irreversible one.
+ *
+ * NOT A CONFIRM DIALOG. A modal on the ledger's most-used button taxes the
+ * ordinary findings to warn about the rare one, and "are you sure?" is the
+ * MS-DOS answer to a UI question. The honest fix is cheaper: on a proposal row
+ * only, the button stops claiming to be a resolve, says what it decides
+ * ("Not a company"), names the permanence in one quiet line, and points at the
+ * button that does the other thing. The reviewer reads it BEFORE the click,
+ * which is the only moment the sentence is worth anything.
+ *
+ * The note placeholder changes with it. On a proposal, the note is the only
+ * record of WHY a domain was shut out of the CRM forever — a reviewer asked
+ * "optional note…" writes nothing, and next quarter nobody can tell a vendor
+ * from a missed customer.
+ *
+ * Ordinary flags get their existing copy back, unchanged and hint-free: 99% of
+ * the ledger is not proposals, and a permanence warning on a row where nothing
+ * is permanent is noise that teaches Rob to ignore the line that matters.
+ */
+export type ResolveCopy = { label: string; tooltip: string; hint: string; notePlaceholder: string };
+
+export function resolveControlCopy(title: string): ResolveCopy {
+  const domain = proposalDomain(title);
+  if (!domain) {
+    return {
+      label: "Resolve",
+      tooltip: "mark this handled",
+      hint: "",
+      notePlaceholder: "optional note…",
+    };
+  }
+  return {
+    label: "Not a company",
+    // The tooltip and the hint carry the same fact, because the button and the
+    // line beneath it disagreeing is the inc.17 defect.
+    tooltip: `permanent — ${domain} is never proposed again`,
+    hint: `Dismissing is permanent: ${domain} won't be proposed again. If it is a company, use Create company.`,
+    notePlaceholder: "why isn't this a company?",
+  };
+}
