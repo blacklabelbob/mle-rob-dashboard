@@ -148,3 +148,88 @@ describe("emailToActivity", () => {
     expect(a.summary).toBe("Re: title data");
   });
 });
+
+// Q69 inc.2 — the ladder is wired in. These pin the behaviour that was
+// impossible before: rung 3 (known company, unknown human) and the two ways a
+// naive index would put mail on the wrong record.
+describe("matchContact — the whole ladder (Q69 inc.2)", () => {
+  const ladderData: NetworkData = {
+    ...data,
+    people: [
+      ...data.people,
+      person({
+        id: "gulf",
+        name: "Gulf Coast",
+        entityKind: "company",
+        website: "https://www.GulfCoast.com/about",
+      }),
+      // A one-person shop whose only address is consumer mail. Real row; must
+      // never end up owning gmail.com.
+      person({
+        id: "solo-roofer-co",
+        name: "Solo Roofing LLC",
+        entityKind: "company",
+        email: "soloroofing@gmail.com",
+      }),
+      // A known customer AT a generic domain — recognition must beat the
+      // blocklist, or his mail falls off a record the rep can see.
+      person({ id: "caleb", name: "Caleb", email: "caleb.roofs@gmail.com" }),
+    ],
+  };
+
+  it("RUNG 3: a stranger at a company we know anchors to the ORG", () => {
+    const m = matchContact(ladderData, inbound({ from: "newhire@gulfcoast.com" }));
+    expect(m?.person.id).toBe("gulf");
+    expect(m?.matchedBy).toBe("org-domain");
+  });
+
+  it("the website's www./scheme/path never break the domain match", () => {
+    expect(matchContact(ladderData, inbound({ from: "a@GULFCOAST.com" }))?.person.id).toBe(
+      "gulf"
+    );
+  });
+
+  it("a person beats an org even when the org address is listed first", () => {
+    const m = matchContact(
+      ladderData,
+      inbound({ from: "newhire@proplogix.com", cc: "jpolk@proplogix.com" })
+    );
+    expect(m?.person.id).toBe("polk");
+    expect(m?.matchedBy).toBe("person-email");
+  });
+
+  it("a company at a generic domain claims NOTHING — gmail is not its domain", () => {
+    expect(matchContact(ladderData, inbound({ from: "stranger@gmail.com" }))).toBeNull();
+  });
+
+  it("but that company's own address still matches, on rung 1", () => {
+    expect(
+      matchContact(ladderData, inbound({ from: "soloroofing@gmail.com" }))?.person.id
+    ).toBe("solo-roofer-co");
+  });
+
+  it("recognition outranks the blocklist: a known customer @gmail.com still matches", () => {
+    expect(
+      matchContact(ladderData, inbound({ from: "Caleb <Caleb.Roofs@gmail.com>" }))?.person.id
+    ).toBe("caleb");
+  });
+
+  it("RUNG 7: receiving from an unknown domain anchors nothing", () => {
+    expect(matchContact(ladderData, inbound({ from: "cold@brandnewco.com" }))).toBeNull();
+  });
+
+  it("rung 6 is a PROPOSAL, not an anchor — outbound to a stranger still matches nothing", () => {
+    const m = matchContact(
+      ladderData,
+      inbound({ from: "Rob <rob@aivoicetech.io>", to: "cold@brandnewco.com" })
+    );
+    expect(m).toBeNull();
+  });
+
+  it("a person's own address never lends their employer's domain to their record", () => {
+    // polk is a PERSON at proplogix.com; a colleague must not anchor to him.
+    const m = matchContact(data, inbound({ from: "colleague@proplogix.com" }));
+    expect(m?.person.id).toBe("proplogic"); // the company row, via its own email domain
+    expect(m?.matchedBy).toBe("org-domain");
+  });
+});

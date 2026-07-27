@@ -1,3 +1,5 @@
+import { type EmailDirection, type GraphIndex, planEmailGraph } from "./comms/emailGraph";
+import { buildGraphIndex } from "./comms/emailGraphIndex";
 import type { Activity, NetworkData, Person } from "./types";
 import { verifyVapiSecret } from "./vapi";
 
@@ -84,23 +86,52 @@ export function identityGate(payload: EmailPayload): GateVerdict {
 export interface ContactMatch {
   person: Person; // may be an entityKind:"company" row — anchor decides
   email: string; // the counterpart address that matched
+  matchedBy: "person-email" | "org-domain"; // which rung anchored it
+}
+
+// The direction of the message from OUR side: Rob sending is outbound. The
+// ladder needs this because rung 6/7 turn on it — sending to a new domain may
+// propose a company, receiving from one may not.
+export function directionOf(payload: EmailPayload): EmailDirection {
+  return extractAddress(payload.from) === CAPTURE_IDENTITY ? "outbound" : "inbound";
 }
 
 // Match the message's counterpart (everyone except Rob's capture address) to a
-// CRM record by email. Rob's own record also carries the capture address, so
-// excluding it here is what stops every email anchoring to Rob himself.
+// CRM record. Rob's own record also carries the capture address, so excluding
+// it here is what stops every email anchoring to Rob himself.
+//
+// Q69 inc.2: this used to be rung 1 alone — an exact `people.email` hit — so a
+// new person at a company we already know fell off the CRM entirely. It now
+// runs the whole ladder (lib/comms/emailGraph.ts). Rung 3 anchors that mail to
+// the ORG, which is the difference between a timeline and a CRM.
+//
+// Every counterpart is walked to the end before settling, and a person beats an
+// org: on a thread where a known contact is cc'd alongside a stranger at the
+// same company, the mail belongs on the human's record, not the company's —
+// which address happened to be listed first is not a ranking.
 export function matchContact(
   data: NetworkData,
-  payload: EmailPayload
+  payload: EmailPayload,
+  index: GraphIndex = buildGraphIndex(data)
 ): ContactMatch | null {
   const counterparts = allParties(payload).filter((a) => a !== CAPTURE_IDENTITY);
+  const direction = directionOf(payload);
+  const byId = new Map(data.people.map((p) => [p.id, p]));
+  let orgMatch: ContactMatch | null = null;
+
   for (const address of counterparts) {
-    const person = data.people.find(
-      (p) => p.email && p.email.trim().toLowerCase() === address
-    );
-    if (person) return { person, email: address };
+    const plan = planEmailGraph(address, direction, index);
+    if (plan.kind === "person") {
+      const person = byId.get(plan.personId);
+      // An index entry with no row behind it is a stale index, not a match —
+      // fabricating an anchor here would put the mail on nobody's timeline.
+      if (person) return { person, email: address, matchedBy: "person-email" };
+    } else if (plan.kind === "org" && !orgMatch) {
+      const org = byId.get(plan.orgId);
+      if (org) orgMatch = { person: org, email: address, matchedBy: "org-domain" };
+    }
   }
-  return null;
+  return orgMatch;
 }
 
 // Deterministic id from the Gmail message id → upsert is idempotent and the
@@ -114,8 +145,7 @@ export function emailToActivity(
   match: ContactMatch,
   nowIso: string
 ): Activity {
-  const direction =
-    extractAddress(payload.from) === CAPTURE_IDENTITY ? "outbound" : "inbound";
+  const direction = directionOf(payload);
   const parsed = payload.date ? Date.parse(payload.date) : NaN;
   const occurredAt = Number.isNaN(parsed) ? nowIso : new Date(parsed).toISOString();
   const isCompany = match.person.entityKind === "company";
@@ -136,6 +166,9 @@ export function emailToActivity(
       subject,
       from: extractAddress(payload.from),
       matchedAddress: match.email,
+      // Which rung anchored it. An org-domain match means the human is NOT in
+      // the CRM yet — the rep reading the row should see that, not guess.
+      matchedBy: match.matchedBy,
       capturedMailbox: CAPTURE_IDENTITY,
     },
     summary: payload.snippet?.trim()
