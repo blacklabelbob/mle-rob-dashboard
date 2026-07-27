@@ -8,6 +8,7 @@ import {
   matchContact,
   n8nEmailConfigured,
   n8nEmailEnv,
+  partiesOf,
   verifyN8nSecret,
   type EmailPayload,
 } from "@/lib/n8nEmail";
@@ -15,6 +16,8 @@ import { buildGraphIndex } from "@/lib/comms/emailGraphIndex";
 import { resolveMailboxLink } from "@/lib/comms/mailboxLink";
 import { planOrgProposals, recordOrgProposals } from "@/lib/comms/orgProposal";
 import { supabaseProposalSink } from "@/lib/comms/orgProposalSink";
+import { planPeopleForEmail } from "@/lib/comms/emailPeople";
+import { applyPeopleWrites } from "@/lib/comms/emailPeopleWrites";
 
 export const dynamic = "force-dynamic";
 
@@ -112,7 +115,47 @@ export async function POST(req: Request) {
     });
   }
 
-  const activity = emailToActivity(payload, match, new Date().toISOString(), link);
+  const capturedAt = new Date().toISOString();
+
+  // Q69 inc.12 — the people half reaches the store. Rungs 1–3 anchored this
+  // message; rung 3 means the human behind it is NOT in the CRM yet, and until
+  // now that human stayed invisible while their mail filed on the company.
+  // The planner (inc.11) decides every counterpart at once — the capture
+  // mailbox removed, because Rob's own record carries that address and leaving
+  // it in would merge every message into Rob.
+  const people = planPeopleForEmail({
+    data,
+    parties: partiesOf(payload).filter((p) => p.address !== link.address),
+    direction: directionOf(payload, link),
+    index,
+    capturedAtISO: capturedAt,
+    emailDateISO: payload.date,
+  });
+  let peopleWritten = { created: [] as string[], merged: [] as string[] };
+  if (people.writes.length > 0) {
+    const res = await applyPeopleWrites(people.writes, store);
+    peopleWritten = { created: res.created, merged: res.merged };
+    if (res.failed.length > 0) {
+      // Loud, never swallowed: a person we failed to create is a human the rep
+      // will not see. The email itself still lands — losing the timeline row
+      // too would make one failed write cost us the message as well.
+      console.error(
+        "[n8n-email] person write FAILED",
+        payload.messageId,
+        res.failed.map((f) => `${f.kind}:${f.personId}:${f.error}`).join(" | ")
+      );
+    }
+    console.log(
+      "[n8n-email] people",
+      payload.messageId,
+      "created:",
+      res.created.join(",") || "none",
+      "merged:",
+      res.merged.join(",") || "none"
+    );
+  }
+
+  const activity = emailToActivity(payload, match, capturedAt, link);
   await store.upsertActivity(activity);
   console.log(
     "[n8n-email] ingested",
@@ -120,5 +163,11 @@ export async function POST(req: Request) {
     "→",
     activity.personId ? `person:${activity.personId}` : `org:${activity.orgId}`
   );
-  return NextResponse.json({ ok: true, ingested: true, activityId: activity.id });
+  return NextResponse.json({
+    ok: true,
+    ingested: true,
+    activityId: activity.id,
+    peopleCreated: peopleWritten.created,
+    peopleMerged: peopleWritten.merged,
+  });
 }
