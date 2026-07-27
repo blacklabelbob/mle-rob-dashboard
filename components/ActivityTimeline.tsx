@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { TIMELINE_TYPE_STYLE, type TimelineEntry, type TimelineEntryType } from "@/lib/repSource";
 import { awaitingSummaryLine, callDetail, type CallTimelineDetail } from "@/lib/calls/callTimeline";
 import CallTranscript from "./CallTranscript";
+import CallRecording from "./CallRecording";
 
 // Activity timeline on the account workspace. Tries the real feed first
 // (/api/admin/activities — empty until Phase 8/9 logging lands); DEMO records
@@ -61,18 +62,18 @@ function CallDetail({ detail }: { detail: CallTimelineDetail }) {
               partial transcript
             </span>
           )}
-          {detail.recordingUrl && (
-            <a
-              href={detail.recordingUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="text-sky-400 underline-offset-2 hover:underline"
-            >
-              recording
-            </a>
-          )}
         </div>
       )}
+
+      {/* Q68 inc.31: the player replaces what used to be a raw link to the Twilio URL —
+          account-protected, so it 401'd the rep, and unprotected it would have been customer
+          speech on a login-free URL (recordingAudio rule 3). Playback goes through our route. */}
+      <CallRecording
+        recordingSid={detail.recordingSid}
+        recordingUrl={detail.recordingUrl}
+        direction={detail.direction}
+        duration={detail.duration}
+      />
 
       {detail.actionItems && detail.actionItems.length > 0 && (
         <ul className="space-y-0.5 text-xs text-slate-300">

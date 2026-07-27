@@ -121,6 +121,38 @@ export function playbackLabel(detail: { direction?: string | null; duration?: st
 }
 
 /**
+ * What to tell a rep when `<audio>` fires `error`, or null to say nothing.
+ *
+ * inc.31. `<audio>` reports EVERY failure as a `MediaError` code and nothing else — our
+ * route's 502 (Twilio refused us), its 503 (no credential configured) and its 404 (no such
+ * recording) all arrive here as the SAME code 4, MEDIA_ERR_SRC_NOT_SUPPORTED. So:
+ *
+ *  - THE SENTENCE NEVER NAMES A CAUSE THE CODE DOES NOT CARRY. "This recording's format is
+ *    unsupported" is the literal reading of code 4 and it is a lie about a Twilio mp3 —
+ *    it sends the rep (and whoever they tell) hunting a codec bug that does not exist,
+ *    when the real answer is an env var or an outage. We say we could not load it.
+ *  - AN ABORT IS NOT A FAILURE. Code 1 fires when the rep navigates away or the element is
+ *    torn down mid-load. There is no one left to read a sentence about it, and printing an
+ *    error over a normal action teaches reps to ignore the ones that matter. → null.
+ *  - AN UNKNOWN CODE STILL SPEAKS. A player that dies silently is inc.28's dead play button
+ *    rebuilt one layer down, so anything unrecognised gets the general sentence.
+ */
+export function playbackErrorNotice(code: unknown): string | null {
+  if (code === 1) return null; // MEDIA_ERR_ABORTED — the rep's own action.
+  if (code === 2) {
+    // MEDIA_ERR_NETWORK: the fetch started and broke. Distinguishable, and worth saying,
+    // because "try again" is the right advice here and is NOT the right advice for a 503.
+    return "The recording stopped loading part way through. Try playing it again.";
+  }
+  if (code === 3) {
+    // MEDIA_ERR_DECODE: bytes arrived and were not audio. inc.29's HTML-error-page-with-a-200
+    // lands here, which is exactly why that case is refused upstream rather than piped.
+    return "The recording came back damaged and could not be played.";
+  }
+  return "We could not load this recording. The call and its transcript are unaffected.";
+}
+
+/**
  * Seconds to seek to for a moment, or null.
  *
  * inc.27 rule 2 survives the last hop: a moment with no known time does not seek to 0 —

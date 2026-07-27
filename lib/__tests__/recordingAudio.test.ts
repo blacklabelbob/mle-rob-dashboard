@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   RECORDING_MEDIA_PATH,
+  playbackErrorNotice,
   playbackLabel,
   playbackSource,
   seekSeconds,
@@ -117,6 +118,47 @@ describe("seekSeconds", () => {
   it("never turns an unknown time into 0:00 (inc.27 rule 2 at the last hop)", () => {
     for (const bad of [null, undefined, NaN, Infinity, -1, "7", {}]) {
       expect(seekSeconds(bad)).toBeNull();
+    }
+  });
+});
+
+// inc.31 — the sentence a rep reads when <audio> fires `error`.
+describe("playbackErrorNotice", () => {
+  it("never names a cause the code does not carry (code 4 is every HTTP failure)", () => {
+    // Our route's 502 / 503 / 404 all reach the element as MEDIA_ERR_SRC_NOT_SUPPORTED.
+    const notice = playbackErrorNotice(4);
+    expect(notice).toBeTruthy();
+    // The literal reading of code 4 — and a lie about a Twilio mp3 that sends the rep
+    // chasing a codec bug when the answer is an env var or an outage.
+    expect(notice).not.toMatch(/format|codec|unsupported/i);
+    expect(notice).toMatch(/could not load/i);
+  });
+
+  it("says nothing about an abort — that is the rep's own action, not a failure", () => {
+    expect(playbackErrorNotice(1)).toBeNull();
+  });
+
+  it("separates a broken stream from a broken configuration", () => {
+    // "Try again" is right for a dropped network fetch and wrong for a missing credential,
+    // so the two must not share a sentence.
+    expect(playbackErrorNotice(2)).toMatch(/again/i);
+    expect(playbackErrorNotice(4)).not.toMatch(/again/i);
+  });
+
+  it("calls damaged bytes damaged (inc.29's HTML-page-with-a-200, had it been piped)", () => {
+    expect(playbackErrorNotice(3)).toMatch(/damaged/i);
+  });
+
+  it("still speaks for an unrecognised or missing code — a silent player is the bug", () => {
+    for (const code of [null, undefined, 0, 99, "4", {}, NaN]) {
+      expect(playbackErrorNotice(code)).toBeTruthy();
+    }
+  });
+
+  it("never mentions Twilio or a URL to the rep", () => {
+    for (const code of [2, 3, 4, 99]) {
+      const notice = playbackErrorNotice(code) ?? "";
+      expect(notice).not.toMatch(/twilio|http|\/api\//i);
     }
   });
 });
