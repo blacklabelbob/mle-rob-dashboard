@@ -37,7 +37,8 @@ import type { PersonWriteFailure } from "./emailPeopleWrites";
 export type IngestProblem =
   | { kind: "person-write"; addresses: string[]; detail: string }
   | { kind: "proposal-queue-failed"; domains: string[]; detail: string }
-  | { kind: "proposal-store-unconfigured"; domains: string[]; detail: string };
+  | { kind: "proposal-store-unconfigured"; domains: string[]; detail: string }
+  | { kind: "activity-write"; messageId: string; detail: string };
 
 /** One schema for every 200 this route returns — matched and unmatched alike. */
 export interface WebhookOutcome {
@@ -168,23 +169,64 @@ export function proposalOutcome(input: ProposalOutcomeInput): WebhookOutcome {
 
 export interface IngestOutcomeInput {
   activityId: string;
+  /** The provider's message id — the only handle on a message we failed to file. */
+  messageId: string;
   created: string[];
   merged: string[];
   failed: PersonWriteFailure[];
+  /** Set when the activity write itself threw (Q69 inc.23). */
+  activityError?: unknown;
 }
 
-/** The matched branch: the message landed on a record; people may not have. */
+/**
+ * The matched branch: the message landed on a record; people may not have.
+ *
+ * Q69 inc.23 — AND THE MESSAGE ITSELF MAY NOT HAVE. inc.22 gave every
+ * *secondary* write a typed problem and left the one write this route exists for
+ * unguarded: a throw from `upsertActivity` escaped as a framework 500, breaking
+ * both of inc.22's pinned rules at once (status 200 so n8n never retry-loops,
+ * every key always present) and taking the people that DID land out of the
+ * answer with it. A 500 also reads to n8n as "endpoint down" — indistinguishable
+ * from a deploy blip — when the true state is "this specific message is lost and
+ * some of its people are now in the CRM", which is exactly the state a blind
+ * redelivery must not be based on.
+ *
+ * NO `activityId` WHEN THE WRITE FAILED. The id is generated before the write,
+ * so it exists in the response and nowhere else; quoting it sends whoever reads
+ * this hunting a timeline row that was never written (same rule inc.22 applied
+ * to failed person ids). The provider `messageId` is reported instead — it is
+ * the handle that survives in Rob's own mailbox.
+ */
 export function ingestOutcome(input: IngestOutcomeInput): WebhookOutcome {
-  const problem = personWriteProblem(input.failed);
+  const personProblem = personWriteProblem(input.failed);
+  const landed = input.activityError === undefined;
+
+  const problems: IngestProblem[] = [];
+  if (!landed) {
+    const partial =
+      input.created.length + input.merged.length > 0
+        ? ` ${input.created.length + input.merged.length} ${plural(input.created.length + input.merged.length, "person on this message was", "people on this message were")} still written, so this message is not safe to replay blindly.`
+        : "";
+    problems.push({
+      kind: "activity-write",
+      messageId: input.messageId,
+      detail:
+        `The email matched a record but could not be filed on its timeline — ` +
+        `message ${input.messageId} is lost to the CRM and no rep will ever see it. ` +
+        `Cause: ${messageOf(input.activityError)}.${partial}`,
+    });
+  }
+  if (personProblem) problems.push(personProblem);
+
   return {
     ok: true,
-    ingested: true,
-    complete: problem === null,
-    activityId: input.activityId,
+    ingested: landed,
+    complete: problems.length === 0,
+    ...(landed ? { activityId: input.activityId } : {}),
     proposedOrgs: [],
     alreadyQueued: [],
     peopleCreated: [...input.created],
     peopleMerged: [...input.merged],
-    problems: problem ? [problem] : [],
+    problems,
   };
 }

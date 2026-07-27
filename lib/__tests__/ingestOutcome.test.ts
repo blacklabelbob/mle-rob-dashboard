@@ -17,7 +17,7 @@ const failure = (over: Partial<PersonWriteFailure> = {}): PersonWriteFailure => 
 describe("Q69 inc.22 — the webhook answer stops lying", () => {
   it("reports a clean ingest as complete with no problems", () => {
     expect(
-      ingestOutcome({ activityId: "act-1", created: ["p1"], merged: [], failed: [] })
+      ingestOutcome({ activityId: "act-1", messageId: "msg-1", created: ["p1"], merged: [], failed: [] })
     ).toEqual({
       ok: true,
       ingested: true,
@@ -34,6 +34,7 @@ describe("Q69 inc.22 — the webhook answer stops lying", () => {
   it("a failed person write flips complete to false and names the address", () => {
     const out = ingestOutcome({
       activityId: "act-2",
+      messageId: "msg-2",
       created: ["p1"],
       merged: [],
       failed: [failure()],
@@ -59,7 +60,7 @@ describe("Q69 inc.22 — the webhook answer stops lying", () => {
     // The route's contract is that n8n never retry-loops; a later increment may
     // change that, but not by accident.
     expect(
-      ingestOutcome({ activityId: "a", created: [], merged: [], failed: [failure()] }).ok
+      ingestOutcome({ activityId: "a", messageId: "m", created: [], merged: [], failed: [failure()] }).ok
     ).toBe(true);
     expect(
       proposalOutcome({ planned: ["roofco.com"], storeConfigured: true, error: new Error("x") }).ok
@@ -133,8 +134,10 @@ describe("Q69 inc.22 — the webhook answer stops lying", () => {
 
   it("every key is present on every branch, and no undefined leaks into a message", () => {
     const outcomes = [
-      ingestOutcome({ activityId: "a", created: [], merged: [], failed: [] }),
-      ingestOutcome({ activityId: "a", created: [], merged: [], failed: [failure()] }),
+      ingestOutcome({ activityId: "a", messageId: "m", created: [], merged: [], failed: [] }),
+      ingestOutcome({ activityId: "a", messageId: "m", created: [], merged: [], failed: [failure()] }),
+      ingestOutcome({ activityId: "a", messageId: "m", created: [], merged: [], failed: [], activityError: new Error("boom") }),
+      ingestOutcome({ activityId: "a", messageId: "m", created: ["p1"], merged: [], failed: [failure()], activityError: "reset" }),
       proposalOutcome({ planned: [], storeConfigured: true }),
       proposalOutcome({ planned: ["x.com"], storeConfigured: false }),
       proposalOutcome({ planned: ["x.com"], storeConfigured: true, error: undefined }),
@@ -162,5 +165,94 @@ describe("Q69 inc.22 — the webhook answer stops lying", () => {
     const out = proposalOutcome({ planned: ["x.com"], storeConfigured: true, error: "" });
     expect(out.complete).toBe(false);
     expect(out.problems[0].detail).toContain("unknown error");
+  });
+});
+
+describe("Q69 inc.23 — the activity write can fail out loud too", () => {
+  const failed = (over: Record<string, unknown> = {}) =>
+    ingestOutcome({
+      activityId: "act-9",
+      messageId: "CADm=msg-9@mail.gmail.com",
+      created: [],
+      merged: [],
+      failed: [],
+      activityError: new Error("upstream timeout"),
+      ...over,
+    });
+
+  it("a failed activity write says the message is lost, not that it landed", () => {
+    const out = failed();
+    expect(out.ingested).toBe(false);
+    expect(out.complete).toBe(false);
+    expect(out.problems).toHaveLength(1);
+    expect(out.problems[0].kind).toBe("activity-write");
+    expect(out.problems[0].detail).toContain("upstream timeout");
+    expect(out.problems[0].detail).toContain("no rep will ever see it");
+  });
+
+  it("names the provider messageId and NEVER the activity id that was never written", () => {
+    const out = failed();
+    expect(out.activityId).toBeUndefined();
+    expect(JSON.stringify(out)).not.toContain("act-9");
+    expect(out.problems[0]).toMatchObject({ messageId: "CADm=msg-9@mail.gmail.com" });
+  });
+
+  it("keeps the 200/ok:true contract so n8n never retry-loops on a lost message", () => {
+    expect(failed().ok).toBe(true);
+  });
+
+  it("still reports the people that DID land, and warns replay is not safe", () => {
+    const out = failed({ created: ["person-dana"], merged: ["person-sam"] });
+    expect(out.peopleCreated).toEqual(["person-dana"]);
+    expect(out.peopleMerged).toEqual(["person-sam"]);
+    expect(out.problems[0].detail).toContain("2 people on this message were still written");
+    expect(out.problems[0].detail).toContain("not safe to replay blindly");
+  });
+
+  it("says nothing about replay when no person write landed (no invented warning)", () => {
+    expect(failed().problems[0].detail).not.toContain("replay");
+  });
+
+  it("singularises the partial-write warning", () => {
+    expect(failed({ created: ["person-dana"] }).problems[0].detail).toContain(
+      "1 person on this message was still written"
+    );
+  });
+
+  it("reports BOTH failures when the people half failed as well", () => {
+    const out = failed({ failed: [failure()] });
+    expect(out.problems.map((p) => p.kind)).toEqual(["activity-write", "person-write"]);
+    expect(out.complete).toBe(false);
+  });
+
+  it("a successful write is untouched by this increment", () => {
+    const out = ingestOutcome({
+      activityId: "act-1",
+      messageId: "m",
+      created: [],
+      merged: [],
+      failed: [],
+    });
+    expect(out).toMatchObject({ ingested: true, complete: true, activityId: "act-1", problems: [] });
+  });
+
+  it("an undefined activityError is a success, not a silent failure", () => {
+    expect(
+      ingestOutcome({
+        activityId: "a",
+        messageId: "m",
+        created: [],
+        merged: [],
+        failed: [],
+        activityError: undefined,
+      }).ingested
+    ).toBe(true);
+  });
+
+  it("a thrown non-Error still yields a readable cause", () => {
+    expect(failed({ activityError: "connection reset" }).problems[0].detail).toContain(
+      "connection reset"
+    );
+    expect(failed({ activityError: null }).problems[0].detail).toContain("unknown error");
   });
 });

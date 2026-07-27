@@ -167,19 +167,31 @@ export async function POST(req: Request) {
   }
 
   const activity = emailToActivity(payload, match, capturedAt, link);
-  await store.upsertActivity(activity);
-  console.log(
-    "[n8n-email] ingested",
-    payload.messageId,
-    "→",
-    activity.personId ? `person:${activity.personId}` : `org:${activity.orgId}`
-  );
+  // Q69 inc.23 — the write this route exists for is no longer the only one that
+  // can take the route down. A throw here used to escape as a framework 500,
+  // which breaks the route's own contract (200 so n8n never retry-loops) and
+  // reads to n8n as "endpoint down" rather than "this message is lost".
+  let activityError: unknown;
+  try {
+    await store.upsertActivity(activity);
+    console.log(
+      "[n8n-email] ingested",
+      payload.messageId,
+      "→",
+      activity.personId ? `person:${activity.personId}` : `org:${activity.orgId}`
+    );
+  } catch (err) {
+    activityError = err;
+    console.error("[n8n-email] activity write FAILED", payload.messageId, err);
+  }
   return NextResponse.json(
     ingestOutcome({
       activityId: activity.id,
+      messageId: payload.messageId,
       created: peopleWritten.created,
       merged: peopleWritten.merged,
       failed: peopleWritten.failed,
+      activityError,
     })
   );
 }
