@@ -90,3 +90,61 @@ describe("buildGraphIndex", () => {
     expect(i.orgIdByDomain.get("gulfcoastroofing.net")).toBe("gulf");
   });
 });
+
+// Q69 inc.8. 0022's unique index stops two rows sharing the `domain` COLUMN.
+// These are the collisions it cannot see — and the reason the ladder needs the
+// set as well as the constraint.
+describe("contested domains", () => {
+  it("marks a domain two different companies claim", () => {
+    const i = buildGraphIndex(
+      net([
+        person({ id: "roofco-a", entityKind: "company", website: "https://roofco.com" }),
+        person({ id: "roofco-b", entityKind: "company", email: "info@roofco.com" }),
+      ])
+    );
+    expect(i.contestedDomains.has("roofco.com")).toBe(true);
+    // The map stays total — first claimant kept, so nothing downstream reading
+    // `orgIdByDomain` has to handle a hole.
+    expect(i.orgIdByDomain.get("roofco.com")).toBe("roofco-a");
+  });
+
+  it("does NOT contest a row that claims the same domain twice", () => {
+    // The normal case: website and email agree. Counting claims instead of
+    // comparing ids would flag every well-filled company row in the CRM.
+    const i = buildGraphIndex(
+      net([
+        person({
+          id: "gulf",
+          entityKind: "company",
+          website: "https://gulfcoast.com",
+          email: "info@gulfcoast.com",
+        }),
+      ])
+    );
+    expect(i.contestedDomains.size).toBe(0);
+    expect(i.orgIdByDomain.get("gulfcoast.com")).toBe("gulf");
+  });
+
+  it("does not contest a domain a PERSON row shares with their employer", () => {
+    // Person rows contribute no domain at all — the pair below is one claim.
+    const i = buildGraphIndex(
+      net([
+        person({ id: "org", entityKind: "company", website: "roofco.com" }),
+        person({ id: "human", email: "jane@roofco.com" }),
+      ])
+    );
+    expect(i.contestedDomains.size).toBe(0);
+    expect(i.orgIdByDomain.get("roofco.com")).toBe("org");
+  });
+
+  it("never contests a generic domain — neither row ever claimed it", () => {
+    const i = buildGraphIndex(
+      net([
+        person({ id: "one", entityKind: "company", email: "a@gmail.com" }),
+        person({ id: "two", entityKind: "company", email: "b@gmail.com" }),
+      ])
+    );
+    expect(i.contestedDomains.has("gmail.com")).toBe(false);
+    expect(i.orgIdByDomain.has("gmail.com")).toBe(false);
+  });
+});

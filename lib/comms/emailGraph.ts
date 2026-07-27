@@ -26,7 +26,8 @@ export type GraphSkipReason =
   | "unparseable-address"
   | "generic-domain"
   | "role-account"
-  | "inbound-unknown-domain";
+  | "inbound-unknown-domain"
+  | "contested-domain";
 
 // The index the ladder reads. Built by the caller from the store; keyed lowercase
 // so the ladder never re-normalises (two normalisers is how a lookup misses).
@@ -34,6 +35,12 @@ export interface GraphIndex {
   personIdByEmail: Map<string, string>;
   orgIdByDomain: Map<string, string>;
   genericDomains: Set<string>;
+  /**
+   * Domains claimed by MORE THAN ONE company row. `orgIdByDomain` keeps the
+   * first claimant so the map stays total, but a contested domain must never
+   * anchor mail — see the rung-3 note in `planEmailGraph`.
+   */
+  contestedDomains: Set<string>;
 }
 
 // RFC-reserved suffixes. These ARE a suffix rule — but only on a label boundary,
@@ -136,6 +143,15 @@ export function planEmailGraph(
   const personId = index.personIdByEmail.get(normalized);
   if (personId) return { kind: "person", personId, address: normalized, domain };
 
+  // Rung 3, with the ambiguity rule that already governs rung 1's twin: if two
+  // company rows both claim this domain, there is no fact here to file on. The
+  // first claimant is an artefact of row order, and a call/email on the wrong
+  // company is a lie the rep cannot see, where an unfiled one is a visible
+  // absence. Refusing also keeps rung 6 from "fixing" it by proposing a THIRD
+  // row for a domain we already hold twice.
+  if (index.contestedDomains.has(domain)) {
+    return { kind: "none", reason: "contested-domain", address: normalized, domain };
+  }
   const orgId = index.orgIdByDomain.get(domain);
   if (orgId) return { kind: "org", orgId, address: normalized, domain };
 

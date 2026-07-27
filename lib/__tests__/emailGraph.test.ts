@@ -14,6 +14,7 @@ function index(over: Partial<GraphIndex> = {}): GraphIndex {
     personIdByEmail: new Map(),
     orgIdByDomain: new Map(),
     genericDomains: genericDomainSet(),
+    contestedDomains: new Set(),
     ...over,
   };
 }
@@ -103,6 +104,56 @@ describe("the ladder", () => {
       address: "newguy@roofco.com",
       domain: "roofco.com",
     });
+  });
+
+  it("rung 3 refuses a CONTESTED domain rather than picking a claimant", () => {
+    // Two company rows both claim roofco.com. `orgIdByDomain` still holds the
+    // first, but which row that is depends on store order — filing a rep's mail
+    // on a coin-flip company is a lie the rep cannot see.
+    const plan = planEmailGraph(
+      "newguy@roofco.com",
+      "inbound",
+      index({
+        orgIdByDomain: new Map([["roofco.com", "org-1"]]),
+        contestedDomains: new Set(["roofco.com"]),
+      })
+    );
+    expect(plan).toEqual({
+      kind: "none",
+      reason: "contested-domain",
+      address: "newguy@roofco.com",
+      domain: "roofco.com",
+    });
+  });
+
+  it("a contested domain does NOT fall through to rung 6 and propose a third row", () => {
+    // The failure this ordering prevents: refuse the org match, then let the
+    // outbound branch treat the domain as unknown and queue a create for a
+    // company we already hold twice.
+    const plan = planEmailGraph(
+      "newguy@roofco.com",
+      "outbound",
+      index({
+        orgIdByDomain: new Map([["roofco.com", "org-1"]]),
+        contestedDomains: new Set(["roofco.com"]),
+      })
+    );
+    expect(plan.kind).toBe("none");
+  });
+
+  it("a KNOWN human still anchors even when their company's domain is contested", () => {
+    // Rung 1 is an exact address hit — it needs no company at all, so a mess at
+    // the org level must not drop mail off a person record that visibly exists.
+    const plan = planEmailGraph(
+      "jane@roofco.com",
+      "inbound",
+      index({
+        personIdByEmail: new Map([["jane@roofco.com", "p-4"]]),
+        orgIdByDomain: new Map([["roofco.com", "org-1"]]),
+        contestedDomains: new Set(["roofco.com"]),
+      })
+    );
+    expect(plan).toMatchObject({ kind: "person", personId: "p-4" });
   });
 
   it("a KNOWN person on a generic domain still anchors — the blocklist gates creation, not recognition", () => {

@@ -14,6 +14,7 @@ const index = (orgsByDomain: Record<string, string> = {}): GraphIndex => ({
   personIdByEmail: new Map(),
   orgIdByDomain: new Map(Object.entries(orgsByDomain)),
   genericDomains: genericDomainSet(),
+  contestedDomains: new Set(),
 });
 
 const reviewed = (over: Partial<ReviewedProposal> = {}): ReviewedProposal => ({

@@ -16,6 +16,7 @@ function index(over: Partial<GraphIndex> = {}): GraphIndex {
     personIdByEmail: new Map(),
     orgIdByDomain: new Map(),
     genericDomains: genericDomainSet(),
+    contestedDomains: new Set(),
     ...over,
   };
 }

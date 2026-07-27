@@ -50,7 +50,16 @@ const isCompany = (p: Person) => p.entityKind === "company";
  *    Its own address still matches exactly, on rung 1, where it belongs.
  *
  * First writer wins, so the index is a deterministic function of row order and
- * a later duplicate can never silently steal an established domain.
+ * a later duplicate can never silently steal an established domain. But "first
+ * wins" is only a tie-break, not an answer: Q69 inc.8 records the tie itself in
+ * `contestedDomains`, so the ladder can refuse a domain two companies claim
+ * instead of anchoring mail on whichever row the store happened to return
+ * first. 0022's unique index stops NEW collisions on the `domain` column; this
+ * catches the pair that index structurally cannot — one org's `website` and
+ * another's `email` resolving to the same host.
+ *
+ * A row claiming the same domain TWICE (website and email agree, the normal
+ * case) is not a contest — the claimant is compared by id, not by count.
  */
 export function buildGraphIndex(
   data: NetworkData,
@@ -59,6 +68,7 @@ export function buildGraphIndex(
   const genericDomains = genericDomainSet(extraGenericDomains);
   const personIdByEmail = new Map<string, string>();
   const orgIdByDomain = new Map<string, string>();
+  const contestedDomains = new Set<string>();
 
   for (const p of data.people) {
     const email = p.email?.trim().toLowerCase();
@@ -69,9 +79,11 @@ export function buildGraphIndex(
     for (const domain of [domainFromWebsite(p.website), emailDomain(p.email)]) {
       if (!domain) continue;
       if (isGenericDomain(domain, genericDomains)) continue;
-      if (!orgIdByDomain.has(domain)) orgIdByDomain.set(domain, p.id);
+      const claimant = orgIdByDomain.get(domain);
+      if (claimant === undefined) orgIdByDomain.set(domain, p.id);
+      else if (claimant !== p.id) contestedDomains.add(domain);
     }
   }
 
-  return { personIdByEmail, orgIdByDomain, genericDomains };
+  return { personIdByEmail, orgIdByDomain, genericDomains, contestedDomains };
 }
