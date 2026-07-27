@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import OrgProposalCreate from "./OrgProposalCreate";
 import {
+  overviewReadControl,
   proposalDomain,
   resolveControlCopy,
   writeFailureMessage,
@@ -145,15 +146,33 @@ export default function ThingsToAddress({
           <p className="mt-2 text-sm text-slate-400">Nothing unread. Open items live on each record&apos;s page.</p>
         ) : (
           <ul className="mt-3 space-y-2">
-            {unread.map((f) => (
+            {unread.map((f) => {
+              // inc.20: the filter above deliberately keeps proposals listed —
+              // so the checkbox that promises to clear the row could never keep
+              // that promise on one, and its caption named a record page that
+              // does not exist. One contract decides both.
+              const read = overviewReadControl(f.title, Boolean(f.entity_id));
+              return (
               <li key={f.id} className="flex items-start gap-3 text-sm" title={f.detail}>
-                <input
-                  type="checkbox"
-                  title="mark read — clears from Overview, stays on the record until resolved"
-                  onChange={() => markRead(f)}
-                  disabled={busy}
-                  className="mt-1 h-3.5 w-3.5 cursor-pointer accent-emerald-500"
-                />
+                {read.checkbox ? (
+                  <input
+                    type="checkbox"
+                    title={read.tooltip}
+                    onChange={() => markRead(f)}
+                    disabled={busy}
+                    className="mt-1 h-3.5 w-3.5 cursor-pointer accent-emerald-500"
+                  />
+                ) : (
+                  // Space held, not a control: the row keeps its alignment, and
+                  // a dot invites no click that would do nothing.
+                  <span
+                    title={read.tooltip}
+                    aria-label={read.tooltip}
+                    className="mt-1 h-3.5 w-3.5 shrink-0 cursor-help text-center text-[10px] leading-[0.875rem] text-slate-600"
+                  >
+                    •
+                  </span>
+                )}
                 <div className="min-w-0">
                   <span className={`mr-2 rounded px-1.5 py-px text-[10px] uppercase ${sevStyle[f.severity]}`}>{f.severity}</span>
                   {f.entity_id ? (
@@ -183,7 +202,8 @@ export default function ThingsToAddress({
                   </div>
                 )}
               </li>
-            ))}
+              );
+            })}
           </ul>
         )}
       </section>

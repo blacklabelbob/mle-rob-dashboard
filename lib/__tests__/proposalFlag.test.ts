@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   addressFromDetail,
   createOutcomeMessage,
+  overviewReadControl,
   proposalDomain,
   resolveControlCopy,
   suggestedNameFromDetail,
@@ -354,5 +355,56 @@ describe("writeFailureMessage (inc.19)", () => {
 
   it("treats a prefix-only title as ordinary, so no half-written domain sentence", () => {
     expect(writeFailureMessage("resolve", 500, "New company domain: ").text).toContain("still open");
+  });
+});
+
+describe("overviewReadControl (inc.20 — the checkbox that can't clear its row)", () => {
+  const proposal = proposalTitle("the-title-base.com");
+  const ordinary = "PropLogix — business name mismatch";
+
+  it("offers no checkbox on a proposal, because the row provably will not clear", () => {
+    // inc.6 keeps proposals on the Overview regardless of read_at — the
+    // Overview is their only surface. A control whose whole promise is "this
+    // disappears" must not be offered where it cannot be kept.
+    expect(overviewReadControl(proposal, false).checkbox).toBe(false);
+  });
+
+  it("keeps the checkbox on an ordinary finding — 99% of the ledger still works", () => {
+    expect(overviewReadControl(ordinary, true).checkbox).toBe(true);
+    expect(overviewReadControl(ordinary, false).checkbox).toBe(true);
+  });
+
+  it("never claims a proposal clears from Overview or lives on a record", () => {
+    const t = overviewReadControl(proposal, false).tooltip;
+    expect(t).not.toContain("clears from Overview");
+    expect(t).not.toContain("stays on the record");
+  });
+
+  it("names both exits, since 'why won't this go away' needs the answer", () => {
+    const t = overviewReadControl(proposal, false).tooltip;
+    expect(t).toContain("create the company");
+    expect(t).toContain("dismiss");
+  });
+
+  it("only points at a record page when the flag actually has one", () => {
+    expect(overviewReadControl(ordinary, true).tooltip).toContain("stays on the record");
+    expect(overviewReadControl(ordinary, false).tooltip).not.toContain("stays on the record");
+    expect(overviewReadControl(ordinary, false).tooltip).toContain("no record page");
+  });
+
+  it("still marks an entity-less ordinary finding read — the fix is the caption, not the click", () => {
+    // Only proposals have the inc.6 filter exception; a record-less ordinary
+    // flag does clear from Overview, so taking its checkbox away would remove
+    // a working control to fix a wrong sentence.
+    expect(overviewReadControl(ordinary, false).checkbox).toBe(true);
+  });
+
+  it("ignores a prefix-only title, matching every other inc.16-19 parser", () => {
+    expect(overviewReadControl("New company domain: ", true).checkbox).toBe(true);
+  });
+
+  it("hands the proposal the same domain rule as the rest of the file", () => {
+    // Guard against a second, drifting notion of "is this a proposal".
+    expect(overviewReadControl(proposalTitle("roofco.com"), false).checkbox).toBe(false);
   });
 });

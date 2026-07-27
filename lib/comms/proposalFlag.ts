@@ -280,3 +280,48 @@ export function writeFailureMessage(
     : "this item is still open";
   return { text: `Nothing changed — ${subject} (server said ${status}). Try again.`, certain: true };
 }
+
+/**
+ * Q69 inc.20 — the Overview checkbox that promises to clear a row it can never
+ * clear.
+ *
+ * The Overview's unread filter has a deliberate exception (inc.6): a proposal
+ * has `entity_id: null` because no record exists yet, so the Overview is its
+ * ONLY surface, and marking it read must not be able to hide the one place it
+ * can be acted on. Correct rule — with no control-side counterpart. The
+ * checkbox still renders on proposal rows, still PATCHes `read_at`, and the row
+ * still stays. The box ticks (it is uncontrolled, so the DOM keeps it ticked),
+ * nothing moves, and the honest reading is "the checkbox is broken".
+ *
+ * Its tooltip is worse than the click. "clears from Overview, stays on the
+ * record until resolved" is false in BOTH clauses on a proposal: it does not
+ * clear, and there is no record to stay on. This is inc.16's defect with the
+ * sign flipped — there the UI erased a real outcome, here it advertises an
+ * outcome that cannot happen.
+ *
+ * So the control tells the truth per row instead of one caption for all of
+ * them: no checkbox on a proposal (an unclickable one still invites the click),
+ * and on an ordinary flag a tooltip whose second clause depends on whether that
+ * flag actually HAS a record page — `hasRecord` is `entity_id`, and an
+ * entity-less finding pointing at a page that does not exist is the same lie in
+ * a quieter place.
+ *
+ * The proposal line names the two exits, because "why won't this go away" is
+ * only useful when answered with what does make it go away.
+ */
+export type ReadControl = { checkbox: boolean; tooltip: string };
+
+export function overviewReadControl(title: string, hasRecord: boolean): ReadControl {
+  if (proposalDomain(title)) {
+    return {
+      checkbox: false,
+      tooltip: "stays here until you create the company or dismiss it — there's no record page for it yet",
+    };
+  }
+  return {
+    checkbox: true,
+    tooltip: hasRecord
+      ? "mark read — clears from Overview, stays on the record until resolved"
+      : "mark read — clears from Overview; it has no record page, so resolve it here",
+  };
+}
