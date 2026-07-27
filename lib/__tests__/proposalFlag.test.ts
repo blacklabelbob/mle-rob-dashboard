@@ -4,6 +4,7 @@ import {
   createOutcomeMessage,
   proposalDomain,
   suggestedNameFromDetail,
+  verticalPickerState,
 } from "@/lib/comms/proposalFlag";
 import { proposalToFlag, proposalTitle } from "@/lib/comms/orgProposal";
 
@@ -156,5 +157,70 @@ describe("createOutcomeMessage", () => {
     const failed = createOutcomeMessage("Acme", false).text;
     const unknown = createOutcomeMessage("Acme", undefined).text;
     expect(failed).not.toBe(unknown);
+  });
+});
+
+describe("verticalPickerState (Q69 inc.17 — the dead end, said out loud)", () => {
+  it("never blames the reviewer for a list that failed to load", () => {
+    // The defect this replaces: tooltip read "name and vertical are both
+    // required" while the select was empty because the fetch 500'd.
+    const s = verticalPickerState("unreachable", 0, true, false);
+    expect(s.canCreate).toBe(false);
+    expect(s.blockReason).not.toContain("pick a vertical");
+    expect(s.notice).toContain("Couldn't load");
+    expect(s.notice).toContain("reopen to retry");
+  });
+
+  it("says nothing was created when the list is unreachable", () => {
+    // The reviewer's real question after a greyed-out button is "did I half
+    // make a company?". The answer has to be on screen.
+    expect(verticalPickerState("unreachable", 0, true, true).notice).toContain("nothing was created");
+  });
+
+  it("keeps 'unreachable' and 'no verticals exist' as different sentences", () => {
+    // One is retryable, one is not. Folding them sends the reviewer into a
+    // retry loop against a CRM that has no verticals to offer.
+    const unreachable = verticalPickerState("unreachable", 0, true, false).notice;
+    const empty = verticalPickerState("ready", 0, true, false).notice;
+    expect(unreachable).not.toBe(empty);
+    expect(empty).toContain("stays queued");
+    expect(empty).not.toContain("retry");
+  });
+
+  it("blocks the create on every non-ready list, whatever the fields say", () => {
+    // vertical_id is a NOT NULL FK (inc.4) — letting the click through is a
+    // Postgres error wearing a broken button.
+    for (const st of [
+      verticalPickerState("loading", 0, true, true),
+      verticalPickerState("unreachable", 3, true, true),
+      verticalPickerState("ready", 0, true, true),
+    ]) {
+      expect(st.canCreate).toBe(false);
+      expect(st.blockReason).not.toBe("");
+    }
+  });
+
+  it("the notice and the button's reason never name different obstacles", () => {
+    // A tooltip disagreeing with the line above it is how a reviewer decides
+    // the page is broken rather than that the list failed.
+    for (const st of [
+      verticalPickerState("unreachable", 0, true, true),
+      verticalPickerState("ready", 0, true, true),
+    ]) {
+      expect(st.blockReason).toBe(st.notice);
+    }
+  });
+
+  it("falls back to the reviewer's own obstacles only once the list is real", () => {
+    expect(verticalPickerState("ready", 4, false, false).blockReason).toContain("company name");
+    expect(verticalPickerState("ready", 4, true, false).blockReason).toContain("pick a vertical");
+    // Those are the reviewer's to clear, so they get no amber line — the empty
+    // fields are already visible next to the button.
+    expect(verticalPickerState("ready", 4, true, false).notice).toBe("");
+  });
+
+  it("allows the create exactly when a real list and both fields are present", () => {
+    const ok = verticalPickerState("ready", 1, true, true);
+    expect(ok).toEqual({ notice: "", canCreate: true, blockReason: "" });
   });
 });

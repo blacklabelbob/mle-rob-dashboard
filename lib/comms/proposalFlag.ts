@@ -112,3 +112,55 @@ export function createOutcomeMessage(
   }
   return { text: `${what} — couldn't confirm this item closed; check the ledger.`, resolved: false };
 }
+
+/**
+ * Q69 inc.17 — the form's dead end, said out loud.
+ *
+ * The vertical select is filled by `GET /api/admin/org-proposals`. That fetch
+ * has always been allowed to fail quietly (`r.ok ? r.json() : null`, `.catch`
+ * with a comment saying the select stays empty and Create refuses) — which is
+ * the right REFUSAL and the wrong REPORT. What the reviewer actually saw was a
+ * select offering only "pick vertical…", a Create button greyed out forever,
+ * and a tooltip reading "name and vertical are both required": the UI blaming
+ * them for a list they were never shown and cannot populate. The proposal is
+ * unactionable and nothing on screen says so, which is the same class of defect
+ * as inc.16 — a real outcome the interface erased.
+ *
+ * `unreachable` and `empty` are kept apart because they need different people.
+ * Unreachable is transient and the reviewer's move is to retry (reopening the
+ * form refetches). Empty is a CRM with no verticals — no amount of retrying
+ * fixes it, and `orgs.vertical_id` is a NOT NULL FK (inc.4), so the honest
+ * sentence is that a company cannot be filed at all until one exists.
+ *
+ * ONE function drives both the notice and the button so they cannot disagree.
+ * A blocked button whose tooltip names a different obstacle than the line above
+ * it is how a reviewer concludes the page is broken rather than that the list
+ * failed to load. Precedence is deliberate: a list that never arrived outranks
+ * "pick a vertical", because picking is not a thing they can do.
+ */
+export type VerticalLoad = "loading" | "ready" | "unreachable";
+
+export type PickerState = { notice: string; canCreate: boolean; blockReason: string };
+
+export function verticalPickerState(
+  load: VerticalLoad,
+  verticalCount: number,
+  hasName: boolean,
+  hasVertical: boolean
+): PickerState {
+  if (load === "loading") {
+    return { notice: "loading verticals…", canCreate: false, blockReason: "still loading the vertical list" };
+  }
+  if (load === "unreachable") {
+    const s = "Couldn't load the vertical list — nothing was created. Close and reopen to retry.";
+    return { notice: s, canCreate: false, blockReason: s };
+  }
+  if (verticalCount < 1) {
+    const s = "No verticals exist yet — a company can't be filed without one. This proposal stays queued.";
+    return { notice: s, canCreate: false, blockReason: s };
+  }
+  // Only here is the obstacle genuinely the reviewer's to clear.
+  if (!hasName) return { notice: "", canCreate: false, blockReason: "type the company name" };
+  if (!hasVertical) return { notice: "", canCreate: false, blockReason: "pick a vertical" };
+  return { notice: "", canCreate: true, blockReason: "" };
+}

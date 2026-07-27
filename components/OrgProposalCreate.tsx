@@ -5,6 +5,8 @@ import {
   addressFromDetail,
   createOutcomeMessage,
   suggestedNameFromDetail,
+  verticalPickerState,
+  type VerticalLoad,
 } from "@/lib/comms/proposalFlag";
 
 // Q69 increment 6: the reviewer's one click, on screen.
@@ -34,20 +36,35 @@ export default function OrgProposalCreate({
   const [name, setName] = useState(() => suggestedNameFromDetail(detail));
   const [verticalId, setVerticalId] = useState("");
   const [verticals, setVerticals] = useState<Vertical[]>([]);
+  const [load, setLoad] = useState<VerticalLoad>("loading");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState<ReturnType<typeof createOutcomeMessage> | null>(null);
 
+  // inc.17: the same refusal, now REPORTED. A failed load used to leave a
+  // greyed-out button and a tooltip blaming the reviewer for a list they were
+  // never shown; `load` is what lets the form say which of the two things went
+  // wrong. Reopening refetches (verticals stays empty on failure), so "close
+  // and reopen to retry" is a real instruction, not a shrug.
   useEffect(() => {
     if (!open || verticals.length) return;
     let cancelled = false;
+    setLoad("loading");
     fetch("/api/admin/org-proposals")
       .then((r) => (r.ok ? r.json() : null))
       .then((j) => {
-        if (j?.verticals && !cancelled) setVerticals(j.verticals);
+        if (cancelled) return;
+        // A drifted shape is unreachable, not empty: "no verticals exist" is a
+        // claim about the CRM, and we only get to make it from a real list.
+        if (!Array.isArray(j?.verticals)) {
+          setLoad("unreachable");
+          return;
+        }
+        setVerticals(j.verticals);
+        setLoad("ready");
       })
       .catch(() => {
-        /* the select stays empty and Create refuses — never a silent default */
+        if (!cancelled) setLoad("unreachable");
       });
     return () => {
       cancelled = true;
@@ -109,7 +126,7 @@ export default function OrgProposalCreate({
     );
   }
 
-  const ready = name.trim().length > 0 && verticalId.length > 0;
+  const picker = verticalPickerState(load, verticals.length, name.trim().length > 0, verticalId.length > 0);
   return (
     <div className="flex flex-wrap items-center justify-end gap-1.5">
       <input
@@ -133,8 +150,8 @@ export default function OrgProposalCreate({
       </select>
       <button
         onClick={create}
-        disabled={busy || !ready}
-        title={ready ? "creates an unlit lead — no money fields, ever" : "name and vertical are both required"}
+        disabled={busy || !picker.canCreate}
+        title={picker.canCreate ? "creates an unlit lead — no money fields, ever" : picker.blockReason}
         className="rounded-md bg-sky-500/90 px-2.5 py-1 text-xs font-semibold text-white transition hover:bg-sky-400 disabled:opacity-40"
       >
         {busy ? "…" : "Create"}
@@ -145,6 +162,9 @@ export default function OrgProposalCreate({
       >
         Cancel
       </button>
+      {/* Amber, not red: nothing failed to save — the form just can't be
+          completed yet, and this is the only place that says why. */}
+      {picker.notice && <p className="w-full text-right text-[11px] text-amber-300">{picker.notice}</p>}
       {error && <p className="w-full text-right text-[11px] text-red-300">{error}</p>}
     </div>
   );
