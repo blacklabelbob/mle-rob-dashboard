@@ -40,6 +40,27 @@ export type ViewsFetch = (
   init?: { method?: string; headers?: Record<string, string>; body?: string; signal?: AbortSignal },
 ) => Promise<{ ok: boolean; status: number; json: () => Promise<unknown> }>;
 
+/**
+ * Call the injected fetch **off the options object**, never as `opts.fetchImpl(...)`.
+ *
+ * Found live on prod 2026-07-27, not by a test: the picker rendered "views: Failed to
+ * execute 'fetch' on 'Window': Illegal invocation" and listed nothing. `opts.fetchImpl(…)`
+ * is a METHOD call, so the browser's real `fetch` ran with `this` = the options object,
+ * and WebIDL rejects any receiver that is not the Window. Every stub in the suite is a
+ * plain closure that ignores `this`, so all 1187 tests passed over a door that could not
+ * open in a browser — the read path (`pageClient`) destructures first and was never hit.
+ *
+ * One call site for all three verbs so the mistake cannot come back one verb at a time.
+ */
+function callFetch(
+  fetchImpl: ViewsFetch,
+  url: string,
+  init?: Parameters<ViewsFetch>[1],
+): ReturnType<ViewsFetch> {
+  // A plain call on a parameter: the receiver is undefined, which WebIDL maps to the global.
+  return fetchImpl(url, init);
+}
+
 function fail(msg: string): never {
   throw new FilterParseError(msg);
 }
@@ -158,7 +179,7 @@ export async function fetchSavedViews(
   opts: { fetchImpl: ViewsFetch; signal?: AbortSignal },
 ): Promise<SavedViewList> {
   const url = buildViewListUrl(scope);
-  const res = await opts.fetchImpl(url, opts.signal ? { signal: opts.signal } : undefined);
+  const res = await callFetch(opts.fetchImpl, url, opts.signal ? { signal: opts.signal } : undefined);
   if (!res.ok) throw new ViewsRequestError(res.status, await errorMessage(res));
 
   const body = await readJsonObject(res, "views list");
@@ -207,7 +228,7 @@ export async function createSavedView(
     ...(opts.signal ? { signal: opts.signal } : {}),
   };
 
-  const res = await opts.fetchImpl(VIEWS_ENDPOINT, init);
+  const res = await callFetch(opts.fetchImpl, VIEWS_ENDPOINT, init);
   if (!res.ok) throw new ViewsRequestError(res.status, await errorMessage(res));
 
   const body = await readJsonObject(res, "view create");
@@ -233,7 +254,7 @@ export async function deleteSavedView(
 ): Promise<string> {
   const url = buildViewDeleteUrl(id, owner);
   const init = { method: "DELETE", ...(opts.signal ? { signal: opts.signal } : {}) };
-  const res = await opts.fetchImpl(url, init);
+  const res = await callFetch(opts.fetchImpl, url, init);
   if (!res.ok) throw new ViewsRequestError(res.status, await errorMessage(res));
   return id.trim();
 }

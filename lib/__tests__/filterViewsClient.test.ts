@@ -233,3 +233,59 @@ describe("findViewByName", () => {
     expect(findViewByName([mine], "   ", { scope: "personal", owner_id: "rob" })).toBeNull();
   });
 });
+
+/* ------------------------------------------------------------------------------------ *
+ * 2026-07-27 — the receiver bug, found on PROD and not by any test above.
+ *
+ * The picker rendered `views: Failed to execute 'fetch' on 'Window': Illegal invocation`
+ * and listed nothing: the three verbs called `opts.fetchImpl(...)`, a METHOD call, so the
+ * browser's real `fetch` ran with `this` = the options object and WebIDL refused it. Every
+ * stub above is an arrow function that ignores `this`, which is exactly why 1187 green
+ * tests said nothing. These stubs are the browser's rule instead: a `function` that
+ * refuses any receiver but the global — the same contract `window.fetch` enforces.
+ * ------------------------------------------------------------------------------------ */
+describe("the injected fetch is never called as a method of the options object", () => {
+  function pickyStub(body: unknown): { fetchImpl: ViewsFetch; calls: string[] } {
+    const calls: string[] = [];
+    const fetchImpl = function (this: unknown, url: string) {
+      // `this` is undefined for a plain call in a strict-mode module; anything else means
+      // some object claimed to be the Window — which is the failure that shipped.
+      if (this !== undefined && this !== globalThis) {
+        throw new TypeError("Failed to execute 'fetch' on 'Window': Illegal invocation");
+      }
+      calls.push(url);
+      return Promise.resolve(res(200, body));
+    } as unknown as ViewsFetch;
+    return { fetchImpl, calls };
+  }
+
+  const row: SavedView = {
+    id: "v1",
+    target: "person",
+    name: "Warm",
+    filter: { op: "lit", lit: { lit: "person.status", value: "warm" } },
+    scope: "personal",
+    owner_id: "rob-acheson",
+    team_id: null,
+  };
+
+  it("lists", async () => {
+    const s = pickyStub({ views: [row] });
+    const list = await fetchSavedViews({ owner: "rob-acheson" }, { fetchImpl: s.fetchImpl });
+    expect(list.views).toHaveLength(1);
+    expect(s.calls).toHaveLength(1);
+  });
+
+  it("creates", async () => {
+    const s = pickyStub({ view: row });
+    const saved = await createSavedView(row, { fetchImpl: s.fetchImpl });
+    expect(saved.id).toBe("v1");
+    expect(s.calls).toEqual([VIEWS_ENDPOINT]);
+  });
+
+  it("deletes", async () => {
+    const s = pickyStub({ deleted: "v1" });
+    expect(await deleteSavedView("v1", "rob-acheson", { fetchImpl: s.fetchImpl })).toBe("v1");
+    expect(s.calls).toHaveLength(1);
+  });
+});
