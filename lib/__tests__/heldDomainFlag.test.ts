@@ -4,6 +4,9 @@ import {
   heldDomainFlagPayload,
   heldDomainFlagTitle,
   heldFlagDomain,
+  heldFlagIndex,
+  flagAffordance,
+  type HeldFlagIndex,
 } from "@/lib/comms/heldDomainFlag";
 import type { AuditFinding } from "@/lib/comms/genericDomainAudit";
 
@@ -118,5 +121,88 @@ describe("flag outcome", () => {
     const o = flagOutcome(null, null);
     expect(o.flagged).toBe(false);
     expect(o.text).toMatch(/check Things to Address/);
+  });
+});
+
+// ── Q69 inc.31 — cross-session dedupe ───────────────────────────────────────
+
+describe("held-flag index", () => {
+  const ok = (flags: unknown[]) => heldFlagIndex(200, { flags });
+
+  it("indexes an open held-domain row by its domain", () => {
+    const i = ok([{ status: "open", title: heldDomainFlagTitle("BigMailer.com") }]);
+    expect(i.kind).toBe("read");
+    expect(i.kind === "read" && i.domains.has("bigmailer.com")).toBe(true);
+  });
+
+  it("ignores ordinary ledger rows that are not held-domain flags", () => {
+    const i = ok([{ status: "open", title: "New company proposed: Acme" }]);
+    expect(i.kind === "read" && i.domains.size).toBe(0);
+  });
+
+  it("does NOT count a resolved row — a re-found domain is a new question", () => {
+    const i = ok([{ status: "resolved", title: heldDomainFlagTitle("bigmailer.com") }]);
+    expect(i.kind === "read" && i.domains.size).toBe(0);
+  });
+
+  it("does NOT count a row whose status it cannot read", () => {
+    const i = ok([{ title: heldDomainFlagTitle("bigmailer.com") }]);
+    expect(i.kind === "read" && i.domains.size).toBe(0);
+  });
+
+  it("lets an open row win over a resolved one for the same domain", () => {
+    const i = ok([
+      { status: "resolved", title: heldDomainFlagTitle("bigmailer.com") },
+      { status: "open", title: heldDomainFlagTitle("bigmailer.com") },
+    ]);
+    expect(i.kind === "read" && i.domains.has("bigmailer.com")).toBe(true);
+  });
+
+  it("survives junk rows instead of losing the whole ledger read", () => {
+    const i = ok([null, "nope", { status: "open", title: 7 }, { status: "open", title: heldDomainFlagTitle("x.com") }]);
+    expect(i.kind === "read" && i.domains.has("x.com")).toBe(true);
+  });
+
+  it("is UNKNOWN, never empty, when the ledger could not be read", () => {
+    expect(heldFlagIndex(500, null).kind).toBe("unknown");
+    expect(heldFlagIndex(null, null).kind).toBe("unknown");
+    expect(heldFlagIndex(200, { error: "boom" }).kind).toBe("unknown");
+    expect(heldFlagIndex(200, null).kind).toBe("unknown");
+  });
+
+  it("reads an empty ledger as read-and-empty, not unknown", () => {
+    expect(ok([]).kind).toBe("read");
+  });
+});
+
+describe("flag affordance", () => {
+  const read = (...d: string[]): HeldFlagIndex => ({ kind: "read", domains: new Set(d) });
+
+  it("offers the button when the ledger has no open row for the domain", () => {
+    expect(flagAffordance("bigmailer.com", read()).kind).toBe("button");
+  });
+
+  it("says it is already waiting when the ledger has an open row", () => {
+    const a = flagAffordance("bigmailer.com", read("bigmailer.com"));
+    expect(a.kind).toBe("already");
+    expect(a.kind === "already" && a.text).toMatch(/Already on Things to Address/);
+  });
+
+  it("keeps the button when the ledger could not be read — never hides the way out", () => {
+    expect(flagAffordance("bigmailer.com", { kind: "unknown" }).kind).toBe("button");
+  });
+
+  it("lets this session's successful post win over a stale index", () => {
+    const a = flagAffordance("bigmailer.com", read(), flagOutcome(200, { ok: true }));
+    expect(a.kind).toBe("already");
+    expect(a.kind === "already" && a.text).toMatch(/still be there/);
+  });
+
+  it("does not treat a FAILED post as already-flagged", () => {
+    expect(flagAffordance("bigmailer.com", read(), flagOutcome(500, null)).kind).toBe("button");
+  });
+
+  it("matches case-insensitively, the way the title contract stores it", () => {
+    expect(flagAffordance("  BigMailer.COM ", read("bigmailer.com")).kind).toBe("already");
   });
 });

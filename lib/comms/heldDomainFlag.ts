@@ -103,6 +103,79 @@ export function heldDomainFlagPayload(finding: AuditFinding): HeldDomainFlagPayl
   };
 }
 
+// ── Q69 inc.31 — the same domain, a week later ──────────────────────────────
+//
+// inc.30's title is a stable contract, but nothing read it back. Flagging
+// bigmailer.com today and opening this panel tomorrow offered the same live
+// button, so a domain nobody has decided about accumulates a row per session —
+// and a ledger with four identical rows is a ledger Rob stops reading.
+//
+// The dedupe reads the ledger Rob already has (`GET /api/admin/flags`) rather
+// than keeping a second record of what was flagged; a local memory would drift
+// the moment a row is resolved somewhere else.
+
+/**
+ * What we know about held-domain rows already on the ledger.
+ *
+ * `unknown` is a real state, not a stand-in for "none". If the flags read
+ * fails we must not draw "already on Things to Address" (that hides the only
+ * way to act on a finding, on the strength of a request that failed), and we
+ * must not silently behave as though we checked. Unknown keeps the button —
+ * the worst case is a duplicate row, resolvable in one click, which is the same
+ * trade `flagOutcome` makes on a dropped request.
+ */
+export type HeldFlagIndex = { kind: "read"; domains: Set<string> } | { kind: "unknown" };
+
+/**
+ * Index the OPEN held-domain flags out of a `GET /api/admin/flags` response.
+ *
+ * ONLY ROWS EXPLICITLY `status === "open"` COUNT. A resolved row means Rob has
+ * already judged that company — if the sweep finds the domain again later, that
+ * is a NEW question and must be flaggable again; treating resolved (or a row
+ * whose status we cannot read) as open would silently remove the button and
+ * strand the finding. Erring toward "still flaggable" costs a duplicate; erring
+ * the other way costs the decision path entirely.
+ */
+export function heldFlagIndex(status: number | null, body: unknown): HeldFlagIndex {
+  if (status !== 200 || !body || typeof body !== "object") return { kind: "unknown" };
+  const rows = (body as { flags?: unknown }).flags;
+  if (!Array.isArray(rows)) return { kind: "unknown" };
+
+  const domains = new Set<string>();
+  for (const row of rows) {
+    if (!row || typeof row !== "object") continue;
+    const r = row as { status?: unknown; title?: unknown };
+    if (r.status !== "open") continue;
+    if (typeof r.title !== "string") continue;
+    const domain = heldFlagDomain(r.title);
+    if (domain) domains.add(domain.toLowerCase());
+  }
+  return { kind: "read", domains };
+}
+
+export type FlagAffordance = { kind: "button" } | { kind: "already"; text: string };
+
+/**
+ * What the finding's row offers: the live button, or the sentence that says the
+ * question is already waiting for him.
+ *
+ * The outcome of a click in THIS session wins over the index, because the index
+ * was read before that row existed — re-reading the ledger after every post to
+ * learn what we just wrote would be a slower way to be told the same thing.
+ */
+export function flagAffordance(
+  domain: string,
+  index: HeldFlagIndex,
+  outcome?: FlagOutcome | null
+): FlagAffordance {
+  if (outcome?.flagged) return { kind: "already", text: outcome.text };
+  const d = (domain ?? "").trim().toLowerCase();
+  if (d && index.kind === "read" && index.domains.has(d)) {
+    return { kind: "already", text: "Already on Things to Address — waiting on your decision." };
+  }
+  return { kind: "button" };
+}
+
 export type FlagOutcome = { text: string; tone: PanelTone; flagged: boolean };
 
 /**

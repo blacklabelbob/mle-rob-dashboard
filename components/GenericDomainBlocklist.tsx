@@ -13,7 +13,14 @@ import {
   type PanelOutcome,
 } from "@/lib/comms/genericDomainPanel";
 import type { AuditFinding, BlocklistAudit } from "@/lib/comms/genericDomainAudit";
-import { flagOutcome, heldDomainFlagPayload, type FlagOutcome } from "@/lib/comms/heldDomainFlag";
+import {
+  flagAffordance,
+  flagOutcome,
+  heldDomainFlagPayload,
+  heldFlagIndex,
+  type FlagOutcome,
+  type HeldFlagIndex,
+} from "@/lib/comms/heldDomainFlag";
 
 // Q69 inc.26 — the click that blocks a bulk sender.
 //
@@ -48,6 +55,10 @@ export default function GenericDomainBlocklist() {
   const [outcome, setOutcome] = useState<PanelOutcome | null>(null);
   const [flagged, setFlagged] = useState<Record<string, FlagOutcome | null>>({});
   const [flagBusy, setFlagBusy] = useState<string | null>(null);
+  // Q69 inc.31 — what the LEDGER already says, not what this session remembers.
+  // Starts `unknown` so a panel that hasn't read the flags yet never claims a
+  // finding is already handled.
+  const [flagIndex, setFlagIndex] = useState<HeldFlagIndex>({ kind: "unknown" });
 
   const load = useCallback(async () => {
     try {
@@ -65,9 +76,23 @@ export default function GenericDomainBlocklist() {
   // surface an org nobody would otherwise re-examine; a finding that only
   // appears once someone expands this panel would never be seen, because
   // nobody expands a panel to find out whether it has anything to say.
+  // Q69 inc.31 — the ledger read that makes the sweep idempotent across
+  // sessions. Separate from `load` on purpose: a flags read that fails must not
+  // cost us the sweep, and a sweep that fails must not cost us the dedupe.
+  const loadFlags = useCallback(async () => {
+    try {
+      const r = await fetch("/api/admin/flags");
+      const j = await r.json().catch(() => null);
+      setFlagIndex(heldFlagIndex(r.status, j));
+    } catch {
+      setFlagIndex(heldFlagIndex(null, null));
+    }
+  }, []);
+
   useEffect(() => {
     void load();
-  }, [load]);
+    void loadFlags();
+  }, [load, loadFlags]);
 
   const badge = blocklistBadge(audit);
 
@@ -213,7 +238,9 @@ export default function GenericDomainBlocklist() {
         <div className="mt-2.5 rounded-lg border border-amber-400/25 bg-amber-400/5 p-2.5">
           <p className="text-[11px] font-semibold text-amber-300">{audit.text}</p>
           <ul className="mt-1 space-y-1">
-            {audit.findings.map((f) => (
+            {audit.findings.map((f) => {
+              const affordance = flagAffordance(f.domain, flagIndex, flagged[f.domain]);
+              return (
               <li key={f.domain} className="text-[11px] leading-snug text-amber-200/80">
                 {f.text}
                 {f.orgs.map((o) => (
@@ -227,9 +254,12 @@ export default function GenericDomainBlocklist() {
                 ))}
                 {/* Q69 inc.30 — the decision path. The finding names a company
                     and stops; this puts it where Rob resolves things, with a
-                    note, and where it survives this panel re-sweeping clean. */}
-                {flagged[f.domain]?.flagged ? (
-                  <span className="ml-1.5 text-emerald-300">{flagged[f.domain]!.text}</span>
+                    note, and where it survives this panel re-sweeping clean.
+                    inc.31: if an OPEN row for this domain is already on the
+                    ledger, the button is replaced by the fact — a second
+                    identical row is how the ledger stops being read. */}
+                {affordance.kind === "already" ? (
+                  <span className="ml-1.5 text-emerald-300">{affordance.text}</span>
                 ) : (
                   <button
                     onClick={() => void flagFinding(f)}
@@ -244,7 +274,8 @@ export default function GenericDomainBlocklist() {
                   <span className="ml-1.5 text-red-300">{flagged[f.domain]!.text}</span>
                 )}
               </li>
-            ))}
+              );
+            })}
           </ul>
         </div>
       )}
