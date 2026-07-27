@@ -17,6 +17,7 @@ import {
   heldPriorJudgements,
   heldRowCopy,
   ledgerRepeatMark,
+  rowRepeatMark,
 } from "@/lib/comms/heldDomainFlag";
 
 // "Things to Address" (Rob 2026-07-22): findings Max surfaces, resolved in-place
@@ -293,11 +294,23 @@ export default function ThingsToAddress({
                 {(() => {
                   const held = heldRowCopy(f.title, priorJudgements);
                   if (!held) return null;
+                  // inc.42: the header (inc.41) promises N of these are repeats;
+                  // this is the pointer to WHICH. It sits at badge weight beside
+                  // the state badge because the history is currently only in the
+                  // sentence that follows — read after the row, not before it.
+                  // The order of the list is deliberately untouched: it is
+                  // severity order, and history is not urgency.
+                  const repeat = rowRepeatMark(f.title, priorJudgements);
                   return (
                     <p className="mt-1 text-[11px] leading-relaxed text-slate-400">
                       <span className="mr-1.5 rounded border border-amber-400/40 bg-amber-400/10 px-1.5 py-px text-[10px] font-medium text-amber-200">
                         {held.badge}
                       </span>
+                      {repeat && (
+                        <span className="mr-1.5 rounded border border-slate-400/30 bg-slate-400/10 px-1.5 py-px text-[10px] font-medium text-slate-300">
+                          {repeat}
+                        </span>
+                      )}
                       {held.hint}{" "}
                       <Link href={held.href} className="text-sky-300 hover:underline">
                         {held.linkText}

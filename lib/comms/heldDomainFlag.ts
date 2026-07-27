@@ -338,13 +338,64 @@ function waitingHistory(judged: Map<string, Judgement>, domain: string): string 
 export function findingRepeatMark(domain: string, index: HeldFlagIndex): string | null {
   const d = (domain ?? "").trim().toLowerCase();
   if (!d || index.kind !== "read") return null;
-  const seen = index.judged.get(d);
+  return repeatLabel(index.judged.get(d));
+}
+
+/**
+ * The label itself, in ONE place.
+ *
+ * Q69 inc.42 — `findingRepeatMark` (panel row) and `rowRepeatMark` (ledger row)
+ * are the same statement about the same history on two surfaces Rob can have
+ * open at once. Two copies of the wording is how one of them keeps the old
+ * threshold after the other changes.
+ *
+ * Same one-vs-many threshold as `judgedNote` / `waitingHistory`: one is a fact,
+ * two is a pattern. The wording differs from those sentences (this is a label);
+ * the NUMBER never does.
+ */
+function repeatLabel(seen: Judgement | undefined): string | null {
   if (!seen || seen.times < 1) return null;
-  // Same one-vs-many threshold as `judgedNote` / `waitingHistory`: one is a
-  // fact, two is a pattern. The wording differs (a label, not a sentence); the
-  // NUMBER never does.
   if (seen.times < 2) return "Resolved before";
   return `Resolved ${seen.times} times before`;
+}
+
+/**
+ * Q69 inc.42 — the returning LEDGER ROW is findable without reading it.
+ *
+ * inc.41 put the count in the header ("· 2 resolved before"), which is read
+ * before the decision to work the list. It then leaves Rob with a promise and no
+ * pointer: the rows that make up that 2 sit wherever `/api/admin/flags` returned
+ * them, and the only thing marking one is inc.38's history sentence — 11px, at
+ * the end of the row's hint, indistinguishable at a glance from the hint on a
+ * row he has never seen. The header says two of these are repeats; finding
+ * which two means reading every row.
+ *
+ * REORDERING WAS THE OBVIOUS FIX AND IS REFUSED. `/api/admin/flags` orders open
+ * rows by SEVERITY, and severity is the priority claim this list's own colour
+ * makes. Floating repeats (or sinking them) puts a `high` row under a `low` one
+ * for a reason that is not priority at all — "you have answered this before" is
+ * a fact about history, not urgency — and a ledger whose order contradicts its
+ * colours is worse than one that is merely tedious to scan. So this increment
+ * buys FINDABILITY at badge weight and leaves the order alone; if the open list
+ * ever outgrows a screen, grouping WITHIN a severity is the next honest half.
+ *
+ * The wording is inc.39's, character for character, off the shared
+ * `repeatLabel` — the panel finding and the ledger row are the same sentence
+ * about the same domain, and a rep reading both must not see two histories.
+ *
+ * `null` on: a non-held row (a proposal or an ordinary finding can never carry a
+ * judgement), an absent/empty history (an unknown history is not "new" — the
+ * same silence `ledgerRepeatMark` keeps), or a first sighting. A badge on every
+ * held row would say nothing, which is what makes it mean something here.
+ */
+export function rowRepeatMark(
+  title: unknown,
+  prior: Map<string, Judgement> | null | undefined
+): string | null {
+  if (typeof title !== "string" || !prior || prior.size === 0) return null;
+  const domain = heldFlagDomain(title);
+  if (!domain) return null;
+  return repeatLabel(prior.get(domain.trim().toLowerCase()));
 }
 
 /**

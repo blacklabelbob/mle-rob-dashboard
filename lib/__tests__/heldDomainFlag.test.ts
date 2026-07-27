@@ -13,6 +13,7 @@ import {
   findingRepeatMark,
   badgeRepeatMark,
   ledgerRepeatMark,
+  rowRepeatMark,
   type HeldFlagIndex,
 } from "@/lib/comms/heldDomainFlag";
 import type { AuditFinding } from "@/lib/comms/genericDomainAudit";
@@ -1055,5 +1056,114 @@ describe("the ledger header's repeat marker", () => {
     const prior = heldPriorJudgements([resolvedRow("bigmailer.com", "2026-07-24")]);
     const titles = ["", "   ", null as unknown as string, 7 as unknown as string, held("bigmailer.com")];
     expect(ledgerRepeatMark(titles, prior)).toBe("1 resolved before");
+  });
+});
+
+describe("the ledger ROW's repeat anchor", () => {
+  const held = (domain: string) => heldDomainFlagTitle(domain);
+  const resolvedRow = (domain: string, resolved_at?: unknown) => ({
+    status: "resolved",
+    title: held(domain),
+    ...(resolved_at === undefined ? {} : { resolved_at }),
+  });
+  const openRow = (domain: string) => ({ status: "open", title: held(domain) });
+
+  it("marks a returning row and says nothing on a first sighting", () => {
+    const prior = heldPriorJudgements([resolvedRow("bigmailer.com", "2026-07-24")]);
+    expect(rowRepeatMark(held("bigmailer.com"), prior)).toBe("Resolved before");
+    expect(rowRepeatMark(held("sendgrid.net"), prior)).toBeNull();
+  });
+
+  it("counts trips, not rows — the number is this domain's own history", () => {
+    const prior = heldPriorJudgements([
+      resolvedRow("bigmailer.com", "2026-07-20"),
+      resolvedRow("bigmailer.com", "2026-07-24"),
+      resolvedRow("bigmailer.com", "2026-07-26"),
+    ]);
+    expect(rowRepeatMark(held("bigmailer.com"), prior)).toBe("Resolved 3 times before");
+  });
+
+  it("is inc.39's label character for character — one history, two surfaces", () => {
+    // The panel finding and the ledger row can be on screen together. Two
+    // wordings for one fact is how a rep ends up believing there are two.
+    for (const times of [1, 2, 5]) {
+      const rows = Array.from({ length: times }, () => resolvedRow("bigmailer.com", "2026-07-24"));
+      const prior = heldPriorJudgements(rows);
+      const idx = heldFlagIndex(200, { flags: rows });
+      expect(rowRepeatMark(held("bigmailer.com"), prior)).toBe(
+        findingRepeatMark("bigmailer.com", idx)
+      );
+    }
+  });
+
+  it("never carries a number the row's own sentence does not", () => {
+    const prior = heldPriorJudgements([
+      resolvedRow("bigmailer.com", "2026-07-20"),
+      resolvedRow("bigmailer.com", "2026-07-24"),
+    ]);
+    const mark = rowRepeatMark(held("bigmailer.com"), prior)!;
+    const hint = heldRowCopy(held("bigmailer.com"), prior)!.hint;
+    expect(mark).toContain("2");
+    expect(hint).toContain("2");
+  });
+
+  it("marks exactly the rows the header counted — never one more, never one fewer", () => {
+    const prior = heldPriorJudgements([
+      resolvedRow("bigmailer.com", "2026-07-24"),
+      resolvedRow("mailchimp.com", "2026-07-25"),
+      resolvedRow("mailchimp.com", "2026-07-26"),
+      openRow("sendgrid.net"),
+    ]);
+    const titles = [
+      held("bigmailer.com"),
+      held("sendgrid.net"),
+      held("mailchimp.com"),
+      "New company domain: roofco.com",
+      "Invoice missing",
+    ];
+    const marked = titles.filter((t) => rowRepeatMark(t, prior) !== null).length;
+    expect(marked).toBe(2);
+    expect(ledgerRepeatMark(titles, prior)).toBe(`${marked} resolved before`);
+  });
+
+  it("stays silent on the rows that can never have a history", () => {
+    const prior = heldPriorJudgements([resolvedRow("bigmailer.com", "2026-07-24")]);
+    expect(rowRepeatMark("New company domain: bigmailer.com", prior)).toBeNull();
+    expect(rowRepeatMark("Invoice missing", prior)).toBeNull();
+    // The title contract is the ONLY way in. A row whose title happens to read
+    // as the domain itself is still not a held-domain row, and marking it would
+    // put a history Rob never decided onto someone else's finding.
+    expect(rowRepeatMark("bigmailer.com", prior)).toBeNull();
+    expect(rowRepeatMark("  BigMailer.com ", prior)).toBeNull();
+    expect(rowRepeatMark("Blocked domain still held: ", prior)).toBeNull();
+  });
+
+  it("stays silent when there is no history to read — an unknown past is not 'new'", () => {
+    expect(rowRepeatMark(held("bigmailer.com"), null)).toBeNull();
+    expect(rowRepeatMark(held("bigmailer.com"), undefined)).toBeNull();
+    expect(rowRepeatMark(held("bigmailer.com"), new Map())).toBeNull();
+  });
+
+  it("carries no ordinal, no date and no blocklist advice — that lives in the sentence", () => {
+    const prior = heldPriorJudgements([
+      resolvedRow("bigmailer.com", "2026-07-24"),
+      resolvedRow("bigmailer.com", "2026-07-26"),
+    ]);
+    const mark = rowRepeatMark(held("bigmailer.com"), prior)!;
+    expect(mark).not.toMatch(/\b(1st|2nd|3rd|first|second|third)\b/i);
+    expect(mark).not.toMatch(/blocklist/i);
+    expect(mark).not.toMatch(/2026-07-2\d|most recently|earlier/);
+  });
+
+  it("matches the title's domain however it is cased or padded", () => {
+    const prior = heldPriorJudgements([resolvedRow("bigmailer.com", "2026-07-24")]);
+    expect(rowRepeatMark("Blocked domain still held:  BigMailer.COM  ", prior)).toBe("Resolved before");
+  });
+
+  it("survives junk titles rather than throwing on a ledger render", () => {
+    const prior = heldPriorJudgements([resolvedRow("bigmailer.com", "2026-07-24")]);
+    for (const junk of [null, undefined, 7, {}, [], ""]) {
+      expect(rowRepeatMark(junk as unknown as string, prior)).toBeNull();
+    }
   });
 });
