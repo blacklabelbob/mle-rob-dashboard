@@ -48,6 +48,38 @@ import { RECORDING_MEDIA_HOSTS } from "@/lib/calls/recordingAudio";
  */
 export type MediaCredential = { user: string; pass: string };
 
+/**
+ * Q68 inc.30 — WHICH Twilio credential plays the audio, or none.
+ *
+ * Pure: the environment is an argument, never a read (CR-3), so the ladder is testable
+ * without a process.
+ *
+ * A SCOPED KEY BEFORE THE ACCOUNT TOKEN. The account token is the credential that can do
+ * everything Twilio can do — buy numbers, place calls, read every recording ever made — and
+ * it cannot be rotated without re-keying every other Twilio surface we have. An API key pair
+ * is revocable on its own. Both are `basic`, so preferring one costs nothing.
+ *
+ * A HALF-SET PAIR IS SKIPPED, NEVER COMPLETED FROM THE OTHER ONE. Pairing an API key sid
+ * with the account auth token produces a credential that is perfectly well-formed and always
+ * 401s — and rule 6 turns every upstream 401 into our 502, so the symptom is "twilio media
+ * responded 401" forever from an env that reads as fully configured. Each pair stands or
+ * falls whole; nothing complete means null, which `upstreamRequest` answers 503 (not
+ * configured) rather than 404 (nothing there).
+ */
+export function mediaCredential(env: Record<string, string | undefined>): MediaCredential | null {
+  const at = (name: string) => (env[name] ?? "").trim();
+
+  const keySid = at("TWILIO_API_KEY_SID");
+  const keySecret = at("TWILIO_API_KEY_SECRET");
+  if (keySid && keySecret) return { user: keySid, pass: keySecret };
+
+  const accountSid = at("TWILIO_ACCOUNT_SID");
+  const authToken = at("TWILIO_AUTH_TOKEN");
+  if (accountSid && authToken) return { user: accountSid, pass: authToken };
+
+  return null;
+}
+
 export type UpstreamRequest =
   | { kind: "request"; url: string; headers: Record<string, string> }
   /** Nothing is fetched. `reason` is for our log, `status` is what the caller answers. */
