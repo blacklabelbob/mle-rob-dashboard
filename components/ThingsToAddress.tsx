@@ -12,6 +12,7 @@ import {
   type WriteFailure,
 } from "@/lib/comms/proposalFlag";
 import {
+  archiveRepeatMark,
   heldArchiveNote,
   heldArchivePlaces,
   heldPriorJudgements,
@@ -419,12 +420,23 @@ export default function ThingsToAddress({
                 // rendered here — the archive list is already filtered, and a
                 // count taken off a filtered list would disagree with inc.35's
                 // panel count on the same domain.
-                const held = heldArchiveNote(f.title, f.resolved_at, archivePlaces.get(f.id));
+                const place = archivePlaces.get(f.id);
+                const held = heldArchiveNote(f.title, f.resolved_at, place);
+                // inc.43: the ordinal is already in the note — as its last
+                // clause, in body type. Scanning the archive for the domains
+                // he has been round the loop with meant reading every note to
+                // the end. Same numbers, at badge weight, beside the title.
+                const placeMark = archiveRepeatMark(f.title, place);
                 return (
                 <li key={f.id} className="rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-xs text-slate-400">
                   <span className="font-medium text-slate-300">
                     {f.entity_name} — {f.title}
                   </span>
+                  {placeMark && (
+                    <span className="ml-2 rounded border border-slate-400/30 bg-slate-400/10 px-1.5 py-px text-[10px] font-medium text-slate-300">
+                      {placeMark}
+                    </span>
+                  )}
                   <span className="ml-2 opacity-70">
                     notified {f.notified_at} · resolved {f.resolved_at}
                   </span>

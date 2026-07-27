@@ -692,11 +692,53 @@ export function heldArchiveNote(title: string, resolvedAt: unknown, place?: Arch
 export type ArchivePlace = { nth: number | null; of: number };
 
 function placeNote(place: ArchivePlace | null | undefined): string {
-  // One decision on record is the row itself — "the 1st of 1" is inc.35's
-  // wasted word in ordinal clothing.
-  if (!place || place.of < 2) return "";
-  if (place.nth === null) return ` The ledger holds ${place.of} decisions on this domain; this is one of them.`;
-  return ` This was decision ${place.nth} of ${place.of} on this domain.`;
+  if (!hasHistory(place)) return "";
+  if (place!.nth === null) return ` The ledger holds ${place!.of} decisions on this domain; this is one of them.`;
+  return ` This was decision ${place!.nth} of ${place!.of} on this domain.`;
+}
+
+/**
+ * Does this resolved row sit in a HISTORY, or is it the whole history?
+ *
+ * One decision on record is the row itself — "the 1st of 1" is inc.35's wasted
+ * word in ordinal clothing. Q69 inc.43 lifts the test out of `placeNote` so the
+ * archive SENTENCE and the archive BADGE fall silent on exactly the same rows:
+ * a badge saying "one of 3" above a note that mentions no history at all is two
+ * answers to one question, which is the failure this whole seam exists to avoid.
+ */
+function hasHistory(place: ArchivePlace | null | undefined): place is ArchivePlace {
+  return !!place && place.of >= 2;
+}
+
+/**
+ * Q69 inc.43 — the ARCHIVE row says at a glance which trip this was.
+ *
+ * inc.42 finished the open side: a returning row is findable without reading
+ * it. The archive is now the one surface with no history on it. `placeNote`
+ * does carry the ordinal, but it is the LAST clause of a two-sentence note in
+ * 11px body type — so scanning "Resolved (12)" for the domains Rob has been
+ * round the loop with three times means reading twelve notes to the end. The
+ * archive is where a decision is recorded; it is the exact place the question
+ * "have I done this before?" gets asked.
+ *
+ * A DIFFERENT FACT FROM `repeatLabel`, SO DELIBERATELY A DIFFERENT WORDING.
+ * The open row's badge counts decisions that came BEFORE it ("Resolved 3 times
+ * before"); an archive row IS one of the decisions, and what it needs to say is
+ * which one of how many. Reusing the open wording here would claim this row had
+ * three ancestors when it may be the first of three. The NUMBERS still agree by
+ * construction — `of` counts the same resolved rows as inc.35's `times`.
+ *
+ * NO INVENTED ORDINAL (the inc.36 rule, unchanged): when the rows cannot be
+ * ordered, `nth` is null and the badge says only how many there are.
+ *
+ * `null` on: a non-held title (the title contract is the only way in — a row
+ * whose title merely reads like a domain must never wear another domain's
+ * history), a missing place, or a lone decision.
+ */
+export function archiveRepeatMark(title: unknown, place: ArchivePlace | null | undefined): string | null {
+  if (typeof title !== "string" || !heldFlagDomain(title)) return null;
+  if (!hasHistory(place)) return null;
+  return place.nth === null ? `One of ${place.of} decisions` : `Decision ${place.nth} of ${place.of}`;
 }
 
 /**

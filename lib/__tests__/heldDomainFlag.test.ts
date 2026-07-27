@@ -7,6 +7,7 @@ import {
   heldFlagIndex,
   flagAffordance,
   heldRowCopy,
+  archiveRepeatMark,
   heldArchiveNote,
   heldArchivePlaces,
   heldPriorJudgements,
@@ -1165,5 +1166,74 @@ describe("the ledger ROW's repeat anchor", () => {
     for (const junk of [null, undefined, 7, {}, [], ""]) {
       expect(rowRepeatMark(junk as unknown as string, prior)).toBeNull();
     }
+  });
+});
+
+describe("the ARCHIVE row's place anchor (inc.43)", () => {
+  const held = (domain: string) => heldDomainFlagTitle(domain);
+  const row = (id: number, resolved_at: string | null, t = held("bigmailer.com"), status = "resolved") => ({
+    id,
+    title: t,
+    status,
+    resolved_at,
+  });
+
+  it("says which trip this was when the decisions can be ordered", () => {
+    const places = heldArchivePlaces([row(1, "2026-07-10"), row(2, "2026-07-18"), row(3, "2026-07-24")]);
+    expect(archiveRepeatMark(held("bigmailer.com"), places.get(2))).toBe("Decision 2 of 3");
+  });
+
+  it("says how many but never invents which when the rows cannot be ordered", () => {
+    const places = heldArchivePlaces([row(1, "2026-07-10"), row(2, null)]);
+    const mark = archiveRepeatMark(held("bigmailer.com"), places.get(1))!;
+    expect(mark).toBe("One of 2 decisions");
+    expect(mark).not.toMatch(/\b(1|2)(st|nd)\b|first|second/i);
+  });
+
+  it("is silent on a lone decision — the whole history is the row itself", () => {
+    const places = heldArchivePlaces([row(1, "2026-07-10")]);
+    expect(archiveRepeatMark(held("bigmailer.com"), places.get(1))).toBeNull();
+  });
+
+  it("falls silent exactly where the note's history clause does", () => {
+    for (const place of [null, undefined, { nth: 1, of: 1 }, { nth: 2, of: 3 }, { nth: null, of: 4 }]) {
+      const noteHasHistory = /decision|decisions on this domain/.test(
+        heldArchiveNote(held("bigmailer.com"), "2026-07-24", place) ?? ""
+      );
+      expect(archiveRepeatMark(held("bigmailer.com"), place) !== null).toBe(noteHasHistory);
+    }
+  });
+
+  it("prints the same numbers as the sentence it sits above", () => {
+    const place = { nth: 2, of: 5 };
+    const note = heldArchiveNote(held("bigmailer.com"), "2026-07-24", place)!;
+    expect(note).toContain("decision 2 of 5");
+    expect(archiveRepeatMark(held("bigmailer.com"), place)).toBe("Decision 2 of 5");
+  });
+
+  it("agrees with the OPEN row's count on the same domain — one history, not two", () => {
+    const rows = [row(1, "2026-07-10"), row(2, "2026-07-18"), row(3, "2026-07-24")];
+    const of = heldArchivePlaces(rows).get(1)!.of;
+    const times = heldPriorJudgements(rows).get("bigmailer.com")!.times;
+    expect(of).toBe(times);
+    expect(rowRepeatMark(held("bigmailer.com"), heldPriorJudgements(rows))).toBe(`Resolved ${times} times before`);
+    expect(archiveRepeatMark(held("bigmailer.com"), heldArchivePlaces(rows).get(1))).toBe(`Decision 1 of ${of}`);
+  });
+
+  it("does not claim ancestors the open badge would — an archive row IS one of the decisions", () => {
+    expect(archiveRepeatMark(held("bigmailer.com"), { nth: 1, of: 3 })).not.toMatch(/before/i);
+  });
+
+  it("only a held-domain title gets a history — the title contract is the only way in", () => {
+    for (const t of ["New company proposed: bigmailer.com", "bigmailer.com", "Missing phone number", "Blocked domain still held: "]) {
+      expect(archiveRepeatMark(t, { nth: 2, of: 3 })).toBeNull();
+    }
+  });
+
+  it("survives junk rather than throwing on an archive render", () => {
+    for (const junk of [null, undefined, 7, {}, [], ""]) {
+      expect(archiveRepeatMark(junk as unknown as string, { nth: 1, of: 2 })).toBeNull();
+    }
+    expect(archiveRepeatMark(held("bigmailer.com"), { nth: 1, of: 2 })).not.toMatch(/null|undefined|NaN/);
   });
 });
