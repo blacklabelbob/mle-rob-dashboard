@@ -12,7 +12,8 @@ import {
   type PanelBody,
   type PanelOutcome,
 } from "@/lib/comms/genericDomainPanel";
-import type { BlocklistAudit } from "@/lib/comms/genericDomainAudit";
+import type { AuditFinding, BlocklistAudit } from "@/lib/comms/genericDomainAudit";
+import { flagOutcome, heldDomainFlagPayload, type FlagOutcome } from "@/lib/comms/heldDomainFlag";
 
 // Q69 inc.26 — the click that blocks a bulk sender.
 //
@@ -45,6 +46,8 @@ export default function GenericDomainBlocklist() {
   const [domain, setDomain] = useState("");
   const [busy, setBusy] = useState(false);
   const [outcome, setOutcome] = useState<PanelOutcome | null>(null);
+  const [flagged, setFlagged] = useState<Record<string, FlagOutcome | null>>({});
+  const [flagBusy, setFlagBusy] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -107,6 +110,30 @@ export default function GenericDomainBlocklist() {
       // re-typing a domain you already typed is how the typo comes back.
       () => setDomain("")
     );
+
+  // Q69 inc.30 — the way OUT of a finding. The sweep re-runs on every mount, so
+  // this panel's marker disappears the moment the org is judged elsewhere; the
+  // ledger is the only surface where the question survives a page close.
+  // Read-only still holds: this writes one `flags` row and touches no record.
+  async function flagFinding(f: AuditFinding) {
+    const payload = heldDomainFlagPayload(f);
+    if (!payload) return; // refused upstream — never post a thin, unactionable row
+    setFlagBusy(f.domain);
+    setFlagged((m) => ({ ...m, [f.domain]: null }));
+    try {
+      const r = await fetch("/api/admin/flags", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const j = await r.json().catch(() => null);
+      setFlagged((m) => ({ ...m, [f.domain]: flagOutcome(r.status, j) }));
+    } catch {
+      setFlagged((m) => ({ ...m, [f.domain]: flagOutcome(null, null) }));
+    } finally {
+      setFlagBusy(null);
+    }
+  }
 
   const remove = (d: string) =>
     write(
@@ -198,6 +225,24 @@ export default function GenericDomainBlocklist() {
                     {o.name} →
                   </a>
                 ))}
+                {/* Q69 inc.30 — the decision path. The finding names a company
+                    and stops; this puts it where Rob resolves things, with a
+                    note, and where it survives this panel re-sweeping clean. */}
+                {flagged[f.domain]?.flagged ? (
+                  <span className="ml-1.5 text-emerald-300">{flagged[f.domain]!.text}</span>
+                ) : (
+                  <button
+                    onClick={() => void flagFinding(f)}
+                    disabled={flagBusy === f.domain}
+                    title="add to Things to Address — nothing is deleted, unblocked or changed"
+                    className="ml-1.5 rounded border border-amber-400/40 px-1.5 py-0.5 text-[10px] font-semibold text-amber-200 transition hover:bg-amber-400/10 disabled:opacity-40"
+                  >
+                    {flagBusy === f.domain ? "…" : "Add to Things to Address"}
+                  </button>
+                )}
+                {flagged[f.domain] && !flagged[f.domain]!.flagged && (
+                  <span className="ml-1.5 text-red-300">{flagged[f.domain]!.text}</span>
+                )}
               </li>
             ))}
           </ul>
