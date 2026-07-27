@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   transcriptPanelFromResponse,
   transcriptPanelUnavailable,
@@ -9,6 +9,7 @@ import {
 } from "@/lib/calls/transcriptPanel";
 import { searchPanelFromBody, type SearchPanel } from "@/lib/calls/searchPanel";
 import { markedPieces } from "@/lib/calls/markedText";
+import { momentRows } from "@/lib/calls/momentList";
 
 // BUILD-QUEUE Q68 (b) inc.19 — THE LAST HOP: the words reach a human.
 //
@@ -39,6 +40,14 @@ import { markedPieces } from "@/lib/calls/markedText";
 //
 //  4. A FAILED LOAD CLEARS THE ANSWER. "3 moments" left on screen beside "we could not read
 //     this call" is the zero-vs-unsearchable confusion of inc.23 rebuilt in the browser.
+//
+// inc.27 — THE MOMENTS BECOME PLACES YOU CAN GO.
+//
+//  5. THE JUMP TARGET IS A REF, NOT A DOM id. A person page can show a dozen calls, each with
+//     its own transcript. `id="turn-3"` is unique inside ONE of them and duplicated across the
+//     page, so `getElementById` scrolls to whichever call rendered first — the rep lands on a
+//     different customer's words with no error anywhere. Refs are per-instance by
+//     construction, which is why there is no id scheme here to get wrong.
 
 function ConfidenceMark({ confidence }: { confidence: PanelTurn["confidence"] }) {
   if (confidence === "ok") return null;
@@ -85,9 +94,23 @@ export default function CallTranscript({ recordingSid }: { recordingSid: string 
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
+  // Rule 5: per-instance turn elements, keyed by `PanelTurn.key`. No page-wide id namespace.
+  const turnEls = useRef(new Map<number, HTMLLIElement | null>());
+  const [landedOn, setLandedOn] = useState<number | null>(null);
+
+  function jump(turnKey: number) {
+    const el = turnEls.current.get(turnKey);
+    if (!el) return; // Nothing to scroll to is silence, not a scroll to the top of the list.
+    el.scrollIntoView({ block: "center", behavior: "smooth" });
+    // The marks say WHICH WORDS matched; this says which turn we just moved you to, because
+    // a smooth scroll that lands mid-transcript gives no other signal that anything happened.
+    setLandedOn(turnKey);
+  }
 
   async function load(q?: string) {
     setLoading(true);
+    // Same family as rule 3: an emphasised turn belongs to the query that sent you there.
+    setLandedOn(null);
     try {
       const params = new URLSearchParams({ recordingSid });
       // An empty box is not an empty search — it is no search (inc.24 rule). The param is
@@ -180,9 +203,45 @@ export default function CallTranscript({ recordingSid }: { recordingSid: string 
                     <p className="mb-2 text-[11px] text-amber-200/80">{search.headline}</p>
                   )}
 
+                  {/* The jump list. Rows come from lib (inc.27) — the ellipses are printed
+                      BESIDE the words, never inside them, because the snippet is verbatim
+                      customer speech a rep may copy. */}
+                  {search && search.moments.length > 0 && (
+                    <ul className="mb-3 space-y-1 border-l border-amber-300/20 pl-2">
+                      {momentRows(search.moments).map((r) => (
+                        <li key={r.key}>
+                          <button
+                            type="button"
+                            onClick={() => jump(r.turnKey)}
+                            aria-label={r.jumpLabel}
+                            className="w-full rounded px-1 py-0.5 text-left text-[11px] text-slate-400 hover:bg-white/5"
+                          >
+                            <span className="text-slate-500">
+                              {r.time ? `${r.time} · ` : ""}
+                              {r.label}
+                            </span>{" "}
+                            <span className="text-slate-300">
+                              {r.leadEllipsis && <span className="text-slate-600">… </span>}
+                              {r.snippet}
+                              {r.trailEllipsis && <span className="text-slate-600"> …</span>}
+                            </span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
                   <ol className="space-y-2">
                     {panel.turns.map((t) => (
-                      <li key={t.key} className="text-xs">
+                      <li
+                        key={t.key}
+                        ref={(el) => {
+                          turnEls.current.set(t.key, el);
+                        }}
+                        className={`rounded text-xs ${
+                          landedOn === t.key ? "bg-amber-300/5 ring-1 ring-amber-300/20" : ""
+                        }`}
+                      >
                         <span className="text-slate-500">
                           {t.time ? `${t.time} · ` : ""}
                           {t.label}
