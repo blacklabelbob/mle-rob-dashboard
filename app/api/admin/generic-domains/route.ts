@@ -9,6 +9,11 @@ import {
   type ClaimingOrg,
   type DomainClaim,
 } from "@/lib/comms/genericDomainClaims";
+import {
+  auditBlockedDomains,
+  emptyBlocklistAudit,
+  uncheckedBlocklistAudit,
+} from "@/lib/comms/genericDomainAudit";
 
 // Q69 inc.25 — the write door on migration 0023's `generic_email_domains`.
 //
@@ -117,7 +122,43 @@ export async function GET() {
       { status: 502 }
     );
   }
-  return NextResponse.json({ ok: true, added: (data ?? []) as Row[], floorCount, readable: true });
+  const rows = (data ?? []) as Row[];
+  return NextResponse.json({
+    ok: true,
+    added: rows,
+    floorCount,
+    readable: true,
+    audit: await auditFor(s, rows.map((r) => r.domain)),
+  });
+}
+
+/**
+ * Q69 inc.28 — the standing sweep. READ-ONLY, same as inc.27's add-time check;
+ * it names records and never touches one.
+ *
+ * A failed read degrades to `unchecked`, never to an empty `checked`: the whole
+ * point of the row is to surface an org that nobody would otherwise re-examine,
+ * and a green "nothing held" printed off an errored query buries exactly that.
+ */
+async function auditFor(s: Db, domains: string[]) {
+  if (domains.length === 0) return emptyBlocklistAudit();
+  try {
+    // `or` + ilike mirrors 0022's lower(domain) index, so a `BigMailer.com` org
+    // row cannot read as unclaimed on capitalization alone. The values are
+    // already constraint-normalized ([a-z0-9.-] only), so there is nothing to
+    // escape here.
+    const { data, error } = await s
+      .from("orgs")
+      .select("id, name, domain")
+      .or(domains.map((d) => `domain.ilike.${d}`).join(","));
+    if (error) {
+      console.error("[generic-domains] audit lookup failed", error.message);
+      return uncheckedBlocklistAudit(domains.length, error.message);
+    }
+    return auditBlockedDomains(domains, (data ?? []) as ClaimingOrg[]);
+  } catch (e) {
+    return uncheckedBlocklistAudit(domains.length, e instanceof Error ? e.message : "lookup error");
+  }
 }
 
 export async function POST(req: NextRequest) {
