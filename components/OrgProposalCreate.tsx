@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { suggestedNameFromDetail } from "@/lib/comms/proposalFlag";
+import { addressFromDetail, suggestedNameFromDetail } from "@/lib/comms/proposalFlag";
 
 // Q69 increment 6: the reviewer's one click, on screen.
 //
@@ -54,10 +54,14 @@ export default function OrgProposalCreate({
     setBusy(true);
     setError("");
     try {
+      // inc.15: carry the address we wrote to, so the new record says WHY it
+      // exists. Omitted (never blank-string'd) when the detail doesn't carry a
+      // verifiable one — the planner then writes the note without that line.
+      const address = addressFromDetail(detail, domain);
       const r = await fetch("/api/admin/org-proposals", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ domain, name, verticalId }),
+        body: JSON.stringify(address ? { domain, name, verticalId, address } : { domain, name, verticalId }),
       });
       const j = await r.json().catch(() => null);
       if (!r.ok) {

@@ -203,6 +203,19 @@ export default function ThingsToAddress({
                 </div>
               </div>
               <div className="flex shrink-0 flex-col items-end gap-1.5">
+                {/* inc.15: the ledger is where Rob actually works these items,
+                    and until now its only proposal affordance was Resolve —
+                    which dismisses the flag AND, by inc.3's dedupe rule (a
+                    resolved title counts as existing), stops that domain from
+                    ever being proposed again. Resolving was the one click that
+                    could silently lose a company. */}
+                {proposalDomain(f.title) && (
+                  <OrgProposalCreate
+                    domain={proposalDomain(f.title) as string}
+                    detail={f.detail}
+                    onCreated={load}
+                  />
+                )}
                 {noteFor === f.id ? (
                   <div className="flex items-center gap-1.5">
                     <input

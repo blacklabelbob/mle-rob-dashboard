@@ -45,3 +45,30 @@ export function suggestedNameFromDetail(detail: string): string {
   const m = detail.match(/Suggested name: "([^"]*)"/);
   return m ? m[1] : "";
 }
+
+/**
+ * Q69 inc.15 — the address we actually wrote to, read back off the flag.
+ *
+ * `planOrgFromProposal` puts this in the new company's provenance note ("first
+ * outbound contact TO trent@…"), and it is the only evidence on the record of
+ * why the company exists at all. The route has always accepted it; the ledger
+ * has never sent it, so every company created through the button lost the line.
+ *
+ * VERIFIED AGAINST THE DOMAIN, NOT TRUSTED. A flag's detail is prose on a
+ * shared table — hand-editable, and inc.3's dedupe means one flag can outlive
+ * the message that made it. An address at a DIFFERENT domain would write "first
+ * outbound contact to <someone else>" onto this company's record forever, so a
+ * mismatch returns "" and the note simply omits the line. A missing line is a
+ * gap; a wrong one is a false statement on a customer record.
+ *
+ * Domain read after the LAST `@` (the inc.1 rule): `indexOf` reads
+ * `"a@b"@roofco.com` as `b"@roofco.com` and would reject a legitimate address.
+ */
+export function addressFromDetail(detail: string, domain: string): string {
+  const m = detail.match(/We sent mail to (\S+) and /);
+  if (!m) return "";
+  const address = m[1].toLowerCase();
+  const at = address.lastIndexOf("@");
+  if (at < 1 || at === address.length - 1) return "";
+  return address.slice(at + 1) === domain.trim().toLowerCase() ? address : "";
+}
