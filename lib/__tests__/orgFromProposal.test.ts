@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { orgIdFor, planOrgFromProposal, type ReviewedProposal } from "../comms/orgFromProposal";
+import {
+  newOrgToPerson,
+  orgIdFor,
+  planOrgFromProposal,
+  type ReviewedProposal,
+} from "../comms/orgFromProposal";
 import type { GraphIndex } from "../comms/emailGraph";
 import { genericDomainSet } from "../comms/genericDomains";
 
@@ -115,6 +120,39 @@ describe("planOrgFromProposal", () => {
     expect(withDate.org.notes).toContain("trent@the-title-base.com");
     expect(withDate.org.notes).toContain("2026-07-26");
     expect(without.org.notes).not.toContain("undefined");
+  });
+});
+
+// Q69 inc.5: the plan has to reach the store without widening into the money
+// fields `NewOrgRow` deliberately omits.
+describe("newOrgToPerson", () => {
+  const created = () => {
+    const plan = planOrgFromProposal(reviewed(), index(), [], VERTICALS, "2026-07-26");
+    if (plan.kind !== "create") throw new Error("expected create");
+    return newOrgToPerson(plan.org);
+  };
+
+  it("carries the plan's row through verbatim", () => {
+    const person = created();
+    expect(person.id).toBe("the-title-base");
+    expect(person.name).toBe("The Title Base");
+    expect(person.entityKind).toBe("company");
+    expect(person.nodeType).toBe("lead");
+    expect(person.status).toBe("unlit");
+    expect(person.verticalId).toBe("title");
+    expect(person.website).toBe("https://the-title-base.com");
+    expect(person.notes).toContain("the-title-base.com");
+  });
+
+  // HARD LIMIT: one outbound email must never produce a money or commitment
+  // fact. `Person` carries those fields even though `NewOrgRow` does not, so
+  // this is where the narrowness has to be re-proved.
+  it("sets no money, signed or key-date fact", () => {
+    const person = created();
+    expect(person.signed).toBe(false);
+    expect(person.quotedAmount).toBeUndefined();
+    expect(person.keyDates).toEqual({});
+    expect(person.phaseOne).toBe("not-started");
   });
 });
 

@@ -14,6 +14,7 @@
 // route executes the returned plan verbatim and invents no ops of its own.
 
 import { isGenericDomain, type GraphIndex } from "./emailGraph";
+import type { Person } from "../types";
 
 /** What the reviewer supplies when they accept a queued proposal. */
 export interface ReviewedProposal {
@@ -165,5 +166,34 @@ export function planOrgFromProposal(
       status: "unlit",
       notes: provenance(domain, reviewed.address?.trim() || undefined, todayISO),
     },
+  };
+}
+
+/**
+ * Q69 increment 5: the plan's row, in the shape the store actually writes.
+ *
+ * `NewOrgRow` is deliberately narrow — the money and commitment fields are not
+ * on it, so they cannot be set from a reviewer's click. That narrowness has to
+ * survive the trip into `Person`, which DOES carry them, so this is the one
+ * place the widening happens and it is explicit about every field it sets:
+ * `signed: false`, no `quotedAmount`, and an EMPTY `keyDates` — a quoted or
+ * paid date on a company we have only emailed once would be a fabricated
+ * money fact on a money surface (driver HARD LIMIT).
+ *
+ * Pure (CR-3): no clock — the plan already carries the dated provenance line.
+ */
+export function newOrgToPerson(org: NewOrgRow): Person {
+  return {
+    id: org.id,
+    name: org.name,
+    entityKind: org.entityKind,
+    nodeType: org.nodeType,
+    verticalId: org.verticalId,
+    website: org.website,
+    status: org.status,
+    signed: false,
+    keyDates: {},
+    phaseOne: "not-started",
+    notes: org.notes,
   };
 }
