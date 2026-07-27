@@ -11,7 +11,7 @@ import {
   writeFailureMessage,
   type WriteFailure,
 } from "@/lib/comms/proposalFlag";
-import { heldRowCopy } from "@/lib/comms/heldDomainFlag";
+import { heldArchiveNote, heldRowCopy } from "@/lib/comms/heldDomainFlag";
 
 // "Things to Address" (Rob 2026-07-22): findings Max surfaces, resolved in-place
 // with an optional note. Resolved items are never removed — they archive into an
@@ -390,6 +390,16 @@ export default function ThingsToAddress({
                   {archiveConsequence(f.title, f.resolution_note) && (
                     <div className="mt-0.5 text-slate-500">
                       {archiveConsequence(f.title, f.resolution_note)}
+                    </div>
+                  )}
+                  {/* inc.34: on this ledger "resolved" means "this stops coming
+                      back". For a held domain it does not — the sweep raises it
+                      again by design (inc.31), and inc.33's panel note points
+                      back at this very decision. The row says so itself, so the
+                      return next week reads as the design and not as a bug. */}
+                  {heldArchiveNote(f.title, f.resolved_at) && (
+                    <div className="mt-0.5 text-slate-500">
+                      {heldArchiveNote(f.title, f.resolved_at)}
                     </div>
                   )}
                 </li>

@@ -7,6 +7,7 @@ import {
   heldFlagIndex,
   flagAffordance,
   heldRowCopy,
+  heldArchiveNote,
   type HeldFlagIndex,
 } from "@/lib/comms/heldDomainFlag";
 import type { AuditFinding } from "@/lib/comms/genericDomainAudit";
@@ -333,5 +334,67 @@ describe("already-judged domains", () => {
   it("lets an OPEN row win over a resolved one — the live question outranks the note", () => {
     const i = ok([resolved("bigmailer.com", "2026-07-24"), { status: "open", title: heldDomainFlagTitle("bigmailer.com") }]);
     expect(flagAffordance("bigmailer.com", i).kind).toBe("already");
+  });
+});
+
+// ── Q69 inc.34 — the resolved row, from the side Rob closed it on ───────────
+
+describe("heldArchiveNote", () => {
+  const title = heldDomainFlagTitle("bigmailer.com");
+
+  it("names the domain and dates the decision", () => {
+    const n = heldArchiveNote(title, "2026-07-24");
+    expect(n).toContain("bigmailer.com");
+    expect(n).toContain("on 2026-07-24");
+  });
+
+  it("says the closure did NOT unblock or delete anything", () => {
+    const n = heldArchiveNote(title, "2026-07-24") ?? "";
+    expect(n).toMatch(/stays blocked/);
+    expect(n).toMatch(/nothing was deleted/i);
+  });
+
+  it("warns that the sweep will raise it again — this ledger's 'resolved' means the opposite", () => {
+    expect(heldArchiveNote(title, "2026-07-24")).toMatch(/raise a new row/);
+  });
+
+  it("is null for an ordinary finding — a 'this can come back' line where it cannot is noise", () => {
+    expect(heldArchiveNote("Missing phone number", "2026-07-24")).toBeNull();
+  });
+
+  it("is null for a company proposal — archiveConsequence owns that row", () => {
+    expect(heldArchiveNote("New company proposed: bigmailer.com", "2026-07-24")).toBeNull();
+  });
+
+  it("says 'earlier' rather than half-printing an unparseable date", () => {
+    const n = heldArchiveNote(title, "last Tuesday") ?? "";
+    expect(n).toContain("earlier");
+    expect(n).not.toContain("last Tuesday");
+  });
+
+  it("survives a null/absent resolved_at without printing 'null'", () => {
+    for (const v of [null, undefined, 12345, {}]) {
+      const n = heldArchiveNote(title, v) ?? "";
+      expect(n).toContain("earlier");
+      expect(n).not.toMatch(/null|undefined|NaN|object/);
+    }
+  });
+
+  it("normalises a timestamp to the same date the panel note shows — one decision, one date", () => {
+    // The two sentences are read a week apart about the same row; they must agree.
+    const i = heldFlagIndex(200, {
+      flags: [{ status: "resolved", title, resolved_at: "2026-07-24T18:03:11.000Z" }],
+    });
+    const panel = flagAffordance("bigmailer.com", i);
+    expect(panel.kind === "button" && panel.judged).toContain("on 2026-07-24");
+    expect(heldArchiveNote(title, "2026-07-24T18:03:11.000Z")).toContain("on 2026-07-24");
+  });
+
+  it("lower-cases the domain it echoes back", () => {
+    expect(heldArchiveNote(heldDomainFlagTitle("BigMailer.COM"), "2026-07-24")).toContain("bigmailer.com");
+  });
+
+  it("is null for a held-domain title with no domain in it", () => {
+    expect(heldArchiveNote("Blocked domain still held: ", "2026-07-24")).toBeNull();
   });
 });

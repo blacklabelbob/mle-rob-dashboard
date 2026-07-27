@@ -321,6 +321,49 @@ export function heldRowCopy(title: string): HeldRowCopy | null {
   };
 }
 
+// ── Q69 inc.34 — the resolved row, from the side Rob closed it on ───────────
+//
+// inc.33 taught the SWEEP to remember a judgement: the panel now says "you
+// already resolved this on <date>" beside the button. The ledger never learned
+// the other half. A held-domain row Rob resolved drops into the archive looking
+// like every other closed item — and on this ledger "resolved" means "this stops
+// coming back", which for a held domain is not true: inc.31's dedupe counts only
+// `open` rows, so the next sweep raises it again by design.
+//
+// So the archive row is the one surface that quietly contradicts the build. Rob
+// closes it believing it is finished, sees it again next week, and reads the
+// return as a bug — which costs more than the row ever saved, because the fix he
+// would reach for is to stop trusting the panel.
+//
+// The note is the counterpart of `judgedNote`, worded from the closing side: it
+// dates the decision (so the two surfaces agree on WHEN), and says plainly what
+// the closure did and did not do.
+
+/**
+ * What a RESOLVED held-domain row is still doing, or null for every other
+ * archive row.
+ *
+ * Null for ordinary findings and for proposals — `archiveConsequence` already
+ * owns the proposal case, and a "this can come back" line on rows that cannot is
+ * the noise that teaches Rob to skip the line on the rows that mean it.
+ *
+ * THE DATE IS PARSED OR ABSENT, NEVER HALF-PRINTED — same rule and same parser
+ * as inc.33's judgement date, deliberately: these two sentences are read a week
+ * apart about the same decision, and a date that renders one way in the panel
+ * and another way here is worse than no date at all.
+ */
+export function heldArchiveNote(title: string, resolvedAt: unknown): string | null {
+  const domain = heldFlagDomain(title);
+  if (!domain) return null;
+  const d = domain.toLowerCase();
+  const date = judgementDate(resolvedAt);
+  const when = date ? `on ${date}` : "earlier";
+  return (
+    `You judged ${d} ${when}. It stays blocked and nothing was deleted — ` +
+    `if a company still holds it, the blocklist sweep will raise a new row.`
+  );
+}
+
 export type FlagOutcome = { text: string; tone: PanelTone; flagged: boolean };
 
 /**
