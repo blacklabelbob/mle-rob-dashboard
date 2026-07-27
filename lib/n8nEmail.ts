@@ -5,6 +5,7 @@ import {
   DEFAULT_MAILBOX_LINK,
   type MailboxLink,
 } from "./comms/mailboxLink";
+import type { EmailParty } from "./comms/personFromEmail";
 import type { Activity, NetworkData, Person } from "./types";
 import { verifyVapiSecret } from "./vapi";
 
@@ -66,10 +67,52 @@ export function extractAddress(raw: string): string {
   return candidate.includes("@") ? candidate : "";
 }
 
-function asList(v?: string | string[]): string[] {
+// Header lists split on commas — but NOT commas inside a quoted display name
+// or inside angle brackets. `"Reyes, Dana" <dana@roofco.com>` split naively
+// yields `"Reyes` (no @, dropped) and `Dana" <dana@roofco.com>`, which still
+// finds the address but hands the person half a name. One splitter, so the
+// address list and the party list can never disagree about where a header ends.
+export function splitAddressList(v: string): string[] {
+  const out: string[] = [];
+  let current = "";
+  let quoted = false;
+  let angled = false;
+  for (const ch of v) {
+    if (ch === '"') quoted = !quoted;
+    else if (ch === "<") angled = true;
+    else if (ch === ">") angled = false;
+    if (ch === "," && !quoted && !angled) {
+      out.push(current);
+      current = "";
+      continue;
+    }
+    current += ch;
+  }
+  out.push(current);
+  return out.map((s) => s.trim()).filter(Boolean);
+}
+
+function rawList(v?: string | string[]): string[] {
   if (!v) return [];
-  const parts = Array.isArray(v) ? v : v.split(",");
-  return parts.map(extractAddress).filter(Boolean);
+  return (Array.isArray(v) ? v : splitAddressList(v)).map((s) => s.trim()).filter(Boolean);
+}
+
+function asList(v?: string | string[]): string[] {
+  return rawList(v).map(extractAddress).filter(Boolean);
+}
+
+// Every party WITH its raw header value kept alongside the parsed address —
+// the display name lives only in the raw string, and Q69's person creation
+// refuses to invent a name from the local part, so dropping it here is what
+// would leave every auto-created contact named after their own email address.
+export function partiesOf(payload: EmailPayload): EmailParty[] {
+  const raws = [payload.from, ...rawList(payload.to), ...rawList(payload.cc)];
+  const parties: EmailParty[] = [];
+  for (const raw of raws) {
+    const address = extractAddress(raw ?? "");
+    if (address) parties.push({ address, raw });
+  }
+  return parties;
 }
 
 // Every address party to the message: from + to + cc.
