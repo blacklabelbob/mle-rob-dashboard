@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { callChainConfigFromEnv, callChainReadiness } from "@/lib/calls/callReadiness";
 import { callReadinessLog, callReadinessResponse } from "@/lib/calls/readinessResponse";
+import { repairPresenceFromEnv, repairReadiness } from "@/lib/calls/repairReadiness";
 
 /**
  * Q68 inc.22 — the arming report, over HTTP.
@@ -27,9 +28,12 @@ import { callReadinessLog, callReadinessResponse } from "@/lib/calls/readinessRe
 export const dynamic = "force-dynamic";
 
 export async function GET() {
+  // inc.43: the second half of the report — the two repair doors. Still env and clock only;
+  // `repairPresenceFromEnv` hands the pure module a set of NAMES, never a value.
   const res = callReadinessResponse(
     callChainReadiness(callChainConfigFromEnv()),
     new Date().toISOString(),
+    repairReadiness(repairPresenceFromEnv()),
   );
   console.log(JSON.stringify(callReadinessLog(res)));
   return NextResponse.json(res, { headers: { "Cache-Control": "no-store" } });

@@ -37,6 +37,7 @@
 // one appears in the serialised body.
 
 import type { CallChainReadiness } from "./callReadiness";
+import type { RepairReadiness } from "./repairReadiness";
 
 /**
  * Stated once, here, because it is the difference between a report that is read correctly
@@ -57,12 +58,30 @@ export interface CallReadinessResponse extends CallChainReadiness {
   configNote: string;
   /** Rule 2/3: exactly one action, derived from the blocking cascade only. */
   nextStep: string;
+  /**
+   * inc.43 — the two repair doors, in their OWN section (repairReadiness rule 1). They
+   * answer a different question from the stages above: not "how far does the next call
+   * get" but "can the calls already filed be repaired". Carried here rather than composed
+   * in the route so the whole payload is one pure function's answer (CR-3).
+   */
+  repair: RepairReadiness;
 }
 
+/**
+ * Rule 5 (inc.43): `repair` IS REQUIRED, NOT OPTIONAL. An optional section is one a route
+ * forgets to pass, and the failure mode is silent — the endpoint keeps answering 200 with
+ * a report that has simply stopped mentioning the doors.
+ */
 export function callReadinessResponse(
   readiness: CallChainReadiness,
   checkedAt: string,
+  repair: RepairReadiness,
 ): CallReadinessResponse {
+  // RULE 3 EXTENDED (inc.43): `nextStep` STILL COMES ONLY FROM THE LIVE CASCADE. A repair
+  // door is about a backlog, and on a deployment where no call has ever run there is no
+  // backlog — telling Rob to add CRON_SECRET before a single call has arrived sends him to
+  // arm a door onto an empty room, and buries the one step that changes anything. The
+  // doors are reported; they never become the ask. Test-pinned.
   const blocking = readiness.missing[0];
   return {
     ...readiness,
@@ -71,6 +90,7 @@ export function callReadinessResponse(
     nextStep: blocking
       ? `Add ${blocking} to the dashboard's Vercel project (production), then redeploy.`
       : PLACE_A_CALL_STEP,
+    repair,
   };
 }
 
@@ -86,5 +106,9 @@ export function callReadinessLog(res: CallReadinessResponse) {
     reached: res.reached,
     missing: res.missing.length,
     warnings: res.warnings.length,
+    // inc.43: counts only, and kept SEPARATE from `missing` above — a single summed number
+    // would make an unset CRON_SECRET indistinguishable in the logs from a chain key.
+    repairDoorsOpen: res.repair.doors.filter((d) => d.state === "open").length,
+    repairMissing: res.repair.missing.length,
   };
 }

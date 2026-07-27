@@ -10,6 +10,7 @@ import {
   DEPLOY_SNAPSHOT_NOTE,
   PLACE_A_CALL_STEP,
 } from "@/lib/calls/readinessResponse";
+import { repairPresenceFromEnv, repairReadiness } from "@/lib/calls/repairReadiness";
 
 const config = (over: Partial<CallChainConfig> = {}): CallChainConfig => ({
   twilioAuthToken: false,
@@ -20,8 +21,11 @@ const config = (over: Partial<CallChainConfig> = {}): CallChainConfig => ({
 });
 
 const AT = "2026-07-26T19:00:00.000Z";
+// inc.43: an EMPTY repair presence by default — the state prod is actually in, and the
+// one that would tempt the response into promoting CRON_SECRET to the next step.
+const NO_REPAIR_ENV = repairReadiness(new Set<string>());
 const respond = (over: Partial<CallChainConfig> = {}) =>
-  callReadinessResponse(callChainReadiness(config(over)), AT);
+  callReadinessResponse(callChainReadiness(config(over)), AT, NO_REPAIR_ENV);
 
 describe("callReadinessResponse — one next step, and no lie about where env lives", () => {
   it("carries the redeploy caveat on every answer, armed or not", () => {
@@ -75,7 +79,7 @@ describe("callReadinessResponse — one next step, and no lie about where env li
 
   it("passes inc.21's report through untouched — it decorates, it does not re-decide", () => {
     const readiness = callChainReadiness(config({ twilioAuthToken: true }));
-    const r = callReadinessResponse(readiness, AT);
+    const r = callReadinessResponse(readiness, AT, NO_REPAIR_ENV);
     expect(r.verdict).toBe(readiness.verdict);
     expect(r.reached).toBe(readiness.reached);
     expect(r.stages).toEqual(readiness.stages);
@@ -93,7 +97,11 @@ describe("callReadinessResponse — one next step, and no lie about where env li
       ANTHROPIC_API_KEY: "sk-ant-api03-not-a-real-key-0123456789abcdef",
     } as unknown as NodeJS.ProcessEnv;
     const body = JSON.stringify(
-      callReadinessResponse(callChainReadiness(callChainConfigFromEnv(secrets)), AT),
+      callReadinessResponse(
+        callChainReadiness(callChainConfigFromEnv(secrets)),
+        AT,
+        repairReadiness(repairPresenceFromEnv(secrets)),
+      ),
     );
     for (const value of Object.values(secrets)) {
       expect(body).not.toContain(value as string);
@@ -104,6 +112,48 @@ describe("callReadinessResponse — one next step, and no lie about where env li
     expect(body).toContain("TWILIO_AUTH_TOKEN");
   });
 
+  it("reports the repair doors WITHOUT ever making one the next step", () => {
+    // inc.43, rule 3 extended. A repair door is about a backlog; on a deployment where no
+    // call has ever run there is no backlog, so CRON_SECRET must never displace the one
+    // step that changes what the NEXT call does.
+    const blocked = respond();
+    expect(blocked.repair.missing).toContain("CRON_SECRET");
+    expect(blocked.nextStep).toMatch(/TWILIO_AUTH_TOKEN/);
+    expect(blocked.nextStep).not.toMatch(/CRON_SECRET/);
+
+    // ...and not even when the live chain is fully armed and the doors are the only gap.
+    const armed = callReadinessResponse(
+      callChainReadiness(config({
+        twilioAuthToken: true,
+        twilioCallerId: true,
+        deepgramKey: true,
+        anthropicKey: true,
+      })),
+      AT,
+      NO_REPAIR_ENV,
+    );
+    expect(armed.nextStep).toBe(PLACE_A_CALL_STEP);
+    expect(armed.repair.doors.every((d) => d.state === "inert")).toBe(true);
+    expect(armed.repair.repaired).toBe(false);
+  });
+
+  it("keeps the repair section OUT of the chain's own verdict and missing list", () => {
+    // inc.43 rule 1: two questions, two answers. An unset CRON_SECRET blocks no call.
+    const r = callReadinessResponse(
+      callChainReadiness(config({
+        twilioAuthToken: true,
+        deepgramKey: true,
+        anthropicKey: true,
+      })),
+      AT,
+      NO_REPAIR_ENV,
+    );
+    expect(r.verdict).toBe("configured");
+    expect(r.missing).toEqual([]);
+    expect(r.reached).toBe("summary");
+    expect(r.repair.missing.length).toBeGreaterThan(0);
+  });
+
   it("the log line is counts and states — never the report's prose or a key name value", () => {
     const log = callReadinessLog(respond({ twilioAuthToken: true }));
     expect(log).toEqual({
@@ -112,6 +162,8 @@ describe("callReadinessResponse — one next step, and no lie about where env li
       reached: "timeline",
       missing: 2,
       warnings: 1,
+      repairDoorsOpen: 0,
+      repairMissing: 5,
     });
     expect(JSON.stringify(log)).not.toContain("redeploy");
   });
