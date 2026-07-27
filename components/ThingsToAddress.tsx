@@ -11,7 +11,13 @@ import {
   writeFailureMessage,
   type WriteFailure,
 } from "@/lib/comms/proposalFlag";
-import { heldArchiveNote, heldArchivePlaces, heldPriorJudgements, heldRowCopy } from "@/lib/comms/heldDomainFlag";
+import {
+  heldArchiveNote,
+  heldArchivePlaces,
+  heldPriorJudgements,
+  heldRowCopy,
+  ledgerRepeatMark,
+} from "@/lib/comms/heldDomainFlag";
 
 // "Things to Address" (Rob 2026-07-22): findings Max surfaces, resolved in-place
 // with an optional note. Resolved items are never removed — they archive into an
@@ -125,6 +131,12 @@ export default function ThingsToAddress({
   // inc.38: prior decisions on the SAME rows the archive is placed from, so the
   // open row, the archive row and the panel all count one history.
   const priorJudgements = heldPriorJudgements(flags);
+  // inc.41: off the SAME map the open rows print their history from, so the
+  // header and the rows can never disagree about one question.
+  const openRepeat = ledgerRepeatMark(
+    open.map((f) => f.title),
+    priorJudgements
+  );
   if (!flags.length) return null;
 
   // Overview mode: compact digest — unread open items only, hover for full
@@ -233,6 +245,17 @@ export default function ThingsToAddress({
           {open.length > 0 && (
             <span className="ml-1 rounded-full bg-red-500/80 px-2 py-0.5 text-xs font-bold text-white">
               {open.length}
+            </span>
+          )}
+          {/* inc.41: the count says how much is open, never how much of it Rob
+              has already answered. The marker rides the header because that is
+              what is read BEFORE the decision to work the list; the per-row
+              history (inc.38) is read after. Deliberately un-fractioned — this
+              list is mixed, so the badge's number and this one count different
+              populations. */}
+          {openRepeat && (
+            <span className="ml-2 align-middle text-[11px] font-normal text-slate-400">
+              · {openRepeat}
             </span>
           )}
         </h2>

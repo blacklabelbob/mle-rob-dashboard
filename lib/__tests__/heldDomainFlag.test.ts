@@ -12,6 +12,7 @@ import {
   heldPriorJudgements,
   findingRepeatMark,
   badgeRepeatMark,
+  ledgerRepeatMark,
   type HeldFlagIndex,
 } from "@/lib/comms/heldDomainFlag";
 import type { AuditFinding } from "@/lib/comms/genericDomainAudit";
@@ -944,5 +945,115 @@ describe("the collapsed badge's repeat marker", () => {
     const idx = ok([resolved("bigmailer.com", "2026-07-24")]);
     const domains = ["", "   ", null as unknown as string, 7 as unknown as string, "bigmailer.com"];
     expect(badgeRepeatMark(domains, idx)).toBe("resolved before");
+  });
+});
+
+describe("the ledger header's repeat marker", () => {
+  const held = (domain: string) => heldDomainFlagTitle(domain);
+  const resolvedRow = (domain: string, resolved_at?: unknown) => ({
+    status: "resolved",
+    title: held(domain),
+    ...(resolved_at === undefined ? {} : { resolved_at }),
+  });
+  const openRow = (domain: string) => ({ status: "open", title: held(domain) });
+
+  it("says nothing when every open row is a first sighting", () => {
+    const prior = heldPriorJudgements([openRow("bigmailer.com")]);
+    expect(ledgerRepeatMark([held("bigmailer.com"), held("sendgrid.net")], prior)).toBeNull();
+  });
+
+  it("stays silent when there is no history to read — an unknown past is not 'all new'", () => {
+    expect(ledgerRepeatMark([held("bigmailer.com")], null)).toBeNull();
+    expect(ledgerRepeatMark([held("bigmailer.com")], undefined)).toBeNull();
+    expect(ledgerRepeatMark([held("bigmailer.com")], new Map())).toBeNull();
+  });
+
+  it("says nothing when there are no open rows to mark", () => {
+    const prior = heldPriorJudgements([resolvedRow("bigmailer.com", "2026-07-24")]);
+    expect(ledgerRepeatMark([], prior)).toBeNull();
+    expect(ledgerRepeatMark(null, prior)).toBeNull();
+    expect(ledgerRepeatMark(undefined, prior)).toBeNull();
+  });
+
+  it("ignores the rows that can never have a history — proposals and ordinary findings", () => {
+    const prior = heldPriorJudgements([resolvedRow("bigmailer.com", "2026-07-24")]);
+    expect(
+      ledgerRepeatMark(["New company domain: roofco.com", "Invoice missing", "CG registry conflict"], prior)
+    ).toBeNull();
+    // A mixed list counts only the held-domain row.
+    expect(
+      ledgerRepeatMark(["New company domain: roofco.com", held("bigmailer.com"), "Invoice missing"], prior)
+    ).toBe("1 resolved before");
+  });
+
+  it("ALWAYS carries its number — the badge beside it counts a different population", () => {
+    const prior = heldPriorJudgements([resolvedRow("bigmailer.com", "2026-07-24")]);
+    // inc.39/40 drop the number when the total is the same population. Here the
+    // open badge counts every row of every kind, so a bare "resolved before"
+    // would read as belonging to that count.
+    expect(ledgerRepeatMark([held("bigmailer.com")], prior)).toBe("1 resolved before");
+  });
+
+  it("never prints a fraction or an 'all' — two populations must not wear one fraction", () => {
+    const prior = heldPriorJudgements([
+      resolvedRow("bigmailer.com", "2026-07-24"),
+      resolvedRow("sendgrid.net", "2026-07-24"),
+    ]);
+    const mark = ledgerRepeatMark(
+      [held("bigmailer.com"), held("sendgrid.net"), "Invoice missing"],
+      prior
+    )!;
+    expect(mark).toBe("2 resolved before");
+    expect(mark).not.toMatch(/\bof\b|\ball\b/i);
+  });
+
+  it("counts ROWS, not trips round the loop", () => {
+    const prior = heldPriorJudgements([
+      resolvedRow("bigmailer.com", "2026-07-18"),
+      resolvedRow("bigmailer.com", "2026-07-20"),
+      resolvedRow("bigmailer.com", "2026-07-24"),
+      resolvedRow("sendgrid.net", "2026-07-24"),
+    ]);
+    expect(prior.get("bigmailer.com")!.times).toBe(3);
+    // Three trips for one domain, two returning rows — the header says two.
+    expect(
+      ledgerRepeatMark([held("bigmailer.com"), held("sendgrid.net"), held("mailchimp.com")], prior)
+    ).toBe("2 resolved before");
+  });
+
+  it("counts one domain once, however the ledger cased or spaced it", () => {
+    const prior = heldPriorJudgements([resolvedRow("bigmailer.com", "2026-07-24")]);
+    expect(
+      ledgerRepeatMark([held("BigMailer.com"), held(" bigmailer.com "), held("bigmailer.com")], prior)
+    ).toBe("1 resolved before");
+  });
+
+  it("agrees with the rows it sits above — one history, not two that agree today", () => {
+    const prior = heldPriorJudgements([
+      resolvedRow("bigmailer.com", "2026-07-24"),
+      resolvedRow("sendgrid.net"),
+    ]);
+    const titles = [held("bigmailer.com"), held("sendgrid.net"), held("mailchimp.com")];
+    // The rows print their history through `heldRowCopy(title, prior)`; the
+    // header must mark exactly as many rows as carry that sentence.
+    const withHistory = titles.filter((t) => {
+      const base = heldRowCopy(t)!.hint;
+      return heldRowCopy(t, prior)!.hint !== base;
+    }).length;
+    expect(ledgerRepeatMark(titles, prior)).toBe(`${withHistory} resolved before`);
+  });
+
+  it("never claims an ordinal, a date, or blocklist advice — that lives on the row", () => {
+    const prior = heldPriorJudgements([resolvedRow("bigmailer.com", "2026-07-24")]);
+    const mark = ledgerRepeatMark([held("bigmailer.com")], prior)!;
+    expect(mark).not.toMatch(/\b(1st|2nd|3rd|first|second|third)\b/i);
+    expect(mark).not.toMatch(/blocklist/i);
+    expect(mark).not.toMatch(/2026-07-24|most recently|earlier/);
+  });
+
+  it("survives junk titles rather than losing the marker", () => {
+    const prior = heldPriorJudgements([resolvedRow("bigmailer.com", "2026-07-24")]);
+    const titles = ["", "   ", null as unknown as string, 7 as unknown as string, held("bigmailer.com")];
+    expect(ledgerRepeatMark(titles, prior)).toBe("1 resolved before");
   });
 });

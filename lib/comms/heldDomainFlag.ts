@@ -381,6 +381,30 @@ export function badgeRepeatMark(
   index: HeldFlagIndex
 ): string | null {
   if (!Array.isArray(domains) || index.kind !== "read") return null;
+  const { returning, total } = repeatTally(domains, index.judged);
+  if (returning < 1) return null;
+  if (total === 1) return "resolved before";
+  if (returning === total) return `all ${total} resolved before`;
+  return `${returning} of ${total} resolved before`;
+}
+
+/**
+ * How many of a list of domains Rob has judged before, and how many distinct
+ * domains the list actually held.
+ *
+ * Q69 inc.41 — shared by `badgeRepeatMark` (panel header) and
+ * `ledgerRepeatMark` (Things to Address header) rather than counted twice: these
+ * two markers can be on screen together, and "one history, not two that agree
+ * today" is the whole point of `heldPriorJudgements` existing.
+ *
+ * DEDUPED, trimmed and case-folded: one domain is one question however many
+ * times it is listed, and counting it twice is how a marker out-counts its own
+ * total. Junk entries are skipped, never counted as a domain.
+ */
+function repeatTally(
+  domains: readonly unknown[],
+  judged: Map<string, Judgement>
+): { returning: number; total: number } {
   const seen = new Set<string>();
   let returning = 0;
   for (const raw of domains) {
@@ -388,13 +412,52 @@ export function badgeRepeatMark(
     const d = raw.trim().toLowerCase();
     if (!d || seen.has(d)) continue;
     seen.add(d);
-    const judged = index.judged.get(d);
-    if (judged && judged.times >= 1) returning += 1;
+    const j = judged.get(d);
+    if (j && j.times >= 1) returning += 1;
   }
+  return { returning, total: seen.size };
+}
+
+/**
+ * Q69 inc.41 — the LEDGER's header tells a returning question from a new one.
+ *
+ * inc.40 gave the blocklist panel's collapsed badge a repeat marker, so a
+ * passer-by can tell "3 domains to decide" from "3 questions you already
+ * answered". Things to Address — the surface that carries the Resolve control,
+ * and the one Rob opens first — still says only `{open.length}`. Its rows say it
+ * (inc.38's `waitingHistory` inside the hint), but the row text is read AFTER
+ * the decision to work the list; the header is what is read before.
+ *
+ * COUNTED IN ROWS, AND THE TOTAL IS NEVER PRINTED. This is the one place the
+ * panel's wording could not be reused: the panel's findings are ALL held-domain
+ * findings, so "2 of 3" is unambiguous there. This ledger is a mixed list —
+ * proposals, ordinary findings, held-domain rows — and only held-domain rows can
+ * have a prior judgement at all. So "all 3" or "2 of 3" beside a badge counting
+ * every open row of every kind would be two different populations wearing one
+ * fraction. The marker states the returning count and nothing else, and unlike
+ * inc.39/40 it ALWAYS carries its number: the number beside it (the open badge)
+ * is a different population, so a bare "resolved before" would attach itself to
+ * that count instead.
+ *
+ * NO ORDINAL ARITHMETIC (the inc.36–40 standing rule): resolved counts are
+ * known, raised counts are not.
+ *
+ * `null` on: no titles, no prior-judgement map (an unknown history is not "all
+ * new" — same silence as `badgeRepeatMark` on an unread index), or no returning
+ * row. A marker on every scan would tell Rob nothing.
+ */
+export function ledgerRepeatMark(
+  titles: readonly unknown[] | null | undefined,
+  prior: Map<string, Judgement> | null | undefined
+): string | null {
+  if (!Array.isArray(titles) || !prior || prior.size === 0) return null;
+  // Non-held rows drop out here: `heldFlagDomain` is null for a proposal and for
+  // every ordinary finding, which is exactly the population that can never carry
+  // a judgement history.
+  const domains = titles.map((t) => (typeof t === "string" ? heldFlagDomain(t) : null));
+  const { returning } = repeatTally(domains, prior);
   if (returning < 1) return null;
-  if (seen.size === 1) return "resolved before";
-  if (returning === seen.size) return `all ${seen.size} resolved before`;
-  return `${returning} of ${seen.size} resolved before`;
+  return `${returning} resolved before`;
 }
 
 /**
