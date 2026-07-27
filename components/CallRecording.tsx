@@ -1,7 +1,8 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { playbackErrorNotice, playbackLabel, playbackSource } from "@/lib/calls/recordingAudio";
+import { seekBlockedNotice } from "@/lib/calls/playbackSeek";
 
 // BUILD-QUEUE Q68 inc.31 — THE PLAYER EXISTS. The last unbuilt hop of the playback chain.
 //
@@ -38,15 +39,53 @@ export default function CallRecording({
   recordingUrl,
   direction,
   duration,
+  registerSeek,
 }: {
   recordingSid: string | null | undefined;
   recordingUrl: string | null | undefined;
   direction?: string | null;
   duration?: string | null;
+  /**
+   * inc.32: publishes this player's seek handle to the row above, so the transcript's jump
+   * list can reach it. Called with `null` whenever there is nothing seekable — which is what
+   * makes `seekPlan`'s `no-player` branch true rather than assumed.
+   */
+  registerSeek?: (seek: ((seconds: number) => void) | null) => void;
 }) {
   const source = playbackSource({ recordingSid, recordingUrl });
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const src = source.kind === "proxied" ? source.src : null;
+
+  // inc.32. Publishing is an effect, not a render-time call: the handle must reach the parent
+  // only for an element that is actually mounted, and it must be RETRACTED on unmount —
+  // a stale handle held across a re-render seeks a detached `<audio>`, i.e. nothing at all,
+  // and the rep's click looks like a broken moment rather than a closed transcript.
+  useEffect(() => {
+    if (!registerSeek) return;
+    if (!src) {
+      // Rule 2: an absent or unplayable recording publishes NOTHING. The jump then plans
+      // `no-player` and says nothing about audio, instead of reporting a failed seek beside
+      // a player the rep can see is not there.
+      registerSeek(null);
+      return;
+    }
+    registerSeek((seconds) => {
+      const el = audioRef.current;
+      if (!el) return;
+      try {
+        el.currentTime = seconds;
+        // Rule 3: with `preload="none"` nothing has loaded, so a bare `currentTime` assignment
+        // is invisible — the control still reads 0:00. The seek IS the play.
+        void Promise.resolve(el.play()).catch(() => setNotice(seekBlockedNotice()));
+      } catch {
+        // Rule 4, synchronous half: a refusal from the element itself is still a refusal the
+        // rep asked for by name.
+        setNotice(seekBlockedNotice());
+      }
+    });
+    return () => registerSeek(null);
+  }, [registerSeek, src]);
 
   // Rule 4 of the lib: absent renders NOTHING — no player, no sentence. A call without a
   // recording is not a call whose recording failed.

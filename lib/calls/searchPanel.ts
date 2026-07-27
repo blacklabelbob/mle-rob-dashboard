@@ -51,6 +51,14 @@ export type PanelMoment = {
   idx: number;
   /** "0:07", or null when the span was unusable. A moment is never faked a time. */
   time: string | null;
+  /**
+   * The raw offset the label was formatted from — what a player is seeked to (inc.32).
+   *
+   * Carried alongside `time` rather than parsed back out of it: "0:07" has already lost the
+   * sub-second the segment actually starts at, and re-deriving a physical seek position from a
+   * display string is how a jump lands a second off the sentence the rep clicked.
+   */
+  startMs: number;
   label: string;
   /** Verbatim window around the hit. Nothing inserted — see rule 5. */
   snippet: string;
@@ -99,6 +107,7 @@ function place(m: TranscriptMoment, turns: readonly PanelTurn[]): PanelMoment | 
     turnKey: turn.key,
     idx: m.idx,
     time: timecode(m.startMs),
+    startMs: m.startMs,
     label: m.label,
     snippet: m.snippet,
     snippetStart: m.snippetStart,

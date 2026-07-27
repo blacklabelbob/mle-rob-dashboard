@@ -33,6 +33,7 @@
 //     carries the time and the speaker — the two things that distinguish one row from the
 //     next.
 
+import { momentSeekSeconds } from "./playbackSeek";
 import type { PanelMoment } from "./searchPanel";
 
 /** One moment as a row in the jump list. Everything the UI needs; nothing it must derive. */
@@ -45,6 +46,14 @@ export type MomentRow = {
   idx: number;
   /** "0:07", or null when this moment has no known time (rule 2). */
   time: string | null;
+  /**
+   * Where to seek a player, in seconds, or null when this moment has no usable time (inc.32).
+   *
+   * Null and `time === null` are the SAME condition by construction — both come off `startMs`
+   * through the same gate — so a row can never print a time it will not seek to, or seek to a
+   * time it did not print.
+   */
+  seekSeconds: number | null;
   label: string;
   /** Verbatim. Nothing added, nothing removed (rule 1). */
   snippet: string;
@@ -67,6 +76,7 @@ export function momentRows(moments: readonly PanelMoment[]): MomentRow[] {
     turnKey: m.turnKey,
     idx: m.idx,
     time: m.time,
+    seekSeconds: momentSeekSeconds(m.startMs),
     label: m.label,
     snippet: m.snippet,
     leadEllipsis: m.truncatedStart,

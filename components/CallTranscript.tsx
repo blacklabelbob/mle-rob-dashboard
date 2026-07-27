@@ -9,7 +9,8 @@ import {
 } from "@/lib/calls/transcriptPanel";
 import { searchPanelFromBody, type SearchPanel } from "@/lib/calls/searchPanel";
 import { markedPieces } from "@/lib/calls/markedText";
-import { momentRows } from "@/lib/calls/momentList";
+import { momentRows, type MomentRow } from "@/lib/calls/momentList";
+import { seekPlan } from "@/lib/calls/playbackSeek";
 
 // BUILD-QUEUE Q68 (b) inc.19 — THE LAST HOP: the words reach a human.
 //
@@ -88,7 +89,17 @@ function TurnText({ text, marks }: { text: string; marks: { start: number; end: 
   );
 }
 
-export default function CallTranscript({ recordingSid }: { recordingSid: string }) {
+export default function CallTranscript({
+  recordingSid,
+  seek,
+}: {
+  recordingSid: string;
+  /**
+   * inc.32: the sibling player's seek handle, or null when there is nothing seekable. Absent
+   * on any surface that renders a transcript without a player — the jump still scrolls.
+   */
+  seek?: ((seconds: number) => void) | null;
+}) {
   const [panel, setPanel] = useState<TranscriptPanel | null>(null);
   const [search, setSearch] = useState<SearchPanel | null>(null);
   const [query, setQuery] = useState("");
@@ -98,13 +109,19 @@ export default function CallTranscript({ recordingSid }: { recordingSid: string 
   const turnEls = useRef(new Map<number, HTMLLIElement | null>());
   const [landedOn, setLandedOn] = useState<number | null>(null);
 
-  function jump(turnKey: number) {
-    const el = turnEls.current.get(turnKey);
-    if (!el) return; // Nothing to scroll to is silence, not a scroll to the top of the list.
-    el.scrollIntoView({ block: "center", behavior: "smooth" });
-    // The marks say WHICH WORDS matched; this says which turn we just moved you to, because
-    // a smooth scroll that lands mid-transcript gives no other signal that anything happened.
-    setLandedOn(turnKey);
+  function jump(row: MomentRow) {
+    // inc.32: the SCROLL HAPPENS EITHER WAY. A moment with no time, or a call whose recording
+    // we will not serve, still takes the rep to the words — the audio half is the addition,
+    // never a precondition (playbackSeek rules 1 and 2).
+    const el = turnEls.current.get(row.turnKey);
+    if (el) {
+      el.scrollIntoView({ block: "center", behavior: "smooth" });
+      // The marks say WHICH WORDS matched; this says which turn we just moved you to, because
+      // a smooth scroll that lands mid-transcript gives no other signal that anything happened.
+      setLandedOn(row.turnKey);
+    }
+    const plan = seekPlan({ seekSeconds: row.seekSeconds, hasPlayer: Boolean(seek) });
+    if (plan.kind === "seek") seek?.(plan.seconds);
   }
 
   async function load(q?: string) {
@@ -212,7 +229,7 @@ export default function CallTranscript({ recordingSid }: { recordingSid: string 
                         <li key={r.key}>
                           <button
                             type="button"
-                            onClick={() => jump(r.turnKey)}
+                            onClick={() => jump(r)}
                             aria-label={r.jumpLabel}
                             className="w-full rounded px-1 py-0.5 text-left text-[11px] text-slate-400 hover:bg-white/5"
                           >

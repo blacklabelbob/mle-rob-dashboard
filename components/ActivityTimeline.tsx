@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { TIMELINE_TYPE_STYLE, type TimelineEntry, type TimelineEntryType } from "@/lib/repSource";
 import { awaitingSummaryLine, callDetail, type CallTimelineDetail } from "@/lib/calls/callTimeline";
 import CallTranscript from "./CallTranscript";
@@ -40,6 +40,18 @@ function normalize(row: Record<string, unknown>): Entry | null {
 }
 
 function CallDetail({ detail }: { detail: CallTimelineDetail }) {
+  // Q68 inc.32: the row is where the player and the transcript meet — the two components are
+  // siblings, so the seek handle is lifted to their parent rather than reached for through the
+  // DOM. State, not a bare ref: the transcript must RE-RENDER when the handle appears or is
+  // retracted, or its jump list keeps planning against whatever was true on first paint.
+  const [seek, setSeek] = useState<((seconds: number) => void) | null>(null);
+  // Stable identity: an inline arrow would re-run the publisher effect on every render of this
+  // row, retracting and re-publishing the handle in a loop.
+  const registerSeek = useCallback((fn: ((seconds: number) => void) | null) => {
+    // Wrapped in a thunk — React treats a bare function passed to a setter as an updater.
+    setSeek(() => fn);
+  }, []);
+
   const meta = [
     detail.state === "summarised" && detail.direction
       ? detail.direction === "inbound" ? "inbound" : "outbound"
@@ -73,6 +85,7 @@ function CallDetail({ detail }: { detail: CallTimelineDetail }) {
         recordingUrl={detail.recordingUrl}
         direction={detail.direction}
         duration={detail.duration}
+        registerSeek={registerSeek}
       />
 
       {detail.actionItems && detail.actionItems.length > 0 && (
@@ -91,7 +104,7 @@ function CallDetail({ detail }: { detail: CallTimelineDetail }) {
 
       {/* Q68 inc.19: only rows that carry a recording sid can be asked about — a null sid
           makes NO request rather than one the route would 400. */}
-      {detail.recordingSid && <CallTranscript recordingSid={detail.recordingSid} />}
+      {detail.recordingSid && <CallTranscript recordingSid={detail.recordingSid} seek={seek} />}
     </div>
   );
 }
