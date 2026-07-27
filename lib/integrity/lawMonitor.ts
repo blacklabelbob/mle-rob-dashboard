@@ -6,6 +6,15 @@
 // "Things to Address" digest — ONLY when there are changes (Rob: "IF theres
 // changes"; no items → no rows → the section renders nothing).
 //
+// NARROWED 2026-07-27 (Rob dev-chat #50, verbatim): "on the overview page we DO
+// NOT NEED any of those Voice Law notes. I dont care about the law unless theres
+// been an actual full change in the legal status of Voice AI." So the ledger is
+// no longer fed by keyword-matched law NEWS — an item now has to clear
+// isLegalStatusChange(): it must be about AI/synthetic voice calling AND carry a
+// status-change event (enacted / effective / adopted final rule / court ruling /
+// ban). Commentary, settlements, "what you should know" explainers, and general
+// TCPA litigation coverage are dropped silently.
+//
 // Pure per CR-3: no network, no clock. Idempotency: the flag title is the
 // item's own headline — the monitor's 8-day RSS window overlaps its weekly
 // runs, so the same article WILL be re-posted; title-dedupe against the
@@ -46,6 +55,97 @@ function isItemShaped(v: unknown): v is LawMonitorItem {
     typeof (v as LawMonitorItem).title === "string" &&
     (v as LawMonitorItem).title!.trim().length > 0
   );
+}
+
+// --- Rob's bar: "an actual full change in the legal status of Voice AI" ------
+// Both halves must be present in the item's own words (title + snippet +
+// matched keyword). One half alone is exactly the noise Rob rejected: a voice-AI
+// think-piece with no change, or a real rule change about something unrelated.
+
+// Half 1 — it is about AI / synthetic voice on the phone.
+const VOICE_AI_TERMS = [
+  "ai voice",
+  "ai-voice",
+  "ai-generated voice",
+  "ai generated voice",
+  "artificial voice",
+  "synthetic voice",
+  "voice clon", // cloning / cloned
+  "voice ai",
+  "ai calling",
+  "ai caller",
+  "ai call",
+  "ai robocall",
+  "robocall",
+  "artificial or prerecorded voice",
+  "prerecorded voice",
+  "voicebot",
+  "voice bot",
+  "conversational ai",
+];
+
+// Half 2 — the legal status actually MOVED (not "may", not "proposed", not
+// commentary). Proposals are deliberately excluded: a proposed rule is not a
+// change in status.
+const STATUS_CHANGE_TERMS = [
+  "signed into law",
+  "enacted",
+  "enacts",
+  "takes effect",
+  "took effect",
+  "goes into effect",
+  "effective date",
+  "now effective",
+  "adopts final rule",
+  "adopted final rule",
+  "final rule",
+  "declaratory ruling",
+  "issues order",
+  "issued an order",
+  "adopts rules",
+  "adopted rules",
+  "new rule",
+  "new law",
+  "passes law",
+  "passed law",
+  "bans ",
+  "banned",
+  "ban on",
+  "prohibits",
+  "outlaws",
+  "legalizes",
+  "supreme court rules",
+  "court strikes down",
+  "struck down",
+  "upholds",
+  "upheld",
+  "vacates",
+  "vacated",
+  "repeals",
+  "repealed",
+  "amends the tcpa",
+  "amended the tcpa",
+];
+
+function haystack(item: LawMonitorItem): string {
+  return [item.title, item.snippet, item.matched_keyword]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+}
+
+/**
+ * Rob's gate (dev-chat #50): only a real change in the legal status of voice AI
+ * earns a spot on his Overview. Everything else — settlements, enforcement
+ * roundups, law-firm explainers, proposed rules — returns false and never
+ * reaches the ledger.
+ */
+export function isLegalStatusChange(item: LawMonitorItem): boolean {
+  const text = haystack(item);
+  if (!text) return false;
+  const aboutVoiceAi = VOICE_AI_TERMS.some((t) => text.includes(t));
+  if (!aboutVoiceAi) return false;
+  return STATUS_CHANGE_TERMS.some((t) => text.includes(t));
 }
 
 export function lawFlagTitle(itemTitle: string): string {

@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { n8nEmailConfigured, n8nEmailEnv, verifyN8nSecret } from "@/lib/n8nEmail";
-import { lawItemsFromPayload, lawItemToFlag } from "@/lib/integrity/lawMonitor";
+import {
+  isLegalStatusChange,
+  lawItemsFromPayload,
+  lawItemToFlag,
+} from "@/lib/integrity/lawMonitor";
 
 export const dynamic = "force-dynamic";
 
@@ -34,10 +38,19 @@ export async function POST(req: Request) {
   } catch {
     return NextResponse.json({ error: "expected JSON body" }, { status: 400 });
   }
-  const items = lawItemsFromPayload(body);
+  const received = lawItemsFromPayload(body);
+  // Rob dev-chat #50 (2026-07-27): law NEWS is not wanted on the Overview —
+  // only "an actual full change in the legal status of Voice AI" gets through.
+  const items = received.filter(isLegalStatusChange);
+  const ignored = received.length - items.length;
   if (items.length === 0) {
-    // Rob: "IF theres changes" — an empty run is the normal, silent case.
-    return NextResponse.json({ ok: true, flagged: 0, reason: "no items" });
+    // Rob: "IF theres changes" — an empty/immaterial run is the normal, silent case.
+    return NextResponse.json({
+      ok: true,
+      flagged: 0,
+      ignored,
+      reason: received.length === 0 ? "no items" : "no legal-status change",
+    });
   }
 
   const url = process.env.SUPABASE_URL;
@@ -74,6 +87,8 @@ export async function POST(req: Request) {
     if (insErr) return NextResponse.json({ error: insErr.message }, { status: 500 });
     flagged++;
   }
-  console.log(`[voice-law] flagged ${flagged}, deduped ${skipped} of ${items.length}`);
-  return NextResponse.json({ ok: true, flagged, skipped });
+  console.log(
+    `[voice-law] flagged ${flagged}, deduped ${skipped}, ignored ${ignored} of ${received.length}`
+  );
+  return NextResponse.json({ ok: true, flagged, skipped, ignored });
 }

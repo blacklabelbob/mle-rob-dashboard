@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  isLegalStatusChange,
   lawFlagTitle,
   lawItemsFromPayload,
   lawItemToFlag,
@@ -27,6 +28,52 @@ describe("lawItemsFromPayload", () => {
     expect(lawItemsFromPayload(null)).toHaveLength(0);
     expect(lawItemsFromPayload("nope")).toHaveLength(0);
     expect(lawItemsFromPayload({ items: "nope" })).toHaveLength(0);
+  });
+});
+
+// Rob dev-chat #50 (2026-07-27): "I dont care about the law unless theres been
+// an actual full change in the legal status of Voice AI." The negatives below
+// are the REAL headlines that landed on his Overview and made him say it.
+describe("isLegalStatusChange", () => {
+  it("passes a real change in voice-AI legal status", () => {
+    expect(isLegalStatusChange(ITEM)).toBe(true);
+    expect(
+      isLegalStatusChange({ title: "FCC bans AI-generated voice calls under the TCPA" })
+    ).toBe(true);
+    expect(
+      isLegalStatusChange({
+        title: "Georgia robocall amendment signed into law, takes effect Jan 1",
+      })
+    ).toBe(true);
+  });
+
+  it("drops the law-news noise Rob rejected (the actual ledger headlines)", () => {
+    const noise = [
+      "$10MM DOWN THE DRAIN- Court Grants Final Approval to Gen Digital TCPA Settlement",
+      "FTC's Shutterstock Settlement Signals Continued Scrutiny of AI",
+      "High Gas Prices, Heightened Enforcement Risk - DOJ and FTC Call for Vigilance",
+      "NO ESCAPE- Court Enforces TCPA Subpoenas Against Nonparties",
+      "What Every Multinational Should Know About Conducting Internal Investigations",
+    ];
+    for (const title of noise) {
+      expect(isLegalStatusChange({ title, matched_keyword: "tcpa" })).toBe(false);
+    }
+  });
+
+  it("needs BOTH halves — voice AI alone, or a rule change alone, is not enough", () => {
+    expect(isLegalStatusChange({ title: "The rise of AI voice agents in call centers" })).toBe(
+      false
+    );
+    expect(isLegalStatusChange({ title: "New rule on hospital price transparency" })).toBe(false);
+    expect(isLegalStatusChange({ title: "" })).toBe(false);
+  });
+
+  it("does not treat a mere proposal as a change in status", () => {
+    expect(
+      isLegalStatusChange({
+        title: "FCC seeks comment on proposed AI voice call disclosure requirements",
+      })
+    ).toBe(false);
   });
 });
 
