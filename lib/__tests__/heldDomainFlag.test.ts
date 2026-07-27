@@ -566,3 +566,96 @@ describe("heldArchivePlaces / heldArchiveNote ordinal", () => {
   });
 });
 
+
+// ── Q69 inc.37 — the history follows the question onto the OPEN row ─────────
+
+describe("an already-waiting row carries the same history", () => {
+  const ok = (flags: unknown[]) => heldFlagIndex(200, { flags });
+  const open = (domain: string) => ({ status: "open", title: heldDomainFlagTitle(domain) });
+  const resolved = (domain: string, resolved_at?: unknown) => ({
+    status: "resolved",
+    title: heldDomainFlagTitle(domain),
+    ...(resolved_at === undefined ? {} : { resolved_at }),
+  });
+  const text = (a: ReturnType<typeof flagAffordance>) => (a.kind === "already" ? a.text : "");
+
+  it("says how many times he has already resolved the domain that came back", () => {
+    // The whole point: an OPEN row means this one CAME BACK. It is the case
+    // where the repeat matters most, and inc.33/35 said nothing about it.
+    const a = flagAffordance(
+      "bigmailer.com",
+      ok([resolved("bigmailer.com", "2026-07-20"), resolved("bigmailer.com", "2026-07-24"), open("bigmailer.com")])
+    );
+    expect(a.kind).toBe("already");
+    expect(text(a)).toMatch(/Already on Things to Address/);
+    expect(text(a)).toMatch(/resolved this 2 times before/);
+    expect(text(a)).toContain("2026-07-24");
+    expect(text(a)).toMatch(/blocklist entry is the thing to change/);
+  });
+
+  it("keeps the panel's count and the waiting row's count identical", () => {
+    const rows = [resolved("bigmailer.com", "2026-07-20"), resolved("bigmailer.com", "2026-07-24")];
+    const idx = ok(rows);
+    if (idx.kind !== "read") throw new Error("expected read");
+    const waiting = text(flagAffordance("bigmailer.com", ok([...rows, open("bigmailer.com")])));
+    expect(waiting).toContain(`${idx.judged.get("bigmailer.com")?.times} times before`);
+  });
+
+  it("uses the same one-vs-many threshold as the button's note", () => {
+    const a = flagAffordance("bigmailer.com", ok([resolved("bigmailer.com", "2026-07-24"), open("bigmailer.com")]));
+    expect(text(a)).toMatch(/already resolved this once on 2026-07-24/);
+    expect(text(a)).not.toMatch(/times before/);
+  });
+
+  it("says 'earlier' rather than inventing a date on the waiting row too", () => {
+    const a = flagAffordance("bigmailer.com", ok([resolved("bigmailer.com", "nope"), open("bigmailer.com")]));
+    expect(text(a)).toMatch(/earlier/);
+    expect(text(a)).not.toMatch(/\d{4}-\d{2}-\d{2}/);
+  });
+
+  it("never claims WHICH raise this is — a count is not a sequence", () => {
+    // inc.36's rule: we know how many times he RESOLVED it, never how many
+    // times it was RAISED (the open set collapses duplicates).
+    const a = flagAffordance(
+      "bigmailer.com",
+      ok([resolved("bigmailer.com", "2026-07-24"), open("bigmailer.com"), open("bigmailer.com")])
+    );
+    expect(text(a)).not.toMatch(/second time|third time|this is the \d/i);
+  });
+
+  it("appends nothing when the domain has never been judged", () => {
+    const a = flagAffordance("bigmailer.com", ok([open("bigmailer.com")]));
+    expect(text(a)).toBe("Already on Things to Address — waiting on your decision.");
+  });
+
+  it("appends nothing when the ledger could not be read", () => {
+    const a = flagAffordance("bigmailer.com", { kind: "unknown" }, flagOutcome(200, { ok: true }));
+    expect(text(a)).toBe(flagOutcome(200, { ok: true }).text);
+  });
+
+  it("carries the history onto a row he flagged in THIS session", () => {
+    // He just re-raised a domain he has resolved twice — that is the moment the
+    // count is most worth knowing, not the moment to forget it.
+    const a = flagAffordance(
+      "bigmailer.com",
+      ok([resolved("bigmailer.com", "2026-07-20"), resolved("bigmailer.com", "2026-07-24")]),
+      flagOutcome(200, { ok: true })
+    );
+    expect(a.kind).toBe("already");
+    expect(text(a)).toMatch(/still be there/);
+    expect(text(a)).toMatch(/resolved this 2 times before/);
+  });
+
+  it("does not turn a FAILED post into a history lecture", () => {
+    const a = flagAffordance("bigmailer.com", ok([resolved("bigmailer.com", "2026-07-24")]), flagOutcome(500, null));
+    expect(a.kind).toBe("button");
+  });
+
+  it("never leaks NaN/undefined/null into the waiting sentence", () => {
+    const a = flagAffordance(
+      "bigmailer.com",
+      ok([resolved("bigmailer.com"), resolved("bigmailer.com"), open("bigmailer.com")])
+    );
+    expect(text(a)).not.toMatch(/NaN|undefined|null/);
+  });
+});

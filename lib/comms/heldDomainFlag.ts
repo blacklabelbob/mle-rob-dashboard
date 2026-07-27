@@ -250,12 +250,46 @@ export function flagAffordance(
   index: HeldFlagIndex,
   outcome?: FlagOutcome | null
 ): FlagAffordance {
-  if (outcome?.flagged) return { kind: "already", text: outcome.text };
   const d = (domain ?? "").trim().toLowerCase();
+  // Q69 inc.37 — the history is true whichever way the row is already waiting,
+  // so it is computed once and appended to BOTH already-branches.
+  const history = d && index.kind === "read" ? waitingHistory(index.judged, d) : "";
+  if (outcome?.flagged) return { kind: "already", text: outcome.text + history };
   if (d && index.kind === "read" && index.domains.has(d)) {
-    return { kind: "already", text: "Already on Things to Address — waiting on your decision." };
+    return { kind: "already", text: "Already on Things to Address — waiting on your decision." + history };
   }
   return { kind: "button", judged: d && index.kind === "read" ? judgedNote(index.judged, d) : null };
+}
+
+/**
+ * Q69 inc.37 — the history follows the question onto the OPEN row.
+ *
+ * inc.33/35 gave the note a memory, but only on the branch that still has a
+ * button: the moment a row is open, `judgedNote` is never reached and the panel
+ * says one flat sentence — "waiting on your decision" — with no hint that the
+ * same decision has already been made three times. That is backwards. A domain
+ * with an open row is, by definition, the one that CAME BACK; it is the case
+ * where the repeat matters most, and it was the only case where we said nothing.
+ * Rob then re-decides it as if it were new, which is how a loop stays a loop.
+ *
+ * NO ORDINAL ARITHMETIC (inc.36's rule). We know how many times he RESOLVED it;
+ * we do not know how many times it was RAISED (an open set collapses duplicates),
+ * so we never say "this is the third time it has come up" — that would be a
+ * sequence claim derived from a count, which is exactly the guess inc.36 declined.
+ *
+ * Returns "" — never a null or an undefined that could reach the copy.
+ */
+function waitingHistory(judged: Map<string, Judgement>, domain: string): string {
+  const seen = judged.get(domain);
+  if (!seen || seen.times < 1) return "";
+  const when = seen.date ? ` on ${seen.date}` : " earlier";
+  // Same threshold as `judgedNote`: one judgement is a fact, two is a pattern,
+  // and only the pattern earns the sentence that points at the blocklist.
+  if (seen.times < 2) return ` You already resolved this once${when}.`;
+  return (
+    ` You have resolved this ${seen.times} times before, most recently${when} — ` +
+    `it keeps coming back, so consider whether the blocklist entry is the thing to change.`
+  );
 }
 
 /**
