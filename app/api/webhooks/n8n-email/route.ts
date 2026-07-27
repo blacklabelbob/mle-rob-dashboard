@@ -13,6 +13,7 @@ import {
   type EmailPayload,
 } from "@/lib/n8nEmail";
 import { buildGraphIndex } from "@/lib/comms/emailGraphIndex";
+import { loadExtraGenericDomains } from "@/lib/comms/genericDomainStore";
 import { resolveMailboxLink } from "@/lib/comms/mailboxLink";
 import { planOrgProposals, recordOrgProposals } from "@/lib/comms/orgProposal";
 import { supabaseProposalSink } from "@/lib/comms/orgProposalSink";
@@ -72,7 +73,20 @@ export async function POST(req: Request) {
 
   const store = getStore();
   const data = await store.getNetwork();
-  const index = buildGraphIndex(data);
+  // Q69 inc.24 — the extras table (0023) fills `buildGraphIndex`'s
+  // `extraGenericDomains` seam. ADDITIONS ONLY: the hardcoded floor is applied
+  // regardless, so a failed read means "no extras", never "nothing is generic".
+  // Logged loudly and never thrown — the message still lands (the 200 contract
+  // inc.22/23 pinned), and the worst cost is one reviewable proposal flag for a
+  // domain Rob had blocked, because rung 6 proposes and never creates.
+  const extras = await loadExtraGenericDomains();
+  if (extras.error) {
+    console.error("[n8n-email] generic-domain extras UNREADABLE", payload.messageId, extras.error);
+  }
+  for (const s of extras.skipped) {
+    console.error("[n8n-email] generic-domain row unusable", s.value, "—", s.reason);
+  }
+  const index = buildGraphIndex(data, extras.domains);
   const match = matchContact(data, payload, index, link);
   if (!match) {
     // Q69 inc.3: the ladder anchored nothing. If we SENT this, rung 6 proposes
