@@ -17,7 +17,8 @@ import { resolveMailboxLink } from "@/lib/comms/mailboxLink";
 import { planOrgProposals, recordOrgProposals } from "@/lib/comms/orgProposal";
 import { supabaseProposalSink } from "@/lib/comms/orgProposalSink";
 import { planPeopleForEmail } from "@/lib/comms/emailPeople";
-import { applyPeopleWrites } from "@/lib/comms/emailPeopleWrites";
+import { applyPeopleWrites, type PersonWriteFailure } from "@/lib/comms/emailPeopleWrites";
+import { ingestOutcome, proposalOutcome } from "@/lib/comms/ingestOutcome";
 
 export const dynamic = "force-dynamic";
 
@@ -79,40 +80,46 @@ export async function POST(req: Request) {
     // creates. Received mail from an unknown domain still queues nothing.
     const counterparts = allParties(payload).filter((a) => a !== link.address);
     const proposals = planOrgProposals(counterparts, directionOf(payload, link), index);
-    let queued: string[] = [];
+    const planned = proposals.map((p) => p.domain);
+    const sink = proposals.length > 0 ? supabaseProposalSink() : null;
+    let result: { created: string[]; duplicate: string[] } | undefined;
+    let queueError: unknown;
     if (proposals.length > 0) {
-      const sink = supabaseProposalSink();
       if (sink) {
         try {
-          const res = await recordOrgProposals(proposals, sink);
-          queued = res.created;
+          result = await recordOrgProposals(proposals, sink);
           console.log(
             "[n8n-email] org proposals",
             payload.messageId,
             "queued:",
-            res.created.join(",") || "none",
+            result.created.join(",") || "none",
             "already-queued:",
-            res.duplicate.join(",") || "none"
+            result.duplicate.join(",") || "none"
           );
         } catch (err) {
           // The email is still not ingested either way; a failed queue write is
-          // logged loudly rather than swallowed into a cheerful 200.
+          // logged loudly AND reported in the body (inc.22) rather than
+          // swallowed into a cheerful 200 n8n cannot tell from success.
+          queueError = err;
           console.error("[n8n-email] org proposal queue FAILED", payload.messageId, err);
         }
       } else {
-        console.log(
-          "[n8n-email] org proposals (no ledger store configured)",
-          proposals.map((p) => p.domain).join(",")
+        console.error(
+          "[n8n-email] org proposals DROPPED (no ledger store configured)",
+          payload.messageId,
+          planned.join(",")
         );
       }
     }
     console.log("[n8n-email] no contact match", payload.messageId);
-    return NextResponse.json({
-      ok: true,
-      ingested: false,
-      reason: "no contact match",
-      proposedOrgs: queued,
-    });
+    return NextResponse.json(
+      proposalOutcome({
+        planned,
+        result,
+        storeConfigured: sink !== null,
+        error: queueError,
+      })
+    );
   }
 
   const capturedAt = new Date().toISOString();
@@ -131,10 +138,14 @@ export async function POST(req: Request) {
     capturedAtISO: capturedAt,
     emailDateISO: payload.date,
   });
-  let peopleWritten = { created: [] as string[], merged: [] as string[] };
+  let peopleWritten = {
+    created: [] as string[],
+    merged: [] as string[],
+    failed: [] as PersonWriteFailure[],
+  };
   if (people.writes.length > 0) {
     const res = await applyPeopleWrites(people.writes, store);
-    peopleWritten = { created: res.created, merged: res.merged };
+    peopleWritten = { created: res.created, merged: res.merged, failed: res.failed };
     if (res.failed.length > 0) {
       // Loud, never swallowed: a person we failed to create is a human the rep
       // will not see. The email itself still lands — losing the timeline row
@@ -163,11 +174,12 @@ export async function POST(req: Request) {
     "→",
     activity.personId ? `person:${activity.personId}` : `org:${activity.orgId}`
   );
-  return NextResponse.json({
-    ok: true,
-    ingested: true,
-    activityId: activity.id,
-    peopleCreated: peopleWritten.created,
-    peopleMerged: peopleWritten.merged,
-  });
+  return NextResponse.json(
+    ingestOutcome({
+      activityId: activity.id,
+      created: peopleWritten.created,
+      merged: peopleWritten.merged,
+      failed: peopleWritten.failed,
+    })
+  );
 }
