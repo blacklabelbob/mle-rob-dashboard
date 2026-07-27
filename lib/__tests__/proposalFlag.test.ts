@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { addressFromDetail, proposalDomain, suggestedNameFromDetail } from "@/lib/comms/proposalFlag";
+import {
+  addressFromDetail,
+  createOutcomeMessage,
+  proposalDomain,
+  suggestedNameFromDetail,
+} from "@/lib/comms/proposalFlag";
 import { proposalToFlag, proposalTitle } from "@/lib/comms/orgProposal";
 
 describe("proposalDomain", () => {
@@ -86,5 +91,70 @@ describe("addressFromDetail", () => {
     // and the ladder's domain match is exact, so these cannot legitimately differ.
     const sub = flag.detail.replace("trent@the-title-base.com", "trent@mail.the-title-base.com");
     expect(addressFromDetail(sub, "the-title-base.com")).toBe("");
+  });
+});
+
+// Q69 inc.16 — the outcome the route reports and the button used to erase.
+//
+// The create route writes twice: the org row (guaranteed by the 2xx) and then
+// the ledger flag's resolve, which it lets fail on purpose. Before this, the
+// component rendered one green "Created X ✓" for every outcome — so the failure
+// the route took care to describe was invisible, and the next click on the
+// still-open flag answered 409 `domain-already-known`, which reads as a broken
+// button on the exact domain that just worked.
+describe("createOutcomeMessage", () => {
+  it("says done, with the name and the tick, only when the flag actually closed", () => {
+    const out = createOutcomeMessage("The Title Base", true);
+    expect(out.resolved).toBe(true);
+    expect(out.text).toBe("Created The Title Base ✓");
+  });
+
+  it("still says CREATED when the resolve failed — the company does exist", () => {
+    // The org write is what the 2xx is about. Reporting the create as failed
+    // because the second write failed would send Rob to create it again, and
+    // inc.9's unique index would refuse him.
+    const out = createOutcomeMessage("The Title Base", false);
+    expect(out.text.startsWith("Created The Title Base")).toBe(true);
+    expect(out.resolved).toBe(false);
+    expect(out.text).toContain("stays open");
+  });
+
+  it("treats a missing flagResolved as unknown, never as resolved", () => {
+    // Reached when the response body fails to parse or the shape drifts. A
+    // glance at the ledger costs a second; a flag believed handled outlives
+    // the session.
+    const out = createOutcomeMessage("The Title Base", undefined);
+    expect(out.resolved).toBe(false);
+    expect(out.text).toContain("check the ledger");
+  });
+
+  it("never renders a name it wasn't given", () => {
+    for (const name of [undefined, "", "   "]) {
+      const out = createOutcomeMessage(name, true);
+      expect(out.text).toBe("Created ✓");
+      expect(out.text).not.toContain("undefined");
+    }
+  });
+
+  it("trims the name the route echoes back rather than printing its padding", () => {
+    expect(createOutcomeMessage("  Gulf Coast Roofing  ", true).text).toBe(
+      "Created Gulf Coast Roofing ✓"
+    );
+  });
+
+  it("only the resolved outcome carries the tick — the unresolved ones must not", () => {
+    // The colour is chosen off `resolved`, but the text is what gets read back
+    // in a screenshot. A ✓ on an unclosed item is the same false 'handled'.
+    expect(createOutcomeMessage("Acme", false).text).not.toContain("✓");
+    expect(createOutcomeMessage("Acme", undefined).text).not.toContain("✓");
+  });
+
+  it("distinguishes 'we know it failed' from 'we don't know' — different sentences", () => {
+    // Folding undefined into false would tell Rob the resolve failed when the
+    // truth is we never heard. Both keep him on the ledger; only one is honest
+    // about why.
+    const failed = createOutcomeMessage("Acme", false).text;
+    const unknown = createOutcomeMessage("Acme", undefined).text;
+    expect(failed).not.toBe(unknown);
   });
 });

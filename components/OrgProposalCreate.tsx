@@ -1,7 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { addressFromDetail, suggestedNameFromDetail } from "@/lib/comms/proposalFlag";
+import {
+  addressFromDetail,
+  createOutcomeMessage,
+  suggestedNameFromDetail,
+} from "@/lib/comms/proposalFlag";
 
 // Q69 increment 6: the reviewer's one click, on screen.
 //
@@ -32,7 +36,7 @@ export default function OrgProposalCreate({
   const [verticals, setVerticals] = useState<Vertical[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [done, setDone] = useState("");
+  const [done, setDone] = useState<ReturnType<typeof createOutcomeMessage> | null>(null);
 
   useEffect(() => {
     if (!open || verticals.length) return;
@@ -70,7 +74,10 @@ export default function OrgProposalCreate({
         setError(j?.detail || j?.error || `create failed (${r.status})`);
         return;
       }
-      setDone(j?.org?.name ? `Created ${j.org.name}` : "Created");
+      // inc.16: the route resolves the ledger flag AFTER the org write and
+      // reports whether that second write landed. Reading it is the difference
+      // between "handled" and "handled, but this item is still on your list".
+      setDone(createOutcomeMessage(j?.org?.name, j?.flagResolved));
       onCreated();
     } catch {
       setError("network error — nothing was created");
@@ -79,7 +86,17 @@ export default function OrgProposalCreate({
     }
   }
 
-  if (done) return <span className="text-[11px] text-emerald-300">{done} ✓</span>;
+  // Amber, not green, when the flag did not close: the colour has to disagree
+  // with "done", or one sentence is the only thing between Rob and a ledger
+  // item he believes is handled. The ✓ moved INTO the message for the same
+  // reason — it belongs to the resolved outcome, not to every outcome.
+  if (done) {
+    return (
+      <span className={`text-[11px] ${done.resolved ? "text-emerald-300" : "text-amber-300"}`}>
+        {done.text}
+      </span>
+    );
+  }
 
   if (!open) {
     return (

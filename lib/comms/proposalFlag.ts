@@ -72,3 +72,43 @@ export function addressFromDetail(detail: string, domain: string): string {
   if (at < 1 || at === address.length - 1) return "";
   return address.slice(at + 1) === domain.trim().toLowerCase() ? address : "";
 }
+
+/**
+ * Q69 inc.16 — what the reviewer is told after the click, told truthfully.
+ *
+ * The create route does two writes, and only the first is guaranteed: the org
+ * row, then the ledger flag's resolve. It reports the second as `flagResolved`
+ * and deliberately does NOT throw when it fails — "the company exists either
+ * way, and telling the reviewer the flag is still open beats a 500 that makes a
+ * successful create look failed" (that route's own comment).
+ *
+ * That report had no consumer. The button rendered one unconditional green
+ * "Created X ✓" for all three outcomes, so the case the route took care to
+ * describe was the case the UI erased. The cost is not cosmetic: an unresolved
+ * flag stays on the ledger, Rob clicks its Create button again, and inc.9's
+ * race guard answers 409 `domain-already-known` — the button reads as broken on
+ * the very domain it just succeeded on.
+ *
+ * `undefined` is its own outcome, never folded into `true`. It means the
+ * response never carried the field (a body that failed to parse, a shape that
+ * drifted), which is "we don't know", and claiming a close we cannot see is the
+ * cheerful-200 failure one layer up. Non-`true` is therefore never reported as
+ * done — a redundant glance at the ledger costs a second, a flag believed
+ * handled outlives the session.
+ */
+export type CreateOutcome = { text: string; resolved: boolean };
+
+export function createOutcomeMessage(
+  orgName: string | undefined,
+  flagResolved: boolean | undefined
+): CreateOutcome {
+  // The name is the reviewer's own confirmed word coming back — evidence the
+  // row that exists is the row they meant. Absent, say the deed without it
+  // rather than printing "Created undefined".
+  const what = orgName && orgName.trim() ? `Created ${orgName.trim()}` : "Created";
+  if (flagResolved === true) return { text: `${what} ✓`, resolved: true };
+  if (flagResolved === false) {
+    return { text: `${what} — this item stays open; resolve it by hand.`, resolved: false };
+  }
+  return { text: `${what} — couldn't confirm this item closed; check the ledger.`, resolved: false };
+}
