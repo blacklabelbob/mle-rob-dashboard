@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  ORG_DOMAIN_UNIQUE_INDEX,
+  domainRaceDetail,
+  isOrgDomainConflict,
   newOrgToPerson,
   orgIdFor,
   planOrgFromProposal,
@@ -154,6 +157,59 @@ describe("newOrgToPerson", () => {
     expect(person.quotedAmount).toBeUndefined();
     expect(person.keyDates).toEqual({});
     expect(person.phaseOne).toBe("not-started");
+  });
+});
+
+// Q69 inc.9: when the DATABASE is the one refusing (0022's orgs_domain_unique),
+// the reviewer must read the same refusal they would have read a second earlier
+// — not a 500. Every case here is a message shape the store can actually hand
+// the route (`supabaseStore.upsertPerson` flattens the Postgres error, so the
+// constraint name is the only surviving part of the original).
+describe("isOrgDomainConflict", () => {
+  it("recognises the domain index through the store's wrapping", () => {
+    expect(
+      isOrgDomainConflict(
+        new Error(
+          'supabase upsertPerson failed: duplicate key value violates unique constraint "orgs_domain_unique"'
+        )
+      )
+    ).toBe(true);
+  });
+
+  // A pkey collision means `orgIdFor` handed out a taken id — a real bug.
+  // Dressing it as "that domain already belongs to someone" buries it.
+  it("does NOT treat another unique violation as a domain conflict", () => {
+    expect(
+      isOrgDomainConflict(
+        new Error(
+          'supabase upsertPerson failed: duplicate key value violates unique constraint "orgs_pkey"'
+        )
+      )
+    ).toBe(false);
+  });
+
+  // Total, so the caller rethrows rather than swallowing an unknown failure.
+  it("is false for unrelated, empty and non-Error failures", () => {
+    expect(isOrgDomainConflict(new Error("supabase upsertPerson failed: timeout"))).toBe(false);
+    expect(isOrgDomainConflict(null)).toBe(false);
+    expect(isOrgDomainConflict(undefined)).toBe(false);
+    expect(isOrgDomainConflict({ code: "23505" })).toBe(false);
+    expect(isOrgDomainConflict("")).toBe(false);
+  });
+
+  it("reads a raw string error too — the store is not the only caller", () => {
+    expect(isOrgDomainConflict('violates unique constraint "orgs_domain_unique"')).toBe(true);
+  });
+
+  // The name is the contract with migration 0022. If the index is ever renamed
+  // without this constant following it, every race becomes a 500 again.
+  it("keys on the index name migration 0022 created", () => {
+    expect(ORG_DOMAIN_UNIQUE_INDEX).toBe("orgs_domain_unique");
+  });
+
+  it("tells the reviewer what actually happened, naming the domain", () => {
+    expect(domainRaceDetail("roofco.com")).toContain("roofco.com");
+    expect(domainRaceDetail("roofco.com")).toMatch(/created by someone else/i);
   });
 });
 

@@ -170,6 +170,41 @@ export function planOrgFromProposal(
 }
 
 /**
+ * Q69 increment 9: the same refusal, when the DATABASE is the one refusing.
+ *
+ * `planOrgFromProposal`'s `domain-already-known` reads a graph index built
+ * BEFORE the reviewer's click. inc.8's `orgs_domain_unique` index exists
+ * precisely because that read can be stale — a double-click on a slow route, or
+ * two reviewers on the same queued proposal, both plan `create` and the second
+ * INSERT is the one that fails. Without this, that failure surfaces as a 500:
+ * the reviewer reads "server error" for the one outcome that is actually fine
+ * (the company exists — someone else just made it a second earlier).
+ *
+ * MATCHED ON THE INDEX NAME, NOT ON "duplicate key": a 23505 on `orgs_pkey`
+ * means the id slug collided, which is a real bug in `orgIdFor` — reporting it
+ * as "this domain already belongs to someone" would bury it behind a friendly
+ * sentence. The store flattens Postgres errors into a message string
+ * (`supabaseStore.upsertPerson`), so the constraint name is the only part of
+ * the original error that survives the trip; it is a stable DB artifact from
+ * migration 0022.
+ *
+ * Pure and total (CR-3): any non-Error, null, or unrelated failure is `false`,
+ * so the caller rethrows rather than swallowing an unknown write failure.
+ */
+export const ORG_DOMAIN_UNIQUE_INDEX = "orgs_domain_unique";
+
+export function isOrgDomainConflict(err: unknown): boolean {
+  const message =
+    err instanceof Error ? err.message : typeof err === "string" ? err : "";
+  return message.includes(ORG_DOMAIN_UNIQUE_INDEX);
+}
+
+/** The sentence the reviewer reads when the race is what refused them. */
+export function domainRaceDetail(domain: string): string {
+  return `${domain} was created by someone else while you were reviewing — nothing to create.`;
+}
+
+/**
  * Q69 increment 5: the plan's row, in the shape the store actually writes.
  *
  * `NewOrgRow` is deliberately narrow — the money and commitment fields are not

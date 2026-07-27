@@ -3,7 +3,12 @@ import { createClient } from "@supabase/supabase-js";
 import { getStore } from "@/lib/storage";
 import { buildGraphIndex } from "@/lib/comms/emailGraphIndex";
 import { proposalTitle } from "@/lib/comms/orgProposal";
-import { newOrgToPerson, planOrgFromProposal } from "@/lib/comms/orgFromProposal";
+import {
+  domainRaceDetail,
+  isOrgDomainConflict,
+  newOrgToPerson,
+  planOrgFromProposal,
+} from "@/lib/comms/orgFromProposal";
 
 // Q69 increment 5: the reviewer's click, executed.
 //
@@ -72,7 +77,26 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, refused: plan.reason, detail: plan.detail }, { status });
   }
 
-  await store.upsertPerson(newOrgToPerson(plan.org));
+  try {
+    await store.upsertPerson(newOrgToPerson(plan.org));
+  } catch (err) {
+    // inc.9: the planner's `domain-already-known` read an index built before
+    // this click. When the race is real, `orgs_domain_unique` (0022) is what
+    // refuses — and the reviewer must read the same thing they would have read
+    // a second earlier, not a 500. The flag is deliberately NOT resolved here:
+    // the click that won already resolved it.
+    if (isOrgDomainConflict(err)) {
+      return NextResponse.json(
+        {
+          ok: false,
+          refused: "domain-already-known",
+          detail: domainRaceDetail(plan.org.domain),
+        },
+        { status: 409 }
+      );
+    }
+    throw err; // any other write failure is a real failure — never swallowed.
+  }
 
   // Close the loop on the ledger. A missing/failed resolve is reported, never
   // thrown: the company exists either way, and telling the reviewer the flag
