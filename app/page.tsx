@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getStore } from "@/lib/storage";
 import ThingsToAddress from "@/components/ThingsToAddress";
+import GenericDomainBlocklist from "@/components/GenericDomainBlocklist";
 import DedupQueue from "@/components/DedupQueue";
 import NeedsActionPanel from "@/components/NeedsActionPanel";
 import { computeStats, contribution, isDemo, money } from "@/lib/stats";
@@ -107,6 +108,11 @@ export default async function Overview() {
         </section>
 
         <ThingsToAddress mode="overview" />
+
+        {/* Q69 inc.26: collapsed by default — the reason to open it is a domain
+            proposal in the list above, so it lives here without competing with
+            it. */}
+        <GenericDomainBlocklist />
 
         <DedupQueue />
       </div>
