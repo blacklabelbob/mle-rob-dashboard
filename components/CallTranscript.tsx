@@ -7,6 +7,8 @@ import {
   type PanelTurn,
   type TranscriptPanel,
 } from "@/lib/calls/transcriptPanel";
+import { searchPanelFromBody, type SearchPanel } from "@/lib/calls/searchPanel";
+import { markedPieces } from "@/lib/calls/markedText";
 
 // BUILD-QUEUE Q68 (b) inc.19 — THE LAST HOP: the words reach a human.
 //
@@ -26,6 +28,17 @@ import {
 //  2. CONFIDENCE IS A WORD, NOT A NUMBER OR A COLOUR ALONE. `low` says re-listen before
 //     quoting; `unknown` says nothing measured this. A bare colour would be read as
 //     "quality", and a percentage would be read as accuracy — inc.18's rule, held here.
+//
+// inc.26 — SEARCH ARRIVES, AND THE STALENESS RULE COMES WITH IT.
+//
+//  3. MARKS BELONG TO THE LOAD THEY CAME FROM. Offsets describe ONE rendering of the turns
+//     (inc.25 rule 2). So the search panel is set, and cleared, in the SAME assignment as
+//     the transcript panel — never left over from the previous query. A stale highlight is
+//     not a stale UI detail: it paints a phrase onto words that were never matched, and it
+//     looks exactly like a correct answer.
+//
+//  4. A FAILED LOAD CLEARS THE ANSWER. "3 moments" left on screen beside "we could not read
+//     this call" is the zero-vs-unsearchable confusion of inc.23 rebuilt in the browser.
 
 function ConfidenceMark({ confidence }: { confidence: PanelTurn["confidence"] }) {
   if (confidence === "ok") return null;
@@ -48,17 +61,39 @@ function ConfidenceMark({ confidence }: { confidence: PanelTurn["confidence"] })
   );
 }
 
+/** A turn's words with the matched spans marked. The cut is decided in lib (inc.26). */
+function TurnText({ text, marks }: { text: string; marks: { start: number; end: number }[] }) {
+  const pieces = markedPieces(text, marks);
+  return (
+    <p className="mt-0.5 text-slate-200">
+      {pieces.map((p, i) =>
+        p.marked ? (
+          <mark key={i} className="rounded bg-amber-300/25 px-0.5 text-amber-100">
+            {p.text}
+          </mark>
+        ) : (
+          <span key={i}>{p.text}</span>
+        )
+      )}
+    </p>
+  );
+}
+
 export default function CallTranscript({ recordingSid }: { recordingSid: string }) {
   const [panel, setPanel] = useState<TranscriptPanel | null>(null);
+  const [search, setSearch] = useState<SearchPanel | null>(null);
+  const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
 
-  async function load() {
+  async function load(q?: string) {
     setLoading(true);
     try {
-      const res = await fetch(
-        `/api/calls/transcript?recordingSid=${encodeURIComponent(recordingSid)}`
-      );
+      const params = new URLSearchParams({ recordingSid });
+      // An empty box is not an empty search — it is no search (inc.24 rule). The param is
+      // omitted entirely rather than sent blank, which the route answers with a 400.
+      if (q?.trim()) params.set("q", q.trim());
+      const res = await fetch(`/api/calls/transcript?${params.toString()}`);
       let body: unknown = null;
       try {
         body = await res.json();
@@ -66,10 +101,14 @@ export default function CallTranscript({ recordingSid }: { recordingSid: string 
         // A body that is not JSON is a transport answer, not a call state — the parser
         // below turns a 200 with an unreadable body into `unavailable`, same as a 503.
       }
-      setPanel(transcriptPanelFromResponse(res.status, body));
+      const next = transcriptPanelFromResponse(res.status, body);
+      setPanel(next);
+      // Rule 3: the marks are placed against THESE turns, in the same assignment.
+      setSearch(searchPanelFromBody(body, next.turns));
     } catch {
       // The request never completed. "We could not ask" — never "this call has no words".
       setPanel(transcriptPanelUnavailable());
+      setSearch(null); // Rule 4.
     } finally {
       setLoading(false);
     }
@@ -107,6 +146,40 @@ export default function CallTranscript({ recordingSid }: { recordingSid: string 
                       {panel.speakerCount} speakers separated
                     </p>
                   )}
+
+                  <form
+                    className="mb-2 flex gap-1.5"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      if (!loading) void load(query);
+                    }}
+                  >
+                    <input
+                      type="search"
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                      // Refused at entry, never truncated after the fact (inc.24 rule): a cut
+                      // needle answers a question the rep never typed.
+                      maxLength={200}
+                      placeholder="find a moment in this call"
+                      aria-label="Search this transcript"
+                      className="min-w-0 flex-1 rounded border border-white/10 bg-black/30 px-2 py-1 text-xs text-slate-200 placeholder:text-slate-600"
+                    />
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="rounded border border-white/10 px-2 py-1 text-[11px] text-slate-300 hover:bg-white/5 disabled:opacity-40"
+                    >
+                      find
+                    </button>
+                  </form>
+
+                  {/* Absent `search` → no panel at all. "0 results" for an un-asked question
+                      is the shape inc.24 and inc.25 both exist to prevent. */}
+                  {search && (
+                    <p className="mb-2 text-[11px] text-amber-200/80">{search.headline}</p>
+                  )}
+
                   <ol className="space-y-2">
                     {panel.turns.map((t) => (
                       <li key={t.key} className="text-xs">
@@ -115,11 +188,17 @@ export default function CallTranscript({ recordingSid }: { recordingSid: string 
                           {t.label}
                         </span>
                         <ConfidenceMark confidence={t.confidence} />
-                        <p className="mt-0.5 text-slate-200">{t.text}</p>
+                        <TurnText text={t.text} marks={search?.marks[t.key] ?? []} />
                       </li>
                     ))}
                   </ol>
                 </>
+              )}
+
+              {/* A search against a call with no words on screen still answers — and says
+                  "nothing to search", never "not said" (inc.25 rule 1). */}
+              {panel.state !== "ready" && search && (
+                <p className="mt-2 text-[11px] text-amber-200/80">{search.headline}</p>
               )}
 
               {/* Operator notice. Typed apart from `headline` upstream so it can never be
