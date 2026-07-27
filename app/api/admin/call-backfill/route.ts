@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { runBackfillPass, type BackfillPassDeps } from "@/lib/calls/backfillPass";
 import { loadBackfillStates, backfillStateClient } from "@/lib/calls/backfillStateDb";
 import {
+  backfillAuthGate,
   backfillMissingConfig,
   backfillTriggerResponse,
   parseBackfillRequest,
@@ -62,19 +63,17 @@ function deps(): BackfillPassDeps {
   };
 }
 
-/** 503 inert / 401 wrong bearer — identical to the cron routes, on purpose. */
+/**
+ * 503 inert / 401 wrong bearer — identical to the cron routes, on purpose, and since inc.42
+ * decided ONCE in `backfillAuthGate` for both spend triggers on this branch.
+ */
 function unauthorized(req: NextRequest): NextResponse | null {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) {
-    return NextResponse.json(
-      { error: "backfill disabled: CRON_SECRET not set" },
-      { status: 503 }
-    );
-  }
-  if (!verifyCronAuth(req.headers.get("authorization"), secret)) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  }
-  return null;
+  const denied = backfillAuthGate(
+    req.headers.get("authorization"),
+    process.env.CRON_SECRET,
+    verifyCronAuth
+  );
+  return denied ? NextResponse.json(denied.body, { status: denied.status }) : null;
 }
 
 async function answer(execute: boolean, limit?: number) {

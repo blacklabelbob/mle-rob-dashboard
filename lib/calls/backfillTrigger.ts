@@ -103,3 +103,29 @@ export function backfillTriggerResponse(result: BackfillPassResult): BackfillTri
   const body = backfillPassLog(result);
   return { status: result.kind === "not-configured" ? 503 : 200, body };
 }
+
+/**
+ * inc.42 — WHO MAY SPEND, decided once for every trigger on this branch.
+ *
+ * Both spend triggers (transcript repair, summary repair) sit on an OPEN prod host by Rob's
+ * standing ACCESS order, and they answer to the same contract as the cron routes: no
+ * `CRON_SECRET` on the deployment → 503 inert (nothing is triggerable on a deployment that
+ * never armed it), wrong bearer → 401. Returning `null` means the caller may proceed.
+ *
+ * It lives here rather than in either route because two spend doors that drift apart is how
+ * one of them ends up open: the second route is written by copying the first, and the copy
+ * is what stops getting the fix.
+ */
+export function backfillAuthGate(
+  authorization: string | null,
+  secret: string | undefined,
+  verify: (header: string | null, secret: string) => boolean
+): BackfillTriggerResponse | null {
+  if (!secret) {
+    return { status: 503, body: { error: "backfill disabled: CRON_SECRET not set" } };
+  }
+  if (!verify(authorization, secret)) {
+    return { status: 401, body: { error: "unauthorized" } };
+  }
+  return null;
+}

@@ -4,6 +4,7 @@
 import { describe, expect, it } from "vitest";
 import {
   BACKFILL_REQUIRED_ENV,
+  backfillAuthGate,
   backfillMissingConfig,
   backfillTriggerResponse,
   parseBackfillRequest,
@@ -167,5 +168,42 @@ describe("backfillTriggerResponse", () => {
         remaining: 3,
       },
     });
+  });
+});
+
+// inc.42 — the one door policy both spend triggers now go through.
+describe("backfillAuthGate", () => {
+  const yes = () => true;
+  const no = () => false;
+
+  it("is 503 inert when the deployment never armed CRON_SECRET", () => {
+    expect(backfillAuthGate("Bearer x", undefined, yes)).toEqual({
+      status: 503,
+      body: { error: "backfill disabled: CRON_SECRET not set" },
+    });
+  });
+
+  it("is 503 for an empty secret too — a blank secret is not an armed one", () => {
+    expect(backfillAuthGate("Bearer x", "", yes)?.status).toBe(503);
+  });
+
+  it("is 401 for a wrong bearer, even when the secret is set", () => {
+    expect(backfillAuthGate("Bearer nope", "s3cret", no)).toEqual({
+      status: 401,
+      body: { error: "unauthorized" },
+    });
+  });
+
+  it("returns null — proceed — only for a verified bearer", () => {
+    expect(backfillAuthGate("Bearer s3cret", "s3cret", yes)).toBeNull();
+  });
+
+  it("hands the verifier the header and the secret verbatim, missing header included", () => {
+    const seen: Array<[string | null, string]> = [];
+    backfillAuthGate(null, "s3cret", (h, s) => {
+      seen.push([h, s]);
+      return false;
+    });
+    expect(seen).toEqual([[null, "s3cret"]]);
   });
 });
