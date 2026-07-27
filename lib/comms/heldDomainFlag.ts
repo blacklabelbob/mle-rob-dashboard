@@ -311,6 +311,43 @@ function waitingHistory(judged: Map<string, Judgement>, domain: string): string 
 }
 
 /**
+ * Q69 inc.39 — the finding arrives PRE-LABELLED as a repeat.
+ *
+ * inc.33/35/37 put the history at the END of the row, attached to the button or
+ * to the "already waiting" sentence. That is where Rob DECIDES — but it is not
+ * where he decides *whether to read*. The finding text itself introduces a
+ * domain he has resolved three times in exactly the same words as one he has
+ * never seen, so a list of findings gives him no way to tell the recurring
+ * question from the new one until he has read to the end of every row.
+ *
+ * This is a LABEL, not a second copy of the sentence. It carries the count and
+ * nothing else — no date, no advice — because the trailing sentence already
+ * says both, and two full sentences about one history is the drift inc.37/38
+ * were spent removing. The number itself comes from the same `Judgement.times`
+ * the sentence prints (test-pinned equal), so the label and the sentence cannot
+ * disagree.
+ *
+ * NO ORDINAL ARITHMETIC (inc.36/37/38's standing rule): we know how many times
+ * Rob RESOLVED this domain, never how many times it was RAISED, so the label
+ * never says "3rd time" — it says how many times it was resolved before.
+ *
+ * `null` on: an unread index (an unknown history is not "new"), a blank domain,
+ * or no resolved row — a first sighting gets no label at all, which is what
+ * makes the label mean something when it is there.
+ */
+export function findingRepeatMark(domain: string, index: HeldFlagIndex): string | null {
+  const d = (domain ?? "").trim().toLowerCase();
+  if (!d || index.kind !== "read") return null;
+  const seen = index.judged.get(d);
+  if (!seen || seen.times < 1) return null;
+  // Same one-vs-many threshold as `judgedNote` / `waitingHistory`: one is a
+  // fact, two is a pattern. The wording differs (a label, not a sentence); the
+  // NUMBER never does.
+  if (seen.times < 2) return "Resolved before";
+  return `Resolved ${seen.times} times before`;
+}
+
+/**
  * Q69 inc.33 — the sweep is the only thing here that re-asks.
  *
  * A held-domain flag resolved as "real company, leave it" is re-raised on the

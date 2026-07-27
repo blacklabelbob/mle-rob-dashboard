@@ -10,6 +10,7 @@ import {
   heldArchiveNote,
   heldArchivePlaces,
   heldPriorJudgements,
+  findingRepeatMark,
   type HeldFlagIndex,
 } from "@/lib/comms/heldDomainFlag";
 import type { AuditFinding } from "@/lib/comms/genericDomainAudit";
@@ -749,6 +750,104 @@ describe("the open ledger row carries the same prior-judgement history", () => {
   it("survives junk where the rows should be", () => {
     for (const junk of [null, undefined, {}, "rows", [null, 3, { title: 7 }]]) {
       expect(heldPriorJudgements(junk).size).toBe(0);
+    }
+  });
+});
+
+// ── Q69 inc.39 — the finding arrives pre-labelled as a repeat ───────────────
+
+describe("the finding's repeat label", () => {
+  const ok = (flags: unknown[]) => heldFlagIndex(200, { flags });
+  const open = (domain: string) => ({ status: "open", title: heldDomainFlagTitle(domain) });
+  const resolved = (domain: string, resolved_at?: unknown) => ({
+    status: "resolved",
+    title: heldDomainFlagTitle(domain),
+    ...(resolved_at === undefined ? {} : { resolved_at }),
+  });
+
+  it("says nothing at all on a first sighting — that is what makes the label mean something", () => {
+    expect(findingRepeatMark("bigmailer.com", ok([]))).toBeNull();
+    expect(findingRepeatMark("bigmailer.com", ok([open("bigmailer.com")]))).toBeNull();
+    expect(findingRepeatMark("bigmailer.com", ok([resolved("other.com", "2026-07-24")]))).toBeNull();
+  });
+
+  it("labels a domain resolved once, and names the count from the second time on", () => {
+    expect(findingRepeatMark("bigmailer.com", ok([resolved("bigmailer.com", "2026-07-24")]))).toBe(
+      "Resolved before"
+    );
+    expect(
+      findingRepeatMark(
+        "bigmailer.com",
+        ok([resolved("bigmailer.com", "2026-07-20"), resolved("bigmailer.com", "2026-07-24")])
+      )
+    ).toBe("Resolved 2 times before");
+  });
+
+  it("prints the SAME number the trailing sentence prints — one history, not two", () => {
+    // The label and the sentence sit on the same row. If they can disagree,
+    // the row describes two different pasts (the inc.37/38 defect).
+    const rows = [
+      resolved("bigmailer.com", "2026-07-18"),
+      resolved("bigmailer.com", "2026-07-20"),
+      resolved("bigmailer.com", "2026-07-24"),
+    ];
+    const idx = ok(rows);
+    if (idx.kind !== "read") throw new Error("expected read");
+    const times = idx.judged.get("bigmailer.com")!.times;
+    expect(findingRepeatMark("bigmailer.com", idx)).toBe(`Resolved ${times} times before`);
+    const a = flagAffordance("bigmailer.com", idx);
+    if (a.kind !== "button" || !a.judged) throw new Error("expected a judged button");
+    expect(a.judged).toContain(`${times} times`);
+  });
+
+  it("carries the count onto the already-waiting row too — the label does not depend on the branch", () => {
+    const idx = ok([
+      resolved("bigmailer.com", "2026-07-20"),
+      resolved("bigmailer.com", "2026-07-24"),
+      open("bigmailer.com"),
+    ]);
+    expect(flagAffordance("bigmailer.com", idx).kind).toBe("already");
+    expect(findingRepeatMark("bigmailer.com", idx)).toBe("Resolved 2 times before");
+  });
+
+  it("is a LABEL, not a second copy of the sentence — no date, no advice", () => {
+    const mark = findingRepeatMark(
+      "bigmailer.com",
+      ok([resolved("bigmailer.com", "2026-07-20"), resolved("bigmailer.com", "2026-07-24")])
+    )!;
+    expect(mark).not.toContain("2026-07-24");
+    expect(mark).not.toMatch(/blocklist/i);
+    expect(mark).not.toMatch(/most recently|earlier/i);
+  });
+
+  it("never claims an ordinal — resolved counts are known, raised counts are not", () => {
+    const mark = findingRepeatMark(
+      "bigmailer.com",
+      ok([resolved("bigmailer.com", "2026-07-20"), resolved("bigmailer.com", "2026-07-24"), open("bigmailer.com")])
+    )!;
+    expect(mark).not.toMatch(/\b(1st|2nd|3rd|4th|first|second|third)\b/i);
+  });
+
+  it("counts undated resolutions — under-reporting is the thing the count exists to prevent", () => {
+    expect(
+      findingRepeatMark("bigmailer.com", ok([resolved("bigmailer.com"), resolved("bigmailer.com")]))
+    ).toBe("Resolved 2 times before");
+  });
+
+  it("stays silent when the ledger could not be read — an unknown history is not 'new'", () => {
+    expect(findingRepeatMark("bigmailer.com", { kind: "unknown" } as HeldFlagIndex)).toBeNull();
+    expect(findingRepeatMark("bigmailer.com", heldFlagIndex(500, null))).toBeNull();
+  });
+
+  it("matches the domain the way every other surface does — trimmed, case-insensitive", () => {
+    const idx = ok([resolved("BigMailer.com", "2026-07-24")]);
+    expect(findingRepeatMark("  BIGMAILER.COM  ", idx)).toBe("Resolved before");
+  });
+
+  it("survives a blank or junk domain rather than labelling nothing", () => {
+    const idx = ok([resolved("bigmailer.com", "2026-07-24")]);
+    for (const junk of ["", "   ", undefined as unknown as string, null as unknown as string]) {
+      expect(findingRepeatMark(junk, idx)).toBeNull();
     }
   });
 });

@@ -14,6 +14,7 @@ import {
 } from "@/lib/comms/genericDomainPanel";
 import type { AuditFinding, BlocklistAudit } from "@/lib/comms/genericDomainAudit";
 import {
+  findingRepeatMark,
   flagAffordance,
   flagOutcome,
   heldDomainFlagPayload,
@@ -242,8 +243,21 @@ export default function GenericDomainBlocklist() {
           <ul className="mt-1 space-y-1">
             {audit.findings.map((f) => {
               const affordance = flagAffordance(f.domain, flagIndex, flagged[f.domain]);
+              const repeat = findingRepeatMark(f.domain, flagIndex);
               return (
               <li key={f.domain} className="text-[11px] leading-snug text-amber-200/80">
+                {/* Q69 inc.39 — the repeat label, BEFORE the finding text. The
+                    history already appears at the end of the row (on the button
+                    or on the "already waiting" sentence), but that is where Rob
+                    acts, not where he decides whether to read. A domain he has
+                    judged three times otherwise opens with the same words as one
+                    he has never seen. Label only — the count, no date, no advice;
+                    the sentence below still carries both. */}
+                {repeat && (
+                  <span className="mr-1.5 rounded bg-amber-400/15 px-1 py-0.5 text-[10px] font-semibold text-amber-200">
+                    {repeat}
+                  </span>
+                )}
                 {f.text}
                 {f.orgs.map((o) => (
                   <a
