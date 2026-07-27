@@ -6,6 +6,7 @@ import {
   resolveControlCopy,
   suggestedNameFromDetail,
   verticalPickerState,
+  writeFailureMessage,
 } from "@/lib/comms/proposalFlag";
 import { proposalToFlag, proposalTitle } from "@/lib/comms/orgProposal";
 
@@ -288,5 +289,70 @@ describe("resolveControlCopy (inc.18 — the permanent click, labelled)", () => 
     // selects any status), so the same title contract must drive the copy.
     const flag = proposalToFlag({ domain: "roofco.com", suggestedName: "Roofco", address: "a@roofco.com" });
     expect(resolveControlCopy(flag.title).hint).not.toBe("");
+  });
+});
+
+describe("writeFailureMessage (inc.19)", () => {
+  const proposal = proposalTitle("the-title-base.com");
+  const ordinary = "PropLogix — business name mismatch";
+
+  it("says the permanent thing did NOT happen after a refused dismiss", () => {
+    // inc.18 just told Rob this click is irreversible. The one sentence worth
+    // printing after it fails is that the domain is still proposed — otherwise
+    // he must assume the worst and stops clicking, leaving the item stuck.
+    const f = writeFailureMessage("resolve", 500, proposal);
+    expect(f.text).toContain("the-title-base.com");
+    expect(f.text).toContain("NOT dismissed");
+    expect(f.text).toContain("still proposed");
+    expect(f.certain).toBe(true);
+  });
+
+  it("never claims nothing changed when the request never came back", () => {
+    // A thrown fetch may have been applied and lost on the way home. Claiming
+    // "nothing changed" there is the cheerful-200 failure inverted.
+    const f = writeFailureMessage("resolve", null, proposal);
+    expect(f.certain).toBe(false);
+    expect(f.text).not.toContain("Nothing changed");
+    expect(f.text).toContain("may or may not");
+  });
+
+  it("asks for a reload before the next click, because the next click is the permanent one", () => {
+    expect(writeFailureMessage("resolve", null, proposal).text).toContain("Reload before clicking again");
+    expect(writeFailureMessage("resolve", null, ordinary).text).toContain("Reload before clicking again");
+  });
+
+  it("carries the status so a 400 and a 500 aren't the same shrug", () => {
+    // 400 = the route refused the payload (a bug we own); 500 = the write
+    // failed. Same sentence, different number to report.
+    expect(writeFailureMessage("resolve", 400, ordinary).text).toContain("400");
+    expect(writeFailureMessage("resolve", 500, ordinary).text).toContain("500");
+  });
+
+  it("keeps a failed read quieter than a failed dismiss", () => {
+    // A row staying on Overview one more minute is not the ledger's permanent
+    // click. Identical alarm on both is how the one that matters gets ignored.
+    const read = writeFailureMessage("read", 500, proposal);
+    const resolve = writeFailureMessage("resolve", 500, proposal);
+    expect(read.text).not.toBe(resolve.text);
+    expect(read.text).toContain("Still unread");
+    expect(read.text).not.toContain("dismissed");
+  });
+
+  it("never invents a domain on an ordinary flag", () => {
+    // Same rule as inc.18: a warning naming a domain on a row that has none.
+    for (const status of [400, 500, null]) {
+      const f = writeFailureMessage("resolve", status, ordinary);
+      expect(f.text).not.toContain("proposed");
+      expect(f.text).not.toContain("undefined");
+      expect(f.text).not.toContain("null");
+    }
+  });
+
+  it("says an ordinary refused resolve left the item open", () => {
+    expect(writeFailureMessage("resolve", 500, ordinary).text).toContain("still open");
+  });
+
+  it("treats a prefix-only title as ordinary, so no half-written domain sentence", () => {
+    expect(writeFailureMessage("resolve", 500, "New company domain: ").text).toContain("still open");
   });
 });

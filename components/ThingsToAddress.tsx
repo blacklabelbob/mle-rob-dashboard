@@ -3,7 +3,12 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import OrgProposalCreate from "./OrgProposalCreate";
-import { proposalDomain, resolveControlCopy } from "@/lib/comms/proposalFlag";
+import {
+  proposalDomain,
+  resolveControlCopy,
+  writeFailureMessage,
+  type WriteFailure,
+} from "@/lib/comms/proposalFlag";
 
 // "Things to Address" (Rob 2026-07-22): findings Max surfaces, resolved in-place
 // with an optional note. Resolved items are never removed — they archive into an
@@ -51,6 +56,9 @@ export default function ThingsToAddress({
   const [noteFor, setNoteFor] = useState<number | null>(null);
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
+  // inc.19: keyed by flag id so the sentence sits on the row it is about — a
+  // ledger-wide banner can't say WHICH dismiss failed.
+  const [failed, setFailed] = useState<(WriteFailure & { id: number }) | null>(null);
 
   const load = useCallback(async () => {
     const next = await fetchFlags(person);
@@ -67,35 +75,44 @@ export default function ThingsToAddress({
     };
   }, [person]);
 
-  async function markRead(id: number) {
-    setBusy(true);
-    try {
-      await fetch("/api/admin/flags", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, action: "read" }),
-      });
-      await load();
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function resolve(id: number, withNote: string) {
+  // inc.19: both writes used to swallow their own failure — `markRead` never
+  // read `r.ok`, `resolve` had an empty else. A refused PATCH rendered as
+  // nothing at all, which reads as a broken button. `null` status means the
+  // request never came back, and that is a different claim (see
+  // writeFailureMessage): the reviewer is asked to reload, not to re-click.
+  async function patch(id: number, title: string, body: object, action: "resolve" | "read") {
+    setFailed(null);
     setBusy(true);
     try {
       const r = await fetch("/api/admin/flags", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, action: "resolve", note: withNote }),
+        body: JSON.stringify(body),
       });
-      if (r.ok) {
-        setNoteFor(null);
-        setNote("");
-        await load();
+      if (!r.ok) {
+        setFailed({ id, ...writeFailureMessage(action, r.status, title) });
+        return false;
       }
+      await load();
+      return true;
+    } catch {
+      setFailed({ id, ...writeFailureMessage(action, null, title) });
+      return false;
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function markRead(f: Flag) {
+    await patch(f.id, f.title, { id: f.id, action: "read" }, "read");
+  }
+
+  async function resolve(f: Flag, withNote: string) {
+    // The note is cleared only on success: on a proposal it is the sole record
+    // of why a domain was shut out, and re-typing it is how it ends up blank.
+    if (await patch(f.id, f.title, { id: f.id, action: "resolve", note: withNote }, "resolve")) {
+      setNoteFor(null);
+      setNote("");
     }
   }
 
@@ -133,7 +150,7 @@ export default function ThingsToAddress({
                 <input
                   type="checkbox"
                   title="mark read — clears from Overview, stays on the record until resolved"
-                  onChange={() => markRead(f.id)}
+                  onChange={() => markRead(f)}
                   disabled={busy}
                   className="mt-1 h-3.5 w-3.5 cursor-pointer accent-emerald-500"
                 />
@@ -148,6 +165,13 @@ export default function ThingsToAddress({
                   )}
                   <span className="text-slate-400"> — {f.title}</span>
                   <span className="ml-2 text-[10px] text-slate-600">{f.notified_at} · hover for detail</span>
+                  {/* A checkbox that ticks and then un-ticks with no
+                      explanation is the Overview's version of a dead button. */}
+                  {failed?.id === f.id && (
+                    <p className={`text-[11px] ${failed.certain ? "text-amber-300" : "text-red-300"}`}>
+                      {failed.text}
+                    </p>
+                  )}
                 </div>
                 {proposalDomain(f.title) && (
                   <div className="ml-auto shrink-0">
@@ -229,14 +253,14 @@ export default function ThingsToAddress({
                       value={note}
                       onChange={(e) => setNote(e.target.value)}
                       onKeyDown={(e) => {
-                        if (e.key === "Enter") resolve(f.id, note);
+                        if (e.key === "Enter") resolve(f, note);
                         if (e.key === "Escape") setNoteFor(null);
                       }}
                       placeholder={copy.notePlaceholder}
                       className="w-52 rounded-md border border-white/20 bg-black/40 px-2 py-1 text-xs text-white outline-none"
                     />
                     <button
-                      onClick={() => resolve(f.id, note)}
+                      onClick={() => resolve(f, note)}
                       disabled={busy}
                       className="rounded-md bg-emerald-500/90 px-2.5 py-1 text-xs font-semibold text-white hover:bg-emerald-400"
                     >
@@ -246,7 +270,7 @@ export default function ThingsToAddress({
                 ) : (
                   <div className="flex gap-1.5">
                     <button
-                      onClick={() => resolve(f.id, "")}
+                      onClick={() => resolve(f, "")}
                       disabled={busy}
                       title={copy.tooltip}
                       className="rounded-md bg-emerald-500/90 px-2.5 py-1 text-xs font-semibold text-white transition hover:bg-emerald-400"
@@ -269,6 +293,19 @@ export default function ThingsToAddress({
                     would tax every ordinary finding to warn about this one. */}
                 {copy.hint && (
                   <p className="max-w-[19rem] text-right text-[11px] leading-snug text-slate-400">{copy.hint}</p>
+                )}
+                {/* inc.19: amber when we know nothing changed (retry is safe),
+                    red when the request never came back — that one asks for a
+                    reload, because a second dismiss is the click that can't be
+                    taken back. */}
+                {failed?.id === f.id && (
+                  <p
+                    className={`max-w-[19rem] text-right text-[11px] leading-snug ${
+                      failed.certain ? "text-amber-300" : "text-red-300"
+                    }`}
+                  >
+                    {failed.text}
+                  </p>
                 )}
               </div>
             </div>

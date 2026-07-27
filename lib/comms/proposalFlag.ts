@@ -217,3 +217,66 @@ export function resolveControlCopy(title: string): ResolveCopy {
     notePlaceholder: "why isn't this a company?",
   };
 }
+
+/**
+ * Q69 inc.19 — the ledger write that failed, and the button that said nothing.
+ *
+ * inc.18 taught the Resolve button to name the permanence it carries. It never
+ * checked whether the click landed. `ThingsToAddress.resolve()` refetched only
+ * `if (r.ok)` — the failure branch was empty — and `markRead()` didn't read
+ * `r.ok` at all. So a refused PATCH rendered as ABSOLUTELY NOTHING: the row sat
+ * there unchanged, the note the reviewer typed sat there unsent, and the only
+ * available reading is "the button is broken". Same class as inc.15–inc.18: a
+ * real outcome the interface erased — this time the outcome of the click itself.
+ *
+ * WHY IT'S WORSE ON A PROPOSAL ROW. inc.18 just told Rob this click is
+ * permanent. When it silently no-ops he has to assume the worst — that the
+ * domain may already be shut out — and the safe move (don't click again) is
+ * exactly the move that leaves the item stuck forever. The single most useful
+ * sentence after a failed dismiss is that the domain is still proposed.
+ *
+ * REFUSED AND UNREACHABLE ARE DIFFERENT CLAIMS, kept apart the way inc.16 kept
+ * `false` apart from `undefined`. A response — any status — means the route ran
+ * and answered; every failure path in `/api/admin/flags` returns BEFORE the
+ * update, so "nothing changed" is a fact we own. A thrown fetch is a request
+ * that may have been applied and lost on the way home; claiming nothing changed
+ * there is the cheerful-200 failure inverted, so it says so and asks for a
+ * reload BEFORE another click — a second dismiss on a proposal is the click
+ * that can't be taken back.
+ *
+ * READ IS NOT RESOLVE. A failed "mark read" costs a row staying on the Overview
+ * for another minute; a failed dismiss is the one Rob must act on. Giving both
+ * the same alarm is how the alarm that matters gets ignored — the same reason
+ * inc.18 left ordinary flags hint-free.
+ */
+export type LedgerAction = "resolve" | "read";
+
+export type WriteFailure = { text: string; certain: boolean };
+
+export function writeFailureMessage(
+  action: LedgerAction,
+  status: number | null,
+  title: string
+): WriteFailure {
+  const domain = proposalDomain(title);
+  // `null` = the request never came back. We do not know, and the reviewer's
+  // next click is the expensive one.
+  if (status === null) {
+    if (action === "read") {
+      return { text: "Couldn't reach the server — this may still be unread.", certain: false };
+    }
+    const subject = domain
+      ? `${domain} may or may not have been dismissed`
+      : "this may or may not have been saved";
+    return { text: `Couldn't reach the server — ${subject}. Reload before clicking again.`, certain: false };
+  }
+  if (action === "read") {
+    return { text: `Still unread — nothing changed (server said ${status}).`, certain: true };
+  }
+  // The reassurance is the point: after inc.18's warning, "still proposed" is
+  // what tells Rob the permanent thing did NOT happen.
+  const subject = domain
+    ? `${domain} was NOT dismissed and is still proposed`
+    : "this item is still open";
+  return { text: `Nothing changed — ${subject} (server said ${status}). Try again.`, certain: true };
+}
