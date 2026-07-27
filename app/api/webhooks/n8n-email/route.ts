@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { getStore } from "@/lib/storage";
 import {
+  allParties,
+  CAPTURE_IDENTITY,
+  directionOf,
   emailToActivity,
   identityGate,
   matchContact,
@@ -9,6 +12,9 @@ import {
   verifyN8nSecret,
   type EmailPayload,
 } from "@/lib/n8nEmail";
+import { buildGraphIndex } from "@/lib/comms/emailGraphIndex";
+import { planOrgProposals, recordOrgProposals } from "@/lib/comms/orgProposal";
+import { supabaseProposalSink } from "@/lib/comms/orgProposalSink";
 
 export const dynamic = "force-dynamic";
 
@@ -52,13 +58,47 @@ export async function POST(req: Request) {
 
   const store = getStore();
   const data = await store.getNetwork();
-  const match = matchContact(data, payload);
+  const index = buildGraphIndex(data);
+  const match = matchContact(data, payload, index);
   if (!match) {
+    // Q69 inc.3: the ladder anchored nothing. If we SENT this, rung 6 proposes
+    // the company on the ledger's "Things to Address" — proposes, never
+    // creates. Received mail from an unknown domain still queues nothing.
+    const counterparts = allParties(payload).filter((a) => a !== CAPTURE_IDENTITY);
+    const proposals = planOrgProposals(counterparts, directionOf(payload), index);
+    let queued: string[] = [];
+    if (proposals.length > 0) {
+      const sink = supabaseProposalSink();
+      if (sink) {
+        try {
+          const res = await recordOrgProposals(proposals, sink);
+          queued = res.created;
+          console.log(
+            "[n8n-email] org proposals",
+            payload.messageId,
+            "queued:",
+            res.created.join(",") || "none",
+            "already-queued:",
+            res.duplicate.join(",") || "none"
+          );
+        } catch (err) {
+          // The email is still not ingested either way; a failed queue write is
+          // logged loudly rather than swallowed into a cheerful 200.
+          console.error("[n8n-email] org proposal queue FAILED", payload.messageId, err);
+        }
+      } else {
+        console.log(
+          "[n8n-email] org proposals (no ledger store configured)",
+          proposals.map((p) => p.domain).join(",")
+        );
+      }
+    }
     console.log("[n8n-email] no contact match", payload.messageId);
     return NextResponse.json({
       ok: true,
       ingested: false,
       reason: "no contact match",
+      proposedOrgs: queued,
     });
   }
 
