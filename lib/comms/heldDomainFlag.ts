@@ -176,6 +176,68 @@ export function flagAffordance(
   return { kind: "button" };
 }
 
+// ── Q69 inc.32 — the row Rob actually resolves, read from the ledger side ────
+//
+// inc.30/31 made the panel honest about a held domain. The ledger did not
+// follow: Things to Address renders a held-domain row like any other finding —
+// a title, prose, Resolve. Two facts the reviewer needs are missing at exactly
+// the moment they decide:
+//
+//   1. THE DOMAIN IS STILL BLOCKED. The detail says so in its last paragraph,
+//      but the detail is three lines of prose on a row Rob is scanning; the
+//      state belongs on the row as state, not buried as narration. A reviewer
+//      who reads a flag as "someone already unblocked this" resolves it and the
+//      company keeps its blocked domain with nobody watching.
+//   2. WHERE THE QUESTION CAME FROM. The blocklist panel is the only surface
+//      that can act on the domain itself, and nothing on the ledger points at
+//      it — so the row is a dead end for every decision except "resolve".
+//
+// The href is ABSOLUTE (`/#…`), not a bare fragment: a single-company finding
+// files onto that company's record (inc.30), so this row is rendered on
+// `/companies/[id]` as often as on the Overview, and `#generic-domains` there
+// would scroll to nothing.
+
+const BLOCKLIST_ANCHOR = "/#generic-domains";
+
+export type HeldRowCopy = {
+  domain: string;
+  /** Row-level state, not prose: the domain did not get unblocked by any of this. */
+  badge: string;
+  /** What resolving this row does — and, more importantly, what it does not. */
+  hint: string;
+  href: string;
+  linkText: string;
+};
+
+/**
+ * The ledger-side reading of a held-domain flag, or null for every other row.
+ *
+ * Null for ordinary findings AND for company proposals: 99% of the ledger is
+ * neither, and a "still blocked" badge on a row where nothing is blocked is the
+ * noise that teaches Rob to skip the badge on the row that means it — the same
+ * call `resolveControlCopy` makes about permanence warnings.
+ *
+ * THE HINT DOES NOT PROMISE SILENCE. inc.31's dedupe counts only `open` rows,
+ * so resolving this makes the domain flaggable again — deliberately: a re-found
+ * domain is a new question. The reviewer is told that here, because "resolve"
+ * elsewhere on this ledger means "this stops coming back", and a row that
+ * quietly returns next week looks like a bug rather than the design.
+ */
+export function heldRowCopy(title: string): HeldRowCopy | null {
+  const domain = heldFlagDomain(title);
+  if (!domain) return null;
+  const d = domain.toLowerCase();
+  return {
+    domain: d,
+    badge: `${d} · still blocked`,
+    hint:
+      `Resolving files your decision — it does not unblock ${d} and does not delete anything. ` +
+      `If the company still holds it, the blocklist sweep will raise it again.`,
+    href: BLOCKLIST_ANCHOR,
+    linkText: "review the blocklist",
+  };
+}
+
 export type FlagOutcome = { text: string; tone: PanelTone; flagged: boolean };
 
 /**

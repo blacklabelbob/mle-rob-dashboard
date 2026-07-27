@@ -11,6 +11,7 @@ import {
   writeFailureMessage,
   type WriteFailure,
 } from "@/lib/comms/proposalFlag";
+import { heldRowCopy } from "@/lib/comms/heldDomainFlag";
 
 // "Things to Address" (Rob 2026-07-22): findings Max surfaces, resolved in-place
 // with an optional note. Resolved items are never removed — they archive into an
@@ -184,6 +185,15 @@ export default function ThingsToAddress({
                     <span className="font-medium text-slate-200">{f.entity_name}</span>
                   )}
                   <span className="text-slate-400"> — {f.title}</span>
+                  {/* inc.32: the digest is a scan surface, so the held-domain
+                      row gets its STATE here (still blocked) and nothing else —
+                      the hint and the way back live on the full row, where the
+                      decision is actually made. */}
+                  {heldRowCopy(f.title) && (
+                    <span className="ml-2 rounded border border-amber-400/40 bg-amber-400/10 px-1.5 py-px text-[10px] font-medium text-amber-200">
+                      still blocked
+                    </span>
+                  )}
                   <span className="ml-2 text-[10px] text-slate-600">{f.notified_at} · hover for detail</span>
                   {/* A checkbox that ticks and then un-ticks with no
                       explanation is the Overview's version of a dead button. */}
@@ -249,6 +259,25 @@ export default function ThingsToAddress({
                   <span className="opacity-80"> — {f.title}</span>
                 </div>
                 <p className="mt-0.5 text-xs leading-relaxed text-slate-300">{f.detail}</p>
+                {/* inc.32: a held-domain row carries its own state and its way
+                    back. Resolve is the only other affordance on this row, and
+                    on this kind of row it means something narrower than usual —
+                    said before the click, not after. */}
+                {(() => {
+                  const held = heldRowCopy(f.title);
+                  if (!held) return null;
+                  return (
+                    <p className="mt-1 text-[11px] leading-relaxed text-slate-400">
+                      <span className="mr-1.5 rounded border border-amber-400/40 bg-amber-400/10 px-1.5 py-px text-[10px] font-medium text-amber-200">
+                        {held.badge}
+                      </span>
+                      {held.hint}{" "}
+                      <Link href={held.href} className="text-sky-300 hover:underline">
+                        {held.linkText}
+                      </Link>
+                    </p>
+                  );
+                })()}
                 <div className="mt-1 text-[10px] uppercase tracking-wide opacity-60">
                   notified {f.notified_at} · {f.severity}
                 </div>

@@ -179,7 +179,9 @@ export default function GenericDomainBlocklist() {
   }
 
   return (
-    <section className="rounded-xl border border-white/10 bg-white/5 p-4">
+    // Q69 inc.32: the anchor a held-domain ledger row points back at — the
+    // panel is the only surface that can act on the domain itself.
+    <section id="generic-domains" className="scroll-mt-6 rounded-xl border border-white/10 bg-white/5 p-4">
       <div className="flex items-baseline justify-between gap-3">
         <button onClick={() => setOpen(false)} className="text-sm font-semibold text-white">
           ▾ Blocked email domains

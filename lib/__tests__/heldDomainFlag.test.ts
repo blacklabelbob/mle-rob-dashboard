@@ -6,6 +6,7 @@ import {
   heldFlagDomain,
   heldFlagIndex,
   flagAffordance,
+  heldRowCopy,
   type HeldFlagIndex,
 } from "@/lib/comms/heldDomainFlag";
 import type { AuditFinding } from "@/lib/comms/genericDomainAudit";
@@ -204,5 +205,55 @@ describe("flag affordance", () => {
 
   it("matches case-insensitively, the way the title contract stores it", () => {
     expect(flagAffordance("  BigMailer.COM ", read("bigmailer.com")).kind).toBe("already");
+  });
+});
+
+// ── Q69 inc.32 — the ledger-side row copy ───────────────────────────────────
+describe("held-domain ledger row copy", () => {
+  it("reads a held-domain row off the same title contract that wrote it", () => {
+    const c = heldRowCopy(heldDomainFlagTitle("BigMailer.com"))!;
+    expect(c).not.toBeNull();
+    expect(c.domain).toBe("bigmailer.com");
+    expect(c.badge).toContain("bigmailer.com");
+  });
+
+  it("says the domain is STILL BLOCKED on the row, not only in the prose", () => {
+    // The whole point: a reviewer scanning rows must not read "flagged" as
+    // "someone unblocked it".
+    expect(heldRowCopy(heldDomainFlagTitle("bigmailer.com"))!.badge).toMatch(/still blocked/i);
+  });
+
+  it("is null for an ordinary finding and for a company proposal", () => {
+    // A "still blocked" badge on a row where nothing is blocked is the noise
+    // that teaches Rob to ignore the badge on the row that means it.
+    expect(heldRowCopy("Invoice missing")).toBeNull();
+    expect(heldRowCopy("New company domain: roofco.com")).toBeNull();
+  });
+
+  it("is null for a near-miss title rather than rendering a blank domain", () => {
+    expect(heldRowCopy("Blocked domain still held")).toBeNull();
+    expect(heldRowCopy("Blocked domain still held: ")).toBeNull();
+  });
+
+  it("tells the reviewer resolving does not unblock and does not delete", () => {
+    const c = heldRowCopy(heldDomainFlagTitle("bigmailer.com"))!;
+    expect(c.hint).toMatch(/does not unblock/i);
+    expect(c.hint).toMatch(/does not delete/i);
+    expect(c.hint).toContain("bigmailer.com");
+  });
+
+  it("warns the sweep can raise it again — inc.31 dedupes only OPEN rows", () => {
+    // Resolve elsewhere on this ledger means "this stops coming back"; a row
+    // that quietly returns next week reads as a bug rather than the design.
+    expect(heldRowCopy(heldDomainFlagTitle("bigmailer.com"))!.hint).toMatch(/again/i);
+  });
+
+  it("links back to the blocklist with an ABSOLUTE href — the row renders on record pages too", () => {
+    // A single-company finding files onto that company's record (inc.30), where
+    // a bare "#generic-domains" scrolls to nothing.
+    const c = heldRowCopy(heldDomainFlagTitle("bigmailer.com"))!;
+    expect(c.href.startsWith("/")).toBe(true);
+    expect(c.href).toContain("#");
+    expect(c.linkText.trim().length).toBeGreaterThan(0);
   });
 });
