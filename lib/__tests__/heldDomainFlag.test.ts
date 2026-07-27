@@ -8,6 +8,7 @@ import {
   flagAffordance,
   heldRowCopy,
   archiveRepeatMark,
+  archiveRepeatSummary,
   heldArchiveNote,
   heldArchivePlaces,
   heldPriorJudgements,
@@ -1235,5 +1236,74 @@ describe("the ARCHIVE row's place anchor (inc.43)", () => {
       expect(archiveRepeatMark(junk as unknown as string, { nth: 1, of: 2 })).toBeNull();
     }
     expect(archiveRepeatMark(held("bigmailer.com"), { nth: 1, of: 2 })).not.toMatch(/null|undefined|NaN/);
+  });
+});
+
+describe("the COLLAPSED archive header's repeat summary (inc.44)", () => {
+  const held = (domain: string) => heldDomainFlagTitle(domain);
+  const row = (id: number, domain: string, resolved_at: string | null = "2026-07-10", status = "resolved") => ({
+    id,
+    title: held(domain),
+    status,
+    resolved_at,
+  });
+
+  it("names how many domains came back, not how many rows did", () => {
+    // 5 resolved rows, but only 2 domains would be ended by a blocklist entry.
+    const rows = [
+      row(1, "bigmailer.com", "2026-07-10"),
+      row(2, "bigmailer.com", "2026-07-18"),
+      row(3, "bigmailer.com", "2026-07-24"),
+      row(4, "sendgrid.net", "2026-07-11"),
+      row(5, "sendgrid.net", "2026-07-19"),
+    ];
+    const summary = archiveRepeatSummary(rows)!;
+    expect(summary).toBe("2 domains answered more than once");
+    expect(summary).not.toMatch(/\b5\b/);
+  });
+
+  it("counts exactly the rows the badges mark — the header can never contradict the list", () => {
+    const rows = [
+      row(1, "bigmailer.com", "2026-07-10"),
+      row(2, "bigmailer.com", "2026-07-18"),
+      row(3, "sendgrid.net", "2026-07-11"),
+      row(4, "mailgun.org", null),
+      row(5, "mailgun.org", null),
+    ];
+    const places = heldArchivePlaces(rows);
+    const badgeGroups = new Set(
+      rows.filter((r) => archiveRepeatMark(r.title, places.get(r.id)) !== null).map((r) => r.title)
+    );
+    expect(archiveRepeatSummary(rows)).toBe(`${badgeGroups.size} domains answered more than once`);
+  });
+
+  it("is singular for one returning domain — a plural would overstate the case for a blocklist change", () => {
+    expect(archiveRepeatSummary([row(1, "bigmailer.com", "2026-07-10"), row(2, "bigmailer.com", "2026-07-18")])).toBe(
+      "1 domain answered more than once"
+    );
+  });
+
+  it("says nothing when every decision was a first — no '0 domains' noise on the header", () => {
+    expect(archiveRepeatSummary([row(1, "bigmailer.com"), row(2, "sendgrid.net")])).toBeNull();
+    expect(archiveRepeatSummary([])).toBeNull();
+  });
+
+  it("counts decisions only — open rows are not decisions", () => {
+    const rows = [row(1, "bigmailer.com", "2026-07-10"), row(2, "bigmailer.com", null, "open")];
+    expect(archiveRepeatSummary(rows)).toBeNull();
+  });
+
+  it("the title contract is the only way in — a look-alike title carries no history", () => {
+    const rows = [
+      { id: 1, title: "bigmailer.com bounced again", status: "resolved", resolved_at: "2026-07-10" },
+      { id: 2, title: "bigmailer.com bounced again", status: "resolved", resolved_at: "2026-07-18" },
+    ];
+    expect(archiveRepeatSummary(rows)).toBeNull();
+  });
+
+  it("survives junk without emitting junk", () => {
+    for (const junk of [null, undefined, 7, {}, "", [null, 3, {}, { id: "x" }]]) {
+      expect(archiveRepeatSummary(junk)).toBeNull();
+    }
   });
 });

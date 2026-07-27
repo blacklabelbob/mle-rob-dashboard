@@ -13,6 +13,7 @@ import {
 } from "@/lib/comms/proposalFlag";
 import {
   archiveRepeatMark,
+  archiveRepeatSummary,
   heldArchiveNote,
   heldArchivePlaces,
   heldPriorJudgements,
@@ -413,6 +414,14 @@ export default function ThingsToAddress({
           >
             {showArchive ? "▾" : "▸"} Resolved ({resolved.length})
           </button>
+          {/* inc.44: inc.43's badges only exist once the list is open. The
+              header is what gets read before the click, and "Resolved (12)"
+              cannot tell twelve domains handled once from three handled four
+              times — opposite calls (work the ledger vs change the blocklist).
+              Counted off ALL flags, same as the badges. */}
+          {archiveRepeatSummary(flags) && (
+            <span className="ml-2 text-[10px] text-slate-500">· {archiveRepeatSummary(flags)}</span>
+          )}
           {showArchive && (
             <ul className="mt-2 space-y-1.5">
               {resolved.map((f) => {

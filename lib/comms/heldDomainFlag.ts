@@ -742,6 +742,67 @@ export function archiveRepeatMark(title: unknown, place: ArchivePlace | null | u
 }
 
 /**
+ * The one grouping both archive surfaces read: resolved held-domain rows,
+ * bucketed by lower-cased domain.
+ *
+ * Q69 inc.44 lifts this out of `heldArchivePlaces` so the collapsed header's
+ * count and the row badges are the SAME grouping rather than two walks of the
+ * same rows that could drift apart. A header claiming two repeat domains above
+ * a list showing three badge groups would be the exact contradiction this seam
+ * exists to prevent.
+ */
+function resolvedHeldGroups(rows: unknown): Map<string, { id: number; date: string | null }[]> {
+  const byDomain = new Map<string, { id: number; date: string | null }[]>();
+  if (!Array.isArray(rows)) return byDomain;
+  for (const row of rows) {
+    if (!row || typeof row !== "object") continue;
+    const r = row as { id?: unknown; status?: unknown; title?: unknown; resolved_at?: unknown };
+    if (typeof r.id !== "number" || r.status !== "resolved" || typeof r.title !== "string") continue;
+    const domain = heldFlagDomain(r.title);
+    if (!domain) continue;
+    const d = domain.toLowerCase();
+    const group = byDomain.get(d) ?? [];
+    group.push({ id: r.id, date: judgementDate(r.resolved_at) });
+    byDomain.set(d, group);
+  }
+  return byDomain;
+}
+
+/**
+ * Q69 inc.44 — the COLLAPSED archive header says how much of it is the same
+ * few domains.
+ *
+ * "Resolved (12)" is read BEFORE the list is opened, and inc.43's badges only
+ * exist once it is. So the one number Rob can see without clicking is the one
+ * that says nothing: twelve decisions could be twelve domains handled once, or
+ * three domains handled four times each. Those two ledgers call for opposite
+ * actions — the first is a ledger being worked, the second is a blocklist that
+ * needs changing.
+ *
+ * COUNTS DOMAINS, NOT ROWS, AND THAT IS THE DECISION HERE. "8 of 12 rows are
+ * repeats" answers how much re-work there was; "3 domains answered more than
+ * once" answers how many blocklist entries would end it, which is the action
+ * the number is meant to argue for. The row count is already recoverable from
+ * the badges inside.
+ *
+ * AGREES WITH THE BADGES BY CONSTRUCTION — same `resolvedHeldGroups`, same
+ * `of >= 2` threshold as `hasHistory`, so a header that names N repeat domains
+ * sits above exactly N badge groups.
+ *
+ * `null` when nothing has come round twice: on a ledger of first-time
+ * decisions there is no repetition to report, and "0 domains answered more
+ * than once" is noise on the header Rob reads at a glance.
+ */
+export function archiveRepeatSummary(rows: unknown): string | null {
+  let repeats = 0;
+  for (const group of resolvedHeldGroups(rows).values()) {
+    if (group.length >= 2) repeats += 1;
+  }
+  if (repeats < 1) return null;
+  return repeats === 1 ? "1 domain answered more than once" : `${repeats} domains answered more than once`;
+}
+
+/**
  * Place every RESOLVED held-domain row in its domain's history, keyed by flag
  * id, for the archive to read off.
  *
@@ -751,20 +812,7 @@ export function archiveRepeatMark(title: unknown, place: ArchivePlace | null | u
  * `times` for the same domain.
  */
 export function heldArchivePlaces(rows: unknown): Map<number, ArchivePlace> {
-  const byDomain = new Map<string, { id: number; date: string | null }[]>();
-  if (Array.isArray(rows)) {
-    for (const row of rows) {
-      if (!row || typeof row !== "object") continue;
-      const r = row as { id?: unknown; status?: unknown; title?: unknown; resolved_at?: unknown };
-      if (typeof r.id !== "number" || r.status !== "resolved" || typeof r.title !== "string") continue;
-      const domain = heldFlagDomain(r.title);
-      if (!domain) continue;
-      const d = domain.toLowerCase();
-      const group = byDomain.get(d) ?? [];
-      group.push({ id: r.id, date: judgementDate(r.resolved_at) });
-      byDomain.set(d, group);
-    }
-  }
+  const byDomain = resolvedHeldGroups(rows);
 
   const places = new Map<number, ArchivePlace>();
   for (const group of byDomain.values()) {
