@@ -271,7 +271,7 @@ describe("already-judged domains", () => {
 
   it("indexes a RESOLVED held-domain row with the date Rob judged it", () => {
     const i = ok([resolved("BigMailer.com", "2026-07-24")]);
-    expect(i.kind === "read" && i.judged.get("bigmailer.com")).toBe("2026-07-24");
+    expect(i.kind === "read" && i.judged.get("bigmailer.com")?.date).toBe("2026-07-24");
   });
 
   it("keeps the resolved row OUT of the open set — the button must survive", () => {
@@ -305,14 +305,14 @@ describe("already-judged domains", () => {
 
   it("keeps the LATEST judgement when a domain was resolved more than once", () => {
     const i = ok([resolved("bigmailer.com", "2026-07-20"), resolved("bigmailer.com", "2026-07-24")]);
-    expect(i.kind === "read" && i.judged.get("bigmailer.com")).toBe("2026-07-24");
+    expect(i.kind === "read" && i.judged.get("bigmailer.com")?.date).toBe("2026-07-24");
     const j = ok([resolved("bigmailer.com", "2026-07-24"), resolved("bigmailer.com", "2026-07-20")]);
-    expect(j.kind === "read" && j.judged.get("bigmailer.com")).toBe("2026-07-24");
+    expect(j.kind === "read" && j.judged.get("bigmailer.com")?.date).toBe("2026-07-24");
   });
 
   it("prefers a dated row over an undated one for the same domain", () => {
     const i = ok([resolved("bigmailer.com"), resolved("bigmailer.com", "2026-07-24")]);
-    expect(i.kind === "read" && i.judged.get("bigmailer.com")).toBe("2026-07-24");
+    expect(i.kind === "read" && i.judged.get("bigmailer.com")?.date).toBe("2026-07-24");
   });
 
   it("does NOT treat an unreadable status as a judgement", () => {
@@ -334,6 +334,78 @@ describe("already-judged domains", () => {
   it("lets an OPEN row win over a resolved one — the live question outranks the note", () => {
     const i = ok([resolved("bigmailer.com", "2026-07-24"), { status: "open", title: heldDomainFlagTitle("bigmailer.com") }]);
     expect(flagAffordance("bigmailer.com", i).kind).toBe("already");
+  });
+
+  // ── Q69 inc.35 — how many times this domain has been round the loop ────────
+
+  it("counts one resolved row as one trip round the loop", () => {
+    const i = ok([resolved("bigmailer.com", "2026-07-24")]);
+    expect(i.kind === "read" && i.judged.get("bigmailer.com")?.times).toBe(1);
+  });
+
+  it("counts UNDATED resolved rows too — they are trips we cannot date, not trips that did not happen", () => {
+    const i = ok([resolved("bigmailer.com"), resolved("bigmailer.com", "2026-07-24"), resolved("bigmailer.com")]);
+    expect(i.kind === "read" && i.judged.get("bigmailer.com")?.times).toBe(3);
+    expect(i.kind === "read" && i.judged.get("bigmailer.com")?.date).toBe("2026-07-24");
+  });
+
+  it("counts per domain, never across them", () => {
+    const i = ok([resolved("bigmailer.com", "2026-07-20"), resolved("bigmailer.com", "2026-07-24"), resolved("sendgrid.net", "2026-07-24")]);
+    expect(i.kind === "read" && i.judged.get("bigmailer.com")?.times).toBe(2);
+    expect(i.kind === "read" && i.judged.get("sendgrid.net")?.times).toBe(1);
+  });
+
+  it("never counts an open row or an unreadable one as a judgement", () => {
+    // The count claims Rob DECIDED this many times; a pending question and a
+    // row we cannot read are both "no decision seen" (inc.31/33's call).
+    const i = ok([
+      resolved("bigmailer.com", "2026-07-24"),
+      { status: "open", title: heldDomainFlagTitle("sendgrid.net") },
+      { title: heldDomainFlagTitle("sendgrid.net"), resolved_at: "2026-07-24" },
+    ]);
+    expect(i.kind === "read" && i.judged.get("bigmailer.com")?.times).toBe(1);
+    expect(i.kind === "read" && i.judged.has("sendgrid.net")).toBe(false);
+  });
+
+  it("says nothing about the count on a FIRST judgement — 'once' is a wasted word", () => {
+    const a = flagAffordance("bigmailer.com", ok([resolved("bigmailer.com", "2026-07-24")]));
+    expect(a.kind === "button" && a.judged).toMatch(/already resolved/i);
+    expect(a.kind === "button" && a.judged).not.toMatch(/\d+ times/);
+  });
+
+  it("carries the count from the SECOND trip, with the latest date", () => {
+    const a = flagAffordance(
+      "bigmailer.com",
+      ok([resolved("bigmailer.com", "2026-07-20"), resolved("bigmailer.com", "2026-07-24")])
+    );
+    expect(a.kind === "button" && a.judged).toContain("2 times");
+    expect(a.kind === "button" && a.judged).toContain("most recently");
+    expect(a.kind === "button" && a.judged).toContain("2026-07-24");
+    expect(a.kind === "button" && a.judged).not.toContain("2026-07-20");
+  });
+
+  it("prints the real count, not a threshold word", () => {
+    const rows = ["2026-07-10", "2026-07-14", "2026-07-20", "2026-07-24"].map((d) => resolved("bigmailer.com", d));
+    const a = flagAffordance("bigmailer.com", ok(rows));
+    expect(a.kind === "button" && a.judged).toContain("4 times");
+  });
+
+  it("keeps 'earlier' when repeats carry no readable date — a count is not permission to invent one", () => {
+    const a = flagAffordance("bigmailer.com", ok([resolved("bigmailer.com"), resolved("bigmailer.com", "nope")]));
+    expect(a.kind === "button" && a.judged).toContain("2 times");
+    expect(a.kind === "button" && a.judged).toMatch(/earlier/);
+    expect(a.kind === "button" && a.judged).not.toMatch(/\d{4}-\d{2}-\d{2}/);
+  });
+
+  it("still offers the button on a domain judged many times — the count informs, it does not decide", () => {
+    const rows = [1, 2, 3, 4, 5].map(() => resolved("bigmailer.com", "2026-07-24"));
+    expect(flagAffordance("bigmailer.com", ok(rows)).kind).toBe("button");
+  });
+
+  it("never leaks NaN/undefined into the note", () => {
+    const a = flagAffordance("bigmailer.com", ok([resolved("bigmailer.com"), resolved("bigmailer.com")]));
+    const text = a.kind === "button" ? String(a.judged) : "";
+    expect(text).not.toMatch(/NaN|undefined|null/);
   });
 });
 

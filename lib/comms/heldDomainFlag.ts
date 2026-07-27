@@ -130,13 +130,27 @@ export type HeldFlagIndex =
       domains: Set<string>;
       /**
        * Q69 inc.33 — domains Rob has ALREADY judged (resolved rows), mapped to
-       * the date he judged them, or null when the row carries no readable date.
+       * the date he judged them (`date`, null when the row carries no readable
+       * date) and Q69 inc.35 how many times he has judged them (`times`).
        * Separate from `domains` on purpose: an open row stops the button, a
        * resolved one only informs it.
        */
-      judged: Map<string, string | null>;
+      judged: Map<string, Judgement>;
     }
   | { kind: "unknown" };
+
+/**
+ * Q69 inc.35 — one domain's history of decisions, as the ledger records it.
+ *
+ * `date` is the LATEST judgement (inc.33). `times` counts how many resolved
+ * rows the ledger holds for the domain, i.e. how many times this exact question
+ * has been round the raise → judge → re-raise loop. A count is the only thing
+ * on this surface that distinguishes "you looked at this once" from "this keeps
+ * coming back", and the second one is a fact about the BLOCKLIST, not about the
+ * domain — a question asked four times and answered the same way four times is
+ * the panel wasting Rob's attention, and he cannot see that from a date.
+ */
+export type Judgement = { date: string | null; times: number };
 
 /**
  * Index the OPEN held-domain flags out of a `GET /api/admin/flags` response.
@@ -154,7 +168,7 @@ export function heldFlagIndex(status: number | null, body: unknown): HeldFlagInd
   if (!Array.isArray(rows)) return { kind: "unknown" };
 
   const domains = new Set<string>();
-  const judged = new Map<string, string | null>();
+  const judged = new Map<string, Judgement>();
   for (const row of rows) {
     if (!row || typeof row !== "object") continue;
     const r = row as { status?: unknown; title?: unknown; resolved_at?: unknown };
@@ -170,7 +184,14 @@ export function heldFlagIndex(status: number | null, body: unknown): HeldFlagInd
     // resolved one is. A row whose status we cannot read is not evidence Rob
     // decided anything (same call inc.31 made about counting it as open).
     if (r.status !== "resolved") continue;
-    judged.set(d, mostRecentJudgement(judged.get(d), judgementDate(r.resolved_at)));
+    const seen = judged.get(d);
+    judged.set(d, {
+      date: mostRecentJudgement(seen?.date, judgementDate(r.resolved_at)),
+      // Q69 inc.35 — every resolved row is one trip round the loop, including
+      // the ones we cannot date. Counting only dated rows would under-report
+      // exactly the history the count exists to expose.
+      times: (seen?.times ?? 0) + 1,
+    });
   }
   return { kind: "read", domains, judged };
 }
@@ -252,11 +273,21 @@ export function flagAffordance(
  * strands a finding that may have changed since. The note informs the decision;
  * it does not make it.
  */
-function judgedNote(judged: Map<string, string | null>, domain: string): string | null {
-  if (!judged.has(domain)) return null;
-  const date = judged.get(domain) ?? null;
-  const when = date ? ` on ${date}` : " earlier";
-  return `You already resolved this${when} — flag it again only if something has changed.`;
+function judgedNote(judged: Map<string, Judgement>, domain: string): string | null {
+  const seen = judged.get(domain);
+  if (!seen) return null;
+  const when = seen.date ? ` on ${seen.date}` : " earlier";
+  // Q69 inc.35 — the count only appears once it says something. "You already
+  // resolved this once" is the same sentence with a wasted word in it; from the
+  // second trip the number IS the news, and the date becomes the most recent of
+  // several rather than the whole story.
+  if (seen.times < 2) {
+    return `You already resolved this${when} — flag it again only if something has changed.`;
+  }
+  return (
+    `You have resolved this ${seen.times} times, most recently${when} — ` +
+    `it keeps coming back, so consider whether the blocklist entry is the thing to change.`
+  );
 }
 
 // ── Q69 inc.32 — the row Rob actually resolves, read from the ledger side ────
