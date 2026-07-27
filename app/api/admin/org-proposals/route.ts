@@ -21,6 +21,17 @@ import { newOrgToPerson, planOrgFromProposal } from "@/lib/comms/orgFromProposal
 
 export const dynamic = "force-dynamic";
 
+// The reviewer has to pick a vertical (inc.4: `orgs.vertical_id` is a NOT NULL
+// FK, so a free-text vertical is a Postgres error wearing a broken button).
+// This is the list they pick FROM — served here rather than making the ledger
+// pull the whole graph payload just to fill one select.
+export async function GET() {
+  const data = await getStore().getNetwork();
+  return NextResponse.json({
+    verticals: data.verticals.map((v) => ({ id: v.id, name: v.name })),
+  });
+}
+
 function db() {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;

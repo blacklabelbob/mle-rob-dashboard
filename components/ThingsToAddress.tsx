@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import OrgProposalCreate from "./OrgProposalCreate";
+import { proposalDomain } from "@/lib/comms/proposalFlag";
 
 // "Things to Address" (Rob 2026-07-22): findings Max surfaces, resolved in-place
 // with an optional note. Resolved items are never removed — they archive into an
@@ -105,7 +107,13 @@ export default function ThingsToAddress({
   // detail, "Read" clears it from Overview (read ≠ resolved; it stays on the
   // entity's own pages until actually resolved).
   if (mode === "overview") {
-    const unread = open.filter((f) => !(f as Flag & { read_at?: string | null }).read_at);
+    // Q69 inc.6: a company proposal has `entity_id: null` by design — no record
+    // exists yet — so the Overview is its ONLY surface. Marking it read must
+    // not be able to hide the one place it can be acted on, so proposals stay
+    // listed until they are resolved (which creating the company does).
+    const unread = open.filter(
+      (f) => !(f as Flag & { read_at?: string | null }).read_at || proposalDomain(f.title)
+    );
     return (
       <section className="rounded-xl border border-amber-400/25 bg-amber-400/5 p-5">
         <h2 className="font-semibold text-amber-200">
@@ -141,6 +149,15 @@ export default function ThingsToAddress({
                   <span className="text-slate-400"> — {f.title}</span>
                   <span className="ml-2 text-[10px] text-slate-600">{f.notified_at} · hover for detail</span>
                 </div>
+                {proposalDomain(f.title) && (
+                  <div className="ml-auto shrink-0">
+                    <OrgProposalCreate
+                      domain={proposalDomain(f.title) as string}
+                      detail={f.detail}
+                      onCreated={load}
+                    />
+                  </div>
+                )}
               </li>
             ))}
           </ul>
