@@ -7,8 +7,10 @@ import ActivityTimeline from "@/components/ActivityTimeline";
 import EnrichmentSection from "@/components/EnrichmentSection";
 import Phase2RoiEstimator from "@/components/Phase2RoiEstimator";
 import { InlineText, InlineTextarea } from "@/components/inline/fields";
+import PhaseBlueprint from "@/components/PhaseBlueprint";
 import { companyRecordFromNetwork } from "@/lib/companyRecord";
 import { buildCompanyDeals } from "@/lib/companyDeals";
+import { buildBlueprint } from "@/lib/phases/blueprint";
 import { splitNotes } from "@/lib/notes";
 import { typeLabel, STAGE_LABELS } from "@/lib/labels";
 
@@ -54,6 +56,15 @@ export default async function CompanyPage({
   // Q43 discipline (§3.5): human words and machine provenance are split by the
   // same pure function the person record uses — never re-implemented here.
   const { human: humanNotes, enrichment } = splitNotes(company.notes);
+
+  // §8 increment 8a. `asOf` is passed in rather than read inside the FSM so the
+  // refund countdown is a pure function of stored dates (CR-3) — two renders of
+  // the same record on the same day always agree.
+  const blueprint = buildBlueprint({
+    deals: deals.rows,
+    components: company.phaseComponents,
+    asOf: new Date().toISOString().slice(0, 10),
+  });
 
   return (
     <div className="space-y-6">
@@ -215,15 +226,13 @@ export default async function CompanyPage({
             initial={company.phase2Estimate}
           />
 
-          <section className="rounded-xl border border-dashed border-white/10 bg-white/[0.02] p-5">
-            <h2 className="font-semibold text-white">Phase Blueprint</h2>
-            <p className="mt-1 text-sm text-slate-500">
-              The phase tracker and delivery money land in increments 7/8a — they need a
-              phase store, which does not exist yet. The ROI estimator above models the
-              Phase 2 guarantee <i>before</i> that: it runs on typed inputs, not on
-              actuals. Wiring it to real hours and real revenue is Q40-gated.
-            </p>
-          </section>
+          {/* §8 increment 8a — the Phase Blueprint tracker, the §3.1 centerpiece.
+              Everything it says comes from `buildBlueprint`; this page only hands
+              it the deals it already loaded and the stored component state. The
+              kickoff strip is real today (it reads key dates that exist); the
+              component lights stay dark until something reports them live, which
+              the tracker states in words rather than implying with an empty row. */}
+          <PhaseBlueprint blueprint={blueprint} />
 
           {/* §3.4 — the record spine. Company rows anchor activities the same way
               a person row does (≤1-of-person/org), so this is the same feed the

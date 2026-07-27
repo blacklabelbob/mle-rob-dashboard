@@ -2,12 +2,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import CallButton from "@/components/CallButton";
 import PhaseEightBar from "@/components/PhaseEightBar";
+import PhaseLights from "@/components/PhaseLights";
 import ActivityTimeline from "@/components/ActivityTimeline";
 import Phase2RoiEstimator from "@/components/Phase2RoiEstimator";
 import QuotedAmountInline from "@/components/QuotedAmountInline";
 import DemoFooter from "@/components/DemoFooter";
 import { InlineDateChip, InlineSelect, InlineText } from "@/components/inline/fields";
 import { getStore } from "@/lib/storage";
+import { buildBlueprint } from "@/lib/phases/blueprint";
 import { isDemo as isDemoPerson } from "@/lib/stats";
 import { demoActivity, sourceContext, touchReason } from "@/lib/repSource";
 
@@ -41,6 +43,24 @@ export default async function RepAccountWorkspace({
   const ctx = sourceContext(person);
   const isDemo = isDemoPerson(person);
   const paidDate = person.keyDates?.paid;
+
+  // The rep tracker reads the SAME builder the master company record uses, so a
+  // rep and Rob can never see two different versions of delivery progress. The
+  // lead's own key dates stand in for the deal row here — this view is anchored
+  // on a person, and buildBlueprint only reads key dates and component state.
+  const blueprint = buildBlueprint({
+    deals: [
+      {
+        id: person.id,
+        name: person.business || person.name,
+        stage: person.signed ? "signed" : "quote_sent",
+        value: person.quotedAmount || undefined,
+        keyDates: person.keyDates ?? {},
+      },
+    ],
+    components: person.phaseComponents,
+    asOf: new Date().toISOString().slice(0, 10),
+  });
 
   return (
     <div className="space-y-6">
@@ -112,6 +132,13 @@ export default async function RepAccountWorkspace({
             </div>
             <p className="mt-2 text-sm leading-relaxed text-slate-300">{ctx.detail}</p>
           </section>
+
+          {/* §3.1 "Rep view of the same tracker" — the gap this closes: a rep
+              closed the deal and then had no way to see whether anything had
+              actually been delivered. Lights and phase names only; PhaseLights is
+              never handed the money fields, so there is no path here that could
+              print an invoice figure or the refund mechanics. */}
+          <PhaseLights blueprint={blueprint} />
 
           <ActivityTimeline personId={person.id} demoEntries={demoActivity(person.id)} isDemo={isDemo} />
 

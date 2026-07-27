@@ -66,6 +66,13 @@ export interface Person {
   // client's 91-day ROI guarantee. Shape: Phase2Estimate in lib/roi/automations.ts
   // (imported as a type only where needed, to keep lib/types.ts dependency-free).
   phase2Estimate?: import("@/lib/roi/automations").Phase2Estimate;
+  // §8 increment 8a: which delivery components have been reported live, keyed by
+  // the webhook's `componentId` slug. Optional and READ-ONLY for now — the column
+  // does not exist yet, so every record reads `undefined` and the tracker renders
+  // an honestly dark board rather than guessing progress from other fields.
+  // Deliberately absent from adminEdit's FIELD_MAP until the column lands: a
+  // mapping without a column turns every save into a 400.
+  phaseComponents?: import("@/lib/phases/blueprint").ComponentLiveMap;
   notes?: string;
   assignedRep?: string; // Phase 6
   orgId?: string; // person→org link (Task 2.2, backfilled by backfill-org-links.mjs)
