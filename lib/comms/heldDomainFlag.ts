@@ -383,7 +383,7 @@ export function heldRowCopy(title: string): HeldRowCopy | null {
  * apart about the same decision, and a date that renders one way in the panel
  * and another way here is worse than no date at all.
  */
-export function heldArchiveNote(title: string, resolvedAt: unknown): string | null {
+export function heldArchiveNote(title: string, resolvedAt: unknown, place?: ArchivePlace | null): string | null {
   const domain = heldFlagDomain(title);
   if (!domain) return null;
   const d = domain.toLowerCase();
@@ -391,8 +391,83 @@ export function heldArchiveNote(title: string, resolvedAt: unknown): string | nu
   const when = date ? `on ${date}` : "earlier";
   return (
     `You judged ${d} ${when}. It stays blocked and nothing was deleted — ` +
-    `if a company still holds it, the blocklist sweep will raise a new row.`
+    `if a company still holds it, the blocklist sweep will raise a new row.` +
+    placeNote(place)
   );
+}
+
+// ── Q69 inc.36 — WHICH trip round the loop this closure was ─────────────────
+//
+// inc.35 taught the panel to count: "you have resolved this 3 times". The
+// archive row still speaks as if its own closure were the only one, so the two
+// surfaces describe the same history differently — the panel says three, the
+// row Rob is reading says "you judged it". He cannot tell whether the row in
+// front of him is the decision the panel is counting from, or one of the two
+// before it, and that is exactly the question a repeat raises.
+//
+// The count is the SAME count (`times`), derived from the same resolved rows,
+// so the numbers agree by construction rather than by two functions happening
+// to tally alike.
+
+/**
+ * Where one resolved row sits in a domain's history: the `nth` of `of`
+ * decisions on record.
+ *
+ * `nth` is NULL WHEN THE ROWS CANNOT BE ORDERED — an undated row, or two rows
+ * sharing a date. An ordinal is a claim about sequence, and the row's whole job
+ * here is to let Rob line this decision up against the panel's count; a guessed
+ * position would be worse than none, because it reads as fact. `of` still holds
+ * (a count needs no order), so the row says how many there are and declines to
+ * say which.
+ */
+export type ArchivePlace = { nth: number | null; of: number };
+
+function placeNote(place: ArchivePlace | null | undefined): string {
+  // One decision on record is the row itself — "the 1st of 1" is inc.35's
+  // wasted word in ordinal clothing.
+  if (!place || place.of < 2) return "";
+  if (place.nth === null) return ` The ledger holds ${place.of} decisions on this domain; this is one of them.`;
+  return ` This was decision ${place.nth} of ${place.of} on this domain.`;
+}
+
+/**
+ * Place every RESOLVED held-domain row in its domain's history, keyed by flag
+ * id, for the archive to read off.
+ *
+ * Ordering is by `resolved_at` date ascending, and only when every row in the
+ * group carries a distinct parseable date — see `ArchivePlace`. Open rows are
+ * not decisions and are not counted, which keeps `of` equal to inc.35's
+ * `times` for the same domain.
+ */
+export function heldArchivePlaces(rows: unknown): Map<number, ArchivePlace> {
+  const byDomain = new Map<string, { id: number; date: string | null }[]>();
+  if (Array.isArray(rows)) {
+    for (const row of rows) {
+      if (!row || typeof row !== "object") continue;
+      const r = row as { id?: unknown; status?: unknown; title?: unknown; resolved_at?: unknown };
+      if (typeof r.id !== "number" || r.status !== "resolved" || typeof r.title !== "string") continue;
+      const domain = heldFlagDomain(r.title);
+      if (!domain) continue;
+      const d = domain.toLowerCase();
+      const group = byDomain.get(d) ?? [];
+      group.push({ id: r.id, date: judgementDate(r.resolved_at) });
+      byDomain.set(d, group);
+    }
+  }
+
+  const places = new Map<number, ArchivePlace>();
+  for (const group of byDomain.values()) {
+    const dates = group.map((g) => g.date);
+    const orderable = dates.every((x) => x !== null) && new Set(dates).size === dates.length;
+    const of = group.length;
+    if (!orderable) {
+      for (const g of group) places.set(g.id, { nth: null, of });
+      continue;
+    }
+    const sorted = [...group].sort((a, b) => (a.date! < b.date! ? -1 : 1));
+    sorted.forEach((g, i) => places.set(g.id, { nth: i + 1, of }));
+  }
+  return places;
 }
 
 export type FlagOutcome = { text: string; tone: PanelTone; flagged: boolean };

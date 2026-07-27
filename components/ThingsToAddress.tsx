@@ -11,7 +11,7 @@ import {
   writeFailureMessage,
   type WriteFailure,
 } from "@/lib/comms/proposalFlag";
-import { heldArchiveNote, heldRowCopy } from "@/lib/comms/heldDomainFlag";
+import { heldArchiveNote, heldArchivePlaces, heldRowCopy } from "@/lib/comms/heldDomainFlag";
 
 // "Things to Address" (Rob 2026-07-22): findings Max surfaces, resolved in-place
 // with an optional note. Resolved items are never removed — they archive into an
@@ -121,6 +121,7 @@ export default function ThingsToAddress({
 
   const open = flags.filter((f) => f.status === "open");
   const resolved = flags.filter((f) => f.status === "resolved");
+  const archivePlaces = heldArchivePlaces(flags);
   if (!flags.length) return null;
 
   // Overview mode: compact digest — unread open items only, hover for full
@@ -374,7 +375,13 @@ export default function ThingsToAddress({
           </button>
           {showArchive && (
             <ul className="mt-2 space-y-1.5">
-              {resolved.map((f) => (
+              {resolved.map((f) => {
+                // inc.36: the ordinal comes from ALL flags, not just the ones
+                // rendered here — the archive list is already filtered, and a
+                // count taken off a filtered list would disagree with inc.35's
+                // panel count on the same domain.
+                const held = heldArchiveNote(f.title, f.resolved_at, archivePlaces.get(f.id));
+                return (
                 <li key={f.id} className="rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-xs text-slate-400">
                   <span className="font-medium text-slate-300">
                     {f.entity_name} — {f.title}
@@ -397,13 +404,10 @@ export default function ThingsToAddress({
                       again by design (inc.31), and inc.33's panel note points
                       back at this very decision. The row says so itself, so the
                       return next week reads as the design and not as a bug. */}
-                  {heldArchiveNote(f.title, f.resolved_at) && (
-                    <div className="mt-0.5 text-slate-500">
-                      {heldArchiveNote(f.title, f.resolved_at)}
-                    </div>
-                  )}
+                  {held && <div className="mt-0.5 text-slate-500">{held}</div>}
                 </li>
-              ))}
+                );
+              })}
             </ul>
           )}
         </div>

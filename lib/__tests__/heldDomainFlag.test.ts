@@ -8,6 +8,7 @@ import {
   flagAffordance,
   heldRowCopy,
   heldArchiveNote,
+  heldArchivePlaces,
   type HeldFlagIndex,
 } from "@/lib/comms/heldDomainFlag";
 import type { AuditFinding } from "@/lib/comms/genericDomainAudit";
@@ -470,3 +471,98 @@ describe("heldArchiveNote", () => {
     expect(heldArchiveNote("Blocked domain still held: ", "2026-07-24")).toBeNull();
   });
 });
+
+// ── Q69 inc.36 — the archive row names WHICH trip round the loop it was ─────
+
+describe("heldArchivePlaces / heldArchiveNote ordinal", () => {
+  const title = heldDomainFlagTitle("bigmailer.com");
+  const row = (id: number, resolved_at: string | null, t = title, status = "resolved") => ({
+    id,
+    title: t,
+    status,
+    resolved_at,
+  });
+
+  it("orders a domain's resolved rows by date and numbers them", () => {
+    const places = heldArchivePlaces([row(3, "2026-07-24"), row(1, "2026-07-10"), row(2, "2026-07-18")]);
+    expect(places.get(1)).toEqual({ nth: 1, of: 3 });
+    expect(places.get(2)).toEqual({ nth: 2, of: 3 });
+    expect(places.get(3)).toEqual({ nth: 3, of: 3 });
+  });
+
+  it("says how many but not which when a row cannot be dated", () => {
+    const places = heldArchivePlaces([row(1, "2026-07-10"), row(2, null)]);
+    expect(places.get(1)).toEqual({ nth: null, of: 2 });
+    expect(places.get(2)).toEqual({ nth: null, of: 2 });
+  });
+
+  it("declines to order two decisions taken on the same day", () => {
+    const places = heldArchivePlaces([row(1, "2026-07-10"), row(2, "2026-07-10")]);
+    expect(places.get(1)?.nth).toBeNull();
+    expect(places.get(1)?.of).toBe(2);
+  });
+
+  it("counts only resolved rows — an open row is not a decision", () => {
+    const places = heldArchivePlaces([row(1, "2026-07-10"), row(2, null, title, "open")]);
+    expect(places.get(1)).toEqual({ nth: 1, of: 1 });
+    expect(places.has(2)).toBe(false);
+  });
+
+  it("keeps each domain's history separate", () => {
+    const other = heldDomainFlagTitle("gmail.com");
+    const places = heldArchivePlaces([row(1, "2026-07-10"), row(2, "2026-07-11", other)]);
+    expect(places.get(1)).toEqual({ nth: 1, of: 1 });
+    expect(places.get(2)).toEqual({ nth: 1, of: 1 });
+  });
+
+  it("ignores proposals, ordinary findings and unreadable rows", () => {
+    const places = heldArchivePlaces([
+      row(1, "2026-07-10", "New company proposed: bigmailer.com"),
+      row(2, "2026-07-10", "Missing phone number"),
+      null,
+      "nope",
+      { id: "x", status: "resolved", title },
+    ]);
+    expect(places.size).toBe(0);
+  });
+
+  it("is an empty map for a non-array body", () => {
+    expect(heldArchivePlaces(null).size).toBe(0);
+    expect(heldArchivePlaces({ flags: [] }).size).toBe(0);
+  });
+
+  it("adds no ordinal when the domain has one decision on record", () => {
+    const n = heldArchiveNote(title, "2026-07-24", { nth: 1, of: 1 }) ?? "";
+    expect(n).not.toMatch(/decision 1/);
+    expect(n).toMatch(/stays blocked/);
+  });
+
+  it("adds no ordinal when the archive passes nothing", () => {
+    expect(heldArchiveNote(title, "2026-07-24")).toBe(heldArchiveNote(title, "2026-07-24", null));
+  });
+
+  it("names the position when the rows could be ordered", () => {
+    expect(heldArchiveNote(title, "2026-07-24", { nth: 2, of: 3 })).toContain("decision 2 of 3 on this domain");
+  });
+
+  it("gives the count without a position when they could not", () => {
+    const n = heldArchiveNote(title, "2026-07-24", { nth: null, of: 3 }) ?? "";
+    expect(n).toContain("3 decisions on this domain");
+    expect(n).not.toMatch(/decision \d of/);
+  });
+
+  it("never leaks null/undefined/NaN into the ordinal sentence", () => {
+    for (const p of [{ nth: null, of: 4 }, { nth: 4, of: 4 }] as const) {
+      expect(heldArchiveNote(title, "2026-07-24", p) ?? "").not.toMatch(/null|undefined|NaN/);
+    }
+  });
+
+  it("agrees with the panel: `of` equals inc.35's `times` for the same rows", () => {
+    const rows = [row(1, "2026-07-10"), row(2, "2026-07-18"), row(3, null)];
+    const idx = heldFlagIndex(200, { flags: rows });
+    const places = heldArchivePlaces(rows);
+    if (idx.kind !== "read") throw new Error("expected read");
+    expect(places.get(1)?.of).toBe(idx.judged.get("bigmailer.com")?.times);
+  });
+});
+
