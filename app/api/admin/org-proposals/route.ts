@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { getStore } from "@/lib/storage";
 import { buildGraphIndex } from "@/lib/comms/emailGraphIndex";
 import { proposalTitle } from "@/lib/comms/orgProposal";
+import { createdFromProposalNote } from "@/lib/comms/proposalFlag";
 import {
   domainRaceDetail,
   isOrgDomainConflict,
@@ -109,7 +110,9 @@ export async function POST(req: NextRequest) {
       .update({
         status: "resolved",
         resolved_at: new Date().toISOString().slice(0, 10),
-        resolution_note: `Created ${plan.org.id} (${plan.org.name}) from this proposal.`,
+        // inc.21: shared with the archive reader — a created row must never be
+        // mistaken for a dismissal and shown the "add it by hand" warning.
+        resolution_note: createdFromProposalNote(plan.org.id, plan.org.name),
       })
       .eq("title", proposalTitle(plan.org.domain))
       .eq("status", "open");

@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  archiveConsequence,
+  createdFromProposalNote,
   addressFromDetail,
   createOutcomeMessage,
   overviewReadControl,
@@ -406,5 +408,52 @@ describe("overviewReadControl (inc.20 — the checkbox that can't clear its row)
   it("hands the proposal the same domain rule as the rest of the file", () => {
     // Guard against a second, drifting notion of "is this a proposal".
     expect(overviewReadControl(proposalTitle("roofco.com"), false).checkbox).toBe(false);
+  });
+});
+
+describe("archiveConsequence (inc.21 — the archive row that never says the door is shut)", () => {
+  const proposal = proposalTitle("the-title-base.com");
+  const ordinary = "PropLogix — business name mismatch";
+
+  it("says nothing extra on an ordinary resolved finding", () => {
+    // 99% of the archive is not proposals; a permanence line where nothing is
+    // permanent is the noise that teaches Rob to skim past the real one.
+    expect(archiveConsequence(ordinary, "handled on the call")).toBeNull();
+    expect(archiveConsequence(ordinary, null)).toBeNull();
+  });
+
+  it("names the domain and the standing consequence of a dismissal", () => {
+    const line = archiveConsequence(proposal, "vendor, not a customer") as string;
+    expect(line).toContain("the-title-base.com");
+    expect(line).toContain("no longer proposed");
+  });
+
+  it("gives the way out, because a closed door with no handle is the defect", () => {
+    expect(archiveConsequence(proposal, null)).toContain("add it by hand");
+  });
+
+  it("stays silent on a row the CREATE button resolved — the company exists", () => {
+    // Same closure, opposite meaning: telling Rob to add a company he just
+    // created by hand is a false instruction, not a warning.
+    expect(archiveConsequence(proposal, createdFromProposalNote("the-title-base", "The Title Base"))).toBeNull();
+  });
+
+  it("reads the created note through the shared builder, not a copied literal", () => {
+    const note = createdFromProposalNote("roofco", "Roof Co");
+    expect(note).toBe("Created roofco (Roof Co) from this proposal.");
+    expect(archiveConsequence(proposalTitle("roofco.com"), note)).toBeNull();
+  });
+
+  it("treats a note that merely mentions creating as a dismissal, not a create", () => {
+    // A typed note is prose; only the route's exact shape means "created".
+    expect(archiveConsequence(proposal, "Created a task to call them")).toContain("no longer proposed");
+  });
+
+  it("survives whitespace around the route's note", () => {
+    expect(archiveConsequence(proposal, `  ${createdFromProposalNote("tb", "TB")}  `)).toBeNull();
+  });
+
+  it("ignores a prefix-only title, matching every other inc.16-20 parser", () => {
+    expect(archiveConsequence("New company domain: ", null)).toBeNull();
   });
 });

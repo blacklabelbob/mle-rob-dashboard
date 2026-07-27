@@ -325,3 +325,55 @@ export function overviewReadControl(title: string, hasRecord: boolean): ReadCont
       : "mark read — clears from Overview; it has no record page, so resolve it here",
   };
 }
+
+/**
+ * Q69 inc.21 — the archive row that never says the door is shut.
+ *
+ * inc.18 warns BEFORE the dismiss, inc.19 reports a dismiss that failed,
+ * inc.20 fixed the control that promised what it couldn't do. The state AFTER
+ * a successful dismiss is still silent: the proposal drops into "Resolved (n)"
+ * rendered exactly like any other closed finding — "notified 7/24 · resolved
+ * 7/27" — while the domain is now permanently excluded, because
+ * `supabaseProposalSink.existingTitles` selects flags at ANY status. The
+ * archive is the ONLY place that decision is visible afterwards, and it is the
+ * one surface that describes it as ordinary housekeeping.
+ *
+ * That matters most for the reviewer who was wrong. Rob dismisses a domain in a
+ * hurry, the customer emails again next week, nothing appears, and there is no
+ * way to learn why: the archive row he'd scroll past says only "resolved". The
+ * missing sentence is the consequence plus the way out.
+ *
+ * CREATED IS NOT DISMISSED. Creating the company also resolves the flag and
+ * also stops the domain being proposed — correctly, because the company now
+ * exists. Printing "won't be proposed again, add it by hand" on that row is a
+ * false instruction and exactly the noise inc.18 refused to spread across
+ * ordinary flags. The two are told apart by the note the create route writes,
+ * so `createdFromProposalNote` is exported and the route calls it: one string,
+ * one reader, no literal to drift (the same discipline as TITLE_PREFIX above).
+ *
+ * A null return means "render nothing extra" — ordinary flags and created rows
+ * keep the archive they already have.
+ */
+export function createdFromProposalNote(orgId: string, orgName: string): string {
+  return `Created ${orgId} (${orgName}) from this proposal.`;
+}
+
+const CREATED_NOTE_HEAD = "Created ";
+const CREATED_NOTE_TAIL = " from this proposal.";
+
+// Guard: if the route's note shape drifts from what this file reads, every
+// created row would start displaying the dismissal warning. Fail at import.
+if (
+  !createdFromProposalNote("o", "N").startsWith(CREATED_NOTE_HEAD) ||
+  !createdFromProposalNote("o", "N").endsWith(CREATED_NOTE_TAIL)
+) {
+  throw new Error("proposalFlag: created-note contract drifted");
+}
+
+export function archiveConsequence(title: string, resolutionNote: string | null): string | null {
+  const domain = proposalDomain(title);
+  if (!domain) return null;
+  const note = (resolutionNote ?? "").trim();
+  if (note.startsWith(CREATED_NOTE_HEAD) && note.endsWith(CREATED_NOTE_TAIL)) return null;
+  return `${domain} is no longer proposed — later mail from it won't raise this again. If it turns out to be a company, add it by hand.`;
+}

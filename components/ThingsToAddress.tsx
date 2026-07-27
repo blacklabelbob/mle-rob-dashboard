@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import OrgProposalCreate from "./OrgProposalCreate";
 import {
+  archiveConsequence,
   overviewReadControl,
   proposalDomain,
   resolveControlCopy,
@@ -353,6 +354,15 @@ export default function ThingsToAddress({
                     notified {f.notified_at} · resolved {f.resolved_at}
                   </span>
                   {f.resolution_note && <div className="mt-0.5 italic text-slate-500">“{f.resolution_note}”</div>}
+                  {/* inc.21: a dismissed proposal is the only archive row whose
+                      closure is still doing something — the domain stays shut
+                      out. Created rows say so in their own note and get nothing
+                      extra. */}
+                  {archiveConsequence(f.title, f.resolution_note) && (
+                    <div className="mt-0.5 text-slate-500">
+                      {archiveConsequence(f.title, f.resolution_note)}
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>
