@@ -124,7 +124,19 @@ export function heldDomainFlagPayload(finding: AuditFinding): HeldDomainFlagPayl
  * the worst case is a duplicate row, resolvable in one click, which is the same
  * trade `flagOutcome` makes on a dropped request.
  */
-export type HeldFlagIndex = { kind: "read"; domains: Set<string> } | { kind: "unknown" };
+export type HeldFlagIndex =
+  | {
+      kind: "read";
+      domains: Set<string>;
+      /**
+       * Q69 inc.33 — domains Rob has ALREADY judged (resolved rows), mapped to
+       * the date he judged them, or null when the row carries no readable date.
+       * Separate from `domains` on purpose: an open row stops the button, a
+       * resolved one only informs it.
+       */
+      judged: Map<string, string | null>;
+    }
+  | { kind: "unknown" };
 
 /**
  * Index the OPEN held-domain flags out of a `GET /api/admin/flags` response.
@@ -142,18 +154,67 @@ export function heldFlagIndex(status: number | null, body: unknown): HeldFlagInd
   if (!Array.isArray(rows)) return { kind: "unknown" };
 
   const domains = new Set<string>();
+  const judged = new Map<string, string | null>();
   for (const row of rows) {
     if (!row || typeof row !== "object") continue;
-    const r = row as { status?: unknown; title?: unknown };
-    if (r.status !== "open") continue;
+    const r = row as { status?: unknown; title?: unknown; resolved_at?: unknown };
     if (typeof r.title !== "string") continue;
     const domain = heldFlagDomain(r.title);
-    if (domain) domains.add(domain.toLowerCase());
+    if (!domain) continue;
+    const d = domain.toLowerCase();
+    if (r.status === "open") {
+      domains.add(d);
+      continue;
+    }
+    // Q69 inc.33 — a resolved row is a JUDGEMENT, and only an explicitly
+    // resolved one is. A row whose status we cannot read is not evidence Rob
+    // decided anything (same call inc.31 made about counting it as open).
+    if (r.status !== "resolved") continue;
+    judged.set(d, mostRecentJudgement(judged.get(d), judgementDate(r.resolved_at)));
   }
-  return { kind: "read", domains };
+  return { kind: "read", domains, judged };
 }
 
-export type FlagAffordance = { kind: "button" } | { kind: "already"; text: string };
+/**
+ * The date on a resolved row, or null — never a guess.
+ *
+ * `/api/admin/flags` writes `resolved_at` as a bare `YYYY-MM-DD` (PATCH above),
+ * so anything else is a row we cannot date. We say "you resolved this" without
+ * a date rather than printing a half-parsed string: a wrong date on a review
+ * item is worse than no date, because Rob would use it to reason about whether
+ * his decision predates whatever changed.
+ */
+function judgementDate(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const m = value.trim().match(/^(\d{4}-\d{2}-\d{2})/);
+  return m ? m[1] : null;
+}
+
+/**
+ * Two resolutions of the same domain: keep the one that tells the truth about
+ * the LATEST decision. A dated row beats an undated one (it says strictly more,
+ * and both are true); between two dates the later one wins — ISO strings sort
+ * chronologically, which is why the date is stored as text and not reformatted.
+ *
+ * `undefined` (no entry yet) is distinct from `null` (an entry we cannot date).
+ */
+function mostRecentJudgement(existing: string | null | undefined, incoming: string | null): string | null {
+  if (existing === undefined) return incoming;
+  if (incoming === null) return existing;
+  if (existing === null) return incoming;
+  return incoming > existing ? incoming : existing;
+}
+
+export type FlagAffordance =
+  | {
+      kind: "button";
+      /**
+       * Q69 inc.33 — what Rob already decided about this domain, or null when
+       * the ledger holds no resolved row for it. The button STAYS either way.
+       */
+      judged: string | null;
+    }
+  | { kind: "already"; text: string };
 
 /**
  * What the finding's row offers: the live button, or the sentence that says the
@@ -173,7 +234,29 @@ export function flagAffordance(
   if (d && index.kind === "read" && index.domains.has(d)) {
     return { kind: "already", text: "Already on Things to Address — waiting on your decision." };
   }
-  return { kind: "button" };
+  return { kind: "button", judged: d && index.kind === "read" ? judgedNote(index.judged, d) : null };
+}
+
+/**
+ * Q69 inc.33 — the sweep is the only thing here that re-asks.
+ *
+ * A held-domain flag resolved as "real company, leave it" is re-raised on the
+ * next mount, with the panel showing exactly what it showed before Rob decided.
+ * That is the design (inc.31/32: a re-found domain is a new question) but it is
+ * only honest if the panel SAYS he already judged it — otherwise the same
+ * question, in the same words, is put to him every week, and the way a person
+ * copes with that is by ignoring the panel.
+ *
+ * THE BUTTON SURVIVES. Removing it on a resolved row would mean a domain judged
+ * once can never be raised again, which is the opposite of inc.31's call and
+ * strands a finding that may have changed since. The note informs the decision;
+ * it does not make it.
+ */
+function judgedNote(judged: Map<string, string | null>, domain: string): string | null {
+  if (!judged.has(domain)) return null;
+  const date = judged.get(domain) ?? null;
+  const when = date ? ` on ${date}` : " earlier";
+  return `You already resolved this${when} — flag it again only if something has changed.`;
 }
 
 // ── Q69 inc.32 — the row Rob actually resolves, read from the ledger side ────

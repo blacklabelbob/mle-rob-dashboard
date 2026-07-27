@@ -177,7 +177,7 @@ describe("held-flag index", () => {
 });
 
 describe("flag affordance", () => {
-  const read = (...d: string[]): HeldFlagIndex => ({ kind: "read", domains: new Set(d) });
+  const read = (...d: string[]): HeldFlagIndex => ({ kind: "read", domains: new Set(d), judged: new Map() });
 
   it("offers the button when the ledger has no open row for the domain", () => {
     expect(flagAffordance("bigmailer.com", read()).kind).toBe("button");
@@ -255,5 +255,83 @@ describe("held-domain ledger row copy", () => {
     expect(c.href.startsWith("/")).toBe(true);
     expect(c.href).toContain("#");
     expect(c.linkText.trim().length).toBeGreaterThan(0);
+  });
+});
+
+// ── Q69 inc.33 — the sweep remembers a judgement it already got ─────────────
+
+describe("already-judged domains", () => {
+  const ok = (flags: unknown[]) => heldFlagIndex(200, { flags });
+  const resolved = (domain: string, resolved_at?: unknown) => ({
+    status: "resolved",
+    title: heldDomainFlagTitle(domain),
+    ...(resolved_at === undefined ? {} : { resolved_at }),
+  });
+
+  it("indexes a RESOLVED held-domain row with the date Rob judged it", () => {
+    const i = ok([resolved("BigMailer.com", "2026-07-24")]);
+    expect(i.kind === "read" && i.judged.get("bigmailer.com")).toBe("2026-07-24");
+  });
+
+  it("keeps the resolved row OUT of the open set — the button must survive", () => {
+    // inc.31's call stands: a re-found domain is a new question.
+    const i = ok([resolved("bigmailer.com", "2026-07-24")]);
+    expect(i.kind === "read" && i.domains.size).toBe(0);
+    expect(flagAffordance("bigmailer.com", i).kind).toBe("button");
+  });
+
+  it("tells Rob he already resolved it, with the date, next to the button", () => {
+    const a = flagAffordance("bigmailer.com", ok([resolved("bigmailer.com", "2026-07-24")]));
+    expect(a.kind === "button" && a.judged).toMatch(/already resolved/i);
+    expect(a.kind === "button" && a.judged).toContain("2026-07-24");
+  });
+
+  it("says 'earlier' rather than inventing a date it cannot read", () => {
+    // A wrong date on a review item is worse than none: Rob reasons about
+    // whether his decision predates whatever changed.
+    for (const bad of [undefined, null, 7, "", "last tuesday"]) {
+      const a = flagAffordance("bigmailer.com", ok([resolved("bigmailer.com", bad)]));
+      expect(a.kind === "button" && a.judged).toMatch(/earlier/);
+      expect(a.kind === "button" && a.judged).not.toMatch(/\d{4}-\d{2}-\d{2}/);
+    }
+  });
+
+  it("normalises a timestamped resolved_at to its date, never half-printed", () => {
+    const a = flagAffordance("bigmailer.com", ok([resolved("bigmailer.com", "2026-07-24T18:03:11Z")]));
+    expect(a.kind === "button" && a.judged).toContain("2026-07-24");
+    expect(a.kind === "button" && a.judged).not.toContain("T18");
+  });
+
+  it("keeps the LATEST judgement when a domain was resolved more than once", () => {
+    const i = ok([resolved("bigmailer.com", "2026-07-20"), resolved("bigmailer.com", "2026-07-24")]);
+    expect(i.kind === "read" && i.judged.get("bigmailer.com")).toBe("2026-07-24");
+    const j = ok([resolved("bigmailer.com", "2026-07-24"), resolved("bigmailer.com", "2026-07-20")]);
+    expect(j.kind === "read" && j.judged.get("bigmailer.com")).toBe("2026-07-24");
+  });
+
+  it("prefers a dated row over an undated one for the same domain", () => {
+    const i = ok([resolved("bigmailer.com"), resolved("bigmailer.com", "2026-07-24")]);
+    expect(i.kind === "read" && i.judged.get("bigmailer.com")).toBe("2026-07-24");
+  });
+
+  it("does NOT treat an unreadable status as a judgement", () => {
+    // Same call inc.31 made about counting it as open: we did not see a decision.
+    const i = ok([{ title: heldDomainFlagTitle("bigmailer.com"), resolved_at: "2026-07-24" }]);
+    expect(i.kind === "read" && i.judged.size).toBe(0);
+  });
+
+  it("shows no note for a domain the ledger has never held a row for", () => {
+    const a = flagAffordance("newone.com", ok([resolved("bigmailer.com", "2026-07-24")]));
+    expect(a.kind === "button" && a.judged).toBeNull();
+  });
+
+  it("shows no note when the ledger could not be read — unknown is not 'never judged'", () => {
+    const a = flagAffordance("bigmailer.com", { kind: "unknown" });
+    expect(a.kind === "button" && a.judged).toBeNull();
+  });
+
+  it("lets an OPEN row win over a resolved one — the live question outranks the note", () => {
+    const i = ok([resolved("bigmailer.com", "2026-07-24"), { status: "open", title: heldDomainFlagTitle("bigmailer.com") }]);
+    expect(flagAffordance("bigmailer.com", i).kind).toBe("already");
   });
 });

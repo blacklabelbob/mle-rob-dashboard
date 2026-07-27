@@ -263,14 +263,23 @@ export default function GenericDomainBlocklist() {
                 {affordance.kind === "already" ? (
                   <span className="ml-1.5 text-emerald-300">{affordance.text}</span>
                 ) : (
-                  <button
-                    onClick={() => void flagFinding(f)}
-                    disabled={flagBusy === f.domain}
-                    title="add to Things to Address — nothing is deleted, unblocked or changed"
-                    className="ml-1.5 rounded border border-amber-400/40 px-1.5 py-0.5 text-[10px] font-semibold text-amber-200 transition hover:bg-amber-400/10 disabled:opacity-40"
-                  >
-                    {flagBusy === f.domain ? "…" : "Add to Things to Address"}
-                  </button>
+                  <>
+                    <button
+                      onClick={() => void flagFinding(f)}
+                      disabled={flagBusy === f.domain}
+                      title="add to Things to Address — nothing is deleted, unblocked or changed"
+                      className="ml-1.5 rounded border border-amber-400/40 px-1.5 py-0.5 text-[10px] font-semibold text-amber-200 transition hover:bg-amber-400/10 disabled:opacity-40"
+                    >
+                      {flagBusy === f.domain ? "…" : "Add to Things to Address"}
+                    </button>
+                    {/* Q69 inc.33 — the sweep re-asks by design, so it must say
+                        when Rob already answered. Without this the identical
+                        question arrives every week and the panel trains him to
+                        skip it. The button stays: a judged domain can change. */}
+                    {affordance.judged && (
+                      <span className="ml-1.5 text-amber-200/60">{affordance.judged}</span>
+                    )}
+                  </>
                 )}
                 {flagged[f.domain] && !flagged[f.domain]!.flagged && (
                   <span className="ml-1.5 text-red-300">{flagged[f.domain]!.text}</span>
