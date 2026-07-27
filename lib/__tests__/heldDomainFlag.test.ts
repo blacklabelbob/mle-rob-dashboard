@@ -9,6 +9,7 @@ import {
   heldRowCopy,
   heldArchiveNote,
   heldArchivePlaces,
+  heldPriorJudgements,
   type HeldFlagIndex,
 } from "@/lib/comms/heldDomainFlag";
 import type { AuditFinding } from "@/lib/comms/genericDomainAudit";
@@ -657,5 +658,97 @@ describe("an already-waiting row carries the same history", () => {
       ok([resolved("bigmailer.com"), resolved("bigmailer.com"), open("bigmailer.com")])
     );
     expect(text(a)).not.toMatch(/NaN|undefined|null/);
+  });
+});
+
+// ── Q69 inc.38 — the LEDGER row stops reading like a first ask ──────────────
+
+describe("the open ledger row carries the same prior-judgement history", () => {
+  const title = heldDomainFlagTitle("bigmailer.com");
+  const open = (domain = "bigmailer.com") => ({ id: 9, status: "open", title: heldDomainFlagTitle(domain) });
+  const resolved = (resolved_at: unknown, domain = "bigmailer.com", id = 1) => ({
+    id,
+    status: "resolved",
+    title: heldDomainFlagTitle(domain),
+    ...(resolved_at === undefined ? {} : { resolved_at }),
+  });
+
+  it("tells the reviewer, ON THE ROW HE RESOLVES FROM, that he has decided this before", () => {
+    // The surface with the Resolve control was the surface with the least
+    // history: it said only "the sweep will raise it again", as if it never had.
+    const rows = [resolved("2026-07-20", "bigmailer.com", 1), resolved("2026-07-24", "bigmailer.com", 2), open()];
+    const c = heldRowCopy(title, heldPriorJudgements(rows))!;
+    expect(c.hint).toMatch(/resolved this 2 times before/);
+    expect(c.hint).toContain("2026-07-24");
+    expect(c.hint).toMatch(/blocklist entry is the thing to change/);
+  });
+
+  it("is WORD-FOR-WORD the sentence the panel shows for the same rows", () => {
+    // Two surfaces read minutes apart about one question; prose that differs
+    // reads as two histories. Same function, so they cannot drift.
+    const rows = [resolved("2026-07-20", "bigmailer.com", 1), resolved("2026-07-24", "bigmailer.com", 2), open()];
+    const panel = flagAffordance("bigmailer.com", heldFlagIndex(200, { flags: rows }));
+    const c = heldRowCopy(title, heldPriorJudgements(rows))!;
+    const history = panel.kind === "already" ? panel.text.replace("Already on Things to Address — waiting on your decision.", "") : "";
+    expect(history.trim().length).toBeGreaterThan(0);
+    expect(c.hint.endsWith(history)).toBe(true);
+  });
+
+  it("uses the SAME one-vs-many threshold: a single decision gets the short line", () => {
+    const c = heldRowCopy(title, heldPriorJudgements([resolved("2026-07-24"), open()]))!;
+    expect(c.hint).toMatch(/already resolved this once on 2026-07-24/);
+    expect(c.hint).not.toMatch(/times before/);
+  });
+
+  it("never claims how many times the question was RAISED — inc.36/37's no-ordinal rule", () => {
+    // We know what he resolved; the open set collapses duplicates, so the number
+    // of times it CAME UP is not ours to state.
+    const rows = [resolved("2026-07-20", "bigmailer.com", 1), resolved("2026-07-24", "bigmailer.com", 2), open(), open()];
+    const c = heldRowCopy(title, heldPriorJudgements(rows))!;
+    expect(c.hint).not.toMatch(/third time|3rd time|times it has come up|raised/i);
+  });
+
+  it("says 'earlier' rather than inventing a date, and never leaks null/undefined/NaN", () => {
+    for (const bad of [undefined, null, "", "last Tuesday", 20260724, {}]) {
+      const c = heldRowCopy(title, heldPriorJudgements([resolved(bad), open()]))!;
+      expect(c.hint).toMatch(/earlier/);
+      expect(c.hint).not.toMatch(/null|undefined|NaN/);
+    }
+  });
+
+  it("counts only THIS domain's decisions", () => {
+    const rows = [resolved("2026-07-20", "other.com", 1), resolved("2026-07-24", "bigmailer.com", 2)];
+    const c = heldRowCopy(title, heldPriorJudgements(rows))!;
+    expect(c.hint).toMatch(/once on 2026-07-24/);
+  });
+
+  it("adds nothing when the ledger holds no decision on the domain", () => {
+    expect(heldRowCopy(title, heldPriorJudgements([open()]))!.hint).toBe(heldRowCopy(title)!.hint);
+    expect(heldRowCopy(title, new Map())!.hint).toBe(heldRowCopy(title)!.hint);
+  });
+
+  it("leaves the Overview digest's copy byte-identical when `prior` is omitted", () => {
+    // The digest calls this for the badge alone (inc.32); a scan surface must
+    // not grow a paragraph.
+    expect(heldRowCopy(title)).toEqual(heldRowCopy(title, null));
+    expect(heldRowCopy(title)!.hint).not.toMatch(/resolved this/);
+  });
+
+  it("still returns null for rows that are not held-domain findings", () => {
+    expect(heldRowCopy("Invoice missing", heldPriorJudgements([resolved("2026-07-24")]))).toBeNull();
+  });
+
+  it("counts identically to heldFlagIndex — one tally, not two that agree today", () => {
+    const rows = [resolved("2026-07-20", "bigmailer.com", 1), resolved(undefined, "bigmailer.com", 2), open()];
+    const idx = heldFlagIndex(200, { flags: rows });
+    if (idx.kind !== "read") throw new Error("expected read");
+    expect(heldPriorJudgements(rows).get("bigmailer.com")).toEqual(idx.judged.get("bigmailer.com"));
+    expect(heldPriorJudgements(rows).has("bigmailer.com")).toBe(true);
+  });
+
+  it("survives junk where the rows should be", () => {
+    for (const junk of [null, undefined, {}, "rows", [null, 3, { title: 7 }]]) {
+      expect(heldPriorJudgements(junk).size).toBe(0);
+    }
   });
 });

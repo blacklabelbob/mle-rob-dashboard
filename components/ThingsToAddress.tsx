@@ -11,7 +11,7 @@ import {
   writeFailureMessage,
   type WriteFailure,
 } from "@/lib/comms/proposalFlag";
-import { heldArchiveNote, heldArchivePlaces, heldRowCopy } from "@/lib/comms/heldDomainFlag";
+import { heldArchiveNote, heldArchivePlaces, heldPriorJudgements, heldRowCopy } from "@/lib/comms/heldDomainFlag";
 
 // "Things to Address" (Rob 2026-07-22): findings Max surfaces, resolved in-place
 // with an optional note. Resolved items are never removed — they archive into an
@@ -122,6 +122,9 @@ export default function ThingsToAddress({
   const open = flags.filter((f) => f.status === "open");
   const resolved = flags.filter((f) => f.status === "resolved");
   const archivePlaces = heldArchivePlaces(flags);
+  // inc.38: prior decisions on the SAME rows the archive is placed from, so the
+  // open row, the archive row and the panel all count one history.
+  const priorJudgements = heldPriorJudgements(flags);
   if (!flags.length) return null;
 
   // Overview mode: compact digest — unread open items only, hover for full
@@ -265,7 +268,7 @@ export default function ThingsToAddress({
                     on this kind of row it means something narrower than usual —
                     said before the click, not after. */}
                 {(() => {
-                  const held = heldRowCopy(f.title);
+                  const held = heldRowCopy(f.title, priorJudgements);
                   if (!held) return null;
                   return (
                     <p className="mt-1 text-[11px] leading-relaxed text-slate-400">

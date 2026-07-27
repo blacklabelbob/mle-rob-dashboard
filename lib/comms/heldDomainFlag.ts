@@ -168,22 +168,40 @@ export function heldFlagIndex(status: number | null, body: unknown): HeldFlagInd
   if (!Array.isArray(rows)) return { kind: "unknown" };
 
   const domains = new Set<string>();
+  for (const row of rows) {
+    if (!row || typeof row !== "object") continue;
+    const r = row as { status?: unknown; title?: unknown };
+    if (r.status !== "open" || typeof r.title !== "string") continue;
+    const domain = heldFlagDomain(r.title);
+    if (domain) domains.add(domain.toLowerCase());
+  }
+  return { kind: "read", domains, judged: heldPriorJudgements(rows) };
+}
+
+/**
+ * Q69 inc.38 — the judgement tally, in ONE place, for every surface that shows
+ * it.
+ *
+ * The panel reads it off a `GET /api/admin/flags` BODY (`heldFlagIndex`); the
+ * ledger already holds the same rows as an ARRAY (`heldArchivePlaces` takes
+ * them that way). Both must answer "how many times has this been decided?"
+ * identically — two surfaces disagreeing about the same history is the exact
+ * defect inc.36 and inc.37 were spent closing — so they count with the same
+ * function rather than with two tallies that happen to agree today.
+ *
+ * A resolved row is a JUDGEMENT, and only an explicitly resolved one is (inc.33):
+ * a row whose status we cannot read is not evidence Rob decided anything.
+ */
+export function heldPriorJudgements(rows: unknown): Map<string, Judgement> {
   const judged = new Map<string, Judgement>();
+  if (!Array.isArray(rows)) return judged;
   for (const row of rows) {
     if (!row || typeof row !== "object") continue;
     const r = row as { status?: unknown; title?: unknown; resolved_at?: unknown };
-    if (typeof r.title !== "string") continue;
+    if (r.status !== "resolved" || typeof r.title !== "string") continue;
     const domain = heldFlagDomain(r.title);
     if (!domain) continue;
     const d = domain.toLowerCase();
-    if (r.status === "open") {
-      domains.add(d);
-      continue;
-    }
-    // Q69 inc.33 — a resolved row is a JUDGEMENT, and only an explicitly
-    // resolved one is. A row whose status we cannot read is not evidence Rob
-    // decided anything (same call inc.31 made about counting it as open).
-    if (r.status !== "resolved") continue;
     const seen = judged.get(d);
     judged.set(d, {
       date: mostRecentJudgement(seen?.date, judgementDate(r.resolved_at)),
@@ -193,7 +211,7 @@ export function heldFlagIndex(status: number | null, body: unknown): HeldFlagInd
       times: (seen?.times ?? 0) + 1,
     });
   }
-  return { kind: "read", domains, judged };
+  return judged;
 }
 
 /**
@@ -365,13 +383,25 @@ export type HeldRowCopy = {
  * noise that teaches Rob to skip the badge on the row that means it — the same
  * call `resolveControlCopy` makes about permanence warnings.
  *
+ * Q69 inc.38 — `prior` (optional) is the domain→judgement map from
+ * `heldPriorJudgements`, and it is what makes this row stop reading like a first
+ * ask. The ledger was the LAST surface that could not say the question came
+ * back: inc.33/35 gave the panel's button a memory, inc.36 the archive row,
+ * inc.37 the panel's waiting row — while the OPEN row on Things to Address, the
+ * one Rob actually decides on, still said only "the sweep will raise it again",
+ * as if it never had. So the surface with the Resolve control was the surface
+ * with the least history, and re-resolving a fourth time looked like progress.
+ *
+ * OMITTING `prior` KEEPS THE OLD COPY EXACTLY. The Overview digest calls this
+ * for the badge alone (inc.32) and must not grow a paragraph on a scan surface.
+ *
  * THE HINT DOES NOT PROMISE SILENCE. inc.31's dedupe counts only `open` rows,
  * so resolving this makes the domain flaggable again — deliberately: a re-found
  * domain is a new question. The reviewer is told that here, because "resolve"
  * elsewhere on this ledger means "this stops coming back", and a row that
  * quietly returns next week looks like a bug rather than the design.
  */
-export function heldRowCopy(title: string): HeldRowCopy | null {
+export function heldRowCopy(title: string, prior?: Map<string, Judgement> | null): HeldRowCopy | null {
   const domain = heldFlagDomain(title);
   if (!domain) return null;
   const d = domain.toLowerCase();
@@ -380,7 +410,11 @@ export function heldRowCopy(title: string): HeldRowCopy | null {
     badge: `${d} · still blocked`,
     hint:
       `Resolving files your decision — it does not unblock ${d} and does not delete anything. ` +
-      `If the company still holds it, the blocklist sweep will raise it again.`,
+      `If the company still holds it, the blocklist sweep will raise it again.` +
+      // Q69 inc.38 — the SAME sentence the panel shows (`waitingHistory`), not a
+      // second wording of the same count: the row and the panel are read minutes
+      // apart about one question, and prose that differs reads as two histories.
+      (prior ? waitingHistory(prior, d) : ""),
     href: BLOCKLIST_ANCHOR,
     linkText: "review the blocklist",
   };
