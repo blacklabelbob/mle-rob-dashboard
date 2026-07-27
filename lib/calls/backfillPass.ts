@@ -93,7 +93,11 @@ export type BackfillPassResult =
  * The recording sids worth asking 0021 about (rule 4): present, trimmed, deduped, and in
  * the order the candidates arrived so a chunked read stays deterministic.
  */
-export function backfillSids(candidates: readonly BackfillCandidate[]): string[] {
+export function backfillSids(
+  // Widened to the one field it reads (inc.41) so the summary pass shares this dedupe rather
+  // than owning a second copy — a candidate type is not what makes a sid list correct.
+  candidates: readonly { recordingSid: string | null | undefined }[]
+): string[] {
   const seen = new Set<string>();
   const sids: string[] = [];
   for (const c of candidates) {
