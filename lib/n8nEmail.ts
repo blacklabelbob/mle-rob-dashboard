@@ -1,5 +1,10 @@
 import { type EmailDirection, type GraphIndex, planEmailGraph } from "./comms/emailGraph";
 import { buildGraphIndex } from "./comms/emailGraphIndex";
+import {
+  CROSSOVER_DOMAIN,
+  DEFAULT_MAILBOX_LINK,
+  type MailboxLink,
+} from "./comms/mailboxLink";
 import type { Activity, NetworkData, Person } from "./types";
 import { verifyVapiSecret } from "./vapi";
 
@@ -15,8 +20,13 @@ import { verifyVapiSecret } from "./vapi";
 // rob@boostuppayments.com can physically sit in the aivoicetech inbox — the
 // gate judges the HEADERS, never the mailbox, and hard-rejects anything with
 // a boostuppayments.com party.
-export const CAPTURE_IDENTITY = "rob@aivoicetech.io";
-export const FORBIDDEN_DOMAIN = "boostuppayments.com";
+// Q69 inc.7: both constants now come from the mailbox-link registry, so the
+// connected mailbox and the identity rule have exactly one definition. The
+// `link` parameters below default to the sole connected mailbox — callers that
+// handle multiple mailboxes resolve one explicitly (resolveMailboxLink) and
+// pass it through, which is what keeps a second inbox from filing as Rob's.
+export const CAPTURE_IDENTITY = DEFAULT_MAILBOX_LINK.address;
+export const FORBIDDEN_DOMAIN = CROSSOVER_DOMAIN;
 
 export interface N8nEmailEnv {
   webhookSecret?: string; // shared secret n8n sends as x-n8n-secret
@@ -44,6 +54,9 @@ export interface EmailPayload {
   subject?: string;
   snippet?: string;
   date?: string;
+  // Which connected mailbox this was captured from — the link id or the
+  // address. Optional only while exactly one mailbox is connected.
+  mailbox?: string;
 }
 
 // "Rob Acheson <Rob@AIVoiceTech.io>" → "rob@aivoicetech.io"
@@ -68,7 +81,10 @@ export function allParties(payload: EmailPayload): string[] {
 
 export type GateVerdict = { ok: true } | { ok: false; reason: string };
 
-export function identityGate(payload: EmailPayload): GateVerdict {
+export function identityGate(
+  payload: EmailPayload,
+  link: MailboxLink = DEFAULT_MAILBOX_LINK
+): GateVerdict {
   const parties = allParties(payload);
   const forbidden = parties.find((a) => a.endsWith(`@${FORBIDDEN_DOMAIN}`));
   if (forbidden) {
@@ -77,8 +93,11 @@ export function identityGate(payload: EmailPayload): GateVerdict {
       reason: `${FORBIDDEN_DOMAIN} party (${forbidden}) — crossover mail, never ingested`,
     };
   }
-  if (!parties.includes(CAPTURE_IDENTITY)) {
-    return { ok: false, reason: `${CAPTURE_IDENTITY} is not an addressed party` };
+  // The mailbox that captured it must be an addressed party: a message n8n
+  // hands us stamped with a mailbox nobody on the thread used is a routing bug,
+  // and ingesting it would put a stranger's thread on Rob's timeline.
+  if (!parties.includes(link.address)) {
+    return { ok: false, reason: `${link.address} is not an addressed party` };
   }
   return { ok: true };
 }
@@ -92,8 +111,11 @@ export interface ContactMatch {
 // The direction of the message from OUR side: Rob sending is outbound. The
 // ladder needs this because rung 6/7 turn on it — sending to a new domain may
 // propose a company, receiving from one may not.
-export function directionOf(payload: EmailPayload): EmailDirection {
-  return extractAddress(payload.from) === CAPTURE_IDENTITY ? "outbound" : "inbound";
+export function directionOf(
+  payload: EmailPayload,
+  link: MailboxLink = DEFAULT_MAILBOX_LINK
+): EmailDirection {
+  return extractAddress(payload.from) === link.address ? "outbound" : "inbound";
 }
 
 // Match the message's counterpart (everyone except Rob's capture address) to a
@@ -112,10 +134,11 @@ export function directionOf(payload: EmailPayload): EmailDirection {
 export function matchContact(
   data: NetworkData,
   payload: EmailPayload,
-  index: GraphIndex = buildGraphIndex(data)
+  index: GraphIndex = buildGraphIndex(data),
+  link: MailboxLink = DEFAULT_MAILBOX_LINK
 ): ContactMatch | null {
-  const counterparts = allParties(payload).filter((a) => a !== CAPTURE_IDENTITY);
-  const direction = directionOf(payload);
+  const counterparts = allParties(payload).filter((a) => a !== link.address);
+  const direction = directionOf(payload, link);
   const byId = new Map(data.people.map((p) => [p.id, p]));
   let orgMatch: ContactMatch | null = null;
 
@@ -143,9 +166,10 @@ export function activityIdFor(messageId: string): string {
 export function emailToActivity(
   payload: EmailPayload,
   match: ContactMatch,
-  nowIso: string
+  nowIso: string,
+  link: MailboxLink = DEFAULT_MAILBOX_LINK
 ): Activity {
-  const direction = directionOf(payload);
+  const direction = directionOf(payload, link);
   const parsed = payload.date ? Date.parse(payload.date) : NaN;
   const occurredAt = Number.isNaN(parsed) ? nowIso : new Date(parsed).toISOString();
   const isCompany = match.person.entityKind === "company";
@@ -169,7 +193,10 @@ export function emailToActivity(
       // Which rung anchored it. An org-domain match means the human is NOT in
       // the CRM yet — the rep reading the row should see that, not guess.
       matchedBy: match.matchedBy,
-      capturedMailbox: CAPTURE_IDENTITY,
+      // The link_id invariant: every captured row names the mailbox it came
+      // from, so "which identity received this" is data, not an assumption.
+      capturedMailbox: link.address,
+      mailboxLinkId: link.linkId,
     },
     summary: payload.snippet?.trim()
       ? `${subject} — ${payload.snippet.trim()}`

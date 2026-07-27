@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { getStore } from "@/lib/storage";
 import {
   allParties,
-  CAPTURE_IDENTITY,
   directionOf,
   emailToActivity,
   identityGate,
@@ -13,6 +12,7 @@ import {
   type EmailPayload,
 } from "@/lib/n8nEmail";
 import { buildGraphIndex } from "@/lib/comms/emailGraphIndex";
+import { resolveMailboxLink } from "@/lib/comms/mailboxLink";
 import { planOrgProposals, recordOrgProposals } from "@/lib/comms/orgProposal";
 import { supabaseProposalSink } from "@/lib/comms/orgProposalSink";
 
@@ -50,7 +50,17 @@ export async function POST(req: Request) {
     );
   }
 
-  const verdict = identityGate(payload);
+  // Q69 inc.7 — the link_id invariant: nothing is ingested until we know WHICH
+  // connected mailbox captured it. An unregistered mailbox is refused rather
+  // than defaulted, so a second inbox wired into n8n can never file as Rob's.
+  const mailbox = resolveMailboxLink(payload.mailbox);
+  if (!mailbox.ok) {
+    console.log("[n8n-email] REJECTED", payload.messageId, mailbox.reason);
+    return NextResponse.json({ ok: true, ingested: false, reason: mailbox.reason });
+  }
+  const link = mailbox.link;
+
+  const verdict = identityGate(payload, link);
   if (!verdict.ok) {
     console.log("[n8n-email] REJECTED", payload.messageId, verdict.reason);
     return NextResponse.json({ ok: true, ingested: false, reason: verdict.reason });
@@ -59,13 +69,13 @@ export async function POST(req: Request) {
   const store = getStore();
   const data = await store.getNetwork();
   const index = buildGraphIndex(data);
-  const match = matchContact(data, payload, index);
+  const match = matchContact(data, payload, index, link);
   if (!match) {
     // Q69 inc.3: the ladder anchored nothing. If we SENT this, rung 6 proposes
     // the company on the ledger's "Things to Address" — proposes, never
     // creates. Received mail from an unknown domain still queues nothing.
-    const counterparts = allParties(payload).filter((a) => a !== CAPTURE_IDENTITY);
-    const proposals = planOrgProposals(counterparts, directionOf(payload), index);
+    const counterparts = allParties(payload).filter((a) => a !== link.address);
+    const proposals = planOrgProposals(counterparts, directionOf(payload, link), index);
     let queued: string[] = [];
     if (proposals.length > 0) {
       const sink = supabaseProposalSink();
@@ -102,7 +112,7 @@ export async function POST(req: Request) {
     });
   }
 
-  const activity = emailToActivity(payload, match, new Date().toISOString());
+  const activity = emailToActivity(payload, match, new Date().toISOString(), link);
   await store.upsertActivity(activity);
   console.log(
     "[n8n-email] ingested",
