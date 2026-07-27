@@ -14,6 +14,7 @@ import {
 } from "@/lib/comms/genericDomainPanel";
 import type { AuditFinding, BlocklistAudit } from "@/lib/comms/genericDomainAudit";
 import {
+  badgeRepeatMark,
   findingRepeatMark,
   flagAffordance,
   flagOutcome,
@@ -96,6 +97,11 @@ export default function GenericDomainBlocklist() {
   }, [load, loadFlags]);
 
   const badge = blocklistBadge(audit);
+  // Q69 inc.40 — the collapsed marker says whether the sweep is asking something
+  // NEW. Read off the same findings the badge counts, judged by the same index
+  // the finding labels use, so the header and the rows cannot describe two
+  // different pasts.
+  const badgeMark = badge ? badgeRepeatMark(audit?.findings.map((f) => f.domain), flagIndex) : null;
 
   // One writer for both directions: the outcome contract decides the sentence,
   // the tone, and — critically — whether the list is refetched. A refetch on a
@@ -174,7 +180,12 @@ export default function GenericDomainBlocklist() {
         className="text-xs text-slate-500 transition hover:text-white"
       >
         ▸ Blocked email domains
-        {badge && <span className={`ml-1.5 ${toneClass[badge.tone]}`}>· {badge.text}</span>}
+        {badge && (
+          <span className={`ml-1.5 ${toneClass[badge.tone]}`}>
+            · {badge.text}
+            {badgeMark && <span className="text-slate-500"> · {badgeMark}</span>}
+          </span>
+        )}
       </button>
     );
   }

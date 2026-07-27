@@ -348,6 +348,56 @@ export function findingRepeatMark(domain: string, index: HeldFlagIndex): string 
 }
 
 /**
+ * Q69 inc.40 — the COLLAPSED badge tells a new question from a returning one.
+ *
+ * The panel is collapsed by default, so `blocklistBadge` is the only thing that
+ * speaks before anyone opens it — and it says "3 still held by a company"
+ * whether all three are domains Rob has never seen or all three are questions he
+ * has already answered four times. Those are opposite calls to action (open it
+ * and decide / the blocklist is the thing to change), and inc.39 put the
+ * distinction on the finding rows, which is INSIDE the panel: visible only after
+ * the decision to open it has already been made.
+ *
+ * COUNTED IN FINDINGS, NOT IN TRIPS. `Judgement.times` is how many times ONE
+ * domain was resolved; this is how many of the findings are repeats. Those two
+ * numbers sit on the same screen, so the wording never leaves a bare count that
+ * could be read as the other one: "2 of 3 resolved before" and "all 3 resolved
+ * before" can only be about findings, and a lone finding gets inc.39's exact
+ * singular ("resolved before") with no number at all.
+ *
+ * NO ORDINAL ARITHMETIC (the inc.36–39 standing rule): resolved counts are
+ * known, raised counts are not.
+ *
+ * `null` on: an unread index (an unknown history is not "all new"), no findings,
+ * or no finding with a prior judgement — a marker on every sweep would tell Rob
+ * nothing, which is the same reason `blocklistBadge` itself stays silent on a
+ * clean sweep.
+ *
+ * Domains are trimmed, case-folded and DEDUPED: one domain listed twice is one
+ * question, and counting it twice would put "2 of 2" on a single repeat.
+ */
+export function badgeRepeatMark(
+  domains: readonly string[] | null | undefined,
+  index: HeldFlagIndex
+): string | null {
+  if (!Array.isArray(domains) || index.kind !== "read") return null;
+  const seen = new Set<string>();
+  let returning = 0;
+  for (const raw of domains) {
+    if (typeof raw !== "string") continue;
+    const d = raw.trim().toLowerCase();
+    if (!d || seen.has(d)) continue;
+    seen.add(d);
+    const judged = index.judged.get(d);
+    if (judged && judged.times >= 1) returning += 1;
+  }
+  if (returning < 1) return null;
+  if (seen.size === 1) return "resolved before";
+  if (returning === seen.size) return `all ${seen.size} resolved before`;
+  return `${returning} of ${seen.size} resolved before`;
+}
+
+/**
  * Q69 inc.33 — the sweep is the only thing here that re-asks.
  *
  * A held-domain flag resolved as "real company, leave it" is re-raised on the

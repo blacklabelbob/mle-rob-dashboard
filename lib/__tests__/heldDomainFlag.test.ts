@@ -11,6 +11,7 @@ import {
   heldArchivePlaces,
   heldPriorJudgements,
   findingRepeatMark,
+  badgeRepeatMark,
   type HeldFlagIndex,
 } from "@/lib/comms/heldDomainFlag";
 import type { AuditFinding } from "@/lib/comms/genericDomainAudit";
@@ -849,5 +850,99 @@ describe("the finding's repeat label", () => {
     for (const junk of ["", "   ", undefined as unknown as string, null as unknown as string]) {
       expect(findingRepeatMark(junk, idx)).toBeNull();
     }
+  });
+});
+
+// ── Q69 inc.40 — the collapsed badge tells a new question from a returning one ──
+
+describe("the collapsed badge's repeat marker", () => {
+  const ok = (flags: unknown[]) => heldFlagIndex(200, { flags });
+  const open = (domain: string) => ({ status: "open", title: heldDomainFlagTitle(domain) });
+  const resolved = (domain: string, resolved_at?: unknown) => ({
+    status: "resolved",
+    title: heldDomainFlagTitle(domain),
+    ...(resolved_at === undefined ? {} : { resolved_at }),
+  });
+
+  it("says nothing when every finding is a first sighting — a marker on every sweep means nothing", () => {
+    expect(badgeRepeatMark(["bigmailer.com", "sendgrid.net"], ok([]))).toBeNull();
+    expect(badgeRepeatMark(["bigmailer.com"], ok([open("bigmailer.com")]))).toBeNull();
+    expect(badgeRepeatMark(["bigmailer.com"], ok([resolved("other.com", "2026-07-24")]))).toBeNull();
+  });
+
+  it("says nothing when there is nothing to mark", () => {
+    expect(badgeRepeatMark([], ok([resolved("bigmailer.com", "2026-07-24")]))).toBeNull();
+    expect(badgeRepeatMark(null, ok([resolved("bigmailer.com", "2026-07-24")]))).toBeNull();
+    expect(badgeRepeatMark(undefined, ok([resolved("bigmailer.com", "2026-07-24")]))).toBeNull();
+  });
+
+  it("stays silent when the ledger could not be read — an unknown history is not 'all new'", () => {
+    expect(badgeRepeatMark(["bigmailer.com"], { kind: "unknown" } as HeldFlagIndex)).toBeNull();
+    expect(badgeRepeatMark(["bigmailer.com"], heldFlagIndex(500, null))).toBeNull();
+  });
+
+  it("uses inc.39's singular — and NO number — when the sweep found one thing", () => {
+    // A bare count here would sit inches from "Resolved 2 times before" and read
+    // as the number of trips rather than the number of findings.
+    expect(
+      badgeRepeatMark(
+        ["bigmailer.com"],
+        ok([resolved("bigmailer.com", "2026-07-20"), resolved("bigmailer.com", "2026-07-24")])
+      )
+    ).toBe("resolved before");
+  });
+
+  it("counts FINDINGS, not trips round the loop", () => {
+    const idx = ok([
+      resolved("bigmailer.com", "2026-07-18"),
+      resolved("bigmailer.com", "2026-07-20"),
+      resolved("bigmailer.com", "2026-07-24"),
+      resolved("sendgrid.net", "2026-07-24"),
+    ]);
+    if (idx.kind !== "read") throw new Error("expected read");
+    expect(idx.judged.get("bigmailer.com")!.times).toBe(3);
+    // Three trips for one domain, two returning findings — the badge says two.
+    expect(badgeRepeatMark(["bigmailer.com", "sendgrid.net", "mailchimp.com"], idx)).toBe(
+      "2 of 3 resolved before"
+    );
+  });
+
+  it("says ALL when the whole sweep is re-asking — that is the blocklist's problem, not Rob's", () => {
+    const idx = ok([resolved("bigmailer.com", "2026-07-24"), resolved("sendgrid.net", "2026-07-24")]);
+    expect(badgeRepeatMark(["bigmailer.com", "sendgrid.net"], idx)).toBe("all 2 resolved before");
+  });
+
+  it("counts one domain once, however many times the sweep lists it", () => {
+    const idx = ok([resolved("bigmailer.com", "2026-07-24")]);
+    expect(badgeRepeatMark(["bigmailer.com", "BigMailer.com ", " bigmailer.com"], idx)).toBe(
+      "resolved before"
+    );
+    // The same repeat beside a genuinely new finding: one returning of two, not
+    // three of two — a marker that can out-count its own total is nonsense on a
+    // header nobody has opened yet.
+    expect(
+      badgeRepeatMark(["bigmailer.com", "BigMailer.com", "mailchimp.com"], idx)
+    ).toBe("1 of 2 resolved before");
+  });
+
+  it("agrees with the finding labels — one history, not two that agree today", () => {
+    const idx = ok([resolved("bigmailer.com", "2026-07-24"), resolved("sendgrid.net", "2026-07-24")]);
+    const domains = ["bigmailer.com", "sendgrid.net", "mailchimp.com"];
+    const labelled = domains.filter((d) => findingRepeatMark(d, idx) !== null).length;
+    expect(badgeRepeatMark(domains, idx)).toBe(`${labelled} of ${domains.length} resolved before`);
+  });
+
+  it("never claims an ordinal — resolved counts are known, raised counts are not", () => {
+    const idx = ok([resolved("bigmailer.com", "2026-07-24"), open("sendgrid.net")]);
+    const mark = badgeRepeatMark(["bigmailer.com", "sendgrid.net"], idx)!;
+    expect(mark).not.toMatch(/\b(1st|2nd|3rd|4th|first|second|third)\b/i);
+    expect(mark).not.toMatch(/blocklist/i);
+    expect(mark).not.toMatch(/2026-07-24|most recently|earlier/);
+  });
+
+  it("survives junk in the domain list rather than losing the marker", () => {
+    const idx = ok([resolved("bigmailer.com", "2026-07-24")]);
+    const domains = ["", "   ", null as unknown as string, 7 as unknown as string, "bigmailer.com"];
+    expect(badgeRepeatMark(domains, idx)).toBe("resolved before");
   });
 });
