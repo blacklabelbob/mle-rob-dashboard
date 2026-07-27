@@ -158,3 +158,65 @@ describe("floorCaption", () => {
     expect(floorCaption(0)).not.toMatch(/\d/);
   });
 });
+
+// ── Q69 inc.27 — the forward-only claim footnote ─────────────────────────────
+// A block is forward-only. When the route reports that a company already holds
+// the domain (or that it couldn't check), the panel must carry that alongside
+// the outcome — a bare green "blocked!" reads as "the CRM is clean now".
+
+describe("addOutcome — existing-claim footnote", () => {
+  const claimed = {
+    kind: "claimed",
+    text: "Heads up: BigMailer Inc already holds bigmailer.com...",
+    links: [{ id: "org-bm", name: "BigMailer Inc", href: "/companies/org-bm" }],
+  };
+
+  it("attaches the claim to a successful block without softening the success", () => {
+    const o = addOutcome(200, { domain: "bigmailer.com", added: true, claim: claimed });
+    expect(o.tone).toBe("ok");
+    expect(o.changed).toBe(true);
+    expect(o.claim?.kind).toBe("claimed");
+    expect(o.claim?.links).toHaveLength(1);
+  });
+
+  it("attaches it to already-blocked too — the stale company is the same either way", () => {
+    const o = addOutcome(200, {
+      domain: "bigmailer.com",
+      added: false,
+      alreadyBlocked: "row",
+      detail: "bigmailer.com was already on your blocklist.",
+      claim: claimed,
+    });
+    expect(o.changed).toBe(false);
+    expect(o.claim?.kind).toBe("claimed");
+  });
+
+  it("carries 'couldn't check' through as unknown, never as silence", () => {
+    const o = addOutcome(200, {
+      domain: "bigmailer.com",
+      added: true,
+      claim: { kind: "unknown", text: "Couldn't check whether a company already holds bigmailer.com.", links: [] },
+    });
+    expect(o.claim?.kind).toBe("unknown");
+    expect(o.claim?.text).toContain("Couldn't check");
+  });
+
+  it("has no claim when the route sent none — nothing is invented", () => {
+    expect(addOutcome(200, { domain: "bigmailer.com", added: true }).claim).toBeUndefined();
+  });
+
+  it("drops a malformed claim rather than half-rendering it", () => {
+    expect(addOutcome(200, { domain: "x.com", added: true, claim: { kind: "claimed" } }).claim).toBeUndefined();
+    expect(addOutcome(200, { domain: "x.com", added: true, claim: { kind: "nope", text: "hi" } }).claim).toBeUndefined();
+    expect(addOutcome(200, { domain: "x.com", added: true, claim: "claimed" }).claim).toBeUndefined();
+  });
+
+  it("keeps only well-formed links", () => {
+    const o = addOutcome(200, {
+      domain: "x.com",
+      added: true,
+      claim: { kind: "claimed", text: "held", links: [{ id: "a" }, { id: "b", name: "B", href: "/companies/b" }] },
+    });
+    expect(o.claim?.links).toEqual([{ id: "b", name: "B", href: "/companies/b" }]);
+  });
+});

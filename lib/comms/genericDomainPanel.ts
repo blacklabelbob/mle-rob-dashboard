@@ -17,11 +17,24 @@
 
 export type PanelTone = "ok" | "info" | "warn" | "error";
 
+export type ClaimLink = { id: string; name: string; href: string };
+
+/**
+ * Q69 inc.27 — the forward-only footnote. A block stops the NEXT email from
+ * claiming a company; it does not undo the org an earlier one already made.
+ * When the route reports an existing claim (or that it could not check), the
+ * panel carries it alongside the outcome instead of letting a green "blocked!"
+ * imply the CRM is now clean.
+ */
+export type PanelClaim = { kind: "claimed" | "unknown"; text: string; links: ClaimLink[] };
+
 export type PanelOutcome = {
   text: string;
   tone: PanelTone;
   /** True only when the stored blocklist actually changed. Drives refetch. */
   changed: boolean;
+  /** Present only when the route said something about an existing claim. */
+  claim?: PanelClaim;
 };
 
 /** A parsed JSON response body, or nothing at all when the request never landed. */
@@ -47,13 +60,44 @@ function dropped(verb: string): PanelOutcome {
   };
 }
 
+/**
+ * Read the route's advisory claim block. Anything malformed is dropped rather
+ * than half-rendered — a claim sentence with no text, or a link list we cannot
+ * trust, is worse than none. `none` never reaches here (the route omits it).
+ */
+export function claimFrom(body: Body): PanelClaim | undefined {
+  const raw = body?.claim;
+  if (!raw || typeof raw !== "object") return undefined;
+  const c = raw as Record<string, unknown>;
+  const kind = c.kind === "claimed" || c.kind === "unknown" ? c.kind : null;
+  const text = typeof c.text === "string" ? c.text : "";
+  if (!kind || !text) return undefined;
+  const links = Array.isArray(c.links)
+    ? (c.links as unknown[]).filter(
+        (l): l is ClaimLink =>
+          !!l &&
+          typeof l === "object" &&
+          typeof (l as ClaimLink).id === "string" &&
+          typeof (l as ClaimLink).name === "string" &&
+          typeof (l as ClaimLink).href === "string"
+      )
+    : [];
+  return { kind, text, links };
+}
+
 export function addOutcome(status: number | null, body: Body): PanelOutcome {
   if (status === null) return dropped("this block");
 
   if (status === 200) {
     const domain = str(body, "domain");
+    const claim = claimFrom(body);
     if (body?.added === true) {
-      return { text: `${domain} is now treated as generic — no company will claim it.`, tone: "ok", changed: true };
+      return {
+        text: `${domain} is now treated as generic — no company will claim it.`,
+        tone: "ok",
+        changed: true,
+        ...(claim ? { claim } : {}),
+      };
     }
     // added:false is a real answer, not a failure: the outcome asked for is
     // already true. Info, never "ok" — nothing was written, so nothing refetches.
@@ -61,6 +105,7 @@ export function addOutcome(status: number | null, body: Body): PanelOutcome {
       text: str(body, "detail") || `${domain} was already blocked.`,
       tone: "info",
       changed: false,
+      ...(claim ? { claim } : {}),
     };
   }
 

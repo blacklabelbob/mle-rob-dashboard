@@ -144,6 +144,26 @@ export default function GenericDomainBlocklist() {
 
       {outcome && <p className={`mt-1.5 text-[11px] ${toneClass[outcome.tone]}`}>{outcome.text}</p>}
 
+      {/* Q69 inc.27 — the forward-only footnote. A green "blocked!" on its own
+          reads as "the CRM is clean now"; it isn't, if an earlier email already
+          made the company. Amber, directly under the success line, with the
+          record one click away. `unknown` says it couldn't check — never that
+          nothing holds the domain. */}
+      {outcome?.claim && (
+        <p className="mt-1 text-[11px] text-amber-300">
+          {outcome.claim.text}
+          {outcome.claim.links.map((l) => (
+            <a
+              key={l.id}
+              href={l.href}
+              className="ml-1.5 underline decoration-dotted underline-offset-2 hover:text-amber-200"
+            >
+              {l.name} →
+            </a>
+          ))}
+        </p>
+      )}
+
       {/* An unreadable list is never drawn as an empty one — see blocklistView. */}
       {view?.kind === "unreadable" && <p className="mt-2 text-[11px] text-amber-300">{view.notice}</p>}
 

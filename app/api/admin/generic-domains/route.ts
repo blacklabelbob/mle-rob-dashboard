@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { GENERIC_EMAIL_DOMAINS, genericDomainSet } from "@/lib/comms/genericDomains";
 import { planGenericDomainAdd, planGenericDomainRemove } from "@/lib/comms/genericDomainWrite";
+import {
+  describeDomainClaim,
+  unknownDomainClaim,
+  claimLinks,
+  type ClaimingOrg,
+  type DomainClaim,
+} from "@/lib/comms/genericDomainClaims";
 
 // Q69 inc.25 — the write door on migration 0023's `generic_email_domains`.
 //
@@ -37,6 +44,48 @@ function db() {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) return null;
   return createClient(url, key, { auth: { persistSession: false } });
+}
+
+type Db = NonNullable<ReturnType<typeof db>>;
+
+/**
+ * Q69 inc.27 — READ-ONLY. Blocking a domain is forward-only; it does not undo
+ * the org an earlier email already created. This answers the reviewer's next
+ * question ("is that company still in my CRM?") without touching a record.
+ *
+ * Any failure returns `unknown`, never `none`: reporting "nothing holds it"
+ * off a query that errored would be a claim about the database we did not get
+ * to make, and it is the exact way a stale company row goes unnoticed.
+ */
+async function claimFor(s: Db, domain: string): Promise<DomainClaim> {
+  try {
+    const { data, error } = await s.from("orgs").select("id, name, domain").ilike("domain", domain);
+    if (error) {
+      console.error("[generic-domains] claim lookup failed", domain, error.message);
+      return unknownDomainClaim(domain, error.message);
+    }
+    const orgs = (data ?? []) as ClaimingOrg[];
+    if (orgs.length === 0) return describeDomainClaim(domain, [], 0);
+
+    // Contacts are counted separately, and a failed count degrades to "no
+    // number" rather than zero — the claim itself is already established.
+    const { count, error: countError } = await s
+      .from("org_memberships")
+      .select("person_id", { count: "exact", head: true })
+      .in(
+        "org_id",
+        orgs.map((o) => o.id)
+      );
+    return describeDomainClaim(domain, orgs, countError ? null : count ?? null);
+  } catch (e) {
+    return unknownDomainClaim(domain, e instanceof Error ? e.message : "lookup error");
+  }
+}
+
+/** The claim is advisory: it is attached to a response, never allowed to fail one. */
+function withClaim(payload: Record<string, unknown>, claim: DomainClaim) {
+  if (claim.kind === "none") return payload;
+  return { ...payload, claim: { kind: claim.kind, text: claim.text, links: claimLinks(claim) } };
 }
 
 /** No Supabase env = file-store dev. Say so; do not pretend a row landed. */
@@ -109,13 +158,18 @@ export async function POST(req: NextRequest) {
     // 23505 = unique violation: the row is already there, which is the outcome
     // asked for. Anything else is a real failure and is returned as one.
     if (error.code === "23505") {
-      return NextResponse.json({
-        ok: true,
-        domain: plan.domain,
-        added: false,
-        alreadyBlocked: "row",
-        detail: `${plan.domain} was already on your blocklist.`,
-      });
+      return NextResponse.json(
+        withClaim(
+          {
+            ok: true,
+            domain: plan.domain,
+            added: false,
+            alreadyBlocked: "row",
+            detail: `${plan.domain} was already on your blocklist.`,
+          },
+          await claimFor(s, plan.domain)
+        )
+      );
     }
     console.error("[generic-domains] insert failed", plan.domain, error.message);
     return NextResponse.json(
@@ -124,7 +178,9 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  return NextResponse.json({ ok: true, domain: plan.domain, added: true });
+  return NextResponse.json(
+    withClaim({ ok: true, domain: plan.domain, added: true }, await claimFor(s, plan.domain))
+  );
 }
 
 export async function DELETE(req: NextRequest) {
