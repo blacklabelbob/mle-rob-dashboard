@@ -759,6 +759,77 @@ describe("the open ledger row carries the same prior-judgement history", () => {
   });
 });
 
+// ── Q69 inc.45 — the held-title guard on the SHARED tally ───────────────────
+//
+// `heldPriorJudgements` is the single map every repeat surface reads (the
+// panel's waiting sentence, the ledger hint, the archive badge, the archive
+// header summary). Its title contract was the one guard inc.44's mutation
+// sweep found UNPINNED: dropping it left the suite green. That is the single
+// place where a silent regression would put one domain's history on another's
+// row on EVERY surface at once — so it gets the same mutation-pinning every
+// other surface's title contract already has.
+describe("the shared tally only ever counts held-domain rows", () => {
+  const title = heldDomainFlagTitle("bigmailer.com");
+  const heldResolved = (domain = "bigmailer.com", resolved_at: unknown = "2026-07-24") => ({
+    id: 1,
+    status: "resolved",
+    title: heldDomainFlagTitle(domain),
+    resolved_at,
+  });
+  const otherResolved = (rowTitle: string) => ({
+    id: 2,
+    status: "resolved",
+    title: rowTitle,
+    resolved_at: "2026-07-20",
+  });
+
+  it("keys on the TITLE CONTRACT, not on the title text — an ordinary resolved row is not a judgement", () => {
+    // Dropping the guard keys the map by whole titles, so the ledger's ordinary
+    // resolved rows become phantom "domains" nobody ever blocked.
+    expect(heldPriorJudgements([otherResolved("Invoice missing for Gulf Coast")]).size).toBe(0);
+  });
+
+  it("does not inherit a domain a NON-held title merely mentions", () => {
+    // The strongest mutation: any looser match (includes/endsWith/regex-search
+    // instead of the prefix contract) counts this row and inflates a real
+    // domain's history — the exact "one domain's history on another's row"
+    // failure, and invisible because the number still looks plausible.
+    const rows = [otherResolved("Invoice missing for bigmailer.com"), heldResolved()];
+    expect(heldPriorJudgements(rows).get("bigmailer.com")).toEqual({
+      date: "2026-07-24",
+      times: 1,
+    });
+  });
+
+  it("requires the prefix at the START — a quoted or forwarded title is not a decision", () => {
+    const rows = [otherResolved(`Re: ${heldDomainFlagTitle("bigmailer.com")}`)];
+    expect(heldPriorJudgements(rows).size).toBe(0);
+  });
+
+  it("refuses a held title with no domain rather than tallying under an empty key", () => {
+    // `heldFlagDomain` returns null (not "") precisely so this cannot become a
+    // map entry; an "" key would collect every malformed row into one bucket.
+    for (const empty of ["Blocked domain still held: ", "Blocked domain still held:    "]) {
+      const m = heldPriorJudgements([otherResolved(empty)]);
+      expect(m.size).toBe(0);
+      expect(m.has("")).toBe(false);
+    }
+  });
+
+  it("carries the guard through to the surfaces — the copy is identical with and without the stray row", () => {
+    // The map is upstream of all six repeat surfaces; pinning it at the source
+    // is only worth what it prevents downstream, so that is asserted too.
+    const clean = heldRowCopy(title, heldPriorJudgements([heldResolved()]))!;
+    const noisy = heldRowCopy(
+      title,
+      heldPriorJudgements([otherResolved("Invoice missing for bigmailer.com"), heldResolved()])
+    )!;
+    expect(noisy).toEqual(clean);
+    expect(noisy.hint).toMatch(/once on 2026-07-24/);
+    expect(noisy.hint).not.toMatch(/times before/);
+  });
+});
+
 // ── Q69 inc.39 — the finding arrives pre-labelled as a repeat ───────────────
 
 describe("the finding's repeat label", () => {
