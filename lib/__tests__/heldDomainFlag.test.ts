@@ -16,6 +16,7 @@ import {
   badgeRepeatMark,
   ledgerRepeatMark,
   rowRepeatMark,
+  groupRepeatsWithinSeverity,
   type HeldFlagIndex,
 } from "@/lib/comms/heldDomainFlag";
 import type { AuditFinding } from "@/lib/comms/genericDomainAudit";
@@ -1376,5 +1377,117 @@ describe("the COLLAPSED archive header's repeat summary (inc.44)", () => {
     for (const junk of [null, undefined, 7, {}, "", [null, 3, {}, { id: "x" }]]) {
       expect(archiveRepeatSummary(junk)).toBeNull();
     }
+  });
+});
+
+// ── Q69 inc.46 — grouping repeats WITHIN a severity on the open ledger ────────
+describe("groupRepeatsWithinSeverity", () => {
+  // The history map is built the way the ledger builds it: off resolved rows.
+  const priorFor = (...domains: string[]) =>
+    heldPriorJudgements(
+      domains.map((d, i) => ({
+        id: 900 + i,
+        title: heldDomainFlagTitle(d),
+        status: "resolved",
+        resolved_at: "2026-07-10",
+      }))
+    );
+
+  const held = (id: number, severity: string, domain: string) => ({
+    id,
+    severity,
+    title: heldDomainFlagTitle(domain),
+  });
+  const plain = (id: number, severity: string, title: string) => ({ id, severity, title });
+  const ids = (rows: readonly { id: number }[]) => rows.map((r) => r.id);
+
+  it("never crosses a severity band — a returning high row stays above every medium row", () => {
+    const rows = [
+      held(1, "high", "bigmailer.com"),
+      plain(2, "high", "Invoice missing for Gulf Coast"),
+      plain(3, "medium", "Duplicate person record"),
+    ];
+    // Sinking within `high` must not push row 1 past row 3: severity is the
+    // priority claim this list's colours make, and history is not urgency.
+    expect(ids(groupRepeatsWithinSeverity(rows, priorFor("bigmailer.com")))).toEqual([2, 1, 3]);
+  });
+
+  it("sinks repeats inside their own band and keeps the API's recency order inside each group", () => {
+    const rows = [
+      held(1, "high", "bigmailer.com"),
+      plain(2, "high", "Invoice missing"),
+      held(3, "high", "sendgrid.net"),
+      plain(4, "high", "Duplicate record"),
+    ];
+    expect(ids(groupRepeatsWithinSeverity(rows, priorFor("bigmailer.com", "sendgrid.net")))).toEqual([
+      2, 4, 1, 3,
+    ]);
+  });
+
+  it("leaves an all-returning or all-new band exactly as it arrived", () => {
+    const allNew = [plain(1, "low", "a"), plain(2, "low", "b")];
+    expect(groupRepeatsWithinSeverity(allNew, priorFor("bigmailer.com"))).toBe(allNew);
+
+    const allBack = [held(1, "low", "bigmailer.com"), held(2, "low", "sendgrid.net")];
+    expect(groupRepeatsWithinSeverity(allBack, priorFor("bigmailer.com", "sendgrid.net"))).toBe(allBack);
+  });
+
+  it("returns the INPUT ARRAY when nothing moves — a no-op must not hand React a new list", () => {
+    const rows = [held(1, "high", "bigmailer.com"), plain(2, "medium", "Invoice missing")];
+    // One returning row and one new row, but in different bands: no run holds
+    // both kinds, so there is nothing to group.
+    expect(groupRepeatsWithinSeverity(rows, priorFor("bigmailer.com"))).toBe(rows);
+    expect(groupRepeatsWithinSeverity(rows, null)).toBe(rows);
+    expect(groupRepeatsWithinSeverity(rows, new Map())).toBe(rows);
+  });
+
+  it("a held row with no prior judgement is new, and does not sink", () => {
+    const rows = [held(1, "high", "sendgrid.net"), plain(2, "high", "Invoice missing")];
+    expect(groupRepeatsWithinSeverity(rows, priorFor("bigmailer.com"))).toBe(rows);
+  });
+
+  it("the title contract is the only way in — a look-alike row that merely names the domain never sinks", () => {
+    const rows = [
+      plain(1, "high", "bigmailer.com bounced again"),
+      plain(2, "high", "Invoice missing"),
+    ];
+    expect(groupRepeatsWithinSeverity(rows, priorFor("bigmailer.com"))).toBe(rows);
+  });
+
+  it("groups each contiguous run on its own — a later band never reaches back into an earlier one", () => {
+    const rows = [
+      held(1, "high", "bigmailer.com"),
+      plain(2, "high", "Invoice missing"),
+      plain(3, "medium", "Duplicate record"),
+      held(4, "high", "sendgrid.net"),
+      plain(5, "high", "Missing phone"),
+    ];
+    expect(
+      ids(groupRepeatsWithinSeverity(rows, priorFor("bigmailer.com", "sendgrid.net")))
+    ).toEqual([2, 1, 3, 5, 4]);
+  });
+
+  it("a row sinks exactly when rowRepeatMark badges it — one history, never two that agree today", () => {
+    const prior = priorFor("bigmailer.com");
+    const rows = [
+      held(1, "high", "bigmailer.com"),
+      plain(2, "high", "Invoice missing"),
+      held(3, "high", "sendgrid.net"),
+    ];
+    const out = groupRepeatsWithinSeverity(rows, prior);
+    const sunk = out.slice(out.findIndex((r) => rowRepeatMark(r.title, prior) !== null));
+    // Every row from the first badged one onward is badged: the group can never
+    // hold a row without the badge that explains why it is there.
+    expect(sunk.every((r) => rowRepeatMark(r.title, prior) !== null)).toBe(true);
+    expect(ids(sunk)).toEqual([1]);
+  });
+
+  it("survives junk without inventing an order", () => {
+    expect(groupRepeatsWithinSeverity(null, priorFor("bigmailer.com"))).toEqual([]);
+    expect(groupRepeatsWithinSeverity(undefined, priorFor("bigmailer.com"))).toEqual([]);
+    const odd = [null, 7, { id: 1, severity: "high", title: 7 }, held(2, "high", "bigmailer.com")];
+    // Nothing here pairs a new row with a returning one inside a run, so the
+    // list is handed back untouched rather than partially re-ordered.
+    expect(groupRepeatsWithinSeverity(odd, priorFor("bigmailer.com"))).toBe(odd);
   });
 });

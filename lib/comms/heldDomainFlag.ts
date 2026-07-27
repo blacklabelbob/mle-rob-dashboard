@@ -512,6 +512,90 @@ export function ledgerRepeatMark(
 }
 
 /**
+ * Q69 inc.46 — grouping repeats WITHIN a severity, the half inc.42 named.
+ *
+ * inc.41 counted the repeats in the header and inc.42 badged the rows, and that
+ * pair leaves the last problem it named: the badged rows are still scattered
+ * through the list, so "2 resolved before" is findable only by scanning every
+ * row for a badge. Grouping is what turns the count into a place.
+ *
+ * SEVERITY BANDS ARE NEVER CROSSED — inc.42's refusal, kept verbatim. This list's
+ * colours claim priority, `/api/admin/flags` orders open rows by severity, and
+ * "you have answered this before" is a fact about history, not urgency; a `low`
+ * row above a `high` one for a history reason is a ledger whose order
+ * contradicts its own colours. So the walk is over CONTIGUOUS runs of one
+ * severity and rows only ever move inside the run they were already in.
+ *
+ * REPEATS SINK, and the reason is the decision, not the priority. Within a band
+ * an unanswered question needs a decision on THIS row; an already-answered one
+ * needs the blocklist entry changed, which is the other panel entirely — so its
+ * remaining value on this ledger is the smaller one. Floating them instead would
+ * say "these first", which is the same unsupported claim inc.42 refused.
+ *
+ * WHAT THIS COSTS, STATED RATHER THAN HIDDEN: within a band the API's order is
+ * `notified_at` descending, and sinking repeats means a repeat notified today
+ * can sit below a new row notified last week. Recency still holds inside each
+ * of the two groups, and the badge marks the boundary; the trade is deliberate.
+ *
+ * NOTHING MOVES FOR NO GAIN: a run that is all-returning or all-new is emitted
+ * untouched, and when no run has both kinds the INPUT ARRAY ITSELF is returned —
+ * a re-ordered copy that happens to be identical is still a new list every
+ * render, and React's reconciliation should not be handed churn to prove a
+ * no-op.
+ *
+ * ONE HISTORY, NOT TWO THAT AGREE TODAY: a row sinks exactly when
+ * `rowRepeatMark` badges it — both read `heldFlagDomain` and the same
+ * `heldPriorJudgements` map, so the group can never contain a row without the
+ * badge that explains why it is there (pinned).
+ *
+ * The input is returned unchanged on: no prior map (an unknown history is not
+ * "all new" — the same silence inc.41/42 keep), fewer than two rows, or a
+ * non-array.
+ */
+export function groupRepeatsWithinSeverity<T>(
+  rows: readonly T[] | null | undefined,
+  prior: Map<string, Judgement> | null | undefined
+): readonly T[] {
+  if (!Array.isArray(rows)) return [];
+  if (rows.length < 2 || !prior || prior.size === 0) return rows;
+
+  const returning = (row: T): boolean =>
+    rowRepeatMark((row as { title?: unknown } | null)?.title, prior) !== null;
+
+  const out: T[] = [];
+  for (let i = 0; i < rows.length; ) {
+    // A run is the rows sharing one severity value with their neighbours. Runs
+    // are found by adjacency rather than by bucketing every `high` row together:
+    // bucketing would silently re-sort a list that arrived in some other order,
+    // which is a reordering across bands wearing a grouping's name.
+    const sev = (rows[i] as { severity?: unknown } | null)?.severity;
+    let end = i + 1;
+    while (
+      end < rows.length &&
+      Object.is((rows[end] as { severity?: unknown } | null)?.severity, sev)
+    ) {
+      end += 1;
+    }
+    const run = rows.slice(i, end);
+    const fresh = run.filter((r) => !returning(r));
+    // All of one kind: there is no grouping to do, and re-emitting a partition
+    // of it would be the same list with extra steps.
+    if (fresh.length === 0 || fresh.length === run.length) {
+      out.push(...run);
+    } else {
+      // `filter` is stable, so recency order survives inside each group.
+      out.push(...fresh, ...run.filter((r) => returning(r)));
+    }
+    i = end;
+  }
+  // The no-churn rule is stated over the OUTCOME, not over the work done: a run
+  // that held both kinds still partitions to the same order when the repeats
+  // were already last, and "we took the reordering branch" is not the same
+  // claim as "the order changed".
+  return out.every((row, idx) => Object.is(row, rows[idx])) ? rows : out;
+}
+
+/**
  * Q69 inc.33 — the sweep is the only thing here that re-asks.
  *
  * A held-domain flag resolved as "real company, leave it" is re-raised on the

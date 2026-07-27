@@ -19,6 +19,7 @@ import {
   heldPriorJudgements,
   heldRowCopy,
   ledgerRepeatMark,
+  groupRepeatsWithinSeverity,
   rowRepeatMark,
 } from "@/lib/comms/heldDomainFlag";
 
@@ -128,7 +129,7 @@ export default function ThingsToAddress({
     }
   }
 
-  const open = flags.filter((f) => f.status === "open");
+  const openRows = flags.filter((f) => f.status === "open");
   const resolved = flags.filter((f) => f.status === "resolved");
   const archivePlaces = heldArchivePlaces(flags);
   // inc.38: prior decisions on the SAME rows the archive is placed from, so the
@@ -137,9 +138,13 @@ export default function ThingsToAddress({
   // inc.41: off the SAME map the open rows print their history from, so the
   // header and the rows can never disagree about one question.
   const openRepeat = ledgerRepeatMark(
-    open.map((f) => f.title),
+    openRows.map((f) => f.title),
     priorJudgements
   );
+  // inc.46: inc.41 counts the repeats and inc.42 badges them; this puts them in
+  // one place so the count is findable without scanning every row. Rows only
+  // move WITHIN their own severity run — the colours' priority claim is untouched.
+  const open = groupRepeatsWithinSeverity(openRows, priorJudgements) as Flag[];
   if (!flags.length) return null;
 
   // Overview mode: compact digest — unread open items only, hover for full
