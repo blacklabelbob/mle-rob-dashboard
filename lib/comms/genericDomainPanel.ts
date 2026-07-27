@@ -15,6 +15,8 @@
 //
 // Pure: no clock, no fetch, no DOM.
 
+import type { AuditFinding, BlocklistAudit } from "./genericDomainAudit";
+
 export type PanelTone = "ok" | "info" | "warn" | "error";
 
 export type ClaimLink = { id: string; name: string; href: string };
@@ -184,4 +186,97 @@ export function blocklistView(status: number | null, body: Body): BlocklistView 
 export function floorCaption(floorCount: number): string {
   if (floorCount <= 0) return "Built-in generic domains always apply and cannot be removed here.";
   return `Plus ${floorCount} built-in generic domains (gmail.com, outlook.com, …) that always apply and cannot be removed here.`;
+}
+
+/* ------------------------------------------------------------------ *
+ * Q69 inc.29 — the standing sweep gets a face.
+ *
+ * inc.28 built the sweep and said what was missing: the GET route returns
+ * `audit` and nothing renders it. These two functions are the whole rendering
+ * decision, kept pure so the "checked / unchecked / nothing to say" split can
+ * be pinned by tests rather than re-argued in JSX.
+ * ------------------------------------------------------------------ */
+
+/**
+ * Read the route's audit block.
+ *
+ * `undefined` means the route said NOTHING about the sweep (an old build, or a
+ * read that never got that far) — the panel then renders nothing about it,
+ * which is different from, and never rendered as, "nothing holds them".
+ *
+ * A malformed finding downgrades the WHOLE audit to `unchecked` rather than
+ * being quietly dropped: silently omitting one finding from a `checked` list
+ * turns a held domain into a clean bill of health, which is the exact failure
+ * this sweep exists to prevent.
+ */
+export function auditFrom(body: PanelBody): BlocklistAudit | undefined {
+  const raw = body?.audit;
+  if (!raw || typeof raw !== "object") return undefined;
+  const a = raw as Record<string, unknown>;
+  if (a.kind !== "checked" && a.kind !== "unchecked") return undefined;
+
+  const checkedCount = typeof a.checkedCount === "number" ? a.checkedCount : 0;
+  const text = typeof a.text === "string" ? a.text : "";
+
+  if (a.kind === "unchecked") {
+    return {
+      kind: "unchecked",
+      findings: [],
+      checkedCount,
+      text: text || "Couldn't check whether any company still holds your blocked domains.",
+    };
+  }
+
+  if (!Array.isArray(a.findings)) return uncheckedAudit(checkedCount);
+  const findings: AuditFinding[] = [];
+  for (const f of a.findings as unknown[]) {
+    const parsed = findingFrom(f);
+    if (!parsed) return uncheckedAudit(checkedCount);
+    findings.push(parsed);
+  }
+  return { kind: "checked", findings, checkedCount, text };
+}
+
+function uncheckedAudit(checkedCount: number): BlocklistAudit {
+  return {
+    kind: "unchecked",
+    findings: [],
+    checkedCount,
+    text: "Couldn't read the result of the blocked-domain check. Your blocks themselves are unaffected.",
+  };
+}
+
+function findingFrom(f: unknown): AuditFinding | null {
+  if (!f || typeof f !== "object") return null;
+  const o = f as Record<string, unknown>;
+  if (typeof o.domain !== "string" || !o.domain) return null;
+  if (typeof o.text !== "string" || !o.text) return null;
+  if (!Array.isArray(o.orgs) || o.orgs.length === 0) return null;
+  const orgs: ClaimLink[] = [];
+  for (const l of o.orgs as unknown[]) {
+    if (!l || typeof l !== "object") return null;
+    const c = l as Record<string, unknown>;
+    if (typeof c.id !== "string" || typeof c.name !== "string" || typeof c.href !== "string") return null;
+    orgs.push({ id: c.id, name: c.name, href: c.href });
+  }
+  return { domain: o.domain, orgs, text: o.text };
+}
+
+/**
+ * The collapsed-header marker.
+ *
+ * The control is collapsed by default, so a finding that only appears once the
+ * panel is opened is not standing at all — nobody opens a panel to check
+ * whether it has anything to say. `null` (no marker) therefore has to mean one
+ * thing only: the sweep ran and found nothing. An `unchecked` sweep gets its
+ * own quiet marker so the ABSENCE of a marker is never read as a clean result.
+ */
+export function blocklistBadge(
+  audit: BlocklistAudit | undefined
+): { text: string; tone: PanelTone } | null {
+  if (!audit) return null;
+  if (audit.kind === "unchecked") return { text: "couldn't check held domains", tone: "warn" };
+  if (audit.findings.length === 0) return null;
+  const n = audit.findings.length;
+  return { text: `${n} still held by a company`, tone: "warn" };
 }

@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
 import {
   addOutcome,
+  auditFrom,
+  blocklistBadge,
   removeOutcome,
   blocklistView,
   floorCaption,
@@ -218,5 +220,91 @@ describe("addOutcome — existing-claim footnote", () => {
       claim: { kind: "claimed", text: "held", links: [{ id: "a" }, { id: "b", name: "B", href: "/companies/b" }] },
     });
     expect(o.claim?.links).toEqual([{ id: "b", name: "B", href: "/companies/b" }]);
+  });
+});
+
+// Q69 inc.29 — rendering the standing sweep.
+const FINDING = {
+  domain: "bigmailer.com",
+  orgs: [{ id: "o1", name: "BigMailer", href: "/companies/o1" }],
+  text: "BigMailer still holds bigmailer.com, which is on your blocklist.",
+};
+
+describe("auditFrom — the sweep is rendered only as far as the route reported it", () => {
+  it("reads a checked sweep with findings verbatim", () => {
+    const a = auditFrom({ audit: { kind: "checked", findings: [FINDING], checkedCount: 3, text: "1 of the 3" } });
+    expect(a).toEqual({ kind: "checked", findings: [FINDING], checkedCount: 3, text: "1 of the 3" });
+  });
+
+  it("reads a clean checked sweep — an empty findings list is a real answer", () => {
+    const a = auditFrom({ audit: { kind: "checked", findings: [], checkedCount: 2, text: "" } });
+    expect(a?.kind).toBe("checked");
+    expect(a?.findings).toEqual([]);
+  });
+
+  it("keeps an unchecked sweep unchecked, with its own reason", () => {
+    const a = auditFrom({ audit: { kind: "unchecked", findings: [], checkedCount: 2, text: "Couldn't check (timeout)." } });
+    expect(a?.kind).toBe("unchecked");
+    expect(a?.text).toContain("Couldn't check");
+  });
+
+  it("says nothing at all when the route said nothing about the sweep", () => {
+    expect(auditFrom({ ok: true, added: [] })).toBeUndefined();
+    expect(auditFrom(null)).toBeUndefined();
+    expect(auditFrom({ audit: "checked" })).toBeUndefined();
+    expect(auditFrom({ audit: { kind: "nope", findings: [] } })).toBeUndefined();
+  });
+
+  // The core honesty rule: a dropped finding would turn a held domain into a
+  // clean bill of health, so the whole sweep degrades instead.
+  it("downgrades the WHOLE sweep to unchecked when any finding is malformed", () => {
+    const a = auditFrom({
+      audit: { kind: "checked", checkedCount: 2, text: "1 of the 2", findings: [FINDING, { domain: "x.com" }] },
+    });
+    expect(a?.kind).toBe("unchecked");
+    expect(a?.findings).toEqual([]);
+    expect(a?.checkedCount).toBe(2);
+  });
+
+  it("downgrades when findings is not a list, and when a link is malformed", () => {
+    expect(auditFrom({ audit: { kind: "checked", findings: "none", checkedCount: 1 } })?.kind).toBe("unchecked");
+    expect(
+      auditFrom({
+        audit: { kind: "checked", checkedCount: 1, findings: [{ ...FINDING, orgs: [{ id: "o1", name: "BigMailer" }] }] },
+      })?.kind
+    ).toBe("unchecked");
+    expect(
+      auditFrom({ audit: { kind: "checked", checkedCount: 1, findings: [{ ...FINDING, orgs: [] }] } })?.kind
+    ).toBe("unchecked");
+  });
+
+  it("never fabricates a finding text", () => {
+    expect(auditFrom({ audit: { kind: "checked", checkedCount: 1, findings: [{ ...FINDING, text: "" }] } })?.kind).toBe(
+      "unchecked"
+    );
+  });
+});
+
+describe("blocklistBadge — absence of a marker means one thing only", () => {
+  it("counts the findings when the sweep found some", () => {
+    expect(blocklistBadge({ kind: "checked", findings: [FINDING], checkedCount: 3, text: "" })).toEqual({
+      text: "1 still held by a company",
+      tone: "warn",
+    });
+  });
+
+  it("shows no marker when the sweep ran clean", () => {
+    expect(blocklistBadge({ kind: "checked", findings: [], checkedCount: 3, text: "" })).toBeNull();
+  });
+
+  // If an unchecked sweep were silent, no-marker would mean both "clean" and
+  // "we never looked" — the exact conflation this sweep exists to prevent.
+  it("marks an unchecked sweep rather than staying silent", () => {
+    const b = blocklistBadge({ kind: "unchecked", findings: [], checkedCount: 3, text: "x" });
+    expect(b).toEqual({ text: "couldn't check held domains", tone: "warn" });
+  });
+
+  it("shows no marker when the route said nothing about the sweep", () => {
+    expect(blocklistBadge(undefined)).toBeNull();
   });
 });

@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   addOutcome,
+  auditFrom,
+  blocklistBadge,
   blocklistView,
   floorCaption,
   removeOutcome,
@@ -10,6 +12,7 @@ import {
   type PanelBody,
   type PanelOutcome,
 } from "@/lib/comms/genericDomainPanel";
+import type { BlocklistAudit } from "@/lib/comms/genericDomainAudit";
 
 // Q69 inc.26 — the click that blocks a bulk sender.
 //
@@ -38,6 +41,7 @@ const toneClass = {
 export default function GenericDomainBlocklist() {
   const [open, setOpen] = useState(false);
   const [view, setView] = useState<BlocklistView | null>(null);
+  const [audit, setAudit] = useState<BlocklistAudit | undefined>(undefined);
   const [domain, setDomain] = useState("");
   const [busy, setBusy] = useState(false);
   const [outcome, setOutcome] = useState<PanelOutcome | null>(null);
@@ -47,14 +51,22 @@ export default function GenericDomainBlocklist() {
       const r = await fetch("/api/admin/generic-domains");
       const j = await r.json().catch(() => null);
       setView(blocklistView(r.status, j));
+      setAudit(auditFrom(j));
     } catch {
       setView(blocklistView(null, null));
+      setAudit(undefined);
     }
   }, []);
 
+  // Q69 inc.29 — loaded on mount, not on open. The sweep's whole purpose is to
+  // surface an org nobody would otherwise re-examine; a finding that only
+  // appears once someone expands this panel would never be seen, because
+  // nobody expands a panel to find out whether it has anything to say.
   useEffect(() => {
-    if (open) void load();
-  }, [open, load]);
+    void load();
+  }, [load]);
+
+  const badge = blocklistBadge(audit);
 
   // One writer for both directions: the outcome contract decides the sentence,
   // the tone, and — critically — whether the list is refetched. A refetch on a
@@ -109,6 +121,7 @@ export default function GenericDomainBlocklist() {
         className="text-xs text-slate-500 transition hover:text-white"
       >
         ▸ Blocked email domains
+        {badge && <span className={`ml-1.5 ${toneClass[badge.tone]}`}>· {badge.text}</span>}
       </button>
     );
   }
@@ -163,6 +176,36 @@ export default function GenericDomainBlocklist() {
           ))}
         </p>
       )}
+
+      {/* Q69 inc.29 — the STANDING version of the footnote above. inc.27's
+          claim check only speaks at the moment you add a domain; this is the
+          same read-only answer for every domain already on the list, so a
+          company that claimed a blocked domain last week is still visible
+          today. It names records and links to them — it deletes nothing. */}
+      {audit?.kind === "checked" && audit.findings.length > 0 && (
+        <div className="mt-2.5 rounded-lg border border-amber-400/25 bg-amber-400/5 p-2.5">
+          <p className="text-[11px] font-semibold text-amber-300">{audit.text}</p>
+          <ul className="mt-1 space-y-1">
+            {audit.findings.map((f) => (
+              <li key={f.domain} className="text-[11px] leading-snug text-amber-200/80">
+                {f.text}
+                {f.orgs.map((o) => (
+                  <a
+                    key={o.id}
+                    href={o.href}
+                    className="ml-1.5 underline decoration-dotted underline-offset-2 hover:text-amber-100"
+                  >
+                    {o.name} →
+                  </a>
+                ))}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* A sweep that failed is never drawn as a clean one. */}
+      {audit?.kind === "unchecked" && <p className="mt-2 text-[11px] text-amber-300">{audit.text}</p>}
 
       {/* An unreadable list is never drawn as an empty one — see blocklistView. */}
       {view?.kind === "unreadable" && <p className="mt-2 text-[11px] text-amber-300">{view.notice}</p>}
