@@ -240,6 +240,79 @@ export function equityRegistry(candidates: EquityCandidate[]): EquityRegistry {
   return { splits, unreadable };
 }
 
+/** The four states the screen knows how to colour. Mirrors 0024's check constraint. */
+export const EQUITY_STATES: EquityState[] = ["signed", "verbal", "draft", "unknown"];
+
+/** What actually lands in the `equity` jsonb column. */
+export interface EquityFieldValue {
+  counterpartyPct: number | null;
+  ourPct: number | null;
+  /** Absent means "keep reading signed-vs-verbal from the prose". */
+  state?: EquityState;
+  setBy: string;
+  /** ISO date. Passed IN, never read off a clock here — this module stays pure. */
+  setAt: string;
+}
+
+export type EquityCorrection =
+  | { ok: true; value: EquityFieldValue }
+  | { ok: false; error: string };
+
+/**
+ * Q41 inc.2 — the pure half of "Rob can correct a wrong split in the UI himself"
+ * (his dev-chat #53). Validation lives here, not in the route, so vitest covers
+ * every refusal without a network.
+ *
+ * REFUSALS ARE THE POINT. This door writes the number that overrides the prose
+ * forever after — once `equity` exists, `readEquitySplit` stops consulting the
+ * description entirely. A door that accepts "3 5" or 130 or a split totalling 95
+ * does not save Rob a correction, it costs him the next one.
+ */
+export function parseEquityCorrection(input: {
+  counterpartyPct?: unknown;
+  ourPct?: unknown;
+  state?: unknown;
+  setBy?: unknown;
+  setAt: string;
+}): EquityCorrection {
+  const { counterpartyPct: raw, ourPct: rawOur, state } = input;
+
+  // Explicit null is a real answer: "we hold a stake, the number isn't agreed".
+  // `undefined` is not — that is a missing field, and silently storing it as
+  // "unknown percentage" would erase a number rather than correct one.
+  if (raw === undefined) return { ok: false, error: "counterpartyPct is required (send null if the number is not agreed yet)" };
+
+  let cp: number | null = null;
+  if (raw !== null) {
+    // Strings arrive from every HTML number input on earth. Accept the digits,
+    // refuse the rest — Number("") is 0, which would silently write a 0/100.
+    const n = typeof raw === "string" ? (raw.trim() === "" ? NaN : Number(raw)) : raw;
+    if (typeof n !== "number" || !Number.isFinite(n)) return { ok: false, error: "counterpartyPct must be a number 0-100" };
+    if (n < 0 || n > 100) return { ok: false, error: `counterpartyPct must be 0-100, got ${n}` };
+    cp = n;
+  }
+
+  let our: number | null = cp === null ? null : 100 - cp;
+  if (rawOur !== undefined && rawOur !== null && rawOur !== "") {
+    const n = typeof rawOur === "string" ? Number(rawOur) : rawOur;
+    if (typeof n !== "number" || !Number.isFinite(n)) return { ok: false, error: "ourPct must be a number 0-100" };
+    if (cp === null) return { ok: false, error: "cannot state our side while the counterparty side is unknown" };
+    // A split that does not total 100 is a typo or a three-way deal. The registry
+    // already REFUSES to render one of those as fact; the door refuses to store it.
+    if (cp + n !== 100) return { ok: false, error: `${cp} / ${n} totals ${cp + n}, not 100` };
+    our = n;
+  }
+
+  if (state !== undefined && state !== null && !EQUITY_STATES.includes(state as EquityState)) {
+    return { ok: false, error: `state must be one of ${EQUITY_STATES.join(", ")}` };
+  }
+
+  const setBy = typeof input.setBy === "string" && input.setBy.trim() ? input.setBy.trim() : "rob";
+  const value: EquityFieldValue = { counterpartyPct: cp, ourPct: our, setBy, setAt: input.setAt };
+  if (state) value.state = state as EquityState;
+  return { ok: true, value };
+}
+
 /**
  * THE DRIFT GUARD — the thing that would have caught the 40/60.
  *

@@ -71,6 +71,11 @@ export function toPerson(r: any): Person {
     // a save elsewhere on the record from wiping the rep's ROI inputs.
     phase2Estimate: r.phase2_estimate ?? undefined,
     notes: r.notes ?? undefined,
+    // Q41 inc.2. Paired with the write below for the same reason orgId and
+    // phase2Estimate are: an upsert that omits the column writes NULL, so
+    // reading it back is what stops an unrelated save from erasing the split
+    // Rob just corrected — the exact failure mode this registry exists to end.
+    equity: r.equity ?? undefined,
     assignedRep: r.assigned_rep ?? undefined,
     // person→org link. Omitted here until 2026-07-25, which meant every person
     // read out of Supabase carried orgId: undefined — so the company ledger's
@@ -108,6 +113,7 @@ export function fromPerson(p: Person) {
     estimate: p.estimate ?? null,
     phase2_estimate: p.phase2Estimate ?? null, // Q63 — paired with the read in toPerson
     notes: p.notes ?? null,
+    equity: p.equity ?? null, // Q41 inc.2 — paired with the read in toPerson
     assigned_rep: p.assignedRep ?? null,
     org_id: p.orgId ?? null,
   };

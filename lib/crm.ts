@@ -29,6 +29,7 @@ export function toDeal(r: any): Deal {
     referralSourced: r.referral_sourced,
     keyDates: r.key_dates ?? {},
     estimate: r.estimate ?? undefined,
+    equity: r.equity ?? undefined, // Q41 inc.2 (0024) — paired with fromDeal below
     bookProtected: r.book_protected,
     notes: r.notes ?? undefined,
     createdAt: r.created_at,
@@ -50,6 +51,7 @@ export function fromDeal(d: Deal) {
     referral_sourced: d.referralSourced,
     key_dates: d.keyDates ?? {},
     estimate: d.estimate ?? null,
+    equity: d.equity ?? null,
     book_protected: d.bookProtected,
     notes: d.notes ?? null,
     created_at: d.createdAt,

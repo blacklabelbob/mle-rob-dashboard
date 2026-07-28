@@ -2,10 +2,12 @@ import { describe, expect, it } from "vitest";
 import {
   equityRegistry,
   isEquityRecord,
+  parseEquityCorrection,
   prosePercentConflict,
   readEquitySplit,
   readEquityState,
   type EquityCandidate,
+  type EquitySplit,
 } from "@/lib/equity";
 
 // The two records this was built for, verbatim from data/network.json on 2026-07-27.
@@ -224,5 +226,86 @@ describe("prosePercentConflict — the drift guard", () => {
 
   it("is quiet when there is no field to compare against", () => {
     expect(prosePercentConflict(HOMECLONE)).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Q41 inc.2 — the correction door. Every test here is a refusal Rob would
+// otherwise have to discover by reading a wrong number off his own screen.
+// ---------------------------------------------------------------------------
+
+describe("parseEquityCorrection — the write door", () => {
+  const AT = "2026-07-28";
+
+  it("derives our side from the counterparty side — Rob types 35, the screen shows 35 / 65", () => {
+    const r = parseEquityCorrection({ counterpartyPct: 35, setAt: AT });
+    expect(r).toEqual({ ok: true, value: { counterpartyPct: 35, ourPct: 65, setBy: "rob", setAt: AT } });
+  });
+
+  it("accepts the string an HTML number input actually sends", () => {
+    const r = parseEquityCorrection({ counterpartyPct: "35", setAt: AT });
+    expect(r.ok && r.value.counterpartyPct).toBe(35);
+  });
+
+  it("refuses an empty input instead of storing Number('') as a 0/100 stake", () => {
+    const r = parseEquityCorrection({ counterpartyPct: "", setAt: AT });
+    expect(r).toMatchObject({ ok: false });
+  });
+
+  it("refuses a missing field — that is an erased number, not a corrected one", () => {
+    expect(parseEquityCorrection({ setAt: AT })).toMatchObject({ ok: false });
+  });
+
+  it("accepts an explicit null: we hold a stake, the number is not agreed yet", () => {
+    const r = parseEquityCorrection({ counterpartyPct: null, setAt: AT });
+    expect(r.ok && r.value).toMatchObject({ counterpartyPct: null, ourPct: null });
+  });
+
+  it("refuses out-of-range percentages", () => {
+    expect(parseEquityCorrection({ counterpartyPct: 130, setAt: AT })).toMatchObject({ ok: false });
+    expect(parseEquityCorrection({ counterpartyPct: -1, setAt: AT })).toMatchObject({ ok: false });
+  });
+
+  it("refuses a two-sided split that does not total 100 — the same rule the registry renders by", () => {
+    const r = parseEquityCorrection({ counterpartyPct: 35, ourPct: 60, setAt: AT });
+    expect(r).toMatchObject({ ok: false });
+    expect(r.ok === false && r.error).toContain("95");
+  });
+
+  it("accepts a two-sided split that does total 100", () => {
+    const r = parseEquityCorrection({ counterpartyPct: 35, ourPct: 65, setAt: AT });
+    expect(r.ok && r.value.ourPct).toBe(65);
+  });
+
+  it("refuses our side when the counterparty side is unknown", () => {
+    expect(parseEquityCorrection({ counterpartyPct: null, ourPct: 65, setAt: AT })).toMatchObject({ ok: false });
+  });
+
+  it("refuses a state the screen cannot colour", () => {
+    expect(parseEquityCorrection({ counterpartyPct: 35, state: "handshake", setAt: AT })).toMatchObject({ ok: false });
+  });
+
+  it("omits state entirely when none is given, so the prose keeps supplying it", () => {
+    const r = parseEquityCorrection({ counterpartyPct: 35, setAt: AT });
+    expect(r.ok && "state" in r.value).toBe(false);
+  });
+
+  it("stores the state when Rob states it — 35/65 signed is not 35/65 verbal", () => {
+    const r = parseEquityCorrection({ counterpartyPct: 35, state: "signed", setAt: AT });
+    expect(r.ok && r.value.state).toBe("signed");
+  });
+
+  it("what it writes is what readEquitySplit reads back — field wins over stale prose", () => {
+    const r = parseEquityCorrection({ counterpartyPct: 35, state: "verbal", setAt: AT });
+    if (!r.ok) throw new Error("expected ok");
+    const split = readEquitySplit({
+      id: "spinoff-homeclonevault",
+      name: "HomeCloneVault",
+      description: "equity venture, 40/60 split AGREED VERBALLY",
+      equity: r.value,
+    }) as EquitySplit;
+    expect(split.counterpartyPct).toBe(35);
+    expect(split.ourPct).toBe(65);
+    expect(split.provenance).toBe("field");
   });
 });

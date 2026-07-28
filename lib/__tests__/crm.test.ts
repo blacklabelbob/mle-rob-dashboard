@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
@@ -25,7 +25,18 @@ const ddl = readFileSync(
   "utf8"
 );
 
-// Columns of one `create table` block: lines like `  name text not null,`.
+// Every migration AFTER 0005, so a column added by a later `alter table` counts
+// as part of the schema this gate compares against. Without this the gate reads
+// 0005 as the whole truth and fails the moment a column arrives by ALTER — which
+// would push the next author to weaken the gate rather than extend it. (Q41 inc.2
+// added `deals.equity` in 0024; that is what surfaced this.)
+const laterDdl = readdirSync(join(__dirname, "../../supabase/migrations"))
+  .filter((f) => f.endsWith(".sql") && f > "0005")
+  .map((f) => readFileSync(join(__dirname, "../../supabase/migrations", f), "utf8"))
+  .join("\n");
+
+// Columns of one `create table` block: lines like `  name text not null,`,
+// plus any `alter table <t> add column [if not exists] <c> <type>` since 0005.
 function ddlColumns(table: string): Set<string> {
   const m = ddl.match(new RegExp(`create table if not exists ${table} \\(([\\s\\S]*?)\\n\\);`));
   if (!m) throw new Error(`table ${table} not found in 0005 DDL`);
@@ -33,6 +44,11 @@ function ddlColumns(table: string): Set<string> {
   for (const line of m[1].split("\n")) {
     const col = line.match(/^\s{2}([a-z_]+)\s+(?:text|numeric|boolean|jsonb|date|timestamptz)/);
     if (col) cols.add(col[1]);
+  }
+  for (const add of laterDdl.matchAll(
+    new RegExp(`alter table (?:if exists )?${table}\\s+add column (?:if not exists )?([a-z_]+)`, "gi")
+  )) {
+    cols.add(add[1]);
   }
   return cols;
 }

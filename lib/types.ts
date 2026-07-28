@@ -73,6 +73,11 @@ export interface Person {
   // Deliberately absent from adminEdit's FIELD_MAP until the column lands: a
   // mapping without a column turns every save into a 400.
   phaseComponents?: import("@/lib/phases/blueprint").ComponentLiveMap;
+  // Q41 inc.2: the structured equity split (migration 0024). When present it WINS
+  // over any percentage in `description`/`notes` — see lib/equity.ts. Optional
+  // because most records hold no stake; a record without it is not "0%", it is
+  // "not an equity record", and the registry distinguishes those.
+  equity?: import("@/lib/equity").EquityFieldValue;
   notes?: string;
   assignedRep?: string; // Phase 6
   orgId?: string; // person→org link (Task 2.2, backfilled by backfill-org-links.mjs)
@@ -162,6 +167,8 @@ export interface Deal {
   referralSourced: boolean;
   keyDates: KeyDates;
   estimate?: Estimate; // carried short-term per D-002 step 10
+  // Q41 inc.2 — a stake is not always an entity: the Gulf Coast 30% is a DEAL.
+  equity?: import("@/lib/equity").EquityFieldValue;
   bookProtected: boolean;
   notes?: string;
   createdAt: string;
