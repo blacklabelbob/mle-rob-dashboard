@@ -51,7 +51,7 @@ async function post(body) {
 /** Read the probe's own rows straight from PostgREST — never through the code under test. */
 async function rows() {
   const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/phase_scan_picks?customer_id=eq.${RUN}&select=pick_id,label,rank,withdrawn_at,recorded_by,source&order=rank`,
+    `${SUPABASE_URL}/rest/v1/phase_scan_picks?customer_id=eq.${RUN}&select=pick_id,label,rank,withdrawn_at,recorded_by,source,created_at,updated_at&order=rank`,
     { headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` } },
   );
   if (!res.ok) throw new Error(`read-back failed: ${res.status} ${await res.text()}`);
@@ -80,6 +80,11 @@ async function main() {
   let db = await rows();
   check("three rows landed, in submitted rank order", db.length === 3 && db.map((r) => r.rank).join() === "1,2,3", db);
 
+  // inc.22's column. A row's first write IS its creation, so the two agree here;
+  // every check below asks whether `updated_at` then tracks CHANGE, not traffic.
+  check("on insert, updated_at agrees with created_at", db.every((r) => r.updated_at === r.created_at), db.map((r) => [r.pick_id, r.created_at, r.updated_at]));
+  const stampedAt = Object.fromEntries(db.map((r) => [r.pick_id, r.updated_at]));
+
   // The claim inc.19 makes about `phase_scan_picks_identity`: a re-imported scan
   // updates in place. Without the conflict target this appends three more rows and
   // the customer is shown their own shortlist twice.
@@ -90,12 +95,24 @@ async function main() {
   check("re-import UPDATES, never duplicates", db.length === 3, db.map((r) => r.pick_id));
   check("the corrected label won, it was not left stale", db.find((r) => r.pick_id === PICKS[0].pickId)?.label === "Missed-call text-back (v2)", db);
 
+  // THE inc.22 DEFECT, ASKED OF POSTGRES. Before the trigger, `updated_at` was
+  // written once by 0027's default and never again — the corrected row below still
+  // reported its June-equivalent insert time. And the guard is the other half: an
+  // upsert issues an UPDATE for all three rows, so an unconditional trigger would
+  // re-date the two that did not change, turning "last changed" into "last imported".
+  const relabelledRow = db.find((r) => r.pick_id === PICKS[0].pickId);
+  check("the corrected row's updated_at MOVED off its insert time", relabelledRow?.updated_at !== stampedAt[PICKS[0].pickId], { was: stampedAt[PICKS[0].pickId], now: relabelledRow?.updated_at });
+  check("...and left created_at where it was", relabelledRow?.created_at === stampedAt[PICKS[0].pickId], relabelledRow);
+  check("the two UNCHANGED rows were not re-dated by the same re-import", db.filter((r) => r.pick_id !== PICKS[0].pickId).every((r) => r.updated_at === stampedAt[r.pick_id]), db.map((r) => [r.pick_id, stampedAt[r.pick_id], r.updated_at]));
+
   const wd = await post({ action: "withdraw", customerId: RUN, pickId: PICKS[1].pickId });
   check("withdraw is accepted", wd.status === 200 && wd.json?.ok === true, wd.json);
   db = await rows();
   const withdrawnAt = db.find((r) => r.pick_id === PICKS[1].pickId)?.withdrawn_at;
   check("the withdrawn pick carries a date", Boolean(withdrawnAt), db);
   check("withdrawing one pick left the other two alone", db.filter((r) => r.withdrawn_at).length === 1, db);
+  const withdrawnStamp = db.find((r) => r.pick_id === PICKS[1].pickId)?.updated_at;
+  check("withdrawing counts as a change — updated_at moved", withdrawnStamp !== stampedAt[PICKS[1].pickId], { was: stampedAt[PICKS[1].pickId], now: withdrawnStamp });
 
   // THE DECISION THIS LEG EXISTS FOR: re-recording a withdrawn pick must refuse the
   // WHOLE submission by name. The upsert never carries `withdrawn_at`, so a silent
@@ -110,11 +127,21 @@ async function main() {
   check("a second withdrawal is accepted as a no-op", wd2.status === 200, wd2.json);
   db = await rows();
   check("a second withdrawal does NOT move the date", db.find((r) => r.pick_id === PICKS[1].pickId)?.withdrawn_at === withdrawnAt, { was: withdrawnAt, now: db.find((r) => r.pick_id === PICKS[1].pickId)?.withdrawn_at });
+  check("...and does not move updated_at either — nothing changed", db.find((r) => r.pick_id === PICKS[1].pickId)?.updated_at === withdrawnStamp, { was: withdrawnStamp, now: db.find((r) => r.pick_id === PICKS[1].pickId)?.updated_at });
 
   const re = await post({ action: "reinstate", customerId: RUN, pickId: PICKS[1].pickId });
   check("reinstate is accepted", re.status === 200, re.json);
   db = await rows();
   check("reinstating clears the date — the only call that may", db.every((r) => r.withdrawn_at === null), db);
+
+  // Reinstating a pick nobody ever withdrew writes `null` over `null`. The row is
+  // identical, so the trigger's guard declines to stamp it — the alternative is a
+  // record that claims this pick changed on a day when nothing happened to it.
+  const untouched = db.find((r) => r.pick_id === PICKS[2].pickId)?.updated_at;
+  const noop = await post({ action: "reinstate", customerId: RUN, pickId: PICKS[2].pickId });
+  check("reinstating a never-withdrawn pick is accepted", noop.status === 200, noop.json);
+  db = await rows();
+  check("...and invents no change — updated_at stayed put", db.find((r) => r.pick_id === PICKS[2].pickId)?.updated_at === untouched, { was: untouched, now: db.find((r) => r.pick_id === PICKS[2].pickId)?.updated_at });
 
   // A reinstatement missing the customer half would re-pitch an automation to every
   // customer it was ever taken back from; the door refuses before the carrier runs.
