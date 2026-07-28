@@ -313,6 +313,38 @@ export function parseEquityCorrection(input: {
   return { ok: true, value };
 }
 
+export type EquitySaveOutcome = { tone: "ok" | "error"; message: string; saved?: EquityFieldValue };
+
+/**
+ * Q41 inc.3 — what the SCREEN is allowed to say after a save, decided here so
+ * vitest covers it without a browser.
+ *
+ * THE RULE: the panel may only claim what the route reported. A 200 whose body
+ * has no `equity` is not a save — it is a response we do not understand, and
+ * showing "saved" for it would leave Rob believing a wrong split is corrected.
+ * That is the same class of failure as the 40/60: a number nobody checked.
+ */
+export function equitySaveOutcome(status: number, body: unknown): EquitySaveOutcome {
+  const b = (body ?? {}) as { ok?: unknown; equity?: EquityFieldValue; error?: unknown };
+  if (status === 200 && b.ok === true && b.equity && typeof b.equity === "object") {
+    const { counterpartyPct: cp, ourPct } = b.equity;
+    return {
+      tone: "ok",
+      saved: b.equity,
+      message: cp === null ? "Saved — stake recorded with no agreed number." : `Saved — ${cp} / ${ourPct}.`,
+    };
+  }
+  if (typeof b.error === "string" && b.error) return { tone: "error", message: b.error };
+  // Never a bare status code: "404" tells Rob nothing he can act on.
+  return {
+    tone: "error",
+    message:
+      status === 200
+        ? "The server answered OK but did not report the saved split — nothing has been confirmed."
+        : `Not saved (server returned ${status}).`,
+  };
+}
+
 /**
  * THE DRIFT GUARD — the thing that would have caught the 40/60.
  *

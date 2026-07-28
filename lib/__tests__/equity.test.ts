@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   equityRegistry,
   isEquityRecord,
+  equitySaveOutcome,
   parseEquityCorrection,
   prosePercentConflict,
   readEquitySplit,
@@ -307,5 +308,46 @@ describe("parseEquityCorrection — the write door", () => {
     expect(split.counterpartyPct).toBe(35);
     expect(split.ourPct).toBe(65);
     expect(split.provenance).toBe("field");
+  });
+});
+
+// Q41 inc.3 — what the SCREEN is allowed to say after a save. These are the
+// cases where a wrong sentence would leave Rob believing a bad split is fixed.
+describe("equitySaveOutcome", () => {
+  const saved = { counterpartyPct: 35, ourPct: 65, setBy: "rob", setAt: "2026-07-28" };
+
+  it("confirms only what the route reported, quoting the saved numbers", () => {
+    const o = equitySaveOutcome(200, { ok: true, table: "orgs", equity: saved });
+    expect(o.tone).toBe("ok");
+    expect(o.message).toContain("35 / 65");
+    expect(o.saved).toEqual(saved);
+  });
+
+  it("a null stake reads as a recorded stake with no number — never as 0 / 100", () => {
+    const o = equitySaveOutcome(200, {
+      ok: true,
+      equity: { counterpartyPct: null, ourPct: null, setBy: "rob", setAt: "2026-07-28" },
+    });
+    expect(o.tone).toBe("ok");
+    expect(o.message).not.toContain("0 /");
+  });
+
+  it("a 200 with no equity in the body is NOT a save — the panel says nothing was confirmed", () => {
+    const o = equitySaveOutcome(200, { ok: true });
+    expect(o.tone).toBe("error");
+    expect(o.saved).toBeUndefined();
+    expect(o.message).toContain("did not report");
+  });
+
+  it("shows the route's own refusal verbatim, so 35 + 60 explains itself", () => {
+    const o = equitySaveOutcome(400, { error: "35 / 60 totals 95, not 100" });
+    expect(o.tone).toBe("error");
+    expect(o.message).toBe("35 / 60 totals 95, not 100");
+  });
+
+  it("never shows a bare status code with no sentence", () => {
+    const o = equitySaveOutcome(404, null);
+    expect(o.tone).toBe("error");
+    expect(o.message).toContain("Not saved");
   });
 });

@@ -1,5 +1,11 @@
 import Link from "next/link";
-import { equityRegistry, type EquityCandidate, type EquityState } from "@/lib/equity";
+import EquityCorrect from "@/components/EquityCorrect";
+import {
+  equityRegistry,
+  prosePercentConflict,
+  type EquityCandidate,
+  type EquityState,
+} from "@/lib/equity";
 
 // Q41 increment 1 — the answer to Rob dev-chat #53, "At the Master Level we need
 // to see if we have any equity Split", rendered where he asked for it.
@@ -25,6 +31,10 @@ const STATE_CLASS: Record<EquityState, string> = {
 
 export default function EquitySplits({ candidates }: { candidates: EquityCandidate[] }) {
   const { splits, unreadable } = equityRegistry(candidates);
+  // Q41 inc.3: the drift guard needs the RECORD, not the derived split — a
+  // conflict is only visible by comparing the field against the prose it was
+  // meant to replace. Indexed rather than re-scanned per row.
+  const byId = new Map(candidates.map((c) => [c.id, c]));
 
   return (
     <section className="rounded-xl border border-white/10 bg-white/5 p-5">
@@ -61,11 +71,27 @@ export default function EquitySplits({ candidates }: { candidates: EquityCandida
               {s.provenance === "prose" && (
                 // Honest about its own weakness: this number was read out of a
                 // sentence, which is exactly how it went wrong last time. It stops
-                // saying this the moment the record has a real field (increment 2).
+                // saying this the moment the record has a real field.
                 <div className="mt-1 text-[11px] text-slate-600">
-                  read out of the description — not a field you can edit yet
+                  read out of the description — correcting it here makes it a field
                 </div>
               )}
+              {(() => {
+                const record = byId.get(s.entityId);
+                const conflict = record ? prosePercentConflict(record) : null;
+                return conflict ? (
+                  // Two copies of the same number that disagree. Shown, never
+                  // reconciled silently — the field wins on screen, but Rob is
+                  // the one who decides which copy is wrong.
+                  <div className="mt-1 text-[11px] text-amber-400">⚠ {conflict}</div>
+                ) : null;
+              })()}
+              <EquityCorrect
+                entityId={s.entityId}
+                entityName={s.entityName}
+                counterpartyPct={s.counterpartyPct}
+                state={s.state}
+              />
             </li>
           ))}
         </ul>
@@ -83,6 +109,15 @@ export default function EquitySplits({ candidates }: { candidates: EquityCandida
                   {u.entityName}
                 </Link>{" "}
                 — {u.reason}
+                {/* Q41 inc.3: these are the rows that MOST need the control —
+                    a stake whose number nothing can read is fixed by typing it
+                    once, not by editing a sentence and hoping the parser agrees. */}
+                <EquityCorrect
+                  entityId={u.entityId}
+                  entityName={u.entityName}
+                  counterpartyPct={null}
+                  state="unknown"
+                />
               </li>
             ))}
           </ul>
