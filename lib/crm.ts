@@ -240,6 +240,64 @@ export function parseDealPhasePatch(body: unknown): DealPhasePatch {
   return { ok: true, id: obj.id, phase: obj.phase };
 }
 
+export type DealPhaseSaveOutcome = {
+  tone: "ok" | "error";
+  message: string;
+  /** Only ever the value the ROUTE reported back — never the one that was picked. */
+  saved?: 1 | 2 | 3 | null;
+};
+
+/**
+ * Q40 inc.12 — what the SCREEN is allowed to say after a phase save, decided
+ * here so vitest covers it without a browser (the `equitySaveOutcome` precedent).
+ *
+ * THE RULE, and it matters more here than anywhere else on the record: the
+ * control may only claim what the route echoed. This phase is the input to
+ * `attributePhaseMoney`, which decides the money Rob's Phase 2 ROI GUARANTEE is
+ * measured against. A UI that shows "Saved — Phase 2" off the value in its own
+ * `<select>` would let a rep walk away believing a guarantee is anchored to a
+ * number the database never took.
+ *
+ * So an unrecognised 200 is an ERROR, not a success, and a saved phase whose
+ * audit row failed still says so — the write landed, the trail did not, and
+ * hiding that turns a known gap into an invisible one.
+ */
+export function dealPhaseSaveOutcome(status: number, body: unknown): DealPhaseSaveOutcome {
+  const b = (body ?? {}) as {
+    ok?: unknown;
+    changed?: unknown;
+    phase?: unknown;
+    auditError?: unknown;
+    error?: unknown;
+  };
+  const echoed = b.phase === null || b.phase === 1 || b.phase === 2 || b.phase === 3;
+  if (status === 200 && b.ok === true && "phase" in b && echoed) {
+    const phase = b.phase as 1 | 2 | 3 | null;
+    const label = phase === null ? "unstated" : `Phase ${phase}`;
+    const head =
+      b.changed === false
+        ? `Already ${label} — nothing changed.`
+        : phase === null
+          ? "Saved — phase cleared. Unstated, not Phase 1."
+          : `Saved — ${label}.`;
+    const trail =
+      typeof b.auditError === "string" && b.auditError
+        ? ` The phase saved, but its audit row did not: ${b.auditError}`
+        : "";
+    return { tone: "ok", saved: phase, message: head + trail };
+  }
+  // The 503 from an unapplied 0026 arrives here and keeps its own wording,
+  // which names the migration — far more useful than "not saved".
+  if (typeof b.error === "string" && b.error) return { tone: "error", message: b.error };
+  return {
+    tone: "error",
+    message:
+      status === 200
+        ? "The server answered OK but did not report the saved phase — nothing has been confirmed."
+        : `Not saved (server returned ${status}).`,
+  };
+}
+
 // The phase is a claim about a paying agreement, so a change to it leaves the
 // same kind of trace a stage change does — built HERE from the before/after
 // the route read out of the database, never from client input. Clearing reads

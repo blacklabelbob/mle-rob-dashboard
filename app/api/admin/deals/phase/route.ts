@@ -57,7 +57,12 @@ export async function PATCH(req: NextRequest) {
   // same reason `toDeal` narrows rather than casts — see lib/types.ts.
   const from =
     current.phase === 1 || current.phase === 2 || current.phase === 3 ? current.phase : null;
-  if (from === parsed.phase) return NextResponse.json({ ok: true, changed: false });
+  // The phase is echoed on EVERY answer (Q40 inc.12): the control is forbidden
+  // from claiming a save off its own <select>, so the value it prints has to
+  // come back from the row the route actually settled on.
+  if (from === parsed.phase) {
+    return NextResponse.json({ ok: true, changed: false, phase: parsed.phase });
+  }
 
   const at = new Date().toISOString();
   const { data, error } = await client
@@ -78,7 +83,12 @@ export async function PATCH(req: NextRequest) {
     // The phase DID save. Say so, and name the missing trail rather than
     // failing a write that already landed.
     console.error(`deals phase PATCH: phase saved but audit row failed: ${auditErr.message}`);
-    return NextResponse.json({ ok: true, changed: true, auditError: auditErr.message });
+    return NextResponse.json({
+      ok: true,
+      changed: true,
+      phase: parsed.phase,
+      auditError: auditErr.message,
+    });
   }
-  return NextResponse.json({ ok: true, changed: true });
+  return NextResponse.json({ ok: true, changed: true, phase: parsed.phase });
 }

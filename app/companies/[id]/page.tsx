@@ -11,6 +11,7 @@ import { InlineText, InlineTextarea } from "@/components/inline/fields";
 import PhaseBlueprint from "@/components/PhaseBlueprint";
 import { companyRecordFromNetwork } from "@/lib/companyRecord";
 import { buildCompanyDeals } from "@/lib/companyDeals";
+import DealPhaseControl from "@/components/DealPhaseControl";
 import { buildBlueprint } from "@/lib/phases/blueprint";
 import { loadComponentLive, mergeComponentLive } from "@/lib/phases/componentLiveLoad";
 import { splitNotes } from "@/lib/notes";
@@ -194,6 +195,12 @@ export default async function CompanyPage({
                       {d.referralSourced && (
                         <span className="text-[11px] text-violet-300">referral-sourced</span>
                       )}
+                      {/* Q40 inc.12 — the phase a human states, per deal. It sits
+                          on the row rather than on the section because ONE company
+                          can hold a Phase 1 agreement and a Phase 2 one, and it is
+                          the per-deal answer that decides which money the Phase 2
+                          ROI guarantee is measured against. */}
+                      <DealPhaseControl dealId={d.id} phase={d.phase} />
                     </div>
                     <p className="mt-1 text-xs text-slate-500">
                       {d.anchoredVia && <>via {d.anchoredVia} · </>}
