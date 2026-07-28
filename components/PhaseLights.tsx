@@ -1,4 +1,6 @@
 import type { Blueprint } from "@/lib/phases/blueprint";
+import { aimForNextFor } from "@/lib/phases/aimForNext";
+import AimForNextPanel from "./AimForNextPanel";
 
 // Master View 2.0 §3.1 "Rep view of the same tracker" — Rob: "we will want the
 // Rep to be able to see the progress update from the Entity Page or Company
@@ -29,6 +31,8 @@ export default function PhaseLights({ blueprint }: { blueprint: Blueprint }) {
   // never from a second idea of what "current" means.
   const current = blueprint.phases.find((p) => p.visual === "live");
   const nextUp = current?.components.find((c) => !c.live && !c.isEmptySlot);
+  // Handed the rep-safe object once, so no branch below can reach the master one.
+  const repAim = aimForNextFor(blueprint.aimForNext, "rep");
 
   return (
     <section className="rounded-xl border border-white/10 bg-white/5 p-5">
@@ -80,6 +84,20 @@ export default function PhaseLights({ blueprint }: { blueprint: Blueprint }) {
           <strong className="text-slate-200">{nextUp.label}</strong>
           <span className="ml-2 text-slate-500">{nextUp.meaning}</span>
         </p>
+      )}
+
+      {/*
+        The same aim-for-next slot the master tracker shows, from the same
+        object — a rep and Rob can never be pitching two different shortlists.
+        `aimForNextFor(..., "rep")` strips the refund warning before it gets
+        here, per Rob's "no refund mechanics" rule for this view; the panel has
+        no code path that could print one. That withholding is on the ledger as
+        an open question, because the rep is the one who advances the phase.
+      */}
+      {repAim.visible && (
+        <div className="-mx-5 mt-4 border-t border-white/10">
+          <AimForNextPanel aim={repAim} />
+        </div>
       )}
 
       {blueprint.signalNote && (

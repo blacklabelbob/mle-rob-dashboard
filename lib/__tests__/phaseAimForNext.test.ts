@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { aimForNext, AIM_FOR_NEXT_TITLE, type AutomationPick } from "@/lib/phases/aimForNext";
+import { aimForNext, aimForNextFor, AIM_FOR_NEXT_TITLE, type AutomationPick } from "@/lib/phases/aimForNext";
 import { refundStatus } from "@/lib/phases/refund";
 
 const ASOF = "2026-07-28";
@@ -130,5 +130,46 @@ describe("aimForNext — the refund window is never hidden behind the upsell", (
     const r = aimForNext({ ...delivering, refund });
     if (refund.daysLeft === 1) expect(r.refundWarning).toContain("1 day of");
     expect(r.refundWarning ?? "").not.toContain("1 days");
+  });
+});
+
+describe("aimForNextFor — what each audience is handed", () => {
+  const withWarning = aimForNext({
+    ...delivering,
+    growthScanLiveAt: "2026-07-20",
+    recommendations: [PICK("a"), PICK("b")],
+    refund: refundStatus({ startedAt: "2026-07-27", asOf: ASOF }),
+  });
+
+  it("gives the master view the object untouched — refund mechanics included", () => {
+    expect(withWarning.refundWarning).toBeDefined();
+    expect(aimForNextFor(withWarning, "master")).toEqual(withWarning);
+  });
+
+  it("strips the refund warning for the rep — the key is absent, not empty", () => {
+    const rep = aimForNextFor(withWarning, "rep");
+    expect("refundWarning" in rep).toBe(false);
+    expect(rep.refundWarning).toBeUndefined();
+  });
+
+  it("keeps everything a rep needs to sell — picks, copy, overflow, visibility", () => {
+    const rep = aimForNextFor(withWarning, "rep");
+    expect(rep.visible).toBe(true);
+    expect(rep.title).toBe(AIM_FOR_NEXT_TITLE);
+    expect(rep.line).toBe(withWarning.line);
+    expect(rep.picks).toEqual(withWarning.picks);
+    expect(rep.state).toBe(withWarning.state);
+  });
+
+  it("never resurrects a hidden slot for either audience", () => {
+    const hidden = aimForNext({ ...delivering, phase2Attribution: "stored" });
+    expect(aimForNextFor(hidden, "rep").visible).toBe(false);
+    expect(aimForNextFor(hidden, "master").visible).toBe(false);
+  });
+
+  it("does not mutate the shared object a rep and the master view both read", () => {
+    const before = JSON.stringify(withWarning);
+    aimForNextFor(withWarning, "rep");
+    expect(JSON.stringify(withWarning)).toBe(before);
   });
 });

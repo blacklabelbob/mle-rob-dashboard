@@ -1,4 +1,6 @@
 import type { Blueprint, PhaseSection, KickoffStep } from "@/lib/phases/blueprint";
+import { aimForNextFor } from "@/lib/phases/aimForNext";
+import AimForNextPanel from "./AimForNextPanel";
 
 // Master View 2.0 §3.1 — the Phase Blueprint tracker, master variant.
 //
@@ -227,15 +229,13 @@ export default function PhaseBlueprint({ blueprint }: { blueprint: Blueprint }) 
       {blueprint.phases.map((s, i) => (
         <div key={s.phase}>
           <Phase section={s} />
-          {i === 0 && (
-            <div className="border-b border-white/10 bg-sky-400/[0.04] px-5 py-3 text-xs text-slate-400">
-              <span className="mr-2 text-[10px] uppercase tracking-[0.14em] text-slate-500">
-                Recommended next
-              </span>
-              The top automations we&apos;d put in Phase 2 come out of this customer&apos;s AI Growth
-              Scan — the slot fills once that component is live.
-            </div>
-          )}
+          {/*
+            The aim-for-next slot sits between Phase 1 and Phase 2 because that
+            is where Rob put it. It used to be a hardcoded sentence that showed
+            on every company forever; it now renders `blueprint.aimForNext`, so
+            a customer who already bought Phase 2 is no longer pitched it.
+          */}
+          {i === 0 && <AimForNextPanel aim={aimForNextFor(blueprint.aimForNext, "master")} />}
         </div>
       ))}
 

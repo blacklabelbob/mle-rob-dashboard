@@ -96,6 +96,30 @@ export interface AimForNext {
 
 export const AIM_FOR_NEXT_TITLE = "Top Automations we recommend";
 
+/** Who is looking at the slot. The rep screen is money- and refund-free. */
+export type AimForNextAudience = "master" | "rep";
+
+/**
+ * What a given audience is HANDED — not what a component chooses to hide.
+ *
+ * Rob's standing rule for the rep variant (Master View 2.0 §3.1) is "no invoice
+ * amounts, no refund mechanics", and PhaseLights honours it by never receiving
+ * the money fields at all. The same rule applies here: the rep's panel is given
+ * an object with `refundWarning` already absent, so no rep-facing code path can
+ * print refund mechanics even by accident.
+ *
+ * That withholding is deliberate AND it has a cost worth naming out loud: the
+ * rep is the person who actually advances a customer into Phase 2, so they are
+ * the one who can void a live Phase 1 refund. Their screen currently cannot say
+ * so. That tension is Rob's call, not this file's — it is raised on the ledger
+ * (Things to Address) rather than silently resolved in either direction here.
+ */
+export function aimForNextFor(aim: AimForNext, audience: AimForNextAudience): AimForNext {
+  if (audience === "master") return aim;
+  const { refundWarning: _withheld, ...rest } = aim;
+  return rest;
+}
+
 function hidden(slotCount: number): AimForNext {
   return {
     state: "HIDDEN",
