@@ -12,6 +12,7 @@ import PhaseBlueprint from "@/components/PhaseBlueprint";
 import { companyRecordFromNetwork } from "@/lib/companyRecord";
 import { buildCompanyDeals } from "@/lib/companyDeals";
 import { buildBlueprint } from "@/lib/phases/blueprint";
+import { loadComponentLive, mergeComponentLive } from "@/lib/phases/componentLiveLoad";
 import { splitNotes } from "@/lib/notes";
 import { typeLabel, STAGE_LABELS } from "@/lib/labels";
 
@@ -61,9 +62,16 @@ export default async function CompanyPage({
   // §8 increment 8a. `asOf` is passed in rather than read inside the FSM so the
   // refund countdown is a pure function of stored dates (CR-3) — two renders of
   // the same record on the same day always agree.
+  //
+  // Q40 inc.6: the lights now come from what the partner's tools have actually
+  // signalled (`phase_component_state`), overlaid on whatever the record itself
+  // carries. `loadComponentLive` never throws — a signal-seam outage must not
+  // 500 the page that also carries this company's deal, money and timeline — and
+  // reports itself through `unavailable` so a degraded board says so.
+  const signals = await loadComponentLive(company.id);
   const blueprint = buildBlueprint({
     deals: deals.rows,
-    components: company.phaseComponents,
+    components: mergeComponentLive(company.phaseComponents, signals.map),
     asOf: new Date().toISOString().slice(0, 10),
   });
 
@@ -247,6 +255,12 @@ export default async function CompanyPage({
               kickoff strip is real today (it reads key dates that exist); the
               component lights stay dark until something reports them live, which
               the tracker states in words rather than implying with an empty row. */}
+          {signals.unavailable && (
+            <p className="-mt-3 rounded-lg border border-amber-400/30 bg-amber-400/5 px-4 py-2 text-xs text-amber-200">
+              Component signals could not be read just now — a component may be live
+              and showing dark below. Kickoff dates and money above are unaffected.
+            </p>
+          )}
           <PhaseBlueprint blueprint={blueprint} />
 
           {/* §3.4 — the record spine. Company rows anchor activities the same way

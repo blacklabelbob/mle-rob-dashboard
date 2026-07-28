@@ -10,6 +10,7 @@ import DemoFooter from "@/components/DemoFooter";
 import { InlineDateChip, InlineSelect, InlineText } from "@/components/inline/fields";
 import { getStore } from "@/lib/storage";
 import { buildBlueprint } from "@/lib/phases/blueprint";
+import { loadComponentLive, mergeComponentLive } from "@/lib/phases/componentLiveLoad";
 import { isDemo as isDemoPerson } from "@/lib/stats";
 import { demoActivity, sourceContext, touchReason } from "@/lib/repSource";
 
@@ -48,6 +49,11 @@ export default async function RepAccountWorkspace({
   // rep and Rob can never see two different versions of delivery progress. The
   // lead's own key dates stand in for the deal row here — this view is anchored
   // on a person, and buildBlueprint only reads key dates and component state.
+  // Q40 inc.6 — the rep sees the SAME signalled lights Rob does, from the same
+  // loader, so "is it live yet?" has one answer across both views. A phase signal
+  // is keyed on a company row, so a rep account that is a person simply matches
+  // nothing here; that is an honest empty, not a failure.
+  const signals = await loadComponentLive(person.id);
   const blueprint = buildBlueprint({
     deals: [
       {
@@ -58,7 +64,7 @@ export default async function RepAccountWorkspace({
         keyDates: person.keyDates ?? {},
       },
     ],
-    components: person.phaseComponents,
+    components: mergeComponentLive(person.phaseComponents, signals.map),
     asOf: new Date().toISOString().slice(0, 10),
   });
 
@@ -138,6 +144,12 @@ export default async function RepAccountWorkspace({
               actually been delivered. Lights and phase names only; PhaseLights is
               never handed the money fields, so there is no path here that could
               print an invoice figure or the refund mechanics. */}
+          {signals.unavailable && (
+            <p className="rounded-lg border border-amber-400/30 bg-amber-400/5 px-4 py-2 text-xs text-amber-200">
+              Delivery signals could not be read just now — something may be live and
+              showing dark below.
+            </p>
+          )}
           <PhaseLights blueprint={blueprint} />
 
           <ActivityTimeline personId={person.id} demoEntries={demoActivity(person.id)} isDemo={isDemo} />
