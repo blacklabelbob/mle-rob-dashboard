@@ -28,6 +28,7 @@ import {
   type Phase2GuaranteeStatus,
   type Phase2Returns,
 } from "./phase2Guarantee";
+import { aimForNext, type AimForNext, type AutomationPick } from "./aimForNext";
 
 /** Stored component state, keyed by slug. `phase_components` when it lands. */
 export type ComponentLiveMap = Record<string, { liveAt?: string; source?: string } | undefined>;
@@ -92,6 +93,12 @@ export interface Blueprint {
   signalSource: boolean;
   /** One line the page prints when signalSource is false. */
   signalNote?: string;
+  /**
+   * Q40 leg (6) — the P1→P2 aim-for-next slot. Always present so a renderer
+   * reads one boolean (`aimForNext.visible`) instead of re-deciding, in JSX,
+   * whether a paying customer should be pitched the next phase.
+   */
+  aimForNext: AimForNext;
 }
 
 /** Only the deal fields the blueprint reads — CompanyDealRow satisfies this. */
@@ -131,6 +138,12 @@ export interface BlueprintInput {
    * AWAITING_DATA rather than a fabricated 100% shortfall.
    */
   phase2Returns?: Phase2Returns;
+  /**
+   * Q40 leg (6) — this customer's recommended Phase 2 automations, when someone
+   * has picked them. No store exists yet, so this is absent today and the slot
+   * reports that the shortlist is unpicked rather than showing a template list.
+   */
+  automationPicks?: AutomationPick[];
   /** Evaluation time. Always passed — never read from the clock in here. */
   asOf: string;
 }
@@ -303,6 +316,7 @@ export function buildBlueprint({
   standardPrices,
   advancedToPhase2At,
   phase2Returns,
+  automationPicks,
   asOf,
 }: BlueprintInput): Blueprint {
   const sections: PhaseSection[] = ([1, 2, 3] as PhaseNo[]).map((phase) => {
@@ -377,9 +391,26 @@ export function buildBlueprint({
     components && Object.values(components).some((c) => c?.liveAt)
   );
 
+  // Q40 leg (6). Every input is one already decided above — the Phase 1 lights,
+  // the Phase 1 refund FSM and the Phase 2 attribution — so the aim-for-next
+  // panel cannot contradict the phase sections rendered beside it.
+  const p1 = sections[0];
+  const p2 = sections[1];
+  const aim = aimForNext({
+    phase1LiveCount: p1.liveCount,
+    phase1TotalCount: p1.totalCount,
+    growthScanLiveAt: components?.["growth-scan"]?.liveAt,
+    phase2Attribution: p2.money.attribution,
+    refund: p1.refund,
+    recommendations: automationPicks,
+    slotCount: p2.totalCount,
+    asOf,
+  });
+
   return {
     kickoff: kickoffSteps(deals),
     phases: sections,
+    aimForNext: aim,
     signalSource,
     signalNote: signalSource
       ? undefined
