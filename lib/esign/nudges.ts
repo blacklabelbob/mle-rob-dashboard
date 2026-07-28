@@ -1,10 +1,11 @@
 // Q47 e-sign nudge engine — pure ladder per the decided walkthrough
 // (docs/plans/esign-flow-walkthrough-2026-07-23.html §nudges), extending the
 // overdue-watcher pattern (lib/integrity/overdue.ts): the CALLER reads rows
-// and the clock, this module never does (CR-3). Cron/n8n wiring is a
-// follow-up increment — nothing here sends; it PLANS deterministic actions
-// the route will execute (emails via the sender workflow, flags via the
-// flags ledger, `nudge` events as the idempotency ledger).
+// and the clock, this module never does (CR-3). Nothing here sends; it PLANS
+// deterministic actions the route executes (emails via the sender workflow,
+// flags via the flags ledger, `nudge` events as the idempotency ledger).
+// Wiring is LIVE: `app/api/cron/esign-nudges/route.ts`, fired hourly at :17 by
+// n8n `CxFUrjo29NiYMofS` (docs/ops/N8N-WORKFLOW-MAP.md).
 //
 // Ladder (defaults; Rob tunes once real data exists):
 //   viewed +24h, unsigned  → REP    "They opened it — call now."

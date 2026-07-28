@@ -15,7 +15,12 @@ import { deliverEsignEmail } from "@/lib/esign/sender";
 // is pure + tested; this route only reads rows, executes the plan, and writes
 // the ledger). Same bearer contract as the other crons (backup/overdue/recycle):
 // CRON_SECRET unset → 503 inert, wrong bearer → 401. Hourly firing rides an n8n
-// schedule (Vercel Hobby caps registered crons at 2) — next increment.
+// schedule (Vercel Hobby caps registered crons at 2): workflow
+// `CxFUrjo29NiYMofS` "MLE CRM — Hourly E-Sign Nudge Ladder", ACTIVE since
+// 2026-07-23, hourly at :17 — see docs/ops/N8N-WORKFLOW-MAP.md. (This line said
+// "next increment" for five days after the wiring shipped, and a later run
+// nearly built a duplicate off it: a comment naming future work must be deleted
+// by the increment that does the work.)
 //
 // Execution rules that matter:
 // * A `nudge` event is written ONLY after the action actually happened, so a
