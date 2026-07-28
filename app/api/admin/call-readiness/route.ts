@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 import { callChainConfigFromEnv, callChainReadiness } from "@/lib/calls/callReadiness";
+import { evidenceSection, supabaseEvidenceSource } from "@/lib/calls/evidenceRead";
+import type { TranscriptReadClient } from "@/lib/calls/transcriptDb";
+import { transcriptClient } from "@/lib/calls/transcriptDb";
+import { getStore } from "@/lib/storage";
 import { callReadinessLog, callReadinessResponse } from "@/lib/calls/readinessResponse";
 import { repairPresenceFromEnv, repairReadiness } from "@/lib/calls/repairReadiness";
 
@@ -30,10 +34,24 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   // inc.43: the second half of the report — the two repair doors. Still env and clock only;
   // `repairPresenceFromEnv` hands the pure module a set of NAMES, never a value.
+  //
+  // inc.46: the third section, and THE ONE THAT CHANGES WHAT THIS ROUTE TOUCHES. It now
+  // reads two tables. That is a deliberate reversal of the "reads no table" note above, and
+  // it is bounded to COUNTS: `evidenceSection` returns rungs and integers, never a summary,
+  // a transcript, a contact or a phone number — so the endpoint stays as safe to leave
+  // unauthenticated as it was when it only listed env var names (Q64 still pending).
+  // A store that cannot be read degrades this section to `unreadable` and nothing else; the
+  // env half must keep answering on exactly the half-configured prod it exists to explain.
   const res = callReadinessResponse(
     callChainReadiness(callChainConfigFromEnv()),
     new Date().toISOString(),
     repairReadiness(repairPresenceFromEnv()),
+    await evidenceSection(
+      supabaseEvidenceSource(
+        () => transcriptClient() as unknown as TranscriptReadClient,
+        () => getStore().listActivities(),
+      ),
+    ),
   );
   console.log(JSON.stringify(callReadinessLog(res)));
   return NextResponse.json(res, { headers: { "Cache-Control": "no-store" } });

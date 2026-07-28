@@ -56,6 +56,20 @@ export interface CallEvidence {
   headline: string;
 }
 
+/**
+ * inc.46 — how the evidence half travels in the arming report.
+ *
+ * `unreadable` EXISTS SO THAT A BROKEN READ CAN NEVER SERIALISE AS `none`. The arming report
+ * is exactly what an operator opens when the deployment is half-configured — a prod with no
+ * `SUPABASE_SERVICE_ROLE_KEY` cannot count calls at all, and answering that with "no call has
+ * ever been filed" would be this feature stating the DoD's own question as fact on no
+ * evidence. The two states are structurally different so no consumer can read one as the
+ * other by forgetting a check.
+ */
+export type EvidenceSection =
+  | { state: "read"; evidence: CallEvidence }
+  | { state: "unreadable"; reason: string };
+
 const HEADLINES: Record<EvidenceReach, string> = {
   none: "No recorded call has ever been filed. This says nothing about why — the arming report does.",
   timeline: "Calls are on the timeline. None has ever been transcribed.",

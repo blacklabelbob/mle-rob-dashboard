@@ -36,6 +36,7 @@
 // booleans wide; a test puts realistic-looking secrets in env and pins that no fragment of
 // one appears in the serialised body.
 
+import type { EvidenceSection } from "./callEvidence";
 import type { CallChainReadiness } from "./callReadiness";
 import type { RepairReadiness } from "./repairReadiness";
 
@@ -51,6 +52,15 @@ export const DEPLOY_SNAPSHOT_NOTE =
 export const PLACE_A_CALL_STEP =
   "Place one real recorded call and open that contact's timeline. Nothing on this page is evidence a call has ever worked — only a call is.";
 
+/**
+ * The only sentence in this file that reports the DoD as met, and it is reachable ONLY from
+ * a `read` evidence section whose counts prove themselves. It still names what the proof is
+ * — a summarised call — rather than saying "done", so the claim can be checked rather than
+ * believed.
+ */
+export const DOD_MET_STEP =
+  "Nothing. A real recorded call has reached a summary on this deployment — the chain is proven end to end.";
+
 export interface CallReadinessResponse extends CallChainReadiness {
   /** Injected, never read from the clock in here — this module stays pure. */
   checkedAt: string;
@@ -65,6 +75,13 @@ export interface CallReadinessResponse extends CallChainReadiness {
    * in the route so the whole payload is one pure function's answer (CR-3).
    */
   repair: RepairReadiness;
+  /**
+   * inc.46 — the OTHER half of the report: not "how far would the next call get" but "how
+   * far has any call ACTUALLY got". Required for the same reason `repair` is (rule 5): an
+   * optional section is one a route forgets to pass, and the endpoint then keeps answering
+   * 200 with a report that has quietly stopped mentioning whether the DoD is met.
+   */
+  evidence: EvidenceSection;
 }
 
 /**
@@ -76,6 +93,7 @@ export function callReadinessResponse(
   readiness: CallChainReadiness,
   checkedAt: string,
   repair: RepairReadiness,
+  evidence: EvidenceSection,
 ): CallReadinessResponse {
   // RULE 3 EXTENDED (inc.43): `nextStep` STILL COMES ONLY FROM THE LIVE CASCADE. A repair
   // door is about a backlog, and on a deployment where no call has ever run there is no
@@ -83,14 +101,25 @@ export function callReadinessResponse(
   // arm a door onto an empty room, and buries the one step that changes anything. The
   // doors are reported; they never become the ask. Test-pinned.
   const blocking = readiness.missing[0];
+  // RULE 4, NOW ANSWERABLE (inc.46). Until this increment the armed-and-nothing-left branch
+  // could only ever say "place a call", because the report had no way to know whether one
+  // already had been — so it repeated the ask forever, including to a Rob who had already
+  // done it. Evidence changes only THIS branch and only on `proven`, which is `summarised >
+  // 0` with no contradictions: an `unreadable` section, or any count that disagrees with
+  // itself, keeps the ask exactly where it was. A key still outranks all of it (rule 3):
+  // a chain missing a key is not made whole by an old call that ran before it broke.
+  const provenNow = evidence.state === "read" && evidence.evidence.proven;
   return {
     ...readiness,
     checkedAt,
     configNote: DEPLOY_SNAPSHOT_NOTE,
     nextStep: blocking
       ? `Add ${blocking} to the dashboard's Vercel project (production), then redeploy.`
-      : PLACE_A_CALL_STEP,
+      : provenNow
+        ? DOD_MET_STEP
+        : PLACE_A_CALL_STEP,
     repair,
+    evidence,
   };
 }
 
@@ -110,5 +139,9 @@ export function callReadinessLog(res: CallReadinessResponse) {
     // would make an unset CRON_SECRET indistinguishable in the logs from a chain key.
     repairDoorsOpen: res.repair.doors.filter((d) => d.state === "open").length,
     repairMissing: res.repair.missing.length,
+    // inc.46: the evidence half, states and counts only — `unreadable` is logged as its own
+    // reach rather than as `none`, so a grep for "never used" cannot match a broken read.
+    evidenceReach: res.evidence.state === "read" ? res.evidence.evidence.reach : "unreadable",
+    evidenceProven: res.evidence.state === "read" && res.evidence.evidence.proven,
   };
 }

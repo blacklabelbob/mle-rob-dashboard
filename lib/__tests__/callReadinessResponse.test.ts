@@ -8,9 +8,11 @@ import {
   callReadinessLog,
   callReadinessResponse,
   DEPLOY_SNAPSHOT_NOTE,
+  DOD_MET_STEP,
   PLACE_A_CALL_STEP,
 } from "@/lib/calls/readinessResponse";
 import { repairPresenceFromEnv, repairReadiness } from "@/lib/calls/repairReadiness";
+import { callEvidence, type EvidenceSection } from "@/lib/calls/callEvidence";
 
 const config = (over: Partial<CallChainConfig> = {}): CallChainConfig => ({
   twilioAuthToken: false,
@@ -24,8 +26,14 @@ const AT = "2026-07-26T19:00:00.000Z";
 // inc.43: an EMPTY repair presence by default — the state prod is actually in, and the
 // one that would tempt the response into promoting CRON_SECRET to the next step.
 const NO_REPAIR_ENV = repairReadiness(new Set<string>());
+// inc.46: NO CALL HAS EVER RUN is the default — prod's actual state, and the one the
+// response must not confuse with an unreadable store.
+const NO_CALLS: EvidenceSection = {
+  state: "read",
+  evidence: callEvidence({ filed: 0, transcribed: 0, summarised: 0 }),
+};
 const respond = (over: Partial<CallChainConfig> = {}) =>
-  callReadinessResponse(callChainReadiness(config(over)), AT, NO_REPAIR_ENV);
+  callReadinessResponse(callChainReadiness(config(over)), AT, NO_REPAIR_ENV, NO_CALLS);
 
 describe("callReadinessResponse — one next step, and no lie about where env lives", () => {
   it("carries the redeploy caveat on every answer, armed or not", () => {
@@ -79,7 +87,7 @@ describe("callReadinessResponse — one next step, and no lie about where env li
 
   it("passes inc.21's report through untouched — it decorates, it does not re-decide", () => {
     const readiness = callChainReadiness(config({ twilioAuthToken: true }));
-    const r = callReadinessResponse(readiness, AT, NO_REPAIR_ENV);
+    const r = callReadinessResponse(readiness, AT, NO_REPAIR_ENV, NO_CALLS);
     expect(r.verdict).toBe(readiness.verdict);
     expect(r.reached).toBe(readiness.reached);
     expect(r.stages).toEqual(readiness.stages);
@@ -101,6 +109,7 @@ describe("callReadinessResponse — one next step, and no lie about where env li
         callChainReadiness(callChainConfigFromEnv(secrets)),
         AT,
         repairReadiness(repairPresenceFromEnv(secrets)),
+        NO_CALLS,
       ),
     );
     for (const value of Object.values(secrets)) {
@@ -131,6 +140,7 @@ describe("callReadinessResponse — one next step, and no lie about where env li
       })),
       AT,
       NO_REPAIR_ENV,
+      NO_CALLS,
     );
     expect(armed.nextStep).toBe(PLACE_A_CALL_STEP);
     expect(armed.repair.doors.every((d) => d.state === "inert")).toBe(true);
@@ -147,6 +157,7 @@ describe("callReadinessResponse — one next step, and no lie about where env li
       })),
       AT,
       NO_REPAIR_ENV,
+      NO_CALLS,
     );
     expect(r.verdict).toBe("configured");
     expect(r.missing).toEqual([]);
@@ -164,7 +175,67 @@ describe("callReadinessResponse — one next step, and no lie about where env li
       warnings: 1,
       repairDoorsOpen: 0,
       repairMissing: 5,
+      // inc.46: `unreadable` would appear here as its own reach, never as `none` — a grep
+      // for an unused chain must not match a store that could not be read.
+      evidenceReach: "none",
+      evidenceProven: false,
     });
     expect(JSON.stringify(log)).not.toContain("redeploy");
+  });
+});
+
+describe("callReadinessResponse — evidence may end the ask, and nothing else may (inc.46)", () => {
+  const ARMED = config({
+    twilioAuthToken: true,
+    twilioCallerId: true,
+    deepgramKey: true,
+    anthropicKey: true,
+  });
+  const withEvidence = (evidence: EvidenceSection, cfg = ARMED) =>
+    callReadinessResponse(callChainReadiness(cfg), AT, NO_REPAIR_ENV, evidence);
+  const read = (
+    counts: { filed: number; transcribed: number; summarised: number },
+  ): EvidenceSection => ({ state: "read", evidence: callEvidence(counts) });
+
+  it("stops asking for a call once one has actually reached a summary", () => {
+    // For 45 increments the armed branch could only repeat "place a call", because the
+    // report had no way to know one already had been — including to a Rob who had.
+    const r = withEvidence(read({ filed: 1, transcribed: 1, summarised: 1 }));
+    expect(r.nextStep).toBe(DOD_MET_STEP);
+    // ...and it still names the proof rather than declaring completion.
+    expect(r.nextStep).toMatch(/summary/i);
+  });
+
+  it("keeps asking when the store could not be read", () => {
+    // `unreadable` must never be worth more than silence. Anything else lets a broken
+    // service key tick the DoD.
+    const r = withEvidence({ state: "unreadable", reason: "SUPABASE_URL not set" });
+    expect(r.nextStep).toBe(PLACE_A_CALL_STEP);
+  });
+
+  it("refuses the claim when the counts contradict themselves", () => {
+    // A summary over a call with no words is the fabricated-summary shape this feature
+    // exists to refuse — it must not be the thing that ends the ask.
+    const r = withEvidence(read({ filed: 1, transcribed: 0, summarised: 1 }));
+    expect(r.nextStep).toBe(PLACE_A_CALL_STEP);
+    expect(r.evidence.state === "read" && r.evidence.evidence.contradictions.length).toBeTruthy();
+  });
+
+  it("never lets an old proven call outrank a key the chain is missing NOW", () => {
+    // Rule 3 holds above evidence: a chain missing DEEPGRAM_API_KEY is not made whole by a
+    // call that ran before the key was removed.
+    const r = withEvidence(
+      read({ filed: 3, transcribed: 3, summarised: 3 }),
+      config({ twilioAuthToken: true, twilioCallerId: true, anthropicKey: true }),
+    );
+    expect(r.nextStep).toMatch(/DEEPGRAM_API_KEY/);
+  });
+
+  it("leaves the env half's `proven: false` exactly as inc.21 typed it", () => {
+    // The chain report's own `proven` is env-only by construction; evidence lives in its
+    // own section and may never leak into it.
+    const r = withEvidence(read({ filed: 1, transcribed: 1, summarised: 1 }));
+    expect(r.proven).toBe(false);
+    expect(r.evidence).toEqual({ state: "read", evidence: expect.objectContaining({ proven: true }) });
   });
 });
