@@ -5,6 +5,7 @@ import GenericDomainBlocklist from "@/components/GenericDomainBlocklist";
 import DedupQueue from "@/components/DedupQueue";
 import NeedsActionPanel from "@/components/NeedsActionPanel";
 import EquitySplits from "@/components/EquitySplits";
+import { dealCandidate } from "@/lib/equity";
 import { computeStats, contribution, isDemo, money } from "@/lib/stats";
 import type { Person, Project, WillItem } from "@/lib/types";
 
@@ -30,10 +31,11 @@ export default async function Overview() {
   // (`deal-gulf-coast-equity-phase4`) — feeding only people/orgs silently dropped a
   // stake Rob had discussed by name, and a missing row here reads as "we own nothing
   // there", which is the more dangerous lie. Deals carry their own route.
-  const equityCandidates = [
-    ...data.people,
-    ...deals.map((d) => ({ id: d.id, name: d.name, notes: d.notes, href: `/deals/${d.id}` })),
-  ];
+  //
+  // Q41 inc.6: the mapping moved into `dealCandidate` because the literal that used
+  // to be here dropped `equity` — a split corrected on a deal saved fine and then
+  // rendered as the stale prose number.
+  const equityCandidates = [...data.people, ...deals.map(dealCandidate)];
 
   const willItems: { project: Project; item: WillItem }[] = data.projects.flatMap(
     (project) => (project.willItems ?? []).filter((i) => !i.done).map((item) => ({ project, item }))

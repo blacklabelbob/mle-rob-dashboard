@@ -36,6 +36,33 @@ export interface EquitySplit {
   href?: string;
 }
 
+/**
+ * Q41 inc.6 — the deal→candidate mapping, here rather than in a page.
+ *
+ * THE DEFECT THIS CLOSES: `app/page.tsx` built its deal candidates inline as
+ * `{ id, name, notes, href }` and DROPPED `equity`. Every layer beneath it carried
+ * the column correctly — 0024 stores it, `toDeal` reads it, the PATCH door writes it
+ * — and the one hand-written object literal at the top threw it away. So a split Rob
+ * corrected on the Gulf Coast 30% (a DEAL, the one stake he named by name) saved to
+ * the database, returned 200, and then rendered on the master registry as the OLD
+ * prose number labelled "read out of the description". A correction that appears not
+ * to have happened is worse than no correction door at all: the second time, he does
+ * not trust the number OR the fix.
+ *
+ * It is a function, exported and tested, precisely because it was a literal that
+ * looked complete. Two screens now build the candidate the same way by construction.
+ */
+export interface DealLike {
+  id: string;
+  name: string;
+  notes?: string;
+  equity?: EquityCandidate["equity"];
+}
+
+export function dealCandidate(d: DealLike): EquityCandidate {
+  return { id: d.id, name: d.name, notes: d.notes, equity: d.equity, href: `/deals/${d.id}` };
+}
+
 /** An equity-bearing record whose split we could NOT read. Shown, never hidden. */
 export interface UnreadableEquity {
   entityId: string;

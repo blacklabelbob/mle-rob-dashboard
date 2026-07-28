@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  dealCandidate,
   equityRegistry,
   isEquityRecord,
   equitySaveOutcome,
@@ -533,5 +534,50 @@ describe("recordEquityView", () => {
       expect(view.unreadable).toEqual(panel.unreadable.find((u) => u.entityId === c.id) ?? null);
       expect(view.lead).toEqual(leads.find((l) => l.entityId === c.id) ?? null);
     }
+  });
+});
+
+// Q41 inc.6 — the mapping that dropped the field.
+//
+// These read like they are testing three lines of object construction, and they are.
+// That construction lived inline on the Overview for five increments and silently
+// discarded `equity`, so the ONE record Rob named — the Gulf Coast 30%, which is a
+// deal — could be corrected in the UI, saved to Supabase, and still render the old
+// prose number. Every test below fails against that literal.
+describe("dealCandidate (Q41 inc.6)", () => {
+  const GULF = {
+    id: "deal-gulf-coast-equity-phase4",
+    name: "Gulf Coast RE — Phase 4 equity",
+    notes: "30% equity split to us. NOTHING SIGNED yet.",
+  };
+
+  it("carries the structured field through, so a correction on a deal is visible", () => {
+    const corrected = dealCandidate({
+      ...GULF,
+      equity: { counterpartyPct: 25, ourPct: 75, state: "signed", setBy: "rob", setAt: "2026-07-28" },
+    });
+    const split = readEquitySplit(corrected) as EquitySplit;
+    expect(split.counterpartyPct).toBe(25);
+    expect(split.provenance).toBe("field");
+    expect(split.state).toBe("signed");
+  });
+
+  it("still reads the prose when no correction has been made", () => {
+    const split = readEquitySplit(dealCandidate(GULF)) as EquitySplit;
+    expect(split.counterpartyPct).toBe(30);
+    expect(split.provenance).toBe("prose");
+    expect(split.state).toBe("verbal");
+  });
+
+  it("routes to the deal, never to /people — a stake is not always an entity", () => {
+    expect(dealCandidate(GULF).href).toBe("/deals/deal-gulf-coast-equity-phase4");
+  });
+
+  it("keeps the drift guard armed on deals: a corrected field vs stale notes", () => {
+    const drifted = dealCandidate({
+      ...GULF,
+      equity: { counterpartyPct: 25, ourPct: 75, setBy: "rob", setAt: "2026-07-28" },
+    });
+    expect(prosePercentConflict(drifted)).toMatch(/field says 25%/);
   });
 });

@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import DocumentsSection from "@/components/esign/DocumentsSection";
+import EquityOnRecord from "@/components/EquityOnRecord";
+import { dealCandidate } from "@/lib/equity";
 import { STAGE_LABELS } from "@/lib/labels";
 import { money } from "@/lib/stats";
 import { scoreDeal } from "@/lib/scoring/deal";
@@ -77,6 +79,13 @@ export default async function DealPage({ params }: { params: Promise<{ id: strin
         </div>
 
         <aside className="space-y-6">
+          {/* Q41 inc.6: inc.5 mounted this on people and companies, but the Gulf
+              Coast 30% — the stake Rob named — is a DEAL, so the one record the
+              registry links to for it had no equity on it at all. Same
+              `recordEquityView` as the master panel, off the same `dealCandidate`,
+              so the two surfaces cannot state different numbers. */}
+          <EquityOnRecord candidate={dealCandidate(deal)} />
+
           <section className="rounded-xl border border-white/10 bg-white/5 p-5">
             <h2 className="font-semibold text-white">Deal</h2>
             <dl className="mt-3 space-y-2 text-sm">
