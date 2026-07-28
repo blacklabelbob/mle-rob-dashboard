@@ -15,6 +15,7 @@ import DealPhaseControl from "@/components/DealPhaseControl";
 import { buildBlueprint } from "@/lib/phases/blueprint";
 import { loadComponentLive, mergeComponentLive } from "@/lib/phases/componentLiveLoad";
 import { loadScanPicks } from "@/lib/phases/scanPicksLoad";
+import { loadPhase2Returns } from "@/lib/phases/phase2ReturnsLoad";
 import { splitNotes } from "@/lib/notes";
 import { typeLabel, STAGE_LABELS } from "@/lib/labels";
 
@@ -75,13 +76,24 @@ export default async function CompanyPage({
   // parameter nothing supplies — `loadScanPicks` reads this customer's recorded
   // shortlist out of 0027. It never throws either, and a read that failed is
   // passed through as such rather than rendering as "nothing has been picked".
+  //
+  // Q63 leg (5) inc.7: the ROI guarantee stops being fed by a parameter nothing
+  // supplies — `loadPhase2Returns` reads THIS customer's measured returns out of
+  // 0028. Same contract as the two loaders above: it never throws (a returns-store
+  // outage must not 500 the record carrying this company's money), and a read that
+  // FAILED is carried through as `unavailable` rather than rendering as "not
+  // measured yet" — that wording is a claim about the customer, and our outage does
+  // not entitle us to make it under a money guarantee.
   const signals = await loadComponentLive(company.id);
   const picks = await loadScanPicks(company.id);
+  const returns = await loadPhase2Returns(company.id);
   const blueprint = buildBlueprint({
     deals: deals.rows,
     components: mergeComponentLive(company.phaseComponents, signals.map),
     automationPicks: picks.picks,
     automationPicksUnavailable: picks.unavailable,
+    phase2Returns: returns.selection.returns,
+    phase2ReturnsUnavailable: returns.unavailable,
     asOf: new Date().toISOString().slice(0, 10),
   });
 

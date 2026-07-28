@@ -12,6 +12,7 @@ import { getStore } from "@/lib/storage";
 import { buildBlueprint } from "@/lib/phases/blueprint";
 import { loadComponentLive, mergeComponentLive } from "@/lib/phases/componentLiveLoad";
 import { loadScanPicks } from "@/lib/phases/scanPicksLoad";
+import { loadPhase2Returns } from "@/lib/phases/phase2ReturnsLoad";
 import { isDemo as isDemoPerson } from "@/lib/stats";
 import { demoActivity, sourceContext, touchReason } from "@/lib/repSource";
 
@@ -58,8 +59,13 @@ export default async function RepAccountWorkspace({
   // from the same loader, so a rep and Rob can never pitch two different lists.
   // (What the rep is allowed to SEE of it is `aimForNextFor("rep")`'s call, made
   // once in the pure module — never re-decided here.)
+  // Q63 leg (5) inc.7 — the rep's guarantee is read from the SAME store, keyed the
+  // same way, as the one on the master record: a rep and Rob can never be told two
+  // different things about whether the money guarantee is being met. A failed read
+  // travels as `unavailable`, never as "not measured yet".
   const signals = await loadComponentLive(person.id);
   const picks = await loadScanPicks(person.id);
+  const returns = await loadPhase2Returns(person.id);
   const blueprint = buildBlueprint({
     deals: [
       {
@@ -71,6 +77,8 @@ export default async function RepAccountWorkspace({
       },
     ],
     components: mergeComponentLive(person.phaseComponents, signals.map),
+    phase2Returns: returns.selection.returns,
+    phase2ReturnsUnavailable: returns.unavailable,
     asOf: new Date().toISOString().slice(0, 10),
   });
 
