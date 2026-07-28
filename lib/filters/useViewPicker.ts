@@ -57,8 +57,6 @@ export function useViewPicker(
   const search = useSearchParams().toString();
   const pageUrl = search === "" ? pathname : `${pathname}?${search}`;
 
-  const [list, setList] = useState<SavedViewList | null>(null);
-  const [listError, setListError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [reloads, setReloads] = useState(0);
@@ -66,33 +64,43 @@ export function useViewPicker(
   const owner = identity?.owner ?? null;
   const team = identity?.team ?? null;
 
+  // Which read the stored answer belongs to. Stamping the answer with its own request means
+  // a new rep, a new team or a reload INVALIDATES the previous list and its error by simply
+  // not matching any more — no reset written back from the effect, and a late response from
+  // a superseded request can never paint over the current one.
+  const requestKey = `${owner ?? ""}|${team ?? ""}|${reloads}`;
+  const [answer, setAnswer] = useState<{
+    key: string;
+    list: SavedViewList | null;
+    error: string | null;
+  } | null>(null);
+
   useEffect(() => {
     // No identity is not an error and not an empty list — it is "we cannot ask yet", and
     // the component says so. Firing the request anyway would 400 on a blank owner.
-    if (owner === null) {
-      setList(null);
-      setListError(null);
-      return;
-    }
+    if (owner === null) return;
     const ac = new AbortController();
     let live = true;
-    setListError(null);
     fetchSavedViews({ owner, team }, { fetchImpl: fetch, signal: ac.signal })
       .then((next) => {
-        if (live) setList(next);
+        if (live) setAnswer({ key: requestKey, list: next, error: null });
       })
       .catch((e) => {
         if (!live || ac.signal.aborted) return;
         // The old list is dropped with the error: a stale list beside a failure message
         // invites a click that deletes a view this rep may no longer be looking at.
-        setList(null);
-        setListError(message(e));
+        setAnswer({ key: requestKey, list: null, error: message(e) });
       });
     return () => {
       live = false;
       ac.abort();
     };
-  }, [owner, team, reloads]);
+  }, [owner, team, requestKey]);
+
+  // "We cannot ask yet" is a fact about `owner`, known at render — never a stored value.
+  const current = answer !== null && answer.key === requestKey ? answer : null;
+  const list = owner === null ? null : (current?.list ?? null);
+  const listError = owner === null ? null : (current?.error ?? null);
 
   const model = useMemo(
     () =>

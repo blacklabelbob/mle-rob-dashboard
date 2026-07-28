@@ -19,7 +19,9 @@ import type { Lineage, LineageRef } from "@/lib/lineage";
 //      hop Rob needed to see.
 
 /** Chips are links except the node itself, which the caller omits anyway. */
-function Hop({ ref: hop, dim }: { ref: LineageRef; dim?: boolean }) {
+// `hop` is deliberately NOT named `ref`: React 19 treats `ref` as a reserved
+// prop, so a prop of that name reads as a ref access during render.
+function Hop({ hop, dim }: { hop: LineageRef; dim?: boolean }) {
   return (
     <Link
       href={`/people/${hop.id}`}
@@ -80,7 +82,7 @@ export function ChainBreadcrumb({
               <Arrow />
             </>
           )}
-          <Hop ref={hop} />
+          <Hop hop={hop} />
         </span>
       ))}
       {expanded && truncatable && (

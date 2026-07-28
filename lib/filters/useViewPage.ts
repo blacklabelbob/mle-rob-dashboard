@@ -52,10 +52,18 @@ export function useViewPage(source: ViewSource | null, opts: UseViewPageOptions 
 
   // Options are read through a ref so changing `limit` mid-scroll does not retrigger the
   // effect and restart the walk; the next page picks the new value up.
+  //
+  // The sync happens in an effect, not during render: writing a ref while rendering is a
+  // tearing hazard under concurrent React (a render that gets thrown away still mutated
+  // the ref). Both refs are only ever READ at effect time or from an event handler — never
+  // during render — so effect-time freshness is exactly as fresh as the readers need. This
+  // effect is declared ahead of the fetch effect below so the refs are current before it runs.
   const optsRef = useRef(opts);
-  optsRef.current = opts;
   const sourceRef = useRef(source);
-  sourceRef.current = source;
+  useEffect(() => {
+    optsRef.current = opts;
+    sourceRef.current = source;
+  });
 
   // The source is an object literal at most call sites, so a value key — not the object —
   // is what keeps the effect from refetching on every render.

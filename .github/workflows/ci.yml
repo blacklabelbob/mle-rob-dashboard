@@ -1,5 +1,12 @@
 # CI — the independent robot (Rob 2026-07-22): every push re-verified on GitHub's
 # machines. The 3am driver can't ship a broken build without this screaming.
+#
+# 2026-07-28: every gate now runs even when an earlier one failed. Before this the steps
+# short-circuited, so 3½ days of "All jobs have failed" meant only "lint is unhappy" — the
+# build and the 2759 tests never executed in CI at all, and a genuine break would have
+# looked identical to a style nit. The job still fails if any gate fails; the difference is
+# that the mail now names everything that is wrong, not just the first thing.
+# The gate that runs BEFORE the push lives in .githooks/pre-push.
 name: CI
 on:
   push:
@@ -12,9 +19,25 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: 20, cache: npm }
-      - run: npm ci
-      - run: npm run lint
-      - run: npm run build
+      - name: Install
+        id: install
+        run: npm ci
+
+      # `always() && install succeeded` — run each gate regardless of what the gates before
+      # it did, but never against a failed install (that turns one real error into three
+      # confusing ones).
+      - name: Lint
+        if: always() && steps.install.outcome == 'success'
+        run: npm run lint
+
+      - name: Build
+        if: always() && steps.install.outcome == 'success'
+        run: npm run build
         env:
           STORAGE_SOURCE: file   # CI never touches live Supabase
-      - run: npx vitest run
+
+      - name: Tests
+        if: always() && steps.install.outcome == 'success'
+        run: npx vitest run
+        env:
+          STORAGE_SOURCE: file

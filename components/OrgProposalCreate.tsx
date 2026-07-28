@@ -46,10 +46,12 @@ export default function OrgProposalCreate({
   // never shown; `load` is what lets the form say which of the two things went
   // wrong. Reopening refetches (verticals stays empty on failure), so "close
   // and reopen to retry" is a real instruction, not a shrug.
+  // The "retry" half of that promise is armed by the open button, not from here: resetting
+  // `load` in this effect body cost a cascading render on every open, and the button is
+  // the actual moment a retry begins.
   useEffect(() => {
     if (!open || verticals.length) return;
     let cancelled = false;
-    setLoad("loading");
     fetch("/api/admin/org-proposals")
       .then((r) => (r.ok ? r.json() : null))
       .then((j) => {
@@ -118,7 +120,12 @@ export default function OrgProposalCreate({
   if (!open) {
     return (
       <button
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          // Reopening is the retry: clear the last attempt's verdict so a previously
+          // unreachable list says "loading" again rather than re-accusing the reviewer.
+          setLoad("loading");
+          setOpen(true);
+        }}
         className="rounded-md bg-sky-500/90 px-2.5 py-1 text-xs font-semibold text-white transition hover:bg-sky-400"
       >
         Create company

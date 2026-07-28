@@ -92,8 +92,12 @@ export default function GenericDomainBlocklist() {
   }, []);
 
   useEffect(() => {
-    void load();
-    void loadFlags();
+    // Both reads are awaited inside one async body so neither can land a setState on the
+    // effect's synchronous path — the two reads stay independent (see above), they just
+    // stop cascading a render before the first fetch has even been issued.
+    void (async () => {
+      await Promise.allSettled([load(), loadFlags()]);
+    })();
   }, [load, loadFlags]);
 
   const badge = blocklistBadge(audit);

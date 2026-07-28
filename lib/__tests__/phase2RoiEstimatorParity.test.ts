@@ -39,7 +39,6 @@ function literal<T>(name: string, open: "{" | "["): T {
   for (let i = from; i < html.length; i++) {
     if (html[i] === open) depth++;
     else if (html[i] === close && --depth === 0) {
-      // eslint-disable-next-line @typescript-eslint/no-implied-eval
       return new Function(`return (${html.slice(from, i + 1)})`)() as T;
     }
   }

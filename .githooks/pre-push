@@ -1,0 +1,26 @@
+#!/bin/sh
+# The gate that was missing (Rob, 2026-07-28).
+#
+# Between 7/25 04:00 and 7/28 20:24, 263 of 300 CI runs were red and EVERY one of them was
+# the same failure: `npm run lint` exiting 1. Nothing ran ESLint before a push — no
+# pre-commit hook, no pre-push hook, no driver step — so the only machine that ever saw the
+# error was GitHub's, after the commit was already public. Each session shipped, CI mailed
+# Rob, the session never saw the mail, and the next increment inherited the red. CI is the
+# SECOND opinion; this is the first.
+#
+# Enabled by:  git config core.hooksPath .githooks   (per clone, run once)
+# Deliberate bypass (rare, and say so in the commit):  git push --no-verify
+#
+# Build is intentionally NOT here — it is the slow gate and CI carries it. This stays under
+# ~40s on purpose: a gate slow enough to resent is a gate that gets bypassed.
+
+set -e
+cd "$(git rev-parse --show-toplevel)"
+
+printf '\n[pre-push] lint\n'
+npm run lint
+
+printf '\n[pre-push] tests\n'
+STORAGE_SOURCE=file npx vitest run
+
+printf '\n[pre-push] clean — pushing\n'
