@@ -139,6 +139,15 @@ export interface BlueprintInput {
    */
   phase2Returns?: Phase2Returns;
   /**
+   * Q63 leg (5) inc.6 — the returns store was asked and did not answer
+   * (`loadPhase2Returns` → `unavailable`). Threaded through untouched for the
+   * same reason as `automationPicksUnavailable`: passing only the empty
+   * selection would render our failed read as "not measured yet" on a page that
+   * carries a money guarantee. The guarantee decides what to say; this only
+   * carries the fact that we could not read.
+   */
+  phase2ReturnsUnavailable?: boolean;
+  /**
    * Q40 leg (6) — this customer's recommended Phase 2 automations, when someone
    * has picked them. Supplied by `loadScanPicks` (inc.17) off 0027; absent means
    * the slot reports the shortlist unpicked rather than showing a template list.
@@ -323,6 +332,7 @@ export function buildBlueprint({
   standardPrices,
   advancedToPhase2At,
   phase2Returns,
+  phase2ReturnsUnavailable,
   automationPicks,
   automationPicksUnavailable,
   asOf,
@@ -366,6 +376,7 @@ export function buildBlueprint({
               startedAt: advancedToPhase2At,
               investment: money.attribution === "none" ? undefined : money.value,
               returns: phase2Returns,
+              returnsUnavailable: phase2ReturnsUnavailable,
               asOf,
             })
           : undefined,

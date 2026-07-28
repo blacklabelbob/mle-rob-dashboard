@@ -243,6 +243,31 @@ describe("blueprint", () => {
       expect(b.phases[1].roiGuarantee!.state).toBe("NO_TARGET");
     });
 
+    // Q63 leg (5) inc.6 — the read failure has to survive the whole way to the
+    // guarantee. If the blueprint dropped this flag, a page whose store was down
+    // would print AWAITING_DATA at a paying customer: a factual claim about them,
+    // manufactured by an outage of ours.
+    it("carries a failed returns read through to the guarantee instead of reporting 'not measured yet'", () => {
+      const b = buildBlueprint({
+        deals: [deal({ id: "p2", name: "P2 paper", phase: 2, value: 24000 })],
+        advancedToPhase2At: "2026-07-01",
+        phase2ReturnsUnavailable: true,
+        asOf,
+      });
+      expect(b.phases[1].roiGuarantee!.state).toBe("MEASUREMENT_UNAVAILABLE");
+      expect(b.phases[1].roiGuarantee!.line).toMatch(/could not be read/i);
+    });
+
+    it("reads AWAITING_DATA when the store answered and simply held nothing", () => {
+      const b = buildBlueprint({
+        deals: [deal({ id: "p2", name: "P2 paper", phase: 2, value: 24000 })],
+        advancedToPhase2At: "2026-07-01",
+        phase2ReturnsUnavailable: false,
+        asOf,
+      });
+      expect(b.phases[1].roiGuarantee!.state).toBe("AWAITING_DATA");
+    });
+
     it("starts the clock from the recorded advance date, never from asOf", () => {
       const b = buildBlueprint({ deals: [], advancedToPhase2At: "2026-07-01", asOf });
       expect(b.phases[1].roiGuarantee!.daysElapsed).toBe(26);

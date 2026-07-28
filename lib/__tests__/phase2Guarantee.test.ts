@@ -94,6 +94,57 @@ describe("phase2Guarantee — never-measured is never a shortfall", () => {
     expect(s.state).toBe("AWAITING_DATA");
   });
 
+  it("a failed read is MEASUREMENT_UNAVAILABLE, never AWAITING_DATA", () => {
+    const s = phase2Guarantee({
+      startedAt: "2026-06-28",
+      investment: 10_000,
+      returnsUnavailable: true,
+      asOf: "2026-07-28",
+    });
+    expect(s.state).toBe("MEASUREMENT_UNAVAILABLE");
+    expect(s.roi).toBeUndefined();
+    expect(s.daysElapsed).toBe(30);
+    expect(s.investment).toBe(10_000);
+    // The customer is told whose problem it is, and is NOT told they are unmeasured.
+    expect(s.line).toMatch(/could not be read/i);
+    expect(s.line).toMatch(/not a shortfall/i);
+    expect(s.line).not.toMatch(/have not been measured yet/i);
+  });
+
+  it("a usable measurement in hand outranks the unavailable flag — a real row is evidence, a failed read is not", () => {
+    const s = phase2Guarantee({
+      startedAt: "2026-06-28",
+      investment: 10_000,
+      returns: RETURNS,
+      returnsUnavailable: true,
+      asOf: "2026-07-28",
+    });
+    expect(s.state).toBe("RUNNING");
+    expect(s.roi).toBeDefined();
+  });
+
+  it("the flag never invents a clock or a target — an unread store above them stays NOT_STARTED / NO_TARGET", () => {
+    const noClock = phase2Guarantee({ returnsUnavailable: true, asOf: "2026-07-28" });
+    expect(noClock.state).toBe("NOT_STARTED");
+    const noTarget = phase2Guarantee({
+      startedAt: "2026-06-28",
+      returnsUnavailable: true,
+      asOf: "2026-07-28",
+    });
+    expect(noTarget.state).toBe("NO_TARGET");
+  });
+
+  it("unusable stored numbers plus a failed read still report the read failure, not 'not measured'", () => {
+    const s = phase2Guarantee({
+      startedAt: "2026-06-28",
+      investment: 10_000,
+      returns: { laborHoursSaved: Number.NaN, laborCostPerHour: 50, revenueSincePhase2Start: 0 },
+      returnsUnavailable: true,
+      asOf: "2026-07-28",
+    });
+    expect(s.state).toBe("MEASUREMENT_UNAVAILABLE");
+  });
+
   it("negative revenue (a refund month) is legitimate and still computes", () => {
     const s = phase2Guarantee({
       startedAt: "2026-06-28",

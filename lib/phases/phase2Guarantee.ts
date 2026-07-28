@@ -16,6 +16,12 @@
 //                    and the investment IS the target (Rob: "Phase 2 Investment =
 //                    ROI Target"). No investment, no target, no percentage.
 //   AWAITING_DATA  → clock + target known, but nobody has measured the returns.
+//   MEASUREMENT_UNAVAILABLE
+//                  → clock + target known, and we DO NOT KNOW whether the returns
+//                    were measured, because the store could not be read. This is
+//                    a fifth answer, not a flavour of AWAITING_DATA: "nobody has
+//                    measured you yet" is a claim about the customer, and we are
+//                    not entitled to make it on the strength of our own outage.
 //   RUNNING        → everything known; the engine computes, this reports.
 //
 // THE DEFECT THIS FILE EXISTS TO PREVENT: handing the engine zeros for an
@@ -34,7 +40,12 @@ import {
 } from "@/lib/roi/phase2";
 import { PHASE_2_ROI_GUARANTEE_MONTHS } from "./components";
 
-export type Phase2GuaranteeState = "NOT_STARTED" | "NO_TARGET" | "AWAITING_DATA" | "RUNNING";
+export type Phase2GuaranteeState =
+  | "NOT_STARTED"
+  | "NO_TARGET"
+  | "AWAITING_DATA"
+  | "MEASUREMENT_UNAVAILABLE"
+  | "RUNNING";
 
 /** What Phase 2 has actually returned. Absent = never measured, NOT zero. */
 export interface Phase2Returns {
@@ -50,6 +61,16 @@ export interface Phase2GuaranteeInput {
   investment?: number;
   /** Measured returns. Absent = nobody has measured; see the header. */
   returns?: Phase2Returns;
+  /**
+   * The returns store was asked and did not answer (`loadPhase2Returns` →
+   * `unavailable`). Consulted ONLY where the absence of returns would otherwise
+   * be reported as AWAITING_DATA — an absence we cannot vouch for.
+   *
+   * PINNED: a usable measurement in hand outranks this flag. A stale-but-real
+   * row is evidence; a failed read is not evidence of its absence. So if
+   * `returns` is usable we compute, whatever this says.
+   */
+  returnsUnavailable?: boolean;
   /** Evaluation time, ISO. Always passed in — never read from the clock here. */
   asOf: string;
   /** Overridable because Rob said the formula may change. */
@@ -145,6 +166,16 @@ export function phase2Guarantee(input: Phase2GuaranteeInput): Phase2GuaranteeSta
   }
 
   if (!usableReturns(input.returns)) {
+    if (input.returnsUnavailable) {
+      // Our outage, stated as ours. Not a shortfall (no figure is computed) and
+      // not "not measured yet" (that would blame the customer for our read).
+      return {
+        ...started,
+        state: "MEASUREMENT_UNAVAILABLE",
+        investment: input.investment,
+        line: `${LABEL} — running (day ${elapsed} of ${guaranteeDays}). The recorded return measurements could not be read just now, so no ROI is shown. This is a problem on our side, not a shortfall, and not a statement that nothing has been measured.`,
+      };
+    }
     return {
       ...started,
       state: "AWAITING_DATA",
