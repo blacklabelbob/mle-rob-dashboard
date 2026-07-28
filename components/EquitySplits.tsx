@@ -1,0 +1,93 @@
+import Link from "next/link";
+import { equityRegistry, type EquityCandidate, type EquityState } from "@/lib/equity";
+
+// Q41 increment 1 — the answer to Rob dev-chat #53, "At the Master Level we need
+// to see if we have any equity Split", rendered where he asked for it.
+//
+// Design rule this panel obeys: agreed-verbally and signed are DIFFERENT FACTS and
+// never share a colour. "35/65" alone is not the truth — "35/65, nothing signed" is.
+// Anything we could not read as a number is listed under the table rather than
+// dropped, because a missing equity row reads as "we have no stake there".
+
+const STATE_LABEL: Record<EquityState, string> = {
+  signed: "SIGNED",
+  verbal: "agreed verbally — nothing signed",
+  draft: "in draft at counsel",
+  unknown: "state not recorded",
+};
+
+const STATE_CLASS: Record<EquityState, string> = {
+  signed: "text-emerald-400",
+  verbal: "text-amber-400",
+  draft: "text-sky-300",
+  unknown: "text-slate-500",
+};
+
+export default function EquitySplits({ candidates }: { candidates: EquityCandidate[] }) {
+  const { splits, unreadable } = equityRegistry(candidates);
+
+  return (
+    <section className="rounded-xl border border-white/10 bg-white/5 p-5">
+      <div className="flex items-baseline justify-between">
+        <h2 className="font-semibold text-white">Equity splits</h2>
+        <span className="text-[11px] uppercase tracking-wide text-slate-500">owners only</span>
+      </div>
+      <p className="mt-1 text-xs text-slate-500">
+        Every ownership stake we hold, and whether it is actually signed.
+      </p>
+
+      {splits.length === 0 && unreadable.length === 0 ? (
+        <p className="mt-4 text-xs text-slate-500">
+          No equity records yet — this is genuinely empty, not still loading.
+        </p>
+      ) : (
+        <ul className="mt-3 divide-y divide-white/5">
+          {splits.map((s) => (
+            <li key={s.entityId} className="py-3">
+              <div className="flex items-baseline justify-between gap-3">
+                <Link
+                  href={s.href ?? `/people/${s.entityId}`}
+                  className="text-sm text-slate-200 hover:text-white hover:underline"
+                >
+                  {s.entityName}
+                </Link>
+                <span className="shrink-0 text-sm font-semibold tabular-nums text-white">
+                  {s.counterpartyPct === null ? "—" : `${s.counterpartyPct} / ${s.ourPct}`}
+                </span>
+              </div>
+              <div className={`mt-0.5 text-[11px] ${STATE_CLASS[s.state]}`}>
+                {STATE_LABEL[s.state]}
+              </div>
+              {s.provenance === "prose" && (
+                // Honest about its own weakness: this number was read out of a
+                // sentence, which is exactly how it went wrong last time. It stops
+                // saying this the moment the record has a real field (increment 2).
+                <div className="mt-1 text-[11px] text-slate-600">
+                  read out of the description — not a field you can edit yet
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {unreadable.length > 0 && (
+        <div className="mt-4 rounded-lg border border-amber-500/20 bg-amber-500/5 p-3">
+          <div className="text-[11px] font-semibold uppercase tracking-wide text-amber-400">
+            Equity records with no readable split
+          </div>
+          <ul className="mt-1.5 space-y-1">
+            {unreadable.map((u) => (
+              <li key={u.entityId} className="text-[11px] text-slate-400">
+                <Link href={u.href ?? `/people/${u.entityId}`} className="text-slate-300 hover:underline">
+                  {u.entityName}
+                </Link>{" "}
+                — {u.reason}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </section>
+  );
+}

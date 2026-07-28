@@ -4,6 +4,7 @@ import ThingsToAddress from "@/components/ThingsToAddress";
 import GenericDomainBlocklist from "@/components/GenericDomainBlocklist";
 import DedupQueue from "@/components/DedupQueue";
 import NeedsActionPanel from "@/components/NeedsActionPanel";
+import EquitySplits from "@/components/EquitySplits";
 import { computeStats, contribution, isDemo, money } from "@/lib/stats";
 import type { Person, Project, WillItem } from "@/lib/types";
 
@@ -20,9 +21,19 @@ function Stat({ label, value, accent, sub }: { label: string; value: string; acc
 }
 
 export default async function Overview() {
-  const data = await getStore().getNetwork();
+  const store = getStore();
+  const [data, deals] = await Promise.all([store.getNetwork(), store.listDeals()]);
   data.people = data.people.filter((p) => !isDemo(p));
   const stats = computeStats(data);
+
+  // Q41 inc.1: a stake is not always an entity. The Gulf Coast 30% lives on a DEAL
+  // (`deal-gulf-coast-equity-phase4`) — feeding only people/orgs silently dropped a
+  // stake Rob had discussed by name, and a missing row here reads as "we own nothing
+  // there", which is the more dangerous lie. Deals carry their own route.
+  const equityCandidates = [
+    ...data.people,
+    ...deals.map((d) => ({ id: d.id, name: d.name, notes: d.notes, href: `/deals/${d.id}` })),
+  ];
 
   const willItems: { project: Project; item: WillItem }[] = data.projects.flatMap(
     (project) => (project.willItems ?? []).filter((i) => !i.done).map((item) => ({ project, item }))
@@ -108,6 +119,12 @@ export default async function Overview() {
         </section>
 
         <ThingsToAddress mode="overview" />
+
+        {/* Q41 inc.1 (Rob dev-chat #53): equity splits sit high on the master
+            surface because Rob had to ask whether we had any — and then correct
+            one from memory. Fed the whole ledger; the panel decides what is an
+            equity record, so a new spinoff appears here without a code change. */}
+        <EquitySplits candidates={equityCandidates} />
 
         {/* Q69 inc.26: collapsed by default — the reason to open it is a domain
             proposal in the list above, so it lives here without competing with
