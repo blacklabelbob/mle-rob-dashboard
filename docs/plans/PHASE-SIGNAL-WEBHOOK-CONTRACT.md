@@ -1,5 +1,5 @@
 # Phase Component Signal — Webhook Contract v1
-**Date:** 2026-07-22 · **Status:** DRAFT v1 — Max-authored for Will/partner to react to (not waiting on a spec; edits welcome) · **Consumed by:** MASTER-VIEW-2.0-DESIGN.md §3.1 + BUILD-QUEUE Q40 increment 9
+**Date:** 2026-07-22 · **Status:** **LIVE ON PROD as of 2026-07-28 (Q40 inc.13)** — endpoint armed at `https://mle-rob-dashboard.vercel.app/api/webhooks/phase-signal`, `PHASE_SIGNAL_WEBHOOK_SECRET` set, store table `phase_component_state` (0025) applied. Still v1 and still open to the partner's edits; what changed is that it now answers instead of 503ing. **Nothing has been signalled yet — the table holds zero rows, and no signal will be manufactured on this side.** · **Consumed by:** MASTER-VIEW-2.0-DESIGN.md §3.1 + BUILD-QUEUE Q40 increment 9
 **Pattern parent:** `app/api/webhooks/n8n-email/route.ts` (secret header, 503-inert when unconfigured, 200-on-reject so senders never retry-loop)
 
 ## Purpose
