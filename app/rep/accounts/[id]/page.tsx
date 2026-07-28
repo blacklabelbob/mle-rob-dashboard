@@ -11,6 +11,7 @@ import { InlineDateChip, InlineSelect, InlineText } from "@/components/inline/fi
 import { getStore } from "@/lib/storage";
 import { buildBlueprint } from "@/lib/phases/blueprint";
 import { loadComponentLive, mergeComponentLive } from "@/lib/phases/componentLiveLoad";
+import { loadScanPicks } from "@/lib/phases/scanPicksLoad";
 import { isDemo as isDemoPerson } from "@/lib/stats";
 import { demoActivity, sourceContext, touchReason } from "@/lib/repSource";
 
@@ -53,7 +54,12 @@ export default async function RepAccountWorkspace({
   // loader, so "is it live yet?" has one answer across both views. A phase signal
   // is keyed on a company row, so a rep account that is a person simply matches
   // nothing here; that is an honest empty, not a failure.
+  // Q40 leg (6) inc.17 — the rep is handed the SAME recorded shortlist Rob is,
+  // from the same loader, so a rep and Rob can never pitch two different lists.
+  // (What the rep is allowed to SEE of it is `aimForNextFor("rep")`'s call, made
+  // once in the pure module — never re-decided here.)
   const signals = await loadComponentLive(person.id);
+  const picks = await loadScanPicks(person.id);
   const blueprint = buildBlueprint({
     deals: [
       {

@@ -140,10 +140,17 @@ export interface BlueprintInput {
   phase2Returns?: Phase2Returns;
   /**
    * Q40 leg (6) — this customer's recommended Phase 2 automations, when someone
-   * has picked them. No store exists yet, so this is absent today and the slot
-   * reports that the shortlist is unpicked rather than showing a template list.
+   * has picked them. Supplied by `loadScanPicks` (inc.17) off 0027; absent means
+   * the slot reports the shortlist unpicked rather than showing a template list.
    */
   automationPicks?: AutomationPick[];
+  /**
+   * Q40 leg (6) inc.17 — the picks store was asked and did not answer.
+   *
+   * Threaded through untouched: whether a failed read may be rendered as "nothing
+   * picked" is `aimForNext`'s decision, and it is answered there once.
+   */
+  automationPicksUnavailable?: boolean;
   /** Evaluation time. Always passed — never read from the clock in here. */
   asOf: string;
 }
@@ -317,6 +324,7 @@ export function buildBlueprint({
   advancedToPhase2At,
   phase2Returns,
   automationPicks,
+  automationPicksUnavailable,
   asOf,
 }: BlueprintInput): Blueprint {
   const sections: PhaseSection[] = ([1, 2, 3] as PhaseNo[]).map((phase) => {
@@ -403,6 +411,7 @@ export function buildBlueprint({
     phase2Attribution: p2.money.attribution,
     refund: p1.refund,
     recommendations: automationPicks,
+    picksUnavailable: automationPicksUnavailable,
     slotCount: p2.totalCount,
     asOf,
   });

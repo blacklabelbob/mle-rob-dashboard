@@ -38,6 +38,14 @@ export type AimForNextState =
   | "NO_SCAN_YET"
   /** Scan delivered; nobody has picked this customer's automations yet. */
   | "SCAN_NO_PICKS"
+  /**
+   * Scan delivered; the picks store could not be read this render (inc.17).
+   *
+   * Distinct from SCAN_NO_PICKS on purpose: that state asserts nobody has picked
+   * anything, and a failed read is not evidence of that. Collapsing the two tells
+   * a paying customer their shortlist is unstarted because a query timed out.
+   */
+  | "PICKS_UNAVAILABLE"
   /** Real picks, recorded by a human, ready to show. */
   | "READY";
 
@@ -67,6 +75,13 @@ export interface AimForNextInput {
    * absent today and the slot says so rather than inventing a shortlist.
    */
   recommendations?: AutomationPick[];
+  /**
+   * The picks store was asked and did not answer (`loadScanPicks().unavailable`).
+   *
+   * Passed in rather than inferred from an empty `recommendations`, because those
+   * two are the states this panel must never confuse.
+   */
+  picksUnavailable?: boolean;
   /** How many Phase 2 slots exist to fill. Display default, not a promise. */
   slotCount?: number;
   /** Evaluation time, ISO. Always passed — never read from the clock in here. */
@@ -149,6 +164,7 @@ export function aimForNext({
   phase2Attribution,
   refund,
   recommendations,
+  picksUnavailable,
   slotCount = DEFAULT_SLOT_COUNT,
   asOf: _asOf,
 }: AimForNextInput): AimForNext {
@@ -180,6 +196,25 @@ export function aimForNext({
   }
 
   const picks = recommendations ?? [];
+
+  // Checked BELOW the scan gate and ABOVE the empty gate, in that exact order.
+  // Below, because with no scan there is no shortlist to have failed to read —
+  // NO_SCAN_YET is the truth whatever the store did. Above, because "we could not
+  // read it" must win over "nothing is there": an unreadable store that fell
+  // through to SCAN_NO_PICKS would state, to a paying customer, that nobody has
+  // picked their automations — on the one render where we have no idea.
+  //
+  // Rows that DID arrive still win over the flag: a partial read that returned
+  // real picks is better shown than replaced with an apology.
+  if (picksUnavailable && picks.length === 0) {
+    return {
+      ...base,
+      state: "PICKS_UNAVAILABLE",
+      line: "Growth Scan delivered. We couldn't load your automation shortlist just now — this isn't a statement that nothing has been picked. Try again in a moment.",
+      picks: [],
+    };
+  }
+
   if (picks.length === 0) {
     return {
       ...base,

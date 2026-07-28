@@ -14,6 +14,7 @@ import { buildCompanyDeals } from "@/lib/companyDeals";
 import DealPhaseControl from "@/components/DealPhaseControl";
 import { buildBlueprint } from "@/lib/phases/blueprint";
 import { loadComponentLive, mergeComponentLive } from "@/lib/phases/componentLiveLoad";
+import { loadScanPicks } from "@/lib/phases/scanPicksLoad";
 import { splitNotes } from "@/lib/notes";
 import { typeLabel, STAGE_LABELS } from "@/lib/labels";
 
@@ -69,10 +70,18 @@ export default async function CompanyPage({
   // carries. `loadComponentLive` never throws — a signal-seam outage must not
   // 500 the page that also carries this company's deal, money and timeline — and
   // reports itself through `unavailable` so a degraded board says so.
+  //
+  // Q40 leg (6) inc.17: the recommended-automations panel stops being fed by a
+  // parameter nothing supplies — `loadScanPicks` reads this customer's recorded
+  // shortlist out of 0027. It never throws either, and a read that failed is
+  // passed through as such rather than rendering as "nothing has been picked".
   const signals = await loadComponentLive(company.id);
+  const picks = await loadScanPicks(company.id);
   const blueprint = buildBlueprint({
     deals: deals.rows,
     components: mergeComponentLive(company.phaseComponents, signals.map),
+    automationPicks: picks.picks,
+    automationPicksUnavailable: picks.unavailable,
     asOf: new Date().toISOString().slice(0, 10),
   });
 
