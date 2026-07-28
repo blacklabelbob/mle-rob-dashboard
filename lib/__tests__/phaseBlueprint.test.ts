@@ -198,6 +198,57 @@ describe("blueprint", () => {
     expect(b.phases[0].roiGuaranteeMonths).toBeUndefined();
   });
 
+  // Q40 inc.8 — leg (5) on the board. These pin the states the guarantee is
+  // ALLOWED to reach from what the CRM actually holds today.
+  describe("the Phase 2 ROI guarantee's state", () => {
+    it("is carried on Phase 2 only, and never on Phase 1 or 3", () => {
+      const b = buildBlueprint({ deals: [], asOf });
+      expect(b.phases[1].roiGuarantee).toBeDefined();
+      expect(b.phases[0].roiGuarantee).toBeUndefined();
+      expect(b.phases[2].roiGuarantee).toBeUndefined();
+    });
+
+    it("reads NOT_STARTED — not a shortfall — for a customer who never advanced", () => {
+      const b = buildBlueprint({ deals: [], asOf });
+      expect(b.phases[1].roiGuarantee!.state).toBe("NOT_STARTED");
+      expect(b.phases[1].roiGuarantee!.line).toContain("not started");
+      expect(b.phases[1].roiGuarantee!.roi).toBeUndefined();
+    });
+
+    it("never takes the standard list price as the target — the customer never agreed to it", () => {
+      const b = buildBlueprint({
+        deals: [],
+        standardPrices: { 2: 25000 },
+        advancedToPhase2At: "2026-07-01",
+        asOf,
+      });
+      expect(b.phases[1].roiGuarantee!.state).toBe("NO_TARGET");
+      expect(b.phases[1].roiGuarantee!.investment).toBeUndefined();
+      expect(b.phases[1].roiGuarantee!.line).not.toContain("25,000");
+    });
+
+    it("stays AWAITING_DATA once measured returns exist, and only then computes", () => {
+      const b = buildBlueprint({
+        deals: [],
+        advancedToPhase2At: "2026-07-01",
+        phase2Returns: {
+          laborHoursSaved: 100,
+          laborCostPerHour: 30,
+          revenueSincePhase2Start: 5000,
+        },
+        asOf,
+      });
+      // Returns without a target is still no target — the investment IS the target.
+      expect(b.phases[1].roiGuarantee!.state).toBe("NO_TARGET");
+    });
+
+    it("starts the clock from the recorded advance date, never from asOf", () => {
+      const b = buildBlueprint({ deals: [], advancedToPhase2At: "2026-07-01", asOf });
+      expect(b.phases[1].roiGuarantee!.daysElapsed).toBe(26);
+      expect(b.phases[1].roiGuarantee!.startedAt).toBe("2026-07-01");
+    });
+  });
+
   it("says out loud that the board is dark rather than implying zero progress", () => {
     const b = buildBlueprint({ deals: [], asOf });
     expect(b.signalSource).toBe(false);

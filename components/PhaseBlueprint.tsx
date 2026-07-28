@@ -187,12 +187,24 @@ function Phase({ section }: { section: PhaseSection }) {
       <MoneyRow section={section} />
       <Refund section={section} />
 
-      {section.roiGuaranteeMonths !== undefined && (
+      {section.roiGuarantee && (
         <div className="mt-2 flex flex-wrap items-center gap-x-3 border-t border-dashed border-white/10 pt-3 text-xs text-slate-400">
           <span className="text-[10px] uppercase tracking-[0.14em] text-slate-600">Guarantee</span>
-          <span>
-            ROI within <strong className="text-slate-200">{section.roiGuaranteeMonths} months</strong> of
-            this phase going live
+          {/*
+            The sentence is composed in `phase2Guarantee`, never here. A component
+            that assembles its own copy is a second place Rob's money promise can
+            be worded — and the wrong wording ("100% behind") on an unmeasured
+            customer is the exact defect that module exists to prevent.
+          */}
+          <span
+            className={
+              section.roiGuarantee.state === "RUNNING" &&
+              section.roiGuarantee.roi?.status === "shortfall"
+                ? "text-amber-300"
+                : undefined
+            }
+          >
+            {section.roiGuarantee.line}
           </span>
         </div>
       )}

@@ -23,6 +23,11 @@ import {
   type PhaseNo,
 } from "./components";
 import { refundStatus, type RefundStatus } from "./refund";
+import {
+  phase2Guarantee,
+  type Phase2GuaranteeStatus,
+  type Phase2Returns,
+} from "./phase2Guarantee";
 
 /** Stored component state, keyed by slug. `phase_components` when it lands. */
 export type ComponentLiveMap = Record<string, { liveAt?: string; source?: string } | undefined>;
@@ -70,8 +75,14 @@ export interface PhaseSection {
   money: PhaseMoney;
   /** Phase 1 only. */
   refund?: RefundStatus;
-  /** Phase 2 only. */
+  /** Phase 2 only — the label ("3-month ROI guarantee"), not the state. */
   roiGuaranteeMonths?: number;
+  /**
+   * Phase 2 only — the guarantee's actual STATE (Q40 leg 5). A label says what
+   * was promised; this says where the promise stands, including the honest
+   * "we have not measured yet", which is not a shortfall.
+   */
+  roiGuarantee?: Phase2GuaranteeStatus;
 }
 
 export interface Blueprint {
@@ -108,6 +119,12 @@ export interface BlueprintInput {
   standardPrices?: Partial<Record<PhaseNo, number>>;
   /** ISO date the customer advanced to Phase 2, when known. */
   advancedToPhase2At?: string;
+  /**
+   * Measured Phase 2 returns, when someone has measured them. There is no store
+   * for these yet, so this is absent today and the guarantee reports
+   * AWAITING_DATA rather than a fabricated 100% shortfall.
+   */
+  phase2Returns?: Phase2Returns;
   /** Evaluation time. Always passed — never read from the clock in here. */
   asOf: string;
 }
@@ -210,11 +227,16 @@ export function buildBlueprint({
   components,
   standardPrices,
   advancedToPhase2At,
+  phase2Returns,
   asOf,
 }: BlueprintInput): Blueprint {
   const sections: PhaseSection[] = ([1, 2, 3] as PhaseNo[]).map((phase) => {
     const comps = statesFor(phase, components);
     const liveCount = comps.filter((c) => c.live).length;
+    const money =
+      phase === 1
+        ? inferPhaseOneMoney(deals, standardPrices?.[1])
+        : emptyMoney(phase, standardPrices?.[phase]);
     return {
       phase,
       title: PHASE_TITLES[phase],
@@ -223,10 +245,7 @@ export function buildBlueprint({
       components: comps,
       liveCount,
       totalCount: comps.length,
-      money:
-        phase === 1
-          ? inferPhaseOneMoney(deals, standardPrices?.[1])
-          : emptyMoney(phase, standardPrices?.[phase]),
+      money,
       refund:
         phase === 1
           ? refundStatus({
@@ -236,6 +255,24 @@ export function buildBlueprint({
             })
           : undefined,
       roiGuaranteeMonths: phase === 2 ? PHASE_2_ROI_GUARANTEE_MONTHS : undefined,
+      // Q40 inc.8 — leg (5) reaches the board. The guarantee is a MONEY PROMISE,
+      // so its two inputs are only ever real ones:
+      //   • the clock starts from the recorded advance date, never from "today";
+      //   • the target is the Phase 2 investment we actually attributed to this
+      //     phase — never `standardPrice`, which is a list number the customer
+      //     never agreed to, and never a deal we merely guessed belongs here
+      //     (attribution "none" means we do not know, so no target exists).
+      // Both are absent for every customer today, which is why this renders
+      // NOT_STARTED rather than a percentage. That is the truth, and the point.
+      roiGuarantee:
+        phase === 2
+          ? phase2Guarantee({
+              startedAt: advancedToPhase2At,
+              investment: money.attribution === "none" ? undefined : money.value,
+              returns: phase2Returns,
+              asOf,
+            })
+          : undefined,
     };
   });
 
