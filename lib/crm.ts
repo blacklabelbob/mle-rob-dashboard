@@ -208,6 +208,62 @@ export function parseDealStagePatch(body: unknown): DealStagePatch {
   return { ok: true, id, stage: stage as DealStage };
 }
 
+// Q40 inc.11 — the phase setter's gate. Same shape as the stage gate and for
+// the same reason: the phase a human states is the input to the Phase 2 ROI
+// target, so the payload that carries it may carry NOTHING else. A request
+// that smuggles `value` alongside a phase is refused whole, not stripped.
+//
+// `phase: null` is a first-class value, not a missing one: a rep who set the
+// wrong phase must be able to take it back to "unstated". Absent key ≠ null —
+// omitting `phase` is a malformed request, clearing it is a deliberate one.
+export type DealPhasePatch =
+  | { ok: true; id: string; phase: 1 | 2 | 3 | null }
+  | { ok: false; error: string };
+
+export function parseDealPhasePatch(body: unknown): DealPhasePatch {
+  if (typeof body !== "object" || body === null || Array.isArray(body)) {
+    return { ok: false, error: "need { id, phase }" };
+  }
+  const extras = Object.keys(body).filter((k) => k !== "id" && k !== "phase");
+  if (extras.length) {
+    return { ok: false, error: `phase-only route — refused fields: ${extras.join(", ")}` };
+  }
+  const obj = body as { id?: unknown; phase?: unknown };
+  if (typeof obj.id !== "string" || !obj.id) return { ok: false, error: "need { id, phase }" };
+  if (!("phase" in obj)) return { ok: false, error: "need { id, phase }" };
+  if (obj.phase === null) return { ok: true, id: obj.id, phase: null };
+  // Strings are refused rather than coerced: "2" arriving from a <select> that
+  // forgot Number() must fail loudly here, not become a phase nobody typed.
+  if (obj.phase !== 1 && obj.phase !== 2 && obj.phase !== 3) {
+    return { ok: false, error: "phase must be 1, 2, 3, or null" };
+  }
+  return { ok: true, id: obj.id, phase: obj.phase };
+}
+
+// The phase is a claim about a paying agreement, so a change to it leaves the
+// same kind of trace a stage change does — built HERE from the before/after
+// the route read out of the database, never from client input. Clearing reads
+// as "unstated" in the summary because "→ null" tells a human nothing.
+export function buildPhaseChangeActivity(args: {
+  dealId: string;
+  from: 1 | 2 | 3 | null;
+  to: 1 | 2 | 3 | null;
+  at: string; // ISO timestamp passed in by the caller — no clock reads here
+}): Record<string, unknown> | null {
+  const { dealId, from, to, at } = args;
+  if (from === to) return null; // no change → no audit row
+  const label = (p: 1 | 2 | 3 | null) => (p === null ? "unstated" : `Phase ${p}`);
+  return {
+    id: `phase-${dealId}-${at}`,
+    deal_id: dealId,
+    type: "status_change",
+    source: "manual",
+    source_context: { field: "phase", from, to },
+    summary: `Phase: ${label(from)} → ${label(to)}`,
+    occurred_at: at,
+  };
+}
+
 // Task 4.7 audit trail: every real stage change writes exactly one
 // status_change activity. The row is built HERE from the before/after the
 // route itself read out of the database — never from client input (the
