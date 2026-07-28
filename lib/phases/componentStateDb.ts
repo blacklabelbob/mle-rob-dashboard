@@ -46,25 +46,26 @@ export const PHASE_COMPONENT_READ_COLUMNS =
 
 type PostgrestError = { message: string };
 
+type PhaseComponentResult = { data: unknown; error: PostgrestError | null };
+
+/**
+ * A PostgREST filter chain: awaitable at any depth, still narrowable further.
+ *
+ * The single-row read filters three times and takes `maybeSingle()`; the
+ * whole-customer read (inc.5) filters once and awaits the chain itself. Both are
+ * the same builder in the real client, so they are the same type here — a second
+ * hand-rolled shape would be a second chance for the fake to drift from the thing
+ * it stands in for.
+ */
+type PhaseComponentFilter = PromiseLike<PhaseComponentResult> & {
+  eq(column: string, value: unknown): PhaseComponentFilter;
+  maybeSingle(): Promise<PhaseComponentResult>;
+};
+
 /** The read slice of the client, narrow so the write path can't reach a `select` by accident. */
 export type PhaseComponentClient = {
   from(table: string): {
-    select(columns: string): {
-      eq(
-        column: string,
-        value: unknown,
-      ): {
-        eq(
-          column: string,
-          value: unknown,
-        ): {
-          eq(
-            column: string,
-            value: unknown,
-          ): { maybeSingle(): Promise<{ data: unknown; error: PostgrestError | null }> };
-        };
-      };
-    };
+    select(columns: string): PhaseComponentFilter;
     upsert(
       rows: unknown,
       options?: { onConflict?: string },
@@ -82,6 +83,17 @@ export interface PhaseComponentDb {
   ): Promise<PhaseComponentRow | null>;
   /** Upsert inc.2's patch against the identity triple. */
   writeState(patch: PhaseComponentPatch, updatedAt: string): Promise<void>;
+  /**
+   * Every stored row for one customer — the board's read (inc.5).
+   *
+   * Separate from `fetchState` because the failure modes are opposite ends of the
+   * same seam: the write path reads ONE triple to decide against, the board reads
+   * ALL of them to render. It throws on failure for the same reason `fetchState`
+   * does — an empty array and a broken query render identically (a dark board),
+   * and a dark board is a statement to a paying customer that nothing has been
+   * delivered yet.
+   */
+  fetchCustomerRows(customerId: string): Promise<PhaseComponentRow[]>;
 }
 
 function asRow(v: unknown): Record<string, unknown> | null {
@@ -144,6 +156,20 @@ export function supabasePhaseComponentDb(client: PhaseComponentClient): PhaseCom
       // as "this component has never been lit".
       if (error) throw new Error(`${PHASE_COMPONENT_TABLE} read: ${error.message}`);
       return toComponentRow(data);
+    },
+
+    async fetchCustomerRows(customerId) {
+      const { data, error } = await client
+        .from(PHASE_COMPONENT_TABLE)
+        .select(PHASE_COMPONENT_READ_COLUMNS)
+        .eq("customer_id", customerId);
+      if (error) throw new Error(`${PHASE_COMPONENT_TABLE} read: ${error.message}`);
+      // Rows that fail coercion are dropped rather than defaulted: a row we cannot
+      // read is not a component we can honestly claim anything about, and
+      // `toComponentRow` is the same coercion the write path trusts.
+      return Array.isArray(data)
+        ? data.map(toComponentRow).filter((r): r is PhaseComponentRow => r !== null)
+        : [];
     },
 
     async writeState(patch, updatedAt) {
