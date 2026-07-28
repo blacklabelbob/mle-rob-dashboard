@@ -472,3 +472,38 @@ export function phase4Opportunities(candidates: EquityCandidate[]): Phase4Opport
   // which lead is hottest, so any other order would invent an urgency claim.
   return out.sort((a, b) => a.entityName.localeCompare(b.entityName));
 }
+
+/**
+ * Q41 inc.5 — what ONE record says about equity, for that record's own page.
+ *
+ * WHY A FUNCTION AND NOT A SECOND READING: the 40/60 survived five days because the
+ * only place the number lived was a sentence on the org record — and the record page
+ * is still the page Rob opens from the registry. Rendering it there off a second,
+ * page-local reading of the prose would recreate the original defect with an extra
+ * copy: two screens, two parsers, two numbers. This returns the registry's OWN verdict
+ * for a single candidate, so the record page cannot disagree with the master panel —
+ * it is literally the same computation over a one-element list.
+ *
+ * EXACTLY ONE OF THE THREE IS EVER SET (pinned). A record is a stake we hold, or a
+ * stake whose number is unreadable, or a conversation about a future one — those are
+ * three different claims and a page showing two of them at once would state two.
+ * Everything null means the record has nothing to do with equity, and the page then
+ * renders NOTHING rather than an empty "Equity" heading that implies a missing stake.
+ */
+export interface RecordEquityView {
+  split: EquitySplit | null;
+  unreadable: UnreadableEquity | null;
+  lead: Phase4Opportunity | null;
+}
+
+export function recordEquityView(c: EquityCandidate): RecordEquityView {
+  const { splits, unreadable } = equityRegistry([c]);
+  // phase4Opportunities re-derives the registry internally and drops anything already
+  // claimed by it, so the mutual exclusion is inherited rather than re-implemented.
+  const leads = phase4Opportunities([c]);
+  return {
+    split: splits[0] ?? null,
+    unreadable: unreadable[0] ?? null,
+    lead: leads[0] ?? null,
+  };
+}

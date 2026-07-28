@@ -1,11 +1,11 @@
 import Link from "next/link";
 import EquityCorrect from "@/components/EquityCorrect";
+import { EQUITY_STATE_CLASS, EQUITY_STATE_LABEL } from "@/components/equityState";
 import {
   equityRegistry,
   phase4Opportunities,
   prosePercentConflict,
   type EquityCandidate,
-  type EquityState,
 } from "@/lib/equity";
 
 // Q41 increment 1 — the answer to Rob dev-chat #53, "At the Master Level we need
@@ -16,19 +16,11 @@ import {
 // Anything we could not read as a number is listed under the table rather than
 // dropped, because a missing equity row reads as "we have no stake there".
 
-const STATE_LABEL: Record<EquityState, string> = {
-  signed: "SIGNED",
-  verbal: "agreed verbally — nothing signed",
-  draft: "in draft at counsel",
-  unknown: "state not recorded",
-};
-
-const STATE_CLASS: Record<EquityState, string> = {
-  signed: "text-emerald-400",
-  verbal: "text-amber-400",
-  draft: "text-sky-300",
-  unknown: "text-slate-500",
-};
+// Q41 inc.5: the wording and colours moved to components/equityState.ts when the
+// record page became a second surface — one origin, so the two screens cannot
+// describe the same state differently.
+const STATE_LABEL = EQUITY_STATE_LABEL;
+const STATE_CLASS = EQUITY_STATE_CLASS;
 
 export default function EquitySplits({ candidates }: { candidates: EquityCandidate[] }) {
   const { splits, unreadable } = equityRegistry(candidates);

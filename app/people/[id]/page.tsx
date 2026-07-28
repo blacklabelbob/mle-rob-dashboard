@@ -8,6 +8,7 @@ import EnrichmentSection from "@/components/EnrichmentSection";
 import EstimatePanel from "@/components/EstimatePanel";
 import PersonEditor from "@/components/PersonEditor";
 import ThingsToAddress from "@/components/ThingsToAddress";
+import EquityOnRecord from "@/components/EquityOnRecord";
 import { typeLabel } from "@/lib/labels";
 import { ORIGIN_ID, formatChain, indexNodes, lineage } from "@/lib/lineage";
 import { splitNotes } from "@/lib/notes";
@@ -87,6 +88,20 @@ export default async function PersonPage({
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <ThingsToAddress mode="entity" person={person.id} />
+
+          {/* Q41 inc.5: the registry links here, so the split has to BE here — the
+              40/60 lasted five days precisely because this page showed only the
+              sentence. Renders nothing when the record has no equity language. */}
+          <EquityOnRecord
+            candidate={{
+              id: person.id,
+              name: person.name,
+              description: person.description,
+              notes: person.notes,
+              equity: person.equity,
+              href: `/people/${person.id}`,
+            }}
+          />
 
           {/* §4: the lineage IS the person page's centerpiece — it sits above
               the timeline, where the company page puts its Phase tracker. The

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getStore } from "@/lib/storage";
 import ThingsToAddress from "@/components/ThingsToAddress";
+import EquityOnRecord from "@/components/EquityOnRecord";
 import DocumentsSection from "@/components/esign/DocumentsSection";
 import ActivityTimeline from "@/components/ActivityTimeline";
 import EnrichmentSection from "@/components/EnrichmentSection";
@@ -119,6 +120,20 @@ export default async function CompanyPage({
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <ThingsToAddress mode="entity" person={company.id} />
+
+          {/* Q41 inc.5: a spinoff resolves to EITHER anchor, so the split renders on
+              both record shells or it renders on whichever one Rob didn't open. Same
+              `recordEquityView` as the master panel — never a second reading. */}
+          <EquityOnRecord
+            candidate={{
+              id: company.id,
+              name: company.name,
+              description: company.description,
+              notes: company.notes,
+              equity: company.equity,
+              href: `/companies/${company.id}`,
+            }}
+          />
 
           {/* Q47 e-sign: the agreements live on the ORG anchor, and a company
               row's id IS that anchor — the same one /people/[id] passes for a

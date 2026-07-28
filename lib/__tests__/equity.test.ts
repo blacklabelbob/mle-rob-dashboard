@@ -8,6 +8,7 @@ import {
   prosePercentConflict,
   readEquitySplit,
   readEquityState,
+  recordEquityView,
   type EquityCandidate,
   type EquitySplit,
 } from "@/lib/equity";
@@ -466,5 +467,71 @@ describe("a prospective mention is not a holding", () => {
     ]);
     expect(both.splits).toHaveLength(1);
     expect(both.splits[0].counterpartyPct).toBe(35);
+  });
+});
+
+// Q41 inc.5 — the record page's view of one record. The whole point is that it is
+// the REGISTRY's verdict, not a page-local re-read of the prose, so these pin the
+// three outcomes as mutually exclusive and identical to the master panel's.
+describe("recordEquityView", () => {
+  const HCV: EquityCandidate = {
+    id: "spinoff-homeclonevault",
+    name: "HomeCloneVault",
+    description: "Phase-4 spinoff, 35/65 split with Alex, agreed verbally, nothing signed.",
+  };
+  const FLOATED: EquityCandidate = {
+    id: "caleb",
+    name: "Caleb Nix",
+    notes: "He floated giving us equity in the new install arm if we run their intake.",
+  };
+  const NOT_EQUITY: EquityCandidate = {
+    id: "naples-spine",
+    name: "Naples Spine & Joint",
+    notes: "EN vs Spanish-language review split not verified.",
+  };
+
+  it("gives the record page the same split the master panel shows", () => {
+    const view = recordEquityView(HCV);
+    const panel = equityRegistry([HCV]).splits[0];
+    expect(view.split).toEqual(panel);
+    expect(view.split?.counterpartyPct).toBe(35);
+    expect(view.split?.state).toBe("verbal");
+    // Exclusive: a holding is never also a lead or an unreadable row.
+    expect(view.lead).toBeNull();
+    expect(view.unreadable).toBeNull();
+  });
+
+  it("shows a floated stake as a lead and NEVER as a holding", () => {
+    const view = recordEquityView(FLOATED);
+    expect(view.split).toBeNull();
+    expect(view.unreadable).toBeNull();
+    expect(view.lead?.entityId).toBe("caleb");
+  });
+
+  it("returns all-null for a record that merely used the word split", () => {
+    expect(recordEquityView(NOT_EQUITY)).toEqual({ split: null, unreadable: null, lead: null });
+  });
+
+  it("surfaces a stake we hold whose number nothing can read, never as a maybe", () => {
+    const view = recordEquityView({
+      id: "dix",
+      name: "Dix Healthcare AI",
+      description: "Phase-4 spinoff. Equity split agreed, terms still being worked out.",
+    });
+    expect(view.split).toBeNull();
+    expect(view.unreadable?.entityId).toBe("dix");
+    expect(view.lead).toBeNull();
+  });
+
+  it("cannot disagree with the panel it was reached from — one candidate, one verdict", () => {
+    const many = [HCV, FLOATED, NOT_EQUITY];
+    const panel = equityRegistry(many);
+    const leads = phase4Opportunities(many);
+    for (const c of many) {
+      const view = recordEquityView(c);
+      expect(view.split).toEqual(panel.splits.find((s) => s.entityId === c.id) ?? null);
+      expect(view.unreadable).toEqual(panel.unreadable.find((u) => u.entityId === c.id) ?? null);
+      expect(view.lead).toEqual(leads.find((l) => l.entityId === c.id) ?? null);
+    }
   });
 });
