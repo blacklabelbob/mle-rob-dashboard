@@ -80,6 +80,16 @@ export interface SignalNotApplied {
 
 export interface SignalApplied {
   outcome: "applied";
+  /**
+   * The idempotency key that produced this decision, carried OUT of the decider.
+   *
+   * inc.2: the writer has to record this event as seen, or the very next replay
+   * re-applies it. Without the field it would have to reach back into the raw
+   * payload for the key — a SECOND reader of the body, which can disagree with
+   * the one that decided (a different trim, a different field, a stale copy).
+   * The decider already validated and trimmed it; it hands over what it used.
+   */
+  eventId: string;
   customerId: string;
   phase: PhaseNo;
   componentId: string;
@@ -271,6 +281,7 @@ export function decideSignal(payload: unknown, ctx: SignalContext): SignalDecisi
     }
     return {
       outcome: "applied",
+      eventId,
       customerId,
       phase,
       componentId,
@@ -288,6 +299,7 @@ export function decideSignal(payload: unknown, ctx: SignalContext): SignalDecisi
       : `${componentId} reported reverted by ${source} while not lit on our side`;
     return {
       outcome: "applied",
+      eventId,
       customerId,
       phase,
       componentId,
@@ -317,6 +329,7 @@ export function decideSignal(payload: unknown, ctx: SignalContext): SignalDecisi
 
   return {
     outcome: "applied",
+    eventId,
     customerId,
     phase,
     componentId,
