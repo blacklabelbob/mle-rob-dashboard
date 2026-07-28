@@ -4,6 +4,7 @@ import {
   buildBlueprint,
   kickoffSteps,
   inferPhaseOneMoney,
+  attributePhaseMoney,
   type BlueprintDeal,
 } from "@/lib/phases/blueprint";
 import { PHASE_1_COMPONENTS, REFUND_TRIGGER_SLUG } from "@/lib/phases/components";
@@ -280,5 +281,106 @@ describe("blueprint", () => {
     expect(done).toEqual(["quoted", "signed", "paid"]);
     expect(b.phases[0].money.value).toBe(19000);
     expect(b.phases[0].money.standardPrice).toBe(18000);
+  });
+});
+
+// Q40 inc.9 — the phase-on-agreement field. This is where the Phase 2 ROI
+// guarantee's target comes from, so every case below is a money case.
+describe("attributePhaseMoney — a recorded phase, not a guess", () => {
+  const asOf = "2026-07-28";
+
+  it("uses the recorded phase instead of inferring", () => {
+    const deals = [deal({ id: "a", name: "P2 paper", phase: 2, value: 24000 })];
+    const m = attributePhaseMoney(deals, 2);
+    expect(m.attribution).toBe("stored");
+    expect(m.value).toBe(24000);
+    expect(m.agreementRef).toBe("P2 paper");
+  });
+
+  it("never infers a Phase 2 or Phase 3 investment from an untagged deal", () => {
+    const deals = [deal({ id: "a", name: "Some agreement", value: 24000 })];
+    expect(attributePhaseMoney(deals, 2).attribution).toBe("none");
+    expect(attributePhaseMoney(deals, 2).value).toBeUndefined();
+    expect(attributePhaseMoney(deals, 3).attribution).toBe("none");
+  });
+
+  it("still infers Phase 1 from a sole candidate when nothing is recorded", () => {
+    const m = attributePhaseMoney([deal({ value: 19000 })], 1);
+    expect(m.attribution).toBe("inferred_sole_deal");
+    expect(m.value).toBe(19000);
+  });
+
+  it("a deal recorded as Phase 2 is no longer a Phase 1 candidate", () => {
+    // Two deals would previously have made Phase 1 ambiguous. Recording one of
+    // them as Phase 2 leaves exactly one Phase 1 candidate — inference gets
+    // STRICTER where the answer is known, never weaker.
+    const deals = [deal({ id: "a", value: 19000 }), deal({ id: "b", phase: 2, value: 24000 })];
+    const p1 = attributePhaseMoney(deals, 1);
+    expect(p1.attribution).toBe("inferred_sole_deal");
+    expect(p1.value).toBe(19000);
+  });
+
+  it("sums several agreements recorded to the same phase", () => {
+    const deals = [
+      deal({ id: "a", name: "P2 paper", phase: 2, value: 24000 }),
+      deal({ id: "b", name: "P2 add-on", phase: 2, value: 6000 }),
+    ];
+    const m = attributePhaseMoney(deals, 2);
+    expect(m.value).toBe(30000);
+    expect(m.agreementRef).toBe("2 agreements on this phase");
+  });
+
+  it("withholds the total when any agreement carries no value — never sums around it", () => {
+    // Summing around a valueless agreement UNDERSTATES the investment, which
+    // understates the ROI target, which inflates the guarantee in our favour.
+    const deals = [
+      deal({ id: "a", phase: 2, value: 24000 }),
+      deal({ id: "b", phase: 2, value: undefined }),
+    ];
+    const m = attributePhaseMoney(deals, 2);
+    expect(m.value).toBeUndefined();
+    expect(m.attribution).toBe("stored");
+    expect(m.emptyLine).toContain("not zero");
+  });
+
+  it("ignores a lost agreement even when it carries the phase", () => {
+    const deals = [deal({ id: "a", phase: 2, stage: "lost", value: 24000 })];
+    expect(attributePhaseMoney(deals, 2).attribution).toBe("none");
+  });
+
+  it("marks the phase invoiced/paid only when EVERY agreement on it is, and takes the latest", () => {
+    const both = [
+      deal({ id: "a", phase: 2, value: 1, keyDates: { invoiced: "2026-01-05", paid: "2026-02-01" } }),
+      deal({ id: "b", phase: 2, value: 1, keyDates: { invoiced: "2026-03-09", paid: "2026-04-02" } }),
+    ];
+    expect(attributePhaseMoney(both, 2).invoicedAt).toBe("2026-03-09");
+    expect(attributePhaseMoney(both, 2).paidAt).toBe("2026-04-02");
+
+    const partial = [
+      deal({ id: "a", phase: 2, value: 1, keyDates: { paid: "2026-02-01" } }),
+      deal({ id: "b", phase: 2, value: 1, keyDates: {} }),
+    ];
+    expect(attributePhaseMoney(partial, 2).paidAt).toBeUndefined();
+  });
+
+  it("feeds the ROI guarantee its target — a recorded Phase 2 investment RUNS the clock's target", () => {
+    const b = buildBlueprint({
+      deals: [deal({ id: "a", name: "P2 paper", phase: 2, value: 24000 })],
+      advancedToPhase2At: "2026-07-01",
+      asOf,
+    });
+    const g = b.phases[1].roiGuarantee!;
+    expect(b.phases[1].money.value).toBe(24000);
+    expect(g.state).toBe("AWAITING_DATA");
+    expect(g.investment).toBe(24000);
+  });
+
+  it("an untagged deal cannot become the ROI target", () => {
+    const b = buildBlueprint({
+      deals: [deal({ id: "a", value: 24000 })],
+      advancedToPhase2At: "2026-07-01",
+      asOf,
+    });
+    expect(b.phases[1].roiGuarantee!.state).toBe("NO_TARGET");
   });
 });

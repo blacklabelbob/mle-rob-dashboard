@@ -110,6 +110,12 @@ export interface BlueprintDeal {
   };
   /** Set when the deal reached the company through a person, not its own orgId. */
   anchoredVia?: string;
+  /**
+   * Q40 leg (5) — the phase this agreement is FOR, as recorded by a rep
+   * ("agreements carry their ASSOCIATED PHASE"). Absent = nobody has said,
+   * which is not the same as Phase 1; see `attributePhaseMoney`.
+   */
+  phase?: PhaseNo;
 }
 
 export interface BlueprintInput {
@@ -177,7 +183,13 @@ export function inferPhaseOneMoney(
   deals: BlueprintDeal[],
   standardPrice?: number
 ): PhaseMoney {
-  const candidates = deals.filter((d) => !LOST_STAGES.has(d.stage) && !d.anchoredVia);
+  // A deal a rep has already assigned to Phase 2 or 3 is not a Phase 1 candidate.
+  // Excluding it makes the sole-candidate test STRICTER where the answer is known
+  // and never weaker: inference may only ever fill a silence, never contradict a
+  // recorded fact.
+  const candidates = deals.filter(
+    (d) => !LOST_STAGES.has(d.stage) && !d.anchoredVia && (d.phase === undefined || d.phase === 1)
+  );
   if (candidates.length !== 1) {
     return {
       attribution: "none",
@@ -207,6 +219,69 @@ function emptyMoney(phase: PhaseNo, standardPrice?: number): PhaseMoney {
   };
 }
 
+/**
+ * Q40 leg (5) — money attached to a phase because a REP SAID SO, not because we
+ * guessed. This is the source the Phase 2 ROI guarantee has been missing: the
+ * investment IS the target, so where that number comes from is a money decision,
+ * and it is made once, here.
+ *
+ * The rules, each of which exists because its opposite is a lie Rob shows a paying
+ * customer:
+ *
+ *  • A recorded phase always beats inference. Inference only ever fills a silence.
+ *
+ *  • Several agreements CAN belong to one phase (a mid-phase add-on), so they are
+ *    summed — the phase's investment is what the customer actually committed.
+ *
+ *  • …but ONLY if every one of them carries a value. A valueless agreement is an
+ *    unknown amount, never zero, and summing around it would UNDERSTATE the
+ *    investment. Understating the investment understates the ROI target, which
+ *    inflates the guarantee in our favour — the one direction this number must
+ *    never be wrong in. Mixed → the total is withheld and the gap is named.
+ *
+ *  • Invoiced/paid are LATEST-of-all, and only once every agreement in the phase
+ *    carries that date. "This phase is paid" must mean all of it is paid; the
+ *    earliest date would let one settled add-on mark an unpaid phase as settled.
+ */
+export function attributePhaseMoney(
+  deals: BlueprintDeal[],
+  phase: PhaseNo,
+  standardPrice?: number
+): PhaseMoney {
+  const stored = deals.filter((d) => d.phase === phase && !LOST_STAGES.has(d.stage));
+  if (stored.length === 0) {
+    // No recorded answer for this phase. Phase 1 may still infer a sole candidate
+    // (long-standing behaviour); 2 and 3 have never had an inference and get none
+    // now — a guessed Phase 2 investment would become a guessed ROI target.
+    return phase === 1
+      ? inferPhaseOneMoney(deals, standardPrice)
+      : emptyMoney(phase, standardPrice);
+  }
+
+  const valued = stored.filter((d) => typeof d.value === "number" && Number.isFinite(d.value));
+  const complete = valued.length === stored.length;
+  const value = complete ? valued.reduce((sum, d) => sum + (d.value as number), 0) : undefined;
+
+  const allOn = (pick: (d: BlueprintDeal) => string | undefined): string | undefined => {
+    const dates = stored.map(pick).filter((v): v is string => Boolean(v));
+    return dates.length === stored.length && dates.length > 0 ? dates.sort().at(-1) : undefined;
+  };
+
+  const missing = stored.length - valued.length;
+  return {
+    value,
+    standardPrice,
+    invoicedAt: allOn((d) => d.keyDates.invoiced),
+    paidAt: allOn((d) => d.keyDates.paid),
+    agreementRef:
+      stored.length === 1 ? stored[0].name : `${stored.length} agreements on this phase`,
+    attribution: "stored",
+    emptyLine: complete
+      ? undefined
+      : `${missing} of ${stored.length} agreement${stored.length === 1 ? "" : "s"} on this phase carr${missing === 1 ? "ies" : "y"} no value, so the phase total is unknown — not zero. See Deals.`,
+  };
+}
+
 function statesFor(phase: PhaseNo, components?: ComponentLiveMap): ComponentState[] {
   return componentDefsFor(phase).map((def) => {
     const stored = components?.[def.slug];
@@ -233,10 +308,9 @@ export function buildBlueprint({
   const sections: PhaseSection[] = ([1, 2, 3] as PhaseNo[]).map((phase) => {
     const comps = statesFor(phase, components);
     const liveCount = comps.filter((c) => c.live).length;
-    const money =
-      phase === 1
-        ? inferPhaseOneMoney(deals, standardPrices?.[1])
-        : emptyMoney(phase, standardPrices?.[phase]);
+    // Q40 inc.9 — one entry point for all three phases. A recorded phase-on-
+    // agreement now feeds Phase 2's money, and therefore the ROI target below.
+    const money = attributePhaseMoney(deals, phase, standardPrices?.[phase]);
     return {
       phase,
       title: PHASE_TITLES[phase],
@@ -260,10 +334,10 @@ export function buildBlueprint({
       //   • the clock starts from the recorded advance date, never from "today";
       //   • the target is the Phase 2 investment we actually attributed to this
       //     phase — never `standardPrice`, which is a list number the customer
-      //     never agreed to, and never a deal we merely guessed belongs here
-      //     (attribution "none" means we do not know, so no target exists).
-      // Both are absent for every customer today, which is why this renders
-      // NOT_STARTED rather than a percentage. That is the truth, and the point.
+      //     never agreed to, and never a deal we merely guessed belongs here.
+      // inc.9 gave that target its only honest source: an agreement a rep has
+      // RECORDED as Phase 2 paper. Until one exists (no store yet), `money.value`
+      // is undefined here and the guarantee says so instead of inventing a figure.
       roiGuarantee:
         phase === 2
           ? phase2Guarantee({
