@@ -209,6 +209,22 @@ export function readEquitySplit(c: EquityCandidate): EquitySplit | UnreadableEqu
     }
   }
 
+  // Q41 inc.4 — THE PRECEDENCE FIX, and the defect this increment found.
+  //
+  // Until now every record that merely used the word "equity" and stated no
+  // percentage fell through to here and was rendered as a stake we HOLD but cannot
+  // read. So "he floated giving us equity if we run their intake" — a sentence about
+  // something that has not happened — appeared on Rob's owners-only registry as an
+  // owned position. That is the inverse of the failure Q41 exists to end: the 40/60
+  // was a real stake carrying a wrong number, and this is a wrong stake entirely.
+  //
+  // A record whose only equity language is PROSPECTIVE is not a stake at all. It
+  // returns null here and is picked up by `phase4Opportunities` below, where a maybe
+  // is labelled a maybe. Note what this does NOT touch: a parsed percentage or a
+  // structured field already returned above, so a signed 35/65 that also muses about
+  // more equity later is still a split, never demoted to a lead.
+  if (isProspectiveStake(text)) return null;
+
   return {
     entityId: c.id,
     entityName: c.name,
@@ -369,4 +385,90 @@ export function prosePercentConflict(c: EquityCandidate): string | null {
     return `field says ${field}% but the description still reads "${one[0]}"`;
   }
   return null;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Q41 increment 4 — the half of Rob's item that was never built: "surface FUTURE
+// Phase-4 opportunities highlighted out of notes/meetings/emails".
+//
+// WHY IT IS A SEPARATE LIST AND NOT MORE ROWS ON THE REGISTRY: the registry answers
+// "what do we own". This answers "what did somebody once say we could own". Those
+// are different questions with different consequences — a stake is a fact to protect,
+// a mention is a conversation to restart — and merging them would let a maybe inherit
+// the credibility of a signed 35/65. The panel keeps them visually apart for the same
+// reason the registry keeps signed apart from verbal.
+
+/** A CONVERSATION about a stake we do not hold. Never a stake. */
+export interface Phase4Opportunity {
+  entityId: string;
+  entityName: string;
+  /** The sentence somebody actually wrote. Cited, never paraphrased. */
+  evidence: string;
+  href?: string;
+}
+
+/**
+ * Nouns that name a piece of a business. Deliberately WIDER than `EQUITY_MARKER`:
+ * a stake in the registry has to be provable, but a lead only has to be worth
+ * re-reading — the cost of a false row here is ten seconds, and the cost of a
+ * missed one is a Phase-4 deal nobody remembered to chase.
+ */
+const STAKE_NOUN =
+  /\bequity\b|\bspin[-\s]?off\b|\bownership\b|\bshares?\b|\bstake\b|\b(?:profit|revenue)\s+share\b|\bjoint\s+venture\b|\bJV\b|\bphase\s*4\b/i;
+
+/**
+ * ...but the width is paid for by requiring a PROSPECTIVE cue in the same sentence.
+ * Without this, every record that merely uses the word "ownership" — every enrichment
+ * note describing who owns the roofing company — lands on Rob's Phase-4 list, and a
+ * list padded with the whole CRM is a list nobody opens.
+ */
+const INTENT_CUE =
+  /\b(?:could|would|might|wants?|wanted|interested|discussed?|discussing|talked about|floated|proposed?|proposing|explor(?:e|ing)|potential|possible|opportunit(?:y|ies)|open to|asked about|offer(?:ed|ing)?|considering|down the road|eventually|someday)\b/i;
+
+/** The sentence that makes a record a LEAD rather than a holding. Null when none does. */
+function prospectiveSentence(text: string): string | null {
+  return sentences(text).find((s) => STAKE_NOUN.test(s) && INTENT_CUE.test(s)) ?? null;
+}
+
+/**
+ * Exported because `readEquitySplit` consults it to decide what a record IS — the
+ * two answers have to come from one rule, or the registry and this list will
+ * disagree about the same sentence and Rob will see a row in both.
+ */
+export function isProspectiveStake(text: string): boolean {
+  return prospectiveSentence(text) !== null;
+}
+
+/**
+ * Records that TALK about a future stake, excluding every record already on the
+ * registry above.
+ *
+ * THE EXCLUSION IS ENFORCED HERE, NOT BY THE CALLER — the registry is recomputed
+ * inside rather than passed in, so no future screen can render this list beside a
+ * registry built from a different candidate set and show one relationship twice.
+ * Two rows for one company reads as two stakes.
+ *
+ * UNREADABLE ROWS ARE EXCLUDED TOO, AND THAT IS THE SHARPER RULE: an unreadable row
+ * is a stake we HOLD whose number nothing could parse. Re-listing it here would
+ * demote an owned stake to "somebody mentioned it" — the exact inversion this panel
+ * exists to prevent.
+ */
+export function phase4Opportunities(candidates: EquityCandidate[]): Phase4Opportunity[] {
+  const { splits, unreadable } = equityRegistry(candidates);
+  const claimed = new Set([...splits.map((s) => s.entityId), ...unreadable.map((u) => u.entityId)]);
+
+  const out: Phase4Opportunity[] = [];
+  for (const c of candidates) {
+    if (claimed.has(c.id)) continue;
+    const text = `${c.description ?? ""} ${c.notes ?? ""}`.trim();
+    if (!text) continue;
+    // First matching sentence only: a record that muses about equity three times is
+    // one lead, and three rows would rank a chatty note above a real opportunity.
+    const hit = prospectiveSentence(text);
+    if (!hit) continue;
+    out.push({ entityId: c.id, entityName: c.name, evidence: hit.trim().slice(0, 240), href: c.href });
+  }
+  // Alphabetical, and that is an honest admission: nothing in a mention tells us
+  // which lead is hottest, so any other order would invent an urgency claim.
+  return out.sort((a, b) => a.entityName.localeCompare(b.entityName));
 }

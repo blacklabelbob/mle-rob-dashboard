@@ -4,6 +4,7 @@ import {
   isEquityRecord,
   equitySaveOutcome,
   parseEquityCorrection,
+  phase4Opportunities,
   prosePercentConflict,
   readEquitySplit,
   readEquityState,
@@ -349,5 +350,121 @@ describe("equitySaveOutcome", () => {
     const o = equitySaveOutcome(404, null);
     expect(o.tone).toBe("error");
     expect(o.message).toContain("Not saved");
+  });
+});
+
+// Q41 inc.4 — the "future Phase-4 opportunities" half of Rob's item.
+describe("phase4Opportunities", () => {
+  it("surfaces a mention of a future stake as a lead, citing the sentence", () => {
+    const out = phase4Opportunities([
+      {
+        id: "caleb",
+        name: "Caleb Nix",
+        notes: "Great call. He floated giving us equity in the new install arm if we run their intake.",
+      },
+    ]);
+    expect(out).toHaveLength(1);
+    expect(out[0].entityId).toBe("caleb");
+    expect(out[0].evidence).toContain("floated giving us equity");
+  });
+
+  it("never lists a record that is already a stake on the registry", () => {
+    // HomeCloneVault holds a real 35/65. A second row under "opportunities" would
+    // make one relationship look like two.
+    const out = phase4Opportunities([
+      {
+        id: "spinoff-homeclonevault",
+        name: "HomeCloneVault",
+        description: "Phase 4 spinoff. 35/65 split with Alex, agreed verbally, nothing signed.",
+      },
+    ]);
+    expect(out).toEqual([]);
+  });
+
+  it("never demotes an unreadable stake to a mention", () => {
+    // This record IS about equity and we DO hold something — the registry already
+    // shows it under "no readable split". Listing it here would say "maybe".
+    const c = {
+      id: "dix",
+      name: "Dix Healthcare AI",
+      description: "We hold an equity stake here; the percentage was never agreed. Rob wants it pinned down eventually.",
+    };
+    expect(equityRegistry([c]).unreadable).toHaveLength(1);
+    expect(phase4Opportunities([c])).toEqual([]);
+  });
+
+  it("does not pad the list with records that merely use an ownership word", () => {
+    const out = phase4Opportunities([
+      { id: "roofco", name: "RoofCo", notes: "Second-generation ownership; Dale bought his brother out in 2019." },
+      { id: "naples", name: "Naples Spine & Joint", notes: "EN vs Spanish-language review split not verified." },
+    ]);
+    expect(out).toEqual([]);
+  });
+
+  it("requires the noun and the cue in the SAME sentence", () => {
+    // Equity in one sentence, an unrelated "interested" three sentences later.
+    const out = phase4Opportunities([
+      {
+        id: "split-sentences",
+        name: "Split Sentences Co",
+        notes: "Their cap table has three equity holders. Separately, they are interested in the Phase 1 site.",
+      },
+    ]);
+    expect(out).toEqual([]);
+  });
+
+  it("gives one row per record, not one per mention", () => {
+    const out = phase4Opportunities([
+      {
+        id: "chatty",
+        name: "Chatty Co",
+        notes: "Wants equity someday. Also discussed a revenue share. Could explore a spinoff too.",
+      },
+    ]);
+    expect(out).toHaveLength(1);
+  });
+
+  it("carries the record's own route, so a deal-borne lead does not link to /people", () => {
+    const out = phase4Opportunities([
+      { id: "d1", name: "Gulf Coast Phase 5", notes: "Rob would consider equity on the next build.", href: "/deals/d1" },
+    ]);
+    expect(out[0].href).toBe("/deals/d1");
+  });
+
+  it("sorts alphabetically rather than inventing an urgency order", () => {
+    const out = phase4Opportunities([
+      { id: "z", name: "Zeta", notes: "Discussed a profit share." },
+      { id: "a", name: "Alpha", notes: "Discussed a profit share." },
+    ]);
+    expect(out.map((o) => o.entityName)).toEqual(["Alpha", "Zeta"]);
+  });
+});
+
+// Q41 inc.4 — the precedence fix, pinned from the registry's side.
+describe("a prospective mention is not a holding", () => {
+  const FLOATED: EquityCandidate = {
+    id: "caleb",
+    name: "Caleb Nix",
+    notes: "He floated giving us equity in the new install arm if we run their intake.",
+  };
+
+  it("no longer files a maybe as a stake with an unreadable split", () => {
+    const { splits, unreadable } = equityRegistry([FLOATED]);
+    expect(splits).toEqual([]);
+    expect(unreadable).toEqual([]);
+    expect(readEquitySplit(FLOATED)).toBeNull();
+  });
+
+  it("still reads a real split on a record that also muses about more equity later", () => {
+    const both = equityRegistry([
+      {
+        id: "hcv",
+        name: "HomeCloneVault",
+        description:
+          "Phase-4 spinoff, 35/65 split, agreed verbally, nothing signed. Alex would explore more equity down the road.",
+      },
+    ]);
+    expect(both.splits).toHaveLength(1);
+    expect(both.splits[0].counterpartyPct).toBe(35);
   });
 });

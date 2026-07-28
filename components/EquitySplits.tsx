@@ -2,6 +2,7 @@ import Link from "next/link";
 import EquityCorrect from "@/components/EquityCorrect";
 import {
   equityRegistry,
+  phase4Opportunities,
   prosePercentConflict,
   type EquityCandidate,
   type EquityState,
@@ -35,6 +36,10 @@ export default function EquitySplits({ candidates }: { candidates: EquityCandida
   // conflict is only visible by comparing the field against the prose it was
   // meant to replace. Indexed rather than re-scanned per row.
   const byId = new Map(candidates.map((c) => [c.id, c]));
+  // Q41 inc.4: "surface FUTURE Phase-4 opportunities out of notes/meetings/emails".
+  // Deliberately a separate list under the registry, never extra rows in it — a
+  // conversation about a stake must not borrow the credibility of a held one.
+  const leads = phase4Opportunities(candidates);
 
   return (
     <section className="rounded-xl border border-white/10 bg-white/5 p-5">
@@ -118,6 +123,28 @@ export default function EquitySplits({ candidates }: { candidates: EquityCandida
                   counterpartyPct={null}
                   state="unknown"
                 />
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {leads.length > 0 && (
+        <div className="mt-4 rounded-lg border border-sky-500/20 bg-sky-500/5 p-3">
+          <div className="text-[11px] font-semibold uppercase tracking-wide text-sky-300">
+            Possible future Phase-4 stakes — talked about, not held
+          </div>
+          <p className="mt-1 text-[11px] text-slate-500">
+            Pulled out of notes and emails. Nothing here is owned; each row is a conversation to
+            restart, quoted so you can judge it without opening the record.
+          </p>
+          <ul className="mt-1.5 space-y-1.5">
+            {leads.map((l) => (
+              <li key={l.entityId} className="text-[11px] text-slate-400">
+                <Link href={l.href ?? `/people/${l.entityId}`} className="text-slate-300 hover:underline">
+                  {l.entityName}
+                </Link>{" "}
+                — <span className="italic text-slate-500">&ldquo;{l.evidence}&rdquo;</span>
               </li>
             ))}
           </ul>
