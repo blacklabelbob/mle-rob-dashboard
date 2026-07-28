@@ -10,10 +10,15 @@
 //  - A deal reached through a PERSON at this company is shown, but it is never
 //    passed off as the company's own paper: it carries `anchoredVia` with that
 //    person's name so the record says how it got here.
-//  - PHASE IS NOT A STORED FIELD YET (§8 increment 7 lands `phases`). So this
-//    module does NOT emit a "phase-less" flag per deal — that would be 19
-//    identical warnings about a schema gap, not about the data. It reports the
-//    gap ONCE, as `phaseStoreAvailable: false`, and the section prints it once.
+//  - PHASE IS STORED (Q40 inc.10, 0026) BUT IS NEVER INVENTED. A deal without one
+//    means nobody has stated which phase the agreement is for — which is NOT the
+//    same as Phase 1 (the whole point of the column). This module still does NOT
+//    emit a per-deal warning about it: that would be 19 identical lines about the
+//    same silence. It reports it ONCE, as `phaseStoreAvailable`, which is true when
+//    at least one deal here carries a recorded phase. Deliberately derived from the
+//    rows rather than from "the migration exists": the section's job is to tell Rob
+//    whether the phases on screen are real, and a column nobody has written is
+//    indistinguishable, on screen, from no column at all.
 //  - What IS checkable today is the stage↔key-date contract, and it is checked:
 //    a deal parked on `paid` with no paid date, or `invoiced` with no invoiced
 //    date, is a money claim with no paperwork behind it and it gets a flag.
@@ -59,6 +64,8 @@ export interface CompanyDealRow {
   referralSourced: boolean;
   /** Set only when the deal reached this company through a person, not an orgId. */
   anchoredVia?: string;
+  /** Q40 inc.10 — the phase this agreement is FOR, when a human recorded one. */
+  phase?: 1 | 2 | 3;
   flags: CompanyDealFlag[];
 }
 
@@ -70,7 +77,7 @@ export interface CompanyDealsSummary {
   openTotal: number;
   /** How many rows carried no `value` at all — printed, never absorbed. */
   valueMissing: number;
-  /** False until §8 increment 7 lands the phase store. */
+  /** True once at least one deal here carries a recorded phase (Q40 inc.10). */
   phaseStoreAvailable: boolean;
 }
 
@@ -126,6 +133,7 @@ export function buildCompanyDeals({
       value: d.value,
       keyDates: d.keyDates ?? {},
       referralSourced: d.referralSourced,
+      phase: d.phase,
       anchoredVia:
         d.orgId === companyId
           ? undefined
@@ -152,7 +160,13 @@ export function buildCompanyDeals({
     else if (COUNTS_AS_OPEN.includes(r.stage)) openTotal += r.value;
   }
 
-  return { rows, paidTotal, openTotal, valueMissing, phaseStoreAvailable: false };
+  return {
+    rows,
+    paidTotal,
+    openTotal,
+    valueMissing,
+    phaseStoreAvailable: rows.some((r) => r.phase !== undefined),
+  };
 }
 
 export const __testing = { STAGE_ORDER, CLOSED_OUT, COUNTS_AS_OPEN };

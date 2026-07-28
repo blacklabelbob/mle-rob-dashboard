@@ -71,6 +71,9 @@ const sampleDeal: Deal = {
   routingLane: "rep",
   referralSourced: true,
   keyDates: { quoted: "2026-07-01" },
+  // Q40 inc.10: the gate asks "can the mapper write every column the schema has?",
+  // so the sample must carry every optional field — including a recorded phase.
+  phase: 2,
   bookProtected: false,
   notes: "n",
   createdAt: "2026-07-22T00:00:00Z",
@@ -103,6 +106,26 @@ const sampleTask: Task = {
   createdAt: "2026-07-22T00:00:00Z",
   updatedAt: "2026-07-22T00:00:00Z",
 };
+
+describe("deals.phase is written only when it was stated (Q40 inc.10, 0026)", () => {
+  it("omits the column entirely when no phase is recorded", () => {
+    const row = fromDeal({ ...sampleDeal, phase: undefined });
+    // Not `phase: null` — 0026 is committed-not-applied, and an unconditional key
+    // would add an unknown column to every deal upsert on a database that has not
+    // taken the migration, breaking saves that never mention a phase.
+    expect("phase" in row).toBe(false);
+  });
+
+  it("writes the phase a human recorded, unchanged", () => {
+    expect(fromDeal({ ...sampleDeal, phase: 3 })).toMatchObject({ phase: 3 });
+  });
+
+  it("reads an out-of-range or absent stored phase as not-stated, never as 1", () => {
+    expect(toDeal({ ...fromDeal(sampleDeal), phase: 4 }).phase).toBeUndefined();
+    expect(toDeal({ ...fromDeal(sampleDeal), phase: null }).phase).toBeUndefined();
+    expect(toDeal({ ...fromDeal(sampleDeal), phase: 2 }).phase).toBe(2);
+  });
+});
 
 describe("crm mappers ↔ 0005 DDL gate", () => {
   const cases = [

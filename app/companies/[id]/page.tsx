@@ -230,10 +230,11 @@ export default async function CompanyPage({
                 {" — unknown, not $0."}
               </p>
             )}
-            {!deals.phaseStoreAvailable && (
+            {!deals.phaseStoreAvailable && deals.rows.length > 0 && (
               <p className="mt-2 text-xs text-slate-600">
-                Per-deal phase is not shown because no phase store exists yet (§8
-                increment 7). Stated once here rather than as a warning on every row.
+                No agreement here records which phase it is for. Phase appears per deal
+                once someone sets it — until then it is unstated, not Phase 1. Said once
+                here rather than as a warning on every row.
               </p>
             )}
           </section>

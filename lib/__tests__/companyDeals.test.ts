@@ -126,6 +126,30 @@ describe("buildCompanyDeals", () => {
     expect(out.rows.map((r) => r.id)).toEqual(["big-paid", "small-paid", "mid", "new"]);
   });
 
+  it("carries a recorded phase onto the row and flips phaseStoreAvailable", () => {
+    const out = buildCompanyDeals({
+      companyId: "c",
+      people: [],
+      deals: [
+        deal("p1", "paid", { orgId: "c", phase: 1 }),
+        deal("unstated", "signed", { orgId: "c" }),
+      ],
+    });
+    expect(out.phaseStoreAvailable).toBe(true);
+    expect(out.rows.find((r) => r.id === "p1")?.phase).toBe(1);
+    // The unstated one stays unstated — a sibling carrying Phase 1 never spreads.
+    expect(out.rows.find((r) => r.id === "unstated")?.phase).toBeUndefined();
+  });
+
+  it("a Phase 2 agreement is carried as Phase 2, never normalised to 1", () => {
+    const out = buildCompanyDeals({
+      companyId: "c",
+      people: [],
+      deals: [deal("p2", "invoiced", { orgId: "c", phase: 2, value: 5000 })],
+    });
+    expect(out.rows[0].phase).toBe(2);
+  });
+
   it("reports the missing phase store ONCE, not once per deal", () => {
     const out = buildCompanyDeals({
       companyId: "c",

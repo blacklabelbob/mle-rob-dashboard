@@ -30,6 +30,10 @@ export function toDeal(r: any): Deal {
     keyDates: r.key_dates ?? {},
     estimate: r.estimate ?? undefined,
     equity: r.equity ?? undefined, // Q41 inc.2 (0024) — paired with fromDeal below
+    // Q40 inc.10 (0026). Narrowed, not cast: a column that somehow holds a 4 (or a
+    // deployment predating 0026, where the key is simply absent) reads as "not
+    // stated" rather than becoming a phase the blueprint cannot render.
+    phase: r.phase === 1 || r.phase === 2 || r.phase === 3 ? r.phase : undefined,
     bookProtected: r.book_protected,
     notes: r.notes ?? undefined,
     createdAt: r.created_at,
@@ -39,6 +43,14 @@ export function toDeal(r: any): Deal {
 
 export function fromDeal(d: Deal) {
   return {
+    // Q40 inc.10: emitted ONLY when a phase was actually recorded. 0026 is committed
+    // and not yet applied, so an unconditional `phase: null` would add an unknown
+    // column to EVERY deal upsert and break saving a deal on a database that has not
+    // taken the migration — a schema-pending field must not be able to break writes
+    // that never mention it. When a human DOES set a phase against an un-migrated
+    // database the write fails loudly, which is the correct outcome: the alternative
+    // is dropping the rep's statement on the floor and showing them a saved deal.
+    ...(d.phase === undefined ? {} : { phase: d.phase }),
     id: d.id,
     person_id: d.personId ?? null,
     org_id: d.orgId ?? null,

@@ -169,6 +169,9 @@ export interface Deal {
   estimate?: Estimate; // carried short-term per D-002 step 10
   // Q41 inc.2 — a stake is not always an entity: the Gulf Coast 30% is a DEAL.
   equity?: import("@/lib/equity").EquityFieldValue;
+  // Q40 inc.10 (0026) — the phase this agreement is FOR, as recorded by a human.
+  // Absent = nobody has said. That is never read as Phase 1: see attributePhaseMoney.
+  phase?: 1 | 2 | 3;
   bookProtected: boolean;
   notes?: string;
   createdAt: string;
