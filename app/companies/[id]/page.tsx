@@ -290,7 +290,7 @@ export default async function CompanyPage({
               and showing dark below. Kickoff dates and money above are unaffected.
             </p>
           )}
-          <PhaseBlueprint blueprint={blueprint} />
+          <PhaseBlueprint blueprint={blueprint} customerId={company.id} />
 
           {/* §3.4 — the record spine. Company rows anchor activities the same way
               a person row does (≤1-of-person/org), so this is the same feed the

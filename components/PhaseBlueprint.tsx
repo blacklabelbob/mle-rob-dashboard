@@ -1,6 +1,7 @@
 import type { Blueprint, PhaseSection, KickoffStep } from "@/lib/phases/blueprint";
 import { aimForNextFor } from "@/lib/phases/aimForNext";
 import AimForNextPanel from "./AimForNextPanel";
+import Phase2ReturnsForm from "./Phase2ReturnsForm";
 
 // Master View 2.0 §3.1 — the Phase Blueprint tracker, master variant.
 //
@@ -135,7 +136,7 @@ function Refund({ section }: { section: PhaseSection }) {
   );
 }
 
-function Phase({ section }: { section: PhaseSection }) {
+function Phase({ section, customerId }: { section: PhaseSection; customerId?: string }) {
   const badgeTone =
     section.visual === "live"
       ? "bg-amber-400/15 text-amber-300"
@@ -208,13 +209,37 @@ function Phase({ section }: { section: PhaseSection }) {
           >
             {section.roiGuarantee.line}
           </span>
+
+          {/*
+            Q63 inc.12 — the form sits UNDER the sentence it changes, not on a
+            separate admin page. The guarantee line is where someone notices the
+            number is stale or absent; putting the way to fix that anywhere else
+            is how a measurement never gets entered. Master surface only: `Phase`
+            is the master variant, and the rep variant (PhaseLights) reads the same
+            Blueprint without ever rendering this file.
+
+            No customer id means no company to attach a measurement to, so the
+            affordance is absent rather than present-and-broken.
+          */}
+          {customerId && (
+            <div className="w-full">
+              <Phase2ReturnsForm customerId={customerId} />
+            </div>
+          )}
         </div>
       )}
     </div>
   );
 }
 
-export default function PhaseBlueprint({ blueprint }: { blueprint: Blueprint }) {
+export default function PhaseBlueprint({
+  blueprint,
+  customerId,
+}: {
+  blueprint: Blueprint;
+  /** The company these phases belong to. Absent on any surface with no record to write against. */
+  customerId?: string;
+}) {
   return (
     <section className="overflow-hidden rounded-xl border border-white/10 bg-white/5">
       <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-white/10 px-5 py-3">
@@ -228,7 +253,7 @@ export default function PhaseBlueprint({ blueprint }: { blueprint: Blueprint }) 
 
       {blueprint.phases.map((s, i) => (
         <div key={s.phase}>
-          <Phase section={s} />
+          <Phase section={s} customerId={customerId} />
           {/*
             The aim-for-next slot sits between Phase 1 and Phase 2 because that
             is where Rob put it. It used to be a hardcoded sentence that showed
