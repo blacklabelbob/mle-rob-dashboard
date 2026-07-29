@@ -255,3 +255,55 @@ describe("orgHandleFor — the findable-by-name look-up key", () => {
     expect(orgHandleFor("!!!", "...", new Set())).toBe("org");
   });
 });
+
+// ---------------------------------------------------------------------------
+// Q70 inc.4 — the handle accumulator, which orgFromProposal did not get when
+// personFromEmail did. `takenIds` holds record numbers after Q70, so a handle
+// checked against it can never collide: the de-duplication above was dead code
+// at the one call site that matters, and 0031's `orgs_legacy_slug_key` UNIQUE
+// INDEX is what would have reported it — as a constraint error on insert, with
+// nothing on screen connecting it to two companies sharing a trading name.
+// ---------------------------------------------------------------------------
+describe("planOrgFromProposal — handles de-duplicate against handles, not ids", () => {
+  it("suffixes the handle when another row already holds that slug", () => {
+    const plan = planOrgFromProposal(
+      reviewed(),
+      index(),
+      ["C-2001"], // taken IDS — record numbers, which no handle can ever equal
+      VERTICALS,
+      "2026-07-26",
+      ["the-title-base"] // taken HANDLES — where the real collision lives
+    );
+    if (plan.kind !== "create") throw new Error("expected create");
+    expect(plan.org.legacySlug).toBe("the-title-base-2");
+    // The id is unaffected: it was never derived from the name in the first place.
+    expect(plan.org.id).toBe("C-2002");
+  });
+
+  it("does not suffix when the taken handle belongs to nobody", () => {
+    const plan = planOrgFromProposal(reviewed(), index(), ["C-2001"], VERTICALS, "2026-07-26", []);
+    if (plan.kind !== "create") throw new Error("expected create");
+    expect(plan.org.legacySlug).toBe("the-title-base");
+  });
+
+  // Back-compat: a caller that has not been updated must behave exactly as before.
+  it("falls back to takenIds when no handles are supplied", () => {
+    const plan = planOrgFromProposal(
+      reviewed(),
+      index(),
+      ["the-title-base"], // a pre-Q70 row carries its handle IN its id
+      VERTICALS,
+      "2026-07-26"
+    );
+    if (plan.kind !== "create") throw new Error("expected create");
+    expect(plan.org.legacySlug).toBe("the-title-base-2");
+  });
+
+  // The handle was computed and then dropped by newOrgToPerson, so nothing
+  // downstream could ever see the de-duplication this test pins.
+  it("carries the handle onto the row the store is handed", () => {
+    const plan = planOrgFromProposal(reviewed(), index(), [], VERTICALS, "2026-07-26");
+    if (plan.kind !== "create") throw new Error("expected create");
+    expect(newOrgToPerson(plan.org).legacySlug).toBe("the-title-base");
+  });
+});

@@ -67,7 +67,10 @@ export async function POST(req: NextRequest) {
     buildGraphIndex(data),
     data.people.map((p) => p.id),
     data.verticals.map((v) => v.id),
-    new Date().toISOString().slice(0, 10)
+    new Date().toISOString().slice(0, 10),
+    // Handles, not ids (Q70). A pre-Q70 row carries its handle IN its id, hence
+    // `?? p.id` — the same seeding `planPeopleForEmail` uses.
+    data.people.map((p) => p.legacySlug ?? p.id)
   );
 
   if (plan.kind === "refused") {

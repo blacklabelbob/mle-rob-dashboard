@@ -123,7 +123,18 @@ export function planOrgFromProposal(
   index: GraphIndex,
   takenIds: Iterable<string>,
   knownVerticalIds: Iterable<string>,
-  todayISO?: string
+  todayISO?: string,
+  /**
+   * Handles already in use, kept SEPARATE from `takenIds` — the same split
+   * `planPersonFromEmail` already makes (Q70 inc.2). `takenIds` now holds record
+   * numbers, so checking a name-handle against it can never collide and
+   * `orgHandleFor`'s de-duplication silently stops working: two companies trading
+   * under one name would both be minted `the-title-base`, and 0031's
+   * `orgs_legacy_slug_key` UNIQUE INDEX rejects the second insert with a constraint
+   * error nobody would connect to naming. Defaults to `takenIds` only so a caller
+   * that has not been updated behaves exactly as it did.
+   */
+  takenHandles?: Iterable<string>
 ): OrgCreatePlan {
   const domain = reviewed.domain.trim().toLowerCase().replace(/\.+$/, "");
   if (!domain || !domain.includes(".") || /[\s@/]/.test(domain)) {
@@ -167,7 +178,7 @@ export function planOrgFromProposal(
     kind: "create",
     org: {
       id: orgIdFor(name, domain, new Set(takenIds)),
-      legacySlug: orgHandleFor(name, domain, new Set(takenIds)),
+      legacySlug: orgHandleFor(name, domain, new Set(takenHandles ?? takenIds)),
       name,
       verticalId,
       domain,
@@ -231,6 +242,10 @@ export function domainRaceDetail(domain: string): string {
 export function newOrgToPerson(org: NewOrgRow): Person {
   return {
     id: org.id,
+    // The handle was being computed and then dropped on the floor here, so the
+    // de-duplication above had nothing downstream to protect. It travels with the
+    // row now; whether the store persists it is `fromPerson`'s call, not ours.
+    legacySlug: org.legacySlug,
     name: org.name,
     entityKind: org.entityKind,
     nodeType: org.nodeType,
