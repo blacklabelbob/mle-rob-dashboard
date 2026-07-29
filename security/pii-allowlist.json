@@ -1,0 +1,6 @@
+{
+  "salt": "mle-rob-dashboard/pii-allowlist/v1",
+  "algorithm": "sha256",
+  "_comment": "Exceptions to the PII guard, pinned to the hash of the FINDING (file + kind + value + the trimmed text of its line). Edit the line and the exception expires; the guard then reports it as stale. Add one with: node scripts/pii-guard-allowlist.mjs --fingerprint <file> <line> <value> <kind>. Empty is the correct state — every entry is a contact-shaped value we have decided to keep in git.",
+  "entries": {}
+}
