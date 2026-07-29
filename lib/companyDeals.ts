@@ -48,6 +48,18 @@ const STAGE_ORDER: DealStage[] = [
   "lost",
 ];
 
+// Q45 inc.2 — a stage missing from STAGE_ORDER used to reach the sort as
+// `indexOf` = -1, which is BELOW "paid": an unlisted stage displayed as the
+// company's most advanced deal. That is the one failure this list can have and
+// the worst shape for it — a `lost` deal rendering at the top of Rob's company
+// lead view reads as progress. Unknown now sorts LAST (least advanced), which
+// is the honest default, and the coherence test pins that no stage is unlisted
+// so the fallback stays unreachable rather than load-bearing.
+function stageRank(stage: DealStage): number {
+  const i = STAGE_ORDER.indexOf(stage);
+  return i === -1 ? STAGE_ORDER.length : i;
+}
+
 export interface CompanyDealFlag {
   /** Stable slug so the ledger can dedupe if these ever get POSTed. */
   code: "stage_without_evidence" | "paid_date_without_value";
@@ -143,7 +155,7 @@ export function buildCompanyDeals({
       flags: flagsFor(d),
     }))
     .sort((a, b) => {
-      const byStage = STAGE_ORDER.indexOf(a.stage) - STAGE_ORDER.indexOf(b.stage);
+      const byStage = stageRank(a.stage) - stageRank(b.stage);
       if (byStage !== 0) return byStage;
       return (b.value ?? 0) - (a.value ?? 0);
     });
@@ -169,4 +181,4 @@ export function buildCompanyDeals({
   };
 }
 
-export const __testing = { STAGE_ORDER, CLOSED_OUT, COUNTS_AS_OPEN };
+export const __testing = { STAGE_ORDER, CLOSED_OUT, COUNTS_AS_OPEN, stageRank };
