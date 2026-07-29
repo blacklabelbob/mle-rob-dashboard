@@ -24,7 +24,11 @@ export const SEAM: SeamDeclaration = {
   // lib/dedup is the first candidate: duplicate detection over {name, email,
   // phone, domain} records is the same problem for any CRM-shaped instance,
   // and it already reaches nothing MLE-specific — this test pins that.
-  coreRoots: ["lib/dedup"],
+  //
+  // lib/entityProperties joined it in inc.4: it imports nothing at all, so the
+  // promise "this lifts out whole" is the cheapest it will ever be. See
+  // SEAM_RULINGS for why it is core and lib/types is not.
+  coreRoots: ["lib/dedup", "lib/entityProperties"],
   allowedExternals: ["node:", "@supabase/supabase-js"],
   instanceMarkers: [
     /\bMyLocalEverything\b/i,
@@ -33,6 +37,97 @@ export const SEAM: SeamDeclaration = {
     /\bMLE\b/,
   ],
 };
+
+/**
+ * A module the seam has actually decided about — the thing Q74's DoD asks for.
+ *
+ * A survey says what a candidate costs; it never says what a module *is*. The
+ * two modules `filters-lang` still reached were the whole remaining question,
+ * and they turned out to be opposite answers, so the answer is recorded here
+ * per module rather than as a directory rule.
+ *
+ * Both verdicts are enforced by `rulingBreaches`, because a ruling nobody can
+ * falsify is a comment: a `core` ruling must be a declared core root (so the
+ * real check runs on it), and an `instance` ruling must still show instance
+ * evidence on disk — measured by running `seamViolations` on the module as if
+ * it were core. If someone later cleans that module up, the ruling goes red and
+ * gets re-decided instead of quietly outliving its reason.
+ */
+export type SeamRuling = {
+  module: string;
+  verdict: "core" | "instance";
+  reason: string;
+};
+
+export const SEAM_RULINGS: SeamRuling[] = [
+  {
+    module: "lib/entityProperties",
+    verdict: "core",
+    reason:
+      "Custom fields as data: a typed accessor over property_definitions/entity_properties " +
+      "that mirrors migration 0015. It imports nothing — not one module, not one package — " +
+      "and names no deployment. Every CRM-shaped instance needs user-defined fields, and " +
+      "this one owes the instance nothing, so it is core by measurement rather than by hope.",
+  },
+  {
+    module: "lib/types",
+    verdict: "instance",
+    reason:
+      "Permanently instance, and not for a payable reason. It is this deployment's " +
+      "vocabulary, not a CRM's: NodeType carries \"mle-admin\" and \"vertical-anchor\", " +
+      "PhaseOneStatus encodes MLE's delivery model, and Person reaches lib/equity, " +
+      "lib/roi/automations and lib/phases/blueprint for MLE-specific record shapes. A " +
+      "spin-off would define its own Person, not import this one — so filters-lang's " +
+      "remaining reach is paid by the adapter split, never by moving this file.",
+  },
+];
+
+/**
+ * Every way the tree currently contradicts a ruling — empty means it still holds.
+ *
+ * The asymmetry is deliberate. A `core` verdict is a promise, so it is checked
+ * the strict way: the module must be a declared root (or the real gate never
+ * runs on it) and must survive that gate clean. An `instance` verdict is a
+ * refusal to pay, so it is checked in the opposite direction — the module must
+ * still *be* instance. Nothing else here can catch a ruling that was true in
+ * July and quietly false in September.
+ *
+ * "Instance evidence" is narrower than "any violation": an unlisted package is
+ * portable debt (a spin-off installs it and moves on), so only an instance
+ * literal or a reach outside core counts. Otherwise a stray `import lodash`
+ * would keep a stale `instance` ruling alive forever.
+ */
+export function rulingBreaches(
+  ruling: SeamRuling,
+  files: SeamFile[],
+  decl: SeamDeclaration = SEAM,
+): string[] {
+  if (files.length === 0)
+    return [`${ruling.module} has no modules on disk — the ruling names a path that is gone`];
+
+  const breaches: string[] = [];
+  const declaredCore = decl.coreRoots.includes(ruling.module);
+  const violations = seamViolations(files, decl);
+
+  if (ruling.verdict === "core") {
+    if (!declaredCore)
+      breaches.push(
+        `${ruling.module} is ruled core but is not in coreRoots, so the seam check never runs on it — the ruling is a comment`,
+      );
+    for (const v of violations) breaches.push(`${v.file}: ${v.detail}`);
+    return breaches;
+  }
+
+  if (declaredCore)
+    breaches.push(
+      `${ruling.module} is ruled instance but is declared a core root — the ruling and the declaration disagree`,
+    );
+  if (!violations.some((v) => v.kind === "instance-literal" || v.kind === "instance-import"))
+    breaches.push(
+      `${ruling.module} is ruled instance but shows no instance evidence — no instance literal, no reach outside core. It may have become extractable; re-decide the ruling instead of inheriting it`,
+    );
+  return breaches;
+}
 
 /**
  * Roots being *evaluated* for core status — not promised, measured.

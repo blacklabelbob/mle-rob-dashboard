@@ -6,9 +6,11 @@ import {
   SEAM,
   SEAM_CANDIDATES,
   SEAM_PARTITIONS,
+  SEAM_RULINGS,
   importSpecifiers,
   partitionGaps,
   resolveSpecifier,
+  rulingBreaches,
   seamViolations,
   stripComments,
   surveyCandidate,
@@ -59,8 +61,11 @@ describe("core-vs-instance seam (Q74)", () => {
     // reaches and two packages; splitting at the adapter line leaves exactly two
     // modules of debt and no packages at all — that gap IS the argument for the
     // split, so it is asserted rather than described.
+    // inc.4 paid half of it: `lib/entityProperties` was ruled core and promoted,
+    // so it stopped being debt — this number went down because a decision was
+    // made, which is the only way it is allowed to go down.
     "filters-lang": {
-      reaches: ["lib/entityProperties", "lib/types"],
+      reaches: ["lib/types"],
       externals: [],
     },
     "csv-import": {
@@ -104,6 +109,76 @@ describe("core-vs-instance seam (Q74)", () => {
   it("surveys exactly the core half of the partition it came from", () => {
     const langs = SEAM_CANDIDATES.find((c) => c.name === "filters-lang");
     expect(langs?.roots).toEqual(SEAM_PARTITIONS[0].core);
+  });
+
+  // The rulings are the DoD's actual answer — "which modules are core" — so
+  // they are the part most worth holding to the tree. A `core` ruling is
+  // checked as a promise; an `instance` ruling is checked as a refusal that
+  // must still be justified. Either can go stale without anyone touching this
+  // file, which is exactly why the check reads the tree rather than the list.
+  it.each(SEAM_RULINGS.map((r) => [r.module, r.verdict, r] as const))(
+    "ruling %s = %s still holds against the tree",
+    (module, _verdict, ruling) => {
+      const files = collect(module);
+      expect(files.length).toBeGreaterThan(0);
+      expect(rulingBreaches(ruling, files)).toEqual([]);
+    },
+  );
+
+  it("every ruling names a distinct module, and no module is both ruled and unruled", () => {
+    const modules = SEAM_RULINGS.map((r) => r.module);
+    expect(new Set(modules).size).toBe(modules.length);
+    // A module ruled core must appear in coreRoots and vice-versa is NOT
+    // required — a root can be sealed without a written ruling (lib/dedup was,
+    // in inc.1). What must never happen is a root contradicting its own ruling.
+    for (const r of SEAM_RULINGS)
+      expect(SEAM.coreRoots.includes(r.module)).toBe(r.verdict === "core");
+  });
+
+  // Both directions of the ruling gate, driven red. Without these the rulings
+  // are inc.3's defect again: a rule described in a doc comment and enforced
+  // by nothing.
+  it("fails a core ruling that is not a declared root, and one that leaks", () => {
+    const notARoot = rulingBreaches(
+      { module: "lib/labels", verdict: "core", reason: "claimed" },
+      [{ path: "lib/labels", source: `export const x = 1;` }],
+    );
+    expect(notARoot).toHaveLength(1);
+    expect(notARoot[0]).toContain("not in coreRoots");
+
+    const leaks = rulingBreaches({ module: "lib/dedup", verdict: "core", reason: "claimed" }, [
+      { path: "lib/dedup/run", source: `import { L } from "@/lib/labels";` },
+    ]);
+    expect(leaks).toHaveLength(1);
+    expect(leaks[0]).toContain("lib/labels");
+  });
+
+  it("fails an instance ruling once the module stops being instance", () => {
+    const clean = { module: "lib/types", verdict: "instance", reason: "claimed" } as const;
+    // Cleaned up: no instance literal, no reach outside core. The ruling has
+    // outlived its reason and must be re-decided, not inherited.
+    expect(
+      rulingBreaches(clean, [{ path: "lib/types", source: `export type Person = { id: string };` }]),
+    ).toEqual([
+      expect.stringContaining("no instance evidence"),
+    ]);
+    // An unlisted package is portable debt, not instance-ness — it must NOT
+    // keep the ruling alive on its own.
+    expect(
+      rulingBreaches(clean, [{ path: "lib/types", source: `import z from "zod";` }]),
+    ).toEqual([expect.stringContaining("no instance evidence")]);
+    // A reach outside core is instance evidence, so this one holds.
+    expect(
+      rulingBreaches(clean, [
+        { path: "lib/types", source: `type E = import("@/lib/equity").EquityFieldValue;` },
+      ]),
+    ).toEqual([]);
+  });
+
+  it("fails a ruling whose module no longer exists on disk", () => {
+    expect(
+      rulingBreaches({ module: "lib/gone", verdict: "core", reason: "claimed" }, []),
+    ).toEqual([expect.stringContaining("no modules on disk")]);
   });
 
   it("reports an unclassified module as a gap", () => {
