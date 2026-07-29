@@ -42,3 +42,7 @@ next-env.d.ts
 .build-heartbeat
 .vercel-DISABLED-2026-07-08/
 .driver-lock
+
+# Meeting transcript bodies — verbatim customer speech, never in git history.
+# Pull them with: node scripts/fireflies-ingest.mjs   (manifest.json IS committed)
+MLE Internal Meetings/transcripts/

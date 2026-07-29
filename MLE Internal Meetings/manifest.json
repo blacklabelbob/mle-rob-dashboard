@@ -1,0 +1,266 @@
+{
+  "generatedBy": "scripts/fireflies-ingest.mjs",
+  "source": "fireflies",
+  "count": 13,
+  "meetings": [
+    {
+      "id": "01KXVEM73V4YPPJS7CT6S4YN9R",
+      "title": "Joseph, Rob, Will | MLE Partnership",
+      "date": "2026-07-20T18:00:00.000Z",
+      "durationMinutes": 35,
+      "organizer": "rob@aivoicetech.io",
+      "participants": [
+        "josephgreen83@gmail.com",
+        "williamfdevito@gmail.com",
+        "rob@aivoicetech.io"
+      ],
+      "keywords": [
+        "SEO",
+        "AEO",
+        "automation",
+        "lead generation",
+        "Everything agent",
+        "customer support"
+      ],
+      "sentences": 551,
+      "fireflies": "https://app.fireflies.ai/view/01KXVEM73V4YPPJS7CT6S4YN9R",
+      "bodyOnDisk": true
+    },
+    {
+      "id": "01KXK86RCXFEJ3AHCXDA6JC4KH",
+      "title": "Joseph, Rob, Will | Next Steps",
+      "date": "2026-07-15T16:01:47.913Z",
+      "durationMinutes": 86,
+      "organizer": "rob@aivoicetech.io",
+      "participants": [
+        "rob@aivoicetech.io",
+        "josephgreen83@gmail.com",
+        "williamfdevito@gmail.com"
+      ],
+      "keywords": [
+        "AI automation",
+        "customer acquisition cost",
+        "SEO optimization",
+        "social media automation",
+        "multilingual websites",
+        "lead generation"
+      ],
+      "sentences": 962,
+      "fireflies": "https://app.fireflies.ai/view/01KXK86RCXFEJ3AHCXDA6JC4KH",
+      "bodyOnDisk": true
+    },
+    {
+      "id": "01KX6KC6XT02BN17KMTXNMJX7D",
+      "title": "Rob, David, Mark | MLE -Sales Network Intro",
+      "date": "2026-07-10T18:06:53.432Z",
+      "durationMinutes": 83,
+      "organizer": "rob@aivoicetech.io",
+      "participants": [
+        "rob@aivoicetech.io",
+        "mbgeisler@hotmail.com",
+        "thecatesgroupllc@gmail.com"
+      ],
+      "keywords": null,
+      "sentences": 27,
+      "fireflies": "https://app.fireflies.ai/view/01KX6KC6XT02BN17KMTXNMJX7D",
+      "bodyOnDisk": true
+    },
+    {
+      "id": "01KX4V4ST8NS8BNM5MGC1612SX",
+      "title": "Rob, David, Mark | MLE -Sales Network Intro",
+      "date": "2026-07-10T18:00:00.000Z",
+      "durationMinutes": 121,
+      "organizer": "rob@aivoicetech.io",
+      "participants": [
+        "rob@aivoicetech.io",
+        "mbgeisler@hotmail.com",
+        "thecatesgroupllc@gmail.com"
+      ],
+      "keywords": [
+        "Zoom",
+        "Technical Issues",
+        "Audio Connection",
+        "Video Setup",
+        "Meeting Troubleshooting",
+        "Participant Identification"
+      ],
+      "sentences": 29,
+      "fireflies": "https://app.fireflies.ai/view/01KX4V4ST8NS8BNM5MGC1612SX",
+      "bodyOnDisk": true
+    },
+    {
+      "id": "01KX423MQ4NX9H9HDV0CG9QTGB",
+      "title": "MLE TEAM KICKOFF",
+      "date": "2026-07-09T18:26:37.934Z",
+      "durationMinutes": 89,
+      "organizer": "rob@aivoicetech.io",
+      "participants": [
+        "rob@aivoicetech.io"
+      ],
+      "keywords": [
+        "AI automation",
+        "social media automation",
+        "website translation",
+        "omnichannel communication",
+        "business knowledge base",
+        "sales team collaboration"
+      ],
+      "sentences": 1418,
+      "fireflies": "https://app.fireflies.ai/view/01KX423MQ4NX9H9HDV0CG9QTGB",
+      "bodyOnDisk": true
+    },
+    {
+      "id": "01KX1EMW09YVANY0RAEM4N4HPD",
+      "title": "bsn-kwzp-wch",
+      "date": "2026-07-08T18:08:01.962Z",
+      "durationMinutes": 5,
+      "organizer": "rob@aivoicetech.io",
+      "participants": [
+        "rob@aivoicetech.io",
+        "thedevdix@gmail.com"
+      ],
+      "keywords": null,
+      "sentences": 0,
+      "fireflies": "https://app.fireflies.ai/view/01KX1EMW09YVANY0RAEM4N4HPD",
+      "bodyOnDisk": true
+    },
+    {
+      "id": "01KVERT4B8BR0CTXMWQG6KJNK2",
+      "title": "Jun 18, 09:44 PM",
+      "date": "2026-06-19T01:44:30.047Z",
+      "durationMinutes": 2,
+      "organizer": "rob@aivoicetech.io",
+      "participants": [
+        "rob@aivoicetech.io"
+      ],
+      "keywords": null,
+      "sentences": 1,
+      "fireflies": "https://app.fireflies.ai/view/01KVERT4B8BR0CTXMWQG6KJNK2",
+      "bodyOnDisk": true
+    },
+    {
+      "id": "01KVE1WWM8WT07RDR2X54CNJND",
+      "title": "Rob Will Caleb | CGRoofinggroup.com - Next Steps",
+      "date": "2026-06-18T17:54:33.036Z",
+      "durationMinutes": 68,
+      "organizer": "rob@aivoicetech.io",
+      "participants": [
+        "rob@aivoicetech.io",
+        "calebgreen1981@gmail.com",
+        "williamfdevito@gmail.com",
+        "cgreen@cgroofing.net",
+        "gcsalessystems@gmail.com",
+        "will@aivoicetech.io"
+      ],
+      "keywords": [
+        "CRM development",
+        "roofing business",
+        "partnership agreement",
+        "website transition",
+        "high-end residential roofing",
+        "job cost tracking"
+      ],
+      "sentences": 604,
+      "fireflies": "https://app.fireflies.ai/view/01KVE1WWM8WT07RDR2X54CNJND",
+      "bodyOnDisk": true
+    },
+    {
+      "id": "01KVDXN9JC1SAFVDKKCA6R2BYE",
+      "title": "aob-fada-amf",
+      "date": "2026-06-18T17:49:54.224Z",
+      "durationMinutes": 5,
+      "organizer": "rob@aivoicetech.io",
+      "participants": [
+        "rob@aivoicetech.io"
+      ],
+      "keywords": [
+        "Calendar invite",
+        "Google Meet",
+        "contract",
+        "video capture",
+        "communication",
+        "login"
+      ],
+      "sentences": 26,
+      "fireflies": "https://app.fireflies.ai/view/01KVDXN9JC1SAFVDKKCA6R2BYE",
+      "bodyOnDisk": true
+    },
+    {
+      "id": "01KVBDDHRYB3KCZDRDXNDCJ128",
+      "title": "Fireflies Demo Meeting",
+      "date": "2026-06-17T18:27:40.051Z",
+      "durationMinutes": 12,
+      "organizer": "rob@aivoicetech.io",
+      "participants": [
+        "rob@aivoicetech.io"
+      ],
+      "keywords": null,
+      "sentences": 1,
+      "fireflies": "https://app.fireflies.ai/view/01KVBDDHRYB3KCZDRDXNDCJ128",
+      "bodyOnDisk": true
+    },
+    {
+      "id": "01KV97D83V9WKJKS0HS1NFW0N7",
+      "title": "Rob, Alex, Will, Chris | Gulf Coast RE + AI Platform",
+      "date": "2026-06-17T15:30:00.000Z",
+      "durationMinutes": 50,
+      "organizer": "rob@aivoicetech.io",
+      "participants": [
+        "rob@aivoicetech.io",
+        "williamfdevito@gmail.com",
+        "alex@gulfregroup.com",
+        "christopher.acheson@gmail.com"
+      ],
+      "keywords": [
+        "Automation",
+        "AEO",
+        "Real Estate",
+        "RAG Database",
+        "SEO",
+        "AI Integration"
+      ],
+      "sentences": 701,
+      "fireflies": "https://app.fireflies.ai/view/01KV97D83V9WKJKS0HS1NFW0N7",
+      "bodyOnDisk": true
+    },
+    {
+      "id": "01KV8VGJS6T7Z4P8ATSB4X5NQN",
+      "title": "Caleb, Rob, Will | CGRoofingGroup.com + AI Platform Discovery",
+      "date": "2026-06-16T18:36:09.427Z",
+      "durationMinutes": 12,
+      "organizer": "rob@aivoicetech.io",
+      "participants": [
+        "rob@aivoicetech.io"
+      ],
+      "keywords": [
+        "Roofing CRM",
+        "customer acquisition cost",
+        "color-coded system",
+        "roofing contractors",
+        "business development",
+        "market opportunity"
+      ],
+      "sentences": 121,
+      "fireflies": "https://app.fireflies.ai/view/01KV8VGJS6T7Z4P8ATSB4X5NQN",
+      "bodyOnDisk": true
+    },
+    {
+      "id": "01KV8PMM3T1DGG5PS7FGA86N0H",
+      "title": "Caleb, Rob, Will | CGRoofingGroup.com + AI Platform Discovery",
+      "date": "2026-06-16T17:10:59.870Z",
+      "durationMinutes": 5,
+      "organizer": "rob@aivoicetech.io",
+      "participants": [
+        "rob@aivoicetech.io",
+        "calebgreen1981@gmail.com",
+        "williamfdevito@gmail.com",
+        "cgreen@cgroofing.net",
+        "gcsalessystems@gmail.com"
+      ],
+      "keywords": null,
+      "sentences": 10,
+      "fireflies": "https://app.fireflies.ai/view/01KV8PMM3T1DGG5PS7FGA86N0H",
+      "bodyOnDisk": true
+    }
+  ]
+}
