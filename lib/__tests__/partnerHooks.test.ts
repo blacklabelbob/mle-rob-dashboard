@@ -5,8 +5,12 @@ import { describe, expect, it } from "vitest";
 import {
   PARTNER_CONTRACT,
   PARTNER_HOOKS,
+  contractBaseUrl,
   contractBreaches,
+  contractDoors,
   distinctHeaders,
+  doorParityBreaches,
+  openQuestions,
   headerIsRead,
   hookBreaches,
   undocumentedHooks,
@@ -165,6 +169,53 @@ describe("partner connection contract (Q75)", () => {
   // choice, never grow by accident.
   it("pins the documentation gap at ZERO — five of seven on inc.1", () => {
     expect(undocumentedHooks(contract(), PARTNER_HOOKS)).toEqual([]);
+  });
+
+  // Q75 inc.3 — the page from the INTEGRATOR's side. Everything below is what a
+  // hub owner acts on without our repo, so it is checked against the code the
+  // same way the code is checked against the page.
+  describe("the partner's view of the page (inc.3 worked example)", () => {
+    it("exposes every door machine-readably, with the header and env the code uses", () => {
+      expect(doorParityBreaches(contract(), PARTNER_HOOKS)).toEqual([]);
+    });
+
+    it("states a base URL, so a partner can address a door without asking", () => {
+      expect(contractBaseUrl(contract())).toBe("https://mle-rob-dashboard.vercel.app");
+    });
+
+    it("parses the doors a partner can see — including which one is form-encoded", () => {
+      const doors = contractDoors(contract());
+      expect(doors.map((d) => d.door)).toEqual(PARTNER_HOOKS.map((h) => h.contractAnchor));
+      expect(doors.filter((d) => d.formEncoded).map((d) => d.door)).toEqual([
+        "twilio-recording",
+      ]);
+    });
+
+    it("fails when the page tells partners a header the route does not read", () => {
+      const lied = contract().replace("`x-vapi-secret`", "`x-vapi-token`");
+      expect(doorParityBreaches(lied, PARTNER_HOOKS)).toContain(
+        "vapi: page tells partners to send x-vapi-token, code reads x-vapi-secret",
+      );
+    });
+
+    it("fails when the page drops its base URL", () => {
+      const stripped = contract().replace("POST https://mle-rob-dashboard.vercel.app", "POST <ask us>");
+      expect(doorParityBreaches(stripped, PARTNER_HOOKS)).toContain(
+        "contract: no POST base URL on the page — a partner cannot address a door",
+      );
+    });
+
+    // The item's score: how many times an integrator still has to ask a human.
+    it("pins the integrator's remaining questions at FOUR", () => {
+      const questions = openQuestions(contract());
+      expect(questions).toHaveLength(4);
+      expect(questions[0]).toContain("How do I get a secret");
+    });
+
+    it("counts nothing when the page stops admitting its gaps", () => {
+      const hidden = contract().replace("## What this page still does not answer", "## (removed)");
+      expect(openQuestions(hidden)).toEqual([]);
+    });
   });
 
   it("pins how many distinct secret headers an integrator must learn", () => {

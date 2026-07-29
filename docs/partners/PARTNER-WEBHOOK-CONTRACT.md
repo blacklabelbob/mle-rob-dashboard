@@ -38,6 +38,20 @@ Three more rules that hold everywhere:
 
 To rotate a secret without downtime: tell us the new value, we set it, then you switch. In between, the old secret is still accepted; after, the old one gets a 403.
 
+## Step 1 — check your door before you build anything
+
+The first thing you want to know is whether your door is switched on at our end. Send **one POST with a deliberately wrong secret** and read the status:
+
+```bash
+curl -s -o /dev/null -w '%{http_code}\n' -X POST \
+  https://mle-rob-dashboard.vercel.app/api/webhooks/<door> \
+  -H '<secret header>: deliberately-wrong' -H 'Content-Type: application/json' -d '{}'
+```
+
+**403** = your door is live; keys are being checked. **503** = we have not set your secret yet, so the door is inert — build against it anyway, nothing you send can be half-accepted. Anything else is our bug: tell us, because a bad secret must be refused before your body is ever read. That is also why this probe is safe to run against production — it writes nothing.
+
+We run the same check across every door with `npm run drive:contract` (`scripts/partner-hub-drive.mjs`), which reads **this page** for the door list, headers, encodings and status meanings — no repository access. As of 2026-07-29: `n8n-email`, `n8n-error`, `phase-signal`, `voice-law` **live**; `aidre-call`, `twilio-recording`, `vapi` **inert** (secrets unset — call-side integrations are not armed yet).
+
 ---
 
 ## aidre-call
@@ -126,4 +140,13 @@ Because Twilio retries any non-2xx, the status codes are chosen around it: an un
 
 Ask us for one. On our side it is: a row in `PARTNER_HOOKS`, a section on this page, and a route that answers 503 unconfigured / 403 on a bad secret. The test suite refuses a door that skips any of the three — including one added to the codebase without ever being written down here.
 
-**Still open (inc.3):** drive a brand-new automation through this page end to end with the page as the *only* input, and count how many times the integrator has to ask a question. Also open as pinned debt: **five distinct secret headers** an integrator must learn across seven doors (`lib/__tests__/partnerHooks.test.ts` pins the number so it can shrink deliberately and never grow by accident).
+## What this page still does not answer
+
+The drive was run (2026-07-29, Q75 inc.3): a hub owner's connection tool was built from this page alone — base URL, doors, headers, body encodings, status meanings — and pointed at production, where all seven doors answered exactly as promised. Everything needed to *address and authenticate* a door is here. **Four questions are still not answerable from this page**, so an integrator must still ask a human:
+
+1. **How do I get a secret, and who do I tell when I rotate one?** The rules above assume "the shared secret we gave you" and "tell us the new value" — no channel, no owner, no turnaround is named. This is the one that blocks a stranger, and answering it is a Rob decision (which address a partner writes to), not a code change.
+2. **Is there a test door, or do my rehearsals land in the live ledger?** The wrong-secret probe rehearses auth only. There is no dry-run mode for a *body*, so a partner shaping a payload either sends real rows or asks us to watch.
+3. **What are the limits, and how should I back off?** Body size, rate, our timeout, and the retry window after a `500` are all unstated. "Please retry" without a schedule is a question.
+4. **How do I get an eighth door, and how long does it take?** "Ask us for one" names no channel and no turnaround — the same silence as (1), for a different ask.
+
+Counted, not summarised: `openQuestions()` parses this list and `lib/__tests__/partnerHooks.test.ts` pins it at **4**, so it can shrink by decision and never grow by drift. Also still pinned debt: **five distinct secret headers** across seven doors.

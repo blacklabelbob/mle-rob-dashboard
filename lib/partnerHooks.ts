@@ -290,6 +290,121 @@ export function undocumentedHooks(doc: string, declared: PartnerHook[]): string[
 }
 
 /**
+ * A door as it is visible FROM THE PAGE — the integrator's side of the glass.
+ *
+ * `PARTNER_HOOKS` is what we know; this is what a hub owner can learn without
+ * our repository. Q75 inc.3's worked example is driven off this type on
+ * purpose: if the tool a partner runs were fed from `PARTNER_HOOKS`, the
+ * exercise would prove nothing about the page.
+ */
+export type ContractDoor = {
+  door: string;
+  header: string;
+  secretEnv: string;
+  /** twilio-recording is the one form-encoded door; the page says so, so we read it. */
+  formEncoded: boolean;
+};
+
+const HEADER_LINE = /\*\*Header:\*\*\s*`([^`]+)`/;
+const SECRET_LINE = /\*\*Secret env \(our side\):\*\*\s*`([^`]+)`/;
+
+/**
+ * Parse the doors out of PARTNER_CONTRACT.
+ *
+ * A `## ` section is a door when it states a header — which is also the rule an
+ * integrator applies by eye, so prose sections ("The universal rules", "Adding
+ * an eighth door") are skipped by the same test that skips them for a human.
+ */
+export function contractDoors(doc: string): ContractDoor[] {
+  const out: ContractDoor[] = [];
+  for (const [heading, body] of contractSections(doc)) {
+    const header = body.match(HEADER_LINE)?.[1];
+    if (!header) continue;
+    out.push({
+      door: heading,
+      header,
+      secretEnv: body.match(SECRET_LINE)?.[1] ?? "",
+      formEncoded: /form-encoded/.test(body),
+    });
+  }
+  return out;
+}
+
+/**
+ * The base URL a partner POSTs to, read off the page's own example block.
+ *
+ * Returned without a trailing slash, or null when the page stops stating it —
+ * which is a breach, not a default: guessing our hostname is exactly the kind
+ * of question this page exists to stop.
+ */
+export function contractBaseUrl(doc: string): string | null {
+  const m = doc.match(/POST\s+(https?:\/\/[^\s/]+)\/api\/webhooks\//);
+  return m ? m[1] : null;
+}
+
+/**
+ * Ways the page can be false in the facts a partner ACTS on (Q75 inc.3).
+ *
+ * `contractBreaches` walks code → page ("is this door written down?"). This
+ * walks page → code ("is what a partner reads here true?"), because the worked
+ * example made the difference concrete: an integrator never sees
+ * `PARTNER_HOOKS`, so a header typo on the page costs them a support round
+ * trip while every code-side check stays green.
+ */
+export function doorParityBreaches(doc: string, declared: PartnerHook[]): string[] {
+  const out: string[] = [];
+  const byAnchor = new Map(declared.map((h) => [h.contractAnchor, h]));
+
+  if (!contractBaseUrl(doc)) {
+    out.push("contract: no POST base URL on the page — a partner cannot address a door");
+  }
+
+  for (const door of contractDoors(doc)) {
+    const hook = byAnchor.get(door.door);
+    if (!hook) {
+      out.push(`${door.door}: page specifies a door that is in no PARTNER_HOOKS row`);
+      continue;
+    }
+    if (door.header !== hook.header) {
+      out.push(
+        `${door.door}: page tells partners to send ${door.header}, code reads ${hook.header}`,
+      );
+    }
+    if (door.secretEnv !== hook.secretEnv) {
+      out.push(
+        `${door.door}: page names secret env ${door.secretEnv || "(none)"}, code uses ${hook.secretEnv}`,
+      );
+    }
+  }
+
+  for (const hook of declared) {
+    if (!contractDoors(doc).some((d) => d.door === hook.contractAnchor)) {
+      out.push(`${hook.route}: has no machine-readable Header line on the page`);
+    }
+  }
+
+  return out;
+}
+
+const QUESTIONS_HEADING = "What this page still does not answer";
+
+/**
+ * The questions an integrator still has to ask us, as the page itself admits
+ * them (Q75 inc.3's DoD: *count* them).
+ *
+ * Written down rather than remembered because this number is the item's score:
+ * the recipe is finished when a hub owner can connect without a conversation,
+ * and an honest list of what still forces one is the only way to tell how far
+ * off that is. Pinned in the suite so it shrinks by decision and never grows
+ * by drift.
+ */
+export function openQuestions(doc: string): string[] {
+  const body = contractSections(doc).get(QUESTIONS_HEADING);
+  if (body === undefined) return [];
+  return [...body.matchAll(/^\d+\.\s+\*\*(.+?)\*\*/gm)].map((m) => m[1].trim());
+}
+
+/**
  * How many distinct secret headers a partner integrator has to learn.
  *
  * This is the real cost of the current shape: the routes agree on behaviour

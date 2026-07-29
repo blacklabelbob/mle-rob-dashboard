@@ -14,6 +14,7 @@
     "guard:pii": "node scripts/pii-guard.mjs",
     "audit:exposure": "node scripts/exposure-audit.mjs",
     "check:env": "node scripts/env-manifest.mjs",
+    "drive:contract": "node --import ./scripts/ts-loader.mjs scripts/partner-hub-drive.mjs",
     "verify:offline": "node scripts/verify-offline.mjs",
     "transcripts:plan": "node --import ./scripts/ts-loader.mjs scripts/transcripts-to-supabase.mjs",
     "transcripts:verify": "node --import ./scripts/ts-loader.mjs scripts/transcripts-to-supabase.mjs --verify",
