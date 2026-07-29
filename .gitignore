@@ -32,6 +32,10 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# ...except the example, which holds NAMES ONLY and never a value. Until 7/29 it
+# was ignored, so a fresh clone got no env documentation at all — the one thing
+# it is for. `npm run check:env` fails if it stops listing what the code reads.
+!.env.example
 
 # vercel
 .vercel

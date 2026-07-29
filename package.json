@@ -11,7 +11,8 @@
     "dev:demo": "STORAGE_SOURCE=file next dev",
     "seed:synthetic": "node scripts/seed-synthetic.mjs",
     "seed:local": "node scripts/regen-fallback.mjs && node scripts/seed-local-crm.mjs",
-    "guard:pii": "node scripts/pii-guard.mjs"
+    "guard:pii": "node scripts/pii-guard.mjs",
+    "check:env": "node scripts/env-manifest.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.110.0",
