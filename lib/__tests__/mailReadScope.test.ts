@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   MAIL_READ_SCOPES,
+  MAIL_SCAN_EXTENSIONS,
   MAIL_SCAN_ROOTS,
   mailReadMarkers,
   mailScopeBreaches,
@@ -17,9 +18,9 @@ function collect(root: string): MailFile[] {
   const walk = (relDir: string) => {
     for (const entry of readdirSync(join(REPO_ROOT, relDir))) {
       const rel = `${relDir}/${entry}`;
-      if (entry === "__tests__" || entry.endsWith(".test.ts")) continue;
+      if (entry === "__tests__" || /\.test\.(ts|tsx|mjs|js)$/.test(entry)) continue;
       if (statSync(join(REPO_ROOT, rel)).isDirectory()) walk(rel);
-      else if (/\.(ts|tsx)$/.test(entry)) {
+      else if (MAIL_SCAN_EXTENSIONS.some((ext) => entry.endsWith(ext))) {
         out.push({ path: rel, source: readFileSync(join(REPO_ROOT, rel), "utf8") });
       }
     }
@@ -33,6 +34,17 @@ const TREE = MAIL_SCAN_ROOTS.flatMap(collect);
 describe("mail read scope (Q76)", () => {
   it("scans a real tree — a guard over zero files proves nothing", () => {
     expect(TREE.length).toBeGreaterThan(50);
+  });
+
+  it("reads real files under EVERY declared root, not just the first", () => {
+    // The failure this exists for is silent: `scripts/` is almost all `.mjs`, so
+    // widening MAIL_SCAN_ROOTS without widening the extensions would leave the
+    // suite green while covering zero script files. A root that contributes
+    // nothing is a coverage claim the scan does not honour.
+    for (const root of MAIL_SCAN_ROOTS) {
+      const underRoot = TREE.filter((f) => f.path.startsWith(`${root}/`));
+      expect(underRoot.length, `${root} contributed no files to the scan`).toBeGreaterThan(5);
+    }
   });
 
   it("every mail-reading automation under the scanned roots is declared", () => {
@@ -57,6 +69,34 @@ describe("mail read scope (Q76)", () => {
     const errorRoute = TREE.find((f) => f.path === "app/api/webhooks/n8n-error/route.ts");
     expect(errorRoute).toBeDefined();
     expect(mailReadMarkers(errorRoute!.source)).toEqual([]);
+
+    // Second real case, found while widening the scan: the e-sign sender's
+    // header comment says the link goes out "(Gmail, rob@aivoicetech.io)". It
+    // sends; it has never read an inbox. Two independent files now depend on
+    // comment-stripping, so the behaviour is load-bearing rather than incidental.
+    const esign = TREE.find((f) => f.path === "app/api/esign/send/route.ts");
+    expect(esign).toBeDefined();
+    expect(esign!.source).toMatch(/Gmail/);
+    expect(mailReadMarkers(esign!.source)).toEqual([]);
+  });
+
+  it("the marker set survives scripts/ vocabulary — no reader declared there", () => {
+    // The deliberate pass this widening required: several scripts talk about a
+    // "mailbox" (privacy manifest, PII guards, synthetic seed) without ever
+    // opening one. `mailbox` alone is NOT a marker — only the registry symbols
+    // are — which is why adding 29 script files added zero breaches. If a future
+    // script genuinely connects to a mailbox, it fails as `undeclared-reader`
+    // until MAIL_READ_SCOPES names it.
+    const vocabulary = TREE.filter(
+      (f) => f.path.startsWith("scripts/") && /mailbox/i.test(f.source)
+    );
+    expect(vocabulary.length, "expected scripts using mailbox vocabulary").toBeGreaterThan(0);
+    for (const file of vocabulary) {
+      expect(mailReadMarkers(file.source), file.path).toEqual([]);
+    }
+    expect(MAIL_READ_SCOPES.flatMap((s) => s.modules).filter((m) => m.startsWith("scripts/"))).toEqual(
+      []
+    );
   });
 
   // --- the failure paths, driven rather than argued -------------------------
@@ -74,6 +114,23 @@ describe("mail read scope (Q76)", () => {
         kind: "undeclared-reader",
         subject: "app/api/cron/harvest/route.ts",
         detail: "reads mail (gmail) but no scope in MAIL_READ_SCOPES claims it",
+      },
+    ]);
+  });
+
+  it("goes red when a local script harvests a mailbox", () => {
+    // The reason `scripts/` is now scanned: this is the cheapest possible way to
+    // do the thing Rob asked about — no route, no deploy, no secret header — and
+    // until this increment it was the one place the guard could not see.
+    const smuggled: MailFile = {
+      path: "scripts/pull-inbox.mjs",
+      source: "const box = await imap.connect({ user: process.env.MAIL_USER });",
+    };
+    expect(mailScopeBreaches([...TREE, smuggled])).toEqual([
+      {
+        kind: "undeclared-reader",
+        subject: "scripts/pull-inbox.mjs",
+        detail: "reads mail (imap) but no scope in MAIL_READ_SCOPES claims it",
       },
     ]);
   });

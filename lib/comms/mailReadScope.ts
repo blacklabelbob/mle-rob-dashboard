@@ -47,12 +47,31 @@ export type MailReadScope = {
   purpose: string;
 };
 
-// The roots scanned. These are the surfaces that run UNATTENDED against prod —
-// which is precisely the population Rob's question is about ("an agent run[s]
-// and scrape[s]"). A human running a local script is a different risk with a
-// different answer, so `scripts/` is NOT claimed as covered here; saying so out
-// loud beats implying a completeness this scan does not have (Q73 precedent).
-export const MAIL_SCAN_ROOTS = ["app/api"] as const;
+// The roots scanned.
+//
+// `app/api` is the unattended surface — the population Rob's question names
+// ("an agent run[s] and scrape[s]"). `scripts/` was deliberately excluded in
+// inc.1 as "a human running a local script is a different risk"; inc.2 rejects
+// that reasoning. A script is where a mailbox harvester would ACTUALLY be
+// written first — no route to deploy, no secret header to satisfy, and one cron
+// entry away from being unattended anyway. Excluding it left the cheapest place
+// to do the thing Rob is worried about as the one place unwatched.
+//
+// Still NOT claimed: `lib/`. Those modules operate on a payload a declared door
+// already delivered (`emailGraph`, `personFromEmail`, `n8nEmail`) — they hold no
+// credential and open no connection, so inverting the rule there would flag ~15
+// non-readers, and a guard that cries wolf gets skipped inside a week (Q74
+// precedent). The cost of that choice, stated rather than implied: a hand-rolled
+// poller written as a `lib/` module would not be seen by this scan. What closes
+// that is a package-import marker tier over the whole tree — named here as the
+// known limit, not silently absent.
+export const MAIL_SCAN_ROOTS = ["app/api", "scripts"] as const;
+
+// Extensions the scan reads. Exported so the walker and the coverage claim
+// cannot drift: `scripts/` is almost entirely `.mjs`, so a `.ts`-only walker
+// would have "covered" it while reading zero files — a green suite proving
+// nothing, which is worse than the honest exclusion it replaced.
+export const MAIL_SCAN_EXTENSIONS = [".ts", ".tsx", ".mjs", ".cjs", ".js"] as const;
 
 // Exactly one automation reads mail today. The n8n Gmail workflow watches
 // rob@aivoicetech.io and POSTs each message here; nothing in this repo polls,
