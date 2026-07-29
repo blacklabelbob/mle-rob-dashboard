@@ -13,7 +13,10 @@
     "seed:local": "node scripts/regen-fallback.mjs && node scripts/seed-local-crm.mjs",
     "guard:pii": "node scripts/pii-guard.mjs",
     "check:env": "node scripts/env-manifest.mjs",
-    "verify:offline": "node scripts/verify-offline.mjs"
+    "verify:offline": "node scripts/verify-offline.mjs",
+    "transcripts:plan": "node --import ./scripts/ts-loader.mjs scripts/transcripts-to-supabase.mjs",
+    "transcripts:verify": "node --import ./scripts/ts-loader.mjs scripts/transcripts-to-supabase.mjs --verify",
+    "transcripts:apply": "node --import ./scripts/ts-loader.mjs scripts/transcripts-to-supabase.mjs --apply"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.110.0",
