@@ -10,7 +10,7 @@
     "lint": "eslint .",
     "dev:demo": "STORAGE_SOURCE=file next dev",
     "seed:synthetic": "node scripts/seed-synthetic.mjs",
-    "seed:local": "node scripts/regen-fallback.mjs && node scripts/seed-local-crm.mjs",
+    "seed:local": "node --import ./scripts/ts-loader.mjs scripts/regen-fallback.mjs && node scripts/seed-local-crm.mjs",
     "guard:pii": "node scripts/pii-guard.mjs",
     "check:env": "node scripts/env-manifest.mjs",
     "verify:offline": "node scripts/verify-offline.mjs",

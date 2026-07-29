@@ -2,8 +2,13 @@
 // Regenerate data/network.local.json (the gitignored file-store overlay) from
 // LIVE Supabase rows, so the no-stall fallback serves truth, not stale seed
 // data (Critic Rob R1-#7). NEVER writes the committed data/network.json (Q71).
-// Field mapping mirrors lib/storage/supabaseStore.ts toPerson/toProject exactly —
-// keep the two in sync when the schema changes.
+// Q71 inc.21: the field mapping is no longer mirrored here, it is IMPORTED from
+// lib/storage/supabaseStore.ts through scripts/ts-loader.mjs. The copy that used
+// to live in this file had rotted exactly the way a copy does: it was missing
+// legacySlug, orgId, phase2Estimate and equity — four columns the real store
+// reads — so a local mirror served people with no company link, no equity split
+// and no ROI inputs, and nothing said so. Run via `npm run seed:local`, or
+// `node --import ./scripts/ts-loader.mjs scripts/regen-fallback.mjs`.
 // Usage: node scripts/regen-fallback.mjs                (source: live table reads)
 //        node scripts/regen-fallback.mjs --from-backup  (source: latest verified
 //          nightly backup — `latest.json` in the private `backups` bucket, MC.16.
@@ -15,6 +20,8 @@
 //          a side effect of committing whatever this script last wrote.)
 import { createClient } from "@supabase/supabase-js";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
+// The REAL mappers, not a copy of them (see the header). Resolved by scripts/ts-loader.mjs.
+import { toPerson, toOrgPerson, toEdge, toProject } from "../lib/storage/supabaseStore";
 
 // Minimal .env.local loader so the script runs standalone (no dotenv dep).
 if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
@@ -34,53 +41,6 @@ if (!url || !key) {
   process.exit(1);
 }
 const db = createClient(url, key, { auth: { persistSession: false } });
-
-const toPerson = (r) => ({
-  id: r.id,
-  name: r.name,
-  business: r.business ?? undefined,
-  role: r.role ?? undefined,
-  entityKind: r.entity_kind ?? undefined,
-  nodeType: r.node_type ?? undefined,
-  verticalId: r.vertical_id,
-  phone: r.phone ?? undefined,
-  email: r.email ?? undefined,
-  website: r.website ?? undefined,
-  referredById: r.referred_by_id ?? r.referred_by_org_id ?? undefined,
-  relationship: r.relationship ?? undefined,
-  status: r.status,
-  quotedAmount: r.quoted_amount ?? undefined,
-  signed: r.signed,
-  meetingVideoUrl: r.meeting_video_url ?? undefined,
-  transcriptUrl: r.transcript_url ?? undefined,
-  keyDates: r.key_dates ?? {},
-  phaseOne: r.phase_one,
-  description: r.description ?? undefined,
-  estimate: r.estimate ?? undefined,
-  notes: r.notes ?? undefined,
-  assignedRep: r.assigned_rep ?? undefined,
-});
-
-const toEdge = (r) => ({
-  id: r.id,
-  fromId: r.from_id ?? r.from_org_id,
-  toId: r.to_id ?? r.to_org_id,
-  relationship: r.relationship ?? undefined,
-  suggested: r.suggested || undefined,
-});
-
-const toProject = (r) => ({
-  id: r.id,
-  name: r.name,
-  category: r.category,
-  theme: r.theme,
-  completion: r.completion,
-  owner: r.owner,
-  summary: r.summary ?? undefined,
-  link: r.link ?? undefined,
-  willItems: r.will_items ?? undefined,
-  updatedAt: r.updated_at,
-});
 
 async function all(table) {
   const { data, error } = await db.from(table).select("*").order("id");
@@ -127,7 +87,7 @@ const out = {
   verticals: verticals.map((r) => ({ id: r.id, name: r.name, color: r.color })),
   people: [
     ...people.map(toPerson),
-    ...orgs.map((r) => ({ ...toPerson(r), entityKind: "company" })),
+    ...orgs.map(toOrgPerson),
   ],
   edges: edges.map(toEdge),
   projects: projects.map(toProject),

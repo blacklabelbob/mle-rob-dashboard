@@ -184,7 +184,7 @@ async function isOrgId(s: SupabaseClient, id: string): Promise<boolean> {
   return data != null;
 }
 
-function toProject(r: any): Project {
+export function toProject(r: any): Project {
   return {
     id: r.id,
     name: r.name,
