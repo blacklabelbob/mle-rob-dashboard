@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "test": "vitest run",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "dev:demo": "STORAGE_SOURCE=file next dev",
+    "seed:synthetic": "node scripts/seed-synthetic.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.110.0",
