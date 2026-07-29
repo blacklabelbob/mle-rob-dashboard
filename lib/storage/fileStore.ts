@@ -26,8 +26,25 @@ function localNetworkPath(): string {
 // CRM rows live in their own file so network.json (and regen-fallback.mjs)
 // keep their exact shape. Overridable so the contract test can point at a
 // temp file; resolved per-call, not at module load.
+//
+// Q71 Phase 2 item 5: the SAME two-file seam as the network above, for the same
+// reason. `crm.json` is committed synthetic scaffolding so a fresh clone gets a
+// populated pipeline instead of an empty one that is indistinguishable from a
+// broken adapter; `crm.local.json` is gitignored, wins on read, and is where
+// every write lands — so no write path can turn the committed file back into a
+// PII carrier. The local name is derived from the committed one rather than
+// configured separately: two env vars that could point at different directories
+// are two env vars that can disagree.
 function crmPath(): string {
-  return process.env.CRM_DATA_PATH ?? path.join(process.cwd(), "data", "crm.json");
+  return process.env.CRM_DATA_PATH ?? path.join(dataDir(), "crm.json");
+}
+
+// Exported so callers ASK where a write lands instead of re-deriving the
+// ".local.json" rule — a second copy of that rule is a second thing that can
+// drift out of step with the store it describes (the contract tests reset and
+// read back through this).
+export function localCrmPath(): string {
+  return crmPath().replace(/\.json$/, ".local.json");
 }
 
 interface CrmData {
@@ -36,26 +53,33 @@ interface CrmData {
   tasks: Task[];
 }
 
+function shapeCrm(raw: string): CrmData {
+  const parsed = JSON.parse(raw);
+  return {
+    deals: parsed.deals ?? [],
+    activities: parsed.activities ?? [],
+    tasks: parsed.tasks ?? [],
+  };
+}
+
 async function readCrm(): Promise<CrmData> {
-  try {
-    const raw = await fs.readFile(crmPath(), "utf8");
-    const parsed = JSON.parse(raw);
-    return {
-      deals: parsed.deals ?? [],
-      activities: parsed.activities ?? [],
-      tasks: parsed.tasks ?? [],
-    };
-  } catch (err: unknown) {
-    // No CRM file yet = no CRM rows yet. Anything else (bad JSON, perms) is real.
-    if ((err as NodeJS.ErrnoException)?.code === "ENOENT")
-      return { deals: [], activities: [], tasks: [] };
-    throw err;
+  for (const p of [localCrmPath(), crmPath()]) {
+    try {
+      return shapeCrm(await fs.readFile(p, "utf8"));
+    } catch (err: unknown) {
+      // Missing file = try the next one down. Anything else (bad JSON, perms)
+      // is a real error: a half-written local overlay must fail loud, never
+      // silently fall through to the committed demo rows and read as live data.
+      if ((err as NodeJS.ErrnoException)?.code !== "ENOENT") throw err;
+    }
   }
+  // Neither file present = no CRM rows yet. Unchanged from before the seam.
+  return { deals: [], activities: [], tasks: [] };
 }
 
 async function writeCrm(data: CrmData): Promise<void> {
   try {
-    await fs.writeFile(crmPath(), JSON.stringify(data, null, 2), "utf8");
+    await fs.writeFile(localCrmPath(), JSON.stringify(data, null, 2), "utf8");
   } catch (err) {
     // Same loud-fail rule as write() below: never a silent "saved".
     throw new Error(

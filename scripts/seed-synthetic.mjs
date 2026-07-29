@@ -19,7 +19,7 @@
 //     node scripts/seed-synthetic.mjs --check [outPath]   # drift guard, exit 1 on drift
 // Default outPath is data/network.json.
 
-import { readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 
 /** Every generated record traces back to this string. Change it and the whole
  *  committed file changes — which is the point: the seed IS the provenance. */
@@ -327,6 +327,196 @@ export function serializeNetwork(data) {
   return `${JSON.stringify(data, null, 2)}\n`;
 }
 
+// ── CRM rows (Q71 Phase 2 item 5) ───────────────────────────────────────────
+//
+// WHY THIS FILE EXISTS SEPARATELY: `fileStore` has always kept deals/activities/
+// tasks in their own `data/crm.json` so `network.json` and `regen-fallback.mjs`
+// keep their exact shape. That file was never committed, so demo mode rendered a
+// dashboard whose CRM half — pipeline, money panel, activity timelines, the
+// "needs action today" band — was uniformly EMPTY. An empty pipeline is not a
+// neutral default: it is indistinguishable from a broken adapter, which is the
+// single worst thing a demo can be ambiguous about.
+//
+// Every row is anchored to a person/org the SAME generator run produced, so the
+// two files can never disagree about who exists.
+
+const DEAL_COUNT = 16;
+const ACTIVITY_COUNT = 34;
+const TASK_COUNT = 14;
+
+// Stage mix is deliberately weighted toward the middle of the pipeline and
+// includes both terminal states — a demo where nothing is `lost` or `stalled`
+// teaches the viewer that those columns don't render.
+const DEAL_STAGES = [
+  "new_lead",
+  "contacted",
+  "meeting_booked",
+  "meeting_held",
+  "quote_sent",
+  "quote_sent",
+  "negotiating",
+  "signed",
+  "invoiced",
+  "paid",
+  "paid",
+  "delivering",
+  "stalled",
+  "lost",
+];
+const ROUTING_LANES = ["auto_close", "rep", "bounty_hunter", "booker"];
+const ACTIVITY_TYPES = ["call", "email", "meeting", "note", "status_change"];
+const ACTIVITY_SOURCES = ["manual", "n8n", "api", "aidre", "dialer"];
+const TASK_STATUSES = ["open", "open", "done", "cancelled"];
+const OWNERS = ["Rob", "Will", "Max"];
+
+/** Stages at or past this index in DEAL_STAGES have money committed. */
+const stageIndex = (stage) => DEAL_STAGES.indexOf(stage);
+const reached = (stage, mark) => stageIndex(stage) >= DEAL_STAGES.indexOf(mark);
+
+/**
+ * `keyDates` is monotonic BY CONSTRUCTION rather than by review: each mark is
+ * emitted only when the stage has actually reached it, and each is strictly
+ * later than the one before. A demo carrying `paid` before `signed` would train
+ * the eye to ignore the money panel's date column.
+ */
+function dealKeyDates(stage, i) {
+  const met = dateOffset(-150 + i * 4);
+  const dates = { met };
+  if (reached(stage, "meeting_held")) dates.quoted = dateOffset(-140 + i * 4);
+  if (reached(stage, "signed") && stage !== "stalled" && stage !== "lost")
+    dates.signed = dateOffset(-120 + i * 4);
+  if (reached(stage, "invoiced") && stage !== "stalled" && stage !== "lost")
+    dates.invoiced = dateOffset(-110 + i * 4);
+  if (reached(stage, "paid") && stage !== "stalled" && stage !== "lost")
+    dates.paid = dateOffset(-100 + i * 4);
+  return dates;
+}
+
+export function buildDeals(rng, people) {
+  const persons = people.filter((p) => p.entityKind === "person");
+  const orgs = people.filter((p) => p.entityKind !== "person");
+
+  return Array.from({ length: DEAL_COUNT }, (_, i) => {
+    const stage = DEAL_STAGES[i % DEAL_STAGES.length];
+    // Alternate the anchor so BOTH `personId` and `orgId` deal shapes render.
+    // Exactly one is set — the 0005 check needs at least one, and a demo that
+    // always sets both never exercises the org-less or person-less card.
+    const anchorOrg = i % 3 !== 0;
+    const org = orgs[i % orgs.length];
+    const person = persons[(i * 3 + 1) % persons.length];
+    const anchor = anchorOrg ? org : person;
+
+    return {
+      id: `D-${3001 + i}`,
+      ...(anchorOrg ? { orgId: org.id } : { personId: person.id }),
+      verticalId: anchor.verticalId,
+      ownerId: OWNERS[i % OWNERS.length],
+      name: `${anchor.name} — Phase ${(i % 3) + 1}`,
+      stage,
+      value: intBetween(rng, 2, 30) * 500,
+      routingLane: ROUTING_LANES[i % ROUTING_LANES.length],
+      referralSourced: Boolean(anchor.referredById),
+      keyDates: dealKeyDates(stage, i),
+      phase: ((i % 3) + 1),
+      bookProtected: false,
+      notes: "SYNTHETIC DEAL — demo scaffolding, not a real opportunity.",
+      createdAt: `${dateOffset(-150 + i * 4)}T12:00:00.000Z`,
+      updatedAt: `${dateOffset(-20 + (i % 15))}T12:00:00.000Z`,
+    };
+  });
+}
+
+export function buildActivities(rng, people, deals) {
+  return Array.from({ length: ACTIVITY_COUNT }, (_, i) => {
+    const deal = deals[i % deals.length];
+    const type = ACTIVITY_TYPES[i % ACTIVITY_TYPES.length];
+    // 0005 allows AT MOST one of personId/orgId. The deal already carries the
+    // anchor decision, so the activity copies it rather than inventing a second
+    // — two rows disagreeing about who a call was with is the exact data defect
+    // this dashboard exists to make visible.
+    const anchor = deal.orgId ? { orgId: deal.orgId } : { personId: deal.personId };
+
+    return {
+      id: `A-${4001 + i}`,
+      ...anchor,
+      dealId: deal.id,
+      createdBy: OWNERS[i % OWNERS.length],
+      type,
+      source: ACTIVITY_SOURCES[i % ACTIVITY_SOURCES.length],
+      sourceContext: { synthetic: true, seedIndex: i },
+      summary: `SYNTHETIC ${type.toUpperCase()} — generated demo activity #${i + 1}.`,
+      bookProtected: false,
+      occurredAt: `${dateOffset(-90 + i * 2)}T${String(9 + (i % 8)).padStart(2, "0")}:${String(
+        intBetween(rng, 0, 59),
+      ).padStart(2, "0")}:00.000Z`,
+      createdAt: `${dateOffset(-90 + i * 2)}T18:00:00.000Z`,
+    };
+  });
+}
+
+export function buildTasks(rng, deals, activities) {
+  const titles = [
+    "Send the Phase 1 agreement",
+    "Follow up on the quote",
+    "Book the discovery call",
+    "Confirm the invoice went out",
+    "Log the meeting notes",
+    "Chase the signature",
+    "Check the referral attribution",
+  ];
+
+  return Array.from({ length: TASK_COUNT }, (_, i) => {
+    const deal = deals[(i * 2 + 1) % deals.length];
+    const activity = activities[(i * 3) % activities.length];
+    const status = TASK_STATUSES[i % TASK_STATUSES.length];
+
+    return {
+      id: `T-${5001 + i}`,
+      activityId: activity.id,
+      dealId: deal.id,
+      ...(deal.personId ? { personId: deal.personId } : {}),
+      assignedTo: OWNERS[i % OWNERS.length],
+      title: titles[i % titles.length],
+      detail: "SYNTHETIC TASK — demo scaffolding, not a real commitment.",
+      status,
+      // Spread across overdue / today-ish / future relative to BASE_DATE so the
+      // "needs action" rules have all three buckets to sort, and the rng is
+      // consumed unconditionally so status can never shift the stream.
+      dueDate: dateOffset(-10 + i * 3 + intBetween(rng, 0, 1)),
+      bookProtected: false,
+      createdAt: `${dateOffset(-40 + i * 2)}T12:00:00.000Z`,
+      updatedAt: `${dateOffset(-15 + i)}T12:00:00.000Z`,
+    };
+  });
+}
+
+/**
+ * The CRM half of the seed. Same seed string, its OWN rng stream — so adding a
+ * deal can never renumber a person, and the network file's drift guard stays
+ * independent of this file's contents.
+ */
+export function buildCrm(seed = SEED) {
+  const people = buildNetwork(seed).people;
+  const rng = makeRng(`${seed}/crm`);
+  const deals = buildDeals(rng, people);
+  const activities = buildActivities(rng, people, deals);
+  return {
+    __synthetic: true,
+    deals,
+    activities,
+    tasks: buildTasks(rng, deals, activities),
+  };
+}
+
+export function serializeCrm(data) {
+  return `${JSON.stringify(data, null, 2)}\n`;
+}
+
+/** Same drift contract as the network seed — see describeSeedDrift. */
+export function describeCrmDrift(committedText, seed = SEED) {
+  return describeDrift(committedText, serializeCrm(buildCrm(seed)), seed);
+}
+
 // ── Drift guard ─────────────────────────────────────────────────────────────
 
 /** The one command that fixes every drift failure. Named once, quoted everywhere. */
@@ -348,7 +538,12 @@ export const REGEN_COMMAND = "node scripts/seed-synthetic.mjs";
  * mutated string without touching the working tree.
  */
 export function describeSeedDrift(committedText, seed = SEED) {
-  const expected = serializeNetwork(buildNetwork(seed));
+  return describeDrift(committedText, serializeNetwork(buildNetwork(seed)), seed);
+}
+
+/** The shared body. Both seed files drift the same way, so they must report it
+ *  the same way — a second hand-written copy is a second thing to get wrong. */
+function describeDrift(committedText, expected, seed) {
   if (committedText === expected) return null;
 
   const committedLines = committedText.split("\n");
@@ -394,6 +589,12 @@ if (invokedDirectly) {
   const args = process.argv.slice(2);
   const check = args.includes("--check");
   const path = args.find((a) => !a.startsWith("--")) ?? "data/network.json";
+  // The CRM file is the network file's sibling. Derived rather than a second
+  // argument: two seed files that could be pointed at different directories are
+  // two seed files that can be regenerated out of step with each other.
+  const crmArg = args.includes("--crm") ? args[args.indexOf("--crm") + 1] : undefined;
+  const crmFilePath =
+    crmArg && !crmArg.startsWith("--") ? crmArg : path.replace(/[^/\\]+$/, "crm.json");
 
   if (check) {
     const drift = describeSeedDrift(readFileSync(path, "utf8"));
@@ -402,12 +603,31 @@ if (invokedDirectly) {
       process.exit(1);
     }
     console.log(`${path} matches the generator (seed "${SEED}") — no drift.`);
+
+    // Only if it is there: --check is pointed at ad-hoc copies (the drift tests
+    // copy one file to /tmp and mutate it), and a checker that demands a sibling
+    // it was never given fails for the wrong reason.
+    if (existsSync(crmFilePath)) {
+      const crmDrift = describeCrmDrift(readFileSync(crmFilePath, "utf8"));
+      if (crmDrift) {
+        console.error(`${crmFilePath}: ${crmDrift}`);
+        process.exit(1);
+      }
+      console.log(`${crmFilePath} matches the generator (seed "${SEED}") — no drift.`);
+    }
   } else {
     const data = buildNetwork();
     writeFileSync(path, serializeNetwork(data), "utf8");
     console.log(
       `wrote ${path} — ${data.people.length} people, ${data.edges.length} edges, ` +
         `${data.verticals.length} verticals, ${data.projects.length} projects (seed "${SEED}")`,
+    );
+
+    const crm = buildCrm();
+    writeFileSync(crmFilePath, serializeCrm(crm), "utf8");
+    console.log(
+      `wrote ${crmFilePath} — ${crm.deals.length} deals, ${crm.activities.length} activities, ` +
+        `${crm.tasks.length} tasks (seed "${SEED}")`,
     );
   }
 }

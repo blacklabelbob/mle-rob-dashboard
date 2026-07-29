@@ -1,0 +1,1067 @@
+{
+  "__synthetic": true,
+  "deals": [
+    {
+      "id": "D-3001",
+      "personId": "P-1002",
+      "verticalId": "core",
+      "ownerId": "Rob",
+      "name": "Bennett Kettleman — Phase 1",
+      "stage": "new_lead",
+      "value": 3500,
+      "routingLane": "auto_close",
+      "referralSourced": true,
+      "keyDates": {
+        "met": "2026-02-01"
+      },
+      "phase": 1,
+      "bookProtected": false,
+      "notes": "SYNTHETIC DEAL — demo scaffolding, not a real opportunity.",
+      "createdAt": "2026-02-01T12:00:00.000Z",
+      "updatedAt": "2026-06-11T12:00:00.000Z"
+    },
+    {
+      "id": "D-3002",
+      "orgId": "C-2002",
+      "verticalId": "home-services",
+      "ownerId": "Will",
+      "name": "Northgate HVAC — Phase 2",
+      "stage": "contacted",
+      "value": 13500,
+      "routingLane": "rep",
+      "referralSourced": true,
+      "keyDates": {
+        "met": "2026-02-05"
+      },
+      "phase": 2,
+      "bookProtected": false,
+      "notes": "SYNTHETIC DEAL — demo scaffolding, not a real opportunity.",
+      "createdAt": "2026-02-05T12:00:00.000Z",
+      "updatedAt": "2026-06-12T12:00:00.000Z"
+    },
+    {
+      "id": "D-3003",
+      "orgId": "C-2003",
+      "verticalId": "medical",
+      "ownerId": "Max",
+      "name": "Copperline Clinic — Phase 3",
+      "stage": "meeting_booked",
+      "value": 15000,
+      "routingLane": "bounty_hunter",
+      "referralSourced": true,
+      "keyDates": {
+        "met": "2026-02-09"
+      },
+      "phase": 3,
+      "bookProtected": false,
+      "notes": "SYNTHETIC DEAL — demo scaffolding, not a real opportunity.",
+      "createdAt": "2026-02-09T12:00:00.000Z",
+      "updatedAt": "2026-06-13T12:00:00.000Z"
+    },
+    {
+      "id": "D-3004",
+      "personId": "P-1011",
+      "verticalId": "payments",
+      "ownerId": "Rob",
+      "name": "Keira Blackwood — Phase 1",
+      "stage": "meeting_held",
+      "value": 12500,
+      "routingLane": "booker",
+      "referralSourced": true,
+      "keyDates": {
+        "met": "2026-02-13",
+        "quoted": "2026-02-23"
+      },
+      "phase": 1,
+      "bookProtected": false,
+      "notes": "SYNTHETIC DEAL — demo scaffolding, not a real opportunity.",
+      "createdAt": "2026-02-13T12:00:00.000Z",
+      "updatedAt": "2026-06-14T12:00:00.000Z"
+    },
+    {
+      "id": "D-3005",
+      "orgId": "C-2005",
+      "verticalId": "roofing",
+      "ownerId": "Will",
+      "name": "Redhawk Exteriors — Phase 2",
+      "stage": "quote_sent",
+      "value": 6500,
+      "routingLane": "auto_close",
+      "referralSourced": true,
+      "keyDates": {
+        "met": "2026-02-17",
+        "quoted": "2026-02-27"
+      },
+      "phase": 2,
+      "bookProtected": false,
+      "notes": "SYNTHETIC DEAL — demo scaffolding, not a real opportunity.",
+      "createdAt": "2026-02-17T12:00:00.000Z",
+      "updatedAt": "2026-06-15T12:00:00.000Z"
+    },
+    {
+      "id": "D-3006",
+      "orgId": "C-2006",
+      "verticalId": "title",
+      "ownerId": "Max",
+      "name": "Blue Harbor Realty Partners — Phase 3",
+      "stage": "quote_sent",
+      "value": 13000,
+      "routingLane": "rep",
+      "referralSourced": true,
+      "keyDates": {
+        "met": "2026-02-21",
+        "quoted": "2026-03-03"
+      },
+      "phase": 3,
+      "bookProtected": false,
+      "notes": "SYNTHETIC DEAL — demo scaffolding, not a real opportunity.",
+      "createdAt": "2026-02-21T12:00:00.000Z",
+      "updatedAt": "2026-06-16T12:00:00.000Z"
+    },
+    {
+      "id": "D-3007",
+      "personId": "P-1020",
+      "verticalId": "title",
+      "ownerId": "Rob",
+      "name": "Thea Quillon — Phase 1",
+      "stage": "negotiating",
+      "value": 14000,
+      "routingLane": "bounty_hunter",
+      "referralSourced": false,
+      "keyDates": {
+        "met": "2026-02-25",
+        "quoted": "2026-03-07"
+      },
+      "phase": 1,
+      "bookProtected": false,
+      "notes": "SYNTHETIC DEAL — demo scaffolding, not a real opportunity.",
+      "createdAt": "2026-02-25T12:00:00.000Z",
+      "updatedAt": "2026-06-17T12:00:00.000Z"
+    },
+    {
+      "id": "D-3008",
+      "orgId": "C-2008",
+      "verticalId": "food",
+      "ownerId": "Will",
+      "name": "Kingsway Brewing Co. — Phase 2",
+      "stage": "signed",
+      "value": 15000,
+      "routingLane": "booker",
+      "referralSourced": true,
+      "keyDates": {
+        "met": "2026-03-01",
+        "quoted": "2026-03-11",
+        "signed": "2026-03-31"
+      },
+      "phase": 2,
+      "bookProtected": false,
+      "notes": "SYNTHETIC DEAL — demo scaffolding, not a real opportunity.",
+      "createdAt": "2026-03-01T12:00:00.000Z",
+      "updatedAt": "2026-06-18T12:00:00.000Z"
+    },
+    {
+      "id": "D-3009",
+      "orgId": "C-2009",
+      "verticalId": "home-services",
+      "ownerId": "Max",
+      "name": "Amberton Home Services — Phase 3",
+      "stage": "invoiced",
+      "value": 11000,
+      "routingLane": "auto_close",
+      "referralSourced": true,
+      "keyDates": {
+        "met": "2026-03-05",
+        "quoted": "2026-03-15",
+        "signed": "2026-04-04",
+        "invoiced": "2026-04-14"
+      },
+      "phase": 3,
+      "bookProtected": false,
+      "notes": "SYNTHETIC DEAL — demo scaffolding, not a real opportunity.",
+      "createdAt": "2026-03-05T12:00:00.000Z",
+      "updatedAt": "2026-06-19T12:00:00.000Z"
+    },
+    {
+      "id": "D-3010",
+      "personId": "P-1007",
+      "verticalId": "webdev",
+      "ownerId": "Rob",
+      "name": "Greta Vandermeer — Phase 1",
+      "stage": "paid",
+      "value": 15000,
+      "routingLane": "rep",
+      "referralSourced": true,
+      "keyDates": {
+        "met": "2026-03-09",
+        "quoted": "2026-03-19",
+        "signed": "2026-04-08",
+        "invoiced": "2026-04-18",
+        "paid": "2026-04-28"
+      },
+      "phase": 1,
+      "bookProtected": false,
+      "notes": "SYNTHETIC DEAL — demo scaffolding, not a real opportunity.",
+      "createdAt": "2026-03-09T12:00:00.000Z",
+      "updatedAt": "2026-06-20T12:00:00.000Z"
+    },
+    {
+      "id": "D-3011",
+      "orgId": "C-2011",
+      "verticalId": "payments",
+      "ownerId": "Will",
+      "name": "Foxglove Payment Systems — Phase 2",
+      "stage": "paid",
+      "value": 10000,
+      "routingLane": "bounty_hunter",
+      "referralSourced": true,
+      "keyDates": {
+        "met": "2026-03-13",
+        "quoted": "2026-03-23",
+        "signed": "2026-04-12",
+        "invoiced": "2026-04-22",
+        "paid": "2026-05-02"
+      },
+      "phase": 2,
+      "bookProtected": false,
+      "notes": "SYNTHETIC DEAL — demo scaffolding, not a real opportunity.",
+      "createdAt": "2026-03-13T12:00:00.000Z",
+      "updatedAt": "2026-06-21T12:00:00.000Z"
+    },
+    {
+      "id": "D-3012",
+      "orgId": "C-2012",
+      "verticalId": "roofing",
+      "ownerId": "Max",
+      "name": "Granite Bay Roofing & Siding — Phase 3",
+      "stage": "delivering",
+      "value": 2000,
+      "routingLane": "booker",
+      "referralSourced": true,
+      "keyDates": {
+        "met": "2026-03-17",
+        "quoted": "2026-03-27",
+        "signed": "2026-04-16",
+        "invoiced": "2026-04-26",
+        "paid": "2026-05-06"
+      },
+      "phase": 3,
+      "bookProtected": false,
+      "notes": "SYNTHETIC DEAL — demo scaffolding, not a real opportunity.",
+      "createdAt": "2026-03-17T12:00:00.000Z",
+      "updatedAt": "2026-06-22T12:00:00.000Z"
+    },
+    {
+      "id": "D-3013",
+      "personId": "P-1016",
+      "verticalId": "home-services",
+      "ownerId": "Rob",
+      "name": "Porter Marchetti — Phase 1",
+      "stage": "stalled",
+      "value": 3000,
+      "routingLane": "auto_close",
+      "referralSourced": true,
+      "keyDates": {
+        "met": "2026-03-21",
+        "quoted": "2026-03-31"
+      },
+      "phase": 1,
+      "bookProtected": false,
+      "notes": "SYNTHETIC DEAL — demo scaffolding, not a real opportunity.",
+      "createdAt": "2026-03-21T12:00:00.000Z",
+      "updatedAt": "2026-06-23T12:00:00.000Z"
+    },
+    {
+      "id": "D-3014",
+      "orgId": "C-2014",
+      "verticalId": "webdev",
+      "ownerId": "Will",
+      "name": "Highmoor Digital — Phase 2",
+      "stage": "lost",
+      "value": 14000,
+      "routingLane": "rep",
+      "referralSourced": true,
+      "keyDates": {
+        "met": "2026-03-25",
+        "quoted": "2026-04-04"
+      },
+      "phase": 2,
+      "bookProtected": false,
+      "notes": "SYNTHETIC DEAL — demo scaffolding, not a real opportunity.",
+      "createdAt": "2026-03-25T12:00:00.000Z",
+      "updatedAt": "2026-06-24T12:00:00.000Z"
+    },
+    {
+      "id": "D-3015",
+      "orgId": "C-2015",
+      "verticalId": "food",
+      "ownerId": "Max",
+      "name": "Cedarcrest Provisions — Phase 3",
+      "stage": "new_lead",
+      "value": 11500,
+      "routingLane": "bounty_hunter",
+      "referralSourced": true,
+      "keyDates": {
+        "met": "2026-03-29"
+      },
+      "phase": 3,
+      "bookProtected": false,
+      "notes": "SYNTHETIC DEAL — demo scaffolding, not a real opportunity.",
+      "createdAt": "2026-03-29T12:00:00.000Z",
+      "updatedAt": "2026-06-25T12:00:00.000Z"
+    },
+    {
+      "id": "D-3016",
+      "personId": "P-1003",
+      "verticalId": "core",
+      "ownerId": "Rob",
+      "name": "Cora Rothwell — Phase 1",
+      "stage": "contacted",
+      "value": 3000,
+      "routingLane": "booker",
+      "referralSourced": true,
+      "keyDates": {
+        "met": "2026-04-02"
+      },
+      "phase": 1,
+      "bookProtected": false,
+      "notes": "SYNTHETIC DEAL — demo scaffolding, not a real opportunity.",
+      "createdAt": "2026-04-02T12:00:00.000Z",
+      "updatedAt": "2026-06-11T12:00:00.000Z"
+    }
+  ],
+  "activities": [
+    {
+      "id": "A-4001",
+      "personId": "P-1002",
+      "dealId": "D-3001",
+      "createdBy": "Rob",
+      "type": "call",
+      "source": "manual",
+      "sourceContext": {
+        "synthetic": true,
+        "seedIndex": 0
+      },
+      "summary": "SYNTHETIC CALL — generated demo activity #1.",
+      "bookProtected": false,
+      "occurredAt": "2026-04-02T09:52:00.000Z",
+      "createdAt": "2026-04-02T18:00:00.000Z"
+    },
+    {
+      "id": "A-4002",
+      "orgId": "C-2002",
+      "dealId": "D-3002",
+      "createdBy": "Will",
+      "type": "email",
+      "source": "n8n",
+      "sourceContext": {
+        "synthetic": true,
+        "seedIndex": 1
+      },
+      "summary": "SYNTHETIC EMAIL — generated demo activity #2.",
+      "bookProtected": false,
+      "occurredAt": "2026-04-04T10:05:00.000Z",
+      "createdAt": "2026-04-04T18:00:00.000Z"
+    },
+    {
+      "id": "A-4003",
+      "orgId": "C-2003",
+      "dealId": "D-3003",
+      "createdBy": "Max",
+      "type": "meeting",
+      "source": "api",
+      "sourceContext": {
+        "synthetic": true,
+        "seedIndex": 2
+      },
+      "summary": "SYNTHETIC MEETING — generated demo activity #3.",
+      "bookProtected": false,
+      "occurredAt": "2026-04-06T11:59:00.000Z",
+      "createdAt": "2026-04-06T18:00:00.000Z"
+    },
+    {
+      "id": "A-4004",
+      "personId": "P-1011",
+      "dealId": "D-3004",
+      "createdBy": "Rob",
+      "type": "note",
+      "source": "aidre",
+      "sourceContext": {
+        "synthetic": true,
+        "seedIndex": 3
+      },
+      "summary": "SYNTHETIC NOTE — generated demo activity #4.",
+      "bookProtected": false,
+      "occurredAt": "2026-04-08T12:42:00.000Z",
+      "createdAt": "2026-04-08T18:00:00.000Z"
+    },
+    {
+      "id": "A-4005",
+      "orgId": "C-2005",
+      "dealId": "D-3005",
+      "createdBy": "Will",
+      "type": "status_change",
+      "source": "dialer",
+      "sourceContext": {
+        "synthetic": true,
+        "seedIndex": 4
+      },
+      "summary": "SYNTHETIC STATUS_CHANGE — generated demo activity #5.",
+      "bookProtected": false,
+      "occurredAt": "2026-04-10T13:59:00.000Z",
+      "createdAt": "2026-04-10T18:00:00.000Z"
+    },
+    {
+      "id": "A-4006",
+      "orgId": "C-2006",
+      "dealId": "D-3006",
+      "createdBy": "Max",
+      "type": "call",
+      "source": "manual",
+      "sourceContext": {
+        "synthetic": true,
+        "seedIndex": 5
+      },
+      "summary": "SYNTHETIC CALL — generated demo activity #6.",
+      "bookProtected": false,
+      "occurredAt": "2026-04-12T14:34:00.000Z",
+      "createdAt": "2026-04-12T18:00:00.000Z"
+    },
+    {
+      "id": "A-4007",
+      "personId": "P-1020",
+      "dealId": "D-3007",
+      "createdBy": "Rob",
+      "type": "email",
+      "source": "n8n",
+      "sourceContext": {
+        "synthetic": true,
+        "seedIndex": 6
+      },
+      "summary": "SYNTHETIC EMAIL — generated demo activity #7.",
+      "bookProtected": false,
+      "occurredAt": "2026-04-14T15:37:00.000Z",
+      "createdAt": "2026-04-14T18:00:00.000Z"
+    },
+    {
+      "id": "A-4008",
+      "orgId": "C-2008",
+      "dealId": "D-3008",
+      "createdBy": "Will",
+      "type": "meeting",
+      "source": "api",
+      "sourceContext": {
+        "synthetic": true,
+        "seedIndex": 7
+      },
+      "summary": "SYNTHETIC MEETING — generated demo activity #8.",
+      "bookProtected": false,
+      "occurredAt": "2026-04-16T16:22:00.000Z",
+      "createdAt": "2026-04-16T18:00:00.000Z"
+    },
+    {
+      "id": "A-4009",
+      "orgId": "C-2009",
+      "dealId": "D-3009",
+      "createdBy": "Max",
+      "type": "note",
+      "source": "aidre",
+      "sourceContext": {
+        "synthetic": true,
+        "seedIndex": 8
+      },
+      "summary": "SYNTHETIC NOTE — generated demo activity #9.",
+      "bookProtected": false,
+      "occurredAt": "2026-04-18T09:40:00.000Z",
+      "createdAt": "2026-04-18T18:00:00.000Z"
+    },
+    {
+      "id": "A-4010",
+      "personId": "P-1007",
+      "dealId": "D-3010",
+      "createdBy": "Rob",
+      "type": "status_change",
+      "source": "dialer",
+      "sourceContext": {
+        "synthetic": true,
+        "seedIndex": 9
+      },
+      "summary": "SYNTHETIC STATUS_CHANGE — generated demo activity #10.",
+      "bookProtected": false,
+      "occurredAt": "2026-04-20T10:00:00.000Z",
+      "createdAt": "2026-04-20T18:00:00.000Z"
+    },
+    {
+      "id": "A-4011",
+      "orgId": "C-2011",
+      "dealId": "D-3011",
+      "createdBy": "Will",
+      "type": "call",
+      "source": "manual",
+      "sourceContext": {
+        "synthetic": true,
+        "seedIndex": 10
+      },
+      "summary": "SYNTHETIC CALL — generated demo activity #11.",
+      "bookProtected": false,
+      "occurredAt": "2026-04-22T11:09:00.000Z",
+      "createdAt": "2026-04-22T18:00:00.000Z"
+    },
+    {
+      "id": "A-4012",
+      "orgId": "C-2012",
+      "dealId": "D-3012",
+      "createdBy": "Max",
+      "type": "email",
+      "source": "n8n",
+      "sourceContext": {
+        "synthetic": true,
+        "seedIndex": 11
+      },
+      "summary": "SYNTHETIC EMAIL — generated demo activity #12.",
+      "bookProtected": false,
+      "occurredAt": "2026-04-24T12:34:00.000Z",
+      "createdAt": "2026-04-24T18:00:00.000Z"
+    },
+    {
+      "id": "A-4013",
+      "personId": "P-1016",
+      "dealId": "D-3013",
+      "createdBy": "Rob",
+      "type": "meeting",
+      "source": "api",
+      "sourceContext": {
+        "synthetic": true,
+        "seedIndex": 12
+      },
+      "summary": "SYNTHETIC MEETING — generated demo activity #13.",
+      "bookProtected": false,
+      "occurredAt": "2026-04-26T13:13:00.000Z",
+      "createdAt": "2026-04-26T18:00:00.000Z"
+    },
+    {
+      "id": "A-4014",
+      "orgId": "C-2014",
+      "dealId": "D-3014",
+      "createdBy": "Will",
+      "type": "note",
+      "source": "aidre",
+      "sourceContext": {
+        "synthetic": true,
+        "seedIndex": 13
+      },
+      "summary": "SYNTHETIC NOTE — generated demo activity #14.",
+      "bookProtected": false,
+      "occurredAt": "2026-04-28T14:08:00.000Z",
+      "createdAt": "2026-04-28T18:00:00.000Z"
+    },
+    {
+      "id": "A-4015",
+      "orgId": "C-2015",
+      "dealId": "D-3015",
+      "createdBy": "Max",
+      "type": "status_change",
+      "source": "dialer",
+      "sourceContext": {
+        "synthetic": true,
+        "seedIndex": 14
+      },
+      "summary": "SYNTHETIC STATUS_CHANGE — generated demo activity #15.",
+      "bookProtected": false,
+      "occurredAt": "2026-04-30T15:46:00.000Z",
+      "createdAt": "2026-04-30T18:00:00.000Z"
+    },
+    {
+      "id": "A-4016",
+      "personId": "P-1003",
+      "dealId": "D-3016",
+      "createdBy": "Rob",
+      "type": "call",
+      "source": "manual",
+      "sourceContext": {
+        "synthetic": true,
+        "seedIndex": 15
+      },
+      "summary": "SYNTHETIC CALL — generated demo activity #16.",
+      "bookProtected": false,
+      "occurredAt": "2026-05-02T16:16:00.000Z",
+      "createdAt": "2026-05-02T18:00:00.000Z"
+    },
+    {
+      "id": "A-4017",
+      "personId": "P-1002",
+      "dealId": "D-3001",
+      "createdBy": "Will",
+      "type": "email",
+      "source": "n8n",
+      "sourceContext": {
+        "synthetic": true,
+        "seedIndex": 16
+      },
+      "summary": "SYNTHETIC EMAIL — generated demo activity #17.",
+      "bookProtected": false,
+      "occurredAt": "2026-05-04T09:40:00.000Z",
+      "createdAt": "2026-05-04T18:00:00.000Z"
+    },
+    {
+      "id": "A-4018",
+      "orgId": "C-2002",
+      "dealId": "D-3002",
+      "createdBy": "Max",
+      "type": "meeting",
+      "source": "api",
+      "sourceContext": {
+        "synthetic": true,
+        "seedIndex": 17
+      },
+      "summary": "SYNTHETIC MEETING — generated demo activity #18.",
+      "bookProtected": false,
+      "occurredAt": "2026-05-06T10:09:00.000Z",
+      "createdAt": "2026-05-06T18:00:00.000Z"
+    },
+    {
+      "id": "A-4019",
+      "orgId": "C-2003",
+      "dealId": "D-3003",
+      "createdBy": "Rob",
+      "type": "note",
+      "source": "aidre",
+      "sourceContext": {
+        "synthetic": true,
+        "seedIndex": 18
+      },
+      "summary": "SYNTHETIC NOTE — generated demo activity #19.",
+      "bookProtected": false,
+      "occurredAt": "2026-05-08T11:07:00.000Z",
+      "createdAt": "2026-05-08T18:00:00.000Z"
+    },
+    {
+      "id": "A-4020",
+      "personId": "P-1011",
+      "dealId": "D-3004",
+      "createdBy": "Will",
+      "type": "status_change",
+      "source": "dialer",
+      "sourceContext": {
+        "synthetic": true,
+        "seedIndex": 19
+      },
+      "summary": "SYNTHETIC STATUS_CHANGE — generated demo activity #20.",
+      "bookProtected": false,
+      "occurredAt": "2026-05-10T12:02:00.000Z",
+      "createdAt": "2026-05-10T18:00:00.000Z"
+    },
+    {
+      "id": "A-4021",
+      "orgId": "C-2005",
+      "dealId": "D-3005",
+      "createdBy": "Max",
+      "type": "call",
+      "source": "manual",
+      "sourceContext": {
+        "synthetic": true,
+        "seedIndex": 20
+      },
+      "summary": "SYNTHETIC CALL — generated demo activity #21.",
+      "bookProtected": false,
+      "occurredAt": "2026-05-12T13:18:00.000Z",
+      "createdAt": "2026-05-12T18:00:00.000Z"
+    },
+    {
+      "id": "A-4022",
+      "orgId": "C-2006",
+      "dealId": "D-3006",
+      "createdBy": "Rob",
+      "type": "email",
+      "source": "n8n",
+      "sourceContext": {
+        "synthetic": true,
+        "seedIndex": 21
+      },
+      "summary": "SYNTHETIC EMAIL — generated demo activity #22.",
+      "bookProtected": false,
+      "occurredAt": "2026-05-14T14:20:00.000Z",
+      "createdAt": "2026-05-14T18:00:00.000Z"
+    },
+    {
+      "id": "A-4023",
+      "personId": "P-1020",
+      "dealId": "D-3007",
+      "createdBy": "Will",
+      "type": "meeting",
+      "source": "api",
+      "sourceContext": {
+        "synthetic": true,
+        "seedIndex": 22
+      },
+      "summary": "SYNTHETIC MEETING — generated demo activity #23.",
+      "bookProtected": false,
+      "occurredAt": "2026-05-16T15:04:00.000Z",
+      "createdAt": "2026-05-16T18:00:00.000Z"
+    },
+    {
+      "id": "A-4024",
+      "orgId": "C-2008",
+      "dealId": "D-3008",
+      "createdBy": "Max",
+      "type": "note",
+      "source": "aidre",
+      "sourceContext": {
+        "synthetic": true,
+        "seedIndex": 23
+      },
+      "summary": "SYNTHETIC NOTE — generated demo activity #24.",
+      "bookProtected": false,
+      "occurredAt": "2026-05-18T16:41:00.000Z",
+      "createdAt": "2026-05-18T18:00:00.000Z"
+    },
+    {
+      "id": "A-4025",
+      "orgId": "C-2009",
+      "dealId": "D-3009",
+      "createdBy": "Rob",
+      "type": "status_change",
+      "source": "dialer",
+      "sourceContext": {
+        "synthetic": true,
+        "seedIndex": 24
+      },
+      "summary": "SYNTHETIC STATUS_CHANGE — generated demo activity #25.",
+      "bookProtected": false,
+      "occurredAt": "2026-05-20T09:57:00.000Z",
+      "createdAt": "2026-05-20T18:00:00.000Z"
+    },
+    {
+      "id": "A-4026",
+      "personId": "P-1007",
+      "dealId": "D-3010",
+      "createdBy": "Will",
+      "type": "call",
+      "source": "manual",
+      "sourceContext": {
+        "synthetic": true,
+        "seedIndex": 25
+      },
+      "summary": "SYNTHETIC CALL — generated demo activity #26.",
+      "bookProtected": false,
+      "occurredAt": "2026-05-22T10:31:00.000Z",
+      "createdAt": "2026-05-22T18:00:00.000Z"
+    },
+    {
+      "id": "A-4027",
+      "orgId": "C-2011",
+      "dealId": "D-3011",
+      "createdBy": "Max",
+      "type": "email",
+      "source": "n8n",
+      "sourceContext": {
+        "synthetic": true,
+        "seedIndex": 26
+      },
+      "summary": "SYNTHETIC EMAIL — generated demo activity #27.",
+      "bookProtected": false,
+      "occurredAt": "2026-05-24T11:19:00.000Z",
+      "createdAt": "2026-05-24T18:00:00.000Z"
+    },
+    {
+      "id": "A-4028",
+      "orgId": "C-2012",
+      "dealId": "D-3012",
+      "createdBy": "Rob",
+      "type": "meeting",
+      "source": "api",
+      "sourceContext": {
+        "synthetic": true,
+        "seedIndex": 27
+      },
+      "summary": "SYNTHETIC MEETING — generated demo activity #28.",
+      "bookProtected": false,
+      "occurredAt": "2026-05-26T12:51:00.000Z",
+      "createdAt": "2026-05-26T18:00:00.000Z"
+    },
+    {
+      "id": "A-4029",
+      "personId": "P-1016",
+      "dealId": "D-3013",
+      "createdBy": "Will",
+      "type": "note",
+      "source": "aidre",
+      "sourceContext": {
+        "synthetic": true,
+        "seedIndex": 28
+      },
+      "summary": "SYNTHETIC NOTE — generated demo activity #29.",
+      "bookProtected": false,
+      "occurredAt": "2026-05-28T13:44:00.000Z",
+      "createdAt": "2026-05-28T18:00:00.000Z"
+    },
+    {
+      "id": "A-4030",
+      "orgId": "C-2014",
+      "dealId": "D-3014",
+      "createdBy": "Max",
+      "type": "status_change",
+      "source": "dialer",
+      "sourceContext": {
+        "synthetic": true,
+        "seedIndex": 29
+      },
+      "summary": "SYNTHETIC STATUS_CHANGE — generated demo activity #30.",
+      "bookProtected": false,
+      "occurredAt": "2026-05-30T14:17:00.000Z",
+      "createdAt": "2026-05-30T18:00:00.000Z"
+    },
+    {
+      "id": "A-4031",
+      "orgId": "C-2015",
+      "dealId": "D-3015",
+      "createdBy": "Rob",
+      "type": "call",
+      "source": "manual",
+      "sourceContext": {
+        "synthetic": true,
+        "seedIndex": 30
+      },
+      "summary": "SYNTHETIC CALL — generated demo activity #31.",
+      "bookProtected": false,
+      "occurredAt": "2026-06-01T15:19:00.000Z",
+      "createdAt": "2026-06-01T18:00:00.000Z"
+    },
+    {
+      "id": "A-4032",
+      "personId": "P-1003",
+      "dealId": "D-3016",
+      "createdBy": "Will",
+      "type": "email",
+      "source": "n8n",
+      "sourceContext": {
+        "synthetic": true,
+        "seedIndex": 31
+      },
+      "summary": "SYNTHETIC EMAIL — generated demo activity #32.",
+      "bookProtected": false,
+      "occurredAt": "2026-06-03T16:51:00.000Z",
+      "createdAt": "2026-06-03T18:00:00.000Z"
+    },
+    {
+      "id": "A-4033",
+      "personId": "P-1002",
+      "dealId": "D-3001",
+      "createdBy": "Max",
+      "type": "meeting",
+      "source": "api",
+      "sourceContext": {
+        "synthetic": true,
+        "seedIndex": 32
+      },
+      "summary": "SYNTHETIC MEETING — generated demo activity #33.",
+      "bookProtected": false,
+      "occurredAt": "2026-06-05T09:41:00.000Z",
+      "createdAt": "2026-06-05T18:00:00.000Z"
+    },
+    {
+      "id": "A-4034",
+      "orgId": "C-2002",
+      "dealId": "D-3002",
+      "createdBy": "Rob",
+      "type": "note",
+      "source": "aidre",
+      "sourceContext": {
+        "synthetic": true,
+        "seedIndex": 33
+      },
+      "summary": "SYNTHETIC NOTE — generated demo activity #34.",
+      "bookProtected": false,
+      "occurredAt": "2026-06-07T10:13:00.000Z",
+      "createdAt": "2026-06-07T18:00:00.000Z"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T-5001",
+      "activityId": "A-4001",
+      "dealId": "D-3002",
+      "assignedTo": "Rob",
+      "title": "Send the Phase 1 agreement",
+      "detail": "SYNTHETIC TASK — demo scaffolding, not a real commitment.",
+      "status": "open",
+      "dueDate": "2026-06-22",
+      "bookProtected": false,
+      "createdAt": "2026-05-22T12:00:00.000Z",
+      "updatedAt": "2026-06-16T12:00:00.000Z"
+    },
+    {
+      "id": "T-5002",
+      "activityId": "A-4004",
+      "dealId": "D-3004",
+      "personId": "P-1011",
+      "assignedTo": "Will",
+      "title": "Follow up on the quote",
+      "detail": "SYNTHETIC TASK — demo scaffolding, not a real commitment.",
+      "status": "open",
+      "dueDate": "2026-06-25",
+      "bookProtected": false,
+      "createdAt": "2026-05-24T12:00:00.000Z",
+      "updatedAt": "2026-06-17T12:00:00.000Z"
+    },
+    {
+      "id": "T-5003",
+      "activityId": "A-4007",
+      "dealId": "D-3006",
+      "assignedTo": "Max",
+      "title": "Book the discovery call",
+      "detail": "SYNTHETIC TASK — demo scaffolding, not a real commitment.",
+      "status": "done",
+      "dueDate": "2026-06-27",
+      "bookProtected": false,
+      "createdAt": "2026-05-26T12:00:00.000Z",
+      "updatedAt": "2026-06-18T12:00:00.000Z"
+    },
+    {
+      "id": "T-5004",
+      "activityId": "A-4010",
+      "dealId": "D-3008",
+      "assignedTo": "Rob",
+      "title": "Confirm the invoice went out",
+      "detail": "SYNTHETIC TASK — demo scaffolding, not a real commitment.",
+      "status": "cancelled",
+      "dueDate": "2026-07-01",
+      "bookProtected": false,
+      "createdAt": "2026-05-28T12:00:00.000Z",
+      "updatedAt": "2026-06-19T12:00:00.000Z"
+    },
+    {
+      "id": "T-5005",
+      "activityId": "A-4013",
+      "dealId": "D-3010",
+      "personId": "P-1007",
+      "assignedTo": "Will",
+      "title": "Log the meeting notes",
+      "detail": "SYNTHETIC TASK — demo scaffolding, not a real commitment.",
+      "status": "open",
+      "dueDate": "2026-07-03",
+      "bookProtected": false,
+      "createdAt": "2026-05-30T12:00:00.000Z",
+      "updatedAt": "2026-06-20T12:00:00.000Z"
+    },
+    {
+      "id": "T-5006",
+      "activityId": "A-4016",
+      "dealId": "D-3012",
+      "assignedTo": "Max",
+      "title": "Chase the signature",
+      "detail": "SYNTHETIC TASK — demo scaffolding, not a real commitment.",
+      "status": "open",
+      "dueDate": "2026-07-06",
+      "bookProtected": false,
+      "createdAt": "2026-06-01T12:00:00.000Z",
+      "updatedAt": "2026-06-21T12:00:00.000Z"
+    },
+    {
+      "id": "T-5007",
+      "activityId": "A-4019",
+      "dealId": "D-3014",
+      "assignedTo": "Rob",
+      "title": "Check the referral attribution",
+      "detail": "SYNTHETIC TASK — demo scaffolding, not a real commitment.",
+      "status": "done",
+      "dueDate": "2026-07-10",
+      "bookProtected": false,
+      "createdAt": "2026-06-03T12:00:00.000Z",
+      "updatedAt": "2026-06-22T12:00:00.000Z"
+    },
+    {
+      "id": "T-5008",
+      "activityId": "A-4022",
+      "dealId": "D-3016",
+      "personId": "P-1003",
+      "assignedTo": "Will",
+      "title": "Send the Phase 1 agreement",
+      "detail": "SYNTHETIC TASK — demo scaffolding, not a real commitment.",
+      "status": "cancelled",
+      "dueDate": "2026-07-12",
+      "bookProtected": false,
+      "createdAt": "2026-06-05T12:00:00.000Z",
+      "updatedAt": "2026-06-23T12:00:00.000Z"
+    },
+    {
+      "id": "T-5009",
+      "activityId": "A-4025",
+      "dealId": "D-3002",
+      "assignedTo": "Max",
+      "title": "Follow up on the quote",
+      "detail": "SYNTHETIC TASK — demo scaffolding, not a real commitment.",
+      "status": "open",
+      "dueDate": "2026-07-16",
+      "bookProtected": false,
+      "createdAt": "2026-06-07T12:00:00.000Z",
+      "updatedAt": "2026-06-24T12:00:00.000Z"
+    },
+    {
+      "id": "T-5010",
+      "activityId": "A-4028",
+      "dealId": "D-3004",
+      "personId": "P-1011",
+      "assignedTo": "Rob",
+      "title": "Book the discovery call",
+      "detail": "SYNTHETIC TASK — demo scaffolding, not a real commitment.",
+      "status": "open",
+      "dueDate": "2026-07-18",
+      "bookProtected": false,
+      "createdAt": "2026-06-09T12:00:00.000Z",
+      "updatedAt": "2026-06-25T12:00:00.000Z"
+    },
+    {
+      "id": "T-5011",
+      "activityId": "A-4031",
+      "dealId": "D-3006",
+      "assignedTo": "Will",
+      "title": "Confirm the invoice went out",
+      "detail": "SYNTHETIC TASK — demo scaffolding, not a real commitment.",
+      "status": "done",
+      "dueDate": "2026-07-21",
+      "bookProtected": false,
+      "createdAt": "2026-06-11T12:00:00.000Z",
+      "updatedAt": "2026-06-26T12:00:00.000Z"
+    },
+    {
+      "id": "T-5012",
+      "activityId": "A-4034",
+      "dealId": "D-3008",
+      "assignedTo": "Max",
+      "title": "Log the meeting notes",
+      "detail": "SYNTHETIC TASK — demo scaffolding, not a real commitment.",
+      "status": "cancelled",
+      "dueDate": "2026-07-24",
+      "bookProtected": false,
+      "createdAt": "2026-06-13T12:00:00.000Z",
+      "updatedAt": "2026-06-27T12:00:00.000Z"
+    },
+    {
+      "id": "T-5013",
+      "activityId": "A-4003",
+      "dealId": "D-3010",
+      "personId": "P-1007",
+      "assignedTo": "Rob",
+      "title": "Chase the signature",
+      "detail": "SYNTHETIC TASK — demo scaffolding, not a real commitment.",
+      "status": "open",
+      "dueDate": "2026-07-27",
+      "bookProtected": false,
+      "createdAt": "2026-06-15T12:00:00.000Z",
+      "updatedAt": "2026-06-28T12:00:00.000Z"
+    },
+    {
+      "id": "T-5014",
+      "activityId": "A-4006",
+      "dealId": "D-3012",
+      "assignedTo": "Will",
+      "title": "Check the referral attribution",
+      "detail": "SYNTHETIC TASK — demo scaffolding, not a real commitment.",
+      "status": "open",
+      "dueDate": "2026-07-30",
+      "bookProtected": false,
+      "createdAt": "2026-06-17T12:00:00.000Z",
+      "updatedAt": "2026-06-29T12:00:00.000Z"
+    }
+  ]
+}

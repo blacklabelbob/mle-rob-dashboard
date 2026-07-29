@@ -51,7 +51,7 @@ const h = vi.hoisted(() => {
 
 vi.mock("@supabase/supabase-js", () => ({ createClient: () => h.fake }));
 
-import { fileStore } from "../fileStore";
+import { fileStore, localCrmPath } from "../fileStore";
 import { supabaseStore } from "../supabaseStore";
 
 const T1 = "2026-07-01T00:00:00Z";
@@ -201,7 +201,10 @@ beforeAll(() => {
 });
 
 contractSuite("file", fileStore, async () => {
+  // Both halves of the Q71 seam: writes land in the overlay, so removing only
+  // the committed path leaves every prior case's rows in place.
   await fs.rm(tmpCrm, { force: true });
+  await fs.rm(localCrmPath(), { force: true });
 });
 
 contractSuite("supabase", supabaseStore, async () => {

@@ -8,6 +8,7 @@ import os from "os";
 import path from "path";
 import { beforeAll, describe, expect, it } from "vitest";
 import { validateManualLog } from "../activities/requiredFields";
+import { localCrmPath } from "../storage/fileStore";
 
 const complete = () => ({
   personId: "demo-jake-1",
@@ -126,7 +127,7 @@ describe("POST /api/admin/activities (Task 1.9 DoD through the real route)", () 
     expect(res.status).toBe(201);
     const json = await res.json();
     expect(json.ok).toBe(true);
-    const saved = JSON.parse(await fs.readFile(tmp, "utf8"));
+    const saved = JSON.parse(await fs.readFile(localCrmPath(), "utf8"));
     expect((saved.activities ?? []).some((a: { id: string }) => a.id === json.id)).toBe(true);
   });
 
@@ -137,7 +138,7 @@ describe("POST /api/admin/activities (Task 1.9 DoD through the real route)", () 
     expect(res.status).toBe(400);
     const json = await res.json();
     expect(json.missing).toContain("sourceContext.next_step.description");
-    const saved = JSON.parse(await fs.readFile(tmp, "utf8"));
+    const saved = JSON.parse(await fs.readFile(localCrmPath(), "utf8"));
     expect((saved.activities ?? []).length).toBe(1); // only the earlier good row
   });
 
