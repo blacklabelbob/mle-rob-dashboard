@@ -2,8 +2,10 @@ import Link from "next/link";
 import CallButton from "@/components/CallButton";
 import PhaseEightBar from "@/components/PhaseEightBar";
 import DemoFooter from "@/components/DemoFooter";
+import RepPipelineBoardPanel from "@/components/RepPipelineBoard";
 import RepTodayBandPanel from "@/components/RepTodayBand";
 import { isCompany } from "@/lib/companies";
+import { repPipelineBoard } from "@/lib/deals/repPipelineBoard";
 import { todayInET } from "@/lib/integrity/overdue";
 import { getStore } from "@/lib/storage";
 import { repMoney, sourceContext, stageRank, touchReason } from "@/lib/repSource";
@@ -42,6 +44,17 @@ export default async function RepCockpit() {
   const band = repTodayBand(todayItems, REP, {
     people: data.people,
     orgs: data.people.filter(isCompany),
+  });
+
+  // Q46 R3: the same deals, the same clock (`stageAgeOf`) and the same
+  // ownership rule as the band above — one call, one seam. Passing the same
+  // `orgs`/`activities` matters: without activities the meeting-based clock
+  // silently falls back to days-in-stage, which would tint a card differently
+  // here than the band one row up.
+  const pipelineBoard = repPipelineBoard(deals, REP, todayInET(now), {
+    people: data.people,
+    orgs: data.people.filter(isCompany),
+    activities,
   });
 
   // Work order: money on the table first, then warm, then fresh meat.
@@ -83,6 +96,8 @@ export default async function RepCockpit() {
       </div>
 
       <RepTodayBandPanel band={band} totalItems={todayItems.length} repName={REP} />
+
+      <RepPipelineBoardPanel board={pipelineBoard} repName={REP} />
 
       <div className="space-y-3">
         {queue.map((p) => {
