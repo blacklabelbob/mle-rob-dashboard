@@ -111,3 +111,28 @@ export function repTodayBand(
 
   return { mine, unattributable, othersCount };
 }
+
+/**
+ * What the band should SAY when it has no rows of its own.
+ *
+ * An empty band has three different causes and they are not interchangeable.
+ * Rendering one blank box for all three is the bug: "you're clear for today",
+ * "the rules engine produced nothing company-wide" and "there is work, none of
+ * it provably yours" are three different instructions to a rep, and only the
+ * first is good news.
+ *
+ * `whoDoITouchToday` excludes every `demo-*` row (Q4 precedent) while this
+ * cockpit runs on Jake Torres (DEMO) — so on today's data the honest answer is
+ * usually `none-company-wide`, and the surface has to say WHY rather than show
+ * an empty list that reads like "nothing to do".
+ */
+export type RepBandState =
+  | { kind: "items" }
+  | { kind: "none-company-wide" }
+  | { kind: "all-others"; othersCount: number };
+
+export function repBandState(band: RepTodayBand, totalItems: number): RepBandState {
+  if (band.mine.length > 0 || band.unattributable.length > 0) return { kind: "items" };
+  if (totalItems === 0) return { kind: "none-company-wide" };
+  return { kind: "all-others", othersCount: band.othersCount };
+}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { normalizeRep, repTodayBand } from "@/lib/tasks/repTodayBand";
+import { normalizeRep, repBandState, repTodayBand } from "@/lib/tasks/repTodayBand";
 import type { TodayItem } from "@/lib/tasks/todayRules";
 import type { Org, Person } from "@/lib/types";
 
@@ -130,5 +130,36 @@ describe("repTodayBand", () => {
     const items = [item({ personId: "p1" }), item({ personId: "p2" }), item({})];
     const args = { people: [person("p1", JAKE), person("p2", "Dana Ruiz")] };
     expect(repTodayBand(items, JAKE, args)).toEqual(repTodayBand(items, JAKE, args));
+  });
+});
+
+// inc.2 — WHY the band is empty, not just THAT it is. Three causes that a rep
+// must not be shown one blank box for.
+describe("repBandState", () => {
+  const empty = { mine: [], unattributable: [], othersCount: 0 };
+
+  it("reports items when the rep has rows", () => {
+    expect(repBandState({ ...empty, mine: [item({ personId: "p1" })] }, 1)).toEqual({
+      kind: "items",
+    });
+  });
+
+  it("reports items when the ONLY rows are unattributable — nobody-owned work is shown, never swallowed", () => {
+    expect(repBandState({ ...empty, unattributable: [item({})] }, 1)).toEqual({ kind: "items" });
+  });
+
+  it("distinguishes 'the engine returned nothing' from 'nothing of yours'", () => {
+    expect(repBandState(empty, 0)).toEqual({ kind: "none-company-wide" });
+    expect(repBandState({ ...empty, othersCount: 4 }, 4)).toEqual({
+      kind: "all-others",
+      othersCount: 4,
+    });
+  });
+
+  it("does not report a company-wide blank when items existed but none reached this rep", () => {
+    // The pair that matters: totalItems > 0 with an empty band is NOT the
+    // demo-exclusion message — telling a rep "nothing exists" while four
+    // touches sit on the company's list is a false all-clear.
+    expect(repBandState(empty, 4).kind).toBe("all-others");
   });
 });

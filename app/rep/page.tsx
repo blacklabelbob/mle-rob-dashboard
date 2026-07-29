@@ -2,8 +2,13 @@ import Link from "next/link";
 import CallButton from "@/components/CallButton";
 import PhaseEightBar from "@/components/PhaseEightBar";
 import DemoFooter from "@/components/DemoFooter";
+import RepTodayBandPanel from "@/components/RepTodayBand";
+import { isCompany } from "@/lib/companies";
+import { todayInET } from "@/lib/integrity/overdue";
 import { getStore } from "@/lib/storage";
 import { repMoney, sourceContext, stageRank, touchReason } from "@/lib/repSource";
+import { normalizeRep, repTodayBand } from "@/lib/tasks/repTodayBand";
+import { whoDoITouchToday } from "@/lib/tasks/todayRules";
 
 // Rep Cockpit — the page this CRM exists for (Rob: "the ultimate platform for
 // sales reps... the only thing we need this for is to help close more deals").
@@ -17,8 +22,27 @@ export const dynamic = "force-dynamic";
 const REP = "Jake Torres (DEMO)";
 
 export default async function RepCockpit() {
-  const data = await getStore().getNetwork();
-  const book = data.people.filter((p) => (p.assignedRep ?? "").startsWith("Jake"));
+  const store = getStore();
+  const now = new Date();
+  const [data, tasks, deals, activities] = await Promise.all([
+    store.getNetwork(),
+    store.listTasks(),
+    store.listDeals(),
+    store.listActivities(),
+  ]);
+  // EXACT, never a prefix: `startsWith("Jake")` handed every account of a
+  // future "Jakeline Ruiz" to Jake Torres with nothing on screen saying so.
+  const book = data.people.filter((p) => normalizeRep(p.assignedRep) === normalizeRep(REP));
+
+  // Q46 R2: the Task 1.7 rules engine, split to this rep. Orgs live in the same
+  // people array as entityKind:"company" rows, so the org fallback has real
+  // rows to consult — passing none would report org-anchored work as
+  // "assigned to nobody", which is a different claim than "we didn't look".
+  const todayItems = whoDoITouchToday({ tasks, deals, activities }, todayInET(now), now);
+  const band = repTodayBand(todayItems, REP, {
+    people: data.people,
+    orgs: data.people.filter(isCompany),
+  });
 
   // Work order: money on the table first, then warm, then fresh meat.
   const queue = [...book].sort(
@@ -57,6 +81,8 @@ export default async function RepCockpit() {
           </div>
         </div>
       </div>
+
+      <RepTodayBandPanel band={band} totalItems={todayItems.length} repName={REP} />
 
       <div className="space-y-3">
         {queue.map((p) => {
