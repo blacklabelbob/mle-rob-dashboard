@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { LEDGER_COLUMNS, parseInvoiceLedger } from "../readModel/invoiceLedger";
 import { TRACKED_FIELDS, buildProvenance } from "../readModel/ledgerSync";
@@ -131,14 +131,26 @@ describe("0012_invoice_ledger.sql holds every field the sync writes", () => {
     expect(tag.sourceCommit).toMatch(/^[0-9a-f]{7,40}$/);
   });
 
-  it("can hold the real ledger as it stands today", () => {
+  // This one reads the LIVE ledger out of the sibling `contracts` repo, which exists on a
+  // working machine and cannot exist on a CI runner that checked out this repo alone. It
+  // was the very first red run on 2026-07-25 and then spent three days invisible behind a
+  // lint failure. Skipping where the file cannot be — rather than deleting — keeps the
+  // real-data check running everywhere it can actually run, and says so out loud when it
+  // doesn't, so a silent skip never reads as a pass.
+  const LIVE_LEDGER = path.join(process.cwd(), "..", "contracts", "invoices", "invoice-ledger.csv");
+  const haveLiveLedger = existsSync(LIVE_LEDGER);
+  if (!haveLiveLedger) {
+    console.warn(
+      `[invoiceLedgerSql] SKIPPED "can hold the real ledger" — no live ledger at ${LIVE_LEDGER}. ` +
+        `Expected on CI; on a working machine it means the contracts repo is not checked out beside this one.`,
+    );
+  }
+
+  it.skipIf(!haveLiveLedger)("can hold the real ledger as it stands today", () => {
     // Not a schema opinion — an actual round-trip shape check against the file
     // the runner will read, so a column that is `not null` here cannot be null
     // in Rob's live CSV.
-    const csv = readFileSync(
-      path.join(process.cwd(), "..", "contracts", "invoices", "invoice-ledger.csv"),
-      "utf8",
-    );
+    const csv = readFileSync(LIVE_LEDGER, "utf8");
     const rows = parseInvoiceLedger(csv);
     expect(rows.length).toBeGreaterThan(0);
     for (const row of rows) {
