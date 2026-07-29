@@ -5,7 +5,9 @@ import { describe, expect, it } from "vitest";
 import {
   SEAM,
   SEAM_CANDIDATES,
+  SEAM_PARTITIONS,
   importSpecifiers,
+  partitionGaps,
   resolveSpecifier,
   seamViolations,
   stripComments,
@@ -53,9 +55,13 @@ describe("core-vs-instance seam (Q74)", () => {
   // this red, and a candidate reaching [] is the signal to move it into
   // SEAM.coreRoots.
   const PINNED: Record<string, { reaches: string[]; externals: string[] }> = {
-    "lib/filters": {
-      reaches: ["lib/crm", "lib/entityProperties", "lib/storage/supabaseStore", "lib/types"],
-      externals: ["next/navigation", "react"],
+    // inc.3: the language half alone. Whole-directory `lib/filters` pinned four
+    // reaches and two packages; splitting at the adapter line leaves exactly two
+    // modules of debt and no packages at all — that gap IS the argument for the
+    // split, so it is asserted rather than described.
+    "filters-lang": {
+      reaches: ["lib/entityProperties", "lib/types"],
+      externals: [],
     },
     "csv-import": {
       reaches: ["lib/notes", "lib/recordId", "lib/stats", "lib/types"],
@@ -74,6 +80,41 @@ describe("core-vs-instance seam (Q74)", () => {
       expect(survey.instanceLiterals).toEqual([]);
     },
   );
+
+  // A partition is a claim about a whole directory, so it is only worth
+  // anything while it stays exhaustive. The failure it exists to catch is
+  // mundane and certain: someone adds `lib/filters/newThing.ts`, nobody
+  // classifies it, and the split silently means less than it says.
+  it.each(SEAM_PARTITIONS.map((p) => [p.dir, p] as const))(
+    "partition %s claims every module on disk, exactly once",
+    (_dir, partition) => {
+      const onDisk = collect(partition.dir).map((f) => f.path);
+      expect(partitionGaps(partition, onDisk)).toEqual([]);
+      // The mirror failure: a path listed on either side that no longer exists
+      // (renamed, deleted) makes the split read as covering more than it does.
+      const claimed = [...partition.core, ...partition.instance];
+      expect(claimed.filter((p) => !onDisk.includes(p))).toEqual([]);
+      expect(new Set(claimed).size).toBe(claimed.length);
+      expect(partition.core.filter((p) => partition.instance.includes(p))).toEqual([]);
+    },
+  );
+
+  // The partition is the *reason* for the candidate's shape. If they drift, the
+  // surveyed debt stops describing the split this item actually argues for.
+  it("surveys exactly the core half of the partition it came from", () => {
+    const langs = SEAM_CANDIDATES.find((c) => c.name === "filters-lang");
+    expect(langs?.roots).toEqual(SEAM_PARTITIONS[0].core);
+  });
+
+  it("reports an unclassified module as a gap", () => {
+    expect(
+      partitionGaps({ dir: "lib/x", core: ["lib/x/a"], instance: ["lib/x/b"] }, [
+        "lib/x/a",
+        "lib/x/b",
+        "lib/x/c",
+      ]),
+    ).toEqual(["lib/x/c"]);
+  });
 
   it("counts an import inside the candidate as free and one outside as debt", () => {
     const survey = surveyCandidate({ name: "lib/filters", roots: ["lib/filters"] }, [

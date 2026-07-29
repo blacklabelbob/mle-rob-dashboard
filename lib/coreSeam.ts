@@ -51,8 +51,64 @@ export type SeamCandidate = {
   roots: string[];
 };
 
+/**
+ * A directory that does not lift out whole — it is split.
+ *
+ * inc.2 measured `lib/filters` as one block and the shape was the finding: the
+ * filter *language* (parse a string into a tree, name a view, share it) is
+ * already instance-clean, and every leak sat in the files that map MLE's rows
+ * or run React hooks. So the unit of extraction here is not the directory, it
+ * is the language half — and saying so is only worth anything if the split is
+ * exhaustive. Every module under `dir` must be claimed by exactly one side; an
+ * unclassified file is how a directory quietly stops matching its own map.
+ */
+export type SeamPartition = {
+  dir: string;
+  /** Modules that would leave together as the core candidate. */
+  core: string[];
+  /** Modules that stay: they speak MLE's row shapes, React, or the network. */
+  instance: string[];
+};
+
+export const SEAM_PARTITIONS: SeamPartition[] = [
+  {
+    dir: "lib/filters",
+    core: [
+      "lib/filters/ast",
+      "lib/filters/parse",
+      "lib/filters/savedViews",
+      "lib/filters/viewIdentity",
+      "lib/filters/viewPicker",
+      "lib/filters/viewsClient",
+      "lib/filters/browserView",
+      "lib/filters/page",
+      "lib/filters/demo",
+    ],
+    instance: [
+      // Row mapping: these know what a *person* is in this deployment.
+      "lib/filters/rows",
+      "lib/filters/tableRows",
+      // The client page loop: fetch + accumulator + its reducer.
+      "lib/filters/pageClient",
+      "lib/filters/pageState",
+      // React/Next hooks — a spin-off may not even be a React app.
+      "lib/filters/useTableRows",
+      "lib/filters/useViewPage",
+      "lib/filters/useViewPicker",
+    ],
+  },
+];
+
+/** Modules under a partitioned directory that neither side claims. */
+export function partitionGaps(partition: SeamPartition, paths: string[]): string[] {
+  const claimed = new Set([...partition.core, ...partition.instance]);
+  return paths.filter((p) => !claimed.has(p)).sort();
+}
+
 export const SEAM_CANDIDATES: SeamCandidate[] = [
-  { name: "lib/filters", roots: ["lib/filters"] },
+  // Not `lib/filters` — the language half of it, which is the part that can
+  // actually leave. See SEAM_PARTITIONS.
+  { name: "filters-lang", roots: SEAM_PARTITIONS[0].core },
   // The CSV trio is one unit: csvMapping drives csvImport drives csv. Surveyed
   // apart, each would count its own siblings as debt and overstate the seam.
   { name: "csv-import", roots: ["lib/csv", "lib/csvImport", "lib/csvMapping"] },
