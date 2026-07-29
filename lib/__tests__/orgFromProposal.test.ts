@@ -4,6 +4,7 @@ import {
   domainRaceDetail,
   isOrgDomainConflict,
   newOrgToPerson,
+  orgHandleFor,
   orgIdFor,
   planOrgFromProposal,
   type ReviewedProposal,
@@ -33,7 +34,9 @@ describe("planOrgFromProposal", () => {
     const plan = planOrgFromProposal(reviewed(), index(), [], VERTICALS, "2026-07-26");
     expect(plan.kind).toBe("create");
     if (plan.kind !== "create") return;
-    expect(plan.org.id).toBe("the-title-base");
+    // Q70: the id is a record number; the name-derived string moved to legacySlug.
+    expect(plan.org.id).toBe("C-2001");
+    expect(plan.org.legacySlug).toBe("the-title-base");
     expect(plan.org.name).toBe("The Title Base");
     expect(plan.org.domain).toBe("the-title-base.com");
     expect(plan.org.website).toBe("https://the-title-base.com");
@@ -138,7 +141,7 @@ describe("newOrgToPerson", () => {
 
   it("carries the plan's row through verbatim", () => {
     const person = created();
-    expect(person.id).toBe("the-title-base");
+    expect(person.id).toBe("C-2001");
     expect(person.name).toBe("The Title Base");
     expect(person.entityKind).toBe("company");
     expect(person.nodeType).toBe("lead");
@@ -213,15 +216,42 @@ describe("isOrgDomainConflict", () => {
   });
 });
 
-describe("orgIdFor", () => {
-  it("suffixes rather than reusing a taken id", () => {
-    expect(orgIdFor("Roof Co", "roofco.com", new Set(["roof-co"]))).toBe("roof-co-2");
-    expect(orgIdFor("Roof Co", "roofco.com", new Set(["roof-co", "roof-co-2"]))).toBe("roof-co-3");
+// Q70 (2026-07-28): these two used to assert that the id WAS the slugified name, and that a
+// collision was resolved with a "-2". That was the defect. The id is now a record number and
+// carries nothing about the company; the name-derived string moved to `orgHandleFor`, where a
+// collision is cosmetic because the two rows already have different ids.
+describe("orgIdFor — the identity", () => {
+  it("mints a record number that contains nothing about the company", () => {
+    const id = orgIdFor("Roof Co", "roofco.com", new Set());
+    expect(id).toBe("C-2001");
+    expect(id).not.toMatch(/roof/i);
   });
 
-  // A name of pure punctuation slugs to "" — an empty id collides with itself.
-  it("falls back to the domain label, then to `org`, never to an empty id", () => {
-    expect(orgIdFor("!!!", "roofco.com", new Set())).toBe("roofco");
-    expect(orgIdFor("!!!", "...", new Set())).toBe("org");
+  it("never reuses a taken number, and counts from the highest not the count", () => {
+    expect(orgIdFor("Roof Co", "roofco.com", new Set(["C-2001"]))).toBe("C-2002");
+    expect(orgIdFor("Roof Co", "roofco.com", new Set(["C-2001", "C-2007"]))).toBe("C-2008");
+  });
+
+  it("gives two same-named companies two identities, with no -2 marking either a copy", () => {
+    const first = orgIdFor("Gulf Title", "gulftitle.com", new Set());
+    const second = orgIdFor("Gulf Title", "gulftitle.net", new Set([first]));
+    expect(first).not.toBe(second);
+    expect(second).not.toMatch(/-2$/);
+  });
+});
+
+describe("orgHandleFor — the findable-by-name look-up key", () => {
+  it("keeps the pre-Q70 slug shape so old links still resolve", () => {
+    expect(orgHandleFor("The Title Base", "thetitlebase.com", new Set())).toBe("the-title-base");
+  });
+
+  it("suffixes on collision — cosmetic now, since ids already differ", () => {
+    expect(orgHandleFor("Roof Co", "roofco.com", new Set(["roof-co"]))).toBe("roof-co-2");
+  });
+
+  // A name of pure punctuation slugs to "" — an empty handle collides with itself.
+  it("falls back to the domain label, then to `org`, never to an empty handle", () => {
+    expect(orgHandleFor("!!!", "roofco.com", new Set())).toBe("roofco");
+    expect(orgHandleFor("!!!", "...", new Set())).toBe("org");
   });
 });

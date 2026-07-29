@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   displayNameFrom,
   earliestMet,
+  personHandleFor,
   personIdFor,
   planPersonFromEmail,
   usableMet,
@@ -51,7 +52,8 @@ describe("planPersonFromEmail — creation (rung 3)", () => {
     expect(plan.kind).toBe("create");
     if (plan.kind !== "create") return;
     expect(plan.person).toMatchObject({
-      id: "dana-reyes",
+      id: "P-1001",
+      legacySlug: "dana-reyes",
       name: "Dana Reyes",
       email: "dana@roofco.com",
       orgId: "roofco",
@@ -152,7 +154,10 @@ describe("planPersonFromEmail — creation (rung 3)", () => {
       takenIds: ["dana-reyes"],
       capturedAtISO: "2026-07-27",
     });
-    expect(plan.kind === "create" && plan.person.id).toBe("dana-reyes-2");
+    // The SECOND Dana Reyes now gets her own number rather than being labelled a copy of
+    // the first; the "-2" survives only on the cosmetic handle.
+    expect(plan.kind === "create" && plan.person.id).toBe("P-1001");
+    expect(plan.kind === "create" && plan.person.legacySlug).toBe("dana-reyes-2");
   });
 });
 
@@ -288,10 +293,33 @@ describe("displayNameFrom — never invented", () => {
   });
 });
 
-describe("personIdFor", () => {
+// Q70 (2026-07-28): this block used to assert that the id WAS the slugified name — the
+// defect. Identity is now a record number carrying nothing about the person; the
+// name-derived string moved to `personHandleFor`.
+describe("personIdFor — the identity", () => {
+  it("mints a record number that contains nothing about the person", () => {
+    const id = personIdFor("Dana Reyes", "dana@roofco.com", new Set());
+    expect(id).toBe("P-1001");
+    expect(id).not.toMatch(/dana|reyes/i);
+  });
+
+  it("gives two people called Dana Reyes two identities, neither marked a copy", () => {
+    const first = personIdFor("Dana Reyes", "dana@roofco.com", new Set());
+    const second = personIdFor("Dana Reyes", "dana.r@roofco.com", new Set([first]));
+    expect(first).toBe("P-1001");
+    expect(second).toBe("P-1002");
+    expect(second).not.toMatch(/-2$/);
+  });
+});
+
+describe("personHandleFor — the findable-by-name look-up key", () => {
   it("slugs the name, falls back to the local part, then to 'person'", () => {
-    expect(personIdFor("Dana Reyes", "dana@roofco.com", new Set())).toBe("dana-reyes");
-    expect(personIdFor("!!!", "dana.reyes@roofco.com", new Set())).toBe("dana-reyes");
-    expect(personIdFor("", "", new Set())).toBe("person");
+    expect(personHandleFor("Dana Reyes", "dana@roofco.com", new Set())).toBe("dana-reyes");
+    expect(personHandleFor("!!!", "dana.reyes@roofco.com", new Set())).toBe("dana-reyes");
+    expect(personHandleFor("", "", new Set())).toBe("person");
+  });
+
+  it("still suffixes on collision — cosmetic now, since the ids already differ", () => {
+    expect(personHandleFor("Dana Reyes", "dana@roofco.com", new Set(["dana-reyes"]))).toBe("dana-reyes-2");
   });
 });

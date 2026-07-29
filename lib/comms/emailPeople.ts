@@ -73,6 +73,7 @@ export interface PeoplePlan {
 export function personFromNewRow(row: NewPersonRow): Person {
   return {
     id: row.id,
+    legacySlug: row.legacySlug,
     name: row.name,
     email: row.email,
     orgId: row.orgId,
@@ -148,6 +149,10 @@ export function planPeopleForEmail(args: {
   const { data, parties, direction, index, capturedAtISO, emailDateISO } = args;
   const byId = new Map(data.people.map((p) => [p.id, p]));
   const taken = new Set(data.people.map((p) => p.id));
+  // Handles need their OWN accumulator: `taken` now holds record numbers, so a name-handle
+  // checked against it could never collide and 0031's unique index on `legacy_slug` would
+  // reject the second insert. A pre-Q70 row carries its handle in its id, hence `?? p.id`.
+  const takenHandles = new Set(data.people.map((p) => p.legacySlug ?? p.id));
   const writes: PersonWrite[] = [];
   const skipped: PersonSkip[] = [];
   const seenAddresses = new Set<string>();
@@ -178,6 +183,7 @@ export function planPeopleForEmail(args: {
       org,
       existing,
       takenIds: taken,
+      takenHandles,
       capturedAtISO,
       emailDateISO,
     });
@@ -188,6 +194,7 @@ export function planPeopleForEmail(args: {
     }
     if (plan.kind === "create") {
       taken.add(plan.person.id);
+      takenHandles.add(plan.person.legacySlug);
       writes.push({ kind: "create", address, person: personFromNewRow(plan.person) });
       continue;
     }

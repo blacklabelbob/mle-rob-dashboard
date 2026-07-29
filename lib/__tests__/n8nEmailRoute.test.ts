@@ -118,11 +118,12 @@ describe("POST /api/webhooks/n8n-email — the people half, wired", () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body).toMatchObject({ ok: true, ingested: true });
-    expect(body.peopleCreated).toEqual(["dana-reyes"]);
+    expect(body.peopleCreated).toEqual(["P-1001"]);
 
     expect(h.people).toHaveLength(1);
     expect(h.people[0]).toMatchObject({
-      id: "dana-reyes",
+      id: "P-1001",
+      legacySlug: "dana-reyes",
       name: "Dana Reyes", // from the display name — never invented from the local part
       email: "dana@roofco.com",
       orgId: "roof-co",
@@ -138,14 +139,15 @@ describe("POST /api/webhooks/n8n-email — the people half, wired", () => {
   // captured message would plan a merge onto Rob — the address is on all of them.
   it("never writes the capture mailbox's own record", async () => {
     await post(mail({ to: ["rob@aivoicetech.io", "Sam Cole <sam@roofco.com>"] }));
-    expect(h.people.map((p) => p.id)).toEqual(["dana-reyes", "sam-cole"]);
+    expect(h.people.map((p) => p.id)).toEqual(["P-1001", "P-1002"]);
+    expect(h.people.map((p) => p.legacySlug)).toEqual(["dana-reyes", "sam-cole"]);
     expect(h.people.some((p) => p.id === "rob")).toBe(false);
   });
 
   // One missing contact must not cost us the conversation as well. The activity
   // upsert runs after the people writes and independently of their outcome.
   it("still ingests the email when a person write fails", async () => {
-    h.failPerson = "dana-reyes";
+    h.failPerson = "P-1001";
     const res = await post(mail());
     const body = await res.json();
     expect(body).toMatchObject({ ok: true, ingested: true });

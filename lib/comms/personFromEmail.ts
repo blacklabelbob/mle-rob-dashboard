@@ -16,6 +16,7 @@
 // Pure (CR-3): no store, no clock, no network. `capturedAtISO` is injected and
 // the caller executes the returned plan verbatim.
 
+import { handleFor, nextPersonId } from "../recordId";
 import { domainOf, isGenericDomain, isRoleAccount, type GraphIndex, type GraphPlan } from "./emailGraph";
 import type { Person } from "../types";
 
@@ -34,7 +35,14 @@ export interface EmailParty {
  * a type rather than a promise.
  */
 export interface NewPersonRow {
+  /** A record number (`P-1001`) — Q70. Never derived from the name; see lib/recordId.ts. */
   id: string;
+  /**
+   * The human handle this row would have been keyed by before Q70 (`dana-reyes`). Kept so
+   * old links resolve and so a person is still findable by name. A LOOK-UP KEY ONLY —
+   * nothing points a foreign key at it, and two rows sharing one is not a conflict.
+   */
+  legacySlug: string;
   name: string;
   email: string;
   orgId: string;
@@ -77,20 +85,30 @@ export interface AnchorOrg {
   verticalId: string;
 }
 
-function slugify(value: string): string {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+/**
+ * The person's identity: a record number, never the name (Q70).
+ *
+ * This function used to return `slugify(name)`, which is why two strangers at one company
+ * on one thread collided and the second became `dana-reyes-2` — arrival order recorded as
+ * identity. `taken` still does the collision work, but now it only decides which NUMBER is
+ * free, and a number cannot be shared by two people no matter what they are called.
+ */
+export function personIdFor(name: string, address: string, taken: Set<string>): string {
+  void name;
+  void address;
+  return nextPersonId(taken);
 }
 
-/** Same never-empty, never-colliding shape as `orgIdFor`, seeded from the address. */
-export function personIdFor(name: string, address: string, taken: Set<string>): string {
+/**
+ * The findable-by-name handle, which is what the id used to be.
+ *
+ * Still seeded from the name, still falls back to the address local part and then to
+ * "person" so it can never be empty, and still suffixes on collision — but a collision here
+ * is now cosmetic, because the two rows already have different ids.
+ */
+export function personHandleFor(name: string, address: string, taken: Set<string>): string {
   const local = address.slice(0, Math.max(address.lastIndexOf("@"), 0));
-  const base = slugify(name) || slugify(local) || "person";
-  let id = base;
-  for (let n = 2; taken.has(id); n++) id = `${base}-${n}`;
-  return id;
+  return handleFor(name, local || "person", taken);
 }
 
 /**
@@ -175,6 +193,13 @@ export function planPersonFromEmail(args: {
   org?: AnchorOrg;
   existing?: Person;
   takenIds?: Iterable<string>;
+  /**
+   * Handles already in use, kept SEPARATE from `takenIds` (Q70): ids are now record
+   * numbers, so a name-handle checked against them could never collide — and 0031 puts a
+   * unique index on `legacy_slug`, which would then reject the second insert. Defaults to
+   * `takenIds` only so a caller that has not been updated still behaves as it did.
+   */
+  takenHandles?: Iterable<string>;
   capturedAtISO: string;
   emailDateISO?: string;
 }): PersonPlan {
@@ -244,6 +269,7 @@ export function planPersonFromEmail(args: {
     kind: "create",
     person: {
       id: personIdFor(name, address, new Set(args.takenIds ?? [])),
+      legacySlug: personHandleFor(name, address, new Set(args.takenHandles ?? args.takenIds ?? [])),
       name,
       email: address,
       orgId: org.id,

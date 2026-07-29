@@ -13,6 +13,7 @@
 // Pure (CR-3): no network, no clock (`todayISO` is injected), no writes. The
 // route executes the returned plan verbatim and invents no ops of its own.
 
+import { handleFor, nextOrgId } from "../recordId";
 import { isGenericDomain, type GraphIndex } from "./emailGraph";
 import type { Person } from "../types";
 
@@ -34,7 +35,13 @@ export interface ReviewedProposal {
  * which is the HARD LIMIT written into the driver's brief.
  */
 export interface NewOrgRow {
+  /** A record number (`C-2001`) — Q70. Never derived from the name; see lib/recordId.ts. */
   id: string;
+  /**
+   * The handle this row would have been keyed by before Q70 (`the-title-base`). Kept so old
+   * links resolve and so a company stays findable by name. A LOOK-UP KEY ONLY.
+   */
+  legacySlug: string;
   name: string;
   verticalId: string;
   domain: string;
@@ -59,25 +66,28 @@ export type OrgCreatePlan =
   | { kind: "create"; org: NewOrgRow }
   | { kind: "refused"; reason: OrgCreateRefusal; detail: string };
 
-function slugify(value: string): string {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+/**
+ * The company's identity: a record number, never the name (Q70).
+ *
+ * This returned `slugify(name)` until Q70. Two companies with the same trading name — which
+ * is common, and across states routine — collided into one row, and a rename made the id a
+ * lie. `taken` now only decides which NUMBER is free.
+ */
+export function orgIdFor(name: string, domain: string, taken: Set<string>): string {
+  void name;
+  void domain;
+  return nextOrgId(taken);
 }
 
 /**
- * A never-empty, never-colliding id.
+ * The findable-by-name handle, which is what the id used to be.
  *
- * The name slug is preferred (`the-title-base`), but a name made entirely of
- * punctuation slugs to "" — so the domain's first label is the fallback, and
- * `org` the last resort. An empty id would collide with itself forever.
+ * Same fallback ladder as before — name, then the domain's first label, then "org" — so it
+ * can never be empty. A collision is now cosmetic; the ids already differ.
  */
-export function orgIdFor(name: string, domain: string, taken: Set<string>): string {
-  const base = slugify(name) || slugify(domain.split(".")[0] ?? "") || "org";
-  let id = base;
-  for (let n = 2; taken.has(id); n++) id = `${base}-${n}`;
-  return id;
+export function orgHandleFor(name: string, domain: string, taken: Set<string>): string {
+  // `"..."` splits to [""], so the `|| "org"` is what keeps the last resort reachable.
+  return handleFor(name, domain.split(".")[0] || "org", taken);
 }
 
 function provenance(domain: string, address: string | undefined, todayISO?: string): string {
@@ -157,6 +167,7 @@ export function planOrgFromProposal(
     kind: "create",
     org: {
       id: orgIdFor(name, domain, new Set(takenIds)),
+      legacySlug: orgHandleFor(name, domain, new Set(takenIds)),
       name,
       verticalId,
       domain,

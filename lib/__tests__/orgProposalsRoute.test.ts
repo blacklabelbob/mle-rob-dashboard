@@ -48,7 +48,7 @@ describe("POST /api/admin/org-proposals — the write race", () => {
     expect(res.status).toBe(200);
     await expect(res.json()).resolves.toMatchObject({ ok: true });
     expect(h.written).toHaveLength(1);
-    expect(h.written[0].id).toBe("roof-co");
+    expect(h.written[0].id).toBe("C-2001");
   });
 
   // The whole point of inc.8's index: the loser of the race reads a refusal.

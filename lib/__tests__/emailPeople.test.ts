@@ -53,11 +53,14 @@ describe("planPeopleForEmail — creation", () => {
     expect(writes[0]).toMatchObject({
       kind: "create",
       address: "dana@roofco.com",
-      person: { id: "dana-reyes", name: "Dana Reyes", orgId: "roofco", business: "RoofCo" },
+      person: { id: "P-1001", legacySlug: "dana-reyes", name: "Dana Reyes", orgId: "roofco", business: "RoofCo" },
     });
   });
 
-  it("never mints two people onto one id — the second stranger gets -2", () => {
+  // Q70: this is the case the id accumulator exists for, and the case that proved the old
+  // scheme wrong. Two strangers, one display name. They now get two NUMBERS; only the
+  // cosmetic handle still carries the "-2".
+  it("never mints two people onto one id — two strangers get two record numbers", () => {
     const { writes } = plan(
       [ROOFCO],
       [
@@ -65,7 +68,8 @@ describe("planPeopleForEmail — creation", () => {
         { address: "d.reyes@roofco.com", raw: "Dana Reyes <d.reyes@roofco.com>" },
       ]
     );
-    expect(writes.map((w) => w.person.id)).toEqual(["dana-reyes", "dana-reyes-2"]);
+    expect(writes.map((w) => w.person.id)).toEqual(["P-1001", "P-1002"]);
+    expect(writes.map((w) => w.person.legacySlug)).toEqual(["dana-reyes", "dana-reyes-2"]);
   });
 
   it("collides with ids already in the CRM, not just with this email's", () => {
@@ -73,7 +77,9 @@ describe("planPeopleForEmail — creation", () => {
       [ROOFCO, person({ id: "dana-reyes", name: "Dana Reyes (someone else)" })],
       [{ address: "dana@roofco.com", raw: "Dana Reyes <dana@roofco.com>" }]
     );
-    expect(writes[0].person.id).toBe("dana-reyes-2");
+    // The existing row is a pre-Q70 slug; it raises no number, so the new row takes the floor.
+    expect(writes[0].person.id).toBe("P-1001");
+    expect(writes[0].person.legacySlug).toBe("dana-reyes-2");
   });
 
   it("plans one write for an address repeated across to and cc", () => {
