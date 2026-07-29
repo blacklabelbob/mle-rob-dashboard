@@ -187,17 +187,30 @@ describe("lineage — against the real network data", () => {
     expect(bad).toEqual([]);
   });
 
-  // Flag #45: the two Phase-4 venture entities are their own root ON PURPOSE —
-  // nobody referred them into existence. They must never be reported as broken,
-  // or the record page stamps a warning chip on correct data.
-  it("Phase-4 spinoff entities read as unattributed, never as broken", () => {
+  // Flag #45: an entity nobody referred in — a Phase-4 venture entity on prod,
+  // an unattributed org in the synthetic seed — is its own root ON PURPOSE. It
+  // must never be reported as broken, or the record page stamps a warning chip
+  // on correct data.
+  //
+  // Q71 Phase 2: this used to name `spinoff-homeclonevault`/`spinoff-caleb-crm`
+  // literally. Those are real venture names, and the committed fallback is now
+  // generated scaffolding that cannot contain them. Naming them here would have
+  // forced the generator to emit real names to keep a test green — the tail
+  // wagging the dog. The property being guarded was never those two ids; it is
+  // "no referrer recorded reads as unattributed, not broken", which is asserted
+  // over every such row in whichever ledger is committed.
+  it("every unattributed non-origin entity reads as unattributed, never as broken", () => {
     const idx = indexNodes(people);
-    for (const id of ["spinoff-homeclonevault", "spinoff-caleb-crm"]) {
-      const l = lineage(idx, id);
-      expect(l.status, id).toBe("unattributed");
-      expect(isBrokenChain(l), id).toBe(false);
-      expect(isTrustworthy(l), id).toBe(false); // still not a chain back to Rob
-      expect(l.reason, id).toContain("no referrer recorded");
+    const unattributed = people.filter((p) => !p.referredById && p.id !== originId);
+    // Not vacuous: a ledger where everything is attributed would silently skip
+    // the branch this test exists for.
+    expect(unattributed.length).toBeGreaterThan(0);
+    for (const p of unattributed) {
+      const l = lineage(idx, p.id);
+      expect(l.status, p.id).toBe("unattributed");
+      expect(isBrokenChain(l), p.id).toBe(false);
+      expect(isTrustworthy(l), p.id).toBe(false); // still not a chain back to Rob
+      expect(l.reason, p.id).toContain("no referrer recorded");
     }
   });
 

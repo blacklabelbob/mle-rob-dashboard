@@ -149,6 +149,29 @@ const ORG_COUNT = 19;
 const EDGE_COUNT = 47;
 const PROJECT_COUNT = 12;
 
+/**
+ * ATTRIBUTION SHAPE — the part a demo is useless without.
+ *
+ * `referredById` is what `lib/lineage.ts` and `lib/referrals/chain.ts` walk, and
+ * the first generated file carried NONE of it: every row was its own root, so
+ * demo mode rendered a network with no network in it. The real ledger has 32 of
+ * 41 rows attributed, with three kinds of root — the origin, six unattributed
+ * demo people, and two venture entities nobody referred in — and each kind
+ * exercises a different branch of the lineage engine. So the counts here are
+ * matched deliberately rather than approximated:
+ *
+ *   persons 1..15  → a binary referral tree rooted at the origin (P-1001)
+ *   persons 16..21 → unattributed (the six `demo-` rows' analogue)
+ *   orgs   0..16   → referred by a person INSIDE the rooted tree
+ *   orgs   17..18  → unattributed (the two Phase-4 spinoffs' analogue)
+ *
+ * 15 + 17 = 32 attributed rows, exactly the live ratio. Only rooted persons are
+ * ever chosen as parents, so no chain can terminate anywhere but the origin —
+ * `broken_root` is impossible by construction, not by luck.
+ */
+const ROOTED_PERSON_COUNT = 16; // indices 0..15 — index 0 is the origin itself
+const UNATTRIBUTED_ORG_COUNT = 2;
+
 // ── Generators ──────────────────────────────────────────────────────────────
 
 /** Person and org ids mirror the Q70 record-number convention on prod
@@ -164,9 +187,16 @@ export function buildPeople(rng) {
     const signed = status === "lit" && i % 4 === 0;
     const quoted = status === "unlit" ? undefined : intBetween(rng, 3, 24) * 1000;
 
+    // Binary tree: parent of i is (i-1)/2, so the deepest chain is 4 hops —
+    // one past the deepest real chain (3), on purpose, so the breadcrumb's
+    // multi-hop rendering is exercised by the demo instead of merely possible.
+    const referredById =
+      i > 0 && i < ROOTED_PERSON_COUNT ? `P-${1001 + Math.floor((i - 1) / 2)}` : undefined;
+
     rows.push({
       id: `P-${1001 + i}`,
       legacySlug: slugify(name),
+      ...(referredById ? { referredById } : {}),
       name,
       role: `${pick(rng, PERSON_ROLES)}`,
       nodeType: verticalId === "core" ? "mle-admin" : NODE_TYPES[i % NODE_TYPES.length],
@@ -195,9 +225,17 @@ export function buildPeople(rng) {
     const name = `${head} ${tails[j % tails.length]}`;
     const status = STATUSES[(j + 1) % STATUSES.length];
 
+    // Parents are drawn only from the rooted persons, so every attributed org
+    // walks all the way back to the origin.
+    const referredById =
+      j < ORG_COUNT - UNATTRIBUTED_ORG_COUNT
+        ? `P-${1001 + ((j * 5 + 1) % ROOTED_PERSON_COUNT)}`
+        : undefined;
+
     rows.push({
       id: `C-${2001 + j}`,
       legacySlug: slugify(name),
+      ...(referredById ? { referredById } : {}),
       name,
       nodeType: "client",
       entityKind: "company",

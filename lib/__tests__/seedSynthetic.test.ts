@@ -145,6 +145,49 @@ describe("shape matches NetworkData", () => {
     }
   });
 
+  // ── Attribution shape ─────────────────────────────────────────────────────
+  // The first generated file had ZERO `referredById`, so demo mode rendered a
+  // referral network with no referrals in it and every lineage read as its own
+  // root. These are graded with the lineage engine's own rules restated here,
+  // not by calling it — a generator checked by the consumer it feeds proves the
+  // pair agree, not that either is right.
+
+  it("attributes the same share of rows as the live ledger, rooted at the origin", () => {
+    const rows = data.people as (Row & { referredById?: string })[];
+    const attributed = rows.filter((p) => p.referredById);
+    // 32 of 41 is the live ratio; a generator that quietly stopped attributing
+    // would otherwise still pass every structural check below.
+    expect(attributed.length).toBe(32);
+    expect(rows.filter((p) => !p.referredById).length).toBe(9);
+    // P-1001 is the origin (lib/records/origin.ts) and must never be referred.
+    expect(rows.find((p) => p.id === "P-1001")?.referredById).toBeUndefined();
+  });
+
+  it("walks every attributed row back to the origin without cycles or dangling parents", () => {
+    const rows = data.people as (Row & { referredById?: string })[];
+    const byId = new Map(rows.map((p) => [p.id, p]));
+    let deepest = 0;
+    for (const row of rows) {
+      const seen = new Set<string>([row.id]);
+      let cursor = row;
+      let hops = 0;
+      while (cursor.referredById) {
+        const parent = byId.get(cursor.referredById);
+        expect(parent, `${row.id} → ${cursor.referredById}`).toBeDefined();
+        expect(seen.has(parent!.id), `cycle at ${row.id}`).toBe(false);
+        seen.add(parent!.id);
+        cursor = parent!;
+        hops++;
+        expect(hops, `runaway chain at ${row.id}`).toBeLessThan(10); // lineage MAX_HOPS
+      }
+      // Terminating anywhere but the origin is `broken_root` on the record page.
+      if (row.referredById) expect(cursor.id, `${row.id} roots at`).toBe("P-1001");
+      deepest = Math.max(deepest, hops);
+    }
+    // Multi-hop breadcrumbs are exercised, not merely possible.
+    expect(deepest).toBeGreaterThanOrEqual(3);
+  });
+
   it("keeps builders independently callable for the drift guard", () => {
     const rng = makeRng(SEED);
     const people = buildPeople(rng);
