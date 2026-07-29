@@ -15,6 +15,7 @@ import { Person } from "./types";
 import { isDemo } from "./stats";
 import { parseCsv, PEOPLE_CSV_COLUMNS, PeopleCsvColumn } from "./csv";
 import { findDuplicatePairs, DedupRecord } from "./dedup/match";
+import { handleFor, isRecordId, nextPersonId, slugifyHandle } from "./recordId";
 
 export interface ImportError {
   line: number; // 1-based line in the file (header = line 1)
@@ -36,20 +37,36 @@ export interface ImportPlan {
   errors: ImportError[]; // structural problems, never inserted
 }
 
-// name → url-ish slug id, matching the hand-curated id style of the ledger
-// ("jonathan-polk"). Uniqueness is the caller's job (nextId below).
-function slugify(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
+// Q70 inc.10 — the THIRD create path, and the last one still minting names as ids.
+//
+// This file used to own a private `nextId()` that was `slugify(name)` with a `-2` suffix on
+// collision: the exact scheme 0031 renumbered every row out of, and `dana-reyes-2` by a
+// third name. Identity now comes from lib/recordId.ts like every other writer.
+//
+// THE DESIGN CALL Q70 inc.9 FILED RATHER THAN GUESS — what does a CSV's `id` column mean?
+// It means whichever of the two it can only be:
+//
+//   `P-1043` / `C-2007`  → an ID. Record-shaped, so it can only have come from this scheme.
+//   `caleb-green`        → a HANDLE. After 0031 no row's id is a slug, so a slug in an id
+//                          column is a pre-0031 export, a bookmark, or a human typing the
+//                          name they see in a URL. Honouring it as an id would re-open the
+//                          defect through the one door left unlocked.
+//
+// A supplied handle still gets matched against the ledger for the dupe check (that is the
+// point of keeping `legacy_slug` forever), and is then CARRIED as the row's handle while the
+// id itself is minted as a record number. Nothing is silently dropped, nothing overwrites.
+//
+// Same rule for `referredById`: a CSV that says `caleb-green` refers to whichever row now
+// answers to that handle. Before this, such a file failed the whole line as an unknown
+// referrer — correct-looking data, rejected, because the ledger had been renumbered under it.
 
-function nextId(name: string, taken: Set<string>): string {
-  const base = slugify(name) || "imported";
-  let id = base;
-  for (let n = 2; taken.has(id); n++) id = `${base}-${n}`;
-  return id;
+/** Where a supplied id-column value lands, and what it already collides with. */
+function resolveSupplied(value: string, byId: Set<string>, byHandle: Map<string, string>) {
+  if (isRecordId(value)) {
+    return { asId: value, asHandle: undefined, collidesWith: byId.has(value) ? value : undefined };
+  }
+  const handle = slugifyHandle(value);
+  return { asId: undefined, asHandle: handle, collidesWith: byHandle.get(handle) };
 }
 
 function rowIsBlank(row: string[]): boolean {
@@ -92,7 +109,17 @@ export function planImport(csvText: string, existing: Person[]): ImportPlan {
   // id clash) plus ids minted for earlier rows of this file.
   const taken = new Set(existing.map((p) => p.id));
   const existingIds = new Set(taken);
-  const knownReferrers = new Set(existing.map((p) => p.id));
+  // Handles are tracked SEPARATELY and seeded from `legacySlug ?? id` — a pre-0031 row
+  // carries its handle in its id. De-duplicating a handle against the id set is the defect
+  // inc.4/inc.9 kept finding: post-0031 those hold `P-####`, so a name-handle checked
+  // against them can never collide and the de-duplication dies into a unique violation.
+  const takenHandles = new Map<string, string>(
+    existing.map((p) => [p.legacySlug ?? p.id, p.id] as const),
+  );
+  const existingHandles = new Map(takenHandles);
+  // A referrer may be named by either shape, for as long as old exports exist — forever.
+  const referrerByRef = new Map<string, string>(existing.map((p) => [p.id, p.id] as const));
+  for (const [handle, id] of takenHandles) referrerByRef.set(handle, id);
 
   interface Candidate {
     line: number;
@@ -120,26 +147,25 @@ export function planImport(csvText: string, existing: Person[]): ImportPlan {
       continue;
     }
     const givenId = cell(row, "id");
-    if (givenId && existingIds.has(givenId)) {
-      // Import never overwrites: an existing id is a duplicate, not an edit.
+    const supplied = givenId ? resolveSupplied(givenId, taken, takenHandles) : undefined;
+    if (supplied?.collidesWith) {
+      // Import never overwrites: an existing record is a duplicate, not an edit. Whether
+      // the file named it by record number or by the handle it used to be called, it is
+      // the same row, and it is already here.
+      const onLedger = supplied.asId
+        ? existingIds.has(supplied.asId)
+        : existingHandles.has(supplied.asHandle!);
       plan.dupes.push({
         line,
         name,
-        matchId: givenId,
-        matchWhere: "ledger",
+        matchId: supplied.collidesWith,
+        matchWhere: onLedger ? "ledger" : "file",
         signals: ["id-exact"],
-        evidence: [`id "${givenId}" already exists on the ledger`],
-      });
-      continue;
-    }
-    if (givenId && taken.has(givenId)) {
-      plan.dupes.push({
-        line,
-        name,
-        matchId: givenId,
-        matchWhere: "file",
-        signals: ["id-exact"],
-        evidence: [`id "${givenId}" appears earlier in this file`],
+        evidence: [
+          `${supplied.asId ? "id" : "handle"} "${givenId}" ${
+            onLedger ? "already exists on the ledger" : "appears earlier in this file"
+          }`,
+        ],
       });
       continue;
     }
@@ -151,24 +177,30 @@ export function planImport(csvText: string, existing: Person[]): ImportPlan {
       });
       continue;
     }
-    const referredById = cell(row, "referredById");
-    if (referredById && !knownReferrers.has(referredById)) {
+    const referredByRef = cell(row, "referredById");
+    const referredById = referredByRef ? referrerByRef.get(referredByRef) : undefined;
+    if (referredByRef && !referredById) {
       // Dangling referrer would be a broken graph edge (and an FK reject in
       // split mode) — report it instead of silently dropping the link.
       plan.errors.push({
         line,
-        reason: `unknown referredById "${referredById}" — not on the ledger or earlier in this file`,
+        reason: `unknown referredById "${referredByRef}" — not on the ledger or earlier in this file`,
       });
       continue;
     }
-    const id = givenId || nextId(name, taken);
+    // The id is always a record number; a supplied slug becomes the row's handle instead.
+    const id = supplied?.asId ?? nextPersonId(taken);
+    const legacySlug = supplied?.asHandle ?? handleFor(name, "imported", takenHandles.keys());
     taken.add(id);
-    knownReferrers.add(id);
+    takenHandles.set(legacySlug, id);
+    referrerByRef.set(id, id);
+    referrerByRef.set(legacySlug, id);
     const opt = (c: PeopleCsvColumn): string | undefined => cell(row, c) || undefined;
     candidates.push({
       line,
       person: {
         id,
+        legacySlug,
         name,
         entityKind: cell(row, "kind") === "company" ? "company" : "person",
         business: opt("business"),

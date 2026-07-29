@@ -23,13 +23,16 @@ function csv(...lines: string[]): string {
 }
 
 describe("planImport — clean rows", () => {
-  it("plans inserts for new rows with slug ids and defaults", () => {
+  it("plans inserts for new rows with RECORD ids, the name kept as the handle", () => {
     const plan = planImport(csv("name,kind,email", "Jane Roofer,person,jane@x.com"), []);
     expect(plan.errors).toEqual([]);
     expect(plan.dupes).toEqual([]);
     expect(plan.inserts).toHaveLength(1);
     const p = plan.inserts[0];
-    expect(p.id).toBe("jane-roofer");
+    // Q70 inc.10: the id is a record number, never the name. The name survives as the
+    // handle, which is the only thing it was ever any good for.
+    expect(p.id).toBe("P-1001");
+    expect(p.legacySlug).toBe("jane-roofer");
     expect(p.entityKind).toBe("person");
     expect(p.status).toBe("unlit");
     expect(p.signed).toBe(false);
@@ -39,15 +42,29 @@ describe("planImport — clean rows", () => {
   it("handles shuffled column order and company kind", () => {
     const plan = planImport(csv("kind,name", "company,Acme Roofing LLC"), []);
     expect(plan.inserts[0].entityKind).toBe("company");
-    expect(plan.inserts[0].id).toBe("acme-roofing-llc");
+    expect(plan.inserts[0].id).toBe("P-1001");
+    expect(plan.inserts[0].legacySlug).toBe("acme-roofing-llc");
   });
 
-  it("de-collides generated slug ids against ledger and file", () => {
+  it("de-collides the HANDLE, not the id, against a PRE-0031 ledger", () => {
     const existing = [person({ id: "jane-roofer", name: "Different Jane" })];
     const plan = planImport(csv("name", "Jane Roofer"), existing);
-    // name doesn't matcher-collide ("jane roofer" vs "different jane"), but
-    // the slug does — suffix keeps it unique.
-    expect(plan.inserts[0].id).toBe("jane-roofer-2");
+    // The name doesn't matcher-collide ("jane roofer" vs "different jane") but the handle
+    // does. A pre-0031 row carries its handle IN its id, so that is what it collides with —
+    // and the suffix lands on the handle, where it is a look-up key, not on the identity.
+    expect(plan.inserts[0].id).toBe("P-1001");
+    expect(plan.inserts[0].legacySlug).toBe("jane-roofer-2");
+  });
+
+  it("de-collides the handle against a POST-0031 ledger too (the set it checks is handles)", () => {
+    const existing = [person({ id: "P-1007", legacySlug: "jane-roofer", name: "Different Jane" })];
+    const plan = planImport(csv("name", "Jane Roofer"), existing);
+    // The bug this pins: seed the handle check off the ID set and post-0031 it holds
+    // `P-####`, so no name can ever collide and the de-duplication silently stops working
+    // — straight into a people_legacy_slug_key violation on write.
+    expect(plan.inserts[0].legacySlug).toBe("jane-roofer-2");
+    // ...and the number continues the ledger's sequence rather than restarting at the floor.
+    expect(plan.inserts[0].id).toBe("P-1008");
   });
 
   it("accepts a referredById that exists on the ledger or earlier in the file", () => {
@@ -57,7 +74,19 @@ describe("planImport — clean rows", () => {
       existing,
     );
     expect(plan.errors).toEqual([]);
-    expect(plan.inserts.map((p) => p.id)).toEqual(["new-guy", "second-guy"]);
+    expect(plan.inserts.map((p) => p.id)).toEqual(["P-1001", "P-1002"]);
+    expect(plan.inserts.map((p) => p.legacySlug)).toEqual(["new-guy", "second-guy"]);
+    // The referrer named by handle resolves to the row's real id, not to the string.
+    expect(plan.inserts[1].referredById).toBe("P-1001");
+  });
+
+  it("resolves a referrer named by its pre-0031 handle against a renumbered ledger", () => {
+    const existing = [person({ id: "P-1004", legacySlug: "caleb-green", name: "Caleb Green" })];
+    const plan = planImport(csv("name,referredById", "New Guy,caleb-green"), existing);
+    // Before Q70 inc.10 this whole line was rejected as an unknown referrer: correct data,
+    // refused, because the ledger had been renumbered underneath the file.
+    expect(plan.errors).toEqual([]);
+    expect(plan.inserts[0].referredById).toBe("P-1004");
   });
 });
 
@@ -94,7 +123,7 @@ describe("planImport — dupes are flagged, never inserted", () => {
     const plan = planImport(csv("name,phone", "A One,555-123-4567", "B Two,(555) 123-4567"), []);
     expect(plan.inserts.map((p) => p.name)).toEqual(["A One"]);
     expect(plan.dupes).toHaveLength(1);
-    expect(plan.dupes[0]).toMatchObject({ line: 3, matchWhere: "file", matchId: "a-one" });
+    expect(plan.dupes[0]).toMatchObject({ line: 3, matchWhere: "file", matchId: "P-1001" });
   });
 
   it("does not flag collisions with demo rows", () => {
@@ -145,8 +174,9 @@ describe("planImport — DoD scale + round-trip", () => {
     expect(plan.dupes).toEqual([]);
     expect(plan.inserts).toHaveLength(100);
     // deterministic ids
-    expect(plan.inserts[0].id).toBe("unique-person-1");
-    expect(plan.inserts[99].id).toBe("unique-person-100");
+    expect(plan.inserts[0].id).toBe("P-1001");
+    expect(plan.inserts[99].id).toBe("P-1100");
+    expect(plan.inserts[99].legacySlug).toBe("unique-person-100");
   });
 
   it("re-importing our own export flags every row as a dupe (id-exact), inserts nothing", () => {
@@ -161,5 +191,31 @@ describe("planImport — DoD scale + round-trip", () => {
     expect(plan.errors).toEqual([]);
     expect(plan.dupes).toHaveLength(2);
     expect(plan.dupes.every((d) => d.signals.includes("id-exact"))).toBe(true);
+  });
+
+  it("re-importing a POST-0031 export flags every row by record id", () => {
+    const existing = [
+      person({ id: "P-1001", legacySlug: "a-one", name: "A One", email: "a@x.com" }),
+      person({ id: "C-2001", legacySlug: "b-two", name: "B Two", entityKind: "company" }),
+    ];
+    const plan = planImport(peopleToCsv(existing), existing);
+    expect(plan.inserts).toEqual([]);
+    expect(plan.errors).toEqual([]);
+    expect(plan.dupes.map((d) => d.matchId)).toEqual(["P-1001", "C-2001"]);
+  });
+
+  it("a CSV id column holding a slug is a HANDLE, not an id — it can never mint a name id", () => {
+    const plan = planImport(csv("id,name", "caleb-green,Caleb Green"), []);
+    expect(plan.errors).toEqual([]);
+    // The one door left unlocked after inc.9: honour the supplied string as an id and the
+    // whole renumber is undone by anyone with a spreadsheet.
+    expect(plan.inserts[0].id).toBe("P-1001");
+    expect(plan.inserts[0].legacySlug).toBe("caleb-green");
+  });
+
+  it("a CSV id column holding a record number IS honoured as an id", () => {
+    const plan = planImport(csv("id,name", "P-1043,Caleb Green"), []);
+    expect(plan.inserts[0].id).toBe("P-1043");
+    expect(plan.inserts[0].legacySlug).toBe("caleb-green");
   });
 });
