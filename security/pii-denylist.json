@@ -1,0 +1,41 @@
+{
+  "salt": "mle-rob-dashboard/pii-denylist/v1",
+  "algorithm": "sha256",
+  "entries": {
+    "073fda34c8915b5c8f3b854f9cc0ca8ebf926cd4185e04ce7146123f667b63ab": "real contact · phone, area 239",
+    "09e4cd7a52b0177eac1546534a341e06609ecc9568971a48567a6b4214e1af36": "real contact · phone, area 800",
+    "18c6be2773da1b29e7eb236e165250074b7eaecd46d1f185f2c4c1e86b1a8100": "real contact · phone, area 239",
+    "1bd19c9f00171ccdfcfe921cbeeef86e2bcef4ee881716da3c32b06a466e1574": "real contact · phone, area 239",
+    "2b63efb90aee1fa8d182c0fdbecf463fdd45ae0d97a78a15f6e174e7fd1064ba": "real contact · phone, area 303",
+    "2e491426e78a1976f5b898586d595a7705be2ab9b4d2c83b156e2868259f1a23": "real contact · phone, area 239",
+    "3220469f4d78120f759370fd99287048826ed96a3317ae5d049405772aaf2047": "real contact · email @gmail.com",
+    "42e703ef333c9801d37019b676b554df177ef3474d2ad03f3339667306b49728": "real contact · phone, area 212",
+    "4353389d30493b8d049334df99670efff16d23ccec1873a2bcd21d75dd50b1a6": "real contact · email @gmail.com",
+    "48f28538679c9e03dd021b5eb3e2c6983b2329267bab5cf9ab3f2f16a3fc6782": "real contact · email @gulfregroup.com",
+    "4fcddd00bb3ac268aed3e4e250aa5fc3eeedf4072f8f2f07a19c4edc32fe374c": "real contact · phone, area 239",
+    "59419a278ea1643691194d33f3bf5c51816a6fca664c82fe3cd6d5d4b24ae0da": "real contact · phone, area 941",
+    "59c7078692dc9842479fe073e64e50e13ed30fa60f289c20fb2f32896b9ac578": "real contact · phone, area 904",
+    "6a005b5675ab0f61144f1e094adc01f75b71ea16fba3b07a3ed288e64693aa0d": "real contact · email @martinfierronaples.com",
+    "6f504635fa6c48dd61a15c2da7c8f7b0dc5d5f48fc871dbbfbaad37f17086357": "real contact · phone, area 239",
+    "7312cd042a2d225b61154eaebfb8aac5a51f15adec82788acb2f6114b682d1c3": "real contact · email @naplessj.com",
+    "7c28d8af329a02e0870f748410c3d1ceb5d10581015ee02d57939a080d348cb7": "real contact · phone, area 212",
+    "86141cd660c6868140794366f200fd3ab475ceb33b55eba166520eec5dc474f0": "real contact · email @vivehealth.com",
+    "8bc5e799d9101875c475c20126624ada1e2e01227dec14b25c4f0434b3073e55": "real contact · email @gmail.com",
+    "9aa68c0091cafbe7bf631dbc43938a23712ee7a89030872f575b09da16791fd6": "real contact · email @gmail.com",
+    "9d20b9ea3331c734b051b3b4a0b5cfc2a96c97ee4045cd33d9c7bfb40c75965f": "real contact · phone, area 239",
+    "a3a8bae1e0da275d5b876a890b518bf8286c475f1a4800554e9ec9f67b4bd8b4": "real contact · email @omegatitlegroup.com",
+    "c170b0ee7ca94f249bf6f5f1d04a19d52f4f6c78fa8329e43cce0fee02d84d3d": "real contact · phone, area 904",
+    "c2d65ce46d60f151598a5f4a0291998510ba6c7c7ca682ea886804d5977bef72": "real contact · email @gmail.com",
+    "cf90e35acb655ad65b6e0425538534926be7dc7cc938b300d6925adb35a44b56": "real contact · email @gmail.com",
+    "d4d82e4f6cf5e48d9bfc3dbb81b6f7829061b9275cdf29a4876e1e61d81232ca": "real contact · email @gmail.com",
+    "d567a3ef910e6b6eb4e4262b19ff96fc3320f41619356b4fd44be50d7a27b46f": "real contact · email @boomtownroi.com",
+    "e56ba0d73496cd2dd2b5ba3702e2df2ac042d7950ce02b33164c6c90cbd27fa3": "real contact · phone, area 239",
+    "e706a70b9c7b91017ad32fb3877fabdd6cb5c190db064ed8a6c89e35630dbba4": "real contact · email @migafm.com",
+    "f3c25e218e74e6ea24055b62d5b24eb3817843e64338866a693f0ae49e57a887": "real contact · phone, area 239",
+    "fb0b088e9320e80939f5250424c5684800d34e0d212733fd147ecdf755340fd5": "real contact · phone, area 239"
+  },
+  "counts": {
+    "emails": 14,
+    "phones": 17
+  }
+}
