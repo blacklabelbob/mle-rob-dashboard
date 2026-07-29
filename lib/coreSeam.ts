@@ -1,0 +1,132 @@
+// Q74 — the core-vs-instance seam, enforced instead of described.
+//
+// "Core" = a module any entity could run: a spin-off, a vertical instance, a
+// client's own platform. "Instance" = everything that only makes sense because
+// this deployment is MLE's — MLE's vocabulary, MLE's branding, MLE's records.
+// The seam is only real if a build can fail on it, so this file is the
+// declaration and `seamViolations` is the check; prose about which modules are
+// "reusable" rots the first time someone adds an import (CR-3).
+//
+// Deliberately narrow: one proven extraction candidate beats a whole-tree
+// taxonomy nobody can enforce. Adding a core root is the commitment — you are
+// promising that directory can be lifted out whole.
+
+export type SeamDeclaration = {
+  /** Repo-relative directory prefixes that must stay extractable. */
+  coreRoots: string[];
+  /** Package-import prefixes core may depend on (a spin-off can install these). */
+  allowedExternals: string[];
+  /** Literals that mean "this deployment is MLE's", not "this is a CRM". */
+  instanceMarkers: RegExp[];
+};
+
+export const SEAM: SeamDeclaration = {
+  // lib/dedup is the first candidate: duplicate detection over {name, email,
+  // phone, domain} records is the same problem for any CRM-shaped instance,
+  // and it already reaches nothing MLE-specific — this test pins that.
+  coreRoots: ["lib/dedup"],
+  allowedExternals: ["node:", "@supabase/supabase-js"],
+  instanceMarkers: [
+    /\bMyLocalEverything\b/i,
+    /\bmylocaleverything\.com\b/i,
+    /\bmle-admin\b/i,
+    /\bMLE\b/,
+  ],
+};
+
+export type SeamViolation = {
+  file: string;
+  kind: "instance-import" | "unlisted-external" | "instance-literal";
+  detail: string;
+};
+
+export type SeamFile = { path: string; source: string };
+
+/**
+ * Strip comments so a marker mentioned in a note ("MLE's own ledger lives
+ * elsewhere") is not confused with a marker baked into behaviour. Crude on
+ * purpose: string literals containing `//` are rare in these modules, and the
+ * failure direction is a false positive someone must look at, never a silent
+ * pass.
+ */
+export function stripComments(src: string): string {
+  return src.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/(^|[^:])\/\/[^\n]*/g, "$1");
+}
+
+/** Every static/dynamic import + re-export specifier in a source file. */
+export function importSpecifiers(src: string): string[] {
+  const code = stripComments(src);
+  const out: string[] = [];
+  const patterns = [
+    /\bfrom\s*["']([^"']+)["']/g,
+    /\bimport\s*\(\s*["']([^"']+)["']\s*\)/g,
+    /\brequire\s*\(\s*["']([^"']+)["']\s*\)/g,
+  ];
+  for (const re of patterns) {
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(code))) out.push(m[1]);
+  }
+  return [...new Set(out)];
+}
+
+/** Resolve an import specifier to a repo-relative module path, or null if it is a package. */
+export function resolveSpecifier(spec: string, fromFile: string): string | null {
+  let rel: string;
+  if (spec.startsWith("@/")) {
+    rel = spec.slice(2);
+  } else if (spec.startsWith(".")) {
+    const dir = fromFile.split("/").slice(0, -1);
+    const parts = spec.split("/");
+    for (const p of parts) {
+      if (p === "." || p === "") continue;
+      if (p === "..") dir.pop();
+      else dir.push(p);
+    }
+    rel = dir.join("/");
+  } else {
+    return null;
+  }
+  return rel.replace(/\.(ts|tsx|js|mjs)$/, "");
+}
+
+const underRoot = (path: string, roots: string[]) =>
+  roots.some((r) => path === r || path.startsWith(`${r}/`));
+
+/**
+ * Pure check. Callers supply the files under the core roots; this decides
+ * whether any of them has reached back into the instance.
+ */
+export function seamViolations(files: SeamFile[], decl: SeamDeclaration = SEAM): SeamViolation[] {
+  const violations: SeamViolation[] = [];
+  for (const f of files) {
+    for (const spec of importSpecifiers(f.source)) {
+      const resolved = resolveSpecifier(spec, f.path);
+      if (resolved === null) {
+        if (!decl.allowedExternals.some((p) => spec === p || spec.startsWith(p)))
+          violations.push({
+            file: f.path,
+            kind: "unlisted-external",
+            detail: `imports package "${spec}" — a spin-off would have to carry it; list it in allowedExternals or drop it`,
+          });
+        continue;
+      }
+      if (!underRoot(resolved, decl.coreRoots))
+        violations.push({
+          file: f.path,
+          kind: "instance-import",
+          detail: `imports "${spec}" (${resolved}), which lives outside the core roots — extracting this module would drag the instance with it`,
+        });
+    }
+    const code = stripComments(f.source);
+    for (const marker of decl.instanceMarkers) {
+      const hit = code.match(marker);
+      if (hit)
+        violations.push({
+          file: f.path,
+          kind: "instance-literal",
+          detail: `contains instance literal "${hit[0]}" in code — core modules must not name this deployment`,
+        });
+    }
+  }
+  return violations;
+}

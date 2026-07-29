@@ -28,12 +28,11 @@ export function verifyVapiSecret(expected: string, given: string): boolean {
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
-// US-centric normalization: compare on the last 10 digits so
-// "+1 (239) 555-0142", "239.555.0142", and "12395550142" all match.
-export function normalizePhone(raw: string): string {
-  const digits = raw.replace(/\D/g, "");
-  return digits.length > 10 ? digits.slice(-10) : digits;
-}
+// Re-exported, not defined here: normalizePhone is core entity logic (Q74
+// seam), and lib/dedup owns it now. Every existing `from "@/lib/vapi"` import
+// keeps working.
+import { normalizePhone } from "@/lib/dedup/phone";
+export { normalizePhone };
 
 export interface CallerMatch {
   person: Person;
