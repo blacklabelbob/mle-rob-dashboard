@@ -9,7 +9,8 @@
     "test": "vitest run",
     "lint": "eslint .",
     "dev:demo": "STORAGE_SOURCE=file next dev",
-    "seed:synthetic": "node scripts/seed-synthetic.mjs"
+    "seed:synthetic": "node scripts/seed-synthetic.mjs",
+    "guard:pii": "node scripts/pii-guard.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.110.0",
