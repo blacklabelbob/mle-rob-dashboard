@@ -97,12 +97,80 @@ export type MailScopeBreach = {
     | "duplicate-claim"
     | "unregistered-mailbox"
     | "no-credential"
-    | "no-audit-trail";
+    | "no-audit-trail"
+    | "unstamped-row";
   subject: string;
   detail: string;
 };
 
 export type MailFile = { path: string; source: string };
+
+/**
+ * A row a mail-reading source wrote, reduced to the two fields that make the
+ * read traceable. Deliberately structural rather than `Activity` — the trail
+ * check must survive the activity shape changing, and it only ever asks two
+ * questions of a row.
+ */
+export type AuditedRow = { id?: string; source?: string; createdBy?: string };
+
+/**
+ * The trail half of the DoD, enforced instead of declared (Q76 inc.3).
+ *
+ * `auditActivitySource` was a promise: the declaration said every row this
+ * source writes carries `source='n8n'`, and nothing checked that the route
+ * agreed. A declaration the code can silently diverge from answers Rob's
+ * question no better than a README does.
+ *
+ * Called with the rows produced by a capture that was actually DRIVEN, so it
+ * asks the two questions that make a read answerable-by-query:
+ *  • is the row stamped with the scope's declared `auditActivitySource`
+ *    (query `activities.source` and you see everything this source ever read);
+ *  • does it name the source that wrote it (`createdBy` = `sourceId`), so two
+ *    sources sharing a stamp are still tellable apart.
+ *
+ * **An empty `rows` is itself a breach.** A capture that read a message and
+ * left no row is exactly the silent read this guard exists to forbid — the
+ * failure mode where the trail check passes because there is no trail.
+ */
+export function auditTrailBreaches(
+  rows: readonly AuditedRow[],
+  scope: MailReadScope
+): MailScopeBreach[] {
+  if (rows.length === 0) {
+    return [
+      {
+        kind: "no-audit-trail",
+        subject: scope.sourceId,
+        detail:
+          "a driven capture wrote no row — a mail read that leaves no trail is " +
+          "unanswerable by query, which is the silent read this guard forbids",
+      },
+    ];
+  }
+  const breaches: MailScopeBreach[] = [];
+  for (const row of rows) {
+    const subject = row.id ?? `(unidentified ${scope.sourceId} row)`;
+    if (row.source !== scope.auditActivitySource) {
+      breaches.push({
+        kind: "unstamped-row",
+        subject,
+        detail:
+          `source="${row.source ?? "(none)"}" but ${scope.sourceId} declares ` +
+          `auditActivitySource="${scope.auditActivitySource}"`,
+      });
+    }
+    if (row.createdBy !== scope.sourceId) {
+      breaches.push({
+        kind: "unstamped-row",
+        subject,
+        detail:
+          `createdBy="${row.createdBy ?? "(none)"}" does not name the reading ` +
+          `source "${scope.sourceId}"`,
+      });
+    }
+  }
+  return breaches;
+}
 
 // Evidence that a module reads a MAILBOX, not merely that it knows the word
 // "email" — the repo is a CRM, so `email` as a contact field is everywhere and
