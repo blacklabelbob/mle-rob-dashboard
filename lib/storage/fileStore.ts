@@ -3,7 +3,25 @@ import path from "path";
 import type { Activity, Deal, NetworkData, Person, Project, Task } from "@/lib/types";
 import type { ActivityFilter, StorageAdapter, TaskFilter } from "./adapter";
 
-const DATA_PATH = path.join(process.cwd(), "data", "network.json");
+// Two network files, one seam (Q71 Phase 1). `network.json` is the COMMITTED
+// scaffolding — it ships in the bundle and must stay free of real customer
+// rows. `network.local.json` is gitignored, is what `scripts/regen-fallback.mjs`
+// writes, and holds whatever real data a dev pulled down. Local wins on read
+// when it exists; every write lands in local so the committed file is never
+// mutated back into a PII carrier. Prod never has the local file (gitignored,
+// so not bundled), so its read path is exactly what it was before.
+// Dir is overridable for tests; all of it resolved per-call, not at module load.
+function dataDir(): string {
+  return process.env.NETWORK_DATA_DIR ?? path.join(process.cwd(), "data");
+}
+
+function committedNetworkPath(): string {
+  return path.join(dataDir(), "network.json");
+}
+
+function localNetworkPath(): string {
+  return path.join(dataDir(), "network.local.json");
+}
 
 // CRM rows live in their own file so network.json (and regen-fallback.mjs)
 // keep their exact shape. Overridable so the contract test can point at a
@@ -56,13 +74,22 @@ function upsertById<T extends { id: string }>(arr: T[], item: T): void {
 }
 
 async function read(): Promise<NetworkData> {
-  const raw = await fs.readFile(DATA_PATH, "utf8");
+  try {
+    const raw = await fs.readFile(localNetworkPath(), "utf8");
+    return JSON.parse(raw) as NetworkData;
+  } catch (err: unknown) {
+    // No local pull yet = serve the committed scaffolding. Anything else (bad
+    // JSON, perms) is a real error and must not be masked by the fallback —
+    // a half-written local file should fail loud, not silently serve stale data.
+    if ((err as NodeJS.ErrnoException)?.code !== "ENOENT") throw err;
+  }
+  const raw = await fs.readFile(committedNetworkPath(), "utf8");
   return JSON.parse(raw) as NetworkData;
 }
 
 async function write(data: NetworkData): Promise<void> {
   try {
-    await fs.writeFile(DATA_PATH, JSON.stringify(data, null, 2), "utf8");
+    await fs.writeFile(localNetworkPath(), JSON.stringify(data, null, 2), "utf8");
   } catch (err) {
     // Vercel's filesystem is read-only outside /tmp. Fail LOUD, never silent —
     // the caller must surface "not saved" to the user (see /api/estimate).

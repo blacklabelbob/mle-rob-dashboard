@@ -1,13 +1,18 @@
 #!/usr/bin/env node
-// Regenerate data/network.json (the file-store fallback) from LIVE Supabase rows,
-// so the no-stall fallback serves truth, not stale seed data (Critic Rob R1-#7).
+// Regenerate data/network.local.json (the gitignored file-store overlay) from
+// LIVE Supabase rows, so the no-stall fallback serves truth, not stale seed
+// data (Critic Rob R1-#7). NEVER writes the committed data/network.json (Q71).
 // Field mapping mirrors lib/storage/supabaseStore.ts toPerson/toProject exactly —
 // keep the two in sync when the schema changes.
 // Usage: node scripts/regen-fallback.mjs                (source: live table reads)
 //        node scripts/regen-fallback.mjs --from-backup  (source: latest verified
 //          nightly backup — `latest.json` in the private `backups` bucket, MC.16.
-//          This is the restore path: backup → fallback file → deploy bundles it →
-//          a store outage serves exactly the last verified backup.)
+//          This is the restore path: backup → local overlay file → the running
+//          dashboard serves exactly the last verified backup.
+//          ⚠️ CHANGED BY Q71: the overlay is gitignored, so a deploy no longer
+//          bundles it automatically. Restoring PROD is now a deliberate act
+//          (promote the rows into Supabase, or hand-stage the file) instead of
+//          a side effect of committing whatever this script last wrote.)
 import { createClient } from "@supabase/supabase-js";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 
@@ -128,10 +133,14 @@ const out = {
   projects: projects.map(toProject),
 };
 
-const target = new URL("../data/network.json", import.meta.url);
+// Q71 Phase 1: this writes the GITIGNORED local file, never the committed
+// scaffolding. It used to target data/network.json, which is how live customer
+// phones and emails kept landing back in git on every run. fileStore.ts prefers
+// network.local.json when present, so a run still takes effect immediately.
+const target = new URL("../data/network.local.json", import.meta.url);
 writeFileSync(target, JSON.stringify(out, null, 2) + "\n", "utf8");
 console.log(
-  `✓ data/network.json regenerated from ${
+  `✓ data/network.local.json (gitignored) regenerated from ${
     useBackup ? `last verified backup (taken ${source.takenAt})` : "live Supabase"
   }: ` +
     `${out.people.length} people, ${out.edges.length} edges, ` +
