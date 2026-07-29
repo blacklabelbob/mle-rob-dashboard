@@ -111,6 +111,20 @@ export function isTestPath(file) {
 }
 
 /**
+ * Variables the OPERATING SYSTEM hands to every process. These are read (by
+ * scripts that build an env for a child process) but they are not configuration
+ * of this app, and `.env.example` is the file a reader copies to configure it:
+ * listing PATH there would be instructing someone to overwrite their shell PATH.
+ *
+ * This list is deliberately tiny and closed. It is NOT an escape hatch for
+ * "variables we haven't documented yet" — the entry bar is that the value comes
+ * from the OS rather than from a person, so no `.env` file could ever be its
+ * home. Anything a human chooses the value of belongs in `.env.example`, even
+ * when only one script reads it.
+ */
+export const AMBIENT = new Set(["PATH", "HOME", "LANG"]);
+
+/**
  * Compare what the code reads against what the example documents.
  * `sources` is [{ file, text }]. Returns undocumented (the failure) and
  * documented-but-unread (reported, never fatal: a var may be consumed by
@@ -121,6 +135,7 @@ export function diffEnvManifest({ sources, exampleText }) {
   for (const { file, text } of sources) {
     if (isTestPath(file)) continue;
     for (const name of scanEnvReads(text)) {
+      if (AMBIENT.has(name)) continue;
       if (!readBy.has(name)) readBy.set(name, []);
       readBy.get(name).push(file);
     }

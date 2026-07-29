@@ -4,6 +4,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 // @ts-expect-error — plain .mjs module, no types by design (same shape as the guard scripts)
 import {
+  AMBIENT,
   diffEnvManifest,
   isTestPath,
   parseEnvExample,
@@ -132,6 +133,30 @@ describe("diffEnvManifest", () => {
     const result = diffEnvManifest({ sources: [], exampleText: "FAKE_PLATFORM_ONLY=\n" });
     expect(result.unread).toEqual(["FAKE_PLATFORM_ONLY"]);
     expect(result.undocumented).toEqual([]);
+  });
+
+  it("does not demand documentation for variables the OS supplies", () => {
+    const result = diffEnvManifest({
+      sources: [{ file: "scripts/x.mjs", text: "process.env.PATH; process.env.HOME; process.env.LANG;" }],
+      exampleText: "",
+    });
+    expect(result.undocumented).toEqual([]);
+  });
+
+  // The exclusion must stay a closed list of OS-supplied names, not a drawer
+  // for anything undocumented. A variable a HUMAN picks the value of belongs in
+  // .env.example even if one script reads it — so growing this set is a change
+  // that has to be argued for, not one that slips in with an unrelated commit.
+  it("keeps the ambient set closed to OS-supplied names", () => {
+    expect([...AMBIENT].sort()).toEqual(["HOME", "LANG", "PATH"]);
+  });
+
+  it("still requires documentation for an app variable read by only one script", () => {
+    const result = diffEnvManifest({
+      sources: [{ file: "scripts/x.mjs", text: "process.env.OFFLINE_PORT;" }],
+      exampleText: "",
+    });
+    expect(result.undocumented.map((u: { name: string }) => u.name)).toEqual(["OFFLINE_PORT"]);
   });
 
   it("classifies both __tests__ paths and .test/.spec filenames as tests", () => {

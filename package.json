@@ -12,7 +12,8 @@
     "seed:synthetic": "node scripts/seed-synthetic.mjs",
     "seed:local": "node scripts/regen-fallback.mjs && node scripts/seed-local-crm.mjs",
     "guard:pii": "node scripts/pii-guard.mjs",
-    "check:env": "node scripts/env-manifest.mjs"
+    "check:env": "node scripts/env-manifest.mjs",
+    "verify:offline": "node scripts/verify-offline.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.110.0",

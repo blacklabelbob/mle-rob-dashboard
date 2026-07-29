@@ -35,6 +35,11 @@ no API keys, nothing dialled out. Every page carries the banner *"Demo mode —
 Generated sample data"* so nothing on screen can be mistaken for a real record.
 This is the path CI runs.
 
+"Nothing dialled out" is **measured, not asserted**: `npm run verify:offline`
+boots this exact path in a `git archive HEAD` tree (tracked files only, no
+`.env.local`) behind a preloaded socket/DNS sentinel, and fails if any page
+reaches off the machine.
+
 After changing the generator, regenerate: `npm run seed:synthetic`. It is
 deterministic — same seed, byte-identical files — and a hand-edit to
 `data/*.json` fails the suite by design, because that is how a real phone number
@@ -77,6 +82,7 @@ npm test              # vitest
 npm run lint
 npm run guard:pii     # no real contacts in any tracked file (also enforced by the suite)
 npm run check:env     # .env.example documents every variable the code reads
+npm run verify:offline # boots path 1 from a tracked-files-only tree, asserts zero network calls
 ```
 
 `.githooks/pre-push` runs lint and the suite, and the suite runs the guard over
