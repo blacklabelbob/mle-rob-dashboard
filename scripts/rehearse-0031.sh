@@ -63,16 +63,31 @@ alter table orgs   drop constraint if exists orgs_id_is_record_no;
 
 insert into verticals (id, name, color) values ('roofing','Roofing','#D9820B') on conflict do nothing;
 
-insert into people (id, name, vertical_id, status, legacy_slug) values
-  ('caleb-green',   'Caleb Green',   'roofing', 'lit',  'caleb-green'),
-  ('dana-reyes',    'Dana Reyes',    'roofing', 'warm', 'dana-reyes'),
-  ('dana-reyes-2',  'Dana Reyes',    'roofing', 'warm', 'dana-reyes-2');
+-- legacy_slug IS DELIBERATELY LEFT NULL HERE, and that is the whole point (Q70 inc.5).
+-- The first version of this seed supplied legacy_slug on every row, which made 0031's
+-- step-1 backfill (`update ... set legacy_slug = id where legacy_slug is null`) match
+-- ZERO rows. On live, all 41 rows had it NULL, so step 1 rewrote every one of them and
+-- thereby reordered the heap — and the renumber, which at the time relied on ON UPDATE
+-- CASCADE for people.referred_by_id -> people.id, then failed on real data with
+--     Key (referred_by_id)=(daniella-roach) is not present in table "people"
+-- while this rehearsal stayed green. A rehearsal that skips the migration's own first
+-- write is not rehearsing the migration. Leave these NULL.
+insert into people (id, name, vertical_id, status) values
+  ('caleb-green',   'Caleb Green',   'roofing', 'lit'),
+  ('dana-reyes',    'Dana Reyes',    'roofing', 'warm'),
+  ('dana-reyes-2',  'Dana Reyes',    'roofing', 'warm'),
+  -- a referral chain seeded in REVERSE insertion order: the referrer is written AFTER
+  -- the person they referred, so the child physically precedes the parent in the heap.
+  -- The old cascade-dependent renumber was correct only for one of the two orders.
+  ('erin-vasquez',  'Erin Vasquez',  'roofing', 'warm'),
+  ('frank-oduya',   'Frank Oduya',   'roofing', 'lit');
 
-insert into orgs (id, name, vertical_id, status, legacy_slug) values
-  ('cg-roofing',    'CG Roofing',    'roofing', 'lit',  'cg-roofing');
+insert into orgs (id, name, vertical_id, status) values
+  ('cg-roofing',    'CG Roofing',    'roofing', 'lit');
 
 -- the attribution chain and a membership, i.e. the FKs that must follow the renumber
 update people set referred_by_id = 'caleb-green' where id = 'dana-reyes';
+update people set referred_by_id = 'frank-oduya' where id = 'erin-vasquez';
 insert into org_memberships (person_id, org_id, is_primary) values ('caleb-green','cg-roofing',true);
 insert into edges (id, from_id, to_id, kind) values ('e1','caleb-green','dana-reyes','referral')
   on conflict do nothing;
@@ -105,6 +120,13 @@ begin
   select referred_by_id into ref from people where name = 'Dana Reyes' and legacy_slug = 'dana-reyes';
   assert ref ~ '^P-[0-9]+$', 'referred_by_id not renumbered: ' || coalesce(ref,'<null>');
   assert ref = (select id from people where legacy_slug = 'caleb-green'), 'attribution chain broke';
+
+  -- 4b. the same chain seeded in the OPPOSITE heap order. Both must hold, because a
+  --     renumber whose correctness depends on the physical order rows are scanned in is
+  --     not a renumber — that dependency is what broke the live apply.
+  select referred_by_id into ref from people where legacy_slug = 'erin-vasquez';
+  assert ref ~ '^P-[0-9]+$', 'reverse-order referred_by_id not renumbered: ' || coalesce(ref,'<null>');
+  assert ref = (select id from people where legacy_slug = 'frank-oduya'), 'reverse-order attribution chain broke';
 
   -- 5. membership + edge rows followed too
   select person_id into memb from org_memberships limit 1;

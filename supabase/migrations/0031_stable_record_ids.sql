@@ -81,6 +81,7 @@ begin
        and tgtns.nspname = current_schema()
        and tgt.relname in ('people','orgs')
        and c.confupdtype <> 'c'          -- already cascading? leave it alone
+       and c.conrelid <> c.confrelid     -- SELF-references are handled in step 4, not here
   loop
     select string_agg(quote_ident(a.attname), ', ' order by k.ord)
       into cols
@@ -107,15 +108,49 @@ begin
   end loop;
 end $$;
 
--- 4. The renumber. One UPDATE per table; the cascades carry every child row.
---    `where id !~ '^[PC]-[0-9]+$'` is the idempotency guard — a second run finds nothing.
-update people
-   set id = 'P-' || nextval('people_record_no_seq')
- where id !~ '^P-[0-9]+$';
+-- 4. The renumber. Cross-table children ride the cascades from step 3; SELF-references
+--    (people.referred_by_id -> people.id, orgs.referred_by_org_id -> orgs.id) are remapped
+--    EXPLICITLY, in the same statement that moves the id.
+--
+--    WHY NOT CASCADE FOR THESE — the bug this cost a live apply to find (Q70 inc.5):
+--    ON UPDATE CASCADE cannot propagate onto a row that the SAME statement is also
+--    updating. When one UPDATE renumbers both a referrer and the person they referred,
+--    Postgres moves the parent, declines to touch the already-modified child, and the
+--    end-of-statement FK check then fails on the child's now-dangling pointer:
+--        Key (referred_by_id)=(daniella-roach) is not present in table "people"
+--    Whether it fires depends on the order rows are scanned, which is the HEAP order —
+--    so step 1's `update ... set legacy_slug = id` (which rewrites every row and thereby
+--    reorders the heap) is what turned a passing rehearsal into a failing live apply.
+--    A renumber whose correctness depends on physical row order is not a renumber, so the
+--    self-references no longer rely on it: the mapping is computed first, then the id and
+--    the pointer move together and the FK sees one consistent state at statement end.
+create temporary table _people_renumber on commit drop as
+  select id as old_id, 'P-' || nextval('people_record_no_seq') as new_id
+    from people
+   where id !~ '^P-[0-9]+$';
 
-update orgs
-   set id = 'C-' || nextval('orgs_record_no_seq')
- where id !~ '^C-[0-9]+$';
+update people p
+   set id             = coalesce(self.new_id, p.id),
+       referred_by_id = coalesce(ref.new_id, p.referred_by_id)
+  from people src
+       left join _people_renumber self on self.old_id = src.id
+       left join _people_renumber ref  on ref.old_id  = src.referred_by_id
+ where src.id = p.id
+   and (self.new_id is not null or ref.new_id is not null);
+
+create temporary table _orgs_renumber on commit drop as
+  select id as old_id, 'C-' || nextval('orgs_record_no_seq') as new_id
+    from orgs
+   where id !~ '^C-[0-9]+$';
+
+update orgs o
+   set id                 = coalesce(self.new_id, o.id),
+       referred_by_org_id = coalesce(ref.new_id, o.referred_by_org_id)
+  from orgs src
+       left join _orgs_renumber self on self.old_id = src.id
+       left join _orgs_renumber ref  on ref.old_id  = src.referred_by_org_id
+ where src.id = o.id
+   and (self.new_id is not null or ref.new_id is not null);
 
 -- 5. Hold the shape going forward. A future write that tries to store a name-slug as an
 --    id fails loudly here rather than quietly reintroducing the defect two months from now.
