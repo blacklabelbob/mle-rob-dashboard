@@ -890,6 +890,84 @@ Every provider omits the same three things, so no amount of further public resea
 
 ---
 
+## 🔴 3l. THE RAIL + PCI POSTURE — line CLOSED, and "hosted checkout keeps us out of scope" is no longer true as written (Max, 2026-07-28)
+
+**Why this line was still open when the file said the analytic work was done:** every increment since 7/25
+recorded *"every remaining line is Rob-only, human-browser-403, outage-blocked, or the 7/28 call."* That was
+wrong about **§5's deliverable-side leg (c)** — confirming the 7/23 rail short-list and the SAQ-A posture is
+research, needs no Rob input, no processor contact and no 403 page. It sat open for three days behind a
+sentence about the *other* lines. (Same defect shape as Q68 inc.14 and Q69 inc.48: a status written in prose
+outlives the thing it described.)
+
+### The short-list holds — but the PCI answer splits by SHAPE, not by vendor
+
+| Integration | Card fields live where | SAQ | v4.0.1 script criterion applies? |
+|---|---|---|---|
+| **Square payment link** (redirect to Square-hosted page) | Square's domain | SAQ-A | ❌ **No** — redirects are excluded verbatim |
+| **HelcimPay.js** (modal in an iframe on the client's site) | Helcim's iframe | SAQ-A *(Helcim's own statement)* | ✅ **YES** — embedded form |
+| **Helcim.js** (HTML input fields on the client's page) | **the client's page** | **SAQ-A-EP** *(Helcim's own statement)* | n/a — already out of SAQ-A |
+| Payment API with full PANs | our servers | **SAQ-D** *(Helcim's own statement)* | n/a |
+
+Helcim publishes all three rungs itself: HelcimPay.js *"render[s] the payment modal in an iFrame on your
+website, sensitive credit card details never touch your website or server"* → SAQ-A; Helcim.js *"uses HTML
+input fields, the customers credit card details technically touch your website"* → **SAQ-A-EP**; full-PAN API
+→ **SAQ-D**. ([Helcim devdocs — PCI compliance scope](https://devdocs.helcim.com/docs/pci-compliance-scope))
+
+### The finding: PCI DSS v4.0.1 added an SAQ-A eligibility criterion that lands squarely on the in-chat shape
+
+Effective **2025-04-01**, SAQ A carries a criterion that did not exist when the 7/23 short-list was drawn:
+*"The merchant has confirmed that their site is not susceptible to attacks from scripts that could affect the
+merchant's e-commerce system(s)."* Per the Council's own FAQ it applies **only** to merchants whose page
+carries a TPSP's **embedded** payment form (iframe) — and **explicitly not** to redirects or links.
+([PCI SSC FAQ #1588](https://www.pcisecuritystandards.org/faqs/1588/) ·
+[PCI SSC blog — FAQ clarifies new SAQ A eligibility criteria](https://blog.pcisecuritystandards.org/faq-clarifies-new-saq-a-eligibility-criteria-for-e-commerce-merchants))
+
+There are exactly **two** ways to satisfy it: implement PCI DSS 6.4.3 + 11.6.1 (script inventory/integrity and
+payment-page change detection), **or obtain written confirmation from the TPSP/processor** that its solution
+protects the payment page from script attacks when implemented per their instructions. The Council also notes
+the merchant's SAQ is ultimately determined by the **compliance-accepting entity — the acquiring bank**, not
+by the vendor's marketing.
+
+### Why that is a finding and not a footnote — it collides with the demo Rob described
+
+Rob's chat-commerce ask is *"checkout right from within the chatbox"* (§7). **In-chat checkout is by
+definition the embedded shape.** So:
+
+- The PCI-cheapest rail (a Square **payment link** the bot hands over) is the one that **leaves the chat** —
+  it buys SAQ-A with no script criterion at the cost of the exact UX that makes the demo land.
+- Keeping the payment **inside** the chat (HelcimPay.js modal / any hosted-fields SDK) is still SAQ-A, but
+  **only with the processor's written script-attack confirmation on file**. That confirmation is **free and
+  one-time per provider** — it is not a blocker, it is a document nobody has asked for yet.
+- **`Helcim.js` is now a build-prohibition, not a preference:** its own vendor puts it at SAQ-A-EP, i.e. the
+  ~22-question questionnaire becomes the ~180+-question one, per client site MLE ships. The two names differ
+  by four characters and a wrong import moves every client's compliance burden.
+
+### Square: claim recorded at the weight it can bear
+
+Square markets that *"customers' credit card information never touches your website or app, so you don't need
+to deal with PCI checklists"* ([Square — payment API](https://squareup.com/us/en/the-bottom-line/selling-anywhere/payment-api)),
+and its Checkout API returns a **Square-hosted** checkout URL
+([Square — Checkout API](https://developer.squareup.com/docs/checkout-api)). **That is marketing-level, not an
+SAQ determination** — recorded as such. The redirect shape's exclusion from the script criterion comes from
+the Council, not from Square, which is why the table above cites the Council for it.
+
+### What this changes
+
+1. **§5 leg (c) closes** — the 7/23 short-list survives, with one shape-level correction and one prohibition.
+2. **New RFP/call question, added to the same list as §3k's three unpublished items:** *"Provide written
+   confirmation that your embedded payment solution protects the merchant payment page from script attacks
+   per the SAQ A eligibility criterion (PCI DSS v4.0.1)."* Ask it of **whoever we board under** — it is a
+   per-provider artifact, and Amplipay/eDataPay's answer to it is a second read on §3e's missing ISO/MSP
+   disclosure (a shop that never published its sponsor bank may not have this either).
+3. **§7.4's table row *"PCI scope on MLE — stays out of scope with hosted checkout"* is too loose and is
+   superseded by the table above.** Scope stays reduced; it does not stay *automatic*.
+4. **Nothing here moves the rung decision.** Both shapes are available at rung 1; this is a build-rule and a
+   document to collect, not a reason to jump rungs.
+
+**House limit honoured:** nothing signed, no processor contacted, no money field moved, no code, no deploy.
+
+---
+
 ## 5. Open DD checklist — to close by 2026-08-04
 
 - [ ] Rob exports/pastes the **OpenRouter** + **ChatGPT** candidate long-lists (Max cannot read either — 403 / session-scoped)
@@ -906,7 +984,7 @@ Every provider omits the same three things, so no amount of further public resea
 - [x] Entity decision: which entity signs (§4) — **RECOMMENDATION PRE-DRAFTED 2026-07-25, see §3h.** Answer: **BoostUp Payments signs the Schedule A and owns the residual** (it is the payments entity, and §3g's residual book is a saleable asset at 25–40× monthly that must not be split across two signatures); **MLE / AI VoiceTech never appear on the processor paper** — they are distribution, under a written arm's-length intercompany referral agreement, because MLE's own customers *are* the merchants. **The card-brand rule reframes the question:** Visa's TPA program says an unregistered referral entity marketing **in its own name** *"may only generate leads"* and **may not** discuss pricing/fees/rates, draft contracts or submit applications — to do those unregistered it must *"solicit and market in the name of the registered ISO."* Registering to escape that fork is **$5,000/yr at Visa alone, per entity, per region**, and the DBA workaround is closed (*"a DBA is not a separate legal entity"*). **Rob's remaining call is therefore not "who signs" but own-name lead-gen vs. marketing under the ISO's name.** New agenda item: ISO vs **HR-ISO** boarding type, given §3c's eDataPay high-risk finding
 - [x] Switching-cost mechanic specified: what *concretely* makes a merchant unable to leave once processing is bundled? — **CLOSED 2026-07-25, see §3f.** Answer: **the AI agent transacting** (AIDRE takes the deposit on the call / AIVA closes the booking with a card) — the sold outcome is *a booked-and-paid job*, which cannot survive moving the rail; second-strongest is the second brain as revenue system-of-record (Q40). Dual pricing is **not** lock-in, it is the acquisition wedge, and is symmetric. **The finding with teeth: every mechanic requires that Rob's software can PROGRAM the rail (PFaaS posture) — so at the $0-independent-agent rung, switching cost added is ZERO.** Rob's thesis splits: revenue half is available now at rung 1; switching-cost half is a Phase-2+ engineering decision, not a signature
 - [x] Revenue model: expected residual per merchant × realistic merchant count = is this worth the distraction from P1? — **CLOSED 2026-07-25, see §3g.** Answer: **$35–$50 per merchant per month** (two independent routes converge: $70 gross margin × the stated ~50% industry-average split; and $30k/mo volume × the 15 bps floor). Denominator taken **first-party from our own CRM — 19 orgs, 8 deals today** — with §3f's Apideck sub-20% attach → **~4 merchants ≈ $140–200/month near-term**, i.e. *not* a revenue stream at today's size. **The payoff shape is the finding: a residual book sells at 25–40× monthly, and every scenario scales with MLE's customer count — so the add-on is downstream of P1, not competing with it.** Hard sourced disqualifier for jumping rungs: the **registered-ISO rung (~$20–30k/yr) needs ~50–70 merchants just to break even ≈ 3× the entire current network.** A widely-circulated *"$23,000 average monthly card spend"* figure was **rejected** — it measures small businesses *spending on* business cards, not merchant *acceptance* volume
-- [ ] 🆕 **DELIVERABLE-SIDE LINE (added 2026-07-25 pm from Rob's chat-commerce dump — see §7).** ~~(a) **Rob-only:** which vertical?~~ **(a) CLOSED by Rob the same evening — there is no vertical gate (§7.5): the paying chatbot is a HORIZONTAL add-on to the websites MLE spins up, across every vertical; e-commerce/apparel was one example, and the general principle is Amazon's Buy Now button — collect payment before the customer reaches a checkout page.** (b) ✅ **CLOSED 2026-07-25 — see §3i.** Attach for payments **delivered as part of the product** now has sourced bounds: **Shopify Payments = 67% of GMV, Q1 2026 (SEC 10-Q)** against §3g's banked Apideck *"often remain below 20%"* for payments **sold separately**, with Clio's COO putting the observed vertical-SaaS spread at ***"20% to 90+%"*** and naming the driver — payments as a **core product** vs. a SPIFF'd secondary one. **Direction corroborated, magnitude for OUR delivery mode still unpublished and not invented; §3g's sub-20% denominator therefore stands as the planning number.** (c) Confirm the 7/23 rail shortlist (Square payment links / Helcim HelcimPay.js) still holds for an in-chat flow at rung 1, and that hosted checkout keeps MLE **out of PCI scope** — target posture **SAQ-A, card data never in the LLM context or our logs** (§7.4, §7.7)
+- [ ] 🆕 **DELIVERABLE-SIDE LINE (added 2026-07-25 pm from Rob's chat-commerce dump — see §7).** ~~(a) **Rob-only:** which vertical?~~ **(a) CLOSED by Rob the same evening — there is no vertical gate (§7.5): the paying chatbot is a HORIZONTAL add-on to the websites MLE spins up, across every vertical; e-commerce/apparel was one example, and the general principle is Amazon's Buy Now button — collect payment before the customer reaches a checkout page.** (b) ✅ **CLOSED 2026-07-25 — see §3i.** Attach for payments **delivered as part of the product** now has sourced bounds: **Shopify Payments = 67% of GMV, Q1 2026 (SEC 10-Q)** against §3g's banked Apideck *"often remain below 20%"* for payments **sold separately**, with Clio's COO putting the observed vertical-SaaS spread at ***"20% to 90+%"*** and naming the driver — payments as a **core product** vs. a SPIFF'd secondary one. **Direction corroborated, magnitude for OUR delivery mode still unpublished and not invented; §3g's sub-20% denominator therefore stands as the planning number.** (c) ✅ **CLOSED 2026-07-28 — see §3l.** The short-list **holds**, but *"hosted checkout keeps MLE out of PCI scope"* is too loose as written: **PCI DSS v4.0.1 (effective 2025-04-01) added an SAQ-A eligibility criterion that applies to EMBEDDED payment forms (iframes) and explicitly NOT to redirects** ([PCI SSC FAQ #1588](https://www.pcisecuritystandards.org/faqs/1588/)). So a Square **payment link** (redirect) is SAQ-A with no new criterion, while **HelcimPay.js** — the in-chat shape Rob actually described — is SAQ-A **only with the processor's written script-attack confirmation on file** (free, one-time per provider, never yet requested → new RFP/call question). **`Helcim.js` becomes a build-prohibition:** its own vendor puts it at **SAQ-A-EP**, and full-PAN API at **SAQ-D** ([Helcim devdocs](https://devdocs.helcim.com/docs/pci-compliance-scope)). Card data never in the LLM context or our logs is unchanged and unaffected
 - [x] 🆕 **PFaaS ECONOMICS — the missing half of Rob's rung question (added 2026-07-25 pm, §7.7) — CLOSED 2026-07-25, see §3k.** Answer to *"does a platform-of-record model pay MORE than an agent residual on the same volume?"* → **YES, roughly 3×: ≈$132/merchant/month (Tilled, floor) vs §3g's $35–50 agent residual** — but it carries a **$500/mo SaaS fee**, so break-even is **≈4 merchants** to cover the fee and **≈6** to beat staying at rung 1. **Against the registered-ISO rung's 50–70, PFaaS is an order of magnitude closer — it lands AT §3g's own ~4-merchant planning denominator.** Tilled 70%/80% rev share + $500/$2,500 mo published; Moov buy-rate interchange+0.60%+15¢, $500/mo minimum published; Rainforest **explicitly not rev-share** (buy-rate, 0.30%+item at $0–5M) but **minimum unpublished**; **Finix unpublished entirely, recorded as unknown and not estimated.** **The decision-grade output is a trigger, not a date: at ~6 boarded merchants PFaaS turns net-positive AND unlocks §3f's switching-cost half, which rung 1 cannot deliver at any merchant count.** Three items are unpublished by ALL four (liability allocation, time-to-live, minimums beyond the headline) → they convert to **RFP questions, not open research**
 - [ ] 🆕 **NN#3 IS NOW THE DEAL-BREAKER CLAUSE, not the third checkbox (§7.7).** Rob cites portfolio resale value (25–40× monthly, §3g) as a stated reason for the whole initiative → on **every** Schedule A, verify the sale right is a **third-party** sale right, not the processor's own buyback (the exact trap §3d found in SignaPay's published *"portfolio buyouts"*). A book sellable only back to the processor does not carry the outside multiple
 
@@ -996,7 +1074,7 @@ But the **revenue** half survives at rung 1 intact, and this is the distinction 
 | Earn residual on those transactions | ✅ yes — **if the merchant is boarded on Rob's Schedule A** | ✅ yes |
 | Own the checkout state / charge programmatically | ❌ no | ✅ yes |
 | Adds switching cost | ❌ **zero** (§3f) | ✅ yes |
-| PCI scope on MLE | stays out of scope with hosted checkout | expands — needs its own review |
+| PCI scope on MLE | ~~stays out of scope with hosted checkout~~ **SUPERSEDED 2026-07-28 by §3l** — scope stays *reduced*, not *automatic*: redirect = SAQ-A clean; **embedded/in-chat = SAQ-A only with the processor's written script-attack confirmation** (PCI DSS v4.0.1) | expands — needs its own review |
 
 **Rec (1) is unchanged by this.** Rec (3)'s switching-cost mechanic gains a concrete MLE-side embodiment
 (*the client's own site closes the sale in the chat*), and rec (4) gains the attach lever above. Nothing here
