@@ -33,6 +33,7 @@
 //                      precisely by not knowing.
 
 import { useState } from "react";
+import { localDateTimeToIsoInstant } from "@/lib/phases/localInstant";
 import { phase2RefusalsByField } from "@/lib/phases/phase2ReturnsRefusalText";
 import { REVENUE_BASES, type RevenueBasis } from "@/lib/phases/phase2ReturnsWrite";
 
@@ -60,6 +61,29 @@ const EMPTY = {
 const field =
   "w-full rounded-md border border-white/10 bg-black/30 px-2.5 py-1.5 text-sm text-white " +
   "outline-none placeholder:text-slate-600 focus:border-sky-400/60";
+
+/**
+ * The measurer's wall clock → the instant they meant (inc.13).
+ *
+ * The offset is read for THAT datetime, not for "now": the same browser is at a
+ * different offset in January than in July, and a measurement backdated across a DST
+ * change would otherwise be shifted by an hour. Anything unparseable is handed back
+ * unchanged for the door to refuse — the arithmetic lives in a pure, tested module
+ * (`lib/phases/localInstant`), and the ambient zone read is the only part that must
+ * happen here, because it is the only part that is not arithmetic.
+ */
+function measuredAtInstant(raw: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(raw.trim());
+  if (!m) return raw;
+  const offsetMinutes = new Date(
+    Number(m[1]),
+    Number(m[2]) - 1,
+    Number(m[3]),
+    Number(m[4]),
+    Number(m[5]),
+  ).getTimezoneOffset();
+  return localDateTimeToIsoInstant(raw, offsetMinutes) ?? raw;
+}
 const label = "block text-[10px] uppercase tracking-[0.14em] text-slate-500";
 
 function Field({
@@ -121,13 +145,22 @@ export default function Phase2ReturnsForm({
         headers: { "Content-Type": "application/json" },
         // Sent as typed. inc.8's intake is what turns "12" into 12, and a blank
         // stays blank rather than becoming a zero somebody never measured.
+        //
+        // THE ONE EXCEPTION IS `measuredAt`, and it is not judging — it is SUPPLYING
+        // (inc.13). `datetime-local` produces a wall clock with no zone, and the
+        // function that parses it runs on Vercel in UTC, so "9:30pm" typed in Eastern
+        // records as 5:30pm Eastern — the wrong instant, and past 8pm the wrong DAY,
+        // which the guarantee then pro-rates against ("day N of 91"). The offset is
+        // information only this browser has; a server cannot recover it from the body.
+        // A value this cannot complete goes on RAW so the door — not this file — is
+        // what says a date is unusable.
         body: JSON.stringify({
           customerId,
           laborHoursSaved: v.laborHoursSaved,
           laborCostPerHour: v.laborCostPerHour,
           revenueSincePhase2Start: v.revenueSincePhase2Start,
           revenueBasis: v.revenueBasis,
-          measuredAt: v.measuredAt,
+          measuredAt: measuredAtInstant(v.measuredAt),
           measuredBy: v.measuredBy,
           note: v.note.trim() === "" ? null : v.note,
           source: "admin_ui",
