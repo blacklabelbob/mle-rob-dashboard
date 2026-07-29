@@ -3,7 +3,9 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
+  PARTNER_CONTRACT,
   PARTNER_HOOKS,
+  contractBreaches,
   distinctHeaders,
   headerIsRead,
   hookBreaches,
@@ -40,10 +42,12 @@ function libHaystack(): string {
 }
 
 function existingDocs(): string[] {
-  return PARTNER_HOOKS.map((h) => h.payloadDoc).filter(
+  return PARTNER_HOOKS.map((h) => h.deepSpec).filter(
     (p): p is string => p !== null && existsSync(join(REPO_ROOT, p)),
   );
 }
+
+const contract = () => readFileSync(join(REPO_ROOT, PARTNER_CONTRACT), "utf8");
 
 const audit = () => ({
   declared: PARTNER_HOOKS,
@@ -92,7 +96,8 @@ describe("partner connection contract (Q75)", () => {
           header: "x-n8n-secret",
           secretEnv: "N8N_EMAIL_WEBHOOK_SECRET",
           caller: "typo",
-          payloadDoc: null,
+          contractAnchor: "n8n-email",
+          deepSpec: null,
         },
       ],
     });
@@ -121,16 +126,45 @@ describe("partner connection contract (Q75)", () => {
     expect(headerIsRead('req.headers.get("x-vapi-secret")', "", "x-vapi-secret")).toBe(true);
   });
 
-  // The two numbers Q75's decision gets made against. Both are debt: they may
-  // shrink when a recipe is written, never grow by accident.
-  it("pins the documentation gap — hooks a partner cannot wire without this repo", () => {
-    expect(undocumentedHooks(PARTNER_HOOKS)).toEqual([
-      "n8n-email",
-      "n8n-error",
-      "twilio-recording",
-      "vapi",
-      "voice-law",
-    ]);
+  // --- inc.2: the ONE recipe, checked against the code it describes ---------
+
+  it("specifies every door in the single partner contract", () => {
+    expect(contractBreaches(contract(), PARTNER_HOOKS)).toEqual([]);
+  });
+
+  it("fails when a route's header changes and the contract is not updated", () => {
+    const breaches = contractBreaches(
+      contract(),
+      PARTNER_HOOKS.map((h) =>
+        h.route === "vapi" ? { ...h, header: "x-vapi-token" } : h,
+      ),
+    );
+    expect(breaches).toContain("vapi: contract section never names its header x-vapi-token");
+  });
+
+  it("fails when a door is declared with no section on the page", () => {
+    const breaches = contractBreaches(
+      contract(),
+      PARTNER_HOOKS.map((h) =>
+        h.route === "voice-law" ? { ...h, contractAnchor: "voice-laws" } : h,
+      ),
+    );
+    expect(breaches).toContain(
+      `voice-law: no "## voice-laws" section in ${PARTNER_CONTRACT}`,
+    );
+  });
+
+  it("fails when the contract drops a linked deeper spec", () => {
+    const stripped = contract().replace("docs/plans/PHASE-SIGNAL-WEBHOOK-CONTRACT.md", "(removed)");
+    expect(contractBreaches(stripped, PARTNER_HOOKS)).toContain(
+      "phase-signal: contract section never links its deeper spec docs/plans/PHASE-SIGNAL-WEBHOOK-CONTRACT.md",
+    );
+  });
+
+  // The two numbers Q75's decision is made against. Debt: they may shrink by
+  // choice, never grow by accident.
+  it("pins the documentation gap at ZERO — five of seven on inc.1", () => {
+    expect(undocumentedHooks(contract(), PARTNER_HOOKS)).toEqual([]);
   });
 
   it("pins how many distinct secret headers an integrator must learn", () => {

@@ -16,6 +16,13 @@
 // route's behaviour; it pins the shape those routes already share so the
 // decision in Q75's DoD is made against a number instead of a memory.
 
+/**
+ * The ONE recipe (Q75 inc.2). Every door is specified in this single file, so a
+ * hub owner reads one page instead of seven routes — that was the actual defect
+ * inc.1 measured, and this is the fix it scores against.
+ */
+export const PARTNER_CONTRACT = "docs/partners/PARTNER-WEBHOOK-CONTRACT.md";
+
 export type PartnerHook = {
   /** Directory under app/api/webhooks — the URL a partner POSTs to. */
   route: string;
@@ -26,11 +33,19 @@ export type PartnerHook = {
   /** Who calls it, in the partner's own words — not our module name. */
   caller: string;
   /**
-   * Partner-facing spec a hub owner can satisfy WITHOUT reading this repo.
-   * `null` is the honest state for most hooks today and is what makes the gap
-   * countable; see `undocumentedHooks`.
+   * `## <heading>` under which PARTNER_CONTRACT specifies this door.
+   *
+   * Required by the type, which is deliberate: a door cannot be added in code
+   * and left undocumented. What makes that non-vacuous is `contractBreaches`,
+   * which reads the contract on disk — a section that exists but never names
+   * the header or secret env the route actually reads is still a lie.
    */
-  payloadDoc: string | null;
+  contractAnchor: string;
+  /**
+   * Optional deeper per-hook spec, linked FROM the contract rather than
+   * replacing it. Existence is checked; a link to a deleted file is a breach.
+   */
+  deepSpec: string | null;
 };
 
 /**
@@ -45,49 +60,56 @@ export const PARTNER_HOOKS: PartnerHook[] = [
     header: "x-aidre-secret",
     secretEnv: "AIDRE_WEBHOOK_SECRET",
     caller: "AIDRE receptionist (partner-hosted voice product)",
-    payloadDoc: "docs/plans/AIDRE-CALL-PAYLOAD-SPEC.md",
+    contractAnchor: "aidre-call",
+    deepSpec: "docs/plans/AIDRE-CALL-PAYLOAD-SPEC.md",
   },
   {
     route: "n8n-email",
     header: "x-n8n-secret",
     secretEnv: "N8N_EMAIL_WEBHOOK_SECRET",
     caller: "n8n cloud — Gmail sweep",
-    payloadDoc: null,
+    contractAnchor: "n8n-email",
+    deepSpec: null,
   },
   {
     route: "n8n-error",
     header: "x-n8n-secret",
     secretEnv: "N8N_EMAIL_WEBHOOK_SECRET",
     caller: "n8n cloud — workflow failure notifier",
-    payloadDoc: null,
+    contractAnchor: "n8n-error",
+    deepSpec: null,
   },
   {
     route: "phase-signal",
     header: "x-phase-signal-secret",
     secretEnv: "PHASE_SIGNAL_WEBHOOK_SECRET",
     caller: "partner tools reporting a Blueprint component LIVE",
-    payloadDoc: "docs/plans/PHASE-SIGNAL-WEBHOOK-CONTRACT.md",
+    contractAnchor: "phase-signal",
+    deepSpec: "docs/plans/PHASE-SIGNAL-WEBHOOK-CONTRACT.md",
   },
   {
     route: "twilio-recording",
     header: "x-twilio-signature",
     secretEnv: "TWILIO_AUTH_TOKEN",
     caller: "Twilio (recording-complete callback)",
-    payloadDoc: null,
+    contractAnchor: "twilio-recording",
+    deepSpec: null,
   },
   {
     route: "vapi",
     header: "x-vapi-secret",
     secretEnv: "VAPI_WEBHOOK_SECRET",
     caller: "Vapi (call lifecycle events)",
-    payloadDoc: null,
+    contractAnchor: "vapi",
+    deepSpec: null,
   },
   {
     route: "voice-law",
     header: "x-n8n-secret",
     secretEnv: "N8N_EMAIL_WEBHOOK_SECRET",
     caller: "n8n cloud — voice-law monitor",
-    payloadDoc: null,
+    contractAnchor: "voice-law",
+    deepSpec: null,
   },
 ];
 
@@ -180,8 +202,8 @@ export function hookBreaches(audit: HookAudit): string[] {
         out.push(`${hook.route}: no ${code} response — must ${why}`);
       }
     }
-    if (hook.payloadDoc && !audit.existingDocs.includes(hook.payloadDoc)) {
-      out.push(`${hook.route}: payloadDoc ${hook.payloadDoc} does not exist`);
+    if (hook.deepSpec && !audit.existingDocs.includes(hook.deepSpec)) {
+      out.push(`${hook.route}: deepSpec ${hook.deepSpec} does not exist`);
     }
   }
 
@@ -195,12 +217,76 @@ export function hookBreaches(audit: HookAudit): string[] {
 }
 
 /**
- * The gap Q75's DoD has to close: hooks a partner cannot wire up without
- * reading this repo. Pinned in the test so it can only shrink deliberately —
- * writing one recipe is the next increment, and this is how it gets scored.
+ * Split PARTNER_CONTRACT into its `## ` sections, keyed by heading.
+ *
+ * The contract is parsed rather than trusted because the whole value of one
+ * shared recipe is that it stays true: a heading is cheap to keep and a body is
+ * easy to let rot, so the body is what gets checked.
  */
-export function undocumentedHooks(declared: PartnerHook[]): string[] {
-  return declared.filter((h) => h.payloadDoc === null).map((h) => h.route);
+export function contractSections(doc: string): Map<string, string> {
+  const out = new Map<string, string>();
+  const parts = doc.split(/^## /m).slice(1);
+  for (const part of parts) {
+    const nl = part.indexOf("\n");
+    const heading = (nl === -1 ? part : part.slice(0, nl)).trim();
+    out.set(heading, nl === -1 ? "" : part.slice(nl + 1));
+  }
+  return out;
+}
+
+/**
+ * Ways the ONE recipe can be a lie, as plain strings — same convention as
+ * `hookBreaches`: empty is the pass, and every entry names its route.
+ *
+ * The bar is what a hub owner needs and cannot guess: which header carries the
+ * secret, and which env we set on our side (so "have you configured it yet?"
+ * has one answer). Prose is not audited; the two facts a partner would have to
+ * come ask for are.
+ */
+export function contractBreaches(doc: string, declared: PartnerHook[]): string[] {
+  const out: string[] = [];
+  const sections = contractSections(doc);
+
+  // The two universal answers Rob named. Stated once for all doors, so they
+  // must appear in the shared preamble — not only inside per-hook sections.
+  for (const code of REQUIRED_STATUSES) {
+    if (!doc.includes(String(code.code))) {
+      out.push(`contract: never states the ${code.code} rule — must ${code.why}`);
+    }
+  }
+
+  for (const hook of declared) {
+    const body = sections.get(hook.contractAnchor);
+    if (body === undefined) {
+      out.push(`${hook.route}: no "## ${hook.contractAnchor}" section in ${PARTNER_CONTRACT}`);
+      continue;
+    }
+    if (!body.includes(hook.header)) {
+      out.push(`${hook.route}: contract section never names its header ${hook.header}`);
+    }
+    if (!body.includes(hook.secretEnv)) {
+      out.push(`${hook.route}: contract section never names its secret env ${hook.secretEnv}`);
+    }
+    if (hook.deepSpec && !body.includes(hook.deepSpec)) {
+      out.push(`${hook.route}: contract section never links its deeper spec ${hook.deepSpec}`);
+    }
+  }
+
+  return out;
+}
+
+/**
+ * The gap Q75's DoD had to close: doors a partner cannot wire up without
+ * reading this repo. Derived from the contract on disk, never from a field —
+ * a hook is documented when the page actually specifies it.
+ *
+ * Was five of seven on inc.1 (`n8n-email`, `n8n-error`, `twilio-recording`,
+ * `vapi`, `voice-law`); inc.2 wrote the one recipe and it is now zero. Pinned
+ * in the test so it can only grow by somebody's deliberate choice.
+ */
+export function undocumentedHooks(doc: string, declared: PartnerHook[]): string[] {
+  const sections = contractSections(doc);
+  return declared.filter((h) => !sections.has(h.contractAnchor)).map((h) => h.route);
 }
 
 /**
