@@ -34,6 +34,75 @@ export const SEAM: SeamDeclaration = {
   ],
 };
 
+/**
+ * Roots being *evaluated* for core status — not promised, measured.
+ *
+ * Promoting a root is a promise that the directory lifts out whole, so the
+ * second root cannot be declared the way the first was: `lib/filters` and the
+ * CSV trio reach the instance today, and flipping them into `coreRoots` would
+ * only paint the suite red without saying what the debt actually is. A
+ * candidate is surveyed instead — every outside module it touches is counted
+ * and pinned, so the debt is an inventory that cannot silently grow, and
+ * promotion happens when the list reaches empty.
+ */
+export type SeamCandidate = {
+  name: string;
+  /** Every root that would leave together — an extraction unit, not a directory. */
+  roots: string[];
+};
+
+export const SEAM_CANDIDATES: SeamCandidate[] = [
+  { name: "lib/filters", roots: ["lib/filters"] },
+  // The CSV trio is one unit: csvMapping drives csvImport drives csv. Surveyed
+  // apart, each would count its own siblings as debt and overstate the seam.
+  { name: "csv-import", roots: ["lib/csv", "lib/csvImport", "lib/csvMapping"] },
+];
+
+export type CandidateSurvey = {
+  name: string;
+  fileCount: number;
+  /** Repo-relative modules outside the candidate that it imports. */
+  reaches: string[];
+  /** Packages it imports that core's allowlist does not cover. */
+  externals: string[];
+  /** Files with an instance name baked into code. */
+  instanceLiterals: string[];
+};
+
+/**
+ * What would this candidate cost to extract? Pure; the caller supplies the
+ * files. Imports *within* the candidate are free — it would be its own root —
+ * so what is left is exactly the seam it has not paid for yet.
+ */
+export function surveyCandidate(
+  candidate: SeamCandidate,
+  files: SeamFile[],
+  decl: SeamDeclaration = SEAM,
+): CandidateSurvey {
+  const inside = [...candidate.roots, ...decl.coreRoots];
+  const reaches = new Set<string>();
+  const externals = new Set<string>();
+  const instanceLiterals = new Set<string>();
+  for (const f of files) {
+    for (const spec of importSpecifiers(f.source)) {
+      const resolved = resolveSpecifier(spec, f.path);
+      if (resolved === null) {
+        if (!decl.allowedExternals.some((p) => spec === p || spec.startsWith(p))) externals.add(spec);
+      } else if (!underRoot(resolved, inside)) reaches.add(resolved);
+    }
+    const code = stripComments(f.source);
+    if (decl.instanceMarkers.some((m) => m.test(code))) instanceLiterals.add(f.path);
+  }
+  const sorted = (s: Set<string>) => [...s].sort();
+  return {
+    name: candidate.name,
+    fileCount: files.length,
+    reaches: sorted(reaches),
+    externals: sorted(externals),
+    instanceLiterals: sorted(instanceLiterals),
+  };
+}
+
 export type SeamViolation = {
   file: string;
   kind: "instance-import" | "unlisted-external" | "instance-literal";

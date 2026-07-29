@@ -1,13 +1,15 @@
-import { readFileSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
   SEAM,
+  SEAM_CANDIDATES,
   importSpecifiers,
   resolveSpecifier,
   seamViolations,
   stripComments,
+  surveyCandidate,
   type SeamFile,
 } from "@/lib/coreSeam";
 
@@ -15,6 +17,11 @@ const REPO_ROOT = join(__dirname, "..", "..");
 
 function collect(root: string): SeamFile[] {
   const out: SeamFile[] = [];
+  const push = (rel: string) =>
+    out.push({
+      path: rel.replace(/\.(ts|tsx)$/, ""),
+      source: readFileSync(join(REPO_ROOT, rel), "utf8"),
+    });
   const walk = (relDir: string) => {
     for (const entry of readdirSync(join(REPO_ROOT, relDir))) {
       const rel = `${relDir}/${entry}`;
@@ -22,11 +29,12 @@ function collect(root: string): SeamFile[] {
       // instance-shaped fixtures; the seam is about the module's own reach.
       if (entry === "__tests__" || entry.endsWith(".test.ts")) continue;
       if (statSync(join(REPO_ROOT, rel)).isDirectory()) walk(rel);
-      else if (/\.(ts|tsx)$/.test(entry))
-        out.push({ path: rel.replace(/\.(ts|tsx)$/, ""), source: readFileSync(join(REPO_ROOT, rel), "utf8") });
+      else if (/\.(ts|tsx)$/.test(entry)) push(rel);
     }
   };
-  walk(root);
+  // A root may be a directory (`lib/filters`) or a single module (`lib/csv`).
+  if (existsSync(join(REPO_ROOT, root))) walk(root);
+  else push(`${root}.ts`);
   return out;
 }
 
@@ -38,6 +46,43 @@ describe("core-vs-instance seam (Q74)", () => {
   it("no core module reaches instance config — the real check, run against the real tree", () => {
     const files = SEAM.coreRoots.flatMap(collect);
     expect(seamViolations(files)).toEqual([]);
+  });
+
+  // The second root, measured before it is promised. Pinned so the debt can
+  // only shrink deliberately: a new instance import inside a candidate turns
+  // this red, and a candidate reaching [] is the signal to move it into
+  // SEAM.coreRoots.
+  const PINNED: Record<string, { reaches: string[]; externals: string[] }> = {
+    "lib/filters": {
+      reaches: ["lib/crm", "lib/entityProperties", "lib/storage/supabaseStore", "lib/types"],
+      externals: ["next/navigation", "react"],
+    },
+    "csv-import": {
+      reaches: ["lib/notes", "lib/recordId", "lib/stats", "lib/types"],
+      externals: [],
+    },
+  };
+
+  it.each(SEAM_CANDIDATES.map((c) => [c.name, c] as const))(
+    "candidate %s reaches exactly its pinned instance debt",
+    (name, candidate) => {
+      const survey = surveyCandidate(candidate, candidate.roots.flatMap(collect));
+      expect(survey.fileCount).toBeGreaterThan(0);
+      expect({ reaches: survey.reaches, externals: survey.externals }).toEqual(PINNED[name]);
+      // An instance name in code is a different class of debt: it cannot be
+      // paid by moving a file, so no candidate may acquire one.
+      expect(survey.instanceLiterals).toEqual([]);
+    },
+  );
+
+  it("counts an import inside the candidate as free and one outside as debt", () => {
+    const survey = surveyCandidate({ name: "lib/filters", roots: ["lib/filters"] }, [
+      {
+        path: "lib/filters/ast",
+        source: `import { x } from "./parse";\nimport { y } from "@/lib/types";\nimport z from "react";`,
+      },
+    ]);
+    expect(survey).toMatchObject({ reaches: ["lib/types"], externals: ["react"] });
   });
 
   // A gate that cannot go red is decoration. These prove it goes red.
