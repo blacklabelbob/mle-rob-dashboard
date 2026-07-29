@@ -16,9 +16,12 @@
 //       in a private repo. It lives on disk for tooling, and its destination is Supabase
 //       (call_transcripts + call_transcript_segments, migration 0021 — already segment-
 //       granular with speaker and millisecond offsets, which is exactly Fireflies' shape).
-//   MLE Internal Meetings/manifest.json — WHO, WHEN, HOW LONG, WHICH PARTICIPANTS, and the
-//       Fireflies link. COMMITTED. Enough for the repo (and a person reading a diff) to
-//       know a conversation exists and go find it, with no verbatim speech in history.
+//   MLE Internal Meetings/manifest.json — WHEN, HOW LONG, HOW MANY were in the room (and
+//       from which domains), plus the Fireflies link. COMMITTED. Enough for the repo (and a
+//       person reading a diff) to know a conversation exists and go find it, with no verbatim
+//       speech in history — and, since 2026-07-29, no attendee ADDRESSES either: an earlier
+//       version of this file wrote 12 real participant emails into a committed manifest.
+//       Attendees now go through redactAttendees() (scripts/manifest-privacy.mjs).
 //
 // Idempotent: keyed on the Fireflies transcript id, so re-running overwrites a body rather
 // than accumulating copies, and the manifest is rebuilt from what is actually on disk.
@@ -30,6 +33,7 @@ import { mkdirSync, writeFileSync, readFileSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { homedir } from "node:os";
+import { redactAttendees } from "./manifest-privacy.mjs";
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), "..");
 const OUT_DIR = join(REPO, "MLE Internal Meetings");
@@ -120,8 +124,9 @@ for (const t of transcripts) {
     title: t.title ?? null,
     date: t.dateString ?? null,
     durationMinutes: t.duration != null ? Math.round(t.duration) : null,
-    organizer: t.organizer_email ?? null,
-    participants: t.participants ?? [],
+    // Attendees are shaped, never stored: domains + a count, never an address.
+    // The manifest is committed and git never forgets — see scripts/manifest-privacy.mjs.
+    ...redactAttendees({ organizer: t.organizer_email, participants: t.participants }),
     keywords: full.summary?.keywords ?? null,
     sentences: full.sentences?.length ?? 0,
     fireflies: `https://app.fireflies.ai/view/${t.id}`,

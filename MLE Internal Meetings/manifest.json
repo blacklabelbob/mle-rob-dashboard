@@ -8,11 +8,11 @@
       "title": "Joseph, Rob, Will | MLE Partnership",
       "date": "2026-07-20T18:00:00.000Z",
       "durationMinutes": 35,
-      "organizer": "rob@aivoicetech.io",
-      "participants": [
-        "josephgreen83@gmail.com",
-        "williamfdevito@gmail.com",
-        "rob@aivoicetech.io"
+      "organizerDomain": "aivoicetech.io",
+      "participantCount": 3,
+      "participantDomains": [
+        "aivoicetech.io",
+        "gmail.com"
       ],
       "keywords": [
         "SEO",
@@ -31,11 +31,11 @@
       "title": "Joseph, Rob, Will | Next Steps",
       "date": "2026-07-15T16:01:47.913Z",
       "durationMinutes": 86,
-      "organizer": "rob@aivoicetech.io",
-      "participants": [
-        "rob@aivoicetech.io",
-        "josephgreen83@gmail.com",
-        "williamfdevito@gmail.com"
+      "organizerDomain": "aivoicetech.io",
+      "participantCount": 3,
+      "participantDomains": [
+        "aivoicetech.io",
+        "gmail.com"
       ],
       "keywords": [
         "AI automation",
@@ -54,11 +54,12 @@
       "title": "Rob, David, Mark | MLE -Sales Network Intro",
       "date": "2026-07-10T18:06:53.432Z",
       "durationMinutes": 83,
-      "organizer": "rob@aivoicetech.io",
-      "participants": [
-        "rob@aivoicetech.io",
-        "mbgeisler@hotmail.com",
-        "thecatesgroupllc@gmail.com"
+      "organizerDomain": "aivoicetech.io",
+      "participantCount": 3,
+      "participantDomains": [
+        "aivoicetech.io",
+        "gmail.com",
+        "hotmail.com"
       ],
       "keywords": null,
       "sentences": 27,
@@ -70,11 +71,12 @@
       "title": "Rob, David, Mark | MLE -Sales Network Intro",
       "date": "2026-07-10T18:00:00.000Z",
       "durationMinutes": 121,
-      "organizer": "rob@aivoicetech.io",
-      "participants": [
-        "rob@aivoicetech.io",
-        "mbgeisler@hotmail.com",
-        "thecatesgroupllc@gmail.com"
+      "organizerDomain": "aivoicetech.io",
+      "participantCount": 3,
+      "participantDomains": [
+        "aivoicetech.io",
+        "gmail.com",
+        "hotmail.com"
       ],
       "keywords": [
         "Zoom",
@@ -93,9 +95,10 @@
       "title": "MLE TEAM KICKOFF",
       "date": "2026-07-09T18:26:37.934Z",
       "durationMinutes": 89,
-      "organizer": "rob@aivoicetech.io",
-      "participants": [
-        "rob@aivoicetech.io"
+      "organizerDomain": "aivoicetech.io",
+      "participantCount": 1,
+      "participantDomains": [
+        "aivoicetech.io"
       ],
       "keywords": [
         "AI automation",
@@ -114,10 +117,11 @@
       "title": "bsn-kwzp-wch",
       "date": "2026-07-08T18:08:01.962Z",
       "durationMinutes": 5,
-      "organizer": "rob@aivoicetech.io",
-      "participants": [
-        "rob@aivoicetech.io",
-        "thedevdix@gmail.com"
+      "organizerDomain": "aivoicetech.io",
+      "participantCount": 2,
+      "participantDomains": [
+        "aivoicetech.io",
+        "gmail.com"
       ],
       "keywords": null,
       "sentences": 0,
@@ -129,9 +133,10 @@
       "title": "Jun 18, 09:44 PM",
       "date": "2026-06-19T01:44:30.047Z",
       "durationMinutes": 2,
-      "organizer": "rob@aivoicetech.io",
-      "participants": [
-        "rob@aivoicetech.io"
+      "organizerDomain": "aivoicetech.io",
+      "participantCount": 1,
+      "participantDomains": [
+        "aivoicetech.io"
       ],
       "keywords": null,
       "sentences": 1,
@@ -143,14 +148,12 @@
       "title": "Rob Will Caleb | CGRoofinggroup.com - Next Steps",
       "date": "2026-06-18T17:54:33.036Z",
       "durationMinutes": 68,
-      "organizer": "rob@aivoicetech.io",
-      "participants": [
-        "rob@aivoicetech.io",
-        "calebgreen1981@gmail.com",
-        "williamfdevito@gmail.com",
-        "cgreen@cgroofing.net",
-        "gcsalessystems@gmail.com",
-        "will@aivoicetech.io"
+      "organizerDomain": "aivoicetech.io",
+      "participantCount": 6,
+      "participantDomains": [
+        "aivoicetech.io",
+        "cgroofing.net",
+        "gmail.com"
       ],
       "keywords": [
         "CRM development",
@@ -169,9 +172,10 @@
       "title": "aob-fada-amf",
       "date": "2026-06-18T17:49:54.224Z",
       "durationMinutes": 5,
-      "organizer": "rob@aivoicetech.io",
-      "participants": [
-        "rob@aivoicetech.io"
+      "organizerDomain": "aivoicetech.io",
+      "participantCount": 1,
+      "participantDomains": [
+        "aivoicetech.io"
       ],
       "keywords": [
         "Calendar invite",
@@ -190,9 +194,10 @@
       "title": "Fireflies Demo Meeting",
       "date": "2026-06-17T18:27:40.051Z",
       "durationMinutes": 12,
-      "organizer": "rob@aivoicetech.io",
-      "participants": [
-        "rob@aivoicetech.io"
+      "organizerDomain": "aivoicetech.io",
+      "participantCount": 1,
+      "participantDomains": [
+        "aivoicetech.io"
       ],
       "keywords": null,
       "sentences": 1,
@@ -204,12 +209,12 @@
       "title": "Rob, Alex, Will, Chris | Gulf Coast RE + AI Platform",
       "date": "2026-06-17T15:30:00.000Z",
       "durationMinutes": 50,
-      "organizer": "rob@aivoicetech.io",
-      "participants": [
-        "rob@aivoicetech.io",
-        "williamfdevito@gmail.com",
-        "alex@gulfregroup.com",
-        "christopher.acheson@gmail.com"
+      "organizerDomain": "aivoicetech.io",
+      "participantCount": 4,
+      "participantDomains": [
+        "aivoicetech.io",
+        "gmail.com",
+        "gulfregroup.com"
       ],
       "keywords": [
         "Automation",
@@ -228,9 +233,10 @@
       "title": "Caleb, Rob, Will | CGRoofingGroup.com + AI Platform Discovery",
       "date": "2026-06-16T18:36:09.427Z",
       "durationMinutes": 12,
-      "organizer": "rob@aivoicetech.io",
-      "participants": [
-        "rob@aivoicetech.io"
+      "organizerDomain": "aivoicetech.io",
+      "participantCount": 1,
+      "participantDomains": [
+        "aivoicetech.io"
       ],
       "keywords": [
         "Roofing CRM",
@@ -249,13 +255,12 @@
       "title": "Caleb, Rob, Will | CGRoofingGroup.com + AI Platform Discovery",
       "date": "2026-06-16T17:10:59.870Z",
       "durationMinutes": 5,
-      "organizer": "rob@aivoicetech.io",
-      "participants": [
-        "rob@aivoicetech.io",
-        "calebgreen1981@gmail.com",
-        "williamfdevito@gmail.com",
-        "cgreen@cgroofing.net",
-        "gcsalessystems@gmail.com"
+      "organizerDomain": "aivoicetech.io",
+      "participantCount": 5,
+      "participantDomains": [
+        "aivoicetech.io",
+        "cgroofing.net",
+        "gmail.com"
       ],
       "keywords": null,
       "sentences": 10,
