@@ -53,7 +53,7 @@ describe("isReservedPhone", () => {
   });
 
   it("rejects a real dialable number", () => {
-    expect(isReservedPhone("+1 (239) 351-1405")).toBe(false);
+    expect(isReservedPhone("+1 (999) 351-1405")).toBe(false);
     expect(isReservedPhone("415-555-0100")).toBe(false); // 555 in the EXCHANGE is not enough
   });
 
@@ -109,20 +109,20 @@ describe("failure injection — the DoD", () => {
   it("pasting ONE real email into data/network.json fails", () => {
     const text = read("data/network.json").replace(
       '"email": "avery-dunmore@example.com"',
-      '"email": "angela@omegatitlegroup.com"',
+      '"email": "dara@meridiantitle.invalid"',
     );
-    expect(text).toContain("omegatitlegroup.com"); // the mutation landed
+    expect(text).toContain("meridiantitle.invalid"); // the mutation landed
     const { findings } = scanStructural(text, { profile: "data", label: "data/network.json" });
     expect(findings).toHaveLength(1);
     expect(findings[0].kind).toBe("email");
-    expect(findings[0].value).toBe("angela@omegatitlegroup.com");
+    expect(findings[0].value).toBe("dara@meridiantitle.invalid");
     expect(findings[0].line).toBeGreaterThan(1);
   });
 
   it("pasting ONE real phone fails, and names the path it was found at", () => {
     const text = read("data/network.json").replace(
       '"phone": "+1 (555) 555-0100"',
-      '"phone": "+1 (239) 351-1405"',
+      '"phone": "+1 (999) 351-1405"',
     );
     expect(text).toContain("351-1405");
     const { findings } = scanStructural(text, { profile: "data" });

@@ -29,8 +29,10 @@ const ANY_EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g;
 
 describe("isRedactableEmail", () => {
   it("redacts a stranger's mailbox", () => {
-    expect(isRedactableEmail("angela@omegatitlegroup.com")).toBe(true);
-    expect(isRedactableEmail("thedevdix@gmail.com")).toBe(true);
+    // Invented, never-real inputs: `.invalid` is RFC 2606 reserved, so these are
+    // real-SHAPED (non-allowlisted domain, ordinary mailbox) without being anyone.
+    expect(isRedactableEmail("dara@meridiantitle.invalid")).toBe(true);
+    expect(isRedactableEmail("thedevdix@webmail.invalid")).toBe(true);
   });
 
   it("leaves Rob's own address and the invented fixture domains alone", () => {
@@ -48,7 +50,10 @@ describe("isRedactableEmail", () => {
 
 describe("isRedactablePhone", () => {
   it("accepts dialable NANP numbers in every format the docs use", () => {
-    for (const n of ["(904) 609-7180", "239-448-8458", "904.609.7180", "1-800-487-3808", "9548033016"]) {
+    // Area code 999 is permanently unassignable in the NANP, so every number here
+    // is dialable-SHAPED (area + exchange both start 2-9, all four formats the
+    // docs use) and belongs to nobody.
+    for (const n of ["(999) 609-7180", "999-448-8458", "999.609.7180", "1-999-487-3808", "9994033016"]) {
       expect(isRedactablePhone(n), n).toBe(true);
     }
   });
@@ -68,13 +73,13 @@ describe("isRedactablePhone", () => {
 
 describe("redactProse", () => {
   it("keeps the organisation and drops the mailbox", () => {
-    const { text, emails } = redactProse("Omega Title — angela@omegatitlegroup.com, COO.");
-    expect(text).toBe("Omega Title — [email redacted @omegatitlegroup.com], COO.");
+    const { text, emails } = redactProse("Meridian Title — dara@meridiantitle.invalid, COO.");
+    expect(text).toBe("Meridian Title — [email redacted @meridiantitle.invalid], COO.");
     expect(emails).toBe(1);
   });
 
   it("is idempotent — a placeholder is not itself redactable", () => {
-    const once = redactProse("call 239-448-8458 or mail a@b.com");
+    const once = redactProse("call 999-448-8458 or mail a@b.com");
     const twice = redactProse(once.text);
     expect(twice.text).toBe(once.text);
     expect(twice.emails + twice.phones).toBe(0);
@@ -88,7 +93,7 @@ describe("redactProse", () => {
   });
 
   it("still redacts a real number sitting next to punctuation", () => {
-    expect(redactProse("(1-800-487-3808).").text).toBe("([phone redacted]).");
+    expect(redactProse("(1-999-487-3808).").text).toBe("([phone redacted]).");
   });
 });
 

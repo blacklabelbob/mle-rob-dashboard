@@ -26,7 +26,7 @@ const data: NetworkData = {
       id: "proplogic",
       name: "PropLogix",
       entityKind: "company",
-      phone: "941-444-7142",
+      phone: "999-444-7142",
     }),
     person({ id: "nophone", name: "No Phone" }),
   ],
@@ -107,7 +107,7 @@ describe("callToActivity", () => {
   });
 
   it("company match anchors as orgId, never both (0005 check)", () => {
-    const match = matchCaller(data, payload({ callerNumber: "941-444-7142" }))!;
+    const match = matchCaller(data, payload({ callerNumber: "999-444-7142" }))!;
     const a = callToActivity(payload(), match, NOW);
     expect(a.orgId).toBe("proplogic");
     expect(a.personId).toBeUndefined();

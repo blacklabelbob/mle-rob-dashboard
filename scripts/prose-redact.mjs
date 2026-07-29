@@ -3,13 +3,16 @@
 // people while explaining work that was done.
 //
 // Data files get the structural whitelist (Phase 3 Tier A). Prose can't: a doc
-// has to keep saying "Omega Title, Angela Stavros COO" or the record of the work
-// is destroyed. So the rule here is narrower and deliberate:
+// has to keep saying "Meridian Title, their COO" or the record of the work is
+// destroyed. So the rule here is narrower and deliberate:
 //
 //   an individual's MAILBOX and PHONE go; the ORGANISATION stays.
 //
-// `angela@omegatitlegroup.com` -> `[email redacted @omegatitlegroup.com]`
-// `239-351-1405`               -> `[phone redacted]`
+// (Worked examples below use RFC 2606 `.invalid` and the unassignable NANP area
+// code 999 — real-shaped, nobody's.)
+//
+// `dara@meridiantitle.invalid` -> `[email redacted @meridiantitle.invalid]`
+// `999-351-1405`               -> `[phone redacted]`
 //
 // The domain is kept on purpose — it is the company, already named in the
 // surrounding sentence, and keeping it means the redaction reads as a
