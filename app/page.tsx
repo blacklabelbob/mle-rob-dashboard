@@ -7,6 +7,7 @@ import NeedsActionPanel from "@/components/NeedsActionPanel";
 import EquitySplits from "@/components/EquitySplits";
 import { dealCandidate } from "@/lib/equity";
 import { computeStats, contribution, isDemo, money } from "@/lib/stats";
+import { isOriginId } from "@/lib/records/origin";
 import type { Person, Project, WillItem } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -44,8 +45,18 @@ export default async function Overview() {
   const daysLate = (due?: string) =>
     due && due < today ? Math.round((Date.parse(today) - Date.parse(due)) / 86400000) : 0;
 
+  // "Top nodes" ranks the NETWORK, so the house — Rob and Will — is excluded from
+  // its own leaderboard.
+  //
+  // Q70/0031: both were matched by name-slug, and the renumber made every one of
+  // those comparisons false — Rob's id is `P-1001` now and Will's is `P-1008`, so
+  // the two of them silently reappeared at the top of the list they exist to
+  // exclude. Matched on identity instead: the origin via `isOriginId` (which knows
+  // both spellings), Will via the `legacy_slug` his row still carries.
+  const isHouse = (p: Person) => isOriginId(p.id) || p.id === "will" || p.legacySlug === "will";
+
   const topNodes = [...data.people]
-    .filter((p) => p.id !== "rob-acheson" && p.id !== "will")
+    .filter((p) => !isHouse(p))
     .sort((a, b) => contribution(b) - contribution(a))
     .slice(0, 5);
 

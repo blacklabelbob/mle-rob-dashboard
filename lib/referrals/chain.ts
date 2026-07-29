@@ -19,7 +19,12 @@
 // provenance we show. Ties are broken by the lowest edge id so two runs on the
 // same graph produce byte-identical chains.
 
-export const ROOT_ID = "rob-acheson";
+// Q70/0031: the root is resolved against the node set, not hardcoded as a name.
+// This BFS SEEDS its queue from the root, so a stale literal does not degrade
+// the answer — it makes every company unreachable. See lib/records/origin.ts.
+import { resolveOriginId } from "../records/origin";
+
+export { ORIGIN_ID as ROOT_ID, ORIGIN_LEGACY_SLUG } from "../records/origin";
 
 export type Edge = {
   id: string;
@@ -86,14 +91,17 @@ export function buildChain(
   if (!nodeIds.has(targetId)) {
     return { ok: false, violation: { targetId, reason: "missing-node" } };
   }
-  if (targetId === ROOT_ID) {
-    return { ok: true, chain: { targetId, links: [{ id: ROOT_ID }], degrees: 0 } };
+  // Whichever spelling of the origin THIS graph uses (post-0031 `P-1001`, or
+  // `rob-acheson` on pre-migration rows and fixtures).
+  const rootId = resolveOriginId(nodeIds);
+  if (targetId === rootId) {
+    return { ok: true, chain: { targetId, links: [{ id: rootId }], degrees: 0 } };
   }
 
   const adj = adjacency ?? buildAdjacency(edges);
   const cameFrom = new Map<string, { prev: string; relationship?: string }>();
-  const seen = new Set<string>([ROOT_ID]);
-  const queue: string[] = [ROOT_ID];
+  const seen = new Set<string>([rootId]);
+  const queue: string[] = [rootId];
 
   for (let head = 0; head < queue.length; head += 1) {
     const node = queue[head];
@@ -114,13 +122,13 @@ export function buildChain(
   // outward, which is the only direction it is ever allowed to render in.
   const reversed: ChainLink[] = [];
   let cursor = targetId;
-  while (cursor !== ROOT_ID) {
+  while (cursor !== rootId) {
     const step = cameFrom.get(cursor);
     if (!step) return { ok: false, violation: { targetId, reason: "unreachable" } };
     reversed.push({ id: cursor, relationship: step.relationship });
     cursor = step.prev;
   }
-  reversed.push({ id: ROOT_ID });
+  reversed.push({ id: rootId });
   reversed.reverse();
 
   return { ok: true, chain: { targetId, links: reversed, degrees: reversed.length - 1 } };
@@ -159,14 +167,15 @@ export function chainForDisplay(
   nodeIds: ReadonlySet<string>,
 ): Chain {
   const result = buildChain(targetId, edges, nodeIds);
+  const rootId = resolveOriginId(nodeIds);
   if (!result.ok) {
     throw new Error(
-      `Referral chain for "${targetId}" does not reach ${ROOT_ID} (${result.violation.reason}). ` +
+      `Referral chain for "${targetId}" does not reach ${rootId} (${result.violation.reason}). ` +
         `Every real company must root at Rob; surface this as a flag rather than rendering a partial chain.`,
     );
   }
-  if (result.chain.links[0]?.id !== ROOT_ID) {
-    throw new Error(`Referral chain for "${targetId}" did not begin at ${ROOT_ID}.`);
+  if (result.chain.links[0]?.id !== rootId) {
+    throw new Error(`Referral chain for "${targetId}" did not begin at ${rootId}.`);
   }
   return result.chain;
 }

@@ -10,6 +10,7 @@ import {
   MAX_HOPS,
   ORIGIN_ID,
 } from "@/lib/lineage";
+import { resolveOriginId } from "@/lib/records/origin";
 import type { Person } from "@/lib/types";
 
 // Minimal well-formed node; only the fields lineage reads actually matter.
@@ -164,9 +165,15 @@ describe("formatChain — §5 middle-truncation", () => {
 
 describe("lineage — against the real network data", () => {
   const people = (networkFallback as { people: Person[] }).people;
+  // Q70/0031: this fixture is the PRE-migration fallback and is still keyed by
+  // slug, while prod is keyed by record number. The origin is therefore the one
+  // THIS data set spells — which is the whole contract `resolveOriginId` exists
+  // to hold, and asserting the module constant instead would only ever pin
+  // whichever world the fixture happened to be from.
+  const originId = resolveOriginId(people.map((p) => p.id));
 
   it("Rob is present and is a root", () => {
-    const rob = people.find((p) => p.id === ORIGIN_ID);
+    const rob = people.find((p) => p.id === originId);
     expect(rob).toBeDefined();
     expect(rob?.referredById).toBeUndefined();
   });
@@ -209,6 +216,6 @@ describe("lineage — against the real network data", () => {
       .map((p) => lineage(idx, p.id))
       .filter(isTrustworthy);
     expect(rooted.length).toBeGreaterThan(0);
-    for (const l of rooted) expect(l.path[0].id).toBe(ORIGIN_ID);
+    for (const l of rooted) expect(l.path[0].id).toBe(originId);
   });
 });

@@ -73,7 +73,12 @@ describe("buildChain", () => {
 
 describe("chainForDisplay", () => {
   it("refuses to hand a partial chain to a view", () => {
-    expect(() => chainForDisplay("stray-co", EDGES, nodes("stray-co"))).toThrow(/does not reach rob-acheson/);
+    // Q70/0031: the origin is named by whatever the graph spells it, so this
+    // pins the message against ROOT_ID rather than a literal name-slug — a
+    // graph with no Rob in it at all reports the canonical record number.
+    expect(() => chainForDisplay("stray-co", EDGES, nodes("stray-co"))).toThrow(
+      new RegExp(`does not reach ${ROOT_ID}`),
+    );
   });
 });
 

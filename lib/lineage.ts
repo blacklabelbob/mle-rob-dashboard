@@ -8,9 +8,12 @@
 // node set in; every result is a function of (nodes, id, options) alone.
 
 import type { Person } from "./types";
+import { isOriginId, resolveOriginId } from "./records/origin";
 
-/** The origin node. Every healthy chain terminates here. */
-export const ORIGIN_ID = "rob-acheson";
+// Q70/0031: the origin is no longer a name. Re-exported so existing callers
+// (`app/people/[id]/page.tsx`) keep importing it from here, but the identity
+// itself now lives in one place and is resolved against the node set.
+export { ORIGIN_ID, ORIGIN_LEGACY_SLUG, isOriginId } from "./records/origin";
 
 /**
  * Hop cap from §5. Ten is well past any real chain in the network (deepest
@@ -59,11 +62,14 @@ export function indexNodes(nodes: readonly Person[]): NodeIndex {
   return index;
 }
 
-function toRef(node: Person, relationship?: string): LineageRef {
+// `originId` is threaded in rather than read off the module so a caller passing
+// `opts.originId` gets chips that agree with the walk that produced them —
+// previously the walk honoured the override and the chip did not.
+function toRef(node: Person, relationship?: string, originId?: string): LineageRef {
   return {
     id: node.id,
     name: node.name,
-    isOrigin: node.id === ORIGIN_ID,
+    isOrigin: originId === undefined ? isOriginId(node.id) : node.id === originId,
     ...(relationship ? { relationship } : {}),
   };
 }
@@ -83,7 +89,9 @@ export function lineage(
 ): Lineage {
   const index: NodeIndex = nodes instanceof Map ? nodes : indexNodes(nodes);
   const maxHops = opts.maxHops ?? MAX_HOPS;
-  const originId = opts.originId ?? ORIGIN_ID;
+  // Resolved against THIS node set: post-0031 rows terminate on `P-1001`,
+  // pre-migration rows (and fixtures) on `rob-acheson`.
+  const originId = opts.originId ?? resolveOriginId(index.keys());
 
   const start = index.get(id);
   if (!start) {
@@ -97,7 +105,7 @@ export function lineage(
   }
 
   // Collected node-first, reversed at the end so callers always read origin-first.
-  const walked: LineageRef[] = [toRef(start)];
+  const walked: LineageRef[] = [toRef(start, undefined, originId)];
   const visited = new Set<string>([start.id]);
   let current = start;
 
@@ -131,7 +139,7 @@ export function lineage(
     // The relationship lives on the CHILD ("how my referrer knows me"), so it
     // is carried onto the parent's chip: that chip is the hop that used it.
     visited.add(parent.id);
-    walked.push(toRef(parent, current.relationship));
+    walked.push(toRef(parent, current.relationship, originId));
     current = parent;
 
     if (parent.id === originId) break;
