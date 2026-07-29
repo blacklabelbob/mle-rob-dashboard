@@ -37,19 +37,23 @@ const payload = (o: Partial<LeadIntakePayload> = {}): LeadIntakePayload => ({
 });
 
 describe("planLeadIntake — create path", () => {
-  it("new lead → slug person, deal at INTAKE_STAGE, activity carrying source_context + product", () => {
+  it("new lead → record-number person carrying its handle, deal at INTAKE_STAGE, activity carrying source_context + product", () => {
     const plan = planLeadIntake(payload(), [], VERTICALS, NOW);
     expect(plan.person.action).toBe("create");
     if (plan.person.action !== "create") return;
     const p = plan.person.record;
-    expect(p.id).toBe("dana-storm");
+    // Q70: the id is a record number, and the name-slug survives only as the lookup
+    // handle. Both halves asserted — an id alone would pass with the handle dropped
+    // on the floor, which is exactly how inc.8's defect stayed invisible.
+    expect(p.id).toBe("P-1001");
+    expect(p.legacySlug).toBe("dana-storm");
     expect(p.business).toBe("Storm Roof LLC");
     expect(p.verticalId).toBe("roofing"); // free text "Roofing" → registry id
     expect(p.notes).toBe("[lead: aidre]");
     expect(p.signed).toBe(false);
     expect(plan.deal.stage).toBe(INTAKE_STAGE);
-    expect(plan.deal.personId).toBe("dana-storm");
-    expect(plan.deal.id).toBe(`lead-dana-storm-${STAMP}`);
+    expect(plan.deal.personId).toBe("P-1001");
+    expect(plan.deal.id).toBe(`lead-P-1001-${STAMP}`);
     expect(plan.activity.dealId).toBe(plan.deal.id);
     expect(plan.activity.source).toBe("aidre");
     expect(plan.activity.sourceContext.product).toBe("aidre");
@@ -65,7 +69,7 @@ describe("planLeadIntake — create path", () => {
     expect(plan.activity.sourceContext.product).toBe("aiva");
   });
 
-  it("slug collision de-collides; unmatched vertical reported, never guessed", () => {
+  it("a same-named PRE-0031 row collides on the handle only — the id is never a suffix; unmatched vertical reported, never guessed", () => {
     const plan = planLeadIntake(
       payload({ vertical: "Underwater Basketweaving" }),
       [person({ id: "dana-storm", name: "Dana Storm (other)" })],
@@ -73,9 +77,29 @@ describe("planLeadIntake — create path", () => {
       NOW
     );
     if (plan.person.action !== "create") throw new Error("expected create");
-    expect(plan.person.record.id).toBe("dana-storm-2");
+    // The pre-0031 row carries its handle in its id, so the handle seed sees it and
+    // de-collides. The IDENTITY does not: this second Dana is `P-1001`, not
+    // `dana-storm-2` — she is no longer permanently labelled a copy of the first.
+    expect(plan.person.record.id).toBe("P-1001");
+    expect(plan.person.record.legacySlug).toBe("dana-storm-2");
     expect(plan.person.record.verticalId).toBe("");
     expect(plan.verticalUnmatched).toBe("Underwater Basketweaving");
+  });
+
+  it("a POST-0031 ledger de-collides the handle against handles, not against record numbers", () => {
+    // The half-fix inc.4 caught, in this path: seeding the handle set from `p.id`
+    // would compare `dana-storm` against `P-1001` — never equal — so the second
+    // Dana would be minted `dana-storm` too and `people_legacy_slug_key` would
+    // reject the insert with nothing on screen tying it to naming.
+    const plan = planLeadIntake(
+      payload(),
+      [person({ id: "P-1001", name: "Dana Storm (other)", legacySlug: "dana-storm" })],
+      VERTICALS,
+      NOW
+    );
+    if (plan.person.action !== "create") throw new Error("expected create");
+    expect(plan.person.record.id).toBe("P-1002");
+    expect(plan.person.record.legacySlug).toBe("dana-storm-2");
   });
 
   it("name-only collision CREATES a new person (never auto-attach)", () => {

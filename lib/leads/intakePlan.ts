@@ -21,6 +21,7 @@ import {
 } from "@/lib/dedup/match";
 import { describeIntakeSource } from "./sourceContext";
 import { INTAKE_STAGE, type LeadIntakePayload } from "./intakePayload";
+import { handleFor, nextPersonId, slugifyHandle } from "@/lib/recordId";
 
 // Placeholder id for the incoming lead in the matcher pass; slugs are
 // lowercase, so this can never collide with a real ledger id.
@@ -46,17 +47,7 @@ export interface IntakePlan {
 }
 
 function slugify(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
-
-function nextId(name: string, taken: Set<string>): string {
-  const base = slugify(name) || "lead";
-  let id = base;
-  for (let n = 2; taken.has(id); n++) id = `${base}-${n}`;
-  return id;
+  return slugifyHandle(name);
 }
 
 // The ONLY fields a match may write, and only into empty slots — same
@@ -167,12 +158,24 @@ export function planLeadIntake(
       },
     };
   } else {
-    const taken = new Set(existing.map((p) => p.id));
-    personId = nextId(payload.contact.name, taken);
+    // Q70 inc.9. This is the LIVE inbound path (lead magnets → /api/leads), and it was
+    // still minting `slugify(name)` ids after 0031 renumbered every row to `P-####` —
+    // the exact scheme the migration exists to remove, reintroduced one lead at a time,
+    // suffix and all (`john-smith-2` is `dana-reyes-2` by another name).
+    //
+    // The handle is de-duplicated against a set of HANDLES, never against `takenIds`:
+    // post-0031 those hold record numbers, so a name-handle checked against them can
+    // never collide and the de-duplication silently stops working (inc.4's defect).
+    // A pre-0031 row carries its handle IN its id, which is why `legacySlug ?? id`
+    // is the correct seed — the same one `planPeopleForEmail` uses.
+    const takenIds = new Set(existing.map((p) => p.id));
+    const takenHandles = new Set(existing.map((p) => p.legacySlug ?? p.id));
+    personId = nextPersonId(takenIds);
     person = {
       action: "create",
       record: {
         id: personId,
+        legacySlug: handleFor(payload.contact.name, payload.contact.email ?? "lead", takenHandles),
         name: payload.contact.name,
         entityKind: "person",
         business: payload.company,
