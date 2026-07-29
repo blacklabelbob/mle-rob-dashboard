@@ -113,3 +113,63 @@ describe("person→org link round-trips", () => {
     expect("org_id" in orgWrite).toBe(false);
   });
 });
+
+// Q70 inc.8 — the write-path split. Ids became record numbers in 0031; the handle that
+// makes a row findable by name moved to `legacy_slug`. Everything upstream computes it
+// (personHandleFor, orgHandleFor, newOrgToPerson), and the store was the one link in that
+// chain that never wrote it — so every record created after the renumber was reachable by
+// number and by nothing else. These tests pin BOTH halves of the asymmetry, because a fix
+// that wrote `legacy_slug: null` when absent would trade a new-record bug for a worse one:
+// erasing the handles on the 41 rows the migration backfilled.
+describe("legacy_slug write path", () => {
+  // A post-0031 row as it actually comes back from Supabase: numeric id, name kept in
+  // `legacy_slug`.
+  const storedRow = {
+    id: "P-1004",
+    legacy_slug: "caleb-green",
+    name: "Caleb Green",
+    vertical_id: "roofing",
+    status: "lit",
+    signed: false,
+    key_dates: {},
+    phase_one: "not-started",
+  };
+
+  const newPerson: Person = {
+    id: "P-1042",
+    legacySlug: "dana-reyes-2",
+    name: "Dana Reyes",
+    verticalId: "roofing",
+    status: "cold",
+    signed: false,
+    keyDates: {},
+    phaseOne: "not-started",
+  };
+
+  it("persists the handle on a newly minted record", () => {
+    // Without this the ingest agent creates rows no human can look up by name.
+    expect(fromPerson(newPerson).legacy_slug).toBe("dana-reyes-2");
+  });
+
+  it("omits the column — never nulls it — when the row carries no handle", () => {
+    const write = fromPerson({ ...newPerson, legacySlug: undefined });
+    expect("legacy_slug" in write).toBe(false);
+  });
+
+  it("round-trips an existing row unchanged, so an edit cannot break its old URLs", () => {
+    const write = fromPerson(toPerson(storedRow));
+    expect(write.legacy_slug).toBe("caleb-green");
+  });
+
+  it("carries the handle onto org rows too", () => {
+    const write = fromOrgRow(toOrgPerson({ ...orgRow, legacy_slug: "cg-roofing" }), false);
+    expect(write.legacy_slug).toBe("cg-roofing");
+  });
+
+  it("does not resurrect a handle a legacy-free row never had", () => {
+    // `legacy_slug` absent from the DB row must stay absent from the write, not
+    // reappear as the id — the id is a number now and would be a nonsense handle.
+    const write = fromPerson(toPerson({ ...storedRow, legacy_slug: null }));
+    expect("legacy_slug" in write).toBe(false);
+  });
+});

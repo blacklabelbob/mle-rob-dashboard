@@ -46,8 +46,10 @@ function orgsSplitMode(): boolean {
 export function toPerson(r: any): Person {
   return {
     id: r.id,
-    // Q70/0031: read-only — fromPerson never writes it back, so a save on any
-    // record cannot overwrite the mapping old URLs resolve through.
+    // Q70/0031. Paired with the conditional write in `fromPerson` (inc.8): reading it
+    // back is what makes that write a no-op round-trip on an existing row instead of a
+    // rewrite, so an edit anywhere on the record cannot disturb the mapping old URLs
+    // resolve through.
     legacySlug: r.legacy_slug ?? undefined,
     name: r.name,
     business: r.business ?? undefined,
@@ -94,6 +96,23 @@ export function toPerson(r: any): Person {
 export function fromPerson(p: Person) {
   return {
     id: p.id,
+    // Q70 inc.8. `legacy_slug` is the ONLY column here written conditionally, and the
+    // asymmetry is the point. Every other field is `x ?? null` because omitting it on an
+    // upsert is how a save elsewhere on the record silently erases it. This one inverts:
+    //
+    //   - present  → write it. Without this, `personIdFor`/`orgIdFor` mint a number, the
+    //     comms layer computes the handle, `newOrgToPerson` carries it — and the store
+    //     dropped it on the floor. Every record created after 0031 was findable by number
+    //     and by nothing else, so the ingest agent would have built a graph of rows no
+    //     human could look up by name.
+    //   - absent   → omit the KEY, never write null. A row whose handle predates this fix
+    //     (or has none) must not have it overwritten, and `?? null` would do exactly that.
+    //     Absence here means "don't touch", which is the opposite of what it means below.
+    //
+    // Safe to write on every save because the value is round-tripped: `toPerson` reads the
+    // column, so an ordinary edit re-writes the same string it just read. It is a lookup key
+    // only (see lib/recordId.ts) — 0031's unique index is what stops two rows sharing one.
+    ...(p.legacySlug ? { legacy_slug: p.legacySlug } : {}),
     name: p.name,
     business: p.business ?? null,
     role: p.role ?? null,
