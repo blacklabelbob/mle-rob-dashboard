@@ -14,11 +14,12 @@
 // and the drift guard can regenerate in-memory and diff against the committed
 // file. Dates come from BASE_DATE, not the clock.
 //
-// CLI (writes the file; the only impure part of this module):
-//     node scripts/seed-synthetic.mjs [outPath]
+// CLI (touches the filesystem; the only impure part of this module):
+//     node scripts/seed-synthetic.mjs [outPath]           # regenerate
+//     node scripts/seed-synthetic.mjs --check [outPath]   # drift guard, exit 1 on drift
 // Default outPath is data/network.json.
 
-import { writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 
 /** Every generated record traces back to this string. Change it and the whole
  *  committed file changes — which is the point: the seed IS the provenance. */
@@ -326,15 +327,87 @@ export function serializeNetwork(data) {
   return `${JSON.stringify(data, null, 2)}\n`;
 }
 
+// ── Drift guard ─────────────────────────────────────────────────────────────
+
+/** The one command that fixes every drift failure. Named once, quoted everywhere. */
+export const REGEN_COMMAND = "node scripts/seed-synthetic.mjs";
+
+/**
+ * Pure drift check: does `committedText` still equal what the generator emits?
+ * Returns `null` when clean, else a message naming the first divergent line and
+ * the fix command.
+ *
+ * WHY A MESSAGE AND NOT A BARE BOOLEAN: the failure this guards is a hand-edit
+ * to a 41-record JSON file — someone patching a demo name in place instead of
+ * changing the generator. A raw byte-diff of that file is thousands of lines of
+ * noise, and a guard nobody can act on gets deleted rather than obeyed. The
+ * first divergent line plus the regen command is the whole actionable payload.
+ *
+ * Deliberately takes TEXT, not a path: pure per CR-3, so the vitest guard and
+ * the CLI share one implementation and the failure-injection test can hand it a
+ * mutated string without touching the working tree.
+ */
+export function describeSeedDrift(committedText, seed = SEED) {
+  const expected = serializeNetwork(buildNetwork(seed));
+  if (committedText === expected) return null;
+
+  const committedLines = committedText.split("\n");
+  const expectedLines = expected.split("\n");
+  const max = Math.max(committedLines.length, expectedLines.length);
+  let firstDiff = -1;
+  for (let i = 0; i < max; i++) {
+    if (committedLines[i] !== expectedLines[i]) {
+      firstDiff = i;
+      break;
+    }
+  }
+
+  // Byte-unequal strings always diverge on some line, but a guard that could
+  // return "drifted, no idea where" is a guard that hides its own bug.
+  const where =
+    firstDiff === -1
+      ? "lengths differ with no divergent line — the generator's serializer changed"
+      : `first difference at line ${firstDiff + 1}:\n` +
+        `  committed: ${truncate(committedLines[firstDiff])}\n` +
+        `  generated: ${truncate(expectedLines[firstDiff])}`;
+
+  return (
+    // Deliberately not naming a path: this function is handed text, and a
+    // message that names data/network.json while checking something else is a
+    // guard that lies about where the problem is.
+    `The committed synthetic seed has drifted from scripts/seed-synthetic.mjs (seed "${seed}").\n` +
+    `${where}\n\n` +
+    `Do not hand-edit the committed seed — change the generator, then run:\n` +
+    `    ${REGEN_COMMAND}`
+  );
+}
+
+function truncate(line, limit = 120) {
+  if (line === undefined) return "<end of file>";
+  return line.length > limit ? `${line.slice(0, limit)}…` : line;
+}
+
 // ── CLI ─────────────────────────────────────────────────────────────────────
 
 const invokedDirectly = process.argv[1] && process.argv[1].endsWith("seed-synthetic.mjs");
 if (invokedDirectly) {
-  const outPath = process.argv[2] ?? "data/network.json";
-  const data = buildNetwork();
-  writeFileSync(outPath, serializeNetwork(data), "utf8");
-  console.log(
-    `wrote ${outPath} — ${data.people.length} people, ${data.edges.length} edges, ` +
-      `${data.verticals.length} verticals, ${data.projects.length} projects (seed "${SEED}")`,
-  );
+  const args = process.argv.slice(2);
+  const check = args.includes("--check");
+  const path = args.find((a) => !a.startsWith("--")) ?? "data/network.json";
+
+  if (check) {
+    const drift = describeSeedDrift(readFileSync(path, "utf8"));
+    if (drift) {
+      console.error(`${path}: ${drift}`);
+      process.exit(1);
+    }
+    console.log(`${path} matches the generator (seed "${SEED}") — no drift.`);
+  } else {
+    const data = buildNetwork();
+    writeFileSync(path, serializeNetwork(data), "utf8");
+    console.log(
+      `wrote ${path} — ${data.people.length} people, ${data.edges.length} edges, ` +
+        `${data.verticals.length} verticals, ${data.projects.length} projects (seed "${SEED}")`,
+    );
+  }
 }
