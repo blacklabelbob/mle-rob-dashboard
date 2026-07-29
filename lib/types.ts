@@ -225,6 +225,11 @@ export interface NetworkData {
   edges: Edge[];
   verticals: Vertical[];
   projects: Project[];
+  /** Q71 Phase 2: set only by scripts/seed-synthetic.mjs on the committed
+   *  scaffolding. Present = these rows are generated fixtures, which is what the
+   *  demo banner announces and what the PII guard's Tier A requires before it
+   *  will accept a `data/*.json` at all. Live Supabase data never carries it. */
+  __synthetic?: boolean;
 }
 
 // Derived, used across pages

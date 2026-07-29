@@ -1,7 +1,7 @@
 # PRD — Scaffolding in Git, Data in Supabase
 
-**Version:** 1.4 · **Created:** 2026-07-29 · **Updated:** 2026-07-29
-**Status:** IN PROGRESS — Phase 1 complete, Phase 2 next · **Owner:** Rob + Max · **Project:** MLE ROB Dashboard · **Type:** technical
+**Version:** 1.5 · **Created:** 2026-07-29 · **Updated:** 2026-07-29
+**Status:** IN PROGRESS — Phase 1 complete, Phase 2 generator built (4 of 5 items left) · **Owner:** Rob + Max · **Project:** MLE ROB Dashboard · **Type:** technical
 
 ---
 
@@ -31,7 +31,7 @@ He was right, and the audit that followed found the problem is **larger than the
 graph LR
   P0["Phase 0<br/>Rob's 2 decisions"]:::blocked
   P1["Phase 1 ✅ DONE<br/>Stop the bleeding"]:::done
-  P2["Phase 2<br/>Synthetic seed"]:::ready
+  P2["Phase 2 ◐ IN PROGRESS<br/>Synthetic seed"]:::ready
   P3["Phase 3<br/>PII guard (CR-3)"]:::ready
   P5["Phase 5<br/>The one command"]:::ready
   P4["Phase 4<br/>Transcripts → Supabase"]:::blocked
@@ -101,7 +101,7 @@ Test fixtures using invented domains (`roofco.com`, `proplogix.com`, ~15 files) 
 
 Reuses the repo's own convention — 6 existing `demo-` rows use RFC 2606 `@example.com` and the reserved 555-01XX block. Those are the nucleus; the generator extends them.
 
-- [ ] [Max] `scripts/seed-synthetic.mjs` — seeded PRNG, no `Date.now()`, no network, emits full `NetworkData` + `__synthetic: true` | DoD: two runs byte-identical (`cmp` exits 0)
+- [x] [Max] `scripts/seed-synthetic.mjs` — seeded PRNG, no `Date.now()`, no network, emits full `NetworkData` + `__synthetic: true` | DoD: two runs byte-identical (`cmp` exits 0) — **DONE 2026-07-29 inc.5, `cmp` exit 0 proven on two real CLI runs.** mulberry32 over an FNV-1a hash of a pinned `SEED` string; every date derives from `BASE_DATE`, never a clock. **Safety is structural, not reviewed:** every address is RFC 2606 `@example.com` and every number is `+1 (555) 555-01NN` — inside the reserved `555-01XX` line range *and* behind the non-assignable `555` area code, so it satisfies both conventions (the six pre-existing `demo-` rows used `+1 (555) 010-XXXX`, area-code-safe but outside the reserved line range; Tier A will accept both so those rows keep passing). Ids mirror the Q70 record-number convention (`P-1001…`/`C-2001…`) with `legacySlug` on every row, so slug URLs resolve in demo mode exactly as on prod. Cardinality mirrors the real ledger (22 people / 19 orgs / 47 edges / 12 projects) so the demo exercises the same layouts. 17 tests in `lib/__tests__/seedSynthetic.test.ts`, **graded by regexes broader than the generator's own rules** — plus dangling-edge, unique-id, vertical-resolves and no-signed-date-without-signed structural checks, and a source scan proving no `Date.now(`/`fetch(` survives comment-stripping. `NetworkData` gained `__synthetic?: boolean`.
 - [ ] [Max] Generate and commit the new `data/network.json` | DoD: `STORAGE_SOURCE=file npm run build` + vitest green; dashboard populated, zero real names
 - [ ] [Max] Drift guard — vitest regenerates in-memory and asserts the committed file matches | DoD: a hand-edit fails with "run `node scripts/seed-synthetic.mjs`"
 - [ ] [Max] Demo banner driven off `__synthetic` | DoD: shows on `npm run dev:demo`, absent on Supabase
@@ -155,7 +155,7 @@ You cannot rotate a customer's phone number — so "leave and rotate" isn't avai
 |---|---|---|---|
 | 1 | Public or private? Gates Phase 6 entirely. | Rob | 2026-07-30 |
 | 2 | Transcripts into prod Supabase — go? | Rob | 2026-07-30 |
-| 3 | Rob raised Vercel/other templates — check whether a Supabase starter already ships the seed + demo-mode pattern before hand-rolling Phase 2. Prior OSS sweep (`docs/research/oss-crm-landscape-2026-07-22.md`) covered CRM forks, **not** seed/demo scaffolding. | Max | Before Phase 2 |
+| 3 | ~~Rob raised Vercel/other templates — does a Supabase starter already ship the seed + demo-mode pattern?~~ **ANSWERED 2026-07-29 inc.5 — no, and it can't.** See the decisions log row below. | Max | ✅ closed |
 
 ## Decisions log
 
@@ -164,11 +164,13 @@ You cannot rotate a customer's phone number — so "leave and rotate" isn't avai
 | 2026-07-29 | Transcript bodies gitignored, manifest committed | Git history is permanent; encrypted-in-git still leaks retroactively if a key leaks |
 | 2026-07-29 | Guard is vitest, not gitleaks | Gitleaks targets credential entropy; the risk here is plain email addresses |
 | 2026-07-29 | Orphan mirror over `filter-repo` | Same outcome, none of the SHA churn or missed-blob risk |
+| 2026-07-29 | Hand-rolled seed generator over a Supabase starter or a faker dependency (closes OQ 3) | The DoD is `git clone && npm i && npm run dev:demo` with **zero network calls**. Supabase's seeding convention is `supabase/seed.sql` applied by `supabase db reset` — it needs Docker and a local Postgres, so it structurally cannot satisfy a file-mode, network-free boot; it seeds the *database*, and what needs seeding here is the committed JSON the file store reads when there is no database. A faker-style dependency was rejected on two counts: its values would still have to be forced into the reserved `@example.com` / `555-01XX` blocks (so the constraint that actually matters stays hand-written either way), and byte-identical output across versions is a promise from a third party rather than a property of our own 30-line PRNG — and byte-identity is the drift guard's whole contract. |
 
 ## Revision history
 
 | Version | Date | Change |
 |---|---|---|
+| 1.5 | 2026-07-29 | **Phase 2 item 1 shipped — the generator exists and is provably deterministic.** `scripts/seed-synthetic.mjs` emits a full `NetworkData` + `__synthetic: true` from a pinned seed with no clock and no network; two CLI runs are byte-identical (`cmp` exit 0). Reserved-block addresses and numbers are enforced by construction and graded by broader regexes than the generator's own. **OQ 3 is closed with a reason, not a shrug:** `supabase db seed` needs Docker + Postgres and so cannot satisfy a network-free file-mode boot, and a faker dependency would leave the reserved-block constraint hand-written anyway while making byte-identity someone else's promise. 17 new tests; **192/192 files, 2947/2947 tests, build exit 0.** No deploy — the committed `data/network.json` is untouched this increment, so prod's read path is unchanged; **it still carries 26 phones / 22 emails and is still tracked.** That swap is item 2, deliberately its own increment because it is the first change with a user-visible blast radius. |
 | 1.4 | 2026-07-29 | **PHASE 1 IS COMPLETE — items 6–7 shipped, the bleeding is stopped.** `scripts/prose-redact.mjs` redacted 17 mailboxes and 25 phone numbers out of the three prose leaks, keeping the organisation and dropping the individual so the docs still read as a record of the work. The Atlas check answered yes (the 110 hits are path data and `viewBox` geometry) **and caught a live trap on the way**: `2663.84375 634.171875` yields the phone-shaped, NANP-valid coordinate `[phone redacted]`, which the first draft would have rewritten — now impossible by construction and pinned by a byte-identity test. 17 new tests; 191/191 files, 2928/2928, build exit 0. **Phase 2 is next and is now unblocked** — `data/network.json` (26 phones / 22 emails) is the last tracked file holding real data, and Q71 stays unticked until `npm run guard:pii` exits 0 on a clean clone. |
 | 1.3 | 2026-07-29 | **Phase 1 item 5 shipped — the manifest is de-PII'd at rest AND at the source.** `scripts/manifest-privacy.mjs` holds the pure shaping (`redactAttendees`) and doubles as a no-network CLI; `fireflies-ingest.mjs` imports the same function, so the fix survives the next pull instead of being undone by it. Committed manifest greps **0** address-shaped strings; all 13 meetings still identifiable. Phase 1 now has **2 items left** (prose redaction + the Atlas false-positive check). |
 | 1.0 | 2026-07-29 | Initial PRD — from the engineering audit that found the `regen-fallback` pump and 16 unlisted files |
