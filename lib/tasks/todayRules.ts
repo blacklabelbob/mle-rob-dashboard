@@ -141,6 +141,58 @@ function latestMeetingFor(deal: Deal, activities: Activity[]): Activity | undefi
   return latest;
 }
 
+/**
+ * How old is this deal in its stage, and what limit is it measured against?
+ *
+ * Q46 R3 — EXTRACTED SO THERE IS ONE CLOCK, NOT TWO. The rep pipeline board
+ * tints cards by stage age; computing that tint independently would let the
+ * board call a deal healthy on the same day the Today band demands a touch,
+ * with nothing on either screen able to say which is right. Both now read this.
+ *
+ * `undefined` means the stage carries NO threshold — nobody ever set a limit
+ * for it. That is not "fresh", and a caller that renders it as healthy is
+ * inventing a judgement this table never made.
+ *
+ * Deliberately audience-free: no demo filtering here. Excluding `demo-*` is a
+ * rule about whose worklist a row may reach, not about how old it is.
+ */
+export type StageAge = {
+  days: number;
+  limit: number;
+  /** `days >= limit` — the exact comparison `stage_aging` fires on. */
+  over: boolean;
+  /** Which clock: the linked meeting's datetime, or plain days-in-stage. */
+  basis: "meeting" | "stage";
+  /** Set only when `basis === "meeting"`. */
+  meetingOn?: string;
+};
+
+export function stageAgeOf(
+  deal: Deal,
+  today: string,
+  activities: Activity[] = []
+): StageAge | undefined {
+  if (!ISO_DATE.test(today)) {
+    throw new Error(`stageAgeOf: invalid today "${today}"`);
+  }
+  const threshold = STAGE_AGING_DAYS[deal.stage];
+  if (!threshold) return undefined;
+
+  const booked =
+    deal.stage === "meeting_booked" ? latestMeetingFor(deal, activities) : undefined;
+  const days = booked
+    ? daysBetween(booked.occurredAt.slice(0, 10), today)
+    : daysBetween(deal.updatedAt.slice(0, 10), today);
+  const limit = booked ? MEETING_BOOKED_GRACE_DAYS : threshold;
+  return {
+    days,
+    limit,
+    over: days >= limit,
+    basis: booked ? "meeting" : "stage",
+    ...(booked ? { meetingOn: booked.occurredAt.slice(0, 10) } : {}),
+  };
+}
+
 // Rule 4 — stage aging: deal sat in a thresholded stage too long. `activities`
 // is optional: supplied, `meeting_booked` uses the primary (meeting-datetime)
 // tier; omitted, every stage ages on days-in-stage alone.
@@ -155,16 +207,10 @@ export function stageAgingItems(
   const items: TodayItem[] = [];
   for (const d of deals) {
     if (isDemo(d.id) || isDemo(d.personId) || isDemo(d.orgId)) continue;
-    const threshold = STAGE_AGING_DAYS[d.stage];
-    if (!threshold) continue;
-
-    const booked =
-      d.stage === "meeting_booked" ? latestMeetingFor(d, activities) : undefined;
-    const days = booked
-      ? daysBetween(booked.occurredAt.slice(0, 10), today)
-      : daysBetween(d.updatedAt.slice(0, 10), today);
-    const limit = booked ? MEETING_BOOKED_GRACE_DAYS : threshold;
-    if (days < limit) continue;
+    const age = stageAgeOf(d, today, activities);
+    if (!age || !age.over) continue;
+    const { days, limit, basis } = age;
+    const booked = basis === "meeting" ? { occurredAt: age.meetingOn as string } : undefined;
 
     items.push({
       trigger: "stage_aging",
@@ -172,7 +218,7 @@ export function stageAgingItems(
       personId: d.personId,
       orgId: d.orgId,
       reason: booked
-        ? `"${d.name}" meeting was ${booked.occurredAt.slice(0, 10)} (${days}d ago) and it's still in meeting_booked — held? log it or rebook`
+        ? `"${d.name}" meeting was ${booked.occurredAt} (${days}d ago) and it's still in meeting_booked — held? log it or rebook`
         : `"${d.name}" has sat in ${d.stage} ${days}d (limit ${limit}d)`,
     });
   }

@@ -40,7 +40,10 @@ export function normalizeRep(name: string | undefined): string {
   return (name ?? "").trim().replace(/\s+/g, " ").toLowerCase();
 }
 
-type Owner = { rep: string } | "unowned";
+export type Owner = { rep: string } | "unowned";
+
+/** Anything with a person and/or org anchor — a TodayItem, a Deal, a Task. */
+export type RepAnchor = { personId?: string; orgId?: string };
 
 /**
  * Whose item is this?
@@ -54,8 +57,8 @@ type Owner = { rep: string } | "unowned";
  * A personId with NO matching row is different: that is our data missing, not
  * an answer, so the item's other real anchor (the org) is still consulted.
  */
-function ownerOf(
-  item: TodayItem,
+export function ownerOf(
+  item: RepAnchor,
   people: Map<string, Person>,
   orgs: Map<string, Org>
 ): Owner {
