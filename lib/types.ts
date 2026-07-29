@@ -40,6 +40,9 @@ export interface Estimate {
 
 export interface Person {
   id: string;
+  /** Q70/0031: the pre-renumber name-derived id ("caleb-green"), kept forever so
+   *  old URLs still resolve. Read-only — nothing writes it back as an id. */
+  legacySlug?: string;
   name: string;
   business?: string;
   role?: string;

@@ -46,6 +46,9 @@ function orgsSplitMode(): boolean {
 export function toPerson(r: any): Person {
   return {
     id: r.id,
+    // Q70/0031: read-only — fromPerson never writes it back, so a save on any
+    // record cannot overwrite the mapping old URLs resolve through.
+    legacySlug: r.legacy_slug ?? undefined,
     name: r.name,
     business: r.business ?? undefined,
     role: r.role ?? undefined,

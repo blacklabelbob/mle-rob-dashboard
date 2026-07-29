@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getStore } from "@/lib/storage";
 import ActivityTimeline from "@/components/ActivityTimeline";
 import AttributionLineage from "@/components/AttributionLineage";
@@ -12,6 +12,7 @@ import EquityOnRecord from "@/components/EquityOnRecord";
 import { typeLabel } from "@/lib/labels";
 import { ORIGIN_ID, formatChain, indexNodes, lineage } from "@/lib/lineage";
 import { splitNotes } from "@/lib/notes";
+import { resolveRecord } from "@/lib/records/resolveRecord";
 
 export const dynamic = "force-dynamic";
 
@@ -22,8 +23,14 @@ export default async function PersonPage({
 }) {
   const { id } = await params;
   const data = await getStore().getNetwork();
-  const person = data.people.find((p) => p.id === id);
-  if (!person) notFound();
+  // Q70/0031: ids are record numbers now; the old name-slug lives on in
+  // legacy_slug. A bookmarked /people/caleb-green resolves and then SETTLES on
+  // the record number rather than rendering under two different URLs — one
+  // record, one address, and the id in the bar is the one to say out loud.
+  const match = resolveRecord(data.people, id);
+  if (!match) notFound();
+  if (!match.canonical) redirect(`/people/${match.row.id}`);
+  const person = match.row;
 
   const doorsOpened = data.people.filter((p) => p.referredById === person.id);
   const vertical = data.verticals.find((v) => v.id === person.verticalId);

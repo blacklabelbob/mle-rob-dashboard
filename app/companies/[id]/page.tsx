@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { canonicalRedirectId } from "@/lib/records/resolveRecord";
 import { getStore } from "@/lib/storage";
 import ThingsToAddress from "@/components/ThingsToAddress";
 import EquityOnRecord from "@/components/EquityOnRecord";
@@ -47,6 +48,12 @@ export default async function CompanyPage({
   const { id } = await params;
   const store = getStore();
   const [data, allDeals] = await Promise.all([store.getNetwork(), store.listDeals()]);
+  // Q70/0031: an old company slug (/companies/the-title-base) settles on the
+  // record number before the shell is built — resolved BEFORE the person-id
+  // check below, so a legacy slug that resolves to a person still 404s here
+  // rather than rendering a person inside the company shell.
+  const canonical = canonicalRedirectId(data.people, id);
+  if (canonical) redirect(`/companies/${canonical}`);
   const record = companyRecordFromNetwork(data, id);
   // A person id must never render the company shell — buildCompanyRecord
   // returns null for one, and that is a 404 here.
