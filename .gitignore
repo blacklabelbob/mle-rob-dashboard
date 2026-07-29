@@ -46,3 +46,12 @@ next-env.d.ts
 # Meeting transcript bodies — verbatim customer speech, never in git history.
 # Pull them with: node scripts/fireflies-ingest.mjs   (manifest.json IS committed)
 MLE Internal Meetings/transcripts/
+
+# Real-data artifacts — never in git history (PRD-scaffolding-in-git-data-in-supabase-v1 Phase 1).
+# These are pre-migration snapshots of LIVE Supabase rows: real phones, emails, quoted amounts.
+# They stay on disk as the recovery path; git is not the place for them.
+# Re-create any of them with: node scripts/regen-fallback.mjs   /   the 00xx apply scripts.
+backups/
+docs/backups/
+data/network.local.json
+data/crm.json
