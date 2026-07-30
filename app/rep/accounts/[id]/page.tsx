@@ -9,11 +9,13 @@ import QuotedAmountInline from "@/components/QuotedAmountInline";
 import RepAccountStageChip from "@/components/RepAccountStageChip";
 import RepLogInteraction from "@/components/RepLogInteraction";
 import RepEmailDrafts from "@/components/RepEmailDrafts";
+import RepCollateralShelf from "@/components/RepCollateralShelf";
 import DemoFooter from "@/components/DemoFooter";
 import { InlineDateChip, InlineSelect, InlineText } from "@/components/inline/fields";
 import { getStore } from "@/lib/storage";
 import { accountStageChip } from "@/lib/deals/accountStageChip";
 import { draftViewsFor } from "@/lib/rep/emailTemplates";
+import { collateralViewsFor } from "@/lib/rep/collateral";
 import { buildBlueprint } from "@/lib/phases/blueprint";
 import { loadComponentLive, mergeComponentLive } from "@/lib/phases/componentLiveLoad";
 import { loadScanPicks } from "@/lib/phases/scanPicksLoad";
@@ -72,6 +74,21 @@ export default async function RepAccountWorkspace({
       : stageChip.kind === "ambiguous"
         ? "more than one deal here — using first-touch until one is picked"
         : "no deal yet — using first-touch";
+  // Q46 R7 inc.2 — the shelf reads its stage from the SAME `chipDeal` the stage
+  // chip and the email drafts read, for the same reason: three surfaces in one
+  // eyeful disagreeing about what stage this account is at is the drift that puts
+  // a Signed-onward deliverable on the shelf of a deal nobody has signed.
+  //
+  // `accountUrls` IS DELIBERATELY EMPTY, NOT FORGOTTEN. The Growth Scan is a
+  // `perAccount` asset and no column on any record holds a link to one today, so
+  // there is no honest value to pass and the row resolves to `not_yet`. Inventing
+  // one — the master company record, a guessed Drive path — would render client
+  // A's page as client B's scan or a 404 mid-call. Filed to the flags ledger so
+  // the missing field is somebody's problem rather than a quiet omission here.
+  const collateral = collateralViewsFor({
+    verticalId: person.verticalId,
+    stage: chipDeal?.stage,
+  });
   const reason = touchReason(person);
   const ctx = sourceContext(person);
   const isDemo = isDemoPerson(person);
@@ -260,6 +277,18 @@ export default async function RepAccountWorkspace({
               />
             </div>
           </section>
+
+          {/* Q46 R7 inc.2 (research §2.6 / §5 Δ7) — what to put in front of this
+              prospect, above Contact because it is grabbed in the same breath as
+              the phone number and below Next step because what to say outranks
+              what to show. Every offered asset renders, including the ones we
+              cannot link: a shelf that silently drops those teaches a rep MLE has
+              no roofing deck, and nobody ever closes a gap they cannot see. */}
+          <RepCollateralShelf
+            views={collateral.views}
+            hasDeal={collateral.hasDeal}
+            stageLabel={collateral.stageLabel}
+          />
 
           {/* Contact card — visible, readable, copyable phone/email (not just
               the Call/Email buttons in the header). Critic Rob punch #3. */}
