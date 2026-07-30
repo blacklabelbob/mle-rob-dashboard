@@ -51,13 +51,32 @@ export default function RepReceivableAlertsPanel({
   result: RepReceivableAlertsResult;
   scopeLabel?: string;
 }) {
+  // Never invoiced is not a problem, and must not be dressed as one. Most accounts on the
+  // board have no invoice at all; an amber "we can't vouch for this" on every one of them
+  // trains the rep to skip the panel, which is precisely how the CG Roofing invoice would
+  // get missed. One quiet line, stated as the fact it is, and no "as of" claim — there is
+  // no clean bill of health being asserted here, so there is no date to stand behind.
+  if (result.state === "unbilled") {
+    return (
+      <Shell>
+        <p className="mt-1.5 text-sm text-slate-400">
+          Nothing invoiced{scopeLabel ? ` to ${scopeLabel}` : ""} yet.
+        </p>
+      </Shell>
+    );
+  }
+
   if (result.state !== "ok") {
     return (
       <Shell>
         <p className="mt-1.5 text-sm text-slate-400">
           {result.state === "unconfigured"
             ? "Not reading the invoice ledger here — this environment has no ledger connection."
-            : "Couldn't read the invoice ledger, so this is not a clean bill of health."}
+            : result.state === "unlinked"
+              ? // Read the ledger fine, and MORE THAN ONE client could be this record. Money
+                // exists and we cannot say whose — that is worth a warning, unlike `unbilled`.
+                "More than one invoice-ledger client could be this record, so this is not a clean bill of health."
+              : "Couldn't read the invoice ledger, so this is not a clean bill of health."}
         </p>
         <p className="mt-1 text-xs text-slate-500">{result.reason}</p>
       </Shell>

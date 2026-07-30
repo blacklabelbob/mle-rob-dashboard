@@ -2,7 +2,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import DocumentsSection from "@/components/esign/DocumentsSection";
 import EquityOnRecord from "@/components/EquityOnRecord";
+import RepReceivableAlertsPanel from "@/components/RepReceivableAlerts";
 import { dealCandidate } from "@/lib/equity";
+import { todayInET } from "@/lib/integrity/overdue";
+import { loadDealReceivableAlerts } from "@/lib/rep/receivableAlertsLoad";
 import { STAGE_LABELS } from "@/lib/labels";
 import { money } from "@/lib/stats";
 import { scoreDeal } from "@/lib/scoring/deal";
@@ -44,6 +47,19 @@ export default async function DealPage({ params }: { params: Promise<{ id: strin
   const score = scoreDeal(deal, new Date().toISOString());
   const dates = DATE_LABELS.filter(({ key }) => deal.keyDates?.[key]);
 
+  // Q81 inc.3 — the deal-record leg. The company is what the ledger bills, so the org record
+  // (not the person, not the deal name) is what gets resolved to a `client_slug`. Awaited
+  // after the store reads rather than inside them: a slow or broken ledger must not take the
+  // deal record down with it, and `loadDealReceivableAlerts` never throws — every failure
+  // comes back as a state the panel renders honestly.
+  const org: Person | undefined = deal.orgId
+    ? network.people.find((p: Person) => p.id === deal.orgId)
+    : undefined;
+  const receivables = await loadDealReceivableAlerts(
+    todayInET(new Date()),
+    org?.name
+  );
+
   return (
     <main className="mx-auto max-w-5xl px-6 py-10">
       <Link href="/deals" className="text-sm text-slate-400 hover:text-slate-200">
@@ -79,6 +95,20 @@ export default async function DealPage({ params }: { params: Promise<{ id: strin
         </div>
 
         <aside className="space-y-6">
+          {/* Q81 inc.3: the second render target Rob named — *"and then also within the
+              deal itself."* Same `buildReceivableAlerts` as `/rep`, scoped to this deal's
+              company, so the two surfaces can never disagree about who is late. It sits
+              ABOVE equity and the deal facts because a rep opening this record before a
+              call needs to know money is outstanding before anything else on the page.
+              The org NAME is what goes in: the ledger keys on its own `client_slug`, and
+              `ledgerClientMatch.ts` is the only thing allowed to bridge the two — when it
+              can't, this renders "can't tie this record to a ledger client", never a
+              false all-clear. */}
+          <RepReceivableAlertsPanel
+            result={receivables}
+            scopeLabel={org?.name ?? deal.name}
+          />
+
           {/* Q41 inc.6: inc.5 mounted this on people and companies, but the Gulf
               Coast 30% — the stake Rob named — is a DEAL, so the one record the
               registry links to for it had no equity on it at all. Same

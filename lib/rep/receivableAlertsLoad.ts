@@ -25,6 +25,10 @@ import { supabaseViewReader } from "@/lib/readModel/live";
 import { fromDbRow } from "@/lib/readModel/ledgerRows";
 import type { InvoiceLedgerRow } from "@/lib/readModel/invoiceLedger";
 import { buildReceivableAlerts, type ReceivableAlerts } from "./receivableAlerts";
+import {
+  distinctClientSlugs,
+  resolveLedgerClientSlug,
+} from "./ledgerClientMatch";
 
 /**
  * Exactly the `rm_invoices_ar` columns a rep may read, and exactly the ones the alert needs.
@@ -48,7 +52,21 @@ export type RepReceivableAlertsResult =
     }
   /** Config missing — we did not try. Distinct from a read that failed. */
   | { state: "unconfigured"; reason: string }
-  | { state: "error"; reason: string };
+  | { state: "error"; reason: string }
+  /**
+   * The ledger read fine and holds NO invoice for this account. The overwhelmingly normal
+   * case — most accounts on the board have never been invoiced — so it is a quiet statement
+   * of fact, never a warning. Kept apart from `ok` + [] because "we have billed them and
+   * nothing is late" is a stronger claim than "we have never billed them", and a deal record
+   * must not make the first claim when only the second is true.
+   */
+  | { state: "unbilled"; reason: string }
+  /**
+   * The ledger read fine and MORE THAN ONE client could be this account. This one IS a
+   * warning: money exists and we cannot say whose. Never collapsed into `unbilled` — the
+   * difference between "no invoice" and "an invoice we can't place" is the whole point.
+   */
+  | { state: "unlinked"; reason: string };
 
 /** Newest ISO timestamp, string-compared — `synced_at` is written as ISO-8601 UTC. */
 export function newestSyncedAt(rows: readonly Record<string, unknown>[]): string | null {
@@ -71,6 +89,65 @@ export async function loadReceivableAlerts(
   todayISO: string,
   clientSlug?: string
 ): Promise<RepReceivableAlertsResult> {
+  const read = await readLedgerRows();
+  if (read.state !== "ok") return read;
+  return {
+    state: "ok",
+    alerts: buildReceivableAlerts(read.rows, todayISO, clientSlug),
+    syncedAt: read.syncedAt,
+  };
+}
+
+/**
+ * The deal-record half of Rob's instruction: the same alerts, scoped to the one account whose
+ * record is open.
+ *
+ * It takes the ORG NAME rather than a slug because the deal record has no slug — the ledger's
+ * `client_slug` and the CRM's org name are separate namespaces, and `ledgerClientMatch.ts` is
+ * the only place allowed to bridge them. When it cannot bridge them this returns `unlinked`
+ * and the panel says which record it could not place, because a deal record that quietly reads
+ * "Nothing overdue" on a failed join is the exact false all-clear Q81 exists to prevent.
+ */
+export async function loadDealReceivableAlerts(
+  todayISO: string,
+  orgName: string | null | undefined
+): Promise<RepReceivableAlertsResult> {
+  const read = await readLedgerRows();
+  if (read.state !== "ok") return read;
+
+  const match = resolveLedgerClientSlug(orgName, distinctClientSlugs(read.rows));
+  if (match.state === "none") {
+    // NOT a warning. Five of the seven companies on the board have never been invoiced, so
+    // an alarm here would fire on most deal records — and a panel that cries wolf on the
+    // majority of records is the noise Q81 exists to delete, not a safeguard.
+    return {
+      state: "unbilled",
+      reason: orgName
+        ? `no invoice in the ledger is billed to "${orgName}"`
+        : "this deal has no linked company, so there is nothing to look up in the invoice ledger",
+    };
+  }
+  if (match.state === "ambiguous") {
+    return {
+      state: "unlinked",
+      reason: `"${orgName}" matches more than one ledger client (${match.candidates.join(", ")}) — not guessing whose money this is`,
+    };
+  }
+
+  return {
+    state: "ok",
+    alerts: buildReceivableAlerts(read.rows, todayISO, match.slug),
+    syncedAt: read.syncedAt,
+  };
+}
+
+type LedgerRead =
+  | { state: "ok"; rows: InvoiceLedgerRow[]; syncedAt: string | null }
+  | { state: "unconfigured"; reason: string }
+  | { state: "error"; reason: string };
+
+/** One read, one column list, shared by both surfaces so neither can drift wider than the grant. */
+async function readLedgerRows(): Promise<LedgerRead> {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (process.env.STORAGE_SOURCE !== "supabase" || !url || !key) {
@@ -85,10 +162,9 @@ export async function loadReceivableAlerts(
   const res = await read("rm_invoices_ar", REP_ALERT_COLUMNS.join(","));
   if (res.error) return { state: "error", reason: res.error };
 
-  const rows = res.rows.map((r) => fromDbRow(r) as InvoiceLedgerRow);
   return {
     state: "ok",
-    alerts: buildReceivableAlerts(rows, todayISO, clientSlug),
+    rows: res.rows.map((r) => fromDbRow(r) as InvoiceLedgerRow),
     syncedAt: newestSyncedAt(res.rows),
   };
 }
