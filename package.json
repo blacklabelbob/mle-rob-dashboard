@@ -12,6 +12,8 @@
     "seed:synthetic": "node scripts/seed-synthetic.mjs",
     "seed:local": "node --import ./scripts/ts-loader.mjs scripts/regen-fallback.mjs && node scripts/seed-local-crm.mjs",
     "guard:pii": "node scripts/pii-guard.mjs",
+    "inventory:agents": "node --import ./scripts/ts-loader.mjs scripts/gen-agent-inventory.mjs",
+    "audit:agents": "node --import ./scripts/ts-loader.mjs scripts/gen-agent-inventory.mjs --check",
     "audit:exposure": "node scripts/exposure-audit.mjs",
     "check:env": "node scripts/env-manifest.mjs",
     "drive:contract": "node --import ./scripts/ts-loader.mjs scripts/partner-hub-drive.mjs",
