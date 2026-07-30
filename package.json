@@ -17,6 +17,7 @@
     "digest:research": "node --import ./scripts/ts-loader.mjs scripts/gen-research-digest.mjs",
     "audit:research": "node --import ./scripts/ts-loader.mjs scripts/gen-research-digest.mjs --check",
     "audit:exposure": "node scripts/exposure-audit.mjs",
+    "probe:deal-stage": "node scripts/probe-deal-stage.mjs",
     "audit:mdgates": "node --import ./scripts/ts-loader.mjs scripts/audit-md-gates.mjs",
     "check:env": "node scripts/env-manifest.mjs",
     "drive:contract": "node --import ./scripts/ts-loader.mjs scripts/partner-hub-drive.mjs",
