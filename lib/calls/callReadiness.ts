@@ -114,7 +114,7 @@ export function callChainReadiness(config: CallChainConfig): CallChainReadiness 
       state: config.twilioCallerId ? "armed" : "dormant",
       effect: config.twilioCallerId
         ? "Our own line is subtracted before matching; the remaining side is the contact."
-        : "Nothing is subtracted before matching — a call can file on whoever holds our own number.",
+        : "Nothing can be subtracted before matching, so no call files — the resolver refuses (`our-lines-unknown`) rather than file on whoever holds our own number.",
     },
     {
       stage: "transcription",
