@@ -31,26 +31,49 @@ const REPO_ROOT = path.resolve(import.meta.dirname, "..");
 const OUT_PATH = path.join(REPO_ROOT, "data", "agent-skill-inventory.json");
 const CHECK = process.argv.includes("--check");
 
-/** Agents: every `*.md` directly in `~/.claude/agents/`. */
+/**
+ * Agent roots, in scan order. TWO of them, and the second is the point:
+ *
+ *   ~/.claude/agents/            global — the flat 40-file pile Rob cannot see into
+ *   <repo>/.claude/agents/       PROJECT-SCOPED — the single-job MLE agents
+ *
+ * The project root was added 2026-07-30, the same night six project-scoped agents were
+ * written into it. Until then this script read only the global directory, so those six
+ * would have been INVISIBLE on `/ops/agents` — the page whose entire purpose is answering
+ * Rob's "it's really hard to see if any of them are giving the wrong instructions when I
+ * don't even know they exist." An inventory that silently omits a whole tree of agents is
+ * the exact failure it was built to prevent, and it reads as coverage while doing it.
+ *
+ * A missing root yields [] — reported through the counts, never faked as zero problems.
+ * Slugs are prefixed by scope so a global and a project agent sharing a name stay distinct.
+ */
+const AGENT_ROOTS = [
+  { dir: path.join(CLAUDE_HOME, "agents"), scope: "global" },
+  { dir: path.join(REPO_ROOT, ".claude", "agents"), scope: "project" },
+];
+
 async function readAgents() {
-  const dir = path.join(CLAUDE_HOME, "agents");
-  let entries;
-  try {
-    entries = await readdir(dir, { withFileTypes: true });
-  } catch {
-    return []; // A missing dir is reported by the counts, never faked as zero problems.
-  }
   const out = [];
-  for (const entry of entries) {
-    if (!entry.isFile() || !entry.name.endsWith(".md")) continue;
-    const full = path.join(dir, entry.name);
-    out.push({
-      kind: "agent",
-      slug: entry.name.replace(/\.md$/, ""),
-      path: full,
-      content: await readFile(full, "utf8"),
-      lastModified: (await stat(full)).mtime.toISOString(),
-    });
+  for (const { dir, scope } of AGENT_ROOTS) {
+    let entries;
+    try {
+      entries = await readdir(dir, { withFileTypes: true });
+    } catch {
+      continue; // A missing dir is reported by the counts, never faked as zero problems.
+    }
+    for (const entry of entries) {
+      if (!entry.isFile() || !entry.name.endsWith(".md")) continue;
+      const full = path.join(dir, entry.name);
+      const slug = entry.name.replace(/\.md$/, "");
+      out.push({
+        kind: "agent",
+        scope,
+        slug: scope === "project" ? `project:${slug}` : slug,
+        path: full,
+        content: await readFile(full, "utf8"),
+        lastModified: (await stat(full)).mtime.toISOString(),
+      });
+    }
   }
   return out;
 }

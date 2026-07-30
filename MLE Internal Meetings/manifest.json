@@ -1,8 +1,53 @@
 {
   "generatedBy": "scripts/fireflies-ingest.mjs",
   "source": "fireflies",
-  "count": 13,
+  "count": 15,
   "meetings": [
+    {
+      "id": "01KYQH9MJZ87R45TRHFCDG7AMD",
+      "title": "Rob & Dix | MLE & Skin Cancer Detection AI Model",
+      "date": "2026-07-29T18:13:18.902Z",
+      "durationMinutes": 98,
+      "organizerDomain": "aivoicetech.io",
+      "participantCount": 2,
+      "participantDomains": [
+        "aivoicetech.io",
+        "gmail.com"
+      ],
+      "keywords": [
+        "skin malignancy AI",
+        "large language model",
+        "healthcare automation",
+        "dermatology demo",
+        "business automation SaaS",
+        "US healthcare market"
+      ],
+      "sentences": 1001,
+      "fireflies": "https://app.fireflies.ai/view/01KYQH9MJZ87R45TRHFCDG7AMD",
+      "bodyOnDisk": true
+    },
+    {
+      "id": "01KYQH9A6R6DWRD0GS10QH26VY",
+      "title": "Jul 29, 02:13 PM",
+      "date": "2026-07-29T18:13:14.422Z",
+      "durationMinutes": 121,
+      "organizerDomain": "aivoicetech.io",
+      "participantCount": 1,
+      "participantDomains": [
+        "aivoicetech.io"
+      ],
+      "keywords": [
+        "Skin lesion AI model",
+        "Large Language Model integration",
+        "healthcare AI demo",
+        "hospital market entry",
+        "development collaboration",
+        "hospitality CRM system"
+      ],
+      "sentences": 1332,
+      "fireflies": "https://app.fireflies.ai/view/01KYQH9A6R6DWRD0GS10QH26VY",
+      "bodyOnDisk": true
+    },
     {
       "id": "01KXVEM73V4YPPJS7CT6S4YN9R",
       "title": "Joseph, Rob, Will | MLE Partnership",

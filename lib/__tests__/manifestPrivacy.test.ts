@@ -93,8 +93,15 @@ describe("the committed manifest", () => {
     expect(raw.match(EMAIL_RE)).toBeNull();
   });
 
-  it("still identifies all 13 meetings by title, date and link", () => {
-    expect(manifest.meetings).toHaveLength(13);
+  // The count is read from the manifest's own `count` field, NOT hardcoded. It was
+  // pinned at 13 and broke the day the ingest first ran on a schedule (2026-07-30,
+  // 13 -> 15). A test that must be hand-edited every time Rob records a call teaches
+  // the team to edit the number instead of reading the failure — and this file's real
+  // job is the PII assertions below, which a stale count keeps switched off.
+  // `count` is still checked against the array, so a manifest that miscounts itself fails.
+  it("identifies every meeting in the manifest by title, date and link", () => {
+    expect(manifest.meetings.length).toBeGreaterThan(0);
+    expect(manifest.count).toBe(manifest.meetings.length);
     for (const m of manifest.meetings) {
       expect(m.title).toBeTruthy();
       expect(m.date).toBeTruthy();

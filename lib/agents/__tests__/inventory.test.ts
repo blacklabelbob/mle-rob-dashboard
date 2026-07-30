@@ -255,6 +255,28 @@ describe("stg-audit: reviewed marker", () => {
     expect(f.severity).toBe("medium");
   });
 
+  // The auditor quotes the patterns it hunts. Both fixtures below are required by the
+  // module's own doctrine: a true positive (a real lie must still be caught) and a false
+  // positive taken from the file that must stay green.
+  it("FALSE POSITIVE: the auditor quoting the pattern it hunts never reddens the gate", () => {
+    // The real shape that broke it: a bare quoted pattern in a detection table, with no
+    // surrounding sentence for NEGATION_CUES to read as a correction.
+    const [f] = auditAsset(
+      src({
+        slug: "project:instruction-auditor",
+        content: '| stale identity | `"VP of Sales"` | report it |\n',
+      }),
+    );
+    expect(f.severity).toBe("medium"); // listed, visible on /ops/agents — just not a gate failure
+  });
+
+  it("TRUE POSITIVE: the exemption is one slug, so a real lie elsewhere still scores high", () => {
+    const [f] = auditAsset(
+      src({ slug: "some-other-agent", content: "Rob is VP of Sales at STG.\n" }),
+    );
+    expect(f.severity).toBe("high");
+  });
+
   it("counts reviewed and unexamined per FILE, so the report is generated not typed", () => {
     const inv = buildInventory([
       REVIEWED,

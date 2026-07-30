@@ -130,6 +130,32 @@ export function reviewedReason(content: string): string | null {
 export const DEPRECATED_BY_RULE: readonly string[] = ["stg-brand-guidelines"];
 
 /**
+ * Assets whose JOB is to name the wrong instructions, so they necessarily quote them.
+ *
+ * WHY: `instruction-auditor` is the agent that hunts stale-identity claims. Its file
+ * lists the very strings it detects — `"VP of Sales"`, `"Rob is VP of Sales at STG"` —
+ * inside a table of detection patterns and a record of the five defects found by hand
+ * on 2026-07-29. Those quotes are the SPECIFICATION, not a claim about Rob.
+ *
+ * On its first run the gate scored that file HIGH on the bare string `"VP of Sales"`.
+ * `NEGATION_CUES` could not save it: the line is a quoted pattern in a table with no
+ * surrounding sentence to negate. So the auditor reddened the gate on itself, forever,
+ * for doing its job correctly.
+ *
+ * That is the same failure `NEGATION_CUES` exists to prevent, stated in its own comment:
+ * *a gate that reddens on a correct file gets ignored within a week, and then a real lie
+ * sails through it.* A self-tripping auditor is the purest form of it.
+ *
+ * SCOPE IS DELIBERATELY ONE SLUG. This is an allowlist, not a pattern — anything broader
+ * ("files that look like they're quoting") would hand every agent a way to launder a real
+ * lie by wrapping it in quotation marks. Findings here are still LISTED and still visible
+ * on /ops/agents; they are demoted out of the gate only, exactly like DEPRECATED_BY_RULE.
+ * Adding a second entry needs the same standard: the file's PURPOSE must be to name the
+ * defect. Never add one merely to turn a push green.
+ */
+export const PATTERN_DEFINING_BY_RULE: readonly string[] = ["project:instruction-auditor"];
+
+/**
  * Cues that the sentence around a match is CORRECTING the claim, not making it.
  *
  * WHY THIS LIST EXISTS: the first run of this audit flagged `head-of-marketing.md`
@@ -268,7 +294,11 @@ export function parseAsset(src: AssetSource): AssetRecord {
  * eleven times is one problem, and eleven rows would bury the other 39 files.
  */
 export function auditAsset(src: AssetSource): AuditFinding[] {
-  const demoted = DEPRECATED_BY_RULE.includes(src.slug);
+  // Two independent reasons a file's findings are expected rather than defective:
+  // it is the deprecated STG record, or it is the auditor that names the patterns.
+  // Both demote to medium and stay listed; neither suppresses the row.
+  const demoted =
+    DEPRECATED_BY_RULE.includes(src.slug) || PATTERN_DEFINING_BY_RULE.includes(src.slug);
   const reviewed = reviewedReason(src.content);
   // The marker is masked out before the rules run, because a reason that names STG
   // would otherwise become its own evidence — the page would quote the audit note

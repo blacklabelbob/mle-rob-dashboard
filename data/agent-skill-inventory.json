@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-30T07:59:07.807Z",
+  "generatedAt": "2026-07-30T13:38:05.180Z",
   "source": "/Users/robertacheson/.claude",
   "assets": [
     {
@@ -164,7 +164,7 @@
       "model": "sonnet",
       "tools": null,
       "path": "/Users/robertacheson/.claude/agents/head-of-marketing.md",
-      "lastModified": "2026-07-30T07:56:52.000Z",
+      "lastModified": "2026-07-30T13:21:42.699Z",
       "hasFrontmatter": true
     },
     {
@@ -197,7 +197,7 @@
       "model": "sonnet",
       "tools": null,
       "path": "/Users/robertacheson/.claude/agents/head-of-sales.md",
-      "lastModified": "2026-07-30T07:56:52.001Z",
+      "lastModified": "2026-07-30T13:21:26.188Z",
       "hasFrontmatter": true
     },
     {
@@ -286,6 +286,72 @@
       "tools": null,
       "path": "/Users/robertacheson/.claude/agents/project-ranker.md",
       "lastModified": "2026-07-30T07:56:52.002Z",
+      "hasFrontmatter": true
+    },
+    {
+      "kind": "agent",
+      "slug": "project:attribution-keeper",
+      "name": "attribution-keeper",
+      "purpose": "Owns referral provenance — every org and person traces back to Rob, no orphans.",
+      "model": "opus",
+      "tools": "Read, Grep, Glob, Bash, Edit, Write, Task, ToolSearch",
+      "path": "/Users/robertacheson/Projects/MyLocalEverything/MLE ROB Dashboard/.claude/agents/attribution-keeper.md",
+      "lastModified": "2026-07-30T13:35:21.988Z",
+      "hasFrontmatter": true
+    },
+    {
+      "kind": "agent",
+      "slug": "project:company-catcher",
+      "name": "company-catcher",
+      "purpose": "Turns every company named in a meeting into an org record, in one sweep.",
+      "model": "opus",
+      "tools": "Bash, Read, Grep, Glob, Write, Task",
+      "path": "/Users/robertacheson/Projects/MyLocalEverything/MLE ROB Dashboard/.claude/agents/company-catcher.md",
+      "lastModified": "2026-07-30T13:36:03.008Z",
+      "hasFrontmatter": true
+    },
+    {
+      "kind": "agent",
+      "slug": "project:instruction-auditor",
+      "name": "instruction-auditor",
+      "purpose": "Owns whether any agent or skill file is giving Rob's own agents a false instruction — and whether he can see that those files exist at all (Rob 2026-07-29 verbatim \"Its really har…",
+      "model": "opus",
+      "tools": "Read, Grep, Glob, Bash, Edit, Write",
+      "path": "/Users/robertacheson/Projects/MyLocalEverything/MLE ROB Dashboard/.claude/agents/instruction-auditor.md",
+      "lastModified": "2026-07-30T13:35:21.989Z",
+      "hasFrontmatter": true
+    },
+    {
+      "kind": "agent",
+      "slug": "project:meeting-scribe",
+      "name": "meeting-scribe",
+      "purpose": "Owns \"no meeting Rob attended exists without a CRM record — including the ones nobody recorded.\" Run every 30 minutes, and on demand after any call day, when Rob says a meeting is…",
+      "model": "opus",
+      "tools": "Bash, Read, Grep, ToolSearch, mcp__claude_ai_Google_Calendar__list_events, mcp__claude_ai_Google_Calendar__get_event, mcp__claude_ai_Fathom__list_meetings, mcp__claude_ai_Zoom_for_Claude__recordings_list",
+      "path": "/Users/robertacheson/Projects/MyLocalEverything/MLE ROB Dashboard/.claude/agents/meeting-scribe.md",
+      "lastModified": "2026-07-30T13:35:21.989Z",
+      "hasFrontmatter": true
+    },
+    {
+      "kind": "agent",
+      "slug": "project:person-resolver",
+      "name": "person-resolver",
+      "purpose": "Turns every human on a calendar invite, attendee list, or call transcript into exactly one P-#### person record attached to the right C-#### org.",
+      "model": "opus",
+      "tools": "Read, Grep, Glob, Bash, mcp__claude_ai_Google_Calendar__get_event, mcp__claude_ai_Google_Calendar__search_events, mcp__claude_ai_Google_Calendar__list_events",
+      "path": "/Users/robertacheson/Projects/MyLocalEverything/MLE ROB Dashboard/.claude/agents/person-resolver.md",
+      "lastModified": "2026-07-30T13:36:03.013Z",
+      "hasFrontmatter": true
+    },
+    {
+      "kind": "agent",
+      "slug": "project:thread-catcher",
+      "name": "thread-catcher",
+      "purpose": "Captures everything Rob said in a session onto disk before the session can die.",
+      "model": "opus",
+      "tools": "Bash, Read, Write, Edit, Grep, Glob",
+      "path": "/Users/robertacheson/Projects/MyLocalEverything/MLE ROB Dashboard/.claude/agents/thread-catcher.md",
+      "lastModified": "2026-07-30T13:35:21.990Z",
       "hasFrontmatter": true
     },
     {
@@ -754,11 +820,11 @@
       "kind": "skill",
       "slug": "interactive-lead-magnets",
       "name": "interactive-lead-magnets",
-      "purpose": "Create interactive HTML tools (scorecards, quizzes, ROI calculators, assessments) for GoHighLevel funnels.",
+      "purpose": "Create self-contained interactive HTML tools (scorecards, quizzes, ROI calculators, assessments) that deploy anywhere - Vercel, a client site, or any funnel builder.",
       "model": null,
       "tools": null,
       "path": "/Users/robertacheson/.claude/skills/interactive-lead-magnets/SKILL.md",
-      "lastModified": "2026-07-30T07:56:52.003Z",
+      "lastModified": "2026-07-30T13:21:42.701Z",
       "hasFrontmatter": true
     },
     {
@@ -1491,9 +1557,9 @@
       "kind": "agent",
       "path": "/Users/robertacheson/.claude/agents/head-of-sales.md",
       "severity": "medium",
-      "code": "reviewed:corrected:stg_reference",
-      "detail": "Mentions STG. May be legitimate roofing/contractor domain knowledge (which is kept) — worth a human look, not automatically wrong. Demoted: the file states this only to correct it, so no agent reads it as true. Reviewed on purpose: Q83 inc.1 — STG appears only where the file forbids borrowing STG's track record; authority is built from Rob's own provable assets.",
-      "evidence": "- **Sales scripts:** Authority Bias — build it from **Rob's own** provable assets (his live MLE client results, his own deployed AI receptionist/avatar, the prospect's own data shown back to them via PVP). **Never claim STG's credentials or \"1,000+ clients\" as his** — he left STG and cannot cite their track record as his own. Confirmation Bias (mirror what they already believe, then guide) still applies.",
+      "code": "reviewed:stg_reference",
+      "detail": "Mentions STG. May be legitimate roofing/contractor domain knowledge (which is kept) — worth a human look, not automatically wrong. Reviewed on purpose: Q83 inc.1 — STG appears only where the file forbids borrowing STG's track record; authority is built from Rob's own provable assets.",
+      "evidence": "STG",
       "reviewed": "Q83 inc.1 — STG appears only where the file forbids borrowing STG's track record; authority is built from Rob's own provable assets."
     },
     {
@@ -1505,6 +1571,86 @@
       "detail": "Mentions STG. May be legitimate roofing/contractor domain knowledge (which is kept) — worth a human look, not automatically wrong. Reviewed on purpose: Q83 inc.2 — both scoring lines and the revenue benchmarks were rewritten to Rob's own market; the surviving mentions are the labelled 'what the roofing market has paid' record plus its do-not-calibrate-off-this rule.",
       "evidence": "STG",
       "reviewed": "Q83 inc.2 — both scoring lines and the revenue benchmarks were rewritten to Rob's own market; the surviving mentions are the labelled 'what the roofing market has paid' record plus its do-not-calibrate-off-this rule."
+    },
+    {
+      "slug": "project:attribution-keeper",
+      "kind": "agent",
+      "path": "/Users/robertacheson/Projects/MyLocalEverything/MLE ROB Dashboard/.claude/agents/attribution-keeper.md",
+      "severity": "medium",
+      "code": "corrected:stale_role_claim_vp_of_sales",
+      "detail": "Calls Rob a VP of Sales. He is the founder of AI VoiceTech — this instruction would have the agent introduce him with a job he no longer holds. Demoted: the file states this only to correct it, so no agent reads it as true.",
+      "evidence": "- Rob is the FOUNDER of AI VoiceTech. Never \"VP of Sales\", never STG branding, in any output.",
+      "reviewed": null
+    },
+    {
+      "slug": "project:company-catcher",
+      "kind": "agent",
+      "path": "/Users/robertacheson/Projects/MyLocalEverything/MLE ROB Dashboard/.claude/agents/company-catcher.md",
+      "severity": "medium",
+      "code": "corrected:stale_role_claim_vp_of_sales",
+      "detail": "Calls Rob a VP of Sales. He is the founder of AI VoiceTech — this instruction would have the agent introduce him with a job he no longer holds. Demoted: the file states this only to correct it, so no agent reads it as true.",
+      "evidence": "- Rob is the **founder of AI VoiceTech**. He left STG. Never write STG branding, an STG track record, or \"VP of Sales\" onto any record or into any prompt you pass to a subagent.",
+      "reviewed": null
+    },
+    {
+      "slug": "project:instruction-auditor",
+      "kind": "agent",
+      "path": "/Users/robertacheson/Projects/MyLocalEverything/MLE ROB Dashboard/.claude/agents/instruction-auditor.md",
+      "severity": "medium",
+      "code": "reviewed:deprecated_by_rule:stale_role_claim_vp_of_sales",
+      "detail": "Calls Rob a VP of Sales. He is the founder of AI VoiceTech — this instruction would have the agent introduce him with a job he no longer holds. Demoted: this asset is kept deliberately as the deprecated STG brand record. Reviewed on purpose: <reason>` marker via `reviewedReason(",
+      "evidence": "VP of Sales",
+      "reviewed": "<reason>` marker via `reviewedReason("
+    },
+    {
+      "slug": "project:instruction-auditor",
+      "kind": "agent",
+      "path": "/Users/robertacheson/Projects/MyLocalEverything/MLE ROB Dashboard/.claude/agents/instruction-auditor.md",
+      "severity": "medium",
+      "code": "reviewed:deprecated_by_rule:corrected:stale_role_claim_works_at_stg",
+      "detail": "States that Rob works at STG. He left STG — an agent repeating this is giving out a false affiliation. Demoted: the file states this only to correct it, so no agent reads it as true. Demoted: this asset is kept deliberately as the deprecated STG brand record. Reviewed on purpose: <reason>` marker via `reviewedReason(",
+      "evidence": "On 2026-07-29 five such defects were found BY HAND: `head-of-marketing.md` said \"Rob's Role: VP of Sales\"; `project-ranker.md` said \"Rob is VP of Sales at STG\" and ranked his projects by STG revenue; `head-of-sales.md` and `crawford-gtm-strategist.md` told agents to claim \"STG's 1,000+ client track record\" as Rob's authority in **live sales copy**; `skills/plan/references/dept-head-briefs.md` injected \"Owner: Rob (VP of Sales @ STG)\" into every planning agent; `crawford-gtm-strategist.md` cited `research/stg-comprehensive-knowledge-base.md`, a file that has never existed. All five are corrected today. Hand-finding them is the failure you end.",
+      "reviewed": "<reason>` marker via `reviewedReason("
+    },
+    {
+      "slug": "project:meeting-scribe",
+      "kind": "agent",
+      "path": "/Users/robertacheson/Projects/MyLocalEverything/MLE ROB Dashboard/.claude/agents/meeting-scribe.md",
+      "severity": "medium",
+      "code": "corrected:stale_role_claim_vp_of_sales",
+      "detail": "Calls Rob a VP of Sales. He is the founder of AI VoiceTech — this instruction would have the agent introduce him with a job he no longer holds. Demoted: the file states this only to correct it, so no agent reads it as true.",
+      "evidence": "- Rob is **Founder of AI VoiceTech**. He left STG. Never write \"VP of Sales\", never STG branding, in a flag, a summary or a report.",
+      "reviewed": null
+    },
+    {
+      "slug": "project:person-resolver",
+      "kind": "agent",
+      "path": "/Users/robertacheson/Projects/MyLocalEverything/MLE ROB Dashboard/.claude/agents/person-resolver.md",
+      "severity": "medium",
+      "code": "corrected:stale_role_claim_vp_of_sales",
+      "detail": "Calls Rob a VP of Sales. He is the founder of AI VoiceTech — this instruction would have the agent introduce him with a job he no longer holds. Demoted: the file states this only to correct it, so no agent reads it as true.",
+      "evidence": "- **Rob is the founder of AI VoiceTech.** He left STG. Never write \"VP of Sales\" or STG branding into a record, a note or a flag.",
+      "reviewed": null
+    },
+    {
+      "slug": "project:thread-catcher",
+      "kind": "agent",
+      "path": "/Users/robertacheson/Projects/MyLocalEverything/MLE ROB Dashboard/.claude/agents/thread-catcher.md",
+      "severity": "medium",
+      "code": "corrected:stale_role_claim_vp_of_sales",
+      "detail": "Calls Rob a VP of Sales. He is the founder of AI VoiceTech — this instruction would have the agent introduce him with a job he no longer holds. Demoted: the file states this only to correct it, so no agent reads it as true.",
+      "evidence": "- **Facts that are settled and must never be re-broken in anything you write:** Rob **left STG** and is **founder of AI VoiceTech** — never \"VP of Sales\", never STG branding. Bookers **see** `quoted_amount`/`value`; **equity** is the only restricted number, Rob + Will only. Prod stays open, no logins — closed by Rob 2026-07-27, never re-raise. No GoHighLevel; Close CRM is STG's tenant, read-only legacy.",
+      "reviewed": null
+    },
+    {
+      "slug": "project:thread-catcher",
+      "kind": "agent",
+      "path": "/Users/robertacheson/Projects/MyLocalEverything/MLE ROB Dashboard/.claude/agents/thread-catcher.md",
+      "severity": "medium",
+      "code": "corrected:stale_role_claim_works_at_stg",
+      "detail": "States that Rob works at STG. He left STG — an agent repeating this is giving out a false affiliation. Demoted: the file states this only to correct it, so no agent reads it as true.",
+      "evidence": "**The motive, 2026-07-29.** Rob: things *\"keep falling thru the cracks\"*. In one session he raised (1) a marketing agent still telling agents he works at STG, (2) how many skills were switched off, (3) that the CRM was built on insufficient research, (4) the folder/visibility problem now carried as Q77. The machine died. None of it had reached `BUILD-QUEUE.md`, so the next session's status report could not see any of it. `docs/plans/sources/ROB-ANSWERS-2026-07-29-night.md` opens with the line *\"Captured by hand because the thread-catcher agent that should do this automatically does not exist yet.\"* You are that agent.",
+      "reviewed": null
     },
     {
       "slug": "interactive-lead-magnets",
@@ -1538,12 +1684,12 @@
     }
   ],
   "counts": {
-    "agents": 40,
+    "agents": 46,
     "skills": 92,
     "high": 0,
-    "medium": 8,
-    "reviewed": 8,
-    "unexamined": 0
+    "medium": 16,
+    "reviewed": 9,
+    "unexamined": 5
   },
   "passes": true
 }
