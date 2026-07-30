@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { selectPhase2Returns } from "@/lib/phases/phase2ReturnsSelect";
+import { selectPhase2Returns, provenanceOf } from "@/lib/phases/phase2ReturnsSelect";
 import type { Phase2ReturnsRow } from "@/lib/phases/phase2ReturnsDb";
 import { planPhase2ReturnsWrite } from "@/lib/phases/phase2ReturnsWrite";
 
@@ -244,5 +244,29 @@ describe("selectPhase2Returns — the two doors agree", () => {
         revenueSincePhase2Start: s.revenue,
       });
     }
+  });
+});
+
+describe("provenanceOf — the selection's provenance, without its audit detail", () => {
+  it("carries basis, instant, measurer and the newer-unusable flag", () => {
+    const sel = selectPhase2Returns([
+      row({ measured_at: "2026-07-20T12:00:00Z", measured_by: "rob", revenue_basis: "attributed" }),
+    ]);
+    const p = provenanceOf(sel)!;
+    expect(p.revenueBasis).toBe("attributed");
+    expect(p.measuredAt).toBe("2026-07-20T12:00:00Z");
+    expect(p.measuredBy).toBe("rob");
+    expect(p.newerUnusable).toBe(false);
+  });
+
+  it("does NOT leak the audit fields into the guarantee's status object", () => {
+    const p = provenanceOf(selectPhase2Returns([row({})]))!;
+    expect(Object.keys(p).sort()).toEqual(
+      ["measuredAt", "measuredBy", "newerUnusable", "revenueBasis"].sort(),
+    );
+  });
+
+  it("no selected figure = no provenance, never an object of nulls", () => {
+    expect(provenanceOf(selectPhase2Returns([]))).toBeUndefined();
   });
 });

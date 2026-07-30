@@ -49,7 +49,7 @@
 // CR-3: pure and stateless. No clock read, no database, no `asOf` needed — freshest
 // is relative to the rows, not to now.
 
-import type { Phase2Returns } from "./phase2Guarantee";
+import type { Phase2Returns, Phase2ReturnsProvenance } from "./phase2Guarantee";
 import type { Phase2ReturnsRow } from "./phase2ReturnsDb";
 import { REVENUE_BASES, type RevenueBasis } from "./phase2ReturnsWrite";
 
@@ -85,6 +85,29 @@ export interface Phase2ReturnsSelection {
   newerUnusable: boolean;
   /** Rows handed to the selector, retracted and unreadable included. */
   considered: number;
+}
+
+/**
+ * The four provenance facts the ROI sentence needs, lifted off a selection.
+ *
+ * Explicit rather than passing the whole selection through: `excluded` and
+ * `considered` are audit detail that has no business inside a money guarantee's
+ * status object, and structural assignability would carry them there silently.
+ *
+ * A selection with no `returns` yields `undefined` — there is no figure, so there
+ * is no figure's provenance, and an object of nulls would read as "measured, by
+ * nobody, on no basis".
+ */
+export function provenanceOf(
+  selection: Phase2ReturnsSelection,
+): Phase2ReturnsProvenance | undefined {
+  if (!selection.returns) return undefined;
+  return {
+    measuredAt: selection.measuredAt ?? null,
+    measuredBy: selection.measuredBy ?? null,
+    revenueBasis: selection.revenueBasis,
+    newerUnusable: selection.newerUnusable,
+  };
 }
 
 /** A row that passed every readability rule, with its instant normalised. */

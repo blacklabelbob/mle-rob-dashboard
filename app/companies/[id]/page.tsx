@@ -17,6 +17,7 @@ import { buildBlueprint } from "@/lib/phases/blueprint";
 import { loadComponentLive, mergeComponentLive } from "@/lib/phases/componentLiveLoad";
 import { loadScanPicks } from "@/lib/phases/scanPicksLoad";
 import { loadPhase2Returns } from "@/lib/phases/phase2ReturnsLoad";
+import { provenanceOf } from "@/lib/phases/phase2ReturnsSelect";
 import { splitNotes } from "@/lib/notes";
 import { typeLabel, STAGE_LABELS } from "@/lib/labels";
 
@@ -101,6 +102,7 @@ export default async function CompanyPage({
     automationPicksUnavailable: picks.unavailable,
     phase2Returns: returns.selection.returns,
     phase2ReturnsUnavailable: returns.unavailable,
+    phase2ReturnsProvenance: provenanceOf(returns.selection),
     asOf: new Date().toISOString().slice(0, 10),
   });
 

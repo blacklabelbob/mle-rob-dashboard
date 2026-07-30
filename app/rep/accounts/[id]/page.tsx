@@ -13,6 +13,7 @@ import { buildBlueprint } from "@/lib/phases/blueprint";
 import { loadComponentLive, mergeComponentLive } from "@/lib/phases/componentLiveLoad";
 import { loadScanPicks } from "@/lib/phases/scanPicksLoad";
 import { loadPhase2Returns } from "@/lib/phases/phase2ReturnsLoad";
+import { provenanceOf } from "@/lib/phases/phase2ReturnsSelect";
 import { isDemo as isDemoPerson } from "@/lib/stats";
 import { demoActivity, sourceContext, touchReason } from "@/lib/repSource";
 
@@ -79,6 +80,7 @@ export default async function RepAccountWorkspace({
     components: mergeComponentLive(person.phaseComponents, signals.map),
     phase2Returns: returns.selection.returns,
     phase2ReturnsUnavailable: returns.unavailable,
+    phase2ReturnsProvenance: provenanceOf(returns.selection),
     asOf: new Date().toISOString().slice(0, 10),
   });
 

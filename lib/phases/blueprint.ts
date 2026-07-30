@@ -27,6 +27,7 @@ import {
   phase2Guarantee,
   type Phase2GuaranteeStatus,
   type Phase2Returns,
+  type Phase2ReturnsProvenance,
 } from "./phase2Guarantee";
 import { aimForNext, type AimForNext, type AutomationPick } from "./aimForNext";
 
@@ -147,6 +148,14 @@ export interface BlueprintInput {
    * carries the fact that we could not read.
    */
   phase2ReturnsUnavailable?: boolean;
+  /**
+   * WHERE `phase2Returns` came from — the selector's decision, minus the numbers.
+   * Threaded through untouched (this file assembles no sentences about it) so the
+   * guarantee can state which revenue question the figure answers. Absent = the
+   * caller did not supply it, which the guarantee reports as unrecorded rather
+   * than assuming a basis.
+   */
+  phase2ReturnsProvenance?: Phase2ReturnsProvenance;
   /**
    * Q40 leg (6) — this customer's recommended Phase 2 automations, when someone
    * has picked them. Supplied by `loadScanPicks` (inc.17) off 0027; absent means
@@ -333,6 +342,7 @@ export function buildBlueprint({
   advancedToPhase2At,
   phase2Returns,
   phase2ReturnsUnavailable,
+  phase2ReturnsProvenance,
   automationPicks,
   automationPicksUnavailable,
   asOf,
@@ -377,6 +387,7 @@ export function buildBlueprint({
               investment: money.attribution === "none" ? undefined : money.value,
               returns: phase2Returns,
               returnsUnavailable: phase2ReturnsUnavailable,
+              returnsProvenance: phase2ReturnsProvenance,
               asOf,
             })
           : undefined,

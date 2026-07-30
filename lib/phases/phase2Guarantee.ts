@@ -71,10 +71,46 @@ export interface Phase2GuaranteeInput {
    * `returns` is usable we compute, whatever this says.
    */
   returnsUnavailable?: boolean;
+  /**
+   * WHERE the measured returns came from — `selectPhase2Returns`'s decision about
+   * the row it chose, minus the numbers themselves.
+   *
+   * This exists because Open Question A is OPEN: `revenueSincePhase2Start` is
+   * either top-line revenue or revenue *attributed* to Phase 2, and those are two
+   * different claims about the same customer against the same money guarantee.
+   * A `+37% surplus` computed on top-line and a `+37% surplus` computed on
+   * attributed revenue print identically today, which means the screen shows a
+   * number whose meaning it does not state (spec §4 point 4, house rule 10).
+   *
+   * Absent = the caller did not supply it. That is reported as "basis not
+   * recorded", NEVER assumed to be either basis: guessing here would answer Rob's
+   * open question silently, in a sentence, under a figure he shows customers.
+   */
+  returnsProvenance?: Phase2ReturnsProvenance;
   /** Evaluation time, ISO. Always passed in — never read from the clock here. */
   asOf: string;
   /** Overridable because Rob said the formula may change. */
   guaranteeDays?: number;
+}
+
+/**
+ * The provenance of the figure the guarantee computed on. Field-for-field a subset
+ * of `Phase2ReturnsSelection` so the loader can hand its own selection straight in
+ * without a translation layer that could drift.
+ */
+export interface Phase2ReturnsProvenance {
+  /** ISO instant the human says the measurement describes. */
+  measuredAt?: string | null;
+  /** Who recorded it. */
+  measuredBy?: string | null;
+  /** Which revenue question the figure answers. Absent = unrecorded, not assumed. */
+  revenueBasis?: "top_line" | "attributed";
+  /**
+   * The selector rejected a NEWER row it could not use (unreadable, or two rows
+   * claiming the same instant). The figure below is therefore real but possibly
+   * superseded — and silence about that is how a stale number passes as current.
+   */
+  newerUnusable?: boolean;
 }
 
 export interface Phase2GuaranteeStatus {
@@ -87,6 +123,12 @@ export interface Phase2GuaranteeStatus {
   investment?: number;
   /** The engine's result, verbatim. Present ONLY in RUNNING. */
   roi?: Phase2RoiResult;
+  /**
+   * Where the RUNNING figure came from, echoed so a surface can render it
+   * structurally instead of parsing `line`. Present ONLY in RUNNING, and only when
+   * the caller supplied it.
+   */
+  provenance?: Phase2ReturnsProvenance;
   /** Plain line the tracker renders; never assembled in a component. */
   line: string;
 }
@@ -198,8 +240,57 @@ export function phase2Guarantee(input: Phase2GuaranteeInput): Phase2GuaranteeSta
     state: "RUNNING",
     investment: input.investment,
     roi,
-    line: roiLine(roi, elapsed, guaranteeDays),
+    ...(input.returnsProvenance ? { provenance: input.returnsProvenance } : {}),
+    line:
+      roiLine(roi, elapsed, guaranteeDays) +
+      provenanceSentence(roi, input.returnsProvenance),
   };
+}
+
+/**
+ * The second sentence: what the figure was computed ON.
+ *
+ * Appended rather than woven in so the ROI sentence stays byte-identical to what it
+ * has always been — the number's wording is what the tests and Rob's eye are pinned
+ * to, and this increment adds context to it, not a rewrite of it.
+ *
+ * Nothing is appended when no percentage was shown (day 0): there is no figure to
+ * qualify, and a basis note under "nothing is owed back yet" reads as though a
+ * measurement drove a result it did not drive.
+ */
+function provenanceSentence(
+  roi: Phase2RoiResult,
+  p: Phase2ReturnsProvenance | undefined,
+): string {
+  if (roi.targetToDateIsZero) return "";
+  const parts = [`Computed on ${basisPhrase(p?.revenueBasis)}`];
+  const day = p?.measuredAt ? dateOnly(p.measuredAt) : null;
+  if (day && !Number.isNaN(Date.parse(day))) {
+    parts.push(`measured ${dayLabel(p!.measuredAt!)}`);
+  } else if (p?.measuredAt) {
+    // A stored instant we cannot read is said out loud. Dropping it would present
+    // an undated figure as though it had never claimed a date at all.
+    parts.push("measurement date unreadable");
+  }
+  if (p?.measuredBy) parts.push(`by ${p.measuredBy}`);
+  let s = ` ${parts.join(", ")}.`;
+  if (p?.newerUnusable) {
+    s +=
+      " A more recent measurement exists that we could not use, so this figure may already be out of date.";
+  }
+  return s;
+}
+
+/**
+ * Rob's open question, spoken in the sentence rather than resolved by it.
+ *
+ * "revenue" alone is the wording that hides the ambiguity, so it is the one phrase
+ * this never uses.
+ */
+function basisPhrase(basis: Phase2ReturnsProvenance["revenueBasis"]): string {
+  if (basis === "top_line") return "hours saved + TOTAL top-line revenue since Phase 2 started";
+  if (basis === "attributed") return "hours saved + revenue ATTRIBUTED to Phase 2";
+  return "hours saved + revenue whose basis was not recorded (top-line vs attributed unknown)";
 }
 
 function roiLine(roi: Phase2RoiResult, elapsed: number, guaranteeDays: number): string {

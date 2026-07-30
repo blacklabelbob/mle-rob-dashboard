@@ -209,3 +209,102 @@ describe("phase2Guarantee — the arithmetic is the engine's, verbatim", () => {
     expect(s.daysElapsed).toBe(30);
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Q63 leg (5) — THE BASIS OF THE NUMBER, spoken.
+//
+// Open Question A is OPEN: `revenueSincePhase2Start` is either top-line revenue
+// or revenue attributed to Phase 2. Both computed identically and both printed
+// identically, which meant the guarantee showed a figure whose meaning it did not
+// state — against money Rob has put his name to.
+// ─────────────────────────────────────────────────────────────────────────────
+describe("phase2Guarantee — the figure states what it was computed on", () => {
+  const RUNNING = {
+    startedAt: "2026-06-28",
+    investment: 10_000,
+    returns: RETURNS,
+    asOf: "2026-07-28",
+  } as const;
+
+  it("top_line is named as TOTAL top-line revenue, not just 'revenue'", () => {
+    const s = phase2Guarantee({
+      ...RUNNING,
+      returnsProvenance: { revenueBasis: "top_line", measuredAt: "2026-07-27T14:00:00Z", measuredBy: "rob" },
+    });
+    expect(s.state).toBe("RUNNING");
+    expect(s.line).toMatch(/TOTAL top-line revenue/);
+    expect(s.line).toMatch(/measured 7\/27/);
+    expect(s.line).toMatch(/by rob/);
+    expect(s.provenance?.revenueBasis).toBe("top_line");
+  });
+
+  it("attributed is named as ATTRIBUTED, so the two bases never read alike", () => {
+    const top = phase2Guarantee({ ...RUNNING, returnsProvenance: { revenueBasis: "top_line" } });
+    const attr = phase2Guarantee({ ...RUNNING, returnsProvenance: { revenueBasis: "attributed" } });
+    // Same arithmetic, different claim — the sentences must differ.
+    expect(attr.roi).toEqual(top.roi);
+    expect(attr.line).not.toBe(top.line);
+    expect(attr.line).toMatch(/ATTRIBUTED to Phase 2/);
+  });
+
+  it("an unrecorded basis is SAID to be unrecorded, never assumed to be either one", () => {
+    const s = phase2Guarantee({ ...RUNNING, returnsProvenance: { measuredAt: null, measuredBy: null } });
+    expect(s.line).toMatch(/basis was not recorded/);
+    expect(s.line).not.toMatch(/top-line revenue since|ATTRIBUTED/);
+  });
+
+  it("no provenance at all still refuses to assume a basis", () => {
+    const s = phase2Guarantee(RUNNING);
+    expect(s.state).toBe("RUNNING");
+    expect(s.provenance).toBeUndefined();
+    expect(s.line).toMatch(/basis was not recorded/);
+  });
+
+  it("a newer measurement we could not use is disclosed as possible staleness", () => {
+    const s = phase2Guarantee({
+      ...RUNNING,
+      returnsProvenance: { revenueBasis: "attributed", measuredAt: "2026-07-01T10:00:00Z", newerUnusable: true },
+    });
+    expect(s.line).toMatch(/may already be out of date/i);
+  });
+
+  it("an unreadable measurement date is said out loud, not dropped", () => {
+    const s = phase2Guarantee({
+      ...RUNNING,
+      returnsProvenance: { revenueBasis: "top_line", measuredAt: "sometime last week" },
+    });
+    expect(s.line).toMatch(/measurement date unreadable/);
+  });
+
+  it("the ROI sentence itself is unchanged — provenance is appended, not woven in", () => {
+    const bare = phase2Guarantee(RUNNING);
+    const withP = phase2Guarantee({ ...RUNNING, returnsProvenance: { revenueBasis: "top_line" } });
+    const roiSentence = bare.line.slice(0, bare.line.indexOf("Computed on")).trimEnd();
+    expect(withP.line.startsWith(roiSentence)).toBe(true);
+    expect(roiSentence).toMatch(/day 30 of 91/);
+  });
+
+  it("day 0 gets no basis note — there is no figure to qualify", () => {
+    const s = phase2Guarantee({
+      startedAt: "2026-07-28",
+      investment: 10_000,
+      returns: RETURNS,
+      asOf: "2026-07-28",
+      returnsProvenance: { revenueBasis: "top_line" },
+    });
+    expect(s.roi?.targetToDateIsZero).toBe(true);
+    expect(s.line).not.toMatch(/Computed on/);
+  });
+
+  it("provenance is never invented in a state that shows no figure", () => {
+    const awaiting = phase2Guarantee({
+      startedAt: "2026-06-28",
+      investment: 10_000,
+      asOf: "2026-07-28",
+      returnsProvenance: { revenueBasis: "top_line" },
+    });
+    expect(awaiting.state).toBe("AWAITING_DATA");
+    expect(awaiting.provenance).toBeUndefined();
+    expect(awaiting.line).not.toMatch(/Computed on/);
+  });
+});
