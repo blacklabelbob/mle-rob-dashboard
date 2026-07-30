@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-30T03:41:37.847Z",
+  "generatedAt": "2026-07-30T07:23:02.897Z",
   "source": "/Users/robertacheson/.claude",
   "assets": [
     {
@@ -758,7 +758,7 @@
       "model": null,
       "tools": null,
       "path": "/Users/robertacheson/.claude/skills/interactive-lead-magnets/SKILL.md",
-      "lastModified": "2026-04-17T12:48:20.957Z",
+      "lastModified": "2026-07-30T07:21:46.784Z",
       "hasFrontmatter": true
     },
     {
@@ -956,7 +956,7 @@
       "model": null,
       "tools": null,
       "path": "/Users/robertacheson/.claude/skills/master-orchestrator/SKILL.md",
-      "lastModified": "2026-01-25T18:41:34.358Z",
+      "lastModified": "2026-07-30T07:22:54.317Z",
       "hasFrontmatter": true
     },
     {
@@ -1505,19 +1505,19 @@
       "slug": "interactive-lead-magnets",
       "kind": "skill",
       "path": "/Users/robertacheson/.claude/skills/interactive-lead-magnets/SKILL.md",
-      "severity": "high",
-      "code": "stg_branding_instruction",
-      "detail": "Tells the agent to brand output as STG. Rob's brand is AI VoiceTech; STG branding must never be reintroduced.",
-      "evidence": "Apply STG branding"
+      "severity": "medium",
+      "code": "corrected:stale_role_claim_works_at_stg",
+      "detail": "States that Rob works at STG. He left STG — an agent repeating this is giving out a false affiliation. Demoted: the file states this only to correct it, so no agent reads it as true.",
+      "evidence": "- **theme-factory** - Apply **AI VoiceTech** branding (colors, typography, voice). Rob is the founder of AI VoiceTech; he **left STG**, so never brand a new lead magnet as STG. The `stg-brand-guidelines` skill is **deprecated** and applies only to legacy STG side-consulting deliverables Rob is explicitly asked to produce for STG."
     },
     {
       "slug": "master-orchestrator",
       "kind": "skill",
       "path": "/Users/robertacheson/.claude/skills/master-orchestrator/SKILL.md",
       "severity": "medium",
-      "code": "stg_reference",
-      "detail": "Mentions STG. May be legitimate roofing/contractor domain knowledge (which is kept) — worth a human look, not automatically wrong.",
-      "evidence": "STG"
+      "code": "corrected:stg_reference",
+      "detail": "Mentions STG. May be legitimate roofing/contractor domain knowledge (which is kept) — worth a human look, not automatically wrong. Demoted: the file states this only to correct it, so no agent reads it as true.",
+      "evidence": "| \"roofing\" | crawford-gtm-strategist / head-of-sales (roofing is Rob's #1 vertical for **AI VoiceTech** — brand it AI VoiceTech, never STG) |"
     },
     {
       "slug": "stg-brand-guidelines",
@@ -1532,8 +1532,8 @@
   "counts": {
     "agents": 40,
     "skills": 92,
-    "high": 1,
-    "medium": 7
+    "high": 0,
+    "medium": 8
   },
-  "passes": false
+  "passes": true
 }
