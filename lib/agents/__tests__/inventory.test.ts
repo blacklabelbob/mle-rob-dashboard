@@ -170,7 +170,14 @@ describe("buildInventory", () => {
 
   it("counts both kinds and both severities", () => {
     const inv = buildInventory(sources);
-    expect(inv.counts).toEqual({ agents: 2, skills: 2, high: 1, medium: 1 });
+    expect(inv.counts).toEqual({
+      agents: 2,
+      skills: 2,
+      high: 1,
+      medium: 1,
+      reviewed: 0,
+      unexamined: 2,
+    });
   });
 
   it("fails the gate on any high finding and passes when there are none", () => {
@@ -182,5 +189,79 @@ describe("buildInventory", () => {
     const input = [...sources];
     buildInventory(input);
     expect(input.map((s) => s.slug)).toEqual(sources.map((s) => s.slug));
+  });
+});
+
+// Q83 inc.3 — the reviewed marker. inc.2 measured the limit this closes: two
+// catastrophic rubric lines and one correct rule-against-STG all scored an
+// identical `medium / stg_reference`, so the gate could not tell a file somebody
+// had judged from a file nobody had opened.
+describe("stg-audit: reviewed marker", () => {
+  const REVIEWED = src({
+    slug: "critic-rob",
+    content:
+      "---\nname: critic-rob\n---\n<!-- stg-audit: reviewed — the only mention is a rule AGAINST STG branding -->\n\nAuto-fail: STG branding.\n",
+  });
+
+  it("codes the finding as reviewed and echoes the reason verbatim", () => {
+    const [f] = auditAsset(REVIEWED);
+    expect(f.code).toBe("reviewed:stg_reference");
+    expect(f.reviewed).toBe("the only mention is a rule AGAINST STG branding");
+    expect(f.detail).toContain("Reviewed on purpose: the only mention is a rule AGAINST");
+  });
+
+  it("still LISTS the finding — reviewed is a record, not a mute button", () => {
+    expect(auditAsset(REVIEWED)).toHaveLength(1);
+  });
+
+  it("never downgrades a high finding: reviewing a lie does not make it true", () => {
+    const [f] = auditAsset(
+      src({
+        content:
+          "---\nname: x\n---\n<!-- stg-audit: reviewed — looked at it -->\nRob is VP of Sales at STG.\n",
+      }),
+    );
+    expect(f.severity).toBe("high");
+    expect(f.reviewed).toBe("looked at it");
+    expect(buildInventory([REVIEWED]).passes).toBe(true);
+    expect(
+      buildInventory([
+        src({
+          content:
+            "---\nname: x\n---\n<!-- stg-audit: reviewed — looked at it -->\nRob is VP of Sales at STG.\n",
+        }),
+      ]).passes,
+    ).toBe(false);
+  });
+
+  it("rejects a stamp with no reason — an empty marker is not a review", () => {
+    const [f] = auditAsset(
+      src({ content: "<!-- stg-audit: reviewed —   -->\nMentions STG.\n" }),
+    );
+    expect(f.reviewed).toBeNull();
+    expect(f.code).toBe("stg_reference");
+  });
+
+  it("stacks on top of the deprecated-by-rule demotion without replacing its code", () => {
+    const [f] = auditAsset(
+      src({
+        kind: "skill",
+        slug: "stg-brand-guidelines",
+        content:
+          "<!-- stg-audit: reviewed — kept ON PURPOSE as the deprecated brand record -->\nApply STG branding.\n",
+      }),
+    );
+    expect(f.code).toBe("reviewed:deprecated_by_rule:stg_branding_instruction");
+    expect(f.severity).toBe("medium");
+  });
+
+  it("counts reviewed and unexamined per FILE, so the report is generated not typed", () => {
+    const inv = buildInventory([
+      REVIEWED,
+      src({ slug: "bare", content: "Mentions STG." }),
+      src({ slug: "clean", content: "Roofing only." }),
+    ]);
+    expect(inv.counts.reviewed).toBe(1);
+    expect(inv.counts.unexamined).toBe(1);
   });
 });

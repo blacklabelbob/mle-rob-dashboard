@@ -27,6 +27,7 @@ function finding(over: Partial<AuditFinding> = {}): AuditFinding {
     kind: "agent",
     path: "/root/agents/a.md",
     severity: "medium",
+    reviewed: null,
     code: "stg_reference",
     detail: "d",
     evidence: "e",
@@ -110,5 +111,31 @@ describe("shortenPath", () => {
 
   it("leaves a path outside the scan root alone rather than guessing", () => {
     expect(shortenPath("/elsewhere/a.md", "/Users/someone/.claude")).toBe("/elsewhere/a.md");
+  });
+});
+
+// Q83 inc.3 — the open work must float above the settled work.
+describe("reviewed rows", () => {
+  it("puts an unexamined flag above a reviewed one at the same severity", () => {
+    const rows = rankAssets(
+      [asset({ slug: "settled", name: "settled" }), asset({ slug: "open", name: "open" })],
+      [
+        finding({ slug: "settled", reviewed: "judged in Q83 inc.2, mention is a rule against STG" }),
+        finding({ slug: "open" }),
+      ],
+    );
+    expect(rows.map((r) => r.asset.slug)).toEqual(["open", "settled"]);
+    expect(rows[1].reviewed).toContain("judged in Q83 inc.2");
+  });
+
+  it("never lets a reviewed medium outrank a high — severity still wins", () => {
+    const rows = rankAssets(
+      [asset({ slug: "lying", name: "lying" }), asset({ slug: "seen", name: "seen" })],
+      [
+        finding({ slug: "lying", severity: "high", code: "stale_role_claim_vp_of_sales" }),
+        finding({ slug: "seen", reviewed: "looked at" }),
+      ],
+    );
+    expect(rows[0].asset.slug).toBe("lying");
   });
 });

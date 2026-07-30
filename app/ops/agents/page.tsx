@@ -19,7 +19,14 @@ const data = inventory as unknown as {
   source: string;
   assets: AssetRecord[];
   findings: AuditFinding[];
-  counts: { agents: number; skills: number; high: number; medium: number };
+  counts: {
+    agents: number;
+    skills: number;
+    high: number;
+    medium: number;
+    reviewed: number;
+    unexamined: number;
+  };
 };
 
 export default function AgentsPage() {

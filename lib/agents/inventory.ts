@@ -75,6 +75,49 @@ export interface AuditFinding {
   detail: string;
   /** The matched text, trimmed. A finding with no quotable evidence is an opinion. */
   evidence: string;
+  /**
+   * The reason from the file's own `stg-audit: reviewed — <reason>` marker, or
+   * `null` when nobody has looked. This is the difference between "a human read
+   * this line and decided it stays" and "the ladder tolerated it" — see below.
+   */
+  reviewed: string | null;
+}
+
+/**
+ * Q83 inc.3 — the marker that separates DELIBERATE from UNEXAMINED.
+ *
+ * WHY IT EXISTS: inc.2 measured a real limit. All three of the bare `medium`
+ * findings scored identically (`stg_reference`, evidence literally "STG") — two
+ * were catastrophic rubric lines that had to be rewritten, one was a rule AGAINST
+ * STG branding that had to be left exactly as it was. The gate could not tell them
+ * apart, so a reviewed file and a never-opened file looked the same on the page.
+ *
+ * SHAPE: Q80's `md-gate-audit: exempt — <reason>` hatch, deliberately. The reason
+ * is REQUIRED and ECHOED — a marker with nothing after the dash does not count, so
+ * "reviewed" can never be a silent stamp.
+ *
+ * WHAT IT DOES NOT DO: it never changes severity and never touches `passes`. A
+ * `high` finding is a live wrong instruction; if a marker could turn one green,
+ * the marker would be an escape hatch for lies rather than a record of judgement.
+ * Reviewing a lie does not make it true — it makes it a lie somebody has seen.
+ */
+// The reason may never contain the comment terminator: with a plain lazy `.+?`,
+// `<!-- stg-audit: reviewed —   -->` captured the literal `-->` as its reason, and
+// an empty stamp would have read as a review. Caught by the empty-marker test.
+const REVIEWED_RE = /stg-audit:\s*reviewed\s*[—–-]\s*((?:(?!-->)[^\n])*?)\s*(?:-->|\)|$)/im;
+
+/** Blanks the marker in place — same length, so every match index stays truthful. */
+function maskReviewedMarker(content: string): string {
+  const global = new RegExp(REVIEWED_RE.source, "gim");
+  return content.replace(global, (m) => " ".repeat(m.length));
+}
+
+/** The marker's reason, or `null` when absent or written with an empty reason. */
+export function reviewedReason(content: string): string | null {
+  const match = REVIEWED_RE.exec(content);
+  if (!match) return null;
+  const reason = match[1]?.trim() ?? "";
+  return reason.length > 0 ? reason : null;
 }
 
 /**
@@ -226,6 +269,12 @@ export function parseAsset(src: AssetSource): AssetRecord {
  */
 export function auditAsset(src: AssetSource): AuditFinding[] {
   const demoted = DEPRECATED_BY_RULE.includes(src.slug);
+  const reviewed = reviewedReason(src.content);
+  // The marker is masked out before the rules run, because a reason that names STG
+  // would otherwise become its own evidence — the page would quote the audit note
+  // back instead of the instruction it is about. Blanked in place, not deleted, so
+  // every match index still points at the real line.
+  const content = maskReviewedMarker(src.content);
   const findings: AuditFinding[] = [];
   for (const rule of RULES) {
     // Every occurrence is examined, not just the first: a file may correct the claim
@@ -233,8 +282,8 @@ export function auditAsset(src: AssetSource): AuditFinding[] {
     const global = new RegExp(rule.pattern.source, `${rule.pattern.flags}g`);
     let match: RegExpExecArray | null = null;
     let corrected: RegExpExecArray | null = null;
-    for (let m = global.exec(src.content); m; m = global.exec(src.content)) {
-      if (isCorrection(src.content, m.index)) {
+    for (let m = global.exec(content); m; m = global.exec(content)) {
+      if (isCorrection(content, m.index)) {
         corrected ??= m;
         continue;
       }
@@ -259,6 +308,12 @@ export function auditAsset(src: AssetSource): AuditFinding[] {
       code = `deprecated_by_rule:${code}`;
       detail = `${detail} Demoted: this asset is kept deliberately as the deprecated STG brand record.`;
     }
+    if (reviewed) {
+      // Prefix, never replace: the original code stays readable so a fix can still
+      // be verified against the same name. Severity is untouched on purpose.
+      code = `reviewed:${code}`;
+      detail = `${detail} Reviewed on purpose: ${reviewed}`;
+    }
     findings.push({
       slug: src.slug,
       kind: src.kind,
@@ -266,7 +321,8 @@ export function auditAsset(src: AssetSource): AuditFinding[] {
       severity,
       code,
       detail,
-      evidence: match?.[0].replace(/\s+/g, " ").trim() ?? lineAround(src.content, hit.index).trim(),
+      evidence: match?.[0].replace(/\s+/g, " ").trim() ?? lineAround(content, hit.index).trim(),
+      reviewed,
     });
   }
   return findings;
@@ -275,7 +331,20 @@ export function auditAsset(src: AssetSource): AuditFinding[] {
 export interface Inventory {
   assets: AssetRecord[];
   findings: AuditFinding[];
-  counts: { agents: number; skills: number; high: number; medium: number };
+  counts: {
+    agents: number;
+    skills: number;
+    high: number;
+    medium: number;
+    /**
+     * Flagged files carrying a `stg-audit: reviewed — <reason>` marker, and flagged
+     * files carrying none. This pair is the DoD's "count of files changed reported
+     * to Rob" as GENERATED data rather than a number typed onto a page — a typed
+     * count is correct for one day and wrong afterwards (CR-3).
+     */
+    reviewed: number;
+    unexamined: number;
+  };
   /** True when nothing gate-failing was found. The script's exit code is this. */
   passes: boolean;
 }
@@ -288,6 +357,12 @@ export function buildInventory(sources: readonly AssetSource[]): Inventory {
   const assets = ordered.map(parseAsset);
   const findings = ordered.flatMap(auditAsset);
   const high = findings.filter((f) => f.severity === "high").length;
+  // Counted per FILE, not per finding: two findings on one file are one file a
+  // human either judged or did not.
+  const flagged = new Set(findings.map((f) => `${f.kind}:${f.slug}`));
+  const reviewedFiles = new Set(
+    findings.filter((f) => f.reviewed !== null).map((f) => `${f.kind}:${f.slug}`),
+  );
   return {
     assets,
     findings,
@@ -296,6 +371,8 @@ export function buildInventory(sources: readonly AssetSource[]): Inventory {
       skills: assets.filter((a) => a.kind === "skill").length,
       high,
       medium: findings.length - high,
+      reviewed: reviewedFiles.size,
+      unexamined: flagged.size - reviewedFiles.size,
     },
     passes: high === 0,
   };

@@ -8,9 +8,16 @@ import type { AssetRow } from "@/lib/agents/inventoryView";
 const SEVERITY_STYLE = {
   high: "border-rose-400/40 bg-rose-400/10 text-rose-200",
   medium: "border-amber-400/40 bg-amber-400/10 text-amber-200",
+  reviewed: "border-emerald-400/40 bg-emerald-400/10 text-emerald-200",
 } as const;
 
-function Badge({ children, tone }: { children: React.ReactNode; tone: "high" | "medium" }) {
+function Badge({
+  children,
+  tone,
+}: {
+  children: React.ReactNode;
+  tone: "high" | "medium" | "reviewed";
+}) {
   return (
     <span
       className={`rounded-md border px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${SEVERITY_STYLE[tone]}`}
@@ -29,8 +36,20 @@ function FlaggedRow({ row }: { row: AssetRow }) {
           {row.asset.kind}
         </span>
         {row.high > 0 && <Badge tone="high">{row.high} wrong instruction</Badge>}
-        {row.medium > 0 && <Badge tone="medium">{row.medium} to review</Badge>}
+        {row.medium > 0 && (
+          <Badge tone="medium">
+            {row.medium} {row.reviewed ? "mention" : "to review"}
+          </Badge>
+        )}
+        {row.reviewed && <Badge tone="reviewed">reviewed on purpose</Badge>}
       </div>
+      {/* The reason, verbatim from the file's own marker. A "reviewed" stamp with no
+          reason is not accepted by the ladder, so this line always has content. */}
+      {row.reviewed && (
+        <p className="mt-2 rounded-lg border border-emerald-400/25 bg-emerald-400/5 p-2.5 text-xs leading-relaxed text-emerald-100/90">
+          {row.reviewed}
+        </p>
+      )}
       {row.asset.purpose && (
         <p className="mt-1.5 text-xs text-slate-400">{row.asset.purpose}</p>
       )}
@@ -77,7 +96,14 @@ export default function AgentInventoryView({
   generatedAt,
 }: {
   rows: AssetRow[];
-  counts: { agents: number; skills: number; high: number; medium: number };
+  counts: {
+    agents: number;
+    skills: number;
+    high: number;
+    medium: number;
+    reviewed: number;
+    unexamined: number;
+  };
   clean: number;
   generatedAt: string;
 }) {
@@ -86,12 +112,16 @@ export default function AgentInventoryView({
 
   return (
     <div className="space-y-6">
-      <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <dl className="grid grid-cols-2 gap-3 sm:grid-cols-5">
         {[
           { label: "Agents", value: counts.agents, tone: "text-white" },
           { label: "Skills", value: counts.skills, tone: "text-white" },
           { label: "Wrong instructions", value: counts.high, tone: "text-rose-300" },
-          { label: "To review", value: counts.medium, tone: "text-amber-300" },
+          // Q83 inc.3: the split that makes the number mean something. "8 to review"
+          // said nothing about whether anyone had looked; these two say exactly that,
+          // and both are generated from the files' own markers, never typed here.
+          { label: "Needs a look", value: counts.unexamined, tone: "text-amber-300" },
+          { label: "Reviewed on purpose", value: counts.reviewed, tone: "text-emerald-300" },
         ].map((s) => (
           <div key={s.label} className="rounded-xl border border-white/10 bg-white/5 p-3">
             <dt className="text-[10px] uppercase tracking-wide text-slate-500">{s.label}</dt>

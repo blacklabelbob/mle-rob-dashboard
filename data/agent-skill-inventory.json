@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-30T07:39:45.993Z",
+  "generatedAt": "2026-07-30T07:59:07.807Z",
   "source": "/Users/robertacheson/.claude",
   "assets": [
     {
@@ -65,7 +65,7 @@
       "model": "sonnet",
       "tools": null,
       "path": "/Users/robertacheson/.claude/agents/crawford-gtm-strategist.md",
-      "lastModified": "2026-07-30T07:39:18.915Z",
+      "lastModified": "2026-07-30T07:56:51.994Z",
       "hasFrontmatter": true
     },
     {
@@ -76,7 +76,7 @@
       "model": "fable",
       "tools": "Read, Grep, Glob, Bash, WebFetch, WebSearch",
       "path": "/Users/robertacheson/.claude/agents/critic-rob.md",
-      "lastModified": "2026-07-22T13:47:01.725Z",
+      "lastModified": "2026-07-30T07:56:51.997Z",
       "hasFrontmatter": true
     },
     {
@@ -164,7 +164,7 @@
       "model": "sonnet",
       "tools": null,
       "path": "/Users/robertacheson/.claude/agents/head-of-marketing.md",
-      "lastModified": "2026-07-30T03:28:13.722Z",
+      "lastModified": "2026-07-30T07:56:52.000Z",
       "hasFrontmatter": true
     },
     {
@@ -197,7 +197,7 @@
       "model": "sonnet",
       "tools": null,
       "path": "/Users/robertacheson/.claude/agents/head-of-sales.md",
-      "lastModified": "2026-07-30T03:28:57.096Z",
+      "lastModified": "2026-07-30T07:56:52.001Z",
       "hasFrontmatter": true
     },
     {
@@ -285,7 +285,7 @@
       "model": "opus",
       "tools": null,
       "path": "/Users/robertacheson/.claude/agents/project-ranker.md",
-      "lastModified": "2026-07-30T07:39:39.591Z",
+      "lastModified": "2026-07-30T07:56:52.002Z",
       "hasFrontmatter": true
     },
     {
@@ -758,7 +758,7 @@
       "model": null,
       "tools": null,
       "path": "/Users/robertacheson/.claude/skills/interactive-lead-magnets/SKILL.md",
-      "lastModified": "2026-07-30T07:21:46.784Z",
+      "lastModified": "2026-07-30T07:56:52.003Z",
       "hasFrontmatter": true
     },
     {
@@ -956,7 +956,7 @@
       "model": null,
       "tools": null,
       "path": "/Users/robertacheson/.claude/skills/master-orchestrator/SKILL.md",
-      "lastModified": "2026-07-30T07:22:54.317Z",
+      "lastModified": "2026-07-30T07:56:52.003Z",
       "hasFrontmatter": true
     },
     {
@@ -1396,7 +1396,7 @@
       "model": null,
       "tools": null,
       "path": "/Users/robertacheson/.claude/skills/stg-brand-guidelines/SKILL.md",
-      "lastModified": "2026-02-14T09:30:30.847Z",
+      "lastModified": "2026-07-30T07:56:52.005Z",
       "hasFrontmatter": true
     },
     {
@@ -1461,79 +1461,89 @@
       "kind": "agent",
       "path": "/Users/robertacheson/.claude/agents/crawford-gtm-strategist.md",
       "severity": "medium",
-      "code": "stg_reference",
-      "detail": "Mentions STG. May be legitimate roofing/contractor domain knowledge (which is kept) — worth a human look, not automatically wrong.",
-      "evidence": "STG"
+      "code": "reviewed:stg_reference",
+      "detail": "Mentions STG. May be legitimate roofing/contractor domain knowledge (which is kept) — worth a human look, not automatically wrong. Reviewed on purpose: Q83 inc.2 — STG's own results in the PVP stats block are quarantined under a do-not-use warning: not Rob's track record, and unsourced. Industry facts kept plainly.",
+      "evidence": "STG",
+      "reviewed": "Q83 inc.2 — STG's own results in the PVP stats block are quarantined under a do-not-use warning: not Rob's track record, and unsourced. Industry facts kept plainly."
     },
     {
       "slug": "critic-rob",
       "kind": "agent",
       "path": "/Users/robertacheson/.claude/agents/critic-rob.md",
       "severity": "medium",
-      "code": "stg_reference",
-      "detail": "Mentions STG. May be legitimate roofing/contractor domain knowledge (which is kept) — worth a human look, not automatically wrong.",
-      "evidence": "STG"
+      "code": "reviewed:stg_reference",
+      "detail": "Mentions STG. May be legitimate roofing/contractor domain knowledge (which is kept) — worth a human look, not automatically wrong. Reviewed on purpose: Q83 inc.2 — the only STG mention is 'STG branding' inside the auto-fail list, i.e. a rule AGAINST the thing. Left exactly as written; editing a correct file to quiet a gate is how a gate stops being believed.",
+      "evidence": "STG",
+      "reviewed": "Q83 inc.2 — the only STG mention is 'STG branding' inside the auto-fail list, i.e. a rule AGAINST the thing. Left exactly as written; editing a correct file to quiet a gate is how a gate stops being believed."
     },
     {
       "slug": "head-of-marketing",
       "kind": "agent",
       "path": "/Users/robertacheson/.claude/agents/head-of-marketing.md",
       "severity": "medium",
-      "code": "corrected:stale_role_claim_vp_of_sales",
-      "detail": "Calls Rob a VP of Sales. He is the founder of AI VoiceTech — this instruction would have the agent introduce him with a job he no longer holds. Demoted: the file states this only to correct it, so no agent reads it as true.",
-      "evidence": "> ⚠️ **Rob LEFT STG.** He is not VP of Sales anywhere — he is the **founder of AI VoiceTech**. Never write copy,"
+      "code": "reviewed:corrected:stale_role_claim_vp_of_sales",
+      "detail": "Calls Rob a VP of Sales. He is the founder of AI VoiceTech — this instruction would have the agent introduce him with a job he no longer holds. Demoted: the file states this only to correct it, so no agent reads it as true. Reviewed on purpose: Q83 inc.1 — the VP-of-Sales line IS the correction: 'Rob LEFT STG. He is not VP of Sales anywhere.' The sentence is doing the job.",
+      "evidence": "> ⚠️ **Rob LEFT STG.** He is not VP of Sales anywhere — he is the **founder of AI VoiceTech**. Never write copy,",
+      "reviewed": "Q83 inc.1 — the VP-of-Sales line IS the correction: 'Rob LEFT STG. He is not VP of Sales anywhere.' The sentence is doing the job."
     },
     {
       "slug": "head-of-sales",
       "kind": "agent",
       "path": "/Users/robertacheson/.claude/agents/head-of-sales.md",
       "severity": "medium",
-      "code": "corrected:stg_reference",
-      "detail": "Mentions STG. May be legitimate roofing/contractor domain knowledge (which is kept) — worth a human look, not automatically wrong. Demoted: the file states this only to correct it, so no agent reads it as true.",
-      "evidence": "- **Sales scripts:** Authority Bias — build it from **Rob's own** provable assets (his live MLE client results, his own deployed AI receptionist/avatar, the prospect's own data shown back to them via PVP). **Never claim STG's credentials or \"1,000+ clients\" as his** — he left STG and cannot cite their track record as his own. Confirmation Bias (mirror what they already believe, then guide) still applies."
+      "code": "reviewed:corrected:stg_reference",
+      "detail": "Mentions STG. May be legitimate roofing/contractor domain knowledge (which is kept) — worth a human look, not automatically wrong. Demoted: the file states this only to correct it, so no agent reads it as true. Reviewed on purpose: Q83 inc.1 — STG appears only where the file forbids borrowing STG's track record; authority is built from Rob's own provable assets.",
+      "evidence": "- **Sales scripts:** Authority Bias — build it from **Rob's own** provable assets (his live MLE client results, his own deployed AI receptionist/avatar, the prospect's own data shown back to them via PVP). **Never claim STG's credentials or \"1,000+ clients\" as his** — he left STG and cannot cite their track record as his own. Confirmation Bias (mirror what they already believe, then guide) still applies.",
+      "reviewed": "Q83 inc.1 — STG appears only where the file forbids borrowing STG's track record; authority is built from Rob's own provable assets."
     },
     {
       "slug": "project-ranker",
       "kind": "agent",
       "path": "/Users/robertacheson/.claude/agents/project-ranker.md",
       "severity": "medium",
-      "code": "stg_reference",
-      "detail": "Mentions STG. May be legitimate roofing/contractor domain knowledge (which is kept) — worth a human look, not automatically wrong.",
-      "evidence": "STG"
+      "code": "reviewed:stg_reference",
+      "detail": "Mentions STG. May be legitimate roofing/contractor domain knowledge (which is kept) — worth a human look, not automatically wrong. Reviewed on purpose: Q83 inc.2 — both scoring lines and the revenue benchmarks were rewritten to Rob's own market; the surviving mentions are the labelled 'what the roofing market has paid' record plus its do-not-calibrate-off-this rule.",
+      "evidence": "STG",
+      "reviewed": "Q83 inc.2 — both scoring lines and the revenue benchmarks were rewritten to Rob's own market; the surviving mentions are the labelled 'what the roofing market has paid' record plus its do-not-calibrate-off-this rule."
     },
     {
       "slug": "interactive-lead-magnets",
       "kind": "skill",
       "path": "/Users/robertacheson/.claude/skills/interactive-lead-magnets/SKILL.md",
       "severity": "medium",
-      "code": "corrected:stale_role_claim_works_at_stg",
-      "detail": "States that Rob works at STG. He left STG — an agent repeating this is giving out a false affiliation. Demoted: the file states this only to correct it, so no agent reads it as true.",
-      "evidence": "- **theme-factory** - Apply **AI VoiceTech** branding (colors, typography, voice). Rob is the founder of AI VoiceTech; he **left STG**, so never brand a new lead magnet as STG. The `stg-brand-guidelines` skill is **deprecated** and applies only to legacy STG side-consulting deliverables Rob is explicitly asked to produce for STG."
+      "code": "reviewed:corrected:stale_role_claim_works_at_stg",
+      "detail": "States that Rob works at STG. He left STG — an agent repeating this is giving out a false affiliation. Demoted: the file states this only to correct it, so no agent reads it as true. Reviewed on purpose: Q83 inc.1 — branding instruction retargeted to theme-factory / AI VoiceTech; the Dec-2025 roofing scorecard keeps its STG mention under an archived-record banner: reuse the questions, scoring and mobile lessons, never the black/gold branding.",
+      "evidence": "- **theme-factory** - Apply **AI VoiceTech** branding (colors, typography, voice). Rob is the founder of AI VoiceTech; he **left STG**, so never brand a new lead magnet as STG. The `stg-brand-guidelines` skill is **deprecated** and applies only to legacy STG side-consulting deliverables Rob is explicitly asked to produce for STG.",
+      "reviewed": "Q83 inc.1 — branding instruction retargeted to theme-factory / AI VoiceTech; the Dec-2025 roofing scorecard keeps its STG mention under an archived-record banner: reuse the questions, scoring and mobile lessons, never the black/gold branding."
     },
     {
       "slug": "master-orchestrator",
       "kind": "skill",
       "path": "/Users/robertacheson/.claude/skills/master-orchestrator/SKILL.md",
       "severity": "medium",
-      "code": "corrected:stg_reference",
-      "detail": "Mentions STG. May be legitimate roofing/contractor domain knowledge (which is kept) — worth a human look, not automatically wrong. Demoted: the file states this only to correct it, so no agent reads it as true.",
-      "evidence": "| \"roofing\" | crawford-gtm-strategist / head-of-sales (roofing is Rob's #1 vertical for **AI VoiceTech** — brand it AI VoiceTech, never STG) |"
+      "code": "reviewed:corrected:stg_reference",
+      "detail": "Mentions STG. May be legitimate roofing/contractor domain knowledge (which is kept) — worth a human look, not automatically wrong. Demoted: the file states this only to correct it, so no agent reads it as true. Reviewed on purpose: Q83 inc.1 — the routing table's roofing keyword now points at crawford-gtm / head-of-sales; the remaining STG row is explicitly deprecated and scoped to legacy STG side-consulting.",
+      "evidence": "| \"roofing\" | crawford-gtm-strategist / head-of-sales (roofing is Rob's #1 vertical for **AI VoiceTech** — brand it AI VoiceTech, never STG) |",
+      "reviewed": "Q83 inc.1 — the routing table's roofing keyword now points at crawford-gtm / head-of-sales; the remaining STG row is explicitly deprecated and scoped to legacy STG side-consulting."
     },
     {
       "slug": "stg-brand-guidelines",
       "kind": "skill",
       "path": "/Users/robertacheson/.claude/skills/stg-brand-guidelines/SKILL.md",
       "severity": "medium",
-      "code": "deprecated_by_rule:stg_branding_instruction",
-      "detail": "Tells the agent to brand output as STG. Rob's brand is AI VoiceTech; STG branding must never be reintroduced. Demoted: this asset is kept deliberately as the deprecated STG brand record.",
-      "evidence": "Apply Sales Transformation Group (STG) branding"
+      "code": "reviewed:deprecated_by_rule:stg_branding_instruction",
+      "detail": "Tells the agent to brand output as STG. Rob's brand is AI VoiceTech; STG branding must never be reintroduced. Demoted: this asset is kept deliberately as the deprecated STG brand record. Reviewed on purpose: Q83 inc.1 — deprecated ON PURPOSE and kept as the STG brand record per the global CLAUDE.md; scoped to legacy STG side-consulting only, never a default brand.",
+      "evidence": "Apply Sales Transformation Group (STG) branding",
+      "reviewed": "Q83 inc.1 — deprecated ON PURPOSE and kept as the STG brand record per the global CLAUDE.md; scoped to legacy STG side-consulting only, never a default brand."
     }
   ],
   "counts": {
     "agents": 40,
     "skills": 92,
     "high": 0,
-    "medium": 8
+    "medium": 8,
+    "reviewed": 8,
+    "unexamined": 0
   },
   "passes": true
 }

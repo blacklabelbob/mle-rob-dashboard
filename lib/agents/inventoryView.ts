@@ -16,6 +16,12 @@ export interface AssetRow {
   medium: number;
   /** Worst severity present, or null when the file is clean. Drives the badge. */
   worst: FindingSeverity | null;
+  /**
+   * The file's `stg-audit: reviewed — <reason>` reason, or null when nobody has
+   * looked. Q83 inc.3: this is the column that answers "has a human judged this
+   * line, or has the ladder merely tolerated it?"
+   */
+  reviewed: string | null;
   /** Path with the scan root collapsed to `~/.claude`, so the row is readable. */
   displayPath: string;
 }
@@ -63,14 +69,21 @@ export function rankAssets(
       high,
       medium,
       worst: high > 0 ? "high" : medium > 0 ? "medium" : null,
+      reviewed: own.find((f) => f.reviewed !== null)?.reviewed ?? null,
       displayPath: shortenPath(asset.path, source),
     };
   });
 
+  // Q83 inc.3: inside a severity tier, UNEXAMINED outranks REVIEWED. A flag nobody
+  // has looked at is the open work; a flag with a written reason is a decision
+  // already made, and burying the former under the latter is how eight identical
+  // "mentions STG" rows hid two rubric lines that were actively wrong.
   return rows.sort(
     (a, b) =>
       Number(b.high > 0) - Number(a.high > 0) ||
       b.high - a.high ||
+      Number(b.reviewed === null && b.worst !== null) -
+        Number(a.reviewed === null && a.worst !== null) ||
       b.medium - a.medium ||
       a.asset.kind.localeCompare(b.asset.kind) ||
       a.asset.name.localeCompare(b.asset.name),
