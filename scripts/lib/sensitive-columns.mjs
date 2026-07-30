@@ -14,6 +14,14 @@ export const MONEY = [
   /^value$/, /amount/, /price/, /total/, /^paid$/, /paid_/, /_paid/, /quoted/,
   /invoice/, /balance/, /deposit/, /discount/, /commission/, /residual/,
   /^fee$/, /_fee/, /^rate$/, /_rate$/, /revenue/, /equity/, /cost/,
+  // /estimate/ and /^payment_state$/ ruled 7/29 inc.30, out of inc.29's printed queue.
+  // `estimate` and `phase2_estimate` are jsonb holding dollar figures on people/orgs/deals —
+  // money by every reading, and no MONEY pattern said "estimate". `payment_state` was the
+  // stranger case: it was ALREADY withheld from both roles by name in DENIALS while the
+  // classifier called it non-sensitive, so the audit's money count did not include a column
+  // the privilege model treats as money. A denial the classifier disagrees with is the same
+  // two-sources-of-truth risk that made this module shared in the first place.
+  /estimate/, /^payment_state$/,
 ];
 
 /** Column names that carry a person. */
@@ -36,6 +44,26 @@ export const PII = [
   // fix could not catch it, because the column does not say "recording" — it says "video".
   // `speaker` names who said the words that `call_transcript_segments.text` is withheld for.
   /video/, /^speaker$/,
+  // Ruled 7/29 inc.30 out of inc.29's printed queue — each was already named there as
+  // "probably sensitive, not yet decided", and leaving a named suspicion unruled is the state
+  // this increment is removing.
+  //   sent_to           — 0008_esign: "address the link was delivered to". An email address.
+  //   client_legal_name — a customer's legal name on the money ledger; /^name$/ is exact-match.
+  //   ip                — signature_events' audit-trail IP, the same datum as the withheld
+  //                       signature_requests.signer_ip; the bare name defeats /ip_address/.
+  //   business          — 0003_orgs_split says it plainly: "often the legal name (e.g. 'MFS
+  //                       Naples, Inc.')". Same datum class as client_legal_name, so it is
+  //                       classified the same way — and then deliberately GRANTED, because
+  //                       naming the company is the job. Sensitive ≠ withheld; that is what
+  //                       ALLOWANCES is for.
+  /^sent_to$/, /^client_legal_name$/, /^ip$/, /^business$/,
+  // Staff attribution. These name a person — an MLE person rather than a customer, which
+  // changes who is exposed, not whether a person is. Classified, then granted where the role
+  // needs them, so "who is assigned / who created this" is a written decision instead of the
+  // silence that inc.25/28/29 each mistook for coverage.
+  // `^owner$` is the same staff-attribution shape (invoice_ledger.owner names an MLE owner);
+  // anchored so it cannot swallow `owner_id`, which is a join key and benign.
+  /^created_by$/, /^assigned_rep$/, /^measured_by$/, /^owner$/,
 ];
 
 /**
@@ -81,6 +109,10 @@ export const BENIGN = [
   /^buying_signals$/, /^key_dates$/, /^seen_event_ids$/, /^presend_answers$/,
   /^labor_hours_saved$/, /^completion$/, /^storage_path$/, /^pdf$/, /^link$/, /^domain$/,
   /^signed_path$/, /^countersigned_path$/, /^at$/, /^start_ms$/, /^end_ms$/,
+  // Reviewed and cleared 7/29 inc.30. `website` is a company's own public URL — neither money
+  // nor a person, and a rep who cannot see it cannot do the job. `legacy_slug`/`client_slug`
+  // are identifiers, the same class as `_id`.
+  /^website$/, /^legacy_slug$/, /^client_slug$/,
 ];
 
 export const hits = (col, patterns) => patterns.some((re) => re.test(col));
@@ -122,19 +154,30 @@ export function unreviewed(schema) {
 }
 
 /**
- * Names already IDENTIFIED as probably sensitive but not yet decided — carried explicitly so
- * that "unreviewed" does not quietly include things this increment already knows about.
+ * The open queue: column names a reader has LOOKED AT and deliberately not ruled yet.
  *
- * inc.29 found these while building `BENIGN` and did NOT classify them, because each one adds
- * decisions to `DENIALS`/`ALLOWANCES` on a covered table and a half-finished privilege model is
- * worse than an honest queue. They are named here, printed by the audit, and flagged to Rob's
- * ledger rather than left to be rediscovered by chance a fourth time.
+ * inc.29 introduced this as prose. inc.30 made it a checked structure, because a printed list
+ * is only as good as the next person's attention — and the whole lesson of inc.25/28/29 is that
+ * attention is what kept failing. Every entry now names real `(table, column)` pairs, and
+ * `grantBreaches()` treats an unruled column on a covered table as a BREACH unless it appears
+ * here. So the queue is no longer a place things can sit unnoticed: it is the only way to leave
+ * a covered column unruled, it is finite, and it is printed with a count.
+ *
+ * Entries removed by being RULED in inc.30 (they are decisions now, not questions): `ip`,
+ * `client_legal_name`, `sent_to`, `business`, `estimate`/`phase2_estimate`, `payment_state`.
+ * What is left is genuinely undecided, and each says what the decision hinges on.
+ *
+ * @type {{column: string, tables: string[], note: string}[]}
  */
 export const IDENTIFIED_UNDECIDED = [
-  { column: "ip", where: "signature_events", note: "the same audit-trail IP as signature_requests.signer_ip, which IS withheld from both roles — the bare name defeats /ip_address/" },
-  { column: "client_legal_name", where: "invoice_ledger", note: "a customer's legal name on the money ledger; /^name$/ is exact-match so it does not fire" },
-  { column: "estimate / phase2_estimate", where: "people, orgs, deals", note: "dollar figures by every reading, but no MONEY pattern says 'estimate'" },
-  { column: "display_name", where: "property_definitions", note: "a schema label here, not a person — listed so the next reader confirms rather than assumes" },
-  { column: "business_name", where: "submissions", note: "an inbound lead's company; submissions is not a covered table" },
-  { column: "sent_to / attendee_ids", where: "signature_requests, events", note: "who a document went to and who attended — addresses and person ids in a non-name column" },
+  { column: "relationship", tables: ["people", "orgs"], note: "free text describing how MLE knows them ('Caleb's brother-in-law'). Neither a name nor an amount by column type, but it is the one covered column whose CONTENT routinely identifies a third party — a content question `guard:pii` answers, not a name classifier" },
+  { column: "payment_plan_note", tables: ["invoice_ledger"], note: "free text on a money row ('2 x $5,000') — prose that carries amounts without being an amount column. Withheld with the ledger's money today; listed so the next reader knows the withholding rests on content, not on the name" },
+  { column: "display_name", tables: ["property_definitions"], note: "a schema label here, not a person — listed so the next reader confirms rather than assumes" },
+  { column: "business_name", tables: ["submissions"], note: "an inbound lead's company. `business` was ruled PII this increment; this is the same datum under a different name, on a table this model does not cover — ruling it changes a count without changing a privilege, so it waits for submissions to be covered" },
+  { column: "attendee_ids", tables: ["events"], note: "who attended, as people ids in a jsonb array. `_ids$` reads benign as a join key, which is true of the type and false of the meaning; events is not a covered table" },
 ];
+
+/** Fast lookup for the queue: `table.column` keys. */
+export const undecidedKeys = new Set(
+  IDENTIFIED_UNDECIDED.flatMap((u) => u.tables.map((t) => `${t}.${u.column}`)),
+);

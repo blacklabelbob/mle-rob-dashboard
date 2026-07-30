@@ -27,6 +27,7 @@ end $$;
 -- activities — 16 columns on disk
 --   withheld: transcript_url from mle_booker_read — a booker books; other people's call recordings are not part of it — the same refusal as people.transcript_url and orgs.transcript_url, on the table those links actually hang off
 --   withheld: recording_url from mle_booker_read — the audio the transcript beside it is OF. Withheld with `transcript_url` rather than after it: the previous pass refused the transcript link on the words 'other people's call recordings are not part of it' and granted this one in the same statement, because the name classifier matched /transcript/ and had no /recording/. The refusal was real and the leak was total — the booker lost the text and kept the recording
+--   kept, deliberately: created_by — which MLE person logged the activity — attribution on a shared timeline, and a timeline that cannot say who did the thing is not an audit of anything
 revoke select on public.activities from mle_rep_read;
 grant select (action_items, book_protected, buying_signals, created_at, created_by, deal_id, id, occurred_at, org_id, person_id, recording_url, source, source_context, summary, transcript_url, type) on public.activities to mle_rep_read;
 revoke select on public.activities from mle_booker_read;
@@ -42,18 +43,20 @@ revoke select on public.call_transcript_segments from mle_booker_read;
 grant select (confidence, created_at, end_ms, id, idx, start_ms, transcript_id) on public.call_transcript_segments to mle_booker_read;
 
 -- deals — 18 columns on disk
---   withheld: equity from mle_rep_read, mle_booker_read — spin-off equity is OWNERS-ONLY (Q41)
---   withheld: value from mle_booker_read — deal size is the rep's working number, not the booker's
+--   withheld: equity from mle_rep_read, mle_booker_read — spin-off equity is OWNERS-ONLY (Q41) — same line Rob drew on people.equity 2026-07-29
 --   kept, deliberately: name — the deal's own label — a rep working a pipeline it cannot name is not working it. Classified PII by the bare /^name$/ pattern; a deal is not a person
+--   kept, deliberately: value — deal size on the deal itself. Was booker-denied on 'the rep's working number, not the booker's' — Rob's answer says the booker seeing it is the intent, not the leak
+--   kept, deliberately: estimate — the working figure of the thing the rep is selling, beside `value` which is now granted
 revoke select on public.deals from mle_rep_read;
 grant select (book_protected, created_at, estimate, id, key_dates, name, notes, org_id, owner_id, person_id, phase, referral_sourced, routing_lane, stage, updated_at, value, vertical_id) on public.deals to mle_rep_read;
 revoke select on public.deals from mle_booker_read;
-grant select (book_protected, created_at, estimate, id, key_dates, name, notes, org_id, owner_id, person_id, phase, referral_sourced, routing_lane, stage, updated_at, vertical_id) on public.deals to mle_booker_read;
+grant select (book_protected, created_at, estimate, id, key_dates, name, notes, org_id, owner_id, person_id, phase, referral_sourced, routing_lane, stage, updated_at, value, vertical_id) on public.deals to mle_booker_read;
 
 -- documents — 22 columns on disk
 --   withheld: countersigner_name from mle_rep_read, mle_booker_read — the countersigner on an MLE document is an OWNER (0010_esign_countersign — Rob or Will), so this is the execution record of who bound the company, not CRM data
 --   withheld: countersigner_email from mle_rep_read, mle_booker_read — same execution record — and an owner's address on a signed agreement is exactly the pair the signature_requests trail is withheld for
 --   withheld: countersigner_title from mle_rep_read, mle_booker_read — withheld WITH the name rather than kept as a bare role: `signer_type` on signature_requests is a fixed enum ('customer'/'countersigner'), this is free text naming the office a specific person held, and on a table where exactly two people ever countersign a title identifies as well as a name does
+--   kept, deliberately: created_by — who generated the document. Kept while `countersigner_name`/`_email` are withheld, and the difference is deliberate: this is authorship of a draft, those are the execution record of who bound the company
 revoke select on public.documents from mle_rep_read;
 grant select (countersigned_at, countersigned_path, created_at, created_by, deal_id, id, org_id, person_id, phase, sha256_at_upload, sha256_countersigned, sha256_signed, signed_path, status, storage_path, supersedes_id, title, updated_at, version) on public.documents to mle_rep_read;
 revoke select on public.documents from mle_booker_read;
@@ -62,42 +65,54 @@ grant select (countersigned_at, countersigned_path, created_at, created_by, deal
 -- invoice_ledger — 18 columns on disk
 --   withheld: amount from mle_rep_read, mle_booker_read — invoiced money is the owners' ledger
 --   withheld: payment_state from mle_rep_read, mle_booker_read — whether an invoice is paid is the owners' ledger — this column is the `paid` the DoD names (there is no `paid` column; it is a state value)
+--   withheld: client_legal_name from mle_rep_read, mle_booker_read — a customer's LEGAL name on the owners' money ledger — the amount and the payment state on this row are already withheld from both roles, and the party to the invoice is the third piece of the same record
+--   withheld: payment_plan_note from mle_rep_read, mle_booker_read — free text carrying the money it describes ('2 x $5,000') — withheld WITH `amount` and `payment_state`, because a prose column on a money row that the classifier reads as a note is exactly the gap a name-based rule cannot see
 --   kept, deliberately: invoice_number — the ledger's primary key, an identifier and not an amount — classified money only because /invoice/ matches the name. `amount` and `payment_state` are the money on this table and both are withheld
+--   kept, deliberately: owner — which MLE owner owns the client — kept so a rep can tell whose account they are looking at, while every amount on the row stays withheld. Carried in IDENTIFIED_UNDECIDED too, because the real question it raises (should a rep see the whole roster?) is a row rule Rob decides
 revoke select on public.invoice_ledger from mle_rep_read;
-grant select (client_legal_name, client_slug, created_at, currency, due_date, invoice_number, issue_date, owner, payment_plan_note, pdf, source_commit, source_sha256, status_text, synced_at, updated_at, withdrawn_at) on public.invoice_ledger to mle_rep_read;
+grant select (client_slug, created_at, currency, due_date, invoice_number, issue_date, owner, pdf, source_commit, source_sha256, status_text, synced_at, updated_at, withdrawn_at) on public.invoice_ledger to mle_rep_read;
 revoke select on public.invoice_ledger from mle_booker_read;
-grant select (client_legal_name, client_slug, created_at, currency, due_date, invoice_number, issue_date, owner, payment_plan_note, pdf, source_commit, source_sha256, status_text, synced_at, updated_at, withdrawn_at) on public.invoice_ledger to mle_booker_read;
+grant select (client_slug, created_at, currency, due_date, invoice_number, issue_date, owner, pdf, source_commit, source_sha256, status_text, synced_at, updated_at, withdrawn_at) on public.invoice_ledger to mle_booker_read;
 
 -- orgs — 31 columns on disk
---   withheld: quoted_amount from mle_rep_read, mle_booker_read — what a customer was quoted is not a rep's or a booker's number
---   withheld: equity from mle_rep_read, mle_booker_read — spin-off equity is OWNERS-ONLY (Q41)
+--   withheld: equity from mle_rep_read, mle_booker_read — spin-off equity is OWNERS-ONLY (Q41) — same line Rob drew on people.equity 2026-07-29
 --   withheld: transcript_url from mle_booker_read — a booker books; other people's call recordings are not part of it
 --   withheld: meeting_video_url from mle_booker_read — same pair as people.meeting_video_url — the recorded meeting, withheld alongside the transcript link rather than one increment later
 --   kept, deliberately: name — the company name is the working unit of every rep screen
 --   kept, deliberately: phone — same as people.phone
 --   kept, deliberately: email — same as people.email
+--   kept, deliberately: business — same as people.business — the legal-name variant of the org's own name, and naming the company is the working unit of every rep screen
+--   kept, deliberately: assigned_rep — same as people.assigned_rep
+--   kept, deliberately: quoted_amount — same as people.quoted_amount — Rob's instruction names the column by name
+--   kept, deliberately: estimate — same as people.estimate
+--   kept, deliberately: phase2_estimate — same as people.phase2_estimate
 revoke select on public.orgs from mle_rep_read;
-grant select (assigned_rep, business, created_at, description, domain, email, est_time_to_payment_days, estimate, id, key_dates, legacy_slug, meeting_video_url, name, node_type, notes, phase2_estimate, phase_one, phone, referred_by_id, referred_by_org_id, relationship, role, search_tsv, signed, status, transcript_url, updated_at, vertical_id, website) on public.orgs to mle_rep_read;
+grant select (assigned_rep, business, created_at, description, domain, email, est_time_to_payment_days, estimate, id, key_dates, legacy_slug, meeting_video_url, name, node_type, notes, phase2_estimate, phase_one, phone, quoted_amount, referred_by_id, referred_by_org_id, relationship, role, search_tsv, signed, status, transcript_url, updated_at, vertical_id, website) on public.orgs to mle_rep_read;
 revoke select on public.orgs from mle_booker_read;
-grant select (assigned_rep, business, created_at, description, domain, email, est_time_to_payment_days, estimate, id, key_dates, legacy_slug, name, node_type, notes, phase2_estimate, phase_one, phone, referred_by_id, referred_by_org_id, relationship, role, search_tsv, signed, status, updated_at, vertical_id, website) on public.orgs to mle_booker_read;
+grant select (assigned_rep, business, created_at, description, domain, email, est_time_to_payment_days, estimate, id, key_dates, legacy_slug, name, node_type, notes, phase2_estimate, phase_one, phone, quoted_amount, referred_by_id, referred_by_org_id, relationship, role, search_tsv, signed, status, updated_at, vertical_id, website) on public.orgs to mle_booker_read;
 
 -- people — 33 columns on disk
---   withheld: quoted_amount from mle_rep_read, mle_booker_read — what a customer was quoted is not a rep's or a booker's number
---   withheld: equity from mle_rep_read, mle_booker_read — spin-off equity is OWNERS-ONLY (Q41)
+--   withheld: equity from mle_rep_read, mle_booker_read — spin-off equity is OWNERS-ONLY (Q41) — and per Rob 2026-07-29 this is THE line: 'I dont want to show any equity to anyone but Will and I.' Equity is ownership, not compensation; every other money column on this table is now granted
 --   withheld: transcript_url from mle_booker_read — a booker books; other people's call recordings are not part of it
 --   withheld: meeting_video_url from mle_booker_read — the VIDEO of the meeting the transcript beside it is of. Withheld with `transcript_url`, not after it: inc.28 closed exactly this pair on `activities` by adding /recording/ to the classifier, and this column slipped the fix because it says 'video' — the booker was refused the transcript link and handed the recorded meeting. Kept for the rep, whose job is reviewing calls
 --   kept, deliberately: name — a CRM whose reps cannot see who they are calling is not a CRM
 --   kept, deliberately: phone — phoning people IS the rep's and the booker's job — withholding it breaks the role instead of protecting it. Whether SOME bookers should be scoped to their own accounts is Rob's org-chart call, flagged not guessed
 --   kept, deliberately: email — same as phone — outreach is the job
+--   kept, deliberately: business — the company a contact belongs to. Classified PII because 0003_orgs_split says the field is 'often the legal name' — and granted anyway, because a rep who cannot see which company they are calling cannot call. Sensitive is not the same as withheld
+--   kept, deliberately: assigned_rep — who owns the account. A rep needs to know whether it is theirs; a booker needs to know who to hand it to. Whether a rep should see accounts assigned to OTHER reps is a row rule and Rob's org-chart call — flagged, not guessed
+--   kept, deliberately: quoted_amount — what a customer was quoted — GRANTED to rep and booker on Rob's direct instruction. A booker who cannot see deal size cannot see the point of the call they are booking
+--   kept, deliberately: estimate — a job's estimated dollars. It followed `quoted_amount` into DENIALS and it follows it back out — same column class, same instruction
+--   kept, deliberately: phase2_estimate — the Phase-2 ROI projection — the clearest 'how money can be made' number in the schema, which is the sentence Rob used. Granted; the measured `phase2_returns` figures stay booker-withheld because those are a customer's actual revenue and cost basis, not MLE's upside
 revoke select on public.people from mle_rep_read;
-grant select (assigned_rep, business, comms_consent, created_at, description, email, entity_kind, est_time_to_payment_days, estimate, id, key_dates, legacy_slug, meeting_video_url, name, node_type, notes, org_id, phase2_estimate, phase_one, phone, referred_by_id, referred_by_org_id, relationship, role, search_tsv, signed, status, transcript_url, updated_at, vertical_id, website) on public.people to mle_rep_read;
+grant select (assigned_rep, business, comms_consent, created_at, description, email, entity_kind, est_time_to_payment_days, estimate, id, key_dates, legacy_slug, meeting_video_url, name, node_type, notes, org_id, phase2_estimate, phase_one, phone, quoted_amount, referred_by_id, referred_by_org_id, relationship, role, search_tsv, signed, status, transcript_url, updated_at, vertical_id, website) on public.people to mle_rep_read;
 revoke select on public.people from mle_booker_read;
-grant select (assigned_rep, business, comms_consent, created_at, description, email, entity_kind, est_time_to_payment_days, estimate, id, key_dates, legacy_slug, name, node_type, notes, org_id, phase2_estimate, phase_one, phone, referred_by_id, referred_by_org_id, relationship, role, search_tsv, signed, status, updated_at, vertical_id, website) on public.people to mle_booker_read;
+grant select (assigned_rep, business, comms_consent, created_at, description, email, entity_kind, est_time_to_payment_days, estimate, id, key_dates, legacy_slug, name, node_type, notes, org_id, phase2_estimate, phase_one, phone, quoted_amount, referred_by_id, referred_by_org_id, relationship, role, search_tsv, signed, status, updated_at, vertical_id, website) on public.people to mle_booker_read;
 
 -- phase2_returns — 13 columns on disk
 --   withheld: labor_cost_per_hour from mle_booker_read — a customer's cost basis is not a booker's
 --   withheld: revenue_since_phase2_start from mle_booker_read — a customer's revenue is not a booker's
 --   kept, deliberately: revenue_basis — not an amount — it names WHICH basis a figure came from ('invoiced' vs 'collected'), so it is classified money by name only
+--   kept, deliberately: measured_by — who took the measurement — provenance on a number the booker cannot see anyway, and the rep reviewing a Phase-2 result needs to know whose reading it is
 revoke select on public.phase2_returns from mle_rep_read;
 grant select (created_at, customer_id, id, labor_cost_per_hour, labor_hours_saved, measured_at, measured_by, note, revenue_basis, revenue_since_phase2_start, source, superseded_at, updated_at) on public.phase2_returns to mle_rep_read;
 revoke select on public.phase2_returns from mle_booker_read;
@@ -108,11 +123,12 @@ grant select (created_at, customer_id, id, labor_hours_saved, measured_at, measu
 --   withheld: signer_email from mle_rep_read, mle_booker_read — the e-sign audit trail is evidence, not CRM data
 --   withheld: signer_ip from mle_rep_read, mle_booker_read — the e-sign audit trail is evidence, not CRM data
 --   withheld: signer_user_agent from mle_rep_read, mle_booker_read — the e-sign audit trail is evidence, not CRM data
+--   withheld: sent_to from mle_rep_read, mle_booker_read — the address the signing link was delivered to (0008_esign) — the e-sign audit trail is evidence, not CRM data, and this is the same datum as the withheld `signer_email` at a different moment in the flow
 --   kept, deliberately: signer_type — not identity — it is the role that signed ('customer' / 'countersigner'), and a rep tracking whether a doc came back needs it
 revoke select on public.signature_requests from mle_rep_read;
-grant select (channel, consent_at, created_at, document_id, expires_at, id, presend_answers, sent_to, sha256_at_sign, signed_at, signer_type, status, token_hash, updated_at, viewed_at, voided_at) on public.signature_requests to mle_rep_read;
+grant select (channel, consent_at, created_at, document_id, expires_at, id, presend_answers, sha256_at_sign, signed_at, signer_type, status, token_hash, updated_at, viewed_at, voided_at) on public.signature_requests to mle_rep_read;
 revoke select on public.signature_requests from mle_booker_read;
-grant select (channel, consent_at, created_at, document_id, expires_at, id, presend_answers, sent_to, sha256_at_sign, signed_at, signer_type, status, token_hash, updated_at, viewed_at, voided_at) on public.signature_requests to mle_booker_read;
+grant select (channel, consent_at, created_at, document_id, expires_at, id, presend_answers, sha256_at_sign, signed_at, signer_type, status, token_hash, updated_at, viewed_at, voided_at) on public.signature_requests to mle_booker_read;
 
 -- Verify by reading, not by trusting. Each row is a column a role may select;
 -- a withheld column must be absent from this result.

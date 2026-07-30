@@ -41,6 +41,7 @@ import {
   isSensitive,
   unreviewed,
   IDENTIFIED_UNDECIDED,
+  undecidedKeys,
 } from "../../scripts/lib/sensitive-columns.mjs";
 
 const REPO_ROOT = join(__dirname, "..", "..");
@@ -48,6 +49,9 @@ const MIGRATION = join(REPO_ROOT, "supabase/migrations/0032_role_read_grants.sql
 
 const schema: Map<string, Set<string>> = readSchema();
 const sensitive: Map<string, string[]> = sensitiveByTable(schema);
+const unrev: Map<string, string[]> = unreviewed(schema);
+/** The real model, graded the way the generator grades it — all four inputs. */
+const realBreaches = () => grantBreaches(schema, sensitive, unrev, undecidedKeys);
 const sql = renderRoleGrantSql(schema);
 
 /** The exact column list a role is granted on a table, read back out of the generated SQL. */
@@ -61,7 +65,7 @@ function grantedInSql(table: string, role: ReadRole): string[] {
 describe("the model is internally sound", () => {
   it("has no breaches against the real schema", () => {
     // The generator refuses to write on any breach, so a red here is a build that cannot ship.
-    expect(grantBreaches(schema, sensitive)).toEqual([]);
+    expect(realBreaches()).toEqual([]);
   });
 
   it("decides every money/PII column on every table it covers", () => {
@@ -105,12 +109,12 @@ describe("grantBreaches fails in both directions", () => {
   const realSchema = () => new Map([["people", new Set(["id", "name", "phone"])]]);
 
   it("flags a denial naming a column that does not exist — a typo protects nothing", () => {
-    const b = grantBreaches(new Map([["people", new Set(["id"])]]), new Map([["people", []]]));
+    const b = grantBreaches(new Map([["people", new Set(["id"])]]), new Map([["people", []]]), new Map(), new Set());
     expect(b.some((x) => x.kind === "unknown-column")).toBe(true);
   });
 
   it("flags a denial naming a table that is in no migration", () => {
-    const b = grantBreaches(new Map(), new Map());
+    const b = grantBreaches(new Map(), new Map(), new Map(), new Set());
     expect(b.some((x) => x.kind === "unknown-table")).toBe(true);
   });
 
@@ -118,12 +122,12 @@ describe("grantBreaches fails in both directions", () => {
     // `people.phone` sensitive, but pretend neither list mentions it by dropping the
     // allowance's table from the schema's sensitive map is not enough — assert on the real
     // model instead, which currently decides it, then on a synthetic gap.
-    const b = grantBreaches(realSchema(), new Map([["people", ["id"]]]));
+    const b = grantBreaches(realSchema(), new Map([["people", ["id"]]]), new Map(), new Set());
     expect(b.some((x) => x.kind === "undecided-sensitive" && x.detail.includes("people.id"))).toBe(true);
   });
 
   it("does not flag a sensitive column that is deliberately granted", () => {
-    const b = grantBreaches(schema, sensitive);
+    const b = realBreaches();
     for (const a of ALLOWANCES) {
       expect(b.some((x) => x.detail.startsWith(`${a.table}.${a.column} is money/PII`))).toBe(false);
     }
@@ -131,11 +135,22 @@ describe("grantBreaches fails in both directions", () => {
 });
 
 describe("the DoD's own refusals, read out of the generated SQL", () => {
-  it("withholds quoted_amount from BOTH new roles, on people and orgs", () => {
+  // REVERSED 2026-07-29 (Rob, ROB-ANSWERS-2026-07-29-night.md §1): *"I WANT the bookers to see
+  // quoted amount… I want people to see how money can be made."* This test used to assert the
+  // opposite and it is inverted here rather than deleted, so the reversal is visible in the file
+  // that enforces it. Deal money is granted; `equity` is the line, and it is the test below.
+  it("GRANTS deal money to both new roles — quoted_amount, estimate, phase2_estimate, value", () => {
     for (const table of ["people", "orgs"]) {
       for (const role of READ_ROLES) {
-        expect(grantedInSql(table, role), `${role} on ${table}`).not.toContain("quoted_amount");
+        const cols = grantedInSql(table, role);
+        for (const col of ["quoted_amount", "estimate", "phase2_estimate"]) {
+          expect(cols, `${role} on ${table}.${col}`).toContain(col);
+        }
       }
+    }
+    for (const role of READ_ROLES) {
+      expect(grantedInSql("deals", role), `${role} on deals`).toContain("value");
+      expect(grantedInSql("deals", role), `${role} on deals`).toContain("estimate");
     }
   });
 
@@ -164,11 +179,11 @@ describe("the DoD's own refusals, read out of the generated SQL", () => {
     }
   });
 
-  it("withholds a booker from deal size and from other people's recordings", () => {
-    expect(grantedInSql("deals", "mle_booker_read")).not.toContain("value");
+  it("withholds a booker from other people's recordings — but NOT from deal size", () => {
     expect(grantedInSql("people", "mle_booker_read")).not.toContain("transcript_url");
-    // …and the rep, whose working number it is, keeps deal value.
-    expect(grantedInSql("deals", "mle_rep_read")).toContain("value");
+    // Deal size is deliberately kept, per Rob. Pinned here too because this test previously
+    // asserted the refusal, and an un-inverted line would quietly re-impose it.
+    expect(grantedInSql("deals", "mle_booker_read")).toContain("value");
   });
 
   it("withholds the RECORDING from a booker wherever it withholds the transcript of it", () => {
@@ -253,9 +268,17 @@ describe("the DoD's own refusals, read out of the generated SQL", () => {
 
 describe("permittedColumns", () => {
   it("subtracts only what the given role is denied", () => {
-    const all = ["id", "value", "equity", "stage"];
-    expect(permittedColumns("deals", all, "mle_rep_read")).toEqual(["id", "stage", "value"]);
-    expect(permittedColumns("deals", all, "mle_booker_read")).toEqual(["id", "stage"]);
+    // `equity` is denied to BOTH roles, so it cannot show a per-role difference; after the
+    // 2026-07-29 money reversal the only per-role denials left on a deal-side table are the
+    // recording links. `people` carries both kinds, so the two assertions differ by exactly one.
+    const all = ["id", "name", "equity", "transcript_url"];
+    expect(permittedColumns("people", all, "mle_rep_read")).toEqual(["id", "name", "transcript_url"]);
+    expect(permittedColumns("people", all, "mle_booker_read")).toEqual(["id", "name"]);
+    // …and deal money now survives for both, which is the reversal itself.
+    const deal = ["id", "value", "equity", "stage"];
+    for (const role of ["mle_rep_read", "mle_booker_read"] as const) {
+      expect(permittedColumns("deals", deal, role)).toEqual(["id", "stage", "value"]);
+    }
   });
 
   it("leaves an uncovered table untouched", () => {
@@ -386,19 +409,55 @@ describe("the classifier's third answer — the blind spot is finite and printed
     expect(un.get("t")).toEqual(["wildcard_thing"]);
   });
 
-  it("keeps the identified-but-undecided columns named instead of pending in silence", () => {
-    // These were found while building BENIGN and deliberately NOT classified this increment —
-    // each adds decisions on a covered table. Naming them is the honest form of not doing them;
-    // this test fails if the list is emptied without the columns being decided.
+  it("keeps the open queue named, real, and non-empty instead of pending in silence", () => {
+    // The queue is the only legal way to leave a covered column unruled, so it is held to the
+    // same standard as a decision: real pairs, a stated reason, no empties.
     expect(IDENTIFIED_UNDECIDED.length).toBeGreaterThan(0);
     for (const u of IDENTIFIED_UNDECIDED) {
       expect(u.column.trim(), "a named gap with no column").not.toBe("");
-      expect(u.note.trim(), `${u.column} is listed without saying why it escaped`).not.toBe("");
+      expect(u.tables.length, `${u.column} is queued against no table`).toBeGreaterThan(0);
+      expect(u.note.trim(), `${u.column} is listed without saying what the decision hinges on`).not.toBe("");
+      for (const t of u.tables) {
+        expect(schema.get(t)?.has(u.column), `${t}.${u.column} is queued but does not exist`).toBe(true);
+      }
     }
-    // `signature_events.ip` is the sharpest of them: the same datum as `signer_ip`, which IS
-    // withheld from both roles. It is still unclassified, so this pins that it stays VISIBLE.
-    const un = unreviewed(readSchema());
-    expect(un.get("signature_events") ?? []).toContain("ip");
+  });
+
+  it("ruled the six columns inc.29 named, rather than carrying them a second increment", () => {
+    // inc.29 printed these as "probably sensitive, not yet decided". Leaving a named suspicion
+    // unruled is exactly the state that made three leaks findable only by chance, so inc.30
+    // ruled them. `signature_events.ip` is the sharpest: the same datum as `signer_ip`, which
+    // IS withheld from both roles, and the bare name defeated /ip_address/.
+    for (const col of ["ip", "client_legal_name", "sent_to", "business", "estimate", "phase2_estimate", "payment_state"]) {
+      expect(isSensitive(col), `${col} is still unruled`).toBe(true);
+    }
+    expect(unreviewed(readSchema()).get("signature_events") ?? []).not.toContain("ip");
+    // And ruling is not the same as withholding: `business` is PII and deliberately GRANTED.
+    expect(ALLOWANCES.some((a) => a.table === "people" && a.column === "business")).toBe(true);
+  });
+
+  it("goes RED on an unruled column on a covered table — the inc.30 gate", () => {
+    // The three leaks (activities.recording_url, people.meeting_video_url,
+    // call_transcript_segments.speaker) were each a covered-table column matching no pattern in
+    // either direction, and each was caught by a human reading output. This is the mechanism
+    // that replaces that luck: unruled on a covered table is a breach, full stop.
+    const covered = COVERED_TABLES[0];
+    const b = grantBreaches(schema, sensitive, new Map([[covered, ["some_new_column"]]]), undecidedKeys);
+    expect(b.some((x) => x.kind === "unreviewed-on-covered-table" && x.detail.includes(`${covered}.some_new_column`))).toBe(true);
+    // Queueing it explicitly is the one legal escape, and it must be a deliberate act.
+    const q = grantBreaches(schema, sensitive, new Map([[covered, ["some_new_column"]]]), new Set([`${covered}.some_new_column`]));
+    expect(q.some((x) => x.kind === "unreviewed-on-covered-table")).toBe(false);
+    // An UNCOVERED table's unruled columns are printed, not fatal — coverage is partial on
+    // purpose and a gate that punished the uncovered remainder would force false coverage.
+    const u = grantBreaches(schema, sensitive, new Map([["submissions", ["business_name"]]]), undecidedKeys);
+    expect(u.some((x) => x.kind === "unreviewed-on-covered-table")).toBe(false);
+  });
+
+  it("refuses a queue entry that watches a column which does not exist", () => {
+    const b = grantBreaches(schema, sensitive, unrev, new Set(["people.no_such_column"]));
+    expect(b.some((x) => x.kind === "unknown-column" && x.detail.includes("queued"))).toBe(true);
+    const t = grantBreaches(schema, sensitive, unrev, new Set(["no_such_table.x"]));
+    expect(t.some((x) => x.kind === "unknown-table" && x.detail.includes("queued"))).toBe(true);
   });
 });
 

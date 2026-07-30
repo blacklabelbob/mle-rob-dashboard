@@ -15,7 +15,7 @@ import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { readSchema } from "./lib/schema-from-migrations.mjs";
-import { sensitiveByTable } from "./lib/sensitive-columns.mjs";
+import { sensitiveByTable, unreviewed, undecidedKeys } from "./lib/sensitive-columns.mjs";
 import {
   renderRoleGrantSql, grantBreaches, uncoveredSensitive, COVERED_TABLES, DENIALS,
 } from "../lib/security/roleGrants.ts";
@@ -27,7 +27,7 @@ const check = process.argv.includes("--check");
 const schema = readSchema();
 const sensitive = sensitiveByTable(schema);
 
-const breaches = grantBreaches(schema, sensitive);
+const breaches = grantBreaches(schema, sensitive, unreviewed(schema), undecidedKeys);
 if (breaches.length) {
   console.error(`role-grant model has ${breaches.length} breach(es) — refusing to generate:`);
   for (const b of breaches) console.error(`  [${b.kind}] ${b.detail}`);

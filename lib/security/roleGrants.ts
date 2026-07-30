@@ -55,20 +55,26 @@ export type Denial = {
  * PII IS NOT BLANKET-DENIED, on purpose. A booker's job is to phone people, so revoking
  * `phone`/`email` from the booker role would break the role rather than protect it. The DoD's
  * wording is "a phone/email column it *should not*" — which is a question about Rob's org
- * chart, not about SQL, so it is flagged for him instead of guessed at here. What IS withheld
- * from both new roles is money, equity, and the recording/signature audit trail.
+ * chart, not about SQL, so it is flagged for him instead of guessed at here.
+ *
+ * DEAL MONEY IS NOT WITHHELD EITHER — reversed 2026-07-29 on Rob's own words, and this is the
+ * correction that matters most in this file. Increments 25-30 withheld `quoted_amount`, `value`
+ * and `estimate` from both roles on the reading "a customer's price is the owners' number."
+ * Rob: *"I WANT the bookers to see quoted amount. I just dont want to show any equity to anyone
+ * but Will and I. I want people to see how money can be made."* Deal size is a MOTIVATOR for the
+ * floor; hiding it de-motivates the people selling and protects nothing. The line is not
+ * money-vs-no-money, it is EQUITY — ownership, not compensation. So what is withheld from both
+ * new roles is `equity` (owners only), the owners' invoice ledger, and the recording/signature
+ * audit trail. Source: `docs/plans/sources/ROB-ANSWERS-2026-07-29-night.md` §1.
  */
 export const DENIALS: Denial[] = [
-  { table: "people", column: "quoted_amount", roles: ["mle_rep_read", "mle_booker_read"], because: "what a customer was quoted is not a rep's or a booker's number" },
-  { table: "people", column: "equity", roles: ["mle_rep_read", "mle_booker_read"], because: "spin-off equity is OWNERS-ONLY (Q41)" },
+  { table: "people", column: "equity", roles: ["mle_rep_read", "mle_booker_read"], because: "spin-off equity is OWNERS-ONLY (Q41) — and per Rob 2026-07-29 this is THE line: 'I dont want to show any equity to anyone but Will and I.' Equity is ownership, not compensation; every other money column on this table is now granted" },
   { table: "people", column: "transcript_url", roles: ["mle_booker_read"], because: "a booker books; other people's call recordings are not part of it" },
   { table: "people", column: "meeting_video_url", roles: ["mle_booker_read"], because: "the VIDEO of the meeting the transcript beside it is of. Withheld with `transcript_url`, not after it: inc.28 closed exactly this pair on `activities` by adding /recording/ to the classifier, and this column slipped the fix because it says 'video' — the booker was refused the transcript link and handed the recorded meeting. Kept for the rep, whose job is reviewing calls" },
-  { table: "orgs", column: "quoted_amount", roles: ["mle_rep_read", "mle_booker_read"], because: "what a customer was quoted is not a rep's or a booker's number" },
-  { table: "orgs", column: "equity", roles: ["mle_rep_read", "mle_booker_read"], because: "spin-off equity is OWNERS-ONLY (Q41)" },
+  { table: "orgs", column: "equity", roles: ["mle_rep_read", "mle_booker_read"], because: "spin-off equity is OWNERS-ONLY (Q41) — same line Rob drew on people.equity 2026-07-29" },
   { table: "orgs", column: "transcript_url", roles: ["mle_booker_read"], because: "a booker books; other people's call recordings are not part of it" },
   { table: "orgs", column: "meeting_video_url", roles: ["mle_booker_read"], because: "same pair as people.meeting_video_url — the recorded meeting, withheld alongside the transcript link rather than one increment later" },
-  { table: "deals", column: "equity", roles: ["mle_rep_read", "mle_booker_read"], because: "spin-off equity is OWNERS-ONLY (Q41)" },
-  { table: "deals", column: "value", roles: ["mle_booker_read"], because: "deal size is the rep's working number, not the booker's" },
+  { table: "deals", column: "equity", roles: ["mle_rep_read", "mle_booker_read"], because: "spin-off equity is OWNERS-ONLY (Q41) — same line Rob drew on people.equity 2026-07-29" },
   { table: "signature_requests", column: "signer_name", roles: ["mle_rep_read", "mle_booker_read"], because: "who personally signed is the same evidence as the email/IP beside it — a rep needs to know a doc came back, which `signer_type` gives, not who held the pen" },
   { table: "signature_requests", column: "signer_email", roles: ["mle_rep_read", "mle_booker_read"], because: "the e-sign audit trail is evidence, not CRM data" },
   { table: "signature_requests", column: "signer_ip", roles: ["mle_rep_read", "mle_booker_read"], because: "the e-sign audit trail is evidence, not CRM data" },
@@ -83,6 +89,9 @@ export const DENIALS: Denial[] = [
   { table: "call_transcript_segments", column: "text", roles: ["mle_booker_read"], because: "the verbatim words of a call. Kept for the rep — reviewing calls IS the rep's job (and the /rep cockpit reads them); withheld from the booker on the same rule as people.transcript_url. Whether a rep should reach only their OWN calls is a ROW question a column privilege cannot answer, and it is Rob's org-chart call, flagged not guessed" },
   { table: "call_transcript_segments", column: "speaker", roles: ["mle_booker_read"], because: "who said the words that `text` beside it is withheld for. A speaker label on a per-segment row is the customer's or the rep's identity attached to a specific moment of a call, so keeping it while refusing the text hands over who was on the call and what it was about — the same half-refusal shape as the transcript/recording pair" },
   { table: "activities", column: "transcript_url", roles: ["mle_booker_read"], because: "a booker books; other people's call recordings are not part of it — the same refusal as people.transcript_url and orgs.transcript_url, on the table those links actually hang off" },
+  { table: "invoice_ledger", column: "client_legal_name", roles: ["mle_rep_read", "mle_booker_read"], because: "a customer's LEGAL name on the owners' money ledger — the amount and the payment state on this row are already withheld from both roles, and the party to the invoice is the third piece of the same record" },
+  { table: "signature_requests", column: "sent_to", roles: ["mle_rep_read", "mle_booker_read"], because: "the address the signing link was delivered to (0008_esign) — the e-sign audit trail is evidence, not CRM data, and this is the same datum as the withheld `signer_email` at a different moment in the flow" },
+  { table: "invoice_ledger", column: "payment_plan_note", roles: ["mle_rep_read", "mle_booker_read"], because: "free text carrying the money it describes ('2 x $5,000') — withheld WITH `amount` and `payment_state`, because a prose column on a money row that the classifier reads as a note is exactly the gap a name-based rule cannot see" },
   { table: "activities", column: "recording_url", roles: ["mle_booker_read"], because: "the audio the transcript beside it is OF. Withheld with `transcript_url` rather than after it: the previous pass refused the transcript link on the words 'other people's call recordings are not part of it' and granted this one in the same statement, because the name classifier matched /transcript/ and had no /recording/. The refusal was real and the leak was total — the booker lost the text and kept the recording" },
 ];
 
@@ -109,6 +118,30 @@ export const ALLOWANCES: Allowance[] = [
   { table: "phase2_returns", column: "revenue_basis", because: "not an amount — it names WHICH basis a figure came from ('invoiced' vs 'collected'), so it is classified money by name only" },
   { table: "signature_requests", column: "signer_type", because: "not identity — it is the role that signed ('customer' / 'countersigner'), and a rep tracking whether a doc came back needs it" },
   { table: "call_transcript_segments", column: "transcript_id", because: "the foreign key to call_transcripts, classified PII only because /transcript/ matches the name. A join key carries no words; `text` beside it is the content and that is what the booker is refused" },
+  // inc.30 — the staff-attribution and company-name columns, classified as person columns this
+  // increment and then deliberately KEPT. They are here rather than absent because silence is
+  // the failure mode this whole sub-thread exists to remove: a booker reading `assigned_rep`
+  // should be a sentence somebody wrote, not a column nobody mentioned.
+  { table: "people", column: "business", because: "the company a contact belongs to. Classified PII because 0003_orgs_split says the field is 'often the legal name' — and granted anyway, because a rep who cannot see which company they are calling cannot call. Sensitive is not the same as withheld" },
+  { table: "orgs", column: "business", because: "same as people.business — the legal-name variant of the org's own name, and naming the company is the working unit of every rep screen" },
+  { table: "people", column: "assigned_rep", because: "who owns the account. A rep needs to know whether it is theirs; a booker needs to know who to hand it to. Whether a rep should see accounts assigned to OTHER reps is a row rule and Rob's org-chart call — flagged, not guessed" },
+  { table: "orgs", column: "assigned_rep", because: "same as people.assigned_rep" },
+  { table: "activities", column: "created_by", because: "which MLE person logged the activity — attribution on a shared timeline, and a timeline that cannot say who did the thing is not an audit of anything" },
+  { table: "documents", column: "created_by", because: "who generated the document. Kept while `countersigner_name`/`_email` are withheld, and the difference is deliberate: this is authorship of a draft, those are the execution record of who bound the company" },
+  { table: "invoice_ledger", column: "owner", because: "which MLE owner owns the client — kept so a rep can tell whose account they are looking at, while every amount on the row stays withheld. Carried in IDENTIFIED_UNDECIDED too, because the real question it raises (should a rep see the whole roster?) is a row rule Rob decides" },
+  { table: "phase2_returns", column: "measured_by", because: "who took the measurement — provenance on a number the booker cannot see anyway, and the rep reviewing a Phase-2 result needs to know whose reading it is" },
+  // 2026-07-29 REVERSAL (Rob, ROB-ANSWERS-2026-07-29-night.md §1). These five were DENIALS in
+  // increments 25-30 and are now grants. They are listed with the reason Rob gave rather than a
+  // reason I inferred, because the inferred one was wrong: "I want people to see how money can
+  // be made." Deal money motivates the floor. `equity` stays denied and is the only line.
+  { table: "people", column: "quoted_amount", because: "what a customer was quoted — GRANTED to rep and booker on Rob's direct instruction. A booker who cannot see deal size cannot see the point of the call they are booking" },
+  { table: "orgs", column: "quoted_amount", because: "same as people.quoted_amount — Rob's instruction names the column by name" },
+  { table: "deals", column: "value", because: "deal size on the deal itself. Was booker-denied on 'the rep's working number, not the booker's' — Rob's answer says the booker seeing it is the intent, not the leak" },
+  { table: "people", column: "estimate", because: "a job's estimated dollars. It followed `quoted_amount` into DENIALS and it follows it back out — same column class, same instruction" },
+  { table: "orgs", column: "estimate", because: "same as people.estimate" },
+  { table: "deals", column: "estimate", because: "the working figure of the thing the rep is selling, beside `value` which is now granted" },
+  { table: "people", column: "phase2_estimate", because: "the Phase-2 ROI projection — the clearest 'how money can be made' number in the schema, which is the sentence Rob used. Granted; the measured `phase2_returns` figures stay booker-withheld because those are a customer's actual revenue and cost basis, not MLE's upside" },
+  { table: "orgs", column: "phase2_estimate", because: "same as people.phase2_estimate" },
 ];
 
 /** The tables this model takes responsibility for. Derived, so it cannot drift from DENIALS. */
@@ -127,10 +160,14 @@ export type Breach = { kind: string; detail: string };
  *
  * @param schema table -> columns, from `scripts/lib/schema-from-migrations.mjs`
  * @param sensitive table -> the money/PII columns the exposure audit classifies
+ * @param unreviewedCols table -> columns neither classified sensitive nor reviewed benign
+ * @param queued `table.column` keys a reader has explicitly left undecided (IDENTIFIED_UNDECIDED)
  */
 export function grantBreaches(
   schema: Map<string, Set<string>>,
   sensitive: Map<string, string[]>,
+  unreviewedCols: Map<string, string[]>,
+  queued: Set<string>,
 ): Breach[] {
   const out: Breach[] = [];
 
@@ -198,6 +235,39 @@ export function grantBreaches(
           detail: `${key} is money/PII on a covered table and is neither denied nor deliberately granted — decide it or drop the table from coverage`,
         });
       }
+    }
+  }
+
+  // THE inc.30 GATE. Three increments (25, 28, 29) each found a real leak on a covered table,
+  // and every one was found by a human happening to read output — `activities.recording_url`,
+  // `people.meeting_video_url`, `call_transcript_segments.speaker`. All three sat in the same
+  // place: a column on a table this model covers, whose name matched no pattern in either
+  // direction, so it was neither refused nor deliberately kept. inc.29 made that set printed;
+  // printing it does not stop a fourth one, because the detector was still a person's
+  // attention. This makes it RED: on a covered table, a column must be classified sensitive
+  // (then denied or granted above), reviewed benign, or explicitly queued as undecided. There
+  // is no fourth state, and the generator refuses to write SQL while one exists.
+  for (const table of COVERED_TABLES) {
+    for (const col of unreviewedCols.get(table) ?? []) {
+      if (queued.has(`${table}.${col}`)) continue;
+      out.push({
+        kind: "unreviewed-on-covered-table",
+        detail: `${table}.${col} is on a covered table and nobody has ruled on the name — classify it money/PII/benign, or queue it in IDENTIFIED_UNDECIDED. Unruled is how recording_url, meeting_video_url and speaker each reached a booker`,
+      });
+    }
+  }
+
+  // The queue is held to the same standard as a decision, for the same reason a typo'd denial
+  // is: an entry naming a column that does not exist reads as "we are watching this" while
+  // watching nothing, and it would also let a REAL column of that name slip in later.
+  for (const key of queued) {
+    const [table, ...rest] = key.split(".");
+    const column = rest.join(".");
+    const cols = schema.get(table);
+    if (!cols) {
+      out.push({ kind: "unknown-table", detail: `${key} is queued as undecided but ${table} is not in any migration` });
+    } else if (!cols.has(column)) {
+      out.push({ kind: "unknown-column", detail: `${key} is queued as undecided but does not exist — the queue entry watches nothing` });
     }
   }
 
