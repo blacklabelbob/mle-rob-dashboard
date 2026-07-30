@@ -7,6 +7,7 @@ import ActivityTimeline from "@/components/ActivityTimeline";
 import Phase2RoiEstimator from "@/components/Phase2RoiEstimator";
 import QuotedAmountInline from "@/components/QuotedAmountInline";
 import RepAccountStageChip from "@/components/RepAccountStageChip";
+import RepStageGuidance from "@/components/RepStageGuidance";
 import RepLogInteraction from "@/components/RepLogInteraction";
 import RepEmailDrafts from "@/components/RepEmailDrafts";
 import RepCollateralShelf from "@/components/RepCollateralShelf";
@@ -16,6 +17,7 @@ import { getStore } from "@/lib/storage";
 import { accountStageChip } from "@/lib/deals/accountStageChip";
 import { draftViewsFor } from "@/lib/rep/emailTemplates";
 import { collateralViewsFor } from "@/lib/rep/collateral";
+import { guidanceViewFor } from "@/lib/rep/stageGuidance";
 import { buildBlueprint } from "@/lib/phases/blueprint";
 import { loadComponentLive, mergeComponentLive } from "@/lib/phases/componentLiveLoad";
 import { loadScanPicks } from "@/lib/phases/scanPicksLoad";
@@ -89,6 +91,11 @@ export default async function RepAccountWorkspace({
     verticalId: person.verticalId,
     stage: chipDeal?.stage,
   });
+  // Q46 R9 inc.2 — the fourth reader of the SAME `chipDeal`. The guidance line
+  // says what "done" means at this stage, so it must be the stage the chip
+  // shows; resolving it here (rather than in the component) is what keeps the
+  // chip, the drafts, the shelf and the line from being four opinions.
+  const stageGuidance = guidanceViewFor(chipDeal?.stage);
   const reason = touchReason(person);
   const ctx = sourceContext(person);
   const isDemo = isDemoPerson(person);
@@ -167,6 +174,11 @@ export default async function RepAccountWorkspace({
                 on the page they work it from, writing through the SAME audited
                 PATCH the rep board uses. */}
             <RepAccountStageChip chip={stageChip} />
+            {/* Q46 R9 inc.2 (research §5 Δ9) — what "done" means AT that stage,
+                under the chip that names it, off the SAME `chipDeal` the chip,
+                the drafts and the shelf read. Renders nothing when there is no
+                stage: the chip above already says why. */}
+            <RepStageGuidance view={stageGuidance} />
           </div>
 
           <div className="flex items-center gap-3">
