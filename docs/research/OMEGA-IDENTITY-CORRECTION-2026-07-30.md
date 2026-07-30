@@ -34,26 +34,26 @@ unrelated company.** The record already carried an open doubt about this and nob
 *"Stiber II (Pres. East Coast)"* belongs to Omega Title Holdings Group is **wrong** — he is President of the
 *other* Omega. That single wrong sentence is what welded two companies into one record.
 
-**Consequence:** the 2026-07-22 enrichment on C-2019 (phone 239.351.1405, Naples HQ, Dascani identification,
-`angela@omegatitlegroup.com` — who is Angela **Stavros, COO of the Naples company**) describes a business Rob may
+**Consequence:** the 2026-07-22 enrichment on C-2019 (phone [phone redacted], Naples HQ, Dascani identification,
+`[email redacted @omegatitlegroup.com]` — who is Angela **Stavros, COO of the Naples company**) describes a business Rob may
 never have met. Any outreach off that record goes to the wrong company.
 
 ## What the 7/28 invite proves (evidence, not inference)
 
 Calendar: **"Meeting with Mike @ Omega"**, Tue 2026-07-28 09:00–10:00 EDT, **in person**, 3384 Woods Edge Cir #103,
-Bonita Springs FL. Organizer **alex@gulfregroup.com** (Alex Greenwood, `P-1022` — the referrer).
+Bonita Springs FL. Organizer **[email redacted @gulfregroup.com]** (Alex Greenwood, `P-1022` — the referrer).
 
 | Attendee | Read |
 |---|---|
-| `mstiber@omeganationaltitle.com` | **Mike Stiber II, President, Omega National Title Agency** — the "Mike @ Omega" of the title |
-| `alex@gulfregroup.com` | Alex Greenwood, Gulf Coast RE — **P-1022**, the door |
-| `trent@estatestitlefl.com` | Trent Brands — **already in CRM** as org `the-title-base`. Match, do not duplicate |
-| `williamfdevito@gmail.com` | Will DeVito — Rob's MLE partner (free-mail: do NOT infer an employer) |
-| `christopher.acheson@gmail.com` | Chris Acheson (free-mail: do NOT infer an employer) |
-| `shastaswfl@gmail.com` | **Unidentified.** "swfl" suggests SW Florida. Needs Rob |
+| `[email redacted @omeganationaltitle.com]` | **Mike Stiber II, President, Omega National Title Agency** — the "Mike @ Omega" of the title |
+| `[email redacted @gulfregroup.com]` | Alex Greenwood, Gulf Coast RE — **P-1022**, the door |
+| `[email redacted @estatestitlefl.com]` | Trent Brands — **already in CRM** as org `the-title-base`. Match, do not duplicate |
+| `[email redacted @gmail.com]` | Will DeVito — Rob's MLE partner (free-mail: do NOT infer an employer) |
+| `[email redacted @gmail.com]` | Chris Acheson (free-mail: do NOT infer an employer) |
+| `[email redacted @gmail.com]` | **Unidentified.** Mailbox reads as a SW-Florida handle (the local part is redacted here — the live address is on the 7/28 calendar invite). Needs Rob |
 | `rob@aivoicetech.io` | Rob |
 
-**`fred@fireflies.ai` was NOT invited.** In-person, no notetaker, no Zoom recording — **no transcript exists.**
+**`[email redacted @fireflies.ai]` was NOT invited.** In-person, no notetaker, no Zoom recording — **no transcript exists.**
 
 ## Proposed correction (needs Rob's yes — identity swaps are not silent)
 
