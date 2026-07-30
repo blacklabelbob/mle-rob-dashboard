@@ -34,11 +34,12 @@ grant select (action_items, book_protected, buying_signals, created_at, created_
 
 -- call_transcript_segments — 9 columns on disk
 --   withheld: text from mle_booker_read — the verbatim words of a call. Kept for the rep — reviewing calls IS the rep's job (and the /rep cockpit reads them); withheld from the booker on the same rule as people.transcript_url. Whether a rep should reach only their OWN calls is a ROW question a column privilege cannot answer, and it is Rob's org-chart call, flagged not guessed
+--   withheld: speaker from mle_booker_read — who said the words that `text` beside it is withheld for. A speaker label on a per-segment row is the customer's or the rep's identity attached to a specific moment of a call, so keeping it while refusing the text hands over who was on the call and what it was about — the same half-refusal shape as the transcript/recording pair
 --   kept, deliberately: transcript_id — the foreign key to call_transcripts, classified PII only because /transcript/ matches the name. A join key carries no words; `text` beside it is the content and that is what the booker is refused
 revoke select on public.call_transcript_segments from mle_rep_read;
 grant select (confidence, created_at, end_ms, id, idx, speaker, start_ms, text, transcript_id) on public.call_transcript_segments to mle_rep_read;
 revoke select on public.call_transcript_segments from mle_booker_read;
-grant select (confidence, created_at, end_ms, id, idx, speaker, start_ms, transcript_id) on public.call_transcript_segments to mle_booker_read;
+grant select (confidence, created_at, end_ms, id, idx, start_ms, transcript_id) on public.call_transcript_segments to mle_booker_read;
 
 -- deals — 18 columns on disk
 --   withheld: equity from mle_rep_read, mle_booker_read — spin-off equity is OWNERS-ONLY (Q41)
@@ -71,25 +72,27 @@ grant select (client_legal_name, client_slug, created_at, currency, due_date, in
 --   withheld: quoted_amount from mle_rep_read, mle_booker_read — what a customer was quoted is not a rep's or a booker's number
 --   withheld: equity from mle_rep_read, mle_booker_read — spin-off equity is OWNERS-ONLY (Q41)
 --   withheld: transcript_url from mle_booker_read — a booker books; other people's call recordings are not part of it
+--   withheld: meeting_video_url from mle_booker_read — same pair as people.meeting_video_url — the recorded meeting, withheld alongside the transcript link rather than one increment later
 --   kept, deliberately: name — the company name is the working unit of every rep screen
 --   kept, deliberately: phone — same as people.phone
 --   kept, deliberately: email — same as people.email
 revoke select on public.orgs from mle_rep_read;
 grant select (assigned_rep, business, created_at, description, domain, email, est_time_to_payment_days, estimate, id, key_dates, legacy_slug, meeting_video_url, name, node_type, notes, phase2_estimate, phase_one, phone, referred_by_id, referred_by_org_id, relationship, role, search_tsv, signed, status, transcript_url, updated_at, vertical_id, website) on public.orgs to mle_rep_read;
 revoke select on public.orgs from mle_booker_read;
-grant select (assigned_rep, business, created_at, description, domain, email, est_time_to_payment_days, estimate, id, key_dates, legacy_slug, meeting_video_url, name, node_type, notes, phase2_estimate, phase_one, phone, referred_by_id, referred_by_org_id, relationship, role, search_tsv, signed, status, updated_at, vertical_id, website) on public.orgs to mle_booker_read;
+grant select (assigned_rep, business, created_at, description, domain, email, est_time_to_payment_days, estimate, id, key_dates, legacy_slug, name, node_type, notes, phase2_estimate, phase_one, phone, referred_by_id, referred_by_org_id, relationship, role, search_tsv, signed, status, updated_at, vertical_id, website) on public.orgs to mle_booker_read;
 
 -- people — 33 columns on disk
 --   withheld: quoted_amount from mle_rep_read, mle_booker_read — what a customer was quoted is not a rep's or a booker's number
 --   withheld: equity from mle_rep_read, mle_booker_read — spin-off equity is OWNERS-ONLY (Q41)
 --   withheld: transcript_url from mle_booker_read — a booker books; other people's call recordings are not part of it
+--   withheld: meeting_video_url from mle_booker_read — the VIDEO of the meeting the transcript beside it is of. Withheld with `transcript_url`, not after it: inc.28 closed exactly this pair on `activities` by adding /recording/ to the classifier, and this column slipped the fix because it says 'video' — the booker was refused the transcript link and handed the recorded meeting. Kept for the rep, whose job is reviewing calls
 --   kept, deliberately: name — a CRM whose reps cannot see who they are calling is not a CRM
 --   kept, deliberately: phone — phoning people IS the rep's and the booker's job — withholding it breaks the role instead of protecting it. Whether SOME bookers should be scoped to their own accounts is Rob's org-chart call, flagged not guessed
 --   kept, deliberately: email — same as phone — outreach is the job
 revoke select on public.people from mle_rep_read;
 grant select (assigned_rep, business, comms_consent, created_at, description, email, entity_kind, est_time_to_payment_days, estimate, id, key_dates, legacy_slug, meeting_video_url, name, node_type, notes, org_id, phase2_estimate, phase_one, phone, referred_by_id, referred_by_org_id, relationship, role, search_tsv, signed, status, transcript_url, updated_at, vertical_id, website) on public.people to mle_rep_read;
 revoke select on public.people from mle_booker_read;
-grant select (assigned_rep, business, comms_consent, created_at, description, email, entity_kind, est_time_to_payment_days, estimate, id, key_dates, legacy_slug, meeting_video_url, name, node_type, notes, org_id, phase2_estimate, phase_one, phone, referred_by_id, referred_by_org_id, relationship, role, search_tsv, signed, status, updated_at, vertical_id, website) on public.people to mle_booker_read;
+grant select (assigned_rep, business, comms_consent, created_at, description, email, entity_kind, est_time_to_payment_days, estimate, id, key_dates, legacy_slug, name, node_type, notes, org_id, phase2_estimate, phase_one, phone, referred_by_id, referred_by_org_id, relationship, role, search_tsv, signed, status, updated_at, vertical_id, website) on public.people to mle_booker_read;
 
 -- phase2_returns — 13 columns on disk
 --   withheld: labor_cost_per_hour from mle_booker_read — a customer's cost basis is not a booker's

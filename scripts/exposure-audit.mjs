@@ -36,7 +36,7 @@ import { readFileSync, writeFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { readSchema } from "./lib/schema-from-migrations.mjs";
-import { MONEY, PII, hits } from "./lib/sensitive-columns.mjs";
+import { MONEY, PII, hits, unreviewed, IDENTIFIED_UNDECIDED } from "./lib/sensitive-columns.mjs";
 import { dirname } from "node:path";
 
 const repo = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -107,6 +107,13 @@ const openApis = apis.filter((a) => !a.gated);
 const totalMoney = rows.reduce((n, r) => n + r.money.length, 0);
 const totalPii = rows.reduce((n, r) => n + r.pii.length, 0);
 
+// The third answer. Two states — "matched a sensitive pattern" and "not mentioned" — were being
+// read as opposites, so a name nobody had ever looked at counted as cleared. Three increments
+// each found a real leak in that gap by chance (25, 28, 29). Printing it makes it finite.
+const unrev = unreviewed(tables);
+const unrevNames = [...new Set([...unrev.values()].flat())].sort();
+const unrevTotal = [...unrev.values()].reduce((n, l) => n + l.length, 0);
+
 const md = [
   "# Exposure audit — what is readable today",
   "",
@@ -128,6 +135,7 @@ const md = [
   `| Tables the service-role key can reach | **${rows.length}** |`,
   `| Money columns behind them | **${totalMoney}** |`,
   `| Person/PII columns behind them | **${totalPii}** |`,
+  `| Columns **nobody has ruled on** (neither sensitive nor reviewed-benign) | ${unrevTotal} (${unrevNames.length} distinct names) |`,
   "",
   "**There is no per-user permission layer today.** Every page and every ungated API route",
   "answers the same to Rob and to a booker who has the link — the dashboard was opened on the",
@@ -140,6 +148,44 @@ const md = [
   "|---|---:|---:|---:|",
   ...rows.map((r) =>
     `| \`${r.table}\` | ${r.total} | ${r.money.length ? `**${r.money.length}** — ${r.money.map((c) => `\`${c}\``).join(", ")}` : "0"} | ${r.pii.length ? `**${r.pii.length}** — ${r.pii.map((c) => `\`${c}\``).join(", ")}` : "0"} |`),
+  "",
+  "## The blind spot, printed rather than left silent",
+  "",
+  "A name-based classifier has three answers, not two: **sensitive**, **reviewed and cleared**,",
+  "and **nobody has looked at this name**. The first two are decisions; the third is a gap. Until",
+  "2026-07-29 this file collapsed the last two together, so a column that had been cleared and a",
+  "column that had never been read produced the identical silence — and three separate increments",
+  "each found a real leak sitting in that gap **by chance rather than by tooling**:",
+  "",
+  "| increment | what was hiding | how it was found |",
+  "|---|---|---|",
+  "| inc.25 | 4 real columns swallowed by comment prose in `0012_invoice_ledger.sql` | reading generated SQL |",
+  "| inc.28 | `activities.recording_url` — the audio, granted while the transcript link was refused | reading one GRANT line |",
+  "| inc.29 | `people`/`orgs`.`meeting_video_url` — the recorded meeting, same pair, said \"video\" not \"recording\" | reading this list |",
+  "",
+  "So the third answer is now explicit: `BENIGN` in `scripts/lib/sensitive-columns.mjs` holds the",
+  "names reviewed and cleared (keys, timestamps, enums, hashes, provenance), and everything in",
+  "neither list is printed below. **A column added tomorrow with an unfamiliar name lands here",
+  "instead of reading as safe.** This list shrinks when somebody rules on a name — never by the",
+  "report going quiet. Sensitive always wins over benign, so a broad benign pattern cannot",
+  "downgrade a money or PII column.",
+  "",
+  `**${unrevTotal} columns, ${unrevNames.length} distinct names:**`,
+  "",
+  "| table | columns nobody has ruled on |",
+  "|---|---|",
+  ...[...unrev.entries()].sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([t, l]) => `| \`${t}\` | ${l.map((c) => `\`${c}\``).join(", ")} |`),
+  "",
+  "### Already identified as probably sensitive — named, not silently pending",
+  "",
+  "Found while building the benign list. Each needs a `DENIALS`/`ALLOWANCES` decision on a covered",
+  "table, and a half-finished privilege model is worse than an honest queue — so they are listed",
+  "here and flagged to Rob's ledger rather than rediscovered by chance a fourth time.",
+  "",
+  "| column | where | why it escaped the classifier |",
+  "|---|---|---|",
+  ...IDENTIFIED_UNDECIDED.map((u) => `| \`${u.column}\` | \`${u.where}\` | ${u.note} |`),
   "",
   "**Coverage limit, stated rather than implied:** columns are classified by *name*. PII sitting",
   "inside a free-text or `jsonb` column (`notes`, `payload`, `key_dates`) is **not** counted here —",

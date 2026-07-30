@@ -17,7 +17,8 @@ permission layer exists, and what the service-role key can reach behind it.
 | API routes with **no** secret/authorization check | **41** |
 | Tables the service-role key can reach | **28** |
 | Money columns behind them | **11** |
-| Person/PII columns behind them | **26** |
+| Person/PII columns behind them | **29** |
+| Columns **nobody has ruled on** (neither sensitive nor reviewed-benign) | 35 (25 distinct names) |
 
 **There is no per-user permission layer today.** Every page and every ungated API route
 answers the same to Rob and to a booker who has the link — the dashboard was opened on the
@@ -28,14 +29,14 @@ new fact that reopens the population, not that decision.
 
 | table | columns | money | PII |
 |---|---:|---:|---:|
-| `orgs` | 31 | **2** — `quoted_amount`, `equity` | **4** — `name`, `phone`, `email`, `transcript_url` |
-| `people` | 33 | **2** — `quoted_amount`, `equity` | **4** — `name`, `phone`, `email`, `transcript_url` |
+| `orgs` | 31 | **2** — `quoted_amount`, `equity` | **5** — `name`, `phone`, `email`, `meeting_video_url`, `transcript_url` |
+| `people` | 33 | **2** — `quoted_amount`, `equity` | **5** — `name`, `phone`, `email`, `meeting_video_url`, `transcript_url` |
 | `signature_requests` | 20 | 0 | **5** — `signer_name`, `signer_email`, `signer_ip`, `signer_user_agent`, `signer_type` |
+| `call_transcript_segments` | 9 | 0 | **3** — `transcript_id`, `speaker`, `text` |
 | `deals` | 18 | **2** — `value`, `equity` | **1** — `name` |
 | `documents` | 22 | 0 | **3** — `countersigner_name`, `countersigner_title`, `countersigner_email` |
 | `phase2_returns` | 13 | **3** — `labor_cost_per_hour`, `revenue_since_phase2_start`, `revenue_basis` | 0 |
 | `activities` | 16 | 0 | **2** — `recording_url`, `transcript_url` |
-| `call_transcript_segments` | 9 | 0 | **2** — `transcript_id`, `text` |
 | `invoice_ledger` | 18 | **2** — `invoice_number`, `amount` | 0 |
 | `call_transcripts` | 11 | 0 | **1** — `recording_sid` |
 | `events` | 7 | 0 | **1** — `name` |
@@ -56,6 +57,67 @@ new fact that reopens the population, not that decision.
 | `signature_events` | 6 | 0 | 0 |
 | `submissions` | 6 | 0 | 0 |
 | `tasks` | 12 | 0 | 0 |
+
+## The blind spot, printed rather than left silent
+
+A name-based classifier has three answers, not two: **sensitive**, **reviewed and cleared**,
+and **nobody has looked at this name**. The first two are decisions; the third is a gap. Until
+2026-07-29 this file collapsed the last two together, so a column that had been cleared and a
+column that had never been read produced the identical silence — and three separate increments
+each found a real leak sitting in that gap **by chance rather than by tooling**:
+
+| increment | what was hiding | how it was found |
+|---|---|---|
+| inc.25 | 4 real columns swallowed by comment prose in `0012_invoice_ledger.sql` | reading generated SQL |
+| inc.28 | `activities.recording_url` — the audio, granted while the transcript link was refused | reading one GRANT line |
+| inc.29 | `people`/`orgs`.`meeting_video_url` — the recorded meeting, same pair, said "video" not "recording" | reading this list |
+
+So the third answer is now explicit: `BENIGN` in `scripts/lib/sensitive-columns.mjs` holds the
+names reviewed and cleared (keys, timestamps, enums, hashes, provenance), and everything in
+neither list is printed below. **A column added tomorrow with an unfamiliar name lands here
+instead of reading as safe.** This list shrinks when somebody rules on a name — never by the
+report going quiet. Sensitive always wins over benign, so a broad benign pattern cannot
+downgrade a money or PII column.
+
+**35 columns, 25 distinct names:**
+
+| table | columns nobody has ruled on |
+|---|---|
+| `activities` | `created_by` |
+| `deals` | `estimate` |
+| `documents` | `created_by` |
+| `edges` | `relationship` |
+| `events` | `location` |
+| `flags` | `entity_name` |
+| `generic_email_domains` | `added_by` |
+| `invoice_ledger` | `client_legal_name`, `client_slug`, `owner`, `payment_plan_note`, `payment_state` |
+| `invoice_ledger_sync_runs` | `material`, `withdrawn` |
+| `orgs` | `assigned_rep`, `business`, `estimate`, `legacy_slug`, `relationship`, `website` |
+| `people` | `assigned_rep`, `business`, `estimate`, `legacy_slug`, `relationship`, `website` |
+| `phase_scan_picks` | `recorded_by` |
+| `phase2_returns` | `measured_by` |
+| `projects` | `owner` |
+| `property_definitions` | `display_name` |
+| `saved_views` | `target` |
+| `signature_events` | `ip` |
+| `signature_requests` | `sent_to` |
+| `submissions` | `business_name` |
+| `tasks` | `assigned_to` |
+
+### Already identified as probably sensitive — named, not silently pending
+
+Found while building the benign list. Each needs a `DENIALS`/`ALLOWANCES` decision on a covered
+table, and a half-finished privilege model is worse than an honest queue — so they are listed
+here and flagged to Rob's ledger rather than rediscovered by chance a fourth time.
+
+| column | where | why it escaped the classifier |
+|---|---|---|
+| `ip` | `signature_events` | the same audit-trail IP as signature_requests.signer_ip, which IS withheld from both roles — the bare name defeats /ip_address/ |
+| `client_legal_name` | `invoice_ledger` | a customer's legal name on the money ledger; /^name$/ is exact-match so it does not fire |
+| `estimate / phase2_estimate` | `people, orgs, deals` | dollar figures by every reading, but no MONEY pattern says 'estimate' |
+| `display_name` | `property_definitions` | a schema label here, not a person — listed so the next reader confirms rather than assumes |
+| `business_name` | `submissions` | an inbound lead's company; submissions is not a covered table |
+| `sent_to / attendee_ids` | `signature_requests, events` | who a document went to and who attended — addresses and person ids in a non-name column |
 
 **Coverage limit, stated rather than implied:** columns are classified by *name*. PII sitting
 inside a free-text or `jsonb` column (`notes`, `payload`, `key_dates`) is **not** counted here —

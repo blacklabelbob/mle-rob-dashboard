@@ -32,7 +32,16 @@ import {
 // @ts-expect-error — plain .mjs helpers, deliberately shared with the audit script.
 import { readSchema, stripComments, splitTop } from "../../scripts/lib/schema-from-migrations.mjs";
 // @ts-expect-error — same.
-import { sensitiveByTable, MONEY, PII, hits } from "../../scripts/lib/sensitive-columns.mjs";
+import {
+  sensitiveByTable,
+  MONEY,
+  PII,
+  BENIGN,
+  hits,
+  isSensitive,
+  unreviewed,
+  IDENTIFIED_UNDECIDED,
+} from "../../scripts/lib/sensitive-columns.mjs";
 
 const REPO_ROOT = join(__dirname, "..", "..");
 const MIGRATION = join(REPO_ROOT, "supabase/migrations/0032_role_read_grants.sql");
@@ -168,14 +177,28 @@ describe("the DoD's own refusals, read out of the generated SQL", () => {
     // handed over `activities.recording_url` — the audio itself. The classifier matched
     // /transcript/ and had no /recording/, so the leak was invisible to every check above.
     // Asserted as a PAIR, per table, so refusing one and granting the other cannot pass again.
-    for (const table of ["activities"]) {
+    //
+    // inc.29 widened it twice over, because the same defect recurred a THIRD time and the
+    // narrow version could not see it: `/video/` joins the pair (`people`/`orgs`.
+    // `meeting_video_url` is the recorded meeting, granted to a booker while the transcript
+    // link on the same row was refused — inc.28's fix missed it because the column says
+    // "video", not "recording"), and the table list is no longer hard-coded to `activities`.
+    // Every COVERED table is swept: hard-coding one table is how a fix lands on the row
+    // somebody happened to read instead of everywhere the shape exists.
+    for (const table of COVERED_TABLES) {
       const cols = schema.get(table) ?? new Set<string>();
       const granted = grantedInSql(table, "mle_booker_read");
       for (const col of cols) {
-        if (/transcript/.test(col) || /recording/.test(col)) {
+        if (/transcript/.test(col) || /recording/.test(col) || /video/.test(col)) {
+          if (col === "transcript_id") continue; // a join key, decided as an ALLOWANCE
           expect(granted, `booker must not reach ${table}.${col}`).not.toContain(col);
         }
       }
+    }
+    // The meeting video is refused with the transcript, not an increment later.
+    for (const table of ["people", "orgs"]) {
+      expect(grantedInSql(table, "mle_booker_read")).not.toContain("meeting_video_url");
+      expect(grantedInSql(table, "mle_rep_read")).toContain("meeting_video_url");
     }
     // The rep keeps both: reviewing calls IS the rep's job, and a half-kept pair would be the
     // mirror of the same defect — the transcript readable, the audio it came from not.
@@ -315,6 +338,67 @@ describe("the classifier is shared, not copied", () => {
     expect(hits("transcript_url", PII)).toBe(true);
     expect(hits("recording_url", PII)).toBe(true);
     expect(hits("recording_sid", PII)).toBe(true);
+  });
+
+  it("calls a meeting VIDEO as sensitive as the recording and the transcript", () => {
+    // inc.29, the third instance of one shape. `meeting_video_url` was neither money nor PII,
+    // so it was never printed by `uncoveredSensitive()` and could not trip `grantBreaches()` —
+    // the identical invisible-undercount class as inc.25's swallowed columns and inc.28's audio.
+    expect(hits("meeting_video_url", PII)).toBe(true);
+    // And the person attached to the words: `text` was withheld from a booker while the label
+    // naming who said it was granted in the same statement.
+    expect(hits("speaker", PII)).toBe(true);
+  });
+});
+
+describe("the classifier's third answer — the blind spot is finite and printed", () => {
+  // Why this describe exists: for three increments the classifier had two states, "matched a
+  // sensitive pattern" and "not mentioned anywhere", and every count treated them as opposites.
+  // They are not: a column reviewed and cleared and a column nobody ever read produced the same
+  // silence. Each of inc.25, 28 and 29 found a real leak in that gap BY CHANCE. `BENIGN` +
+  // `unreviewed()` make the gap something a report can print and a reader can shrink.
+
+  it("never lets a benign pattern clear a money or PII column", () => {
+    // The one way this mechanism could do harm: sensitive must always win. If a broad benign
+    // pattern could downgrade a real column, inc.29 would have built a leak while closing one.
+    const schema = readSchema();
+    for (const [, cols] of schema) {
+      for (const col of cols) {
+        if (isSensitive(col)) {
+          expect(hits(col, BENIGN) && !isSensitive(col), `${col} downgraded`).toBe(false);
+        }
+      }
+    }
+    // Driven directly, not only through whatever the schema happens to contain today.
+    expect(isSensitive("signed_at")).toBe(false); // benign, and genuinely so
+    expect(isSensitive("signer_email")).toBe(true); // benign /^signed/ must not reach it
+    expect(unreviewed(readSchemaFrom(
+      "create table public.t (id uuid, quoted_amount numeric, created_at timestamptz);",
+    )).get("t")).toBeUndefined(); // all three ruled on: sensitive, benign, benign
+  });
+
+  it("puts an unfamiliar new column in the printed list rather than treating it as safe", () => {
+    // The regression that matters going forward: the next migration's odd column name must
+    // surface, because "not matched by a pattern" is the state that hid three real leaks.
+    const un = unreviewed(readSchemaFrom(
+      "create table public.t (id uuid, wildcard_thing text, created_at timestamptz);",
+    ));
+    expect(un.get("t")).toEqual(["wildcard_thing"]);
+  });
+
+  it("keeps the identified-but-undecided columns named instead of pending in silence", () => {
+    // These were found while building BENIGN and deliberately NOT classified this increment —
+    // each adds decisions on a covered table. Naming them is the honest form of not doing them;
+    // this test fails if the list is emptied without the columns being decided.
+    expect(IDENTIFIED_UNDECIDED.length).toBeGreaterThan(0);
+    for (const u of IDENTIFIED_UNDECIDED) {
+      expect(u.column.trim(), "a named gap with no column").not.toBe("");
+      expect(u.note.trim(), `${u.column} is listed without saying why it escaped`).not.toBe("");
+    }
+    // `signature_events.ip` is the sharpest of them: the same datum as `signer_ip`, which IS
+    // withheld from both roles. It is still unclassified, so this pins that it stays VISIBLE.
+    const un = unreviewed(readSchema());
+    expect(un.get("signature_events") ?? []).toContain("ip");
   });
 });
 
