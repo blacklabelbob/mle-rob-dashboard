@@ -6,9 +6,11 @@ import PhaseLights from "@/components/PhaseLights";
 import ActivityTimeline from "@/components/ActivityTimeline";
 import Phase2RoiEstimator from "@/components/Phase2RoiEstimator";
 import QuotedAmountInline from "@/components/QuotedAmountInline";
+import RepAccountStageChip from "@/components/RepAccountStageChip";
 import DemoFooter from "@/components/DemoFooter";
 import { InlineDateChip, InlineSelect, InlineText } from "@/components/inline/fields";
 import { getStore } from "@/lib/storage";
+import { accountStageChip } from "@/lib/deals/accountStageChip";
 import { buildBlueprint } from "@/lib/phases/blueprint";
 import { loadComponentLive, mergeComponentLive } from "@/lib/phases/componentLiveLoad";
 import { loadScanPicks } from "@/lib/phases/scanPicksLoad";
@@ -37,7 +39,11 @@ export default async function RepAccountWorkspace({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const data = await getStore().getNetwork();
+  const store = getStore();
+  // Q46 R5 — the deal book is loaded beside the network because a stage lives on
+  // a DEAL and this page is anchored on a person; `accountStageChip` owns the
+  // resolution between them, and the failure modes it refuses are listed there.
+  const [data, deals] = await Promise.all([store.getNetwork(), store.listDeals()]);
   const person = data.people.find((p) => p.id === id);
   // Rep view is scoped to the rep's own book — not a back door into the full ledger.
   if (!person || !(person.assignedRep ?? "").startsWith("Jake")) notFound();
@@ -117,6 +123,10 @@ export default async function RepAccountWorkspace({
               <span className="h-2 w-2 rounded-full" style={{ background: vertical?.color }} />
               {vertical?.name}
             </div>
+            {/* Q46 R5 (research §5 Δ5) — the stage a rep is actually working,
+                on the page they work it from, writing through the SAME audited
+                PATCH the rep board uses. */}
+            <RepAccountStageChip chip={accountStageChip(person, deals)} />
           </div>
 
           <div className="flex items-center gap-3">
