@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-30T07:23:02.897Z",
+  "generatedAt": "2026-07-30T07:39:45.993Z",
   "source": "/Users/robertacheson/.claude",
   "assets": [
     {
@@ -65,7 +65,7 @@
       "model": "sonnet",
       "tools": null,
       "path": "/Users/robertacheson/.claude/agents/crawford-gtm-strategist.md",
-      "lastModified": "2026-07-30T03:29:30.233Z",
+      "lastModified": "2026-07-30T07:39:18.915Z",
       "hasFrontmatter": true
     },
     {
@@ -285,7 +285,7 @@
       "model": "opus",
       "tools": null,
       "path": "/Users/robertacheson/.claude/agents/project-ranker.md",
-      "lastModified": "2026-07-30T03:28:47.684Z",
+      "lastModified": "2026-07-30T07:39:39.591Z",
       "hasFrontmatter": true
     },
     {
