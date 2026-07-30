@@ -35,91 +35,15 @@
 import { readFileSync, writeFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
+import { readSchema } from "./lib/schema-from-migrations.mjs";
+import { MONEY, PII, hits } from "./lib/sensitive-columns.mjs";
 import { dirname } from "node:path";
 
 const repo = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 /* ------------------------------------------------------------------ tables */
 
-/** Column names that carry money. Matched whole-word-ish on the column name. */
-const MONEY = [
-  /^value$/, /amount/, /price/, /total/, /^paid$/, /paid_/, /_paid/, /quoted/,
-  /invoice/, /balance/, /deposit/, /discount/, /commission/, /residual/,
-  /^fee$/, /_fee/, /^rate$/, /_rate$/, /revenue/, /equity/, /cost/,
-];
 
-/** Column names that carry a person. */
-const PII = [
-  /email/, /phone/, /mobile/, /address/, /street/, /^zip/, /postal/,
-  /first_name/, /last_name/, /full_name/, /^name$/, /contact/, /signer/,
-  /signature/, /ip_address/, /user_agent/, /transcript/, /^text$/, /recipient/,
-];
-
-const hits = (col, patterns) => patterns.some((re) => re.test(col));
-
-/**
- * table -> Set(columns), from every migration in order.
- *
- * Deliberately forgiving: migrations are ours, not arbitrary SQL, so a
- * regex pass over `create table` bodies plus `add column` beats pulling in a
- * SQL parser for 35 files we wrote.
- */
-function readSchema() {
-  const dir = join(repo, "supabase/migrations");
-  const tables = new Map();
-  const add = (t, c) => {
-    const key = t.replace(/^public\./, "").trim();
-    if (!tables.has(key)) tables.set(key, new Set());
-    if (c) tables.get(key).add(c);
-  };
-
-  for (const file of readdirSync(dir).filter((f) => f.endsWith(".sql")).sort()) {
-    const sql = readFileSync(join(dir, file), "utf8");
-
-    // create table [if not exists] <name> ( ...body... );
-    const re = /create\s+table\s+(?:if\s+not\s+exists\s+)?([\w.]+)\s*\(/gi;
-    let m;
-    while ((m = re.exec(sql))) {
-      const table = m[1];
-      add(table, null);
-      // Walk to the matching close paren so nested type parens don't truncate.
-      let depth = 1;
-      let i = re.lastIndex;
-      for (; i < sql.length && depth > 0; i++) {
-        if (sql[i] === "(") depth++;
-        else if (sql[i] === ")") depth--;
-      }
-      const body = sql.slice(re.lastIndex, i - 1);
-      for (const line of splitTop(body)) {
-        const col = /^\s*"?([a-z_][a-z0-9_]*)"?\s+\S/i.exec(line);
-        if (!col) continue;
-        const first = col[1].toLowerCase();
-        if (["primary", "unique", "constraint", "foreign", "check", "exclude"].includes(first)) continue;
-        add(table, first);
-      }
-    }
-
-    // alter table <name> add column [if not exists] <col>
-    const alt = /alter\s+table\s+(?:if\s+exists\s+)?([\w.]+)\s+add\s+column\s+(?:if\s+not\s+exists\s+)?"?([a-z_][a-z0-9_]*)"?/gi;
-    while ((m = alt.exec(sql))) add(m[1], m[2].toLowerCase());
-  }
-  return tables;
-}
-
-/** Split a CREATE TABLE body on top-level commas only. */
-function splitTop(body) {
-  const out = [];
-  let depth = 0;
-  let cur = "";
-  for (const ch of body) {
-    if (ch === "(") depth++;
-    else if (ch === ")") depth--;
-    if (ch === "," && depth === 0) { out.push(cur); cur = ""; continue; }
-    cur += ch;
-  }
-  if (cur.trim()) out.push(cur);
-  return out;
-}
 
 /* ---------------------------------------------------------------- surfaces */
 

@@ -18,7 +18,8 @@
     "verify:offline": "node scripts/verify-offline.mjs",
     "transcripts:plan": "node --import ./scripts/ts-loader.mjs scripts/transcripts-to-supabase.mjs",
     "transcripts:verify": "node --import ./scripts/ts-loader.mjs scripts/transcripts-to-supabase.mjs --verify",
-    "transcripts:apply": "node --import ./scripts/ts-loader.mjs scripts/transcripts-to-supabase.mjs --apply"
+    "transcripts:apply": "node --import ./scripts/ts-loader.mjs scripts/transcripts-to-supabase.mjs --apply",
+    "gen:role-grants": "node --import ./scripts/ts-loader.mjs scripts/gen-role-grants.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.110.0",

@@ -16,8 +16,8 @@ permission layer exists, and what the service-role key can reach behind it.
 | API routes total | 51 |
 | API routes with **no** secret/authorization check | **41** |
 | Tables the service-role key can reach | **28** |
-| Money columns behind them | **10** |
-| Person/PII columns behind them | **20** |
+| Money columns behind them | **11** |
+| Person/PII columns behind them | **24** |
 
 **There is no per-user permission layer today.** Every page and every ungated API route
 answers the same to Rob and to a booker who has the link — the dashboard was opened on the
@@ -28,34 +28,34 @@ new fact that reopens the population, not that decision.
 
 | table | columns | money | PII |
 |---|---:|---:|---:|
-| `orgs` | 29 | **2** — `quoted_amount`, `equity` | **4** — `name`, `phone`, `email`, `transcript_url` |
+| `orgs` | 31 | **2** — `quoted_amount`, `equity` | **4** — `name`, `phone`, `email`, `transcript_url` |
 | `people` | 33 | **2** — `quoted_amount`, `equity` | **4** — `name`, `phone`, `email`, `transcript_url` |
-| `signature_requests` | 16 | 0 | **4** — `signer_email`, `signer_ip`, `signer_user_agent`, `signer_type` |
-| `documents` | 17 | 0 | **3** — `countersigner_name`, `countersigner_title`, `countersigner_email` |
+| `signature_requests` | 20 | 0 | **5** — `signer_name`, `signer_email`, `signer_ip`, `signer_user_agent`, `signer_type` |
+| `deals` | 18 | **2** — `value`, `equity` | **1** — `name` |
+| `documents` | 22 | 0 | **3** — `countersigner_name`, `countersigner_title`, `countersigner_email` |
 | `phase2_returns` | 13 | **3** — `labor_cost_per_hour`, `revenue_since_phase2_start`, `revenue_basis` | 0 |
-| `deals` | 12 | **2** — `value`, `equity` | 0 |
-| `activities` | 13 | 0 | **1** — `transcript_url` |
-| `call_transcript_segments` | 7 | 0 | **1** — `transcript_id` |
+| `call_transcript_segments` | 9 | 0 | **2** — `transcript_id`, `text` |
+| `invoice_ledger` | 18 | **2** — `invoice_number`, `amount` | 0 |
+| `activities` | 16 | 0 | **1** — `transcript_url` |
 | `events` | 7 | 0 | **1** — `name` |
-| `invoice_ledger` | 15 | **1** — `amount` | 0 |
 | `projects` | 10 | 0 | **1** — `name` |
+| `saved_views` | 9 | 0 | **1** — `name` |
 | `verticals` | 3 | 0 | **1** — `name` |
-| `call_transcripts` | 13 | 0 | 0 |
+| `call_transcripts` | 11 | 0 | 0 |
 | `edges` | 8 | 0 | 0 |
 | `entity_access` | 10 | 0 | 0 |
 | `entity_properties` | 7 | 0 | 0 |
 | `flags` | 11 | 0 | 0 |
-| `generic_email_domains` | 6 | 0 | 0 |
+| `generic_email_domains` | 4 | 0 | 0 |
 | `invoice_ledger_sync_runs` | 17 | 0 | 0 |
 | `org_memberships` | 5 | 0 | 0 |
 | `phase_component_state` | 11 | 0 | 0 |
 | `phase_scan_picks` | 12 | 0 | 0 |
-| `property_definitions` | 6 | 0 | 0 |
+| `property_definitions` | 8 | 0 | 0 |
 | `property_options` | 4 | 0 | 0 |
-| `saved_views` | 8 | 0 | 0 |
 | `signature_events` | 6 | 0 | 0 |
 | `submissions` | 6 | 0 | 0 |
-| `tasks` | 11 | 0 | 0 |
+| `tasks` | 12 | 0 | 0 |
 
 **Coverage limit, stated rather than implied:** columns are classified by *name*. PII sitting
 inside a free-text or `jsonb` column (`notes`, `payload`, `key_dates`) is **not** counted here —
