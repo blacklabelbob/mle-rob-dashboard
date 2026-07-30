@@ -7,6 +7,7 @@ import ActivityTimeline from "@/components/ActivityTimeline";
 import Phase2RoiEstimator from "@/components/Phase2RoiEstimator";
 import QuotedAmountInline from "@/components/QuotedAmountInline";
 import RepAccountStageChip from "@/components/RepAccountStageChip";
+import RepLogInteraction from "@/components/RepLogInteraction";
 import DemoFooter from "@/components/DemoFooter";
 import { InlineDateChip, InlineSelect, InlineText } from "@/components/inline/fields";
 import { getStore } from "@/lib/storage";
@@ -177,6 +178,17 @@ export default async function RepAccountWorkspace({
             </p>
           )}
           <PhaseLights blueprint={blueprint} />
+
+          {/* Q46 R10 inc.2 — logging sits directly above the timeline it writes
+              to, so the rep sees the result of the save in the same eyeful.
+              `assignedRep` is the only name this page knows for who is logging;
+              real identity arrives with Phase-4 profiles (Q6). */}
+          <RepLogInteraction
+            personId={person.id}
+            orgId={person.orgId}
+            createdBy={person.assignedRep}
+            personName={person.name.replace(" (DEMO)", "")}
+          />
 
           <ActivityTimeline personId={person.id} demoEntries={demoActivity(person.id)} isDemo={isDemo} />
 

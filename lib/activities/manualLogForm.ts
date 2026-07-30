@@ -133,6 +133,41 @@ export function describeProblem(path: string): string {
   return MANUAL_LOG_PROBLEM_LABELS[path] ?? `Missing required field: ${path} (unlabelled — report this)`;
 }
 
+/**
+ * The SERVER is the authority on validity, not the copy of the rule running in
+ * the browser. When it refuses a save, its answer has to reach the rep in the
+ * rep's own words — and it must never reach them as an empty list, because a
+ * failed save that shows nothing is indistinguishable from a save that worked.
+ *
+ * @param status HTTP status of the refusal.
+ * @param body Parsed JSON body, or null when it was not JSON at all.
+ */
+export function problemsFromRefusal(
+  status: number,
+  body: unknown
+): string[] {
+  const record =
+    body && typeof body === "object" ? (body as Record<string, unknown>) : null;
+
+  const missing = record?.missing;
+  if (Array.isArray(missing)) {
+    const labelled = missing
+      .filter((p): p is string => typeof p === "string" && p.length > 0)
+      .map(describeProblem);
+    if (labelled.length) return labelled;
+  }
+
+  // No field list — a route-level refusal (wrong source, save failed, a 500).
+  // Show what the server said; fall back to the status so the line is never
+  // blank. Either way the rep learns the log did NOT save.
+  const said = typeof record?.error === "string" ? record.error.trim() : "";
+  return [
+    said
+      ? `Not saved — ${said}`
+      : `Not saved — the server refused this log (${status}).`,
+  ];
+}
+
 const trimmed = (v: string | undefined): string | undefined => {
   const t = typeof v === "string" ? v.trim() : "";
   return t.length ? t : undefined;

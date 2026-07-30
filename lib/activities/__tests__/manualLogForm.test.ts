@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   buildManualLog,
   describeProblem,
+  problemsFromRefusal,
   localToIsoInstant,
   MANUAL_LOG_PROBLEM_LABELS,
   STAGE_CHANGE_OPTIONS,
@@ -234,5 +235,43 @@ describe("labels cover the rule, and the rule cannot outgrow them silently", () 
       const { validation } = buildManualLog({ ...COMPLETE, stageChange: stage }, ANCHOR, ET_SUMMER);
       expect(validation.ok, `stage option ${stage} rejected`).toBe(true);
     }
+  });
+});
+
+// Q46 R10 inc.2 — the SERVER's refusal, in the rep's words.
+describe("problemsFromRefusal", () => {
+  it("translates the route's field list into rep-readable lines", () => {
+    const lines = problemsFromRefusal(400, {
+      error: "missing required interaction fields (Task 1.9)",
+      missing: ["occurredAt", "sourceContext.door_opened.opened"],
+    });
+    expect(lines).toEqual([
+      MANUAL_LOG_PROBLEM_LABELS.occurredAt,
+      MANUAL_LOG_PROBLEM_LABELS["sourceContext.door_opened.opened"],
+    ]);
+    // The raw payload path never reaches the screen for a labelled rule.
+    expect(lines.join(" ")).not.toContain("sourceContext.");
+  });
+
+  it("never returns an empty list — a silent refusal reads as a save", () => {
+    for (const [status, body] of [
+      [400, { error: "this route logs manual interactions only" }],
+      [500, { error: "save failed" }],
+      [500, {}],
+      [502, null],
+      [400, { missing: [] }],
+      [400, { missing: "occurredAt" }],
+    ] as [number, unknown][]) {
+      const lines = problemsFromRefusal(status, body);
+      expect(lines.length, `status ${status} produced no line`).toBeGreaterThan(0);
+      expect(lines.every((l) => l.trim().length > 0)).toBe(true);
+      expect(lines[0]).toContain("Not saved");
+    }
+  });
+
+  it("a path the server invents still renders loudly rather than blank", () => {
+    const [line] = problemsFromRefusal(400, { missing: ["sourceContext.brand_new_rule"] });
+    expect(line).toMatch(/unlabelled/);
+    expect(line).toContain("sourceContext.brand_new_rule");
   });
 });
