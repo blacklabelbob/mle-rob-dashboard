@@ -154,12 +154,26 @@ describe("the DoD's own refusals, read out of the generated SQL", () => {
     }
   });
 
-  it("withholds the invoice ledger's paid-state — the `paid` the DoD names", () => {
+  it("withholds every DOLLAR on the invoice ledger from both roles", () => {
     for (const role of READ_ROLES) {
       const cols = grantedInSql("invoice_ledger", role);
-      expect(cols).not.toContain("payment_state");
       expect(cols).not.toContain("amount");
+      expect(cols).not.toContain("payment_plan_note");
+      expect(cols).not.toContain("client_legal_name");
+      // Q81: the raw status cell is where '2 x $5,000' actually lives, so it is withheld with
+      // the two columns derived from it — it had been granted by silence.
+      expect(cols).not.toContain("status_text");
     }
+  });
+
+  it("releases payment_state to the REP only (Q81) — and keeps it from the booker", () => {
+    // Rob: "We just show it at the rep level so they see it when they open up and see the
+    // alerts." The overdue alert IS this column; a booker never chases a receivable.
+    expect(grantedInSql("invoice_ledger", "mle_rep_read")).toContain("payment_state");
+    expect(grantedInSql("invoice_ledger", "mle_booker_read")).not.toContain("payment_state");
+    // The release is one column wide, not the row: pinned so a later increment cannot widen it
+    // by editing prose.
+    expect(grantedInSql("invoice_ledger", "mle_rep_read")).not.toContain("amount");
   });
 
   it("withholds equity from both roles everywhere it exists (Q41 owners-only)", () => {
