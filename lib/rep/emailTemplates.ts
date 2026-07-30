@@ -363,6 +363,64 @@ export function gmailComposeUrl(draft: EmailDraft): string | undefined {
   return `https://mail.google.com/mail/?${q}`;
 }
 
+/**
+ * What each unresolved token means TO A REP, and where they go to fix it.
+ *
+ * Q46 R6 inc.2 — the render half. `missing` carries token names
+ * (`first_name`, `company`), which are OUR field names; a rep reading
+ * "missing: first_name" is being handed our schema and told to guess. Every
+ * token therefore owns one sentence naming the blocker and the place it is
+ * fixed, and `blockersFor` is pinned against `TEMPLATE_TOKENS` so a token added
+ * later cannot reach a rep's screen unexplained.
+ */
+export const TOKEN_BLOCKERS: Record<TemplateToken, string> = {
+  first_name:
+    "No first name to greet — this is a company record, so there is no person to address. Send this one by hand, or open the person who works there.",
+  company: "No company name on this record — add the business and the draft fills itself in.",
+  rep_name: "No rep name to sign it — this record has no assigned rep yet.",
+  vertical: "No vertical on this record — the opening line reads off it.",
+  stage: "The deal stage could not be read, so the right template cannot be filled.",
+  demo_link: "The demo link is missing from our config — that one is ours to fix, not yours.",
+};
+
+/**
+ * Rep-readable reasons a draft is not sendable. Empty EXACTLY when the draft is
+ * ready, and never empty otherwise: a disabled button with no sentence beside it
+ * is the same silent failure R10 inc.2 removed from the log form.
+ *
+ * The three states are three different instructions and stay that way here —
+ * "go find an address" is a different afternoon from "fill in the business
+ * name", and a broken template is not the rep's job at all.
+ */
+export function blockersFor(draft: EmailDraft): string[] {
+  if (draft.state === "ready") return [];
+
+  if (draft.invalidTokens.length > 0) {
+    return [
+      `This template is broken on our side — it asks for ${draft.invalidTokens
+        .map((t) => `{{${t}}}`)
+        .join(", ")}. Nothing you fill in will fix it; flag it and use another template.`,
+    ];
+  }
+
+  const fieldLines = draft.missing.map(
+    (name) =>
+      TOKEN_BLOCKERS[name as TemplateToken] ??
+      `The template asks for {{${name}}}, which this record does not have.`,
+  );
+
+  if (draft.state === "no_recipient") {
+    return [
+      "No email address on this record — add one under Contact and this draft is ready to send.",
+      ...fieldLines,
+    ];
+  }
+
+  return fieldLines.length > 0
+    ? fieldLines
+    : ["This draft cannot be filled from this record yet."];
+}
+
 /** `mailto:` fallback for a rep whose mail client is not Gmail. Same gate. */
 export function mailtoUrl(draft: EmailDraft): string | undefined {
   if (draft.state !== "ready" || !draft.to || !draft.subject || !draft.body) return undefined;
@@ -372,4 +430,52 @@ export function mailtoUrl(draft: EmailDraft): string | undefined {
   // legal literally in a mailto target and some clients balk at `%40`.
   const to = encodeURIComponent(draft.to).replace(/%40/g, "@");
   return `mailto:${to}?${q}`;
+}
+
+/**
+ * Exactly what a rep surface renders for one template: the draft, the reasons it
+ * cannot go, and the two handoff urls. Defined HERE rather than in the component
+ * so the whole decision — selection, resolution, refusal wording, url gating —
+ * is graded by tests before any pixel exists (CR-3, R2/R3/R5/R10 precedent).
+ */
+export interface RepEmailDraftView {
+  templateId: string;
+  label: string;
+  state: DraftState;
+  subject?: string;
+  body?: string;
+  to?: string;
+  blockers: string[];
+  gmailUrl?: string;
+  mailtoUrl?: string;
+}
+
+/**
+ * Every template offered for this record, resolved, in most-specific-first
+ * order. A caller renders this and nothing else — there is no path here that
+ * produces a url for an unready draft, and none that produces an unready draft
+ * with no reason attached.
+ */
+export function draftViewsFor(ctx: TemplateContext): {
+  stageUsed: DealStage;
+  stageLabel: string;
+  hasDeal: boolean;
+  views: RepEmailDraftView[];
+} {
+  const { stageUsed, hasDeal, templates } = templatesFor(ctx);
+  const views = templates.map((template) => {
+    const draft = resolve(template, ctx);
+    return {
+      templateId: draft.templateId,
+      label: draft.label,
+      state: draft.state,
+      subject: draft.subject,
+      body: draft.body,
+      to: draft.to,
+      blockers: blockersFor(draft),
+      gmailUrl: gmailComposeUrl(draft),
+      mailtoUrl: mailtoUrl(draft),
+    };
+  });
+  return { stageUsed, stageLabel: STAGE_LABELS[stageUsed], hasDeal, views };
 }

@@ -8,10 +8,12 @@ import Phase2RoiEstimator from "@/components/Phase2RoiEstimator";
 import QuotedAmountInline from "@/components/QuotedAmountInline";
 import RepAccountStageChip from "@/components/RepAccountStageChip";
 import RepLogInteraction from "@/components/RepLogInteraction";
+import RepEmailDrafts from "@/components/RepEmailDrafts";
 import DemoFooter from "@/components/DemoFooter";
 import { InlineDateChip, InlineSelect, InlineText } from "@/components/inline/fields";
 import { getStore } from "@/lib/storage";
 import { accountStageChip } from "@/lib/deals/accountStageChip";
+import { draftViewsFor } from "@/lib/rep/emailTemplates";
 import { buildBlueprint } from "@/lib/phases/blueprint";
 import { loadComponentLive, mergeComponentLive } from "@/lib/phases/componentLiveLoad";
 import { loadScanPicks } from "@/lib/phases/scanPicksLoad";
@@ -50,6 +52,26 @@ export default async function RepAccountWorkspace({
   if (!person || !(person.assignedRep ?? "").startsWith("Jake")) notFound();
 
   const vertical = data.verticals.find((v) => v.id === person.verticalId);
+  // Q46 R6 inc.2 — the email drafts read the stage from the SAME chip resolution
+  // the stage control uses, so a rep's template and the chip above it can never
+  // disagree about what stage this account is at. Only `kind === "one"` supplies
+  // a stage: with several anchored deals, picking one to write an email from
+  // would be this surface adopting a deal the chip deliberately refuses to
+  // claim, so the drafts fall back to first-touch and SAY so.
+  const stageChip = accountStageChip(person, deals);
+  const chipDeal = stageChip.kind === "one" ? deals.find((d) => d.id === stageChip.deal.id) : undefined;
+  const emailDrafts = draftViewsFor({
+    person,
+    deal: chipDeal,
+    verticalName: vertical?.name,
+    repName: (person.assignedRep ?? "").replace(" (DEMO)", ""),
+  });
+  const emailStageNote =
+    stageChip.kind === "one"
+      ? `written for: ${emailDrafts.stageLabel}`
+      : stageChip.kind === "ambiguous"
+        ? "more than one deal here — using first-touch until one is picked"
+        : "no deal yet — using first-touch";
   const reason = touchReason(person);
   const ctx = sourceContext(person);
   const isDemo = isDemoPerson(person);
@@ -127,7 +149,7 @@ export default async function RepAccountWorkspace({
             {/* Q46 R5 (research §5 Δ5) — the stage a rep is actually working,
                 on the page they work it from, writing through the SAME audited
                 PATCH the rep board uses. */}
-            <RepAccountStageChip chip={accountStageChip(person, deals)} />
+            <RepAccountStageChip chip={stageChip} />
           </div>
 
           <div className="flex items-center gap-3">
@@ -143,14 +165,19 @@ export default async function RepAccountWorkspace({
             </div>
             <div className="flex gap-2">
               {person.phone && <CallButton phone={person.phone} />}
-              {person.email && (
-                <a
-                  href={`mailto:${person.email}`}
-                  className="rounded-lg bg-white/10 px-3.5 py-1.5 text-sm font-medium text-white transition hover:bg-white/20"
-                >
-                  Email
-                </a>
-              )}
+              {/* Q46 R6 inc.2 — this used to be a bare `mailto:` that opened an
+                  EMPTY compose window: the rep then wrote the same intro from
+                  scratch for the fifth time, off the top of their head, under
+                  MLE's name. It now lands on the drafts written for this stage.
+                  Rendered whether or not an address exists, because "there is
+                  no address on this record" is a thing the rep needs told —
+                  hiding the button hides the gap. */}
+              <a
+                href="#rep-email"
+                className="rounded-lg bg-white/10 px-3.5 py-1.5 text-sm font-medium text-white transition hover:bg-white/20"
+              >
+                Email
+              </a>
             </div>
           </div>
         </div>
@@ -189,6 +216,13 @@ export default async function RepAccountWorkspace({
             createdBy={person.assignedRep}
             personName={person.name.replace(" (DEMO)", "")}
           />
+
+          {/* Q46 R6 inc.2 — the drafts written for the stage this account is
+              actually at, replacing the empty compose window the header's
+              `mailto:` used to open. Resolved server-side, in the render that
+              already holds the record: the client picks a template and nothing
+              else. */}
+          <RepEmailDrafts drafts={emailDrafts.views} stageNote={emailStageNote} />
 
           <ActivityTimeline personId={person.id} demoEntries={demoActivity(person.id)} isDemo={isDemo} />
 
