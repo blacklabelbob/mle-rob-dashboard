@@ -21,6 +21,13 @@ export const PII = [
   /email/, /phone/, /mobile/, /address/, /street/, /^zip/, /postal/,
   /first_name/, /last_name/, /full_name/, /^name$/, /contact/, /signer/,
   /signature/, /ip_address/, /user_agent/, /transcript/, /^text$/, /recipient/,
+  // /recording/ added 7/29 inc.28. Its absence was not cosmetic: `/transcript/` made
+  // `activities.transcript_url` sensitive, so the grant model withheld it from a booker on the
+  // stated reason "other people's call recordings are not part of it" — while the very same
+  // GRANT line handed that booker `activities.recording_url`, the audio the transcript is of.
+  // A classifier blind spot became a refusal that refused nothing. Also surfaces
+  // `call_transcripts.recording_sid`, the Twilio handle for the same audio.
+  /recording/,
 ];
 
 export const hits = (col, patterns) => patterns.some((re) => re.test(col));

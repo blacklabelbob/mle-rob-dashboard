@@ -162,6 +162,27 @@ describe("the DoD's own refusals, read out of the generated SQL", () => {
     expect(grantedInSql("deals", "mle_rep_read")).toContain("value");
   });
 
+  it("withholds the RECORDING from a booker wherever it withholds the transcript of it", () => {
+    // The bug this pins (inc.28): `activities.transcript_url` was refused to a booker on the
+    // words "other people's call recordings are not part of it" while the SAME grant statement
+    // handed over `activities.recording_url` — the audio itself. The classifier matched
+    // /transcript/ and had no /recording/, so the leak was invisible to every check above.
+    // Asserted as a PAIR, per table, so refusing one and granting the other cannot pass again.
+    for (const table of ["activities"]) {
+      const cols = schema.get(table) ?? new Set<string>();
+      const granted = grantedInSql(table, "mle_booker_read");
+      for (const col of cols) {
+        if (/transcript/.test(col) || /recording/.test(col)) {
+          expect(granted, `booker must not reach ${table}.${col}`).not.toContain(col);
+        }
+      }
+    }
+    // The rep keeps both: reviewing calls IS the rep's job, and a half-kept pair would be the
+    // mirror of the same defect — the transcript readable, the audio it came from not.
+    expect(grantedInSql("activities", "mle_rep_read")).toContain("recording_url");
+    expect(grantedInSql("activities", "mle_rep_read")).toContain("transcript_url");
+  });
+
   it("KEEPS phone and email for both roles — outreach is the job, not a leak", () => {
     // The inverse assertion matters as much: a model that withheld these would pass every
     // test above while making the roles useless, and someone would quietly drop the roles.
@@ -286,6 +307,14 @@ describe("the classifier is shared, not copied", () => {
   it("classifies by name only, which is why every count is a floor", () => {
     expect(hits("notes", MONEY) || hits("notes", PII)).toBe(false);
     expect(hits("payload", MONEY) || hits("payload", PII)).toBe(false);
+  });
+
+  it("calls a recording as sensitive as the transcript of it", () => {
+    // The asymmetry that caused inc.28's leak: these two name the same call, and only one of
+    // them was sensitive. Both handles are covered now — the URL and the Twilio SID.
+    expect(hits("transcript_url", PII)).toBe(true);
+    expect(hits("recording_url", PII)).toBe(true);
+    expect(hits("recording_sid", PII)).toBe(true);
   });
 });
 

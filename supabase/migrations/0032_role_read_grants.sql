@@ -24,6 +24,22 @@ end $$;
 
 -- service_role is deliberately untouched: every server route reads through it.
 
+-- activities — 16 columns on disk
+--   withheld: transcript_url from mle_booker_read — a booker books; other people's call recordings are not part of it — the same refusal as people.transcript_url and orgs.transcript_url, on the table those links actually hang off
+--   withheld: recording_url from mle_booker_read — the audio the transcript beside it is OF. Withheld with `transcript_url` rather than after it: the previous pass refused the transcript link on the words 'other people's call recordings are not part of it' and granted this one in the same statement, because the name classifier matched /transcript/ and had no /recording/. The refusal was real and the leak was total — the booker lost the text and kept the recording
+revoke select on public.activities from mle_rep_read;
+grant select (action_items, book_protected, buying_signals, created_at, created_by, deal_id, id, occurred_at, org_id, person_id, recording_url, source, source_context, summary, transcript_url, type) on public.activities to mle_rep_read;
+revoke select on public.activities from mle_booker_read;
+grant select (action_items, book_protected, buying_signals, created_at, created_by, deal_id, id, occurred_at, org_id, person_id, source, source_context, summary, type) on public.activities to mle_booker_read;
+
+-- call_transcript_segments — 9 columns on disk
+--   withheld: text from mle_booker_read — the verbatim words of a call. Kept for the rep — reviewing calls IS the rep's job (and the /rep cockpit reads them); withheld from the booker on the same rule as people.transcript_url. Whether a rep should reach only their OWN calls is a ROW question a column privilege cannot answer, and it is Rob's org-chart call, flagged not guessed
+--   kept, deliberately: transcript_id — the foreign key to call_transcripts, classified PII only because /transcript/ matches the name. A join key carries no words; `text` beside it is the content and that is what the booker is refused
+revoke select on public.call_transcript_segments from mle_rep_read;
+grant select (confidence, created_at, end_ms, id, idx, speaker, start_ms, text, transcript_id) on public.call_transcript_segments to mle_rep_read;
+revoke select on public.call_transcript_segments from mle_booker_read;
+grant select (confidence, created_at, end_ms, id, idx, speaker, start_ms, transcript_id) on public.call_transcript_segments to mle_booker_read;
+
 -- deals — 18 columns on disk
 --   withheld: equity from mle_rep_read, mle_booker_read — spin-off equity is OWNERS-ONLY (Q41)
 --   withheld: value from mle_booker_read — deal size is the rep's working number, not the booker's
@@ -32,6 +48,15 @@ revoke select on public.deals from mle_rep_read;
 grant select (book_protected, created_at, estimate, id, key_dates, name, notes, org_id, owner_id, person_id, phase, referral_sourced, routing_lane, stage, updated_at, value, vertical_id) on public.deals to mle_rep_read;
 revoke select on public.deals from mle_booker_read;
 grant select (book_protected, created_at, estimate, id, key_dates, name, notes, org_id, owner_id, person_id, phase, referral_sourced, routing_lane, stage, updated_at, vertical_id) on public.deals to mle_booker_read;
+
+-- documents — 22 columns on disk
+--   withheld: countersigner_name from mle_rep_read, mle_booker_read — the countersigner on an MLE document is an OWNER (0010_esign_countersign — Rob or Will), so this is the execution record of who bound the company, not CRM data
+--   withheld: countersigner_email from mle_rep_read, mle_booker_read — same execution record — and an owner's address on a signed agreement is exactly the pair the signature_requests trail is withheld for
+--   withheld: countersigner_title from mle_rep_read, mle_booker_read — withheld WITH the name rather than kept as a bare role: `signer_type` on signature_requests is a fixed enum ('customer'/'countersigner'), this is free text naming the office a specific person held, and on a table where exactly two people ever countersign a title identifies as well as a name does
+revoke select on public.documents from mle_rep_read;
+grant select (countersigned_at, countersigned_path, created_at, created_by, deal_id, id, org_id, person_id, phase, sha256_at_upload, sha256_countersigned, sha256_signed, signed_path, status, storage_path, supersedes_id, title, updated_at, version) on public.documents to mle_rep_read;
+revoke select on public.documents from mle_booker_read;
+grant select (countersigned_at, countersigned_path, created_at, created_by, deal_id, id, org_id, person_id, phase, sha256_at_upload, sha256_countersigned, sha256_signed, signed_path, status, storage_path, supersedes_id, title, updated_at, version) on public.documents to mle_booker_read;
 
 -- invoice_ledger — 18 columns on disk
 --   withheld: amount from mle_rep_read, mle_booker_read — invoiced money is the owners' ledger

@@ -37,11 +37,20 @@ export type Denial = {
 };
 
 /**
- * The declared refusals, restricted to the tables the audit ranks worst (`orgs`, `people`,
- * `deals`, `signature_requests`, `invoice_ledger`, `phase2_returns`) — every table it counts a
- * money or a signer column on. Coverage is deliberately partial and `uncoveredSensitive()`
- * measures the remainder rather than leaving it unsaid: a model claiming to cover 28 tables
- * would be a promise, and this one is a decision about six.
+ * The declared refusals. The first pass covered the six tables the audit ranks worst (`orgs`,
+ * `people`, `deals`, `signature_requests`, `invoice_ledger`, `phase2_returns`); the second
+ * (7/29 inc.27) took the three `uncoveredSensitive()` was still printing that carry real
+ * content rather than a name-pattern false positive: `documents` (the countersign record),
+ * `call_transcript_segments` (the verbatim words of a call) and `activities` (a recording
+ * link). Coverage stays deliberately partial and the remainder is still measured rather than
+ * left unsaid. That measurement is why inc.28 exists: adding `/recording/` to the shared
+ * classifier (it had `/transcript/` and no `/recording/`) turned the remainder from four
+ * tables into FIVE — `call_transcripts` (`recording_sid`, the Twilio handle to the audio)
+ * joined `events`, `projects`, `saved_views` and `verticals`, whose only "sensitive" column
+ * really is a bare `name`. The count going UP is the point: a blind spot in the classifier
+ * had been reading as coverage. A table cannot enter this model on an allowance alone —
+ * `COVERED_TABLES` derives from the refusals, so covering a table means refusing something on
+ * it. Naming these five here is the honest form of not covering them.
  *
  * PII IS NOT BLANKET-DENIED, on purpose. A booker's job is to phone people, so revoking
  * `phone`/`email` from the booker role would break the role rather than protect it. The DoD's
@@ -66,6 +75,12 @@ export const DENIALS: Denial[] = [
   { table: "invoice_ledger", column: "payment_state", roles: ["mle_rep_read", "mle_booker_read"], because: "whether an invoice is paid is the owners' ledger — this column is the `paid` the DoD names (there is no `paid` column; it is a state value)" },
   { table: "phase2_returns", column: "labor_cost_per_hour", roles: ["mle_booker_read"], because: "a customer's cost basis is not a booker's" },
   { table: "phase2_returns", column: "revenue_since_phase2_start", roles: ["mle_booker_read"], because: "a customer's revenue is not a booker's" },
+  { table: "documents", column: "countersigner_name", roles: ["mle_rep_read", "mle_booker_read"], because: "the countersigner on an MLE document is an OWNER (0010_esign_countersign — Rob or Will), so this is the execution record of who bound the company, not CRM data" },
+  { table: "documents", column: "countersigner_email", roles: ["mle_rep_read", "mle_booker_read"], because: "same execution record — and an owner's address on a signed agreement is exactly the pair the signature_requests trail is withheld for" },
+  { table: "documents", column: "countersigner_title", roles: ["mle_rep_read", "mle_booker_read"], because: "withheld WITH the name rather than kept as a bare role: `signer_type` on signature_requests is a fixed enum ('customer'/'countersigner'), this is free text naming the office a specific person held, and on a table where exactly two people ever countersign a title identifies as well as a name does" },
+  { table: "call_transcript_segments", column: "text", roles: ["mle_booker_read"], because: "the verbatim words of a call. Kept for the rep — reviewing calls IS the rep's job (and the /rep cockpit reads them); withheld from the booker on the same rule as people.transcript_url. Whether a rep should reach only their OWN calls is a ROW question a column privilege cannot answer, and it is Rob's org-chart call, flagged not guessed" },
+  { table: "activities", column: "transcript_url", roles: ["mle_booker_read"], because: "a booker books; other people's call recordings are not part of it — the same refusal as people.transcript_url and orgs.transcript_url, on the table those links actually hang off" },
+  { table: "activities", column: "recording_url", roles: ["mle_booker_read"], because: "the audio the transcript beside it is OF. Withheld with `transcript_url` rather than after it: the previous pass refused the transcript link on the words 'other people's call recordings are not part of it' and granted this one in the same statement, because the name classifier matched /transcript/ and had no /recording/. The refusal was real and the leak was total — the booker lost the text and kept the recording" },
 ];
 
 /**
@@ -90,6 +105,7 @@ export const ALLOWANCES: Allowance[] = [
   { table: "orgs", column: "email", because: "same as people.email" },
   { table: "phase2_returns", column: "revenue_basis", because: "not an amount — it names WHICH basis a figure came from ('invoiced' vs 'collected'), so it is classified money by name only" },
   { table: "signature_requests", column: "signer_type", because: "not identity — it is the role that signed ('customer' / 'countersigner'), and a rep tracking whether a doc came back needs it" },
+  { table: "call_transcript_segments", column: "transcript_id", because: "the foreign key to call_transcripts, classified PII only because /transcript/ matches the name. A join key carries no words; `text` beside it is the content and that is what the booker is refused" },
 ];
 
 /** The tables this model takes responsibility for. Derived, so it cannot drift from DENIALS. */

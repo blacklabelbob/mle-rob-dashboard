@@ -17,7 +17,7 @@ permission layer exists, and what the service-role key can reach behind it.
 | API routes with **no** secret/authorization check | **41** |
 | Tables the service-role key can reach | **28** |
 | Money columns behind them | **11** |
-| Person/PII columns behind them | **24** |
+| Person/PII columns behind them | **26** |
 
 **There is no per-user permission layer today.** Every page and every ungated API route
 answers the same to Rob and to a booker who has the link — the dashboard was opened on the
@@ -34,14 +34,14 @@ new fact that reopens the population, not that decision.
 | `deals` | 18 | **2** — `value`, `equity` | **1** — `name` |
 | `documents` | 22 | 0 | **3** — `countersigner_name`, `countersigner_title`, `countersigner_email` |
 | `phase2_returns` | 13 | **3** — `labor_cost_per_hour`, `revenue_since_phase2_start`, `revenue_basis` | 0 |
+| `activities` | 16 | 0 | **2** — `recording_url`, `transcript_url` |
 | `call_transcript_segments` | 9 | 0 | **2** — `transcript_id`, `text` |
 | `invoice_ledger` | 18 | **2** — `invoice_number`, `amount` | 0 |
-| `activities` | 16 | 0 | **1** — `transcript_url` |
+| `call_transcripts` | 11 | 0 | **1** — `recording_sid` |
 | `events` | 7 | 0 | **1** — `name` |
 | `projects` | 10 | 0 | **1** — `name` |
 | `saved_views` | 9 | 0 | **1** — `name` |
 | `verticals` | 3 | 0 | **1** — `name` |
-| `call_transcripts` | 11 | 0 | 0 |
 | `edges` | 8 | 0 | 0 |
 | `entity_access` | 10 | 0 | 0 |
 | `entity_properties` | 7 | 0 | 0 |
