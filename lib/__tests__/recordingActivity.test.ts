@@ -87,10 +87,32 @@ describe("resolveCallParty", () => {
     });
   });
 
-  it("ignores blank/absent entries in ourNumbers", () => {
-    expect(resolveCallParty(people, payload(), [undefined, "", "   "])).toMatchObject({
-      kind: "resolved",
-      personId: "p-caleb",
+  it("files NOTHING when our own lines are unknown — blank entries are not knowledge", () => {
+    // This assertion used to read `resolved: p-caleb`, which documented the
+    // hazard rather than refusing it: with no `ourNumbers` the subtraction never
+    // happens, so a single match cannot be told apart from our own line matching
+    // a person row. TWILIO_CALLER_ID unset now means no call files.
+    for (const unknown of [[], [undefined], ["", "   "]]) {
+      expect(resolveCallParty(people, payload(), unknown)).toEqual({
+        kind: "unmatched",
+        reason: "our-lines-unknown",
+      });
+    }
+  });
+
+  it("refuses the wrong-contact filing that an unset TWILIO_CALLER_ID would cause", () => {
+    // Our line IS a person row (p-rob) and the contact is not in the CRM: the
+    // old code resolved this to p-rob — every call the rep placed landing on
+    // the rep's own timeline, the failure a rep cannot see.
+    const withRep = [person("p-rob", "2395550100")];
+    expect(resolveCallParty(withRep, payload({ from: "+13055551234" }), [])).toEqual({
+      kind: "unmatched",
+      reason: "our-lines-unknown",
+    });
+    // …and with the line known, it is correctly reported as only our own lines.
+    expect(resolveCallParty(withRep, payload({ from: "+13055551234" }), OURS)).toEqual({
+      kind: "unmatched",
+      reason: "no-crm-party",
     });
   });
 });

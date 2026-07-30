@@ -150,13 +150,16 @@ export function callChainReadiness(config: CallChainConfig): CallChainReadiness 
   if (!config.deepgramKey) missing.push("DEEPGRAM_API_KEY");
   if (!config.anthropicKey) missing.push("ANTHROPIC_API_KEY");
 
-  // A hazard, not a blocker: without it calls still arrive and still file — they
-  // may just file on the wrong person, which is the failure a rep cannot see
-  // (inc.1). Keeping it out of `missing` keeps "the chain is closed" honest.
+  // Not a blocker to the chain OPENING — a call still arrives and is still
+  // answered 2xx — so it stays out of `missing`, which orders the keys that stop
+  // a call reaching us at all. It IS a blocker to filing: since inc.15 the
+  // resolver refuses to file when it cannot tell our line from the contact's
+  // (`our-lines-unknown`), so this warning states the refusal, not the old
+  // wrong-contact filing it used to describe.
   const warnings = config.twilioCallerId
     ? []
     : [
-        "TWILIO_CALLER_ID unset: our own number is not subtracted before matching, so a call placed from a line that is also a person row files on that person.",
+        "TWILIO_CALLER_ID unset: our own line cannot be subtracted before matching, so no call files at all — the resolver refuses rather than risk filing on a rep whose own number is a person row.",
       ];
 
   const verdict: CallChainReadiness["verdict"] = !config.twilioAuthToken

@@ -15,7 +15,10 @@ export type CallResolution =
       matchedOn: "from" | "to";
       direction: "inbound" | "outbound";
     }
-  | { kind: "unmatched"; reason: "no-numbers" | "only-our-lines" | "no-crm-party" }
+  | {
+      kind: "unmatched";
+      reason: "no-numbers" | "only-our-lines" | "no-crm-party" | "our-lines-unknown";
+    }
   | { kind: "ambiguous"; personIds: string[] };
 
 /**
@@ -30,6 +33,13 @@ export type CallResolution =
  * Ambiguity is never resolved by picking the first hit — two different people
  * matching is either a real two-contact call or duplicate rows in the CRM, and
  * both cases need a human, not a guess on someone's timeline.
+ *
+ * And when `ourNumbers` is empty we do not know which side is ours, so a single
+ * match cannot be told apart from our own line matching a person row — the exact
+ * wrong-contact filing the subtraction exists to prevent. That case files
+ * nothing (`our-lines-unknown`): an unfiled call is a visible absence, a call on
+ * the wrong contact is a lie a rep cannot see. This is why the arming chain
+ * lists `TWILIO_CALLER_ID` under `filing` — with it unset, nothing files.
  */
 export function resolveCallParty(
   people: readonly Person[],
@@ -66,6 +76,11 @@ export function resolveCallParty(
 
   const distinct = [...new Set(matched.flatMap((h) => h.personIds))];
   if (distinct.length > 1) return { kind: "ambiguous", personIds: distinct };
+
+  // One match, and no idea whether it is the contact or us. Checked AFTER
+  // ambiguity so the more specific answer still wins, and after `no-crm-party`
+  // so a call involving nobody in the CRM is still reported as such.
+  if (ours.size === 0) return { kind: "unmatched", reason: "our-lines-unknown" };
 
   const hit = matched[0];
   return {
