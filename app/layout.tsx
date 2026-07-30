@@ -24,6 +24,7 @@ const nav = [
   { href: "/people", label: "People" },
   { href: "/deals", label: "Deals" },
   { href: "/rep", label: "Rep View" },
+  { href: "/booker", label: "Booker" },
   { href: "/projects", label: "Projects" },
   { href: "/ops", label: "Ops" },
   { href: "/training", label: "Training" },
