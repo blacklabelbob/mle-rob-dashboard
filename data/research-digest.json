@@ -1,0 +1,246 @@
+{
+  "docs": [
+    {
+      "slug": "master-view-2",
+      "path": "docs/plans/MASTER-VIEW-2.0-DESIGN.md",
+      "title": "MASTER VIEW 2.0 — Design Doc",
+      "date": "2026-07-22",
+      "status": "DRAFT rev 4 — Rob reviewed the visual mockup (\"not bad for a Master View\") and his amendments are folded: always-full 3-phase layouts, phase lifecycle triggers, P4 inline-edit, Master-Admin edit-anything, owner-who-is-also-rep, kickoff steps replacing Met. OQ-1..5 resolved; awaiting final sign-off (Q39 gate)",
+      "lead": "each section leads with THE DECISION in one or two lines. Details, evidence, and quotes follow. Skim the bold lines and you have the whole design in two minutes.",
+      "sections": [
+        {
+          "heading": "Purpose statement — what the Master View is FOR",
+          "label": "1",
+          "decision": "the Master View is Rob's operating picture, not a bigger rep screen. One glance answers four questions: (1) what phase is every customer in and what's lit, (2) who owes what / who's been invoiced and paid, (3) where the equity and spinoffs sit (owners-only), (4) what needs Rob's touch today. The rep view stays \"only what closes deals.\" Anything that doesn't answer one of those four questions gets demoted or removed from the master surfaces.",
+          "asksRob": false,
+          "points": [
+            "There are THREE audiences, not two",
+            "Master View vs Rep View vs Customer portal, one table",
+            "Purpose",
+            "Companies",
+            "Phase tracker",
+            "Phase 4 / spinoffs",
+            "Attribution",
+            "Notes"
+          ],
+          "morePoints": 0
+        },
+        {
+          "heading": "Object taxonomy — Companies vs People",
+          "label": "2",
+          "decision": "kill the interleaved \"People ledger.\" Ship two list views — /companies and /people — each with columns tuned to its object. The network graph keeps mixed nodes (Rob explicitly likes that).",
+          "asksRob": false,
+          "points": [
+            "Attio",
+            "Folk",
+            "Twenty",
+            "List columns (proposal)",
+            "Name · Vertical · Status · Phase (P1 ●●○○) · Owed/Paid · Assigned rep · Last touch",
+            "Three options considered",
+            "Option A — Per-object vocabularies (RECOMMENDED)",
+            "Prospect · Client · Partner Org · Spinoff · Vertical Anchor · Dormant"
+          ],
+          "morePoints": 13
+        },
+        {
+          "heading": "Company record page spec",
+          "label": "3",
+          "decision": "the company page is the delivery + money page. Order: header → Things to Address → Phase Blueprint tracker → People here → Deals (services / equity split) → Activity → Notes (human) → details grid → enrichment (collapsed, last). Rob: \"You have the exact same page for the entity and the person when I click into them. That doesnt seem to make sense.\" Correct — today app/people/[id]/page.tsx renders the identical PersonEditor for both with only a \"business\" pill. That ends here.",
+          "asksRob": false,
+          "points": [
+            "What the demo shows",
+            "All three phases ALWAYS render as FULL sections (Rob mockup amendment, 2026-07-22): even a not-started phase shows its complete fillable layout — component slots (unlit), money row placeholders (no agreement yet · not invoiced), the works — never a slim summary card",
+            "Per-phase section spec (master view — P2/P3 render this same full structure with empty slots)",
+            "Component lights; ALL lit = phase complete",
+            "Lights flip on a signal from partner tools (webhook), never hand-toggled once armed",
+            "Per-phase invoice/paid state, cross-checkable phase ↔ agreement ↔ invoice",
+            "One phase at a time is the norm",
+            "\"Top Automations next\" slot between P1 and P2"
+          ],
+          "morePoints": 27
+        },
+        {
+          "heading": "Person record page spec",
+          "label": "4",
+          "decision": "the person page is relationship-forward — who they are, what they are to us, which company, who brought them, what they've opened — not a money/delivery page. Order: header (name · relationship label · role @ company link) → Things to Address → attribution lineage (full chain, §5) + doors opened → activity/notes → details grid → enrichment collapsed.",
+          "asksRob": false,
+          "points": [
+            "Centerpiece",
+            "Money",
+            "Header emphasis",
+            "Right rail",
+            "Company link",
+            "Attribution lineage",
+            "Doors opened",
+            "Their activities + notes"
+          ],
+          "morePoints": 0
+        },
+        {
+          "heading": "Attribution lineage component",
+          "label": "5",
+          "decision": "every attribution line renders the full chain from ROB (origin) to the node, breadcrumb-style: ROB → Alex → Sarah → this company — compact, each hop clickable, computed by walking referredById to the root. BUILD-QUEUE Q39(e): \"attribution lines must show the FULL referral chain back to ROB origin... never make Rob guess the origin node.\"",
+          "asksRob": false,
+          "points": [
+            "Computation (pure function, lib/lineage.ts, unit-tested per CR-3)",
+            "Display"
+          ],
+          "morePoints": 0
+        },
+        {
+          "heading": "Phase-4 registry view (owners-only)",
+          "label": "6",
+          "decision": "a dedicated /registry (owners-only) table — one row per spinoff/equity position — plus the owners-only equity section on each company page. Structured fields, never notes-crammed. Rob (7.22.26-2): \"we will typically spin this up into a new entity and get an equity split. Calebs CRM is one example. Alex's HomeCloneVault is another... with Homevault, we have agreed to a 40/60 Split... we have not signed off on it yet... we need to make sure we are getting that paperwork signed. But we need to record the details of it.\"",
+          "asksRob": false,
+          "points": [
+            "Columns",
+            "Rep-hiding (✅ OQ-5 resolved: route-hidden pre-ACCESS APPROVED by Rob — ship at the unlinked owners route now; real auth locks it at ACCESS rollout)",
+            "Pre-ACCESS (now)",
+            "Post-ACCESS"
+          ],
+          "morePoints": 0
+        },
+        {
+          "heading": "Rep view fix — pipeline click-through (Q42)",
+          "label": "7",
+          "decision": "every card in the rep pipeline is one whole click target opening /rep/accounts/[id] — not just the name text. Rob: \"you cant even click into them in the pipeline.\"",
+          "asksRob": false,
+          "points": [
+            "Company lead view (master + rep)",
+            "Stage-aging rung (the real gap)",
+            "Scoring",
+            "Existing deals unaffected"
+          ],
+          "morePoints": 0
+        },
+        {
+          "heading": "Build plan — ordered increments (≤6-min driver sized)",
+          "label": "8",
+          "decision": null,
+          "asksRob": false,
+          "points": [
+            "DoD amendment note — increment 5b, 2026-07-25 (driver)",
+            "The increment-5 \"company page ≠ person page\" test, enumerated (testable)",
+            "Unblocked status after Rob's 2026-07-22 decision batch (verified against the gates above)"
+          ],
+          "morePoints": 0
+        },
+        {
+          "heading": "Open questions for Rob",
+          "label": "9",
+          "decision": null,
+          "asksRob": true,
+          "points": [
+            "Top Automations slot content"
+          ],
+          "morePoints": 0
+        }
+      ],
+      "blurb": "What the Master View is for, and what it shows Rob that the rep screen never will."
+    },
+    {
+      "slug": "rep-cockpit",
+      "path": "docs/research/REP-COCKPIT-RESEARCH-2026-07-23.md",
+      "title": "The Perfect CRM From the Rep's Seat — Research & Recommendations",
+      "date": "2026-07-23",
+      "status": "RESEARCH ONLY — nothing here is built by this doc",
+      "lead": "the perfect rep CRM is a finish-able daily queue that opens into a single account workspace where the rep can talk, send, and present without leaving the page — while the system does ALL the logging. Every product reps actually praise converges on that shape; every complaint converges on its absence. We already own most of the pieces.",
+      "sections": [
+        {
+          "heading": "The rep's day in the perfect setup (Jake's Tuesday, MLE-specific)",
+          "label": "§1",
+          "decision": null,
+          "asksRob": false,
+          "points": [
+            "8:45am — one tab, one queue",
+            "9:00am — first touch without leaving the row",
+            "9:40am — a new lead routes in",
+            "11:00am — demo time",
+            "12:15pm — they said yes",
+            "2:30pm — pipeline sweep",
+            "4:45pm — emails he never logged",
+            "5:00pm — done"
+          ],
+          "morePoints": 0
+        },
+        {
+          "heading": "The 8 cockpit surfaces that matter",
+          "label": "§2",
+          "decision": null,
+          "asksRob": false,
+          "points": [
+            "What",
+            "Salesloft Rhythm",
+            "Close Smart Views",
+            "Maps to us",
+            "The skepticism (earned)",
+            "The smallest set that changes behavior",
+            "71% of reps say they spend too much time on data entry",
+            "Maps to us — this is our strongest suit, mostly ✅ already"
+          ],
+          "morePoints": 0
+        },
+        {
+          "heading": "Send-and-present: the concrete MLE recommendation",
+          "label": "§3",
+          "decision": null,
+          "asksRob": false,
+          "points": [
+            "Templates (build small, now-able)",
+            "Skip auto-sequences",
+            "Agreements/invoices",
+            "Where decks live",
+            "The AI Growth Scan is pinned collateral on every account from Signed onward"
+          ],
+          "morePoints": 0
+        },
+        {
+          "heading": "What we deliberately DON'T build (small-team honesty)",
+          "label": "§4",
+          "decision": null,
+          "asksRob": false,
+          "points": [
+            "Forecasting / weighted-pipeline analytics",
+            "Comp plans / leaderboards / activity quotas",
+            "Multi-step automated sequences",
+            "A content-management platform",
+            "A notification system",
+            "AI next-best-action scoring/ML prioritization",
+            "More required fields — ever"
+          ],
+          "morePoints": 0
+        },
+        {
+          "heading": "Gap list vs today's /rep + PRD 4.6x, with proposed build order",
+          "label": "§5",
+          "decision": null,
+          "asksRob": false,
+          "points": [
+            "What /rep already nails",
+            "Gaps found by this research",
+            "Δ10",
+            "Δ11",
+            "Δ12",
+            "Δ13",
+            "Proposed order"
+          ],
+          "morePoints": 0
+        },
+        {
+          "heading": "Open questions for Rob (4)",
+          "label": "§6",
+          "decision": null,
+          "asksRob": true,
+          "points": [
+            "Queue contract",
+            "Templates",
+            "Deck homes",
+            "Guidance lines"
+          ],
+          "morePoints": 0
+        }
+      ],
+      "blurb": "The rep's seat: what a day looks like when the CRM does the logging."
+    }
+  ]
+}

@@ -14,6 +14,8 @@
     "guard:pii": "node scripts/pii-guard.mjs",
     "inventory:agents": "node --import ./scripts/ts-loader.mjs scripts/gen-agent-inventory.mjs",
     "audit:agents": "node --import ./scripts/ts-loader.mjs scripts/gen-agent-inventory.mjs --check",
+    "digest:research": "node --import ./scripts/ts-loader.mjs scripts/gen-research-digest.mjs",
+    "audit:research": "node --import ./scripts/ts-loader.mjs scripts/gen-research-digest.mjs --check",
     "audit:exposure": "node scripts/exposure-audit.mjs",
     "audit:mdgates": "node --import ./scripts/ts-loader.mjs scripts/audit-md-gates.mjs",
     "check:env": "node scripts/env-manifest.mjs",
