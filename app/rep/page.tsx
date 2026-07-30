@@ -3,7 +3,9 @@ import CallButton from "@/components/CallButton";
 import PhaseEightBar from "@/components/PhaseEightBar";
 import DemoFooter from "@/components/DemoFooter";
 import RepPipelineBoardPanel from "@/components/RepPipelineBoard";
+import RepReceivableAlertsPanel from "@/components/RepReceivableAlerts";
 import RepTodayBandPanel from "@/components/RepTodayBand";
+import { loadReceivableAlerts } from "@/lib/rep/receivableAlertsLoad";
 import { isCompany } from "@/lib/companies";
 import { repPipelineBoard } from "@/lib/deals/repPipelineBoard";
 import { todayInET } from "@/lib/integrity/overdue";
@@ -26,11 +28,14 @@ const REP = "Jake Torres (DEMO)";
 export default async function RepCockpit() {
   const store = getStore();
   const now = new Date();
-  const [data, tasks, deals, activities] = await Promise.all([
+  // Q81 leg (c): the receivable alert read joins the same fan-out. It cannot fail this page —
+  // a broken ledger read renders as itself in the panel, never as "nothing overdue".
+  const [data, tasks, deals, activities, receivables] = await Promise.all([
     store.getNetwork(),
     store.listTasks(),
     store.listDeals(),
     store.listActivities(),
+    loadReceivableAlerts(todayInET(now)),
   ]);
   // EXACT, never a prefix: `startsWith("Jake")` handed every account of a
   // future "Jakeline Ruiz" to Jake Torres with nothing on screen saying so.
@@ -94,6 +99,10 @@ export default async function RepCockpit() {
           </div>
         </div>
       </div>
+
+      {/* Q81: above the worklist on purpose — Rob's answer was that a rep sees this "when they
+          open up", and money already earned outranks the next call to make. */}
+      <RepReceivableAlertsPanel result={receivables} />
 
       <RepTodayBandPanel band={band} totalItems={todayItems.length} repName={REP} />
 
