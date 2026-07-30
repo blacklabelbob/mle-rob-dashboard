@@ -66,6 +66,31 @@ describe("callChainReadiness — how far a real call gets", () => {
     expect(callChainReadiness(ALL).warnings).toEqual([]);
   });
 
+  it("BOTH narrations of a dormant CALLER_ID state the refusal — neither describes a filing", () => {
+    // inc.15 gave the resolver `our-lines-unknown` (nothing files) and restated
+    // the `warnings` string to match — but the `filing` stage's own `effect` kept
+    // describing the wrong-contact filing that had just been removed, six lines
+    // below a comment claiming otherwise. Two voices narrate this one key and
+    // nothing pinned either, so a 3394-green run shipped the contradiction.
+    const r = callChainReadiness(
+      config({ twilioAuthToken: true, deepgramKey: true, anthropicKey: true }),
+    );
+    const filing = r.stages.find((s) => s.stage === "filing");
+    const narrations = [filing?.effect, ...r.warnings];
+    expect(narrations).toHaveLength(2);
+    for (const line of narrations) {
+      expect(line).toBeTruthy();
+      expect(line).toMatch(/refus/i);
+      expect(line).toMatch(/no call files/i);
+      // The two wordings this has been wrong in, kept as named regressions.
+      expect(line).not.toMatch(/a call can file/i);
+      expect(line).not.toMatch(/files on that person/i);
+    }
+    // The armed side still promises the subtraction the refusal stands in for.
+    const armed = callChainReadiness(ALL).stages.find((s) => s.stage === "filing");
+    expect(armed?.effect).toMatch(/subtracted before matching/i);
+  });
+
   it("`configured` is never evidence a call has run", () => {
     const r = callChainReadiness(ALL);
     expect(r.proven).toBe(false);
