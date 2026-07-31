@@ -202,7 +202,12 @@ export default function ThingsToAddress({
     await patch(f.id, f.title, { id: f.id, action: "read" }, "read");
   }
 
-  async function resolve(f: Flag, withNote: string, others?: readonly string[]) {
+  async function resolve(
+    f: Flag,
+    withNote: string,
+    others?: readonly string[],
+    home?: string | null,
+  ) {
     // inc.31: the click clears this row off every page the finding names, and
     // inc.30's tooltip promises exactly that — but only the page it was clicked
     // on knows which one that was. Recorded in the note (no migration; the same
@@ -212,7 +217,10 @@ export default function ThingsToAddress({
     // decides.
     const note = proposalDomain(f.title)
       ? withNote
-      : resolvedFromNote(withNote, person ?? entity, others ?? []);
+      // inc.43: `home` is the record the row is filed on. A row filed on C-2001 arrives
+      // on a member's page through `org_memberships` with no named scope, and until now
+      // that click recorded nothing — so C-2001's archive read as if it was closed there.
+      : resolvedFromNote(withNote, person ?? entity, others ?? [], home);
     // The note is cleared only on success: on a proposal it is the sole record
     // of why a domain was shut out, and re-typing it is how it ends up blank.
     if (await patch(f.id, f.title, { id: f.id, action: "resolve", note }, "resolve")) {
@@ -427,7 +435,15 @@ export default function ThingsToAddress({
           // inc.35: the same page id `resolve()` stamps into the note, so the hint can
           // only promise a provenance line the ledger actually writes. `mode !== "entity"`
           // (the Overview digest) passes nothing and gets no promise — it also writes none.
-          const copy = resolveControlCopy(f.title, scope, mode === "entity" ? person ?? entity : null);
+          // inc.43: the record the row is FILED on — `entity_ref` first, because 16 flags
+          // on prod carry a pre-Q70 slug and a slug is not a page anyone can be sent to.
+          const home = mode === "entity" ? entityRef(f) : null;
+          const copy = resolveControlCopy(
+            f.title,
+            scope,
+            mode === "entity" ? person ?? entity : null,
+            home,
+          );
           // The ids this row already links somewhere else: the page being read (a chip
           // back to the current page is a link to nowhere) and every id the marker
           // renders as a link. Both stay visible — linkified — inside the detail.
@@ -576,14 +592,14 @@ export default function ThingsToAddress({
                       value={note}
                       onChange={(e) => setNote(e.target.value)}
                       onKeyDown={(e) => {
-                        if (e.key === "Enter") resolve(f, note, scope?.others);
+                        if (e.key === "Enter") resolve(f, note, scope?.others, home);
                         if (e.key === "Escape") setNoteFor(null);
                       }}
                       placeholder={copy.notePlaceholder}
                       className="w-52 rounded-md border border-white/20 bg-black/40 px-2 py-1 text-xs text-white outline-none"
                     />
                     <button
-                      onClick={() => resolve(f, note, scope?.others)}
+                      onClick={() => resolve(f, note, scope?.others, home)}
                       disabled={busy}
                       className="rounded-md bg-emerald-500/90 px-2.5 py-1 text-xs font-semibold text-white hover:bg-emerald-400"
                     >
@@ -593,7 +609,7 @@ export default function ThingsToAddress({
                 ) : (
                   <div className="flex gap-1.5">
                     <button
-                      onClick={() => resolve(f, "", scope?.others)}
+                      onClick={() => resolve(f, "", scope?.others, home)}
                       disabled={busy}
                       title={copy.tooltip}
                       className="rounded-md bg-emerald-500/90 px-2.5 py-1 text-xs font-semibold text-white transition hover:bg-emerald-400"

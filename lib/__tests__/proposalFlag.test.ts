@@ -244,6 +244,24 @@ describe("resolveControlCopy (inc.18 — the permanent click, labelled)", () => 
     });
   });
 
+  // Q84 inc.43 — the "no named scope" branch is not always "nothing to disclose".
+  it("discloses the stamp a filed row's off-page resolve now makes", () => {
+    expect(resolveControlCopy("PropLogix — name mismatch", undefined, "P-1018", "C-2001")).toEqual({
+      label: "Resolve",
+      tooltip: "mark this handled",
+      hint: "This row is filed on C-2001, not here. Resolving it will show there that it was closed from P-1018's page.",
+      notePlaceholder: "optional note…",
+    });
+  });
+
+  it("promises nothing where the writer writes nothing — its own page, a slug, no page", () => {
+    const silent = { label: "Resolve", tooltip: "mark this handled", hint: "", notePlaceholder: "optional note…" };
+    expect(resolveControlCopy("PropLogix", undefined, "C-2001", "C-2001")).toEqual(silent);
+    expect(resolveControlCopy("PropLogix", undefined, "P-1018", "cg-roofing-group")).toEqual(silent);
+    expect(resolveControlCopy("PropLogix", undefined, null, "C-2001")).toEqual(silent);
+    expect(resolveControlCopy("PropLogix", undefined, "P-1018", null)).toEqual(silent);
+  });
+
   it("stops calling the proposal's button a resolve", () => {
     // "Resolve" reads as ledger housekeeping; the click decides the domain is
     // not a company, forever. The label has to be the decision.

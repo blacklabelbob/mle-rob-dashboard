@@ -273,20 +273,32 @@ export type ResolveScope = { others: string[]; here?: string | null } | null | u
  * means no promise, and the hint is inc.33's, unchanged.
  *
  * @param fromRecord the record page the click will be made on, when the caller knows it
+ * @param homeRecord the record the row is FILED on, when it has one (Q84 inc.43)
  */
 export function resolveControlCopy(
   title: string,
   scope?: ResolveScope,
   fromRecord?: string | null,
+  homeRecord?: string | null,
 ): ResolveCopy {
   const domain = proposalDomain(title);
   if (!domain) {
     const others = scope?.others ?? [];
     if (others.length === 0) {
+      // Q84 inc.43 — this branch is not always "nothing to disclose". A row filed on
+      // C-2001 reaches a member's page through `org_memberships` with no named scope at
+      // all, and the click there now stamps provenance the row's OWN page will render.
+      // Asked of the writer, never guessed: same rule as the branch below, so the silent
+      // case stays silent and the one that stamps says so.
+      const homeStamp = resolvedFrom(resolvedFromNote("", fromRecord, [], homeRecord));
       return {
         label: "Resolve",
         tooltip: "mark this handled",
-        hint: "",
+        // "'s page" with no qualification test, because there is none to run: this row
+        // names no records, so the page being clicked is provably not one of them.
+        hint: homeStamp
+          ? `This row is filed on ${homeRecord}, not here. Resolving it will show there that it was closed from ${homeStamp}'s page.`
+          : "",
         notePlaceholder: "optional note…",
       };
     }

@@ -242,6 +242,38 @@ describe("resolvedFromNote / archiveResolvedFromMark (inc.31)", () => {
     expect(resolvedFromNote("done", "deal-gulf-coast", ["C-2018"])).toBe("done");
   });
 
+  // Q84 inc.43 — the OTHER fan-out. `?person=` widens through `org_memberships`, so a row
+  // FILED on C-2001 (entity_id set ⇒ no named scope ⇒ `others` empty) is resolvable from a
+  // member's page, and until now that click recorded nothing at all.
+  it("records provenance for a row filed on another record, resolved from a member's page", () => {
+    expect(resolvedFromNote("", "P-1018", [], "C-2001")).toBe("Resolved from P-1018.");
+    expect(resolvedFromNote("dup", "P-1018", [], "C-2001")).toBe("dup Resolved from P-1018.");
+  });
+
+  it("stays silent on the row's own page — 'resolved from here' is not news", () => {
+    expect(resolvedFromNote("done", "C-2001", [], "C-2001")).toBe("done");
+  });
+
+  it("a legacy slug home is not proof of a second page, so it earns no clause", () => {
+    expect(resolvedFromNote("done", "P-1018", [], "cg-roofing-group")).toBe("done");
+    expect(resolvedFromNote("done", "P-1018", [], null)).toBe("done");
+  });
+
+  it("the home record never rescues a click that is not off a record page", () => {
+    expect(resolvedFromNote("done", undefined, [], "C-2001")).toBe("done");
+    expect(resolvedFromNote("done", "deal-gulf-coast", [], "C-2001")).toBe("done");
+  });
+
+  it("reads back on the row's own page as a closure made somewhere else", () => {
+    const stored = resolvedFromNote("", "P-1018", [], "C-2001");
+    // `named` is undefined: a filed row has no named scope, so the id is qualified as a
+    // page — it is not one of the finding's records, and the sentence must not imply it.
+    expect(archiveResolvedFromMark(stored, "C-2001")).toBe(
+      "Resolved from P-1018's page — it is one finding, so closing it there closed it here."
+    );
+    expect(archiveResolvedFromMark(stored, "P-1018")).toBeNull();
+  });
+
   it("is idempotent — a note already carrying the clause gets no second one", () => {
     const once = resolvedFromNote("", "C-2017", ["C-2018"]);
     expect(resolvedFromNote(once, "C-2017", ["C-2018"])).toBe(once);

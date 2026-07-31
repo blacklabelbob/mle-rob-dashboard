@@ -175,9 +175,27 @@ export function supersededBy(note: string | null | undefined): number | null {
  * (`resolutionNoteBody`) and shown as the machine's line instead. Attributing a sentence
  * the ledger wrote to the person who closed the row is the same lie as a stale count.
  *
- * Written ONLY for a row that names another record (`others` non-empty). On the ordinary
- * ledger row — filed against the page you are reading it on — "resolved from here" is not
- * news, and a line every archive row carries is a line nobody reads.
+ * Written ONLY for a row that can be READ somewhere other than where it was CLICKED. On the
+ * ordinary ledger row — filed against the page you are reading it on — "resolved from here"
+ * is not news, and a line every archive row carries is a line nobody reads.
+ *
+ * Q84 inc.43 — the row with an `entity_id`, closed from a page it is not filed on.
+ *
+ * inc.31..inc.42 used `others` (the OTHER records the row NAMES) as the whole test for
+ * "readable elsewhere", because every increment on this ladder was chasing the NULL-entity
+ * fan-out. That leaves the other fan-out unrecorded: `/api/admin/flags?person=P-…` widens
+ * the filter through `org_memberships` to the person's ORGS, so a flag filed on C-2001 —
+ * `entity_id` set, therefore `flagNamedScope` returns null and `others` is empty — renders
+ * on every member's page and is resolvable from there. The clause was skipped, and on
+ * C-2001's own archive that closure then reads exactly like one somebody made standing on
+ * C-2001: the absence-read-as-a-fact defect inc.36 wrote a whole apology sentence for,
+ * still being MINTED by the writer one branch over. Measured on prod: 5 such rows reach a
+ * person's page today, 2 of them still open, so this is a live click, not a hypothetical.
+ *
+ * `homeRecord` is the record the row is filed on (`entity_ref ?? entity_id`), and it earns
+ * the clause only when it is a MINTED id that is not the page clicked — a legacy slug
+ * proves nothing about which page will read this, the same unproven-by-default rule `from`
+ * itself is held to. `homeRecord === from` stays silent for the reason it always has.
  */
 const RESOLVED_FROM = /(?:^|\s)Resolved from ([CP]-\d+)\.$/;
 
@@ -187,15 +205,20 @@ const RESOLVED_FROM = /(?:^|\s)Resolved from ([CP]-\d+)\.$/;
  * @param note       what the reviewer typed (may be empty — the clause is worth recording alone)
  * @param fromRecord the record page the click was made on, or null/undefined off a record page
  * @param others     the OTHER records this row names (`flagNamedScope().others`)
+ * @param homeRecord the record this row is FILED on (`entity_ref ?? entity_id`), when known
  */
 export function resolvedFromNote(
   note: string,
   fromRecord: string | null | undefined,
   others: readonly string[],
+  homeRecord?: string | null,
 ): string {
   const body = (note ?? "").trim();
   const from = (fromRecord ?? "").trim();
-  if (!others.length || !/^[CP]-\d+$/.test(from)) return body;
+  if (!/^[CP]-\d+$/.test(from)) return body;
+  const home = (homeRecord ?? "").trim();
+  const filedElsewhere = /^[CP]-\d+$/.test(home) && home !== from;
+  if (!others.length && !filedElsewhere) return body;
   // Idempotent: a note that already ends in the clause is not given a second one.
   if (resolvedFrom(body) !== null) return body;
   return body ? `${body} Resolved from ${from}.` : `Resolved from ${from}.`;
