@@ -119,3 +119,54 @@ export function flagEntityHref(entityId: string | null | undefined): string | nu
   const route = RECORD_ROUTES[m[1]];
   return route ? `${route}/${entityId}` : null;
 }
+
+// Q84 inc.22 — inc.19 made the ids INSIDE a detail clickable and inc.20 removed the
+// title link that 404'd. Both were right, and together they left a gap on the row that
+// started this thread: prod flag #137's `entity_name` is the single string
+// `CG Roofing Group / Gulf Coast RE Group` and its `entity_id` is NULL, so the title
+// names TWO records and reaches neither. It is not one row: #133 names 4 records
+// (`C-2006`, `C-2018`, `C-2019`, `P-1010`), #129 names 6, #128 names 4 — all with a
+// null `entity_id`, all reachable only by reading the paragraph underneath.
+//
+// The fix adds no new claim. It does NOT try to resolve `CG Roofing Group` to a record —
+// that name-to-record guess is the exact mistake inc.19/inc.20 refused twice, and a
+// slash-separated title cannot address one record anyway. It surfaces the ids the row
+// ALREADY prints, in the header, where the row is scanned. Every chip is an id the CRM
+// minted and the flag itself wrote; nothing is inferred from a name.
+
+/** A record a flag names, ready to render as a link. */
+export type RecordChip = { id: string; href: string };
+
+/**
+ * The records a flag addresses, deduped, in the order the flag names them.
+ *
+ * Sourced from the SAME linkifier that renders the detail, so a chip can never point
+ * somewhere the paragraph below it does not — one route table, one boundary rule, one
+ * definition of "this is an id".
+ *
+ * `entityId` is passed so its chip is DROPPED when the title already links it: repeating
+ * the id Rob just clicked is noise, and noise on this list is how a real finding gets
+ * scrolled past. When `entityId` is a slug (every flag on prod that has one), it is not a
+ * link anywhere, so nothing is dropped.
+ *
+ * Uncapped on purpose — #129 names 6 records and truncating to "the first 3" would print
+ * a count the row does not have. These ids are already on screen; this only makes them
+ * reachable.
+ */
+export function flagRecordChips(
+  entityId: string | null | undefined,
+  detail: string | null | undefined,
+): RecordChip[] {
+  const seen = new Set<string>();
+  // Only skip the entity id when it is genuinely rendered as a link above. A slug
+  // entity_id renders as plain text, so an id inside the detail is still the only way in.
+  if (entityId && flagEntityHref(entityId)) seen.add(entityId);
+
+  const out: RecordChip[] = [];
+  for (const seg of linkifyRecordIds(detail ?? "")) {
+    if (!seg.href || seen.has(seg.text)) continue;
+    seen.add(seg.text);
+    out.push({ id: seg.text, href: seg.href });
+  }
+  return out;
+}

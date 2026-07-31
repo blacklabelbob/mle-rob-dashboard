@@ -11,7 +11,7 @@ import {
   writeFailureMessage,
   type WriteFailure,
 } from "@/lib/comms/proposalFlag";
-import { flagEntityHref, linkifyRecordIds } from "@/lib/flags/recordLinks";
+import { flagEntityHref, flagRecordChips, linkifyRecordIds } from "@/lib/flags/recordLinks";
 import { reopenFailureMessage, supersededBy } from "@/lib/flags/supersede";
 import {
   archiveRepeatMark,
@@ -243,6 +243,19 @@ export default function ThingsToAddress({
                     <span className="font-medium text-slate-200">{f.entity_name}</span>
                   )}
                   <span className="text-slate-400"> — {f.title}</span>
+                  {/* inc.22: the header names records it could not reach — #137's
+                      entity_name is TWO orgs in one string with a null entity_id.
+                      These are the ids the row already prints in its detail, made
+                      reachable where the row is scanned. No name is resolved. */}
+                  {flagRecordChips(f.entity_id, f.detail).map((chip) => (
+                    <Link
+                      key={chip.id}
+                      href={chip.href}
+                      className="ml-1.5 rounded border border-white/15 px-1 py-px font-mono text-[10px] text-slate-300 hover:border-white/40 hover:text-white"
+                    >
+                      {chip.id}
+                    </Link>
+                  ))}
                   {/* inc.32: the digest is a scan surface, so the held-domain
                       row gets its STATE here (still blocked) and nothing else —
                       the hint and the way back live on the full row, where the
@@ -328,6 +341,17 @@ export default function ThingsToAddress({
                     f.entity_name
                   )}
                   <span className="opacity-80"> — {f.title}</span>
+                  {/* inc.22: same rule, same source, both render sites — a rule that
+                      holds in the digest and not here is how inc.20's bug was born. */}
+                  {flagRecordChips(f.entity_id, f.detail).map((chip) => (
+                    <Link
+                      key={chip.id}
+                      href={chip.href}
+                      className="ml-1.5 rounded border border-white/25 px-1 py-px font-mono text-[10px] font-normal opacity-80 hover:underline hover:opacity-100"
+                    >
+                      {chip.id}
+                    </Link>
+                  ))}
                 </div>
                 {/* Q84 inc.13: a detail may now be a paragraph AND a list (the meeting-archive
                     finding carries the meetings Rob has to account for). Without pre-line the

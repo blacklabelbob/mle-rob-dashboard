@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { flagEntityHref, linkifyRecordIds } from "@/lib/flags/recordLinks";
+import { flagEntityHref, flagRecordChips, linkifyRecordIds } from "@/lib/flags/recordLinks";
 
 /** The invariant that makes this safe to drop into a paragraph Rob reads. */
 function rejoin(detail: string) {
@@ -114,5 +114,71 @@ describe("flagEntityHref", () => {
   it("agrees with the detail linkifier about where a record lives", () => {
     const inDetail = linkifyRecordIds("see C-2019 now").find((s) => s.href);
     expect(flagEntityHref("C-2019")).toBe(inDetail?.href);
+  });
+});
+
+describe("flagRecordChips", () => {
+  // The row that started Q84's link thread, verbatim off prod 2026-07-31: entity_id is
+  // NULL and the entity_name names two orgs in one string, so the title reaches neither.
+  const F137_NAME = "CG Roofing Group / Gulf Coast RE Group";
+  const F137_DETAIL =
+    "CG Roofing Group [C-2017] holds cgroofinggroup.com; the three orphaned meetings " +
+    "resolve to cgroofing.net. Gulf Coast RE Group [C-2018] is the same shape.";
+
+  it("makes prod flag #137's two orgs reachable from the row header", () => {
+    expect(flagEntityHref(null)).toBeNull(); // the title is plain text — this is the only way in
+    expect(F137_NAME).toContain("/"); // one string, two companies: no single href can be right
+    expect(flagRecordChips(null, F137_DETAIL)).toEqual([
+      { id: "C-2017", href: "/companies/C-2017" },
+      { id: "C-2018", href: "/companies/C-2018" },
+    ]);
+  });
+
+  it("carries prod flag #133's four records, people and companies alike", () => {
+    const detail =
+      "Dixith Magadiev [P-1010] → C-2006 — put that person's company in Notion. " +
+      "No CRM org is named exactly “Omega Title”: C-2019 is the near miss, C-2018 is not.";
+    expect(flagRecordChips(null, detail).map((c) => c.id)).toEqual([
+      "P-1010",
+      "C-2006",
+      "C-2019",
+      "C-2018",
+    ]);
+  });
+
+  it("names each record once, in the order the flag names them", () => {
+    expect(flagRecordChips(null, "C-2018 then C-2017 then C-2018 again").map((c) => c.id)).toEqual([
+      "C-2018",
+      "C-2017",
+    ]);
+  });
+
+  it("drops the entity id when the title already links it — a repeat is noise", () => {
+    expect(flagRecordChips("C-2017", "C-2017 and C-2018").map((c) => c.id)).toEqual(["C-2018"]);
+  });
+
+  it("keeps a detail id when the entity_id is a slug, because the title is NOT a link", () => {
+    // Every entity_id on prod is a slug, so this is the live case, not the edge case.
+    expect(flagEntityHref("cg-roofing-group")).toBeNull();
+    expect(flagRecordChips("cg-roofing-group", "see C-2017").map((c) => c.id)).toEqual(["C-2017"]);
+  });
+
+  it("adds nothing to a row that names no record", () => {
+    expect(flagRecordChips(null, "Deploy pipeline went red twice.")).toEqual([]);
+    expect(flagRecordChips(null, "")).toEqual([]);
+    expect(flagRecordChips(null, null)).toEqual([]);
+    expect(flagRecordChips(undefined, undefined)).toEqual([]);
+  });
+
+  it("inherits the linkifier's boundaries — an invoice number is not a record", () => {
+    expect(flagRecordChips(null, "invoice MLE-2026-100123 and C-2019-draft")).toEqual([]);
+  });
+
+  it("points exactly where the same id points inside the detail below it", () => {
+    const detail = "Dixith Magadiev [P-1010] and Gulf Coast RE Group [C-2018]";
+    const inProse = linkifyRecordIds(detail).filter((s) => s.href);
+    expect(flagRecordChips(null, detail)).toEqual(
+      inProse.map((s) => ({ id: s.text, href: s.href })),
+    );
   });
 });
