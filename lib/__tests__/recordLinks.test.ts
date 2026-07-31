@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { flagEntityHref, flagRecordChips, linkifyRecordIds } from "@/lib/flags/recordLinks";
+import {
+  buildSlugIndex,
+  flagEntityHref,
+  flagRecordChips,
+  linkifyRecordIds,
+  resolveFlagEntityId,
+} from "@/lib/flags/recordLinks";
 
 /** The invariant that makes this safe to drop into a paragraph Rob reads. */
 function rejoin(detail: string) {
@@ -180,5 +186,79 @@ describe("flagRecordChips", () => {
     expect(flagRecordChips(null, detail)).toEqual(
       inProse.map((s) => ({ id: s.text, href: s.href })),
     );
+  });
+});
+
+// Q84 inc.23 — the slug entity_ids that inc.20 correctly refused to guess at, resolved
+// through the key the CRM itself recorded at the Q70 renumber. Values below are the real
+// `legacy_slug` rows read off prod 2026-07-31.
+describe("buildSlugIndex / resolveFlagEntityId — the renumber's own mapping", () => {
+  const PROD = [
+    { id: "C-2017", legacy_slug: "cg-roofing-group" },
+    { id: "C-2002", legacy_slug: "spinoff-homeclonevault" },
+    { id: "C-2010", legacy_slug: "the-title-base" },
+    { id: "P-1008", legacy_slug: "will" },
+    { id: "P-1014", legacy_slug: "jonathan-polk" },
+  ];
+
+  it("resolves a legacy slug to the record the CRM renumbered it to", () => {
+    const ix = buildSlugIndex(PROD);
+    expect(resolveFlagEntityId("cg-roofing-group", ix)).toBe("C-2017");
+    expect(resolveFlagEntityId("will", ix)).toBe("P-1008");
+    // The two equity rows Rob asked about in dev_chat #53.
+    expect(flagEntityHref(resolveFlagEntityId("spinoff-homeclonevault", ix))).toBe("/companies/C-2002");
+  });
+
+  it("leaves a minted id exactly as it is — no index needed, none consulted", () => {
+    expect(resolveFlagEntityId("C-2019", {})).toBe("C-2019");
+    expect(resolveFlagEntityId("P-1010", null)).toBe("P-1010");
+  });
+
+  it("resolves a slug NO record claims to nothing — a deal slug stays plain text", () => {
+    // Live on prod flag #83. No org and no person carries it; sending Rob to a guessed
+    // record would be worse than sending him nowhere, which is inc.20's rule intact.
+    expect(resolveFlagEntityId("deal-gulf-coast-equity-phase4", buildSlugIndex(PROD))).toBeNull();
+    expect(resolveFlagEntityId(null, buildSlugIndex(PROD))).toBeNull();
+    expect(resolveFlagEntityId("cg-roofing-group", null)).toBeNull();
+  });
+
+  it("REFUSES a slug two different records claim, rather than picking one", () => {
+    // Nothing constrains `legacy_slug` across the orgs and people tables. Both targets
+    // render a real page, so guessing would fail silently — the one failure mode this
+    // whole thread exists to prevent.
+    const ix = buildSlugIndex([
+      { id: "C-2018", legacy_slug: "caleb-green" },
+      { id: "P-1018", legacy_slug: "caleb-green" },
+    ]);
+    expect(ix["caleb-green"]).toBeUndefined();
+    expect(resolveFlagEntityId("caleb-green", ix)).toBeNull();
+  });
+
+  it("does not treat the same row read twice as a conflict", () => {
+    const ix = buildSlugIndex([
+      { id: "C-2017", legacy_slug: "cg-roofing-group" },
+      { id: "C-2017", legacy_slug: "cg-roofing-group" },
+    ]);
+    expect(ix["cg-roofing-group"]).toBe("C-2017");
+  });
+
+  it("ignores rows with no slug and never resolves to a malformed id", () => {
+    const ix = buildSlugIndex([
+      { id: "C-2020", legacy_slug: null },
+      { id: "not-an-id", legacy_slug: "broken" },
+    ]);
+    expect(ix["broken"]).toBe("not-an-id");
+    // The index may hold it; the resolver must not hand it to a router.
+    expect(resolveFlagEntityId("broken", ix)).toBeNull();
+  });
+
+  it("chips drop the entity id once the slug resolves it into the title link", () => {
+    // Before inc.23 a slug entity_id was never a link, so an id repeated in the detail
+    // was the only way in and had to stay. Now the title carries it — printing it twice
+    // is the noise that gets a real finding scrolled past.
+    const rid = resolveFlagEntityId("cg-roofing-group", buildSlugIndex(PROD)) as string;
+    expect(flagRecordChips(rid, "C-2017 and C-2018 share a host")).toEqual([
+      { id: "C-2018", href: "/companies/C-2018" },
+    ]);
   });
 });

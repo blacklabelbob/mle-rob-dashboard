@@ -40,7 +40,17 @@ type Flag = {
   notified_at: string;
   resolved_at: string | null;
   resolution_note: string | null;
+  /** inc.23: resolved server-side — see `withEntityRefs` in app/api/admin/flags/route.ts. */
+  entity_ref?: string | null;
 };
+
+/**
+ * The record a row addresses: its minted id, or the record the CRM recorded under its
+ * legacy slug. Optional-chained back to `entity_id` so a response served before inc.23
+ * (a cached page, a partial rollout) degrades to inc.20's plain text — never to a link
+ * pointing somewhere else.
+ */
+const entityRef = (f: Flag) => f.entity_ref ?? f.entity_id;
 
 async function fetchFlags(person?: string): Promise<Flag[] | null> {
   try {
@@ -229,12 +239,13 @@ export default function ThingsToAddress({
                 )}
                 <div className="min-w-0">
                   <span className={`mr-2 rounded px-1.5 py-px text-[10px] uppercase ${sevStyle[f.severity]}`}>{f.severity}</span>
-                  {/* inc.20: linked only when entity_id is an id the CRM minted. Every
-                      flag on prod carries a SLUG here, so this link 404'd on all of them;
-                      a name that is not a link is the honest state, not a lost feature. */}
-                  {flagEntityHref(f.entity_id) ? (
+                  {/* inc.20: linked only when the row addresses an id the CRM minted —
+                      a name that is not a link is the honest state, not a lost feature.
+                      inc.23: a legacy slug now counts, because `legacy_slug` is a key the
+                      CRM wrote down at the renumber, not an inference off the name. */}
+                  {flagEntityHref(entityRef(f)) ? (
                     <Link
-                      href={flagEntityHref(f.entity_id) as string}
+                      href={flagEntityHref(entityRef(f)) as string}
                       className="font-medium text-slate-200 hover:underline"
                     >
                       {f.entity_name}
@@ -247,7 +258,7 @@ export default function ThingsToAddress({
                       entity_name is TWO orgs in one string with a null entity_id.
                       These are the ids the row already prints in its detail, made
                       reachable where the row is scanned. No name is resolved. */}
-                  {flagRecordChips(f.entity_id, f.detail).map((chip) => (
+                  {flagRecordChips(entityRef(f), f.detail).map((chip) => (
                     <Link
                       key={chip.id}
                       href={chip.href}
@@ -333,8 +344,8 @@ export default function ThingsToAddress({
                 <div className="text-sm font-semibold">
                   {/* inc.20: same rule as the digest above and as the ids inside the
                       detail — an id is unambiguous or it is not a link. */}
-                  {flagEntityHref(f.entity_id) ? (
-                    <Link href={flagEntityHref(f.entity_id) as string} className="hover:underline">
+                  {flagEntityHref(entityRef(f)) ? (
+                    <Link href={flagEntityHref(entityRef(f)) as string} className="hover:underline">
                       {f.entity_name}
                     </Link>
                   ) : (
@@ -343,7 +354,7 @@ export default function ThingsToAddress({
                   <span className="opacity-80"> — {f.title}</span>
                   {/* inc.22: same rule, same source, both render sites — a rule that
                       holds in the digest and not here is how inc.20's bug was born. */}
-                  {flagRecordChips(f.entity_id, f.detail).map((chip) => (
+                  {flagRecordChips(entityRef(f), f.detail).map((chip) => (
                     <Link
                       key={chip.id}
                       href={chip.href}

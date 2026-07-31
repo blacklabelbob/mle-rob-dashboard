@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { planFlagWrite, planFlagReopen, supersededNote, type ExistingFlag } from "@/lib/flags/supersede";
+import { buildSlugIndex, resolveFlagEntityId } from "@/lib/flags/recordLinks";
 
 // Things to Address (Rob 2026-07-22): findings surfaced to Rob live on the
 // ledger — resolve with optional note, never deleted, archive keeps both dates.
@@ -31,7 +32,38 @@ export async function GET(req: NextRequest) {
     .order("severity", { ascending: true })
     .order("notified_at", { ascending: false });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ flags: data ?? [] });
+
+  const flags = await withEntityRefs(data ?? []);
+  return NextResponse.json({ flags });
+}
+
+/**
+ * Q84 inc.23 — attach `entity_ref`: the record id a flag's `entity_id` actually addresses.
+ *
+ * 16 flags on prod carry a legacy SLUG (`cg-roofing-group`, `will`), not a minted id, and
+ * the ledger renders those as plain text because the slug alone proves nothing. The CRM
+ * kept the mapping when it renumbered (`legacy_slug`), so the resolution is a lookup, not
+ * a guess — see lib/flags/recordLinks.ts. Only the slugs this response actually contains
+ * are queried; a slug no record claims stays unresolved and the row stays plain text.
+ *
+ * Failure is non-fatal by design: this section is decoration on top of the finding. A
+ * degraded lookup must leave Rob reading the same ledger he read yesterday, never a 500.
+ */
+async function withEntityRefs<T extends { entity_id: string | null }>(rows: T[]) {
+  const slugs = [
+    ...new Set(rows.map((r) => r.entity_id).filter((id): id is string => Boolean(id) && !resolveFlagEntityId(id, null))),
+  ];
+  let index = {};
+  if (slugs.length) {
+    const [orgs, people] = await Promise.all([
+      db().from("orgs").select("id,legacy_slug").in("legacy_slug", slugs),
+      db().from("people").select("id,legacy_slug").in("legacy_slug", slugs),
+    ]);
+    if (!orgs.error && !people.error) {
+      index = buildSlugIndex([...(orgs.data ?? []), ...(people.data ?? [])]);
+    }
+  }
+  return rows.map((r) => ({ ...r, entity_ref: resolveFlagEntityId(r.entity_id, index) }));
 }
 
 // resolve (with optional note) — or reopen if Rob changes his mind

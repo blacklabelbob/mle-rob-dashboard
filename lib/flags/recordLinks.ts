@@ -134,6 +134,73 @@ export function flagEntityHref(entityId: string | null | undefined): string | nu
 // ALREADY prints, in the header, where the row is scanned. Every chip is an id the CRM
 // minted and the flag itself wrote; nothing is inferred from a name.
 
+// Q84 inc.23 — inc.20 renders a slug `entity_id` as plain text, and gave the reason:
+// "a slug is a name with the spaces removed … `cg-roofing-group` only LOOKS resolvable."
+// That was the right call on the evidence inc.20 had — the flag row alone. It is wrong
+// on the evidence the CRM holds: the Q70 renumber PERSISTED the old slug, and `legacy_slug`
+// is populated on every one of the 19 orgs and 22 people on prod today.
+//
+//   cg-roofing-group → C-2017     spinoff-homeclonevault → C-2002     will → P-1008
+//   the-title-base   → C-2010     naples-spine-joint     → C-2011     jonathan-polk → P-1014
+//
+// So resolving one is not a guess about a name — it is reading a key the CRM itself wrote
+// down when it renumbered the record. That is the whole distinction inc.19/inc.20 drew:
+// `CG Roofing Group` (prose, ambiguous, never linked) vs an identifier the CRM minted.
+// 12 of the 16 slug-carrying flags reach their record this way, including the two equity
+// rows Rob asked about in dev_chat #53. `deal-gulf-coast-equity-phase4` still resolves to
+// nothing — it names a DEAL, no org or person carries that slug — and stays plain text,
+// which is the correct answer, not a failure.
+//
+// The index is built server-side (the flags GET) and passed in, so this file stays pure.
+
+/** `legacy_slug` → the record id the CRM renumbered it to. */
+export type SlugIndex = Record<string, string>;
+
+/**
+ * Build the slug→id index from rows the caller read, dropping any slug claimed by more
+ * than one record.
+ *
+ * A collision is refused rather than resolved: orgs and people are separate tables with
+ * no shared uniqueness constraint, so nothing stops both from carrying `caleb-green` one
+ * day. Picking whichever row was read first would send Rob to the wrong record — the exact
+ * failure this whole thread exists to prevent — and it would do it silently, since both
+ * targets render a real page. A dropped slug just renders as the plain text it already was.
+ */
+export function buildSlugIndex(rows: { id: string; legacy_slug: string | null }[]): SlugIndex {
+  const out: SlugIndex = {};
+  const contested = new Set<string>();
+  for (const r of rows) {
+    if (!r.legacy_slug || !r.id) continue;
+    if (contested.has(r.legacy_slug)) continue;
+    const prior = out[r.legacy_slug];
+    // Same slug, same id read twice is not a conflict — same slug, DIFFERENT id is.
+    if (prior !== undefined && prior !== r.id) {
+      delete out[r.legacy_slug];
+      contested.add(r.legacy_slug);
+      continue;
+    }
+    out[r.legacy_slug] = r.id;
+  }
+  return out;
+}
+
+/**
+ * The record id a flag's `entity_id` addresses, or `null` when it addresses none.
+ *
+ * An already-minted id (`C-2017`) is itself. A slug resolves only through `slugIndex`,
+ * and only to a value that is itself a minted id — a `legacy_slug` row pointing at
+ * something malformed must not become a link to a page that does not exist.
+ */
+export function resolveFlagEntityId(
+  entityId: string | null | undefined,
+  slugIndex: SlugIndex | null | undefined,
+): string | null {
+  if (!entityId) return null;
+  if (flagEntityHref(entityId)) return entityId;
+  const mapped = slugIndex?.[entityId];
+  return mapped && flagEntityHref(mapped) ? mapped : null;
+}
+
 /** A record a flag names, ready to render as a link. */
 export type RecordChip = { id: string; href: string };
 
