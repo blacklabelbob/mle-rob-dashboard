@@ -3,6 +3,8 @@
 -- migrations themselves. Do not hand-edit: a vitest drift check compares this file to
 -- the generator's output and fails on any divergence.
 --
+-- APPLY-STATUS: PENDING (owner: rob)
+--
 -- *** NOT APPLIED. *** Rob's go gates the rollout half. Applying this changes who can
 -- read what in prod; it is committed so that go costs one `supabase db push`, not a
 -- design session.

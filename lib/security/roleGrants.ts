@@ -318,6 +318,11 @@ export function renderRoleGrantSql(schema: Map<string, Set<string>>): string {
   L.push("-- migrations themselves. Do not hand-edit: a vitest drift check compares this file to");
   L.push("-- the generator's output and fails on any divergence.");
   L.push("--");
+  // Q84 inc.51 — the machine half of the sentence below. Prose is not a ledger:
+  // `lib/migrations/applyStatus.ts` reads this marker, so an unapplied migration
+  // shows up on the backlog instead of only in a comment a human has to find.
+  L.push("-- APPLY-STATUS: PENDING (owner: rob)");
+  L.push("--");
   L.push("-- *** NOT APPLIED. *** Rob's go gates the rollout half. Applying this changes who can");
   L.push("-- read what in prod; it is committed so that go costs one `supabase db push`, not a");
   L.push("-- design session.");

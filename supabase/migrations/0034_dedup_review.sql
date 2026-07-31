@@ -1,3 +1,5 @@
+-- APPLY-STATUS: PENDING (owner: rob)
+--
 -- Q84 inc.50 — the table four modules read has no migration, and its status
 -- vocabulary lives only in comments.
 --
