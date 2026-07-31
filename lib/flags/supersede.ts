@@ -244,18 +244,42 @@ export function resolutionNoteBody(note: string | null | undefined): string {
  * caller that cannot prove the page is named gets the sentence that is true either way, never
  * the stronger claim. What is certain in every case — one finding, one row, closed once — is
  * what an unproven caller says.
+ *
+ * Q84 inc.34 — the OTHER id in this sentence gets the same rule as the page.
+ *
+ * inc.32 and inc.33 both fixed a claim about the page being READ. This sentence prints a
+ * second id — the record the click was made from — and inc.31 wrote it bare: "Resolved from
+ * P-1018". Read on C-2017's archive, next to a sentence about what this finding names, a bare
+ * minted id reads as one more of the finding's records. It is not: `resolvedFromNote` records
+ * WHERE THE REVIEWER WAS STANDING, and the person fan-out means that is routinely a page the
+ * finding never names — prod #137 names two companies and no person, yet is resolvable from
+ * three people's pages. Nothing in the note distinguishes the two cases, and the archive
+ * asserted the stronger one for both.
+ *
+ * The evidence is already on the row and needs no migration and no second write: `named` is
+ * `flagNamedScope(...).named`, the ids the row literally prints. When `from` is one of them,
+ * the bare id is exactly right and the sentence is unchanged. When it is not — or when the
+ * caller cannot say — the id is qualified as a PAGE (`Resolved from P-1018's page`), which is
+ * true whether or not the finding names it. Same unproven-by-default rule as `namesThisPage`:
+ * absence of the argument is absence of proof, never proof of absence, and the fallback is
+ * the wording that cannot be false either way.
+ *
+ * @param named every id the row prints (`flagNamedScope().named`), when the caller has it
  */
 export function archiveResolvedFromMark(
   note: string | null | undefined,
   pageId: string | null | undefined,
   namesThisPage?: boolean,
+  named?: readonly string[] | null,
 ): string | null {
   const from = resolvedFrom(note);
   const page = (pageId ?? "").trim();
   if (!from || !page || from === page) return null;
+  const fromIsNamed = Array.isArray(named) && named.includes(from);
+  const head = fromIsNamed ? `Resolved from ${from}` : `Resolved from ${from}'s page`;
   return namesThisPage === true
-    ? `Resolved from ${from} — this finding names this record too, so it closed here with it.`
-    : `Resolved from ${from} — it is one finding, so closing it there closed it here.`;
+    ? `${head} — this finding names this record too, so it closed here with it.`
+    : `${head} — it is one finding, so closing it there closed it here.`;
 }
 
 export type ReopenFailure = { text: string; certain: boolean };

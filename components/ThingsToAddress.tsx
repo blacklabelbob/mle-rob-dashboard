@@ -674,12 +674,17 @@ export default function ThingsToAddress({
                       person's page is fanned out through org memberships, so a finding that
                       names C-2017 lands there naming no person — and inc.31's sentence told
                       Rob it named them. Same evidence as the open row's marker: `here` is
-                      non-null only when this page's id is literally printed by the row. */}
+                      non-null only when this page's id is literally printed by the row.
+                      inc.34: the id the sentence prints for WHERE THE CLICK HAPPENED gets the
+                      same test — `named` is the row's own printed ids, so a click made from a
+                      page this finding never names is called a page, not one of its records. */}
                   {(() => {
+                    const archiveScope = flagNamedScope(f.entity_id, f.title, f.detail, person ?? entity);
                     const mark = archiveResolvedFromMark(
                       f.resolution_note,
                       person ?? entity,
-                      flagNamedScope(f.entity_id, f.title, f.detail, person ?? entity)?.here != null
+                      archiveScope?.here != null,
+                      archiveScope?.named
                     );
                     return mark ? <div className="mt-0.5 text-slate-500">{mark}</div> : null;
                   })()}

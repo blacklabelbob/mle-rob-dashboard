@@ -281,8 +281,10 @@ describe("resolvedFromNote / archiveResolvedFromMark (inc.31)", () => {
 describe("archiveResolvedFromMark — why the row is on THIS page (inc.32)", () => {
   const stored = resolvedFromNote("", "C-2017", ["C-2018"]);
 
+  const named = ["C-2017", "C-2018"];
+
   it("claims the finding names this record only when the caller proved it does", () => {
-    expect(archiveResolvedFromMark(stored, "C-2018", true)).toBe(
+    expect(archiveResolvedFromMark(stored, "C-2018", true, named)).toBe(
       "Resolved from C-2017 — this finding names this record too, so it closed here with it."
     );
   });
@@ -290,22 +292,66 @@ describe("archiveResolvedFromMark — why the row is on THIS page (inc.32)", () 
   it("never claims a person's page is named — that page is reached through org membership", () => {
     // `/api/admin/flags?person=P-1001` fans out through `org_memberships`, so a finding
     // naming C-2017 renders on every member's page while naming no person at all.
-    const mark = archiveResolvedFromMark(stored, "P-1001", false);
+    const mark = archiveResolvedFromMark(stored, "P-1001", false, named);
     expect(mark).toBe("Resolved from C-2017 — it is one finding, so closing it there closed it here.");
     expect(mark).not.toContain("names this record");
   });
 
   it("treats an unproven caller as unproven, not as proof — the weaker sentence is the true one", () => {
-    expect(archiveResolvedFromMark(stored, "P-1001")).toBe(
-      archiveResolvedFromMark(stored, "P-1001", false)
+    expect(archiveResolvedFromMark(stored, "P-1001", undefined, named)).toBe(
+      archiveResolvedFromMark(stored, "P-1001", false, named)
     );
-    expect(archiveResolvedFromMark(stored, "P-1001", undefined)).not.toContain("names this record");
+    expect(archiveResolvedFromMark(stored, "P-1001", undefined, named)).not.toContain(
+      "names this record"
+    );
   });
 
   it("still says nothing at all where inc.31 said nothing — page settled from, Overview, no clause", () => {
-    expect(archiveResolvedFromMark(stored, "C-2017", true)).toBeNull();
-    expect(archiveResolvedFromMark(stored, "C-2017", false)).toBeNull();
-    expect(archiveResolvedFromMark(stored, null, true)).toBeNull();
-    expect(archiveResolvedFromMark("plain note", "C-2018", true)).toBeNull();
+    expect(archiveResolvedFromMark(stored, "C-2017", true, named)).toBeNull();
+    expect(archiveResolvedFromMark(stored, "C-2017", false, named)).toBeNull();
+    expect(archiveResolvedFromMark(stored, null, true, named)).toBeNull();
+    expect(archiveResolvedFromMark("plain note", "C-2018", true, named)).toBeNull();
+  });
+});
+
+describe("archiveResolvedFromMark — the id the click came FROM (inc.34)", () => {
+  // Prod #137: names C-2017 + C-2018 and no person, yet the person fan-out puts the
+  // Resolve button on P-1018/P-1019/P-1022. A click there stores "Resolved from P-1018."
+  const fromPerson = resolvedFromNote("", "P-1018", ["C-2017", "C-2018"]);
+  const fromCompany = resolvedFromNote("", "C-2017", ["C-2018"]);
+  const named = ["C-2017", "C-2018"];
+
+  it("prints the bare id only when the row itself names that record", () => {
+    expect(archiveResolvedFromMark(fromCompany, "C-2018", true, named)).toBe(
+      "Resolved from C-2017 — this finding names this record too, so it closed here with it."
+    );
+  });
+
+  it("calls it a PAGE when the finding never names the record the click came from", () => {
+    const mark = archiveResolvedFromMark(fromPerson, "C-2017", true, named);
+    expect(mark).toBe(
+      "Resolved from P-1018's page — this finding names this record too, so it closed here with it."
+    );
+    // The defect: a bare "Resolved from P-1018" next to "this finding names…" reads as a
+    // third record of the finding's. It names two companies and no person.
+    expect(mark).not.toContain("Resolved from P-1018 —");
+  });
+
+  it("qualifies the id when the caller cannot say — absence of proof is not proof", () => {
+    expect(archiveResolvedFromMark(fromCompany, "C-2018", true)).toContain("C-2017's page");
+    expect(archiveResolvedFromMark(fromCompany, "C-2018", true, null)).toContain("C-2017's page");
+    expect(archiveResolvedFromMark(fromCompany, "C-2018", true, [])).toContain("C-2017's page");
+  });
+
+  it("leaves the persisted clause alone — no second grammar, no migration, old rows still read", () => {
+    expect(fromPerson).toBe("Resolved from P-1018.");
+    expect(resolvedFrom(fromPerson)).toBe("P-1018");
+    expect(resolutionNoteBody(fromPerson)).toBe("");
+  });
+
+  it("changes nothing about WHERE the sentence appears", () => {
+    expect(archiveResolvedFromMark(fromPerson, "P-1018", false, named)).toBeNull();
+    expect(archiveResolvedFromMark(fromPerson, null, false, named)).toBeNull();
+    expect(archiveResolvedFromMark("plain note", "C-2017", true, named)).toBeNull();
   });
 });
