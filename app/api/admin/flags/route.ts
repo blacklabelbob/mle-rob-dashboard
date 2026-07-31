@@ -95,16 +95,21 @@ export async function POST(req: NextRequest) {
 
   let existing: ExistingFlag[] = [];
   if (key) {
-    const { data, error } = await db().from("flags").select("id,status").eq("dedupe_key", key);
+    // Content comes back too (Q84 inc.12) so a scheduled re-run that says nothing new
+    // can decline to re-date Rob's row.
+    const { data, error } = await db().from("flags").select("id,status,title,detail,severity").eq("dedupe_key", key);
     // A failed read must not become an insert: that is the stacking bug, reached by a
     // different door. Refuse loudly and let the caller retry.
     if (error) return NextResponse.json({ error: `dedupe read failed: ${error.message}` }, { status: 500 });
     existing = (data ?? []) as ExistingFlag[];
   }
 
-  const plan = planFlagWrite(key, existing);
+  const plan = planFlagWrite(key, existing, row);
 
-  if (plan.action === "update") {
+  if (plan.action === "unchanged") {
+    // Nothing written on purpose — see lib/flags/supersede.ts. The response still says
+    // which row carries the finding, so the caller can log a real answer.
+  } else if (plan.action === "update") {
     // notified_at moves to today — the row is being re-asserted, and a stale date reads
     // as "nobody has looked at this since".
     const { error } = await db()
@@ -130,5 +135,11 @@ export async function POST(req: NextRequest) {
       .eq("id", staleId);
   }
 
-  return NextResponse.json({ ok: true, action: plan.action, reason: plan.reason, superseded: plan.supersede });
+  return NextResponse.json({
+    ok: true,
+    action: plan.action,
+    reason: plan.reason,
+    superseded: plan.supersede,
+    id: plan.action === "insert" ? undefined : plan.id,
+  });
 }

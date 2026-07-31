@@ -24,21 +24,53 @@ export type FlagStatus = "open" | "resolved";
 export type ExistingFlag = {
   id: number;
   status: FlagStatus;
+  /** Q84 inc.12 — present only when the caller read the row's content too. */
+  title?: string | null;
+  detail?: string | null;
+  severity?: string | null;
+};
+
+/** The content a re-run is asserting, when the caller wants an unchanged run to write nothing. */
+export type FlagContent = {
+  title: string;
+  detail: string;
+  severity: string;
 };
 
 export type FlagWritePlan =
   | { action: "insert"; supersede: number[]; reason: string }
-  | { action: "update"; id: number; supersede: number[]; reason: string };
+  | { action: "update"; id: number; supersede: number[]; reason: string }
+  | { action: "unchanged"; id: number; supersede: number[]; reason: string };
+
+/**
+ * Is the open row already saying exactly what this run is saying?
+ *
+ * A row the caller read WITHOUT its content (no title/detail/severity selected) can never
+ * match — silence is not agreement, and guessing "probably the same" is how a stale count
+ * would survive a re-run. Compared trimmed, because whitespace is not news.
+ */
+function isSameContent(existing: ExistingFlag, incoming: FlagContent): boolean {
+  if (typeof existing.title !== "string" || typeof existing.detail !== "string") return false;
+  if (typeof existing.severity !== "string") return false;
+  return (
+    existing.title.trim() === incoming.title.trim() &&
+    existing.detail.trim() === incoming.detail.trim() &&
+    existing.severity === incoming.severity
+  );
+}
 
 /**
  * Decide how a finding should land on the ledger.
  *
  * @param dedupeKey the finding's stable identity, or null/undefined for a one-off
  * @param existing  every flag already carrying that key (any status, any order)
+ * @param incoming  the content this run asserts; omit to keep the pre-inc.12 behaviour
+ *                  (every keyed re-run rewrites the row and re-dates it)
  */
 export function planFlagWrite(
   dedupeKey: string | null | undefined,
   existing: ExistingFlag[],
+  incoming?: FlagContent,
 ): FlagWritePlan {
   const key = typeof dedupeKey === "string" ? dedupeKey.trim() : "";
   if (!key) {
@@ -60,6 +92,25 @@ export function planFlagWrite(
   }
 
   const [survivor, ...stale] = open;
+
+  // Q84 inc.12 — a finding on a 30-minute timer re-asserts the SAME sentence most ticks.
+  // The update branch below moves `notified_at` to today, so an unconditional re-assert
+  // would re-date Rob's row every half hour and float it back to the top of Things to
+  // Address as if it were news. The comment on that branch says a stale date "reads as
+  // nobody has looked at this since" — a date that moves on a timer is the same lie with
+  // the sign flipped. Nothing changed, so nothing is written.
+  //
+  // Deliberately NOT applied when there are stale twins to supersede: collapsing three
+  // rows into one is a real change to the ledger even if the survivor's text is identical.
+  if (incoming && stale.length === 0 && isSameContent(survivor, incoming)) {
+    return {
+      action: "unchanged",
+      id: survivor.id,
+      supersede: [],
+      reason: "same finding, same numbers — row left as it stands, date not moved",
+    };
+  }
+
   return {
     action: "update",
     id: survivor.id,

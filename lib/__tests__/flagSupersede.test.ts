@@ -160,3 +160,58 @@ describe("reopenFailureMessage — a refusal is an answer, not a dead end", () =
     expect(msg.text).toMatch(/reload/i);
   });
 });
+
+// Q84 inc.12 — the check is now on a 30-minute timer. Most ticks say exactly what the
+// row already says, and re-asserting that would re-date Rob's ledger row every half hour.
+describe("planFlagWrite — an unchanged re-run writes nothing", () => {
+  const content = { title: "23 archived meetings", detail: "the long detail", severity: "medium" };
+  const openRow = { id: 134, status: "open" as const, ...content };
+
+  it("plans 'unchanged' when the open row already says exactly this", () => {
+    const plan = planFlagWrite("k", [openRow], content);
+    expect(plan.action).toBe("unchanged");
+    expect(plan.action !== "insert" && plan.id).toBe(134);
+    expect(plan.supersede).toEqual([]);
+  });
+
+  it("ignores whitespace-only differences — reformatting is not news", () => {
+    const plan = planFlagWrite("k", [openRow], {
+      ...content,
+      title: "  23 archived meetings  ",
+      detail: "the long detail\n",
+    });
+    expect(plan.action).toBe("unchanged");
+  });
+
+  it("updates when the count actually moved", () => {
+    const plan = planFlagWrite("k", [openRow], { ...content, title: "22 archived meetings" });
+    expect(plan.action).toBe("update");
+    expect(plan.action === "update" && plan.id).toBe(134);
+  });
+
+  it("updates when only the severity changed", () => {
+    const plan = planFlagWrite("k", [openRow], { ...content, severity: "high" });
+    expect(plan.action).toBe("update");
+  });
+
+  it("never says 'unchanged' for a row whose content the caller did not read", () => {
+    const plan = planFlagWrite("k", [{ id: 134, status: "open" }], content);
+    expect(plan.action).toBe("update");
+  });
+
+  it("keeps the pre-inc.12 behaviour when no incoming content is supplied", () => {
+    const plan = planFlagWrite("k", [openRow]);
+    expect(plan.action).toBe("update");
+  });
+
+  it("still collapses stale twins even when the survivor's text is identical", () => {
+    const plan = planFlagWrite("k", [openRow, { id: 130, status: "open", ...content }], content);
+    expect(plan.action).toBe("update");
+    expect(plan.supersede).toEqual([130]);
+  });
+
+  it("still inserts when the finding recurs after Rob resolved it", () => {
+    const plan = planFlagWrite("k", [{ id: 134, status: "resolved", ...content }], content);
+    expect(plan.action).toBe("insert");
+  });
+});

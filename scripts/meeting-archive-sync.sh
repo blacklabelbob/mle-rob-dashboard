@@ -37,8 +37,31 @@ STAMP="$(date '+%Y-%m-%d %H:%M:%S')"
 
 cd "$REPO" || { echo "[$STAMP] archive-sync FATAL: repo missing at $REPO" >> "$LOG"; exit 1; }
 
+# The ledger half runs on EVERY tick, marker or not (Q84 inc.12). The count on Rob's row
+# goes stale in BOTH directions: a new recording arrives (marker set), but also a human
+# fills a row in the CRM and one of the 23 becomes explained — and that leaves no marker
+# behind. Gating the check on the marker would only ever catch the first case.
+#
+# Safe to run every 30 minutes because an unchanged run now writes NOTHING: the route
+# compares what this run says against what the row already says and declines the write,
+# so `notified_at` no longer moves on a timer. See lib/flags/supersede.ts.
+check_ledger() {
+  local out rc
+  out=$(node --import ./scripts/ts-loader.mjs scripts/notion-crm-check.mjs --flag 2>&1)
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    # Quiet on purpose: the archive itself is intact, only the count on the ledger is
+    # older than it should be. That is a log line, not a 3am ping.
+    echo "[$STAMP] archive-check FAILED rc=$rc — ledger count may be stale, retrying next tick" >> "$LOG"
+    echo "$out" | tail -10 >> "$LOG"
+    return 0
+  fi
+  echo "[$STAMP] archive-check ok — $(echo "$out" | grep -E '^--flag:' | tail -1)" >> "$LOG"
+}
+
 if [ "${1:-}" != "--force" ] && [ ! -f "$MARKER" ]; then
-  exit 0   # nothing pulled since the last successful archive write; silence is correct.
+  check_ledger
+  exit 0   # nothing pulled since the last successful archive write; no sync needed.
 fi
 
 OUT=$(node --import ./scripts/ts-loader.mjs scripts/notion-meetings-sync.mjs --apply 2>&1)
@@ -56,4 +79,8 @@ fi
 rm -f "$MARKER"
 APPLIED=$(echo "$OUT" | grep -E '^Applied:' | tail -1)
 echo "[$STAMP] archive-sync ok — ${APPLIED:-no writes needed}" >> "$LOG"
+
+# The archive just grew, so the "only a human who was in the room can close this" count is
+# the one number most likely to have moved. Check AFTER the sync, never before.
+check_ledger
 exit 0
