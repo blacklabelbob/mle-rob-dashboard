@@ -199,7 +199,7 @@ for (const [disposition, count, why] of BUCKETS) {
 // human has to retype is a number that goes stale the first time nobody types it — the
 // exact way #132 came to say 26 while #134 said 25 about one pile.
 if (FILE_FLAG) {
-  const finding = buildArchiveFinding(unexplained.counts);
+  const finding = buildArchiveFinding(unexplained);
   if (!finding) {
     // Deliberately does NOT resolve the existing row: whether a finding is DONE is Rob's
     // call, and closing his to-do from a script is the machine deciding his list is finished.

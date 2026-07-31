@@ -320,7 +320,10 @@ export default function ThingsToAddress({
                   )}
                   <span className="opacity-80"> — {f.title}</span>
                 </div>
-                <p className="mt-0.5 text-xs leading-relaxed text-slate-300">{f.detail}</p>
+                {/* Q84 inc.13: a detail may now be a paragraph AND a list (the meeting-archive
+                    finding carries the meetings Rob has to account for). Without pre-line the
+                    newlines collapse and 23 rows render as one unreadable ribbon. */}
+                <p className="mt-0.5 whitespace-pre-line text-xs leading-relaxed text-slate-300">{f.detail}</p>
                 {/* inc.32: a held-domain row carries its own state and its way
                     back. Resolve is the only other affordance on this row, and
                     on this kind of row it means something narrower than usual —
