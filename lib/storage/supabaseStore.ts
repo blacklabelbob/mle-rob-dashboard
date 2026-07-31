@@ -60,6 +60,12 @@ export function toPerson(r: any): Person {
     phone: r.phone ?? undefined,
     email: r.email ?? undefined,
     website: r.website ?? undefined,
+    // Q84 inc.21 — orgs-only column; `people` rows have no `domain`, so this is
+    // simply undefined there. Paired with the write in `fromOrgRow` below for the
+    // reason this file states twice already: an upsert that omits a column writes
+    // NULL, so a column that is written must also be read back or the next save
+    // anywhere on the record erases it.
+    domain: r.domain ?? undefined,
     referredById: r.referred_by_id ?? r.referred_by_org_id ?? undefined,
     relationship: r.relationship ?? undefined,
     status: r.status,
@@ -152,6 +158,11 @@ const ORG_NODE_TYPES = new Set(["partner", "lead", "client", "connector", "verti
 
 export function fromOrgRow(p: Person, referrerIsOrg: boolean) {
   const row: any = fromPerson(p);
+  // Q84 inc.21 — added HERE and not in `fromPerson` because `people` has no
+  // `domain` column: writing it there would make every person upsert fail. `?? null`
+  // (not the conditional `legacy_slug` treatment) is right because `toPerson` reads
+  // the column back, so an ordinary org edit re-writes the same string it just read.
+  row.domain = p.domain ?? null;
   delete row.entity_kind;
   // `orgs` has no org_id column — a company is not a member of a company.
   delete row.org_id;

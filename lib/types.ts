@@ -52,6 +52,11 @@ export interface Person {
   phone?: string;
   email?: string;
   website?: string;
+  // Q84 inc.21 — ORGS ONLY. A second host the company answers to, kept apart from
+  // `website` because the whole point is that the first one already matched and a
+  // second exists (flag #137: cgroofing.net alongside cgroofinggroup.com). The
+  // `people` table has no such column, so this is always undefined on a person.
+  domain?: string;
   referredById?: string; // person who opened this door
   relationship?: string; // how referrer knows them ("best friend", "his rep", ...)
   status: NodeStatus;

@@ -346,6 +346,28 @@ export default async function CompanyPage({
                   />
                 </dd>
               </div>
+              {/* Q84 inc.21 — the second domain a company answers to. Ledger flag
+                  #137 asks for exactly this edit ("add cgroofing.net to that org's
+                  Domain field") and until now there was no such box on any page:
+                  the column existed in Postgres, held NULL on both named orgs, and
+                  was in no edit allowlist. Separate from Website on purpose — the
+                  whole point is a SECOND host, so overwriting the first would
+                  destroy the match it already provides. Meetings named by this
+                  host attach on the next archive→CRM run. */}
+              <div>
+                <dt className="text-xs uppercase tracking-wide text-slate-500">
+                  Domain <span className="normal-case text-slate-600">(2nd host)</span>
+                </dt>
+                <dd className="text-slate-200">
+                  <InlineText
+                    personId={company.id}
+                    field="domain"
+                    value={company.domain}
+                    placeholder="+ domain"
+                    title="a second domain this company answers to — meetings named by it attach on the next run"
+                  />
+                </dd>
+              </div>
               <div>
                 <dt className="text-xs uppercase tracking-wide text-slate-500">Phone</dt>
                 <dd className="text-slate-200">

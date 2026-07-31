@@ -75,4 +75,53 @@ describe("shapeRowForTable", () => {
       expect(orgsCols.has(col), `orgs missing column ${col}`).toBe(true);
     }
   });
+
+  // Q84 inc.21. The test above asserts every FIELD_MAP column exists on `orgs`.
+  // `domain` is the first entry for which the MIRROR is false — it exists on orgs
+  // and NOT on people — so the guarantee has to be restated from the other side,
+  // or the same silent-no-op bug the test above prevents reappears as a hard
+  // Postgres error on the people table instead.
+  describe("orgs-only columns (Q84 inc.21 — domain)", () => {
+    // Read off the live `people` row on prod 2026-07-31, not copied from a
+    // migration: this is the column list Postgres will actually accept.
+    const peopleCols = new Set([
+      "id", "name", "business", "role", "node_type", "vertical_id", "phone", "email",
+      "website", "referred_by_id", "relationship", "status", "quoted_amount", "signed",
+      "meeting_video_url", "transcript_url", "est_time_to_payment_days", "key_dates",
+      "phase_one", "description", "estimate", "notes", "assigned_rep", "created_at",
+      "updated_at", "entity_kind", "org_id", "referred_by_org_id", "search_tsv",
+      "comms_consent", "phase2_estimate", "equity", "legacy_slug",
+    ]);
+
+    it("a domain edit survives to the orgs table", () => {
+      const row = buildPatchRow({ domain: "cgroofing.net" });
+      expect(row.domain).toBe("cgroofing.net");
+      expect(shapeRowForTable(row, "orgs", false).domain).toBe("cgroofing.net");
+    });
+
+    it("a domain edit is dropped before it reaches the people table", () => {
+      // Not merely absent from the UI: if it ever arrives, Postgres would reject
+      // the WHOLE update, so an unrelated field edited in the same save would be
+      // lost to a column the record does not have.
+      const out = shapeRowForTable({ domain: "cgroofing.net", phone: "555" }, "people", false);
+      expect("domain" in out).toBe(false);
+      expect(out.phone).toBe("555");
+    });
+
+    it("clearing the field sends null, never the empty string", () => {
+      // 0022's unique index is PARTIAL and excludes blanks on purpose; '' would
+      // sit outside the key and mean nothing. buildPatchRow's ''→null applies.
+      expect(buildPatchRow({ domain: "" }).domain).toBeNull();
+    });
+
+    it("every FIELD_MAP column not on people is dropped for people", () => {
+      // The generalised invariant, so a future orgs-only entry cannot be added to
+      // FIELD_MAP without either existing on people or being dropped here.
+      const orgOnly = Object.values(FIELD_MAP).filter((c) => !peopleCols.has(c));
+      expect(orgOnly).toEqual(["domain"]);
+      const seeded = Object.fromEntries(orgOnly.map((c) => [c, "x"]));
+      const out = shapeRowForTable(seeded, "people", false);
+      for (const col of orgOnly) expect(col in out, `people kept org-only ${col}`).toBe(false);
+    });
+  });
 });

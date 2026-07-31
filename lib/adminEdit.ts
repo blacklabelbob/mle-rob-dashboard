@@ -16,6 +16,16 @@ export const FIELD_MAP: Record<string, string> = {
   phone: "phone",
   email: "email",
   website: "website",
+  // Q84 inc.21 — ORGS ONLY (see ORG_ONLY_COLUMNS below). Flag #137 asks Rob to
+  // "add cgroofing.net / gulfregroup.com to that org's Domain field" so three
+  // orphaned meetings attach themselves. Read off prod before writing this:
+  // `orgs.domain` is NULL on BOTH C-2017 and C-2018 — the hosts that flag prints
+  // as "what the CRM holds today" come from `website`, not `domain` — and until
+  // now `domain` was in no allowlist and on no page, so the one-field fix the
+  // ledger asked for could not be made anywhere Rob can reach. `activityPlan`'s
+  // matcher already indexes BOTH columns, so filling the empty one is exactly
+  // the "same company on a second domain" answer without touching `website`.
+  domain: "domain",
   relationship: "relationship",
   referredById: "referred_by_id",
   assignedRep: "assigned_rep",
@@ -53,16 +63,28 @@ export function buildPatchRow(changes: Record<string, unknown>): Record<string, 
   return row;
 }
 
+// Columns that exist on `orgs` and NOT on `people`. Verified against prod, not
+// assumed: the live `people` row carries no `domain` column at all, so letting a
+// person PATCH through with one would make Postgres reject the whole update —
+// turning an unrelated field edit into a failed save. Dropped rather than
+// rejected because the caller is a shared inline editor: a person page that
+// never renders a Domain box cannot send one, and if a future one does, losing
+// a column that does not exist is the harmless outcome.
+const ORG_ONLY_COLUMNS = new Set(["domain"]);
+
 // Shape a patch row for the target table. Both tables carry every FIELD_MAP
-// column; orgs additionally needs node_type narrowed, and a referred_by change
-// must land in the paired person/org column on EITHER table (people also has
-// referred_by_org_id post-split).
+// column EXCEPT ORG_ONLY_COLUMNS; orgs additionally needs node_type narrowed,
+// and a referred_by change must land in the paired person/org column on EITHER
+// table (people also has referred_by_org_id post-split).
 export function shapeRowForTable(
   row: Record<string, unknown>,
   target: "people" | "orgs",
   referrerIsOrg: boolean
 ): Record<string, unknown> {
   const out = { ...row };
+  if (target === "people") {
+    for (const col of ORG_ONLY_COLUMNS) delete out[col];
+  }
   if (target === "orgs" && out.node_type != null && !ORG_NODE_TYPES.has(String(out.node_type))) {
     out.node_type = null;
   }
