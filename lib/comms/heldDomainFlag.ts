@@ -650,6 +650,21 @@ function judgedNote(judged: Map<string, Judgement>, domain: string): string | nu
 
 const BLOCKLIST_ANCHOR = "/#generic-domains";
 
+/**
+ * Q84 inc.46 — the row's state, in ONE string, because two surfaces print it.
+ *
+ * The full ledger row prints `heldRowCopy().badge`; the Overview digest re-typed the
+ * state half of that badge as a JSX literal while calling `heldRowCopy` purely as a
+ * boolean — the module that owns this row's wording was asked whether to render and
+ * then had its answer thrown away. That is the shape inc.35/inc.44/inc.45 have been
+ * removing one reader at a time: correctness that survives only while nobody edits
+ * the other copy. The distinction this whole file exists to draw is *held* vs
+ * *blocked*; the day that word is sharpened, a literal keeps the old one and the two
+ * surfaces disagree about one fact — the failure inc.38 already refused for the
+ * history sentence ("prose that differs reads as two histories").
+ */
+const HELD_STATE = "still blocked";
+
 export type HeldRowCopy = {
   domain: string;
   /** Row-level state, not prose: the domain did not get unblocked by any of this. */
@@ -692,7 +707,7 @@ export function heldRowCopy(title: string, prior?: Map<string, Judgement> | null
   const d = domain.toLowerCase();
   return {
     domain: d,
-    badge: `${d} · still blocked`,
+    badge: `${d} · ${HELD_STATE}`,
     hint:
       `Resolving files your decision — it does not unblock ${d} and does not delete anything. ` +
       `If the company still holds it, the blocklist sweep will raise it again.` +
@@ -703,6 +718,22 @@ export function heldRowCopy(title: string, prior?: Map<string, Judgement> | null
     href: BLOCKLIST_ANCHOR,
     linkText: "review the blocklist",
   };
+}
+
+/**
+ * Q84 inc.46 — the SCAN-surface reading of the same row, or null for every other row.
+ *
+ * The Overview digest shows state and nothing else (Q69 inc.32): the hint and the way
+ * back live on the full row, where the decision is actually made. That brevity is a
+ * decision, and it belongs here rather than as a literal in JSX — the digest drops the
+ * domain because the line it sits on already prints the title, which names the domain
+ * an inch to the left; on the full row the badge opens a paragraph and carries it.
+ *
+ * Same predicate as `heldRowCopy`, deliberately: a digest that badges a row the full
+ * row would not (or the reverse) is two answers to "is this domain still held".
+ */
+export function heldDigestBadge(title: string): string | null {
+  return heldFlagDomain(title) ? HELD_STATE : null;
 }
 
 // ── Q69 inc.34 — the resolved row, from the side Rob closed it on ───────────

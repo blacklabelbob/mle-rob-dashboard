@@ -30,6 +30,7 @@ import {
   archiveRepeatSummary,
   heldArchiveNote,
   heldArchivePlaces,
+  heldDigestBadge,
   heldPriorJudgements,
   heldRowCopy,
   ledgerRepeatMark,
@@ -348,12 +349,18 @@ export default function ThingsToAddress({
                     </Link>
                   ))}
                   {/* inc.32: the digest is a scan surface, so the held-domain
-                      row gets its STATE here (still blocked) and nothing else —
-                      the hint and the way back live on the full row, where the
-                      decision is actually made. */}
-                  {heldRowCopy(f.title) && (
+                      row gets its STATE here and nothing else — the hint and the
+                      way back live on the full row, where the decision is
+                      actually made.
+                      Q84 inc.46: the word itself came from a JSX literal while
+                      `heldRowCopy` was called for its truthiness alone — the
+                      module that owns this row's wording was asked whether to
+                      render and had its answer discarded. Now both surfaces read
+                      one string, so this badge cannot outlive an edit to the
+                      other. */}
+                  {heldDigestBadge(f.title) && (
                     <span className="ml-2 rounded border border-amber-400/40 bg-amber-400/10 px-1.5 py-px text-[10px] font-medium text-amber-200">
-                      still blocked
+                      {heldDigestBadge(f.title)}
                     </span>
                   )}
                   <span className="ml-2 text-[10px] text-slate-600">{f.notified_at} · hover for detail</span>

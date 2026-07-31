@@ -6,6 +6,7 @@ import {
   heldFlagDomain,
   heldFlagIndex,
   flagAffordance,
+  heldDigestBadge,
   heldRowCopy,
   archiveRepeatMark,
   archiveRepeatSummary,
@@ -1489,5 +1490,54 @@ describe("groupRepeatsWithinSeverity", () => {
     // Nothing here pairs a new row with a returning one inside a run, so the
     // list is handed back untouched rather than partially re-ordered.
     expect(groupRepeatsWithinSeverity(odd, priorFor("bigmailer.com"))).toBe(odd);
+  });
+});
+
+// ── Q84 inc.46 — the digest badge and the row badge are ONE string ───────────
+//
+// The Overview digest called `heldRowCopy` for its truthiness and then re-typed
+// the state half of its badge as a JSX literal. These tests exist so the two
+// surfaces cannot be edited apart: the digest's words must remain the tail of
+// the full row's badge, and the two must agree about WHICH rows are held.
+describe("heldDigestBadge", () => {
+  const held = heldDomainFlagTitle("bigmailer.com");
+
+  it("is the state half of the full row's badge, not a second wording of it", () => {
+    const full = heldRowCopy(held)!.badge;
+    const digest = heldDigestBadge(held)!;
+    expect(full.endsWith(digest)).toBe(true);
+    // And it is the ONLY difference: the full badge is the domain, a separator,
+    // then this exact string.
+    expect(full).toBe(`bigmailer.com · ${digest}`);
+  });
+
+  it("renders byte-identically to the literal it replaced", () => {
+    // Pinned, so this increment is provably invisible on prod. A change to the
+    // wording is then a deliberate act that trips this test on purpose.
+    expect(heldDigestBadge(held)).toBe("still blocked");
+  });
+
+  it("drops the domain, because the digest line already prints the title", () => {
+    expect(heldDigestBadge(held)).not.toContain("bigmailer.com");
+  });
+
+  it("badges exactly the rows the full row badges — same predicate", () => {
+    for (const title of [
+      held,
+      heldDomainFlagTitle("Gmail.com"),
+      "Invoice missing",
+      "New company domain: roofco.com",
+      "Blocked domain still held",
+      "Blocked domain still held: ",
+    ]) {
+      expect(heldDigestBadge(title) === null).toBe(heldRowCopy(title) === null);
+    }
+  });
+
+  it("does not vary with the history the full row carries", () => {
+    // `prior` gives the full row a sentence, never a different state: the digest
+    // takes no history argument, so a scan surface cannot grow a paragraph.
+    const withHistory = heldRowCopy(held, heldPriorJudgements([]));
+    expect(withHistory!.badge.endsWith(heldDigestBadge(held)!)).toBe(true);
   });
 });
