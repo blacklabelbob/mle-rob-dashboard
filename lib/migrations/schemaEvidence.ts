@@ -44,12 +44,29 @@ export type LiveSchema = Record<string, string[]>;
  * live on prod, so "functions cannot be seen from here" was simply false for the
  * ones that are callable, and it was costing two files a verdict they had earned.
  */
-export type LiveShape = { tables: LiveSchema; rpcs: string[] };
+export type LiveShape = {
+  tables: LiveSchema;
+  rpcs: string[];
+  /**
+   * inc.57 — keys of objects prod publishes a DESCRIPTION for (`table:x`,
+   * `column:x.y`, `function:f`). PostgREST renders `comment on` into the same
+   * root this module already fetches, so `comment on` is not the catalog-only
+   * dead end it was handed over as: it is adjudicable by the weakest access on
+   * the ladder, with no extra key.
+   *
+   * Optional, and its absence means "no descriptions were supplied", NOT "prod
+   * documents nothing" — same distinction as `rpcs`, and the same consequence:
+   * a comment verdict is withheld rather than reported missing.
+   */
+  documented?: string[];
+};
 
 export type SchemaObject =
   | { kind: "table"; table: string }
   | { kind: "column"; table: string; column: string }
-  | { kind: "function"; name: string };
+  | { kind: "function"; name: string }
+  /** A `comment on …` with a literal body. `target` is a documented-key: `table:x` / `column:x.y` / `function:f`. */
+  | { kind: "comment"; target: string };
 
 export type ParsedMigration = {
   /** Objects the OpenAPI root can adjudicate. */
@@ -73,6 +90,28 @@ const CREATE_VIEW = /\bcreate\s+(?:or\s+replace\s+)?(?:materialized\s+)?view\s+(
 const ALTER_TABLE = /^\s*alter\s+table\s+(?:if\s+exists\s+)?([\w".]+)/i;
 const ADD_COLUMN = /\badd\s+column\s+(?:if\s+not\s+exists\s+)?([\w"]+)/gi;
 const CREATE_FUNCTION = /\bcreate\s+(?:or\s+replace\s+)?function\s+([\w".]+)\s*\(/gi;
+/**
+ * inc.57 — `comment on` was the single most common unrecognised shape in the live
+ * run (11 of 38 files carried one). The handover called it catalog-only and
+ * therefore permanent; **that was wrong, and prod said so**: PostgREST publishes a
+ * table/column comment as the `description` of its definition and a function
+ * comment as the description of its `/rpc/<name>` path — in the very document
+ * this grader already fetches.
+ *
+ * The literal body is required (`is '…'`). `comment on … is null` REMOVES a
+ * comment, and its evidence runs the other way — a description still present
+ * would disprove it, an absent one proves nothing, because nothing distinguishes
+ * "removed" from "never written". That inverse is not built here, so the shape is
+ * deliberately left unclaimed and surfaces as `unclassified`. (Measured
+ * 2026-07-31: 0 migrations do this. A rule for a shape nobody has written is the
+ * assertion this ladder exists to stop.)
+ */
+const COMMENT_ON =
+  /\bcomment\s+on\s+(table|column|function)\s+([\w".]+)\s*(?:\([^)]*\))?\s+is\s+'/gi;
+
+/** Labels for comment statements a call declined to grade — classified in the ceiling sets below. */
+export const COMMENT_UNGRADED = "comment on";
+export const COMMENT_UNEXPOSED = "comment on an object prod does not expose";
 
 /**
  * Statements whose effect is real but invisible to the OpenAPI root. Listed by
@@ -170,7 +209,19 @@ const NO_EFFECT = /^(begin|start\s+transaction|commit|end|rollback|set|reset)\b/
  * actually describes — a file whose `create table` sits three statements away
  * must not launder an unlisted statement beside it.
  */
+/** `public.people.phase2_estimate` → `column:people.phase2_estimate`; schema qualifiers dropped, like every other name here. */
+export function commentTarget(kind: string, raw: string): string {
+  const parts = raw
+    .split(".")
+    .map((p) => p.replace(/["`]/g, "").trim().toLowerCase())
+    .filter(Boolean);
+  if (kind.toLowerCase() === "column") return `column:${parts.slice(-2).join(".")}`;
+  return `${kind.toLowerCase()}:${parts[parts.length - 1]}`;
+}
+
 function statementIsClaimed(stmt: string): boolean {
+  COMMENT_ON.lastIndex = 0;
+  if (COMMENT_ON.test(stmt)) return true;
   for (const re of [CREATE_TABLE, CREATE_VIEW, CREATE_FUNCTION]) {
     re.lastIndex = 0;
     if (re.test(stmt)) return true;
@@ -221,7 +272,9 @@ export function parseMigration(sql: string): ParsedMigration {
         ? `t:${o.table}`
         : o.kind === "function"
           ? `f:${o.name}`
-          : `c:${o.table}.${o.column}`;
+          : o.kind === "comment"
+            ? `m:${o.target}`
+            : `c:${o.table}.${o.column}`;
     if (seen.has(key)) return;
     seen.add(key);
     objects.push(o);
@@ -244,6 +297,16 @@ export function parseMigration(sql: string): ParsedMigration {
     ADD_COLUMN.lastIndex = 0;
     for (let m = ADD_COLUMN.exec(stmt); m; m = ADD_COLUMN.exec(stmt)) {
       push({ kind: "column", table: bareName(owner[1]), column: bareName(m[1]) });
+    }
+  }
+
+  // Comments are read per STATEMENT for the same reason columns are: a global
+  // scan lets `comment on column` bridge onto a name from a neighbouring
+  // statement, and inventing an object is worse than grading none.
+  for (const stmt of splitStatements(sql)) {
+    COMMENT_ON.lastIndex = 0;
+    for (let m = COMMENT_ON.exec(stmt); m; m = COMMENT_ON.exec(stmt)) {
+      push({ kind: "comment", target: commentTarget(m[1], m[2]) });
     }
   }
 
@@ -342,12 +405,23 @@ const READ_PROBEABLE = new Set([
   // and no migration writes `create type`, so this classifies a label the parser
   // can emit, not a file that exists today.)
   "create type",
+  // inc.57 — a comment this call did not grade because no descriptions were
+  // supplied. The same OpenAPI root carries them, so supplying them settles it:
+  // read-probeable by the weakest access there is.
+  COMMENT_UNGRADED,
+  // Same family, same reason, and it has always been reachable this way: a
+  // caller that hands in the rpc list settles `create function` with one read.
+  "create function",
 ]);
 const WRITE_OBSERVABLE = new Set([
   "add constraint",
   "check constraint",
   "create trigger",
   "create trigger function",
+  // A comment on something the data API does not publish. No read, write or plan
+  // through this API reaches it — only catalog access would, which this ladder
+  // does not have. Permanent for the same reason a private-schema function is.
+  COMMENT_UNEXPOSED,
 ]);
 const PLAN_ONLY = new Set(["create index"]);
 /**
@@ -455,7 +529,20 @@ export type Evidence = {
 function describe(o: SchemaObject): string {
   if (o.kind === "table") return o.table;
   if (o.kind === "function") return `${o.name}()`;
+  if (o.kind === "comment") return `comment on ${o.target.replace(":", " ")}`;
   return `${o.table}.${o.column}`;
+}
+
+/**
+ * PostgREST writes its OWN description onto primary-key and foreign-key columns
+ * ("Note:\nThis is a Primary Key.<pk/>") whether or not a human ever wrote a
+ * `comment on`. Counting that as documentation would report a comment landed on
+ * every PK in the database — the false-positive twin of inc.52's invented column.
+ * So the generated note is stripped and what a human wrote is what remains.
+ */
+export function humanDescription(raw: unknown): string {
+  if (typeof raw !== "string") return "";
+  return raw.replace(/Note:\s*\n[\s\S]*$/i, "").trim();
 }
 
 /**
@@ -470,9 +557,19 @@ export function asLiveShape(live: LiveSchema | LiveShape): LiveShape {
   return "tables" in live && "rpcs" in live ? (live as LiveShape) : { tables: live as LiveSchema, rpcs: [] };
 }
 
+/** A description can only exist for something the data API publishes. */
+function targetIsExposed(target: string, shape: LiveShape): boolean {
+  const [kind, rest] = [target.slice(0, target.indexOf(":")), target.slice(target.indexOf(":") + 1)];
+  if (kind === "table") return shape.tables[rest] !== undefined;
+  if (kind === "function") return shape.rpcs.includes(rest);
+  const dot = rest.lastIndexOf(".");
+  return (shape.tables[rest.slice(0, dot)] ?? []).includes(rest.slice(dot + 1));
+}
+
 export function schemaEvidence(name: string, sql: string, live: LiveSchema | LiveShape): Evidence {
   const shape = asLiveShape(live);
   const knowsRpcs = "tables" in live && "rpcs" in live;
+  const knowsDocumented = Array.isArray((live as LiveShape).documented);
   const { objects, unverifiable } = parseMigration(sql);
   const present: string[] = [];
   const missing: string[] = [];
@@ -485,6 +582,23 @@ export function schemaEvidence(name: string, sql: string, live: LiveSchema | Liv
   for (const o of objects) {
     if (o.kind === "function" && !knowsRpcs) {
       if (!unverifiable.includes("create function")) unverifiable.push("create function");
+      continue;
+    }
+    if (o.kind === "comment") {
+      // Two ways this cannot be graded, and neither may read as `missing`:
+      // no descriptions supplied at all, and a comment on an object prod does
+      // not expose (an unexposed table, or a trigger function) — the data API
+      // publishes no description for something it does not publish.
+      if (!knowsDocumented) {
+        if (!unverifiable.includes(COMMENT_UNGRADED)) unverifiable.push(COMMENT_UNGRADED);
+        continue;
+      }
+      if (!targetIsExposed(o.target, shape)) {
+        if (!unverifiable.includes(COMMENT_UNEXPOSED)) unverifiable.push(COMMENT_UNEXPOSED);
+        continue;
+      }
+      graded += 1;
+      ((shape.documented ?? []).includes(o.target) ? present : missing).push(describe(o));
       continue;
     }
     graded += 1;
@@ -627,6 +741,50 @@ export function liveRpcsFromOpenApi(doc: unknown): string[] {
     .filter(Boolean);
 }
 
+/**
+ * inc.57 — the third half of the same document: PostgREST renders `comment on`
+ * into `description`, on a definition (table/view), on a property (column) and on
+ * an `/rpc/<name>` path (function). Generated PK/FK notes are stripped first —
+ * see `humanDescription`.
+ */
+export function liveDocumentedFromOpenApi(doc: unknown): string[] {
+  const root = (doc ?? {}) as Record<string, unknown>;
+  const defs =
+    (root.definitions as Record<string, { description?: unknown; properties?: Record<string, unknown> }> | undefined) ??
+    ((
+      root.components as
+        | { schemas?: Record<string, { description?: unknown; properties?: Record<string, unknown> }> }
+        | undefined
+    )?.schemas ??
+      {});
+
+  const out: string[] = [];
+  for (const [table, def] of Object.entries(defs)) {
+    const t = table.toLowerCase();
+    if (humanDescription(def?.description)) out.push(`table:${t}`);
+    for (const [col, prop] of Object.entries(def?.properties ?? {})) {
+      if (humanDescription((prop as { description?: unknown })?.description)) out.push(`column:${t}.${col.toLowerCase()}`);
+    }
+  }
+
+  const paths = ((doc ?? {}) as { paths?: Record<string, Record<string, unknown>> }).paths ?? {};
+  for (const [p, ops] of Object.entries(paths)) {
+    if (!p.startsWith("/rpc/")) continue;
+    for (const op of Object.values(ops ?? {})) {
+      const o = op as { description?: unknown; summary?: unknown };
+      if (humanDescription(o?.description) || humanDescription(o?.summary)) {
+        out.push(`function:${p.slice("/rpc/".length).toLowerCase()}`);
+        break;
+      }
+    }
+  }
+  return out;
+}
+
 export function liveShapeFromOpenApi(doc: unknown): LiveShape {
-  return { tables: liveSchemaFromOpenApi(doc), rpcs: liveRpcsFromOpenApi(doc) };
+  return {
+    tables: liveSchemaFromOpenApi(doc),
+    rpcs: liveRpcsFromOpenApi(doc),
+    documented: liveDocumentedFromOpenApi(doc),
+  };
 }

@@ -10,6 +10,9 @@ import {
   splitStatements,
   unrecognisedStatements,
   UNRECOGNISED_LABEL,
+  COMMENT_UNGRADED,
+  COMMENT_UNEXPOSED,
+  humanDescription,
   parserEmittableLabels,
 } from "../schemaEvidence";
 
@@ -311,9 +314,13 @@ describe("statement coverage (inc.56)", () => {
   });
 
   it("reports a statement shape no rule claims, and names it", () => {
-    expect(unrecognisedStatements("comment on column people.phase2_estimate is 'x';")).toEqual([
+    // Re-aimed inc.57: `comment on … is '…'` is now a graded object, not an
+    // unrecognised shape. `comment on … is null` still is — its evidence runs the
+    // opposite way and nobody has built that, so it must not be quietly claimed.
+    expect(unrecognisedStatements("comment on column people.phase2_estimate is null;")).toEqual([
       "comment on column people.phase2_estimate",
     ]);
+    expect(unrecognisedStatements("create sequence if not exists s;")).toEqual(["create sequence if not"]);
     expect(unrecognisedStatements("do $$ begin if true then null; end if; end $$;")).toEqual(["do $$ begin if"]);
   });
 
@@ -336,9 +343,12 @@ describe("statement coverage (inc.56)", () => {
       alter table people add column phase2_estimate numeric;
       comment on column people.phase2_estimate is 'phase 2 estimate';
     `;
+    // Re-aimed inc.57: the caller supplies no `documented` list, so the comment is
+    // WITHHELD — never graded missing — and the withholding itself caps the file.
     const e = schemaEvidence("0014.sql", sql, { people: ["id", "phase2_estimate"] });
     expect(e.verdict).toBe("objects-present-unverifiable-rules");
-    expect(e.unverifiable).toContain("unrecognised statement: comment on column people.phase2_estimate");
+    expect(e.unverifiable).toContain(COMMENT_UNGRADED);
+    expect(e.missing).toEqual([]);
   });
 
   it("lands an unrecognised statement in `unclassified` — deliberately, not by omission", () => {
@@ -349,5 +359,91 @@ describe("statement coverage (inc.56)", () => {
     // ceiling sets by a test, so listing these would force a classification for
     // a shape nobody has read — the guess this whole module exists to kill.
     expect(parserEmittableLabels().some((l) => l.startsWith(UNRECOGNISED_LABEL))) .toBe(false);
+  });
+});
+
+/**
+ * inc.57 — `comment on` was handed over as catalog-only and therefore permanent.
+ * Prod disagreed: PostgREST renders every comment into the same OpenAPI root this
+ * module already fetches. These pin both the new evidence and the two ways it can
+ * lie — a generated note read as documentation, and an ungradable comment read as
+ * missing.
+ */
+describe("schemaEvidence — comment on (inc.57)", () => {
+  const live = {
+    tables: { people: ["id", "phase2_estimate"], dedup_review: ["pair_key", "status"] },
+    rpcs: ["filter_page"],
+    documented: ["column:people.phase2_estimate", "function:filter_page"],
+  };
+
+  it("grades a comment prod publishes as PRESENT", () => {
+    const e = schemaEvidence(
+      "0014.sql",
+      "alter table people add column phase2_estimate numeric; comment on column people.phase2_estimate is 'x';",
+      live,
+    );
+    expect(e.verdict).toBe("objects-present");
+    expect(e.present).toContain("comment on column people.phase2_estimate");
+  });
+
+  it("grades a comment prod does NOT publish as MISSING — the 0034 case, live", () => {
+    // The dedup_review TABLE exists on prod (created by hand — inc.50), so object
+    // presence alone said nothing. Its comments are absent, which is independent
+    // evidence for the PENDING marker rather than a restatement of it.
+    const e = schemaEvidence(
+      "0034.sql",
+      "create table if not exists dedup_review (pair_key text primary key); comment on table dedup_review is 'q84';",
+      live,
+    );
+    expect(e.verdict).toBe("objects-missing");
+    expect(e.missing).toEqual(["comment on table dedup_review"]);
+  });
+
+  it("reads a function comment off its /rpc path, and qualified + argument forms of the name", () => {
+    const e = schemaEvidence("0020.sql", "comment on function public.filter_page(text, jsonb) is 'q67';", live);
+    expect(e.verdict).toBe("objects-present");
+    expect(e.present).toEqual(["comment on function filter_page"]);
+  });
+
+  it("does NOT count PostgREST's own PK/FK note as a human comment", () => {
+    // Otherwise every primary key in the database reports a comment that landed —
+    // the false-positive twin of inc.52's invented column.
+    expect(humanDescription("Note:\nThis is a Primary Key.<pk/>")).toBe("");
+    expect(humanDescription("what a human wrote\n\nNote:\nThis is a Primary Key.<pk/>")).toBe("what a human wrote");
+    const doc = {
+      definitions: {
+        people: {
+          properties: {
+            id: { description: "Note:\nThis is a Primary Key.<pk/>" },
+            phase2_estimate: { description: "ROI inputs" },
+          },
+        },
+      },
+    };
+    expect(liveShapeFromOpenApi(doc).documented).toEqual(["column:people.phase2_estimate"]);
+  });
+
+  it("withholds — never reports missing — when the comment cannot be graded", () => {
+    // No descriptions supplied: absence of evidence is not evidence of absence,
+    // exactly as with `rpcs`.
+    const bare = schemaEvidence("x.sql", "comment on table people is 'x';", { people: ["id"] });
+    expect(bare.missing).toEqual([]);
+    expect(bare.unverifiable).toContain(COMMENT_UNGRADED);
+    // And a comment on something prod does not expose: no description can exist
+    // for an object the data API does not publish.
+    const hidden = schemaEvidence("y.sql", "comment on table private_audit is 'x';", live);
+    expect(hidden.missing).toEqual([]);
+    expect(hidden.unverifiable).toContain(COMMENT_UNEXPOSED);
+    expect(evidenceCeiling([COMMENT_UNEXPOSED]).ceiling).toBe("permanent");
+    expect(evidenceCeiling([COMMENT_UNGRADED]).ceiling).toBe("probeable-read-only");
+  });
+
+  it("reads comments per statement, so a target cannot bridge from a neighbour", () => {
+    // inc.52's invented column came from exactly this bridge.
+    const { objects } = parseMigration("comment on table people is 'a'; comment on column orgs.equity is 'b';");
+    expect(objects.filter((o) => o.kind === "comment")).toEqual([
+      { kind: "comment", target: "table:people" },
+      { kind: "comment", target: "column:orgs.equity" },
+    ]);
   });
 });
