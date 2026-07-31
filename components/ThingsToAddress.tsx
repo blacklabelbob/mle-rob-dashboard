@@ -382,13 +382,16 @@ export default function ThingsToAddress({
           // it shuts the domain out of the CRM for good (the proposal dedupe
           // counts resolved titles as existing). One contract drives its label,
           // its tooltip, the line under it and the note prompt.
-          const copy = resolveControlCopy(f.title);
           // inc.29: computed once, above the row, because two things render off it —
           // the marker at the foot (inc.28) and the chips in the header, which must
           // not re-print a link the marker is about to print. On the Overview digest
           // there is no page to be "here", so this is null and chips are untouched.
+          // inc.30: a third reader — the Resolve control, whose tooltip/hint/note
+          // prompt must name the other pages the click clears. Same value, so the
+          // button and the sentence above it cannot disagree.
           const scope =
             mode === "entity" ? flagNamedScope(f.entity_id, f.title, f.detail, person ?? entity) : null;
+          const copy = resolveControlCopy(f.title, scope);
           // The ids this row already links somewhere else: the page being read (a chip
           // back to the current page is a link to nowhere) and every id the marker
           // renders as a link. Both stay visible — linkified — inside the detail.

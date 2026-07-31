@@ -198,14 +198,60 @@ export function verticalPickerState(
  */
 export type ResolveCopy = { label: string; tooltip: string; hint: string; notePlaceholder: string };
 
-export function resolveControlCopy(title: string): ResolveCopy {
+/**
+ * Q84 inc.30 — the same button, on a row that is not this record's.
+ *
+ * inc.28 taught the row to say "not filed here … resolving it here resolves it there too",
+ * and inc.29 stopped the chips re-printing the ids that sentence links. The BUTTON was
+ * never told: on prod #137 — a conflict BETWEEN C-2017 and C-2018, filed against neither —
+ * it reads "Resolve / mark this handled", character-identical to the four rows that really
+ * are C-2017's, and its note prompt says "optional note…" on the one click that clears a
+ * finding off a page the reviewer is not looking at.
+ *
+ * The marker is a paragraph in the row's body; the tooltip and hint sit ON the control, at
+ * the moment of the click, which is the only moment they are worth anything (same reasoning
+ * inc.18 wrote for the permanence line — and the same refusal of a confirm dialog: "are you
+ * sure?" is the MS-DOS answer to a UI question).
+ *
+ * ONE contract, extended — not a second one beside it. The label stays "Resolve" because
+ * that is what the click does; what changes is that the tooltip and hint NAME the other
+ * pages, and the note prompt asks for the thing a cross-record dismissal needs on file.
+ *
+ * `scope` comes from `flagNamedScope`, the same value the marker renders, so the button and
+ * the sentence above it cannot disagree — the inc.17 defect. A row with no scope, or one
+ * that names no OTHER record (`others` empty: it is filed against nothing and only names
+ * this page), gets the ordinary copy back untouched: a cross-page warning on a row that
+ * spans no other page is the noise that teaches Rob to ignore the line that matters.
+ *
+ * A proposal row keeps its permanence copy even when scoped. Both facts are true, but the
+ * hint has room for one and permanence is the graver of the two — a domain shut out of the
+ * CRM forever outranks a row also sitting on another page.
+ */
+export type ResolveScope = { others: string[] } | null | undefined;
+
+export function resolveControlCopy(title: string, scope?: ResolveScope): ResolveCopy {
   const domain = proposalDomain(title);
   if (!domain) {
+    const others = scope?.others ?? [];
+    if (others.length === 0) {
+      return {
+        label: "Resolve",
+        tooltip: "mark this handled",
+        hint: "",
+        notePlaceholder: "optional note…",
+      };
+    }
+    // Named, never counted: "also clears it from 2 other records" is a number the
+    // reviewer cannot check against anything, and the ids are already linked one line
+    // above. Uncapped for the same reason the chips are (#129 names six).
+    const list = others.join(", ");
     return {
       label: "Resolve",
-      tooltip: "mark this handled",
-      hint: "",
-      notePlaceholder: "optional note…",
+      tooltip: `also clears this finding from ${list}`,
+      hint: `This row is not filed here. Resolving clears it from ${list} too.`,
+      // Not "both": #129 names six records, and a prompt that miscounts the row it is
+      // attached to is the class of defect this whole thread has been unpicking.
+      notePlaceholder: "why is this settled on every record it names?",
     };
   }
   return {

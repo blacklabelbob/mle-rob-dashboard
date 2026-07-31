@@ -293,6 +293,65 @@ describe("resolveControlCopy (inc.18 — the permanent click, labelled)", () => 
     const flag = proposalToFlag({ domain: "roofco.com", suggestedName: "Roofco", address: "a@roofco.com" });
     expect(resolveControlCopy(flag.title).hint).not.toBe("");
   });
+
+  // Q84 inc.30 — the same button on a row that is not this record's.
+  describe("a finding that spans other records (inc.30)", () => {
+    const ordinary = "CG Roofing Group / Gulf Coast RE Group — same phone, two orgs";
+
+    it("names the other pages the click clears, on the control itself", () => {
+      // Prod #137 on /companies/C-2017: filed against neither company, sitting on
+      // C-2018's page too. The marker says so in the body; the button said nothing.
+      const copy = resolveControlCopy(ordinary, { others: ["C-2018"] });
+      expect(copy.tooltip).toContain("C-2018");
+      expect(copy.hint).toContain("C-2018");
+      expect(copy.hint).toContain("not filed here");
+    });
+
+    it("keeps the label a Resolve, because that is what the click does", () => {
+      // Unlike a proposal, nothing here is permanent — renaming the button would
+      // be a warning about the wrong thing.
+      expect(resolveControlCopy(ordinary, { others: ["C-2018"] }).label).toBe("Resolve");
+    });
+
+    it("never lets the tooltip and the hint claim different things (inc.17 rule)", () => {
+      const copy = resolveControlCopy(ordinary, { others: ["C-2018", "P-1010"] });
+      for (const s of [copy.tooltip, copy.hint]) {
+        expect(s).toContain("C-2018");
+        expect(s).toContain("P-1010");
+      }
+    });
+
+    it("asks the question a cross-record dismissal has to answer, and miscounts nothing", () => {
+      // #129 names six records — "both" would be a lie on that row.
+      const copy = resolveControlCopy(ordinary, { others: ["C-2018", "P-1010", "C-2006"] });
+      expect(copy.notePlaceholder).not.toContain("optional");
+      expect(copy.notePlaceholder).not.toContain("both");
+      expect(copy.notePlaceholder).toContain("every record it names");
+    });
+
+    it("leaves the ordinary copy alone when the row spans no other page", () => {
+      // No scope at all (the Overview digest, or a filed row), and the scoped row
+      // that names only the page being read: both are ordinary findings here, and a
+      // cross-page warning on them is the noise that devalues the real one.
+      for (const scope of [null, undefined, { others: [] }]) {
+        expect(resolveControlCopy(ordinary, scope)).toEqual({
+          label: "Resolve",
+          tooltip: "mark this handled",
+          hint: "",
+          notePlaceholder: "optional note…",
+        });
+      }
+    });
+
+    it("keeps the permanence copy on a scoped proposal row", () => {
+      // Both facts are true; the hint has room for one, and a domain shut out of
+      // the CRM forever outranks a row also sitting on another page.
+      const copy = resolveControlCopy(proposal, { others: ["C-2018"] });
+      expect(copy.label).toBe("Not a company");
+      expect(copy.hint).toContain("permanent");
+      expect(copy.hint).not.toContain("C-2018");
+    });
+  });
 });
 
 describe("writeFailureMessage (inc.19)", () => {
