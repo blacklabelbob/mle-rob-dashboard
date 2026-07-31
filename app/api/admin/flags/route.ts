@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { planFlagWrite, supersededNote, type ExistingFlag } from "@/lib/flags/supersede";
 
 // Things to Address (Rob 2026-07-22): findings surfaced to Rob live on the
 // ledger — resolve with optional note, never deleted, archive keeps both dates.
@@ -53,19 +54,63 @@ export async function PATCH(req: NextRequest) {
   return NextResponse.json({ ok: true });
 }
 
-// agents/driver create new flags through here
+// agents/driver create new flags through here.
+//
+// Optional `dedupeKey` (Q84 inc.8): a finding that is re-run on a schedule sends the
+// same key every time and CORRECTS its row instead of stacking a contradicting copy.
+// Without it the behaviour is exactly what it always was — insert. See
+// lib/flags/supersede.ts for why: three open rows once claimed 26, 25 and a third
+// count for the same meeting-archive finding.
 export async function POST(req: NextRequest) {
-  const { entityId, entityName, title, detail, severity } = await req.json();
+  const { entityId, entityName, title, detail, severity, dedupeKey } = await req.json();
   if (!entityName || !title || !detail) {
     return NextResponse.json({ error: "need entityName, title, detail" }, { status: 400 });
   }
-  const { error } = await db().from("flags").insert({
+  const key = typeof dedupeKey === "string" && dedupeKey.trim() ? dedupeKey.trim() : null;
+  const row = {
     entity_id: entityId ?? null,
     entity_name: entityName,
     title,
     detail,
     severity: ["high", "medium", "low"].includes(severity) ? severity : "medium",
-  });
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ ok: true });
+  };
+
+  let existing: ExistingFlag[] = [];
+  if (key) {
+    const { data, error } = await db().from("flags").select("id,status").eq("dedupe_key", key);
+    // A failed read must not become an insert: that is the stacking bug, reached by a
+    // different door. Refuse loudly and let the caller retry.
+    if (error) return NextResponse.json({ error: `dedupe read failed: ${error.message}` }, { status: 500 });
+    existing = (data ?? []) as ExistingFlag[];
+  }
+
+  const plan = planFlagWrite(key, existing);
+
+  if (plan.action === "update") {
+    // notified_at moves to today — the row is being re-asserted, and a stale date reads
+    // as "nobody has looked at this since".
+    const { error } = await db()
+      .from("flags")
+      .update({ ...row, notified_at: new Date().toISOString().slice(0, 10) })
+      .eq("id", plan.id);
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  } else {
+    const { error } = await db().from("flags").insert({ ...row, dedupe_key: key });
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  // Older open twins are resolved with a note pointing at the survivor — never deleted,
+  // and `PATCH { action: "reopen" }` undoes it.
+  for (const staleId of plan.supersede) {
+    await db()
+      .from("flags")
+      .update({
+        status: "resolved",
+        resolved_at: new Date().toISOString().slice(0, 10),
+        resolution_note: supersededNote(plan.action === "update" ? plan.id : staleId),
+      })
+      .eq("id", staleId);
+  }
+
+  return NextResponse.json({ ok: true, action: plan.action, reason: plan.reason, superseded: plan.supersede });
 }
