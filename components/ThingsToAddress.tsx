@@ -212,9 +212,11 @@ export default function ThingsToAddress({
     // inc.30's tooltip promises exactly that — but only the page it was clicked
     // on knows which one that was. Recorded in the note (no migration; the same
     // grammar `supersededNote` already uses), and only for a row that names
-    // ANOTHER record. Never on a proposal: `archiveConsequence` reads the tail
-    // of a created-row's note, and a clause appended there would change what it
-    // decides.
+    // ANOTHER record. Never on a proposal — a proposal's closure is already told
+    // in full by `archiveConsequence`, and "resolved from C-…" on top of it is a
+    // second sentence about the same click. inc.44 made that reader immune to the
+    // clause (it strips via `resolutionNoteBody`), so this is now a choice about
+    // wording, not a load-bearing promise this component keeps on its behalf.
     const note = proposalDomain(f.title)
       ? withNote
       // inc.43: `home` is the record the row is filed on. A row filed on C-2001 arrives

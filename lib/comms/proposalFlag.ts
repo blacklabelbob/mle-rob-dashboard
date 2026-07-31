@@ -11,7 +11,7 @@
 // instead of the button quietly vanishing from the ledger.
 
 import { proposalTitle } from "./orgProposal";
-import { resolvedFrom, resolvedFromNote } from "@/lib/flags/supersede";
+import { resolutionNoteBody, resolvedFrom, resolvedFromNote } from "@/lib/flags/supersede";
 
 const TITLE_PREFIX = "New company domain: ";
 
@@ -516,10 +516,39 @@ if (
   throw new Error("proposalFlag: created-note contract drifted");
 }
 
+/**
+ * Q84 inc.44 — the created row's exemption was a promise the callers kept, not a property.
+ *
+ * inc.31 taught the resolve click to append `Resolved from C-…` to `resolution_note`, and
+ * inc.43 widened the set of rows that earns it. This function decides a proposal's PERMANENCE
+ * off the TAIL of that same string: a note ending in ` from this proposal.` is a create, and
+ * anything else is a dismissal that shuts the domain out. Append one clause to a created row
+ * and the tail no longer matches — so the archive starts printing "won't be proposed again,
+ * add it by hand" on the one row where the company DOES exist. A false instruction, and the
+ * exact noise inc.18 refused to spread.
+ *
+ * Nothing wrote that clause on a proposal, and that was the whole defence: `ThingsToAddress`
+ * carries a ternary that skips the writer when `proposalDomain(title)` is set. That guard is
+ * correct and stays — only the caller knows the title — but it lived in ONE component, as a
+ * comment asking the next caller to remember, which is precisely the shape inc.4/inc.5 merged
+ * two ladders to end. A second resolve path (a route, a script, a second component) breaks
+ * this reader without touching this file.
+ *
+ * So the reader stops depending on it: the created-note contract is matched against
+ * `resolutionNoteBody`, the SAME stripper the archive already uses to quote the reviewer's own
+ * words, so a machine clause cannot change what this decides. The guard is now belt, not rope.
+ *
+ * MEASURED before changing it (prod, read-only): 133 flags, **0** proposal-titled rows and 0
+ * notes carrying the clause — so this is a LATENT defect, not a live one. Stated plainly
+ * because inc.43's was live and the difference is the reader's to judge, not mine to blur.
+ *
+ * A null return means "render nothing extra" — ordinary flags and created rows keep the
+ * archive they already have.
+ */
 export function archiveConsequence(title: string, resolutionNote: string | null): string | null {
   const domain = proposalDomain(title);
   if (!domain) return null;
-  const note = (resolutionNote ?? "").trim();
+  const note = resolutionNoteBody(resolutionNote);
   if (note.startsWith(CREATED_NOTE_HEAD) && note.endsWith(CREATED_NOTE_TAIL)) return null;
   return `${domain} is no longer proposed — later mail from it won't raise this again. If it turns out to be a company, add it by hand.`;
 }

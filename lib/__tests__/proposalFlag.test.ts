@@ -12,6 +12,7 @@ import {
   writeFailureMessage,
 } from "@/lib/comms/proposalFlag";
 import { proposalToFlag, proposalTitle } from "@/lib/comms/orgProposal";
+import { resolvedFromNote } from "@/lib/flags/supersede";
 
 describe("proposalDomain", () => {
   it("round-trips the title inc.3 writes — the two ends of the contract", () => {
@@ -669,5 +670,33 @@ describe("archiveConsequence (inc.21 — the archive row that never says the doo
 
   it("ignores a prefix-only title, matching every other inc.16-20 parser", () => {
     expect(archiveConsequence("New company domain: ", null)).toBeNull();
+  });
+
+  // Q84 inc.44 — the created row's exemption is a property of THIS reader now,
+  // not a promise `ThingsToAddress` keeps on its behalf. inc.31's clause is
+  // APPENDED, so it lands exactly where this function was reading for " from
+  // this proposal." — a second resolve path that forgot the ternary would have
+  // flipped a created row into telling Rob to add a company that exists.
+  it("still reads a created row as created when the resolve clause is appended", () => {
+    const created = createdFromProposalNote("the-title-base", "The Title Base");
+    const stamped = resolvedFromNote(created, "C-2017", ["C-2018"]);
+    expect(stamped.endsWith("Resolved from C-2017.")).toBe(true);
+    expect(stamped.endsWith(" from this proposal.")).toBe(false); // the tail this used to match
+    expect(archiveConsequence(proposal, stamped)).toBeNull();
+  });
+
+  it("still warns on a DISMISSED proposal that carries the clause", () => {
+    // Stripping the machine clause must not soften the one row where the
+    // permanence line is the whole point.
+    const stamped = resolvedFromNote("vendor, not a customer", "C-2017", ["C-2018"]);
+    expect(archiveConsequence(proposal, stamped)).toContain("no longer proposed");
+  });
+
+  it("warns when the clause is the ONLY thing in the note — no reviewer words at all", () => {
+    // `resolvedFromNote("", …)` returns the bare clause; stripped it is "", which
+    // is not the created contract, so this is a dismissal.
+    expect(archiveConsequence(proposal, resolvedFromNote("", "C-2017", ["C-2018"]))).toContain(
+      "add it by hand"
+    );
   });
 });
