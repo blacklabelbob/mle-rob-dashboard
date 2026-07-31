@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   buildSlugIndex,
+  expandEntityFilter,
   flagEntityHref,
   flagRecordChips,
   linkifyRecordIds,
@@ -260,5 +261,70 @@ describe("buildSlugIndex / resolveFlagEntityId — the renumber's own mapping", 
     expect(flagRecordChips(rid, "C-2017 and C-2018 share a host")).toEqual([
       { id: "C-2018", href: "/companies/C-2018" },
     ]);
+  });
+});
+
+describe("expandEntityFilter (inc.24 — the record page's side of the same lookup)", () => {
+  // Read off prod 2026-07-31, the rows the ledger's 16 slug-carrying flags point at.
+  const RECORDS = [
+    { id: "C-2017", legacy_slug: "cg-roofing-group" },
+    { id: "C-2018", legacy_slug: "golf-coast-real-estate-group" },
+    { id: "C-2002", legacy_slug: "spinoff-homeclonevault" },
+    { id: "P-1018", legacy_slug: "caleb-green" },
+    { id: "P-1008", legacy_slug: "will" },
+  ];
+
+  it("carries the slug CG Roofing Group was renumbered from — flag #1's entity_id", () => {
+    // Before inc.24 the filter was ["C-2017"] and flag #1 (`cg-roofing-group`, open,
+    // "Registry conflict: ACTIVE vs dissolved") matched nothing. It is the row Rob asked
+    // to see on that company's page in dev_chat #33.
+    expect(expandEntityFilter(["C-2017"], RECORDS)).toEqual(["C-2017", "cg-roofing-group"]);
+  });
+
+  it("expands every id a person query fans out to — ids first, then slugs as read", () => {
+    // `?person=P-1018` becomes [person, ...their orgs] before it reaches here. Slugs
+    // follow in the order the caller read the rows, not the order of the ids: the value
+    // is a set for Supabase's `.in()`, and pinning the read order keeps it deterministic.
+    expect(expandEntityFilter(["P-1018", "C-2017", "C-2018"], RECORDS)).toEqual([
+      "P-1018",
+      "C-2017",
+      "C-2018",
+      "cg-roofing-group",
+      "golf-coast-real-estate-group",
+      "caleb-green",
+    ]);
+  });
+
+  it("contributes only slugs of records that were asked for", () => {
+    // P-1008 ("will") is in the table but not in the query — pulling its flag onto
+    // someone else's page is the failure this direction of the lookup must not have.
+    expect(expandEntityFilter(["C-2002"], RECORDS)).toEqual(["C-2002", "spinoff-homeclonevault"]);
+  });
+
+  it("is a no-op when the records have no legacy slug — the post-Q70 steady state", () => {
+    expect(expandEntityFilter(["C-2020"], [{ id: "C-2020", legacy_slug: null }])).toEqual(["C-2020"]);
+  });
+
+  it("returns the ids unchanged when nothing was read", () => {
+    expect(expandEntityFilter(["C-2017"], [])).toEqual(["C-2017"]);
+  });
+
+  it("never duplicates a value the filter already carries", () => {
+    // A record whose legacy_slug IS its id, and an id passed twice: Supabase would accept
+    // the duplicate, but a filter that grows on every call is how a bug hides.
+    expect(expandEntityFilter(["C-2017", "C-2017"], [{ id: "C-2017", legacy_slug: "C-2017" }])).toEqual(["C-2017"]);
+  });
+
+  it("surfaces a contested slug on BOTH pages rather than hiding it from both", () => {
+    // The deliberate asymmetry with buildSlugIndex, which DROPS a contested slug because
+    // guessing a link target sends Rob to the wrong record. Here the finding appears on
+    // two pages — visible and self-correcting — instead of on none.
+    const contested = [
+      { id: "C-2017", legacy_slug: "caleb-green" },
+      { id: "P-1018", legacy_slug: "caleb-green" },
+    ];
+    expect(expandEntityFilter(["C-2017"], contested)).toEqual(["C-2017", "caleb-green"]);
+    expect(expandEntityFilter(["P-1018"], contested)).toEqual(["P-1018", "caleb-green"]);
+    expect(buildSlugIndex(contested)["caleb-green"]).toBeUndefined();
   });
 });

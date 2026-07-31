@@ -215,7 +215,11 @@ export default function ThingsToAddress({
               // so the checkbox that promises to clear the row could never keep
               // that promise on one, and its caption named a record page that
               // does not exist. One contract decides both.
-              const read = overviewReadControl(f.title, Boolean(f.entity_id));
+              // inc.24: "has a record page" is `entity_ref`, not `entity_id`. A raw
+              // `entity_id` is true for `deal-gulf-coast-equity-phase4`, which names a
+              // DEAL and reaches nothing — the tooltip would promise a page to stay on
+              // that does not exist, and marking read would clear its only surface.
+              const read = overviewReadControl(f.title, Boolean(entityRef(f) && flagEntityHref(entityRef(f))));
               return (
               <li key={f.id} className="flex items-start gap-3 text-sm" title={f.detail}>
                 {read.checkbox ? (

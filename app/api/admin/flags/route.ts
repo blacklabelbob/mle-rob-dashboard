@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { planFlagWrite, planFlagReopen, supersededNote, type ExistingFlag } from "@/lib/flags/supersede";
-import { buildSlugIndex, resolveFlagEntityId } from "@/lib/flags/recordLinks";
+import { buildSlugIndex, expandEntityFilter, resolveFlagEntityId } from "@/lib/flags/recordLinks";
 
 // Things to Address (Rob 2026-07-22): findings surfaced to Rob live on the
 // ledger — resolve with optional note, never deleted, archive keeps both dates.
@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
   let q = db()
     .from("flags")
     .select("*");
-  if (ids) q = q.in("entity_id", ids);
+  if (ids) q = q.in("entity_id", await withLegacySlugs(ids));
   const { data, error } = await q
     .order("status", { ascending: false }) // open first
     .order("severity", { ascending: true })
@@ -35,6 +35,24 @@ export async function GET(req: NextRequest) {
 
   const flags = await withEntityRefs(data ?? []);
   return NextResponse.json({ flags });
+}
+
+/**
+ * Q84 inc.24 — widen a record page's filter to the slug that record was renumbered FROM.
+ *
+ * Every flag on prod that carries an `entity_id` carries the pre-Q70 slug, so filtering on
+ * the minted id alone matched none of them and every one of those findings rendered on no
+ * record page. See lib/flags/recordLinks.ts for why this direction of the lookup is the
+ * safe one. Failure is non-fatal and degrades to the pre-inc.24 filter: the record page
+ * shows what it showed yesterday rather than 500-ing, and never someone else's finding.
+ */
+async function withLegacySlugs(ids: string[]): Promise<string[]> {
+  const [orgs, people] = await Promise.all([
+    db().from("orgs").select("id,legacy_slug").in("id", ids),
+    db().from("people").select("id,legacy_slug").in("id", ids),
+  ]);
+  if (orgs.error || people.error) return ids;
+  return expandEntityFilter(ids, [...(orgs.data ?? []), ...(people.data ?? [])]);
 }
 
 /**

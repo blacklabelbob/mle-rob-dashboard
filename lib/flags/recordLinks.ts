@@ -201,6 +201,52 @@ export function resolveFlagEntityId(
   return mapped && flagEntityHref(mapped) ? mapped : null;
 }
 
+// Q84 inc.24 — inc.23 made the slug rows REACHABLE from the Overview. The traffic in the
+// other direction was still cut, and that is the direction Rob asked for by name.
+//
+// A record page renders its findings by asking `/api/admin/flags?person=C-2017`, and the
+// route filters `entity_id IN (C-2017, …)` — the ids the CRM mints TODAY. Every flag that
+// carries an `entity_id` on prod carries the PRE-renumber slug (`cg-roofing-group`), so
+// that filter matches nothing: **all 16 of them render on no record page at all.** The CG
+// Roofing registry conflict — the row Rob himself asked to see on Caleb's page and his two
+// companies' pages (dev_chat #33) — is on the Overview and nowhere else.
+//
+// That makes the Overview checkbox a data-loss control rather than a filing one. It reads
+// "mark read — clears from Overview, stays on the record until resolved", and marking it
+// read clears the ONLY surface the finding has. inc.20 fixed exactly this lie for
+// proposals; the Q70 renumber quietly recreated it for every slug-carrying flag.
+//
+// The expansion is deliberately the SAFE direction of the same lookup inc.23 built. There
+// it resolved slug → id and refused a contested slug, because sending Rob to the wrong
+// record is worse than sending him nowhere. Here it goes id → its own slug: a record only
+// ever contributes the slug the CRM wrote on that record, so it cannot pull in a finding
+// belonging to a different one. If two records did share a slug, the finding would surface
+// on BOTH pages — visible and self-correcting, never hidden — which is why this direction
+// does not drop a collision the way `buildSlugIndex` does.
+
+/**
+ * The `entity_id` values a record-page query must match: the ids asked for, plus the
+ * legacy slug each of those records carries.
+ *
+ * Pure per CR-3 — the caller reads the rows. The result is a set for a Supabase `.in()`
+ * filter; order is fixed anyway (the ids as given, then the slugs in row order, deduped)
+ * so the same inputs always produce the same filter.
+ */
+export function expandEntityFilter(
+  ids: string[],
+  rows: { id: string; legacy_slug: string | null }[],
+): string[] {
+  const wanted = new Set(ids);
+  const out = [...wanted];
+  for (const r of rows) {
+    // Only slugs belonging to a record the caller actually asked for, and never a slug
+    // that is already one of the ids (a no-op that would just widen nothing).
+    if (!r.legacy_slug || !wanted.has(r.id) || wanted.has(r.legacy_slug)) continue;
+    if (!out.includes(r.legacy_slug)) out.push(r.legacy_slug);
+  }
+  return out;
+}
+
 /** A record a flag names, ready to render as a link. */
 export type RecordChip = { id: string; href: string };
 
