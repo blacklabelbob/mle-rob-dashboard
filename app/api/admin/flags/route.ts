@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { planFlagWrite, planFlagReopen, supersededNote, type ExistingFlag } from "@/lib/flags/supersede";
-import { buildSlugIndex, expandEntityFilter, flagTitleHref, resolveFlagEntityId } from "@/lib/flags/recordLinks";
+import {
+  buildSlugIndex,
+  entityOrFilter,
+  expandEntityFilter,
+  flagTitleHref,
+  resolveFlagEntityId,
+  selectRecordFlags,
+} from "@/lib/flags/recordLinks";
 
 // Things to Address (Rob 2026-07-22): findings surfaced to Rob live on the
 // ledger — resolve with optional note, never deleted, archive keeps both dates.
@@ -23,17 +30,24 @@ export async function GET(req: NextRequest) {
     const { data: mem } = await db().from("org_memberships").select("org_id").eq("person_id", person);
     ids = [person, ...(mem ?? []).map((m) => m.org_id)];
   }
+  // Q84 inc.26 — a record page also wants the findings that NAME it. 115 of the 131 flags
+  // on prod carry no `entity_id`, and six of those print minted ids in their text (#137,
+  // #133, #129, #128, #101, #99 → 18 distinct records) while rendering on no record page.
+  // The `or` arm is only the coarse pull; `selectRecordFlags` decides, on ids the CRM
+  // minted and the flag itself printed — never on a name. See lib/flags/recordLinks.ts.
+  const entityFilter = ids ? await withLegacySlugs(ids) : null;
   let q = db()
     .from("flags")
     .select("*");
-  if (ids) q = q.in("entity_id", await withLegacySlugs(ids));
+  if (entityFilter) q = q.or(entityOrFilter(entityFilter));
   const { data, error } = await q
     .order("status", { ascending: false }) // open first
     .order("severity", { ascending: true })
     .order("notified_at", { ascending: false });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  const flags = await withEntityRefs(data ?? []);
+  const rows = entityFilter ? selectRecordFlags(data ?? [], entityFilter, ids ?? []) : (data ?? []);
+  const flags = await withEntityRefs(rows);
   return NextResponse.json({ flags });
 }
 

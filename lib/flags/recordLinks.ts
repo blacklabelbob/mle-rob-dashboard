@@ -307,6 +307,89 @@ export function flagTitleHref(
   return flagEntityHref(entityRef) ?? dealEntityHref(entityId, dealIds);
 }
 
+// Q84 inc.26 — inc.24 fixed the record-page filter for flags that CARRY an `entity_id`.
+// 16 flags do. The other 115 carry `entity_id = NULL`, and for six of them that is not the
+// same thing as "addresses no record": they print the ids in the sentence.
+//
+//   #137 → C-2017, C-2018       #133 → P-1010, C-2006, C-2019, C-2018
+//   #129 → six people           #128 → four people      #101/#99 → P-1001, C-2001, P-1043
+//
+// Eighteen distinct records, every one of them a page that renders, and not one of these
+// findings appears on any of them. #137 is the CG Roofing / Gulf Coast row inc.22 gave
+// header chips to — Rob can now click THROUGH it to Caleb's companies, but if he opens
+// C-2017 first, the finding about it is not there.
+//
+// This is the SAME evidence rule the whole thread runs on, applied to the filter instead of
+// the render: an id the CRM minted, printed by the flag itself, is an address. A name is
+// not. #137's `entity_name` is still the un-resolvable string "CG Roofing Group / Gulf
+// Coast RE Group" and is still never matched — nothing here reads a name.
+//
+// Deliberately NOT paired with the read control this time, and that asymmetry is the point.
+// inc.25 shipped its link and its record surface together because linking first would have
+// turned the Overview checkbox into a delete button. This direction is the safe one: a
+// finding GAINS a surface it did not have, while `overviewReadControl` still needs
+// `entity_ref` + a resolving href, which a NULL-entity row has neither of — so the checkbox
+// stays off and no row can be cleared into nowhere. Turning it on is inc.27's job.
+
+/**
+ * The minted record ids a flag names anywhere a human reads it — title and detail, deduped,
+ * in the order they are printed.
+ *
+ * Off the same linkifier the detail renders with, so this can never claim a row names a
+ * record the paragraph below does not link. Title is scanned too because a finding is free
+ * to put the id in its header; only prose IS printed there today, and this costs nothing.
+ */
+export function flagNamedRecordIds(
+  title: string | null | undefined,
+  detail: string | null | undefined,
+): string[] {
+  const out: string[] = [];
+  for (const field of [title, detail]) {
+    for (const seg of linkifyRecordIds(field ?? "")) {
+      if (seg.href && !out.includes(seg.text)) out.push(seg.text);
+    }
+  }
+  return out;
+}
+
+/**
+ * The flags a record page should show: the ones filed against it, plus the ones that name it.
+ *
+ * `entityFilter` is inc.24's widened list (the ids asked for + the slugs they were renumbered
+ * from) and stays an exact match — a row filed against a record is on that record's page no
+ * matter what its text says. `wanted` is the minted ids only; a NULL-entity row joins by
+ * naming one of them.
+ *
+ * Pure per CR-3 and order-preserving: the caller hands rows already ordered by the database
+ * (open first, then severity, then date) and this only drops, so one ordering serves both
+ * arms and there is no comparator here to drift from the one in SQL.
+ */
+export function selectRecordFlags<
+  T extends { entity_id: string | null; title?: string | null; detail?: string | null },
+>(rows: T[], entityFilter: string[], wanted: string[]): T[] {
+  const filed = new Set(entityFilter);
+  const asked = new Set(wanted);
+  return rows.filter((r) =>
+    r.entity_id
+      ? filed.has(r.entity_id)
+      : flagNamedRecordIds(r.title, r.detail).some((id) => asked.has(id)),
+  );
+}
+
+/**
+ * A PostgREST `or=` filter matching the rows either arm above can keep: an `entity_id` in
+ * the widened list, or no `entity_id` at all.
+ *
+ * The null arm is a coarse pre-filter — `selectRecordFlags` does the real work — but it must
+ * be a SUPERSET of what that keeps, or a finding disappears at the database instead of at the
+ * function that documents why. Values are double-quoted and escaped rather than assumed
+ * word-safe: an unquoted comma inside an id would silently split it into two filter terms.
+ */
+export function entityOrFilter(entityFilter: string[]): string {
+  const list = entityFilter.map((v) => `"${v.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`).join(",");
+  return `entity_id.in.(${list}),entity_id.is.null`;
+}
+
 /** A record a flag names, ready to render as a link. */
 export type RecordChip = { id: string; href: string };
 

@@ -2,7 +2,10 @@ import { describe, expect, it } from "vitest";
 import {
   buildSlugIndex,
   dealEntityHref,
+  entityOrFilter,
   expandEntityFilter,
+  flagNamedRecordIds,
+  selectRecordFlags,
   flagEntityHref,
   flagTitleHref,
   flagRecordChips,
@@ -379,5 +382,94 @@ describe("flagTitleHref", () => {
     // A pre-inc.25 response, or a failed deals read: the row renders as it did yesterday.
     expect(flagTitleHref(null, "deal-gulf-coast-equity-phase4", null)).toBeNull();
     expect(flagTitleHref("P-1008", "will", null)).toBe("/people/P-1008");
+  });
+});
+
+// Q84 inc.26 — every value below is read off prod: 115 of 131 flags carry no `entity_id`,
+// and six of them print minted ids in their text while rendering on no record page.
+describe("flagNamedRecordIds", () => {
+  it("returns the ids a null-entity finding prints, in order, deduped across title+detail", () => {
+    // prod #133 (inc.18 wrote it), abridged — names four records, entity_id NULL.
+    const detail =
+      "\u2192 \u201cDixith\u201d names a person: Dixith Magadiev [P-1010] \u2192 C-2006 \u2014 " +
+      "and no org is named exactly \u201cOmega Title\u201d, but C-2019 is the same name plus a qualifier (see C-2018, P-1010)";
+    expect(flagNamedRecordIds("Near-miss: Dixith / Omega Title", detail)).toEqual([
+      "P-1010",
+      "C-2006",
+      "C-2019",
+      "C-2018",
+    ]);
+  });
+
+  it("never reads a NAME — #137's title addresses two orgs in prose and yields nothing", () => {
+    // The exact string on prod, the reason inc.22 existed. A name is ambiguous by
+    // construction; guessing a target is the mistake this whole thread refuses.
+    expect(flagNamedRecordIds("CG Roofing Group / Gulf Coast RE Group", "both are in the registry")).toEqual([]);
+  });
+
+  it("inherits the boundary rule, so an invoice number is not a record id", () => {
+    expect(flagNamedRecordIds(null, "invoice MLE-2026-100123 paid; see C-2017")).toEqual(["C-2017"]);
+  });
+
+  it("is null-safe on both fields", () => {
+    expect(flagNamedRecordIds(null, null)).toEqual([]);
+  });
+});
+
+describe("selectRecordFlags", () => {
+  // Ordered as the database returns them; the function only drops.
+  const ROWS = [
+    { id: 137, entity_id: null, title: "CG Roofing Group / Gulf Coast RE Group", detail: "registry conflict \u2014 C-2017 vs C-2018" },
+    { id: 26, entity_id: "cg-roofing-group", title: "registry conflict", detail: "filed against the record" },
+    { id: 129, entity_id: null, title: "attendees", detail: "P-1002, P-1003, P-1005" },
+    { id: 83, entity_id: "deal-gulf-coast-equity-phase4", title: "equity 30%", detail: "verbal only" },
+  ];
+
+  it("keeps a finding that NAMES the record alongside the ones filed against it", () => {
+    // C-2017's page asked for it; inc.24 widened the filter to its legacy slug.
+    const out = selectRecordFlags(ROWS, ["C-2017", "cg-roofing-group"], ["C-2017"]);
+    expect(out.map((r) => r.id)).toEqual([137, 26]);
+  });
+
+  it("preserves the database ordering rather than re-sorting", () => {
+    const out = selectRecordFlags(ROWS, ["C-2017", "cg-roofing-group"], ["C-2017"]);
+    expect(out.map((r) => r.id)).toEqual([137, 26]);
+  });
+
+  it("matches a filed row EXACTLY \u2014 a slug is not widened a second time here", () => {
+    // Ask for the record without inc.24's widening and the slug row drops out; the naming
+    // row still lands, because the two arms answer independently.
+    expect(selectRecordFlags(ROWS, ["C-2017"], ["C-2017"]).map((r) => r.id)).toEqual([137]);
+  });
+
+  it("does not leak a null-entity finding onto a record it never names", () => {
+    expect(selectRecordFlags(ROWS, ["P-1014"], ["P-1014"])).toEqual([]);
+  });
+
+  it("fans out with the person's orgs, since ?person= asks for both", () => {
+    expect(selectRecordFlags(ROWS, ["P-1002"], ["P-1002"]).map((r) => r.id)).toEqual([129]);
+  });
+
+  it("leaves a filed deal row reachable only by its own id", () => {
+    expect(selectRecordFlags(ROWS, ["deal-gulf-coast-equity-phase4"], []).map((r) => r.id)).toEqual([83]);
+  });
+});
+
+describe("entityOrFilter", () => {
+  it("is a SUPERSET of what selectRecordFlags keeps \u2014 the null arm is always pulled", () => {
+    // If the database dropped the null rows, the finding would vanish before reaching the
+    // function that documents why, which is the failure mode inc.24 spent an increment on.
+    expect(entityOrFilter(["C-2017", "cg-roofing-group"])).toBe(
+      'entity_id.in.("C-2017","cg-roofing-group"),entity_id.is.null',
+    );
+  });
+
+  it("quotes and escapes rather than assuming an id is word-safe", () => {
+    // An unquoted comma would silently split one id into two filter terms.
+    expect(entityOrFilter(['a,b', 'q"x'])).toBe('entity_id.in.("a,b","q\\"x"),entity_id.is.null');
+  });
+
+  it("still pulls the null rows when no record ids survive the widening", () => {
+    expect(entityOrFilter([])).toBe("entity_id.in.(),entity_id.is.null");
   });
 });
