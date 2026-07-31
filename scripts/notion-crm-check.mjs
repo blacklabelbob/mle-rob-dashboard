@@ -28,6 +28,7 @@ import { readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { checkArchiveAgainstCrm } from "../lib/meetings/archiveCheck.ts";
+import { classifyUnexplainedRows } from "../lib/meetings/unexplainedRows.ts";
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), "..");
 const DATA_SOURCE_ID = "600498eb-b6e0-41af-a625-e369cbe5fc6a";
@@ -86,6 +87,10 @@ async function readArchive() {
         title: plain(p["Meeting Title"]?.title),
         day: start.slice(0, 10),
         recording: p["Call Recording"]?.url || "",
+        // Read for the unexplained-rows pass below: what a row is MISSING decides who can
+        // close it, and only the row itself knows that.
+        summary: plain(p["Meeting Summary"]?.rich_text),
+        company: plain(p["Company Meeting with"]?.rich_text),
       });
     }
     cursor = json.has_more ? json.next_cursor : null;
@@ -114,10 +119,11 @@ async function readCrmMeetings() {
 
 const [archive, crm] = await Promise.all([readArchive(), readCrmMeetings()]);
 const check = checkArchiveAgainstCrm(archive, crm);
+const unexplained = classifyUnexplainedRows(archive);
 const clip = (s, n) => (s && s.length > n ? `${s.slice(0, n - 1)}…` : s || "");
 
 if (AS_JSON) {
-  console.log(JSON.stringify(check, null, 2));
+  console.log(JSON.stringify({ ...check, unexplained }, null, 2));
   process.exit(0);
 }
 
@@ -149,6 +155,29 @@ if (c.ambiguous) {
   for (const a of check.ambiguous) {
     console.log(`  ${a.row.day}  ${clip(a.row.title, 56)}`);
     for (const cand of a.candidates) console.log(`      · ${clip(cand.summary, 60) || "(no summary)"}  [${cand.id}]`);
+  }
+}
+
+// ── the rows no recording can explain ──────────────────────────────────────────────────
+// These are not a CRM problem — they are archive rows a recorder never saw. "26 incomplete"
+// is an unusable pile, so they are split by WHO CAN CLOSE THEM, cheapest first. Nothing here
+// is ever auto-filled: an invented summary for an in-person meeting is worse than an empty one.
+const u = unexplained.counts;
+console.log(`\n── ${u.unexplained} archive row(s) no recording explains  (${u.recorded} recorded, ${u.complete} already filled in by a human) ──`);
+
+const BUCKETS = [
+  ["possible-duplicate", u.possibleDuplicate, "probably the same meeting as a RECORDED row — merge or delete, nobody needs to remember it twice"],
+  ["needs-identification", u.needsIdentification, "missing a date or a real title — anyone with the calendar can close these"],
+  ["needs-human-account", u.needsHumanAccount, "no recorder was there — only someone who was in the room can close these"],
+];
+for (const [disposition, count, why] of BUCKETS) {
+  if (!count) continue;
+  console.log(`\n  ${count} · ${disposition.toUpperCase()}`);
+  console.log(`     ${why}`);
+  for (const item of unexplained.open.filter((r) => r.disposition === disposition)) {
+    console.log(`     ${item.row.day || "(no date)"}  ${clip(item.row.title, 52) || "(untitled)"}  [${item.gaps.join(", ")}]`);
+    console.log(`         → ${item.nextStep}`);
+    if (item.twin) console.log(`         ↔ recorded row: ${clip(item.twin.title, 52)}  ${item.twin.url || ""}`);
   }
 }
 
