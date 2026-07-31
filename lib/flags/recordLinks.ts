@@ -363,6 +363,15 @@ export function flagNamedRecordIds(
  * Pure per CR-3 and order-preserving: the caller hands rows already ordered by the database
  * (open first, then severity, then date) and this only drops, so one ordering serves both
  * arms and there is no comparator here to drift from the one in SQL.
+ *
+ * Q84 inc.39 — the CONTRACT on `wanted`, because `flagHasRecordSurface` is pinned as the same
+ * predicate and that pin is only sound while this holds: **every id in `wanted` must be a
+ * record the CRM holds.** This function cannot check it (pure, no network), so it is stated
+ * here and guaranteed upstream. A `wanted` carrying an id the CRM does not hold would keep a
+ * row on a page while `flagHasRecordSurface` — which intersects against the CRM's own set —
+ * calls that same row page-less, and the Overview would tell Rob to resolve a finding there
+ * because it has nowhere else to live. That is inc.27's defect coming back through a side
+ * door, so the guarantee is named rather than assumed. See `flagHasRecordSurface`.
  */
 export function selectRecordFlags<
   T extends { entity_id: string | null; title?: string | null; detail?: string | null },
@@ -424,6 +433,30 @@ export function selectRecordFlags<
  *
  * `minted` is optional and unproven-by-default, exactly as on `flagNamedScope` and
  * `flagRecordChips`: a caller that cannot say gets today's answer, never a silent drop.
+ *
+ * Q84 inc.39 — inc.38 pinned this as ONE predicate with `selectRecordFlags`, but only over
+ * rows a page ASKED for by its own id. A person's page does not work that way: it fans out
+ * through `org_memberships`, so its `wanted` is `[the person, ...every org they belong to]`
+ * and a row naming only C-2017 lands on P-1001's page without ever naming P-1001. The
+ * question inc.39 was set was whether that door lets the two disagree. **It cannot**, and the
+ * reason is structural rather than a property of today's data:
+ *
+ *   - the org half is guaranteed by the database — `org_memberships_org_id_fkey`, verified on
+ *     PROD and not merely in `0003` (this repo has committed-but-unapplied migrations, so the
+ *     file is not evidence): `FOREIGN KEY (org_id) REFERENCES orgs(id) ON UPDATE CASCADE ON
+ *     DELETE CASCADE`. A membership cannot name an org that is not a record, a deleted org
+ *     takes its memberships with it, and — the half that matters on a ladder about the Q70
+ *     renumber — an org whose id CHANGES drags the membership to the new id instead of
+ *     leaving a stale one behind.
+ *   - the page's own half is guaranteed by the page — `app/people/[id]/page.tsx` calls
+ *     `notFound()` before it renders, then passes `person.id` off the loaded record, never
+ *     the URL text. (`app/companies/[id]/page.tsx` passes `company.id` through the same prop,
+ *     resolved the same way.)
+ *
+ * So every id in `wanted` is an id the CRM holds, `named_ref` is drawn from that same CRM, and
+ * a kept row always has a confirmed named id. Measured alongside: 16 memberships on prod, zero
+ * dangling. Stated as the reason, not the proof — the constraint is the reason; the count would
+ * only ever be a coincidence.
  */
 export function flagHasRecordSurface(
   titleHref: string | null | undefined,

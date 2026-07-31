@@ -600,6 +600,81 @@ describe("flagHasRecordSurface (inc.27 — the tooltip's question, answered like
     expect(selectRecordFlags(rows, ["P-1001"], ["P-1001"])).toHaveLength(0);
     expect(flagHasRecordSurface(null, rows[0].title, rows[0].detail, ["P-1001", "C-2001"])).toBe(false);
   });
+
+  // Q84 inc.39 — inc.38's coupling test only ever walked rows a page asked for BY ITS OWN ID.
+  // A person's page does not: `/api/admin/flags?person=P-1001` fans out through
+  // `org_memberships` and asks with `[P-1001, ...that person's orgs]`, so a row naming only
+  // C-2017 renders on P-1001's page without naming P-1001 anywhere. These pin that arm, and
+  // the last one pins WHAT the agreement rests on so a future schema change cannot quietly
+  // remove it and leave the tests green.
+  describe("inc.39: the ?person= org-membership fan-out", () => {
+    // The CRM's own set, as `withNamedRefs` reads it out of `orgs` + `people`.
+    const HELD = ["P-1001", "C-2017", "C-2018", "C-2001"];
+    // Exactly what the route builds: the page's own id, then every org id the membership
+    // table returns for that person.
+    const wantedForPerson = (personId: string, orgIds: string[]) => [personId, ...orgIds];
+
+    it("keeps a row that names the person's ORG on the person's page — and the tooltip agrees", () => {
+      // Prod #137's shape: filed against nothing, names two companies, names no person.
+      const rows = [
+        { id: 137, entity_id: null, title: "CG Roofing Group / Gulf Coast RE Group", detail: "C-2017 vs C-2018" },
+      ];
+      const wanted = wantedForPerson("P-1001", ["C-2017"]);
+      expect(selectRecordFlags(rows, wanted, wanted)).toHaveLength(1);
+      // The row is on a page whose id it never prints — and it still has a record page, so
+      // the Overview must not say "resolve it here".
+      expect(flagHasRecordSurface(null, rows[0].title, rows[0].detail, HELD)).toBe(true);
+    });
+
+    it("agrees on every row the fan-out surfaces — the coupling, extended to the wider ask", () => {
+      const rows = [
+        { id: 137, entity_id: null, title: "registry conflict", detail: "C-2017 vs C-2018" },
+        { id: 101, entity_id: null, title: "Say the id", detail: 'the one in the bar ("pull up P-1043")' },
+        { id: 55, entity_id: null, title: "New company domain: roofco.com", detail: "seen twice, no ids" },
+      ];
+      const wanted = wantedForPerson("P-1001", ["C-2017", "C-2018"]);
+      for (const r of rows) {
+        const shown = selectRecordFlags(rows, wanted, wanted).some((k) => k.id === r.id);
+        if (shown) expect(flagHasRecordSurface(null, r.title, r.detail, HELD)).toBe(true);
+      }
+      // #101 names a phantom and #55 names nothing: the fan-out puts neither on the page, and
+      // the tooltip calls neither page-less-by-mistake.
+      expect(selectRecordFlags(rows, wanted, wanted).map((r) => r.id)).toEqual([137]);
+    });
+
+    it("a row FILED against the person's org rides the fan-out too, and its title link answers", () => {
+      // The other arm of the filter: `entity_id` matched against the widened list, including
+      // the pre-Q70 slug the record was renumbered from (inc.24).
+      const rows = [{ id: 26, entity_id: "cg-roofing-group", title: "registry conflict", detail: "no ids here" }];
+      const wanted = wantedForPerson("P-1001", ["C-2017"]);
+      const filed = [...wanted, "cg-roofing-group"];
+      expect(selectRecordFlags(rows, filed, wanted)).toHaveLength(1);
+      const href = flagTitleHref(resolveFlagEntityId("cg-roofing-group", { "cg-roofing-group": "C-2017" }), "cg-roofing-group", null);
+      // Empty `minted` on purpose: a filed row must reach its page through the link, never
+      // through the sentence, so no confirmed-id set can take the page away from it.
+      expect(flagHasRecordSurface(href, rows[0].title, rows[0].detail, [])).toBe(true);
+    });
+
+    it("names what the agreement rests on: an unheld id in `wanted` is what would break it", () => {
+      // Not a defect today and not reachable today — `org_memberships_org_id_fkey`
+      // (REFERENCES orgs(id) ON UPDATE CASCADE ON DELETE CASCADE, verified on PROD) makes a
+      // membership pointing at a non-record impossible, and the person half comes off a
+      // record the page already loaded or it called notFound(). This test exists so that if
+      // that constraint is ever dropped, the consequence is written down where the next
+      // reader will find it: the row is kept, the tooltip says page-less, and the Overview
+      // tells Rob to resolve a finding that is sitting on a page he never opened.
+      const rows = [{ id: 900, entity_id: null, title: "conflict", detail: "C-9999 vs C-2017" }];
+      const wanted = wantedForPerson("P-1001", ["C-9999"]); // a membership the FK forbids
+      expect(selectRecordFlags(rows, wanted, wanted)).toHaveLength(1);
+      expect(flagHasRecordSurface(null, rows[0].title, rows[0].detail, ["P-1001", "C-9999"])).toBe(true);
+      // This one survives the CRM's real set anyway — it also names C-2017, a record — which
+      // is why the disagreement needs a row naming ONLY the id the broken membership carries.
+      expect(flagHasRecordSurface(null, rows[0].title, rows[0].detail, ["P-1001", "C-2017"])).toBe(true);
+      const namesOnlyPhantom = [{ id: 901, entity_id: null, title: "conflict", detail: "C-9999 alone" }];
+      expect(selectRecordFlags(namesOnlyPhantom, wanted, wanted)).toHaveLength(1);
+      expect(flagHasRecordSurface(null, namesOnlyPhantom[0].title, namesOnlyPhantom[0].detail, ["P-1001"])).toBe(false);
+    });
+  });
 });
 
 // Q84 inc.28 — the row is on the page (inc.26) and the Overview no longer calls it
