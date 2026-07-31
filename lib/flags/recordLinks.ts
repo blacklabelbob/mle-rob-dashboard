@@ -503,15 +503,25 @@ export type RecordChip = { id: string; href: string };
  * Uncapped on purpose — #129 names 6 records and truncating to "the first 3" would print
  * a count the row does not have. These ids are already on screen; this only makes them
  * reachable.
+ *
+ * Q84 inc.29 — `alreadyLinked` extends the one rule this function has always had ("do not
+ * print a chip for an id this row already links elsewhere") to the two links inc.28 added
+ * underneath it. It is the caller's list because only the caller knows what it rendered:
+ * the page being read (a chip to the page you are standing on is a link to nowhere) and
+ * every id the scope marker prints as a link one line below. Nothing is HIDDEN by this —
+ * each suppressed id is still linkified inside the detail paragraph, which is where the
+ * chip's own href came from; the second and third copy of the same link is what goes.
  */
 export function flagRecordChips(
   entityId: string | null | undefined,
   detail: string | null | undefined,
+  alreadyLinked?: Iterable<string> | null,
 ): RecordChip[] {
   const seen = new Set<string>();
   // Only skip the entity id when it is genuinely rendered as a link above. A slug
   // entity_id renders as plain text, so an id inside the detail is still the only way in.
   if (entityId && flagEntityHref(entityId)) seen.add(entityId);
+  for (const id of alreadyLinked ?? []) if (id) seen.add(id);
 
   const out: RecordChip[] = [];
   for (const seg of linkifyRecordIds(detail ?? "")) {

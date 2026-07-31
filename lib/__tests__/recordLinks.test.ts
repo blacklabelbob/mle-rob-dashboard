@@ -195,6 +195,54 @@ describe("flagRecordChips", () => {
       inProse.map((s) => ({ id: s.text, href: s.href })),
     );
   });
+
+  // Q84 inc.29 — the same rule the entity_id arm has always applied, extended to the two
+  // links inc.28 put underneath the chips.
+  it("drops a chip that links back to the page being read — that is a link to nowhere", () => {
+    expect(flagRecordChips(null, F137_DETAIL, ["C-2017"]).map((c) => c.id)).toEqual(["C-2018"]);
+  });
+
+  it("drops a chip the scope marker already prints as a link one line below", () => {
+    // #137 on C-2017's page: `here` is C-2017 (the chip is a self-link) and `others` is
+    // C-2018 (the marker links it). Both go; the header stops repeating the foot of the row.
+    const scope = flagNamedScope(null, F137_NAME, F137_DETAIL, "C-2017");
+    expect(flagRecordChips(null, F137_DETAIL, ["C-2017", ...(scope?.others ?? [])])).toEqual([]);
+  });
+
+  it("suppresses nothing it was not handed — the Overview digest passes no page", () => {
+    expect(flagRecordChips(null, F137_DETAIL, null).map((c) => c.id)).toEqual(["C-2017", "C-2018"]);
+    expect(flagRecordChips(null, F137_DETAIL, []).map((c) => c.id)).toEqual(["C-2017", "C-2018"]);
+    expect(flagRecordChips(null, F137_DETAIL, [""]).map((c) => c.id)).toEqual(["C-2017", "C-2018"]);
+  });
+
+  it("keeps every chip on a FILED row, whose marker never renders", () => {
+    // A filed row gets no scope marker (inc.28), so nothing below repeats its ids; only the
+    // page id itself is dropped, and on prod the entity_id is a slug so the title links nothing.
+    const scope = flagNamedScope("cg-roofing-group", F137_NAME, F137_DETAIL, "C-2017");
+    expect(scope).toBeNull();
+    expect(
+      flagRecordChips("cg-roofing-group", F137_DETAIL, ["C-2017", ...(scope?.others ?? [])]).map((c) => c.id),
+    ).toEqual(["C-2018"]);
+  });
+
+  it("hides no id — every suppressed chip is still a link inside the detail", () => {
+    const suppressed = ["C-2017", "C-2018"];
+    expect(flagRecordChips(null, F137_DETAIL, suppressed)).toEqual([]);
+    const inProse = new Set(linkifyRecordIds(F137_DETAIL).filter((s) => s.href).map((s) => s.text));
+    for (const id of suppressed) expect(inProse.has(id)).toBe(true);
+  });
+
+  it("leaves a fan-out row's chips alone — `here` is null, so nothing is a self-link", () => {
+    // `?person=P-1010` pulls the org's flags too: the row names neither page id, the marker
+    // links both, and the chips are the redundant copy. The page id suppresses nothing here.
+    const scope = flagNamedScope(null, F137_NAME, F137_DETAIL, "P-1010");
+    expect(scope?.here).toBeNull();
+    expect(flagRecordChips(null, F137_DETAIL, ["P-1010"]).map((c) => c.id)).toEqual([
+      "C-2017",
+      "C-2018",
+    ]);
+    expect(flagRecordChips(null, F137_DETAIL, ["P-1010", ...(scope?.others ?? [])])).toEqual([]);
+  });
 });
 
 // Q84 inc.23 — the slug entity_ids that inc.20 correctly refused to guess at, resolved

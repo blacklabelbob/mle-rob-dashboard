@@ -383,6 +383,17 @@ export default function ThingsToAddress({
           // counts resolved titles as existing). One contract drives its label,
           // its tooltip, the line under it and the note prompt.
           const copy = resolveControlCopy(f.title);
+          // inc.29: computed once, above the row, because two things render off it —
+          // the marker at the foot (inc.28) and the chips in the header, which must
+          // not re-print a link the marker is about to print. On the Overview digest
+          // there is no page to be "here", so this is null and chips are untouched.
+          const scope =
+            mode === "entity" ? flagNamedScope(f.entity_id, f.title, f.detail, person ?? entity) : null;
+          // The ids this row already links somewhere else: the page being read (a chip
+          // back to the current page is a link to nowhere) and every id the marker
+          // renders as a link. Both stay visible — linkified — inside the detail.
+          const chipsAlreadyLinked =
+            mode === "entity" ? [person ?? entity ?? "", ...(scope?.others ?? [])] : null;
           return (
           <li key={f.id} className={`rounded-lg border px-3 py-2.5 ${sevStyle[f.severity]}`}>
             <div className="flex flex-wrap items-start justify-between gap-2">
@@ -400,7 +411,7 @@ export default function ThingsToAddress({
                   <span className="opacity-80"> — {f.title}</span>
                   {/* inc.22: same rule, same source, both render sites — a rule that
                       holds in the digest and not here is how inc.20's bug was born. */}
-                  {flagRecordChips(entityRef(f), f.detail).map((chip) => (
+                  {flagRecordChips(entityRef(f), f.detail, chipsAlreadyLinked).map((chip) => (
                     <Link
                       key={chip.id}
                       href={chip.href}
@@ -441,7 +452,6 @@ export default function ThingsToAddress({
                     finding printed are named; `entity_name` is never read. */}
                 {mode === "entity" &&
                   (() => {
-                    const scope = flagNamedScope(f.entity_id, f.title, f.detail, person ?? entity);
                     if (!scope) return null;
                     return (
                       <p className="mt-1 text-[11px] leading-relaxed text-slate-400">
