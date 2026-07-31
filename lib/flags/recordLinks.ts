@@ -434,6 +434,20 @@ export function flagHasRecordSurface(
 // the ambiguous half — is never parsed, and a row with an `entity_id` gets no marker at all,
 // because that row IS filed and the header is telling the truth about it.
 
+/**
+ * Keep only the ids the CRM confirmed it holds — or every id, when nobody confirmed anything.
+ *
+ * The `null`/`undefined` case is not "no records exist", it is "not asked": the Overview
+ * digest, a cached response written before inc.37, a unit test handing three arguments. An
+ * absent proof is never read as a disproof anywhere on this ladder, and dropping a real
+ * record because a lookup was skipped is the worse of the two failures by far.
+ */
+export function mintedOnly(ids: string[], minted?: Iterable<string> | null): string[] {
+  if (minted === null || minted === undefined) return ids;
+  const held = new Set(minted);
+  return ids.filter((id) => held.has(id));
+}
+
 /** Why a NULL-entity finding is on the page being read, and what else it is about. */
 export type NamedScope = {
   /** Every minted id the finding names, in print order — the records it spans. */
@@ -457,15 +471,34 @@ export type NamedScope = {
  * be on a page whose id it does not name. When that happens `here` is `null` and the caller
  * says only what is true — which records the row names — instead of guessing which one is
  * the page.
+ *
+ * Q84 inc.37 — an id that MATCHES the pattern is not the same thing as a record.
+ *
+ * Everything on this ladder has been careful that a NAME is never an address. Nothing ever
+ * checked the other half: that a minted-looking id is one the CRM actually holds. Prod #101
+ * is the case, and it is not a typo — its detail quotes Rob's own instruction, *"the id you
+ * now see in the address bar is the one to say out loud (\"pull up P-1043\")"*. `P-1043` is
+ * an EXAMPLE inside a sentence, and there is no P-1043: 22 people exist, P-1001..P-1022.
+ * Yet it was counted as a record this finding names, so on /people/P-1001 the marker said
+ * the row "appears on each named record — one ledger row on every one of those pages" and
+ * linked to a dead end, and the Resolve button promised to clear it from there. (That page
+ * answers 200 and renders Next's "This page could not be found." screen — a dead end for
+ * the reader, not an HTTP 404; the distinction is checked rather than assumed.)
+ *
+ * `minted` is the server's answer to "which of these ids does the CRM hold" — the same
+ * confirm-don't-infer rule inc.25 wrote for deal ids ("an id the table does not have stays
+ * plain text"), applied to the ids a flag NAMES. Optional and unproven-by-default like every
+ * other argument here: a caller that cannot say gets today's behaviour, never a silent drop.
  */
 export function flagNamedScope(
   entityId: string | null | undefined,
   title: string | null | undefined,
   detail: string | null | undefined,
   pageId?: string | null,
+  minted?: Iterable<string> | null,
 ): NamedScope | null {
   if (entityId) return null;
-  const named = flagNamedRecordIds(title, detail);
+  const named = mintedOnly(flagNamedRecordIds(title, detail), minted);
   if (named.length === 0) return null;
   const here = pageId && named.includes(pageId) ? pageId : null;
   return { named, here, others: named.filter((id) => id !== here) };
@@ -516,8 +549,14 @@ export function flagRecordChips(
   entityId: string | null | undefined,
   detail: string | null | undefined,
   alreadyLinked?: Iterable<string> | null,
+  minted?: Iterable<string> | null,
 ): RecordChip[] {
   const seen = new Set<string>();
+  // inc.37: the chips take the same confirmed set as the marker, and they have to — the
+  // marker suppresses a chip by LINKING that id (`alreadyLinked`), so filtering one and
+  // not the other would hand P-1043 straight back as a chip the moment the sentence
+  // stopped printing it. One set, both renders, or the fix undoes itself.
+  const held = minted === null || minted === undefined ? null : new Set(minted);
   // Only skip the entity id when it is genuinely rendered as a link above. A slug
   // entity_id renders as plain text, so an id inside the detail is still the only way in.
   if (entityId && flagEntityHref(entityId)) seen.add(entityId);
@@ -526,6 +565,7 @@ export function flagRecordChips(
   const out: RecordChip[] = [];
   for (const seg of linkifyRecordIds(detail ?? "")) {
     if (!seg.href || seen.has(seg.text)) continue;
+    if (held && !held.has(seg.text)) continue;
     seen.add(seg.text);
     out.push({ id: seg.text, href: seg.href });
   }

@@ -5,6 +5,7 @@ import {
   buildSlugIndex,
   entityOrFilter,
   expandEntityFilter,
+  flagNamedRecordIds,
   flagTitleHref,
   resolveFlagEntityId,
   selectRecordFlags,
@@ -47,8 +48,41 @@ export async function GET(req: NextRequest) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   const rows = entityFilter ? selectRecordFlags(data ?? [], entityFilter, ids ?? []) : (data ?? []);
-  const flags = await withEntityRefs(rows);
+  const flags = await withNamedRefs(await withEntityRefs(rows));
   return NextResponse.json({ flags });
+}
+
+/**
+ * Q84 inc.37 — attach `named_ref`: of the minted ids a flag PRINTS, the ones the CRM holds.
+ *
+ * inc.26 taught the ledger that an id a finding prints is an address, and every increment
+ * since has rendered sentences off that set — "it names C-2018 as well as this record", "one
+ * ledger row on every one of those pages", "Resolving clears it from …". None of them ever
+ * asked whether the id is a record. Prod #101 is why that matters: its detail quotes Rob's
+ * own instruction, `("pull up P-1043")`, as an EXAMPLE of how to say a record number out
+ * loud. There is no P-1043 — people run P-1001..P-1022 — so on /people/P-1001 the marker
+ * named a dead-end page and the Resolve button promised to clear the finding from it.
+ * (Precisely: `/people/P-1043` answers 200 and renders Next's "This page could not be
+ * found." screen — a dead end for the reader, not an HTTP 404. Checked, not assumed.)
+ *
+ * Same confirm-don't-infer rule as inc.25's deal lookup one function above, and the same
+ * non-fatal contract: a failed lookup attaches `null`, which the client reads as "not asked"
+ * and renders exactly what it rendered yesterday. Dropping a real record because a query
+ * blipped is the worse failure, so absence of proof is never proof of absence here.
+ */
+async function withNamedRefs<T extends { title: string | null; detail: string | null }>(rows: T[]) {
+  const wanted = [...new Set(rows.flatMap((r) => flagNamedRecordIds(r.title, r.detail)))];
+  if (!wanted.length) return rows.map((r) => ({ ...r, named_ref: [] as string[] | null }));
+  const [orgs, people] = await Promise.all([
+    db().from("orgs").select("id").in("id", wanted.filter((id) => id.startsWith("C-"))),
+    db().from("people").select("id").in("id", wanted.filter((id) => id.startsWith("P-"))),
+  ]);
+  if (orgs.error || people.error) return rows.map((r) => ({ ...r, named_ref: null as string[] | null }));
+  const held = new Set([...(orgs.data ?? []), ...(people.data ?? [])].map((r) => r.id as string));
+  return rows.map((r) => ({
+    ...r,
+    named_ref: flagNamedRecordIds(r.title, r.detail).filter((id) => held.has(id)) as string[] | null,
+  }));
 }
 
 /**

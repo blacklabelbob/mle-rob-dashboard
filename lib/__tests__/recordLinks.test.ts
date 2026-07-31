@@ -7,6 +7,7 @@ import {
   flagHasRecordSurface,
   flagNamedRecordIds,
   flagNamedScope,
+  mintedOnly,
   selectRecordFlags,
   flagEntityHref,
   flagTitleHref,
@@ -603,7 +604,11 @@ describe("flagNamedScope — a finding that is on this page without being filed 
     expect(flagNamedScope(null, NAME_137, DETAIL_137)?.here).toBeNull();
   });
 
-  it("every id it prints is a linkable record — the marker can never point at a 404", () => {
+  // inc.37 renamed this case rather than deleting it, because what it proves is still true
+  // and what it was READ as saying is what shipped the bug: every id gets a well-formed
+  // href. That is the SHAPE of a link, not the existence of the record behind it — see the
+  // P-1043 block below for the half this never covered.
+  it("every id it prints gets a well-formed href — the marker never renders a raw id", () => {
     const s = flagNamedScope(null, "P-1010 and C-2006 disagree", "see also C-2019", "C-2006");
     for (const id of s?.named ?? []) expect(flagEntityHref(id)).toBeTruthy();
     expect(s?.others).toEqual(["P-1010", "C-2019"]);
@@ -621,5 +626,66 @@ describe("flagNamedScope — a finding that is on this page without being filed 
     expect(shown.map((r) => r.id)).toEqual([137, 26]);
     const marked = shown.filter((r) => flagNamedScope(r.entity_id, r.title, r.detail, "C-2017"));
     expect(marked.map((r) => r.id)).toEqual([137]);
+  });
+});
+
+// Q84 inc.37 — an id that MATCHES the pattern is not the same thing as a record.
+//
+// Prod #101, read live today: its detail quotes Rob's own instruction — `the id you now see
+// in the address bar is the one to say out loud ("pull up P-1043")`. `P-1043` is an EXAMPLE
+// inside that quote. People on prod run P-1001..P-1022; there is no P-1043. Every sentence
+// built off the named set therefore claimed a dead-end page (it answers 200 and renders
+// Next's "This page could not be found." screen — checked, not an HTTP 404), and the Resolve
+// button offered
+// to clear the finding from it.
+describe("mintedOnly / flagNamedScope — the CRM confirms which named ids are records", () => {
+  const T_101 = "Record numbers are now LIVE on prod";
+  const D_101 =
+    "P-1001 and C-2001 renumbered. The id in the address bar is the one to say out loud " +
+    '("pull up P-1043").';
+  // What /api/admin/flags?person=P-1001 confirms it holds, of the three ids #101 prints.
+  const HELD = ["P-1001", "C-2001"];
+
+  it("drops the example id: #101 on P-1001's page names C-2001 and nothing else", () => {
+    const s = flagNamedScope(null, T_101, D_101, "P-1001", HELD);
+    expect(s).toEqual({ named: ["P-1001", "C-2001"], here: "P-1001", others: ["C-2001"] });
+  });
+
+  it("without the confirmed set it behaves exactly as it did before — absence is not disproof", () => {
+    const s = flagNamedScope(null, T_101, D_101, "P-1001");
+    expect(s?.others).toEqual(["C-2001", "P-1043"]);
+    expect(flagNamedScope(null, T_101, D_101, "P-1001", null)?.others).toEqual(["C-2001", "P-1043"]);
+  });
+
+  it("an empty confirmed set is a real answer: no named record, so no marker at all", () => {
+    expect(flagNamedScope(null, T_101, D_101, "P-1001", [])).toBeNull();
+  });
+
+  it("the chips take the same set, or the phantom returns the moment the marker stops linking it", () => {
+    // The marker suppresses a chip by LINKING that id (inc.29), so P-1043 — no longer named —
+    // is no longer in `alreadyLinked`. Only the shared confirmed set keeps it off the row.
+    const chips = flagRecordChips(null, D_101, ["P-1001", "C-2001"], HELD);
+    expect(chips.map((c) => c.id)).toEqual([]);
+    const unfiltered = flagRecordChips(null, D_101, ["P-1001", "C-2001"]);
+    expect(unfiltered.map((c) => c.id)).toEqual(["P-1043"]);
+  });
+
+  it("mintedOnly keeps print order and never invents an id the row did not print", () => {
+    expect(mintedOnly(["C-2017", "C-2018"], ["C-2018", "C-2017", "C-2099"])).toEqual([
+      "C-2017",
+      "C-2018",
+    ]);
+    expect(mintedOnly(["C-2017"], undefined)).toEqual(["C-2017"]);
+  });
+
+  it("leaves the honest rows untouched — #137's two companies both exist", () => {
+    const s = flagNamedScope(
+      null,
+      "CG Roofing Group / Gulf Coast RE Group",
+      "the registry lists C-2017 and C-2018 under one FEIN",
+      "C-2017",
+      ["C-2017", "C-2018"],
+    );
+    expect(s).toEqual({ named: ["C-2017", "C-2018"], here: "C-2017", others: ["C-2018"] });
   });
 });

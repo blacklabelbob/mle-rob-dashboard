@@ -56,6 +56,12 @@ type Flag = {
   entity_ref?: string | null;
   /** inc.25: the title's link target, server-resolved across every record family (incl. deals). */
   entity_href?: string | null;
+  /**
+   * inc.37: of the ids this flag PRINTS, the ones the CRM actually holds — server-confirmed
+   * (`withNamedRefs`). `undefined`/`null` means the question was not asked or the lookup
+   * failed, and every printed id is used, exactly as before this field existed.
+   */
+  named_ref?: string[] | null;
 };
 
 /**
@@ -405,8 +411,15 @@ export default function ThingsToAddress({
           // inc.30: a third reader — the Resolve control, whose tooltip/hint/note
           // prompt must name the other pages the click clears. Same value, so the
           // button and the sentence above it cannot disagree.
+          // inc.37: `named_ref` is the server's confirmed subset — every printed id the CRM
+          // actually holds. #101 prints `P-1043` as an EXAMPLE inside a quote of Rob's own
+          // words and no such person exists; without this the marker linked a dead end (200
+          // + Next's "This page could not be found." screen, checked — not an HTTP 404) and the
+          // button offered to clear the finding from it.
           const scope =
-            mode === "entity" ? flagNamedScope(f.entity_id, f.title, f.detail, person ?? entity) : null;
+            mode === "entity"
+              ? flagNamedScope(f.entity_id, f.title, f.detail, person ?? entity, f.named_ref)
+              : null;
           // inc.35: the same page id `resolve()` stamps into the note, so the hint can
           // only promise a provenance line the ledger actually writes. `mode !== "entity"`
           // (the Overview digest) passes nothing and gets no promise — it also writes none.
@@ -433,7 +446,7 @@ export default function ThingsToAddress({
                   <span className="opacity-80"> — {f.title}</span>
                   {/* inc.22: same rule, same source, both render sites — a rule that
                       holds in the digest and not here is how inc.20's bug was born. */}
-                  {flagRecordChips(entityRef(f), f.detail, chipsAlreadyLinked).map((chip) => (
+                  {flagRecordChips(entityRef(f), f.detail, chipsAlreadyLinked, f.named_ref).map((chip) => (
                     <Link
                       key={chip.id}
                       href={chip.href}
@@ -682,7 +695,13 @@ export default function ThingsToAddress({
                       same test — `named` is the row's own printed ids, so a click made from a
                       page this finding never names is called a page, not one of its records. */}
                   {(() => {
-                    const archiveScope = flagNamedScope(f.entity_id, f.title, f.detail, person ?? entity);
+                    // inc.37: same confirmed set as the open row. `named` feeds two sentences
+                    // here — "closed once on every record it names" and the bare-vs-'s-page
+                    // qualification — and a phantom id makes both of them claims the CRM
+                    // cannot support.
+                    const archiveScope = flagNamedScope(
+                      f.entity_id, f.title, f.detail, person ?? entity, f.named_ref
+                    );
                     const mark = archiveResolvedFromMark(
                       f.resolution_note,
                       person ?? entity,
