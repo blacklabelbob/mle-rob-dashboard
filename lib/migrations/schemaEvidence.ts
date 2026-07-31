@@ -173,6 +173,90 @@ export function parseMigration(sql: string): ParsedMigration {
   return { objects, unverifiable };
 }
 
+/**
+ * inc.54 — what the `no-visible-objects` bucket is actually WAITING for.
+ *
+ * inc.52 and inc.53 both shrank that bucket (9 → 7), and each handover framed the
+ * remainder as work the next increment could keep chipping at. That framing is
+ * wrong for most of what is left, and a list that silently implies "one more
+ * pass" is the same disease as a marker written by assertion: it invites someone
+ * to keep looking for evidence that cannot exist.
+ *
+ * So each unverifiable statement is classified by the WEAKEST access that could
+ * ever adjudicate it:
+ *
+ *   read-probeable  → its effect changes what a READ returns for some role, so a
+ *                     read-only probe with the right key could adjudicate it.
+ *   write-observable → only a WRITE makes it speak (a CHECK rejects an insert; a
+ *                     trigger fires on a row). A write is not read-only, so this
+ *                     ladder can never reach it.
+ *   plan-only       → invisible in results entirely; only the query planner knows.
+ *
+ * A file's ceiling is capped by its WEAKEST statement, exactly like its verdict:
+ * a file carrying both a grant and an index can have the grant probed and the
+ * index never, so the FILE is permanent. And an unrecognised label is reported as
+ * `unclassified` rather than folded into either answer — inferring "permanent"
+ * from a label nobody has thought about is the guess this module exists to kill.
+ */
+export type Ceiling =
+  /** Every capping statement could be settled by a read-only probe. The bucket can still shrink. */
+  | "probeable-read-only"
+  /** At least one capping statement needs a write, or a plan, to observe. This file will never be adjudicated read-only. */
+  | "permanent"
+  /** A capping statement nobody has classified. Reported, never folded. */
+  | "unclassified";
+
+const READ_PROBEABLE = new Set(["grant", "revoke", "create policy", "enable rls", "data change"]);
+const WRITE_OBSERVABLE = new Set([
+  "add constraint",
+  "check constraint",
+  "create trigger",
+  "create trigger function",
+]);
+const PLAN_ONLY = new Set(["create index"]);
+
+export type CeilingReport = {
+  ceiling: Ceiling;
+  /** Statements a read-only probe could settle. */
+  probeable: string[];
+  /** Statements no read-only access can ever settle. */
+  permanent: string[];
+  /** Statements not yet classified either way. */
+  unclassified: string[];
+  reason: string;
+};
+
+export function evidenceCeiling(unverifiable: string[]): CeilingReport {
+  const probeable: string[] = [];
+  const permanent: string[] = [];
+  const unclassified: string[] = [];
+
+  for (const label of unverifiable) {
+    if (READ_PROBEABLE.has(label)) probeable.push(label);
+    else if (WRITE_OBSERVABLE.has(label) || PLAN_ONLY.has(label)) permanent.push(label);
+    else unclassified.push(label);
+  }
+
+  // Order matters and is deliberate: an unknown label must never be reported as
+  // permanent (we would stop looking) nor as probeable (we would look for the
+  // wrong thing). It outranks both.
+  const ceiling: Ceiling = unclassified.length
+    ? "unclassified"
+    : permanent.length
+      ? "permanent"
+      : "probeable-read-only";
+
+  const reason = unclassified.length
+    ? `${unclassified.join(", ")} has no classification yet — do not assume either way`
+    : permanent.length
+      ? `${permanent.join(", ")} can only be observed by writing a row or reading a query plan — no read-only check will ever settle this file`
+      : probeable.length
+        ? `${probeable.join(", ")} could be settled by a read-only probe with the right key`
+        : "nothing caps this file";
+
+  return { ceiling, probeable, permanent, unclassified, reason };
+}
+
 export type Verdict =
   /** At least one object the file creates is absent from prod. Proof: not fully applied. */
   | "objects-missing"
@@ -189,6 +273,11 @@ export type Evidence = {
   present: string[];
   missing: string[];
   unverifiable: string[];
+  /**
+   * Set only when something caps this file. Says whether a better read-only
+   * check could ever move it — so "no evidence" stops reading as "not yet".
+   */
+  ceiling?: CeilingReport;
   /** One line a human can read without knowing any of the above. */
   reason: string;
 };
@@ -238,6 +327,8 @@ export function schemaEvidence(name: string, sql: string, live: LiveSchema | Liv
     (exists ? present : missing).push(describe(o));
   }
 
+  const ceiling = unverifiable.length ? evidenceCeiling(unverifiable) : undefined;
+
   if (missing.length) {
     return {
       name,
@@ -245,6 +336,7 @@ export function schemaEvidence(name: string, sql: string, live: LiveSchema | Liv
       present,
       missing,
       unverifiable,
+      ceiling,
       reason: `prod is missing ${missing.join(", ")} — this migration has not fully landed`,
     };
   }
@@ -255,8 +347,9 @@ export function schemaEvidence(name: string, sql: string, live: LiveSchema | Liv
       present,
       missing,
       unverifiable,
-      reason: unverifiable.length
-        ? `only does things the OpenAPI root cannot see (${unverifiable.join(", ")}) — no evidence either way`
+      ceiling,
+      reason: ceiling
+        ? `only does things the OpenAPI root cannot see (${unverifiable.join(", ")}) — no evidence either way; ${ceiling.reason}`
         : "creates no table or column the OpenAPI root can see — no evidence either way",
     };
   }
@@ -267,6 +360,7 @@ export function schemaEvidence(name: string, sql: string, live: LiveSchema | Liv
       present,
       missing,
       unverifiable,
+      ceiling,
       reason: `${present.join(", ")} exist, but ${unverifiable.join(", ")} cannot be seen from here — NOT proof it is applied`,
     };
   }
@@ -288,6 +382,13 @@ export type EvidenceReport = {
   supportsApplied: string[];
   /** Files the live schema simply cannot speak to. */
   noEvidence: string[];
+  /**
+   * The `noEvidence` list split by whether it can EVER shrink. Without this the
+   * bucket reads as a backlog — two increments in a row handed it forward as if
+   * one more pass would clear it, and most of it structurally cannot be cleared
+   * by any read-only check.
+   */
+  noEvidenceCeiling: { probeable: string[]; permanent: string[]; unclassified: string[] };
 };
 
 /**
@@ -303,11 +404,22 @@ export function evidenceReport(
     .sort((a, b) => a.name.localeCompare(b.name))
     .map((f) => schemaEvidence(f.name, f.sql, live));
 
+  const blind = evidence.filter((e) => e.verdict === "no-visible-objects");
+  const byCeiling = (c: Ceiling) => blind.filter((e) => e.ceiling?.ceiling === c).map((e) => e.name);
+
   return {
     evidence,
     notLanded: evidence.filter((e) => e.verdict === "objects-missing").map((e) => e.name),
     supportsApplied: evidence.filter((e) => e.verdict === "objects-present").map((e) => e.name),
-    noEvidence: evidence.filter((e) => e.verdict === "no-visible-objects").map((e) => e.name),
+    noEvidence: blind.map((e) => e.name),
+    noEvidenceCeiling: {
+      probeable: byCeiling("probeable-read-only"),
+      permanent: byCeiling("permanent"),
+      // A blind file with no ceiling at all carries no recognised statement
+      // either — it is as unclassified as one carrying an unknown label, and
+      // dropping it here would make the three lists silently not sum.
+      unclassified: blind.filter((e) => !e.ceiling || e.ceiling.ceiling === "unclassified").map((e) => e.name),
+    },
   };
 }
 

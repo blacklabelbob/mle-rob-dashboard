@@ -6,6 +6,7 @@ import {
   liveSchemaFromOpenApi,
   liveRpcsFromOpenApi,
   liveShapeFromOpenApi,
+  evidenceCeiling,
 } from "../schemaEvidence";
 
 const LIVE = {
@@ -192,5 +193,60 @@ describe("liveRpcsFromOpenApi", () => {
     expect(liveRpcsFromOpenApi(doc)).toEqual(["filter_page", "has_entity_access"]);
     expect(liveRpcsFromOpenApi({})).toEqual([]);
     expect(liveShapeFromOpenApi(doc).rpcs).toEqual(["filter_page", "has_entity_access"]);
+  });
+});
+
+describe("evidenceCeiling — can this file EVER be adjudicated read-only", () => {
+  it("calls a grant-only file probeable: a read with the right key would settle it", () => {
+    const c = evidenceCeiling(["grant"]);
+    expect(c.ceiling).toBe("probeable-read-only");
+    expect(c.probeable).toEqual(["grant"]);
+  });
+
+  it("calls constraints, triggers and indexes permanent — a write or a query plan is not a read", () => {
+    for (const label of ["add constraint", "check constraint", "create trigger", "create trigger function", "create index"]) {
+      expect(evidenceCeiling([label]).ceiling).toBe("permanent");
+    }
+  });
+
+  it("caps a file on its WEAKEST statement, exactly like the verdict does", () => {
+    // The grant could be probed; the index never can. The FILE is permanent.
+    const c = evidenceCeiling(["grant", "create index"]);
+    expect(c.ceiling).toBe("permanent");
+    expect(c.probeable).toEqual(["grant"]);
+    expect(c.permanent).toEqual(["create index"]);
+  });
+
+  it("reports an unrecognised label instead of folding it into either answer", () => {
+    // Assuming "permanent" would stop anyone looking; assuming "probeable"
+    // would send them looking for the wrong thing. Neither guess is allowed.
+    const c = evidenceCeiling(["create type", "grant"]);
+    expect(c.ceiling).toBe("unclassified");
+    expect(c.unclassified).toEqual(["create type"]);
+  });
+
+  it("attaches the ceiling to a blind file so 'no evidence' stops reading as 'not yet'", () => {
+    const e = schemaEvidence("0032.sql", "grant select (id, name) on public.companies to app_reader;", SHAPE);
+    expect(e.verdict).toBe("no-visible-objects");
+    expect(e.ceiling?.ceiling).toBe("probeable-read-only");
+    expect(e.reason).toContain("read-only probe");
+  });
+
+  it("splits the noEvidence bucket, and the three lists always sum to it", () => {
+    const r = evidenceReport(
+      [
+        { name: "a.sql", sql: "grant select on public.companies to app_reader;" },
+        { name: "b.sql", sql: "create index idx_a on companies (name);" },
+        { name: "c.sql", sql: "create type mood as enum ('ok');" },
+        { name: "d.sql", sql: "create table companies (id text);" },
+      ],
+      SHAPE,
+    );
+    expect(r.noEvidence).toEqual(["a.sql", "b.sql", "c.sql"]);
+    expect(r.noEvidenceCeiling.probeable).toEqual(["a.sql"]);
+    expect(r.noEvidenceCeiling.permanent).toEqual(["b.sql"]);
+    expect(r.noEvidenceCeiling.unclassified).toEqual(["c.sql"]);
+    const { probeable, permanent, unclassified } = r.noEvidenceCeiling;
+    expect(probeable.length + permanent.length + unclassified.length).toBe(r.noEvidence.length);
   });
 });

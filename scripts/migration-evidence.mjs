@@ -73,11 +73,23 @@ console.log(
     (ALL ? " (all)" : " (unmarked only)"),
 );
 for (const e of report.evidence) console.log(`  ${e.verdict.padEnd(34)} ${e.name}  — ${e.reason}`);
+const ceil = report.noEvidenceCeiling;
 console.log(
   `\nnot landed: ${report.notLanded.length} · evidence supports APPLIED: ${report.supportsApplied.length} · ` +
     `no evidence: ${report.noEvidence.length} · present-but-unprovable: ` +
     `${report.evidence.length - report.notLanded.length - report.supportsApplied.length - report.noEvidence.length}`,
 );
+// Printed so "no evidence" stops reading as a backlog. Most of it can never be
+// settled read-only; only the probeable line is work anyone should plan for.
+if (report.noEvidence.length) {
+  console.log(
+    `  of the ${report.noEvidence.length} with no evidence: ${ceil.permanent.length} PERMANENT ` +
+      `(no read-only check will ever settle them) · ${ceil.probeable.length} probeable read-only · ` +
+      `${ceil.unclassified.length} unclassified`,
+  );
+  if (ceil.probeable.length) console.log(`    probeable: ${ceil.probeable.join(", ")}`);
+  if (ceil.unclassified.length) console.log(`    unclassified: ${ceil.unclassified.join(", ")}`);
+}
 if (report.notLanded.length) {
   console.log(`\n⚠️  objects missing from prod: ${report.notLanded.join(", ")}`);
 }
