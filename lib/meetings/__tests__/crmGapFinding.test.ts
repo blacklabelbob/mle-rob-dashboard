@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { buildCrmGapFinding, KEY_CRM_GAP } from "../crmGapFinding";
 import type { ArchiveCheck, ArchiveRow } from "../archiveCheck";
+import { planMeetingActivities } from "../activityPlan";
 
-function row(id: string, day: string, title: string): ArchiveRow {
-  return { id, day, title };
+function row(id: string, day: string, title: string, company?: string): ArchiveRow {
+  return { id, day, title, ...(company ? { company } : {}) } as ArchiveRow;
 }
 
 function check(over: Partial<ArchiveCheck["counts"]>, archiveOnly: ArchiveRow[] = []): ArchiveCheck {
@@ -49,11 +50,48 @@ describe("buildCrmGapFinding", () => {
     expect(f.detail).toContain("not because the reconciliation disagreed");
   });
 
-  it("does NOT list the meetings when one pipeline closes every one of them", () => {
+  it("with no plan it states the gap and never claims one pipeline closes them", () => {
     const rows = [row("a", "2026-07-28", "Omega"), row("b", "2026-07-22", "Gulf Coast")];
     const f = buildCrmGapFinding(check({ archiveRows: 40, crmMeetings: 0 }, rows))!;
     expect(f.detail).not.toContain("• 2026-07-28");
-    expect(f.detail).toContain("not listed as 2 separate to-dos");
+    expect(f.detail).not.toContain("closes all");
+    expect(f.detail).not.toContain("could be filed unattended");
+  });
+
+  it("with a plan it says what the pipeline would NOT close, per bucket", () => {
+    const rows = [
+      row("a", "2026-07-28", "Omega sit-down", "Omega Title"),
+      row("b", "2026-07-22", "Gulf Coast kickoff", "Gulf Coast RE"),
+      row("c", "2026-07-20", "weekly"),
+    ];
+    const plan = planMeetingActivities(rows, [{ id: "C-1", name: "Gulf Coast RE" }]);
+    const f = buildCrmGapFinding(check({ archiveRows: 40, crmMeetings: 0 }, rows), plan)!;
+    expect(f.detail).toContain("necessary and NOT sufficient");
+    expect(f.detail).toContain("1 could be filed unattended today");
+    expect(f.detail).toContain("1 name a company the CRM does not have");
+    expect(f.detail).toContain("1 never said who the meeting was with at all");
+    // The one row a human has to move is named; the wall is counted, not printed.
+    expect(f.detail).toContain("UNKNOWN-COMPANY");
+    expect(f.detail).toContain("• 2026-07-28 — Omega sit-down");
+    expect(f.detail).toContain("no CRM org is named “Omega Title”");
+    expect(f.detail).not.toContain("• 2026-07-20 — weekly");
+  });
+
+  it("prints no dangling list when every orphan is in the no-company wall", () => {
+    const rows = [row("a", "2026-07-28", "Omega"), row("b", "2026-07-22", "Gulf Coast")];
+    const plan = planMeetingActivities(rows, [{ id: "C-1", name: "Gulf Coast RE" }]);
+    const f = buildCrmGapFinding(check({ archiveRows: 40, crmMeetings: 0 }, rows), plan)!;
+    expect(f.detail).toContain("2 never said who the meeting was with at all");
+    expect(f.detail).not.toContain("•");
+  });
+
+  it("a partial gap keeps its own uncapped row list even when a plan is passed", () => {
+    const rows = [row("b", "2026-07-22", "Gulf Coast kickoff"), row("a", "2026-07-28", "Omega sit-down")];
+    const plan = planMeetingActivities(rows, []);
+    const f = buildCrmGapFinding(check({ archiveRows: 40, crmMeetings: 38, matched: 38 }, rows), plan)!;
+    const list = f.detail.slice(f.detail.indexOf("•"));
+    expect(list).toBe("• 2026-07-28 — Omega sit-down\n• 2026-07-22 — Gulf Coast kickoff");
+    expect(f.detail).toContain("necessary and NOT sufficient");
   });
 
   it("a partial gap is MEDIUM and the rows ARE the ask — listed, newest first", () => {

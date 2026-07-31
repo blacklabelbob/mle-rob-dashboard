@@ -275,7 +275,13 @@ async function fileFinding(finding, emptyMessage) {
 if (FILE_FLAG) {
   // Filed in this order on purpose: the CRM gap is the structural one (no path writes a
   // meeting activity), the human-account rows are the residue no pipeline can ever fix.
-  await fileFinding(buildCrmGapFinding(check), "nothing to file — every archived meeting has a CRM activity.");
+  // The plan goes to the ledger row, not just the console: inc.15 proved "one pipeline
+  // closes all 40" wrong on the live data and the highest-severity row on Rob's page went on
+  // saying it, because the breakdown existed only for whoever ran this in a terminal.
+  await fileFinding(
+    buildCrmGapFinding(check, activityPlan),
+    "nothing to file — every archived meeting has a CRM activity.",
+  );
   await fileFinding(buildArchiveFinding(unexplained), "nothing to file — no row needs a human account.");
   console.log("");
 }
