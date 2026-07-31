@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { dismissedNote } from "@/lib/dedup/resolutionNote";
+import { partitionDedupQueue, detectorCloseSummary } from "@/lib/dedup/queueView";
 
 // Duplicate review queue (PRD Tasks 3.5 + 4.2). The nightly detector proposes
 // pairs; Rob disposes here — dismiss ("not a duplicate") or merge. Merge is
@@ -21,6 +22,10 @@ type Pair = {
   signals: string[];
   confidence: "high" | "review";
   evidence: string[];
+  // Q84 inc.49 — the close, read back. `status` is what the DB enforces;
+  // the note only splits the two machine closes apart (see resolutionNote.ts).
+  status?: string | null;
+  resolution_note?: string | null;
 };
 
 type Preview = {
@@ -31,9 +36,12 @@ type Preview = {
   folds: Array<{ field: string; value: string }>;
 };
 
+// inc.49: `status=all` in ONE request, not two. The reopen list needs the
+// detector's closes, and `partitionDedupQueue` drops the rows neither list
+// draws — a second round-trip would only move that same filter onto the wire.
 async function fetchPairs(): Promise<Pair[] | null> {
   try {
-    const r = await fetch("/api/admin/dedup");
+    const r = await fetch("/api/admin/dedup?status=all");
     if (!r.ok) return null;
     return (await r.json()).pairs;
   } catch {
@@ -68,6 +76,31 @@ export default function DedupQueue() {
       cancelled = true;
     };
   }, []);
+
+  // inc.49: the caller `dedupReopenable()` never had. The server re-reads the
+  // row and can still refuse (inc.48) — a queue rendered seconds ago is not
+  // proof of what the row says now — so its sentence is shown verbatim rather
+  // than replaced with a generic failure line.
+  const reopen = async (pairKey: string) => {
+    setBusy(true);
+    setError(null);
+    try {
+      const r = await fetch("/api/admin/dedup", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pairKey, action: "reopen" }),
+      });
+      if (!r.ok) {
+        const body = await r.json().catch(() => ({}));
+        setError(body.error ?? "Reopen failed — try again.");
+        await load();
+      } else await load();
+    } catch {
+      setError("Reopen failed — try again.");
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const dismiss = async (pairKey: string) => {
     setBusy(true);
@@ -151,20 +184,22 @@ export default function DedupQueue() {
     }
   };
 
-  if (pairs.length === 0 && !merged) return null;
+  const { open, reopenable } = partitionDedupQueue(pairs);
+
+  if (open.length === 0 && reopenable.length === 0 && !merged) return null;
 
   return (
     <section className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold text-slate-200">Possible duplicates</h2>
         <span className="text-xs text-slate-500">
-          {pairs.length === 0 ? "all clear" : `${pairs.length} to review`}
+          {open.length === 0 ? "all clear" : `${open.length} to review`}
         </span>
       </div>
       {merged && <p className="mt-2 text-xs text-emerald-300">{merged}</p>}
       {error && <p className="mt-2 text-xs text-red-300">{error}</p>}
       <ul className="mt-3 space-y-3">
-        {pairs.map((p) => {
+        {open.map((p) => {
           const aLabel = p.a_name ?? `${p.a_id} (record missing)`;
           const bLabel = p.b_name ?? `${p.b_id} (record missing)`;
           const inPreview = preview?.pairKey === p.pair_key;
@@ -259,6 +294,30 @@ export default function DedupQueue() {
           );
         })}
       </ul>
+
+      {reopenable.length > 0 && (
+        <div className="mt-4 border-t border-white/5 pt-3">
+          <p className="text-xs text-slate-500">
+            {detectorCloseSummary()} Reopen one if you still think it is a duplicate.
+          </p>
+          <ul className="mt-2 space-y-1">
+            {reopenable.map((p) => (
+              <li key={p.pair_key} className="flex flex-wrap items-center gap-2 text-xs">
+                <span className="text-slate-400">
+                  {p.a_name ?? p.a_id} {" ↔ "} {p.b_name ?? p.b_id}
+                </span>
+                <button
+                  onClick={() => reopen(p.pair_key)}
+                  disabled={busy}
+                  className="rounded-md px-2 py-0.5 text-xs text-sky-300 hover:bg-sky-500/10 disabled:opacity-50"
+                >
+                  Reopen
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </section>
   );
 }
