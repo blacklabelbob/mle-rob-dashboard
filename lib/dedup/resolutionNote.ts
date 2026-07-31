@@ -121,3 +121,46 @@ export function dedupReopenable(
 ): boolean {
   return dedupClosedBy(status, note) === "detector";
 }
+
+/**
+ * Q84 inc.48 — may the ENDPOINT perform this reopen, and if not, what does it
+ * tell the caller?
+ *
+ * `dedupReopenable` answers the UI question ("should the queue draw a reopen
+ * control on this row?"). This answers the server question ("a PATCH just
+ * arrived — write it or refuse it?"). They are not the same question and they
+ * disagree on exactly one input, deliberately:
+ *
+ *   an ALREADY-OPEN row → no control (there is nothing to undo), but no refusal
+ *   either. Reopening an open pair writes the values it already holds; a double
+ *   click or a retried request is a no-op, and 409-ing a no-op teaches a caller
+ *   to fear a button that did nothing wrong.
+ *
+ * Both are defined in terms of `dedupClosedBy`, so there is still ONE ladder
+ * reading the row — the repeated defect in this queue is two ladders drifting
+ * apart, not two questions sharing one.
+ *
+ * Why this exists at all: until now the route accepted any `pairKey` with
+ * `action: "reopen"` and set it back to `open`. For a MERGED pair that is a
+ * dangling reference — `merge.ts` has already DELETED the duplicate row, so the
+ * queue would re-offer a pair whose second half is gone. Latent today at 0 rows
+ * in `dedup_review`; live the moment a merge runs. The UI never offered the
+ * click, which is not the same as the server refusing to honour it.
+ *
+ * @returns the refusal to send back, or null if the write may proceed
+ */
+export function reopenRefusal(
+  status: string | null | undefined,
+  note: string | null | undefined,
+): string | null {
+  switch (dedupClosedBy(status, note)) {
+    case "reviewer":
+      return "you dismissed this pair yourself — reopening it from here would second-guess your own call. Re-run the detector if the underlying records changed.";
+    case "merge":
+      return "this pair was merged — the duplicate record no longer exists, so reopening it would queue a pair whose second half is gone.";
+    default:
+      // "detector" (the unattended close this control exists for) and null (an
+      // already-open row, where the write is a no-op) both proceed.
+      return null;
+  }
+}

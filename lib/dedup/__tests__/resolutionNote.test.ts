@@ -5,6 +5,7 @@ import {
   autoResolvedNote,
   dedupClosedBy,
   dedupReopenable,
+  reopenRefusal,
 } from "@/lib/dedup/resolutionNote";
 
 // Q84 inc.47 — the three dedup_review close-note grammars, in one module.
@@ -88,5 +89,39 @@ describe("dedupReopenable — which closes a reviewer may undo", () => {
 
   it("offers nothing on a pair that is still open", () => {
     expect(dedupReopenable("open", null)).toBe(false);
+  });
+});
+
+describe("reopenRefusal — what the ENDPOINT does with a reopen it was handed", () => {
+  it("lets the detector's unattended close through — the case the control exists for", () => {
+    expect(reopenRefusal("resolved", autoResolvedNote())).toBeNull();
+  });
+
+  it("refuses a merged pair, and says the duplicate record is gone", () => {
+    // The dangling reference this increment exists to stop: merge.ts DELETED
+    // the duplicate row, so reopening re-queues a pair with one half missing.
+    const refusal = reopenRefusal("resolved", mergedNote("P-2", "P-1"));
+    expect(refusal).toContain("merged");
+    expect(refusal).toContain("no longer exists");
+  });
+
+  it("refuses Rob's own dismissal rather than second-guessing it", () => {
+    const refusal = reopenRefusal("dismissed", dismissedNote());
+    expect(refusal).toContain("dismissed this pair yourself");
+  });
+
+  it("lets an already-open pair through as a no-op — a retry is not an error", () => {
+    // Deliberate divergence from dedupReopenable, which answers the UI question
+    // ("draw a control?") and is false here. Both read one ladder: dedupClosedBy.
+    expect(dedupReopenable("open", null)).toBe(false);
+    expect(reopenRefusal("open", null)).toBeNull();
+  });
+
+  it("refuses on the STATUS, not on the wording — an edited note cannot unlock a merge", () => {
+    // A note is prose somebody can edit; status is a column the DB enforces.
+    // Editing the note off a merge downgrades it to "detector" (the honest
+    // default for an unrecognised machine close) — the one hole worth naming.
+    expect(reopenRefusal("dismissed", "anything at all")).toContain("dismissed this pair yourself");
+    expect(reopenRefusal("resolved", "merged: P-9 → P-1 (typo fixed)")).toContain("merged");
   });
 });

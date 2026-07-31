@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { runDedupDetector } from "@/lib/dedup/detector";
+import { dismissedNote, reopenRefusal } from "@/lib/dedup/resolutionNote";
 
 // Dedup review queue (PRD Task 3.5): POST runs the detector and upserts pairs
 // into `dedup_review`; GET lists the queue; PATCH dismisses/reopens a pair.
@@ -61,20 +62,44 @@ export async function POST() {
 
 // Rob's disposition from the queue: dismiss ("not a duplicate" — never
 // resurfaces) or reopen. Merging is Task 4.2, not this endpoint.
+//
+// Q84 inc.48 — two things this handler used to take on trust:
+//   1. the note. It wrote whatever string the caller sent. `DedupQueue` sends
+//      `dismissedNote()`, so the queue reads consistently — but only for as long
+//      as that one caller is the only caller. The wording is the server's now.
+//   2. the reopen. It set ANY pairKey back to `open`, including a merged pair
+//      whose duplicate row `merge.ts` has already deleted (a dangling
+//      reference) and a pair Rob dismissed himself. The UI draws no reopen
+//      control, which is not the same as the endpoint refusing to honour one.
 export async function PATCH(req: NextRequest) {
-  const { pairKey, action, note } = await req.json();
+  const { pairKey, action } = await req.json();
   if (typeof pairKey !== "string" || !["dismiss", "reopen"].includes(action)) {
     return NextResponse.json(
-      { error: "need { pairKey, action: dismiss|reopen, note? }" },
+      { error: "need { pairKey, action: dismiss|reopen }" },
       { status: 400 }
     );
   }
+
+  if (action === "reopen") {
+    const { data: current, error: readErr } = await db()
+      .from("dedup_review")
+      .select("status,resolution_note")
+      .eq("pair_key", pairKey)
+      .maybeSingle();
+    if (readErr) return NextResponse.json({ error: readErr.message }, { status: 500 });
+    if (!current) {
+      return NextResponse.json({ error: "no pair matched that pairKey" }, { status: 404 });
+    }
+    const refusal = reopenRefusal(current.status, current.resolution_note);
+    if (refusal) return NextResponse.json({ error: refusal }, { status: 409 });
+  }
+
   const row =
     action === "dismiss"
       ? {
           status: "dismissed",
           resolved_at: new Date().toISOString(),
-          resolution_note: typeof note === "string" && note.trim() ? note.trim() : null,
+          resolution_note: dismissedNote(),
         }
       : { status: "open", resolved_at: null, resolution_note: null };
   const { data, error } = await db()
