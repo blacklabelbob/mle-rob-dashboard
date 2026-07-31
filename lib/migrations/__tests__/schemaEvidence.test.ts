@@ -7,6 +7,7 @@ import {
   liveRpcsFromOpenApi,
   liveShapeFromOpenApi,
   evidenceCeiling,
+  parserEmittableLabels,
 } from "../schemaEvidence";
 
 const LIVE = {
@@ -220,9 +221,33 @@ describe("evidenceCeiling — can this file EVER be adjudicated read-only", () =
   it("reports an unrecognised label instead of folding it into either answer", () => {
     // Assuming "permanent" would stop anyone looking; assuming "probeable"
     // would send them looking for the wrong thing. Neither guess is allowed.
-    const c = evidenceCeiling(["create type", "grant"]);
+    // inc.55: the example is a label the parser CANNOT emit today, because every
+    // label it can emit now has a home — that is the parity test below. This one
+    // stands for the next label somebody adds to UNVERIFIABLE.
+    const c = evidenceCeiling(["create extension", "grant"]);
     expect(c.ceiling).toBe("unclassified");
-    expect(c.unclassified).toEqual(["create type"]);
+    expect(c.unclassified).toEqual(["create extension"]);
+  });
+
+  it("gives every label the parser can emit a home — a homeless one reads as 'not yet' forever", () => {
+    // This is the rule with teeth. `create type` and `create function in schema x`
+    // were both emitted by the parser and classified by nothing, so any file
+    // carrying them would have reported `unclassified` — which the report prints
+    // as "do not assume either way", i.e. indistinguishable from pending work.
+    for (const label of parserEmittableLabels()) {
+      expect(evidenceCeiling([label]).unclassified, `${label} has no ceiling classification`).toEqual([]);
+    }
+  });
+
+  it("settles create type by a READ, and an unexposed function's schema by nothing", () => {
+    // An enum's values arrive on any exposed column of that type, in the same
+    // OpenAPI root this grader already fetches — the weakest access there is.
+    expect(evidenceCeiling(["create type"]).ceiling).toBe("probeable-read-only");
+    // PostgREST publishes one schema. A function outside it is never callable
+    // through the data API at all, so no read, write or plan reaches it.
+    const c = evidenceCeiling(["create function in schema private"]);
+    expect(c.ceiling).toBe("permanent");
+    expect(c.reason).toContain("does not expose");
   });
 
   it("attaches the ceiling to a blind file so 'no evidence' stops reading as 'not yet'", () => {
@@ -243,9 +268,12 @@ describe("evidenceCeiling — can this file EVER be adjudicated read-only", () =
       SHAPE,
     );
     expect(r.noEvidence).toEqual(["a.sql", "b.sql", "c.sql"]);
-    expect(r.noEvidenceCeiling.probeable).toEqual(["a.sql"]);
+    // inc.55: c.sql's `create type` moved from unclassified to probeable, so no
+    // SQL a human can write lands in `unclassified` any more — that bucket now
+    // means "somebody added a label and skipped the ceiling", nothing else.
+    expect(r.noEvidenceCeiling.probeable).toEqual(["a.sql", "c.sql"]);
     expect(r.noEvidenceCeiling.permanent).toEqual(["b.sql"]);
-    expect(r.noEvidenceCeiling.unclassified).toEqual(["c.sql"]);
+    expect(r.noEvidenceCeiling.unclassified).toEqual([]);
     const { probeable, permanent, unclassified } = r.noEvidenceCeiling;
     expect(probeable.length + permanent.length + unclassified.length).toBe(r.noEvidence.length);
   });

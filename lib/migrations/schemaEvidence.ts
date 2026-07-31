@@ -206,7 +206,23 @@ export type Ceiling =
   /** A capping statement nobody has classified. Reported, never folded. */
   | "unclassified";
 
-const READ_PROBEABLE = new Set(["grant", "revoke", "create policy", "enable rls", "data change"]);
+const READ_PROBEABLE = new Set([
+  "grant",
+  "revoke",
+  "create policy",
+  "enable rls",
+  "data change",
+  // inc.55 — `create type` is settled by a READ, and by the weakest one on this
+  // ladder: PostgREST publishes an enum type's values as the `enum` of any
+  // exposed column of that type, in the very root this grader already fetches —
+  // no extra key at all. The honest limit, stated rather than implied: that read
+  // only speaks when a column of the type is exposed. A type nothing uses is
+  // invisible — but a type nothing uses also changes nothing, so there is no
+  // verdict being withheld. (Measured 2026-07-31: prod has 0 enum-typed columns
+  // and no migration writes `create type`, so this classifies a label the parser
+  // can emit, not a file that exists today.)
+  "create type",
+]);
 const WRITE_OBSERVABLE = new Set([
   "add constraint",
   "check constraint",
@@ -214,6 +230,33 @@ const WRITE_OBSERVABLE = new Set([
   "create trigger function",
 ]);
 const PLAN_ONLY = new Set(["create index"]);
+/**
+ * Labels the parser builds from the file's own text rather than picking off a
+ * fixed list. `create function in schema <x>` is permanent for a reason the
+ * exact-match sets cannot express: PostgREST exposes one schema, so a function
+ * outside it is never published as `/rpc/<name>` and never callable through the
+ * data API — no read, no write and no plan reaches it.
+ */
+const PERMANENT_PREFIXES = ["create function in schema "];
+
+/**
+ * Every label `parseMigration` can put in `unverifiable`. Exported so the three
+ * sets above can be held to it by a test: a label with no home falls through to
+ * `unclassified`, which reads to the next person as "someone will get to it" —
+ * the exact misreading inc.54 built this ceiling to kill. The templated label is
+ * represented by a concrete instance, because that is what the prefix rule has
+ * to classify.
+ */
+export function parserEmittableLabels(): string[] {
+  return [...UNVERIFIABLE.map(([, label]) => label), "create trigger function", "create function in schema private"];
+}
+
+function classifyCeilingLabel(label: string): "probeable" | "permanent" | "unclassified" {
+  if (READ_PROBEABLE.has(label)) return "probeable";
+  if (WRITE_OBSERVABLE.has(label) || PLAN_ONLY.has(label)) return "permanent";
+  if (PERMANENT_PREFIXES.some((p) => label.startsWith(p))) return "permanent";
+  return "unclassified";
+}
 
 export type CeilingReport = {
   ceiling: Ceiling;
@@ -232,8 +275,9 @@ export function evidenceCeiling(unverifiable: string[]): CeilingReport {
   const unclassified: string[] = [];
 
   for (const label of unverifiable) {
-    if (READ_PROBEABLE.has(label)) probeable.push(label);
-    else if (WRITE_OBSERVABLE.has(label) || PLAN_ONLY.has(label)) permanent.push(label);
+    const where = classifyCeilingLabel(label);
+    if (where === "probeable") probeable.push(label);
+    else if (where === "permanent") permanent.push(label);
     else unclassified.push(label);
   }
 
@@ -249,7 +293,7 @@ export function evidenceCeiling(unverifiable: string[]): CeilingReport {
   const reason = unclassified.length
     ? `${unclassified.join(", ")} has no classification yet — do not assume either way`
     : permanent.length
-      ? `${permanent.join(", ")} can only be observed by writing a row or reading a query plan — no read-only check will ever settle this file`
+      ? `${permanent.join(", ")} cannot be observed by any read — it takes a write, a query plan, or a schema the data API does not expose — so no read-only check will ever settle this file`
       : probeable.length
         ? `${probeable.join(", ")} could be settled by a read-only probe with the right key`
         : "nothing caps this file";
