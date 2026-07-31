@@ -669,12 +669,20 @@ export default function ThingsToAddress({
                   )}
                   {/* inc.31: on THIS page the row reads as settled with no hint that the
                       click happened on a different company's page. The page it was resolved
-                      from gets nothing — see `archiveResolvedFromMark`. */}
-                  {archiveResolvedFromMark(f.resolution_note, person ?? entity) && (
-                    <div className="mt-0.5 text-slate-500">
-                      {archiveResolvedFromMark(f.resolution_note, person ?? entity)}
-                    </div>
-                  )}
+                      from gets nothing — see `archiveResolvedFromMark`.
+                      inc.32: WHY the row is on this page decides which sentence is true. A
+                      person's page is fanned out through org memberships, so a finding that
+                      names C-2017 lands there naming no person — and inc.31's sentence told
+                      Rob it named them. Same evidence as the open row's marker: `here` is
+                      non-null only when this page's id is literally printed by the row. */}
+                  {(() => {
+                    const mark = archiveResolvedFromMark(
+                      f.resolution_note,
+                      person ?? entity,
+                      flagNamedScope(f.entity_id, f.title, f.detail, person ?? entity)?.here != null
+                    );
+                    return mark ? <div className="mt-0.5 text-slate-500">{mark}</div> : null;
+                  })()}
                   {/* inc.21: a dismissed proposal is the only archive row whose
                       closure is still doing something — the domain stays shut
                       out. Created rows say so in their own note and get nothing

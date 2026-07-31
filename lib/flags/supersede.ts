@@ -227,15 +227,35 @@ export function resolutionNoteBody(note: string | null | undefined): string {
  * there: the sentence ends in "this record", and on the Overview there is no record to be
  * "this" one. A line that reads as true on C-2018 and as nonsense on the Overview is the
  * defect inc.27 was — so the mark is written for a page or not written at all.
+ *
+ * Q84 inc.32 — WHY the row is on this page decides which sentence is true.
+ *
+ * inc.31 wrote one sentence for every page that is not the one resolved from: "this finding
+ * names this record too". That is true on C-2018, and it is the reason the row is there. It
+ * is FALSE on a person's page: `/api/admin/flags?person=P-…` fans the query out through
+ * `org_memberships`, so a finding naming C-2017 renders on every member's page without ever
+ * naming the person — and the archive there asserted it did. That is inc.27's defect exactly,
+ * one page family over: a sentence that reads as true where it was written and as a claim the
+ * ledger cannot support where it is actually read.
+ *
+ * `namesThisPage` is the same evidence the marker and the Resolve control already use —
+ * `flagNamedScope(...).here !== null`, i.e. the page's id is literally printed by the row.
+ * It is OPTIONAL and unknown-by-default on purpose, matching `flagNamedScope`'s own rule: a
+ * caller that cannot prove the page is named gets the sentence that is true either way, never
+ * the stronger claim. What is certain in every case — one finding, one row, closed once — is
+ * what an unproven caller says.
  */
 export function archiveResolvedFromMark(
   note: string | null | undefined,
   pageId: string | null | undefined,
+  namesThisPage?: boolean,
 ): string | null {
   const from = resolvedFrom(note);
   const page = (pageId ?? "").trim();
   if (!from || !page || from === page) return null;
-  return `Resolved from ${from} — this finding names this record too, so it closed here with it.`;
+  return namesThisPage === true
+    ? `Resolved from ${from} — this finding names this record too, so it closed here with it.`
+    : `Resolved from ${from} — it is one finding, so closing it there closed it here.`;
 }
 
 export type ReopenFailure = { text: string; certain: boolean };

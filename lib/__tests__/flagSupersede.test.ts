@@ -277,3 +277,35 @@ describe("resolvedFromNote / archiveResolvedFromMark (inc.31)", () => {
     expect(archiveResolvedFromMark(stored, "  ")).toBeNull();
   });
 });
+
+describe("archiveResolvedFromMark — why the row is on THIS page (inc.32)", () => {
+  const stored = resolvedFromNote("", "C-2017", ["C-2018"]);
+
+  it("claims the finding names this record only when the caller proved it does", () => {
+    expect(archiveResolvedFromMark(stored, "C-2018", true)).toBe(
+      "Resolved from C-2017 — this finding names this record too, so it closed here with it."
+    );
+  });
+
+  it("never claims a person's page is named — that page is reached through org membership", () => {
+    // `/api/admin/flags?person=P-1001` fans out through `org_memberships`, so a finding
+    // naming C-2017 renders on every member's page while naming no person at all.
+    const mark = archiveResolvedFromMark(stored, "P-1001", false);
+    expect(mark).toBe("Resolved from C-2017 — it is one finding, so closing it there closed it here.");
+    expect(mark).not.toContain("names this record");
+  });
+
+  it("treats an unproven caller as unproven, not as proof — the weaker sentence is the true one", () => {
+    expect(archiveResolvedFromMark(stored, "P-1001")).toBe(
+      archiveResolvedFromMark(stored, "P-1001", false)
+    );
+    expect(archiveResolvedFromMark(stored, "P-1001", undefined)).not.toContain("names this record");
+  });
+
+  it("still says nothing at all where inc.31 said nothing — page settled from, Overview, no clause", () => {
+    expect(archiveResolvedFromMark(stored, "C-2017", true)).toBeNull();
+    expect(archiveResolvedFromMark(stored, "C-2017", false)).toBeNull();
+    expect(archiveResolvedFromMark(stored, null, true)).toBeNull();
+    expect(archiveResolvedFromMark("plain note", "C-2018", true)).toBeNull();
+  });
+});
