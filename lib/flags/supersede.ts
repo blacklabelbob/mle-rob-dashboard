@@ -75,3 +75,44 @@ export function planFlagWrite(
 export function supersededNote(survivorId: number): string {
   return `Superseded by flag #${survivorId} — same finding, re-run with current numbers. Reopen if this row still matters on its own.`;
 }
+
+export type FlagReopenPlan =
+  | { ok: true; reason: string }
+  | { ok: false; blockedBy: number; message: string };
+
+/**
+ * Decide whether Rob's `reopen` click can land.
+ *
+ * The hole this closes, stated by the increment that opened it (Q84 inc.8): `supersededNote`
+ * invites Rob to reopen a superseded row, but `0033_flag_dedupe_key.sql` holds a partial
+ * unique index over OPEN rows sharing a key. So reopening a resolved keyed row whose twin is
+ * open violates the index, and Postgres surfaces that to Rob as a 500 on his own ledger —
+ * a database error where he expected a to-do list.
+ *
+ * It REFUSES rather than auto-resolving the twin. Reopen is Rob's judgement about one row;
+ * quietly closing a different one to make room is the machine picking which of his rows
+ * survives, and he would find out only by noticing something missing. The refusal names the
+ * open row so the next click is obvious.
+ *
+ * @param dedupeKey the key on the row being reopened (null for the ordinary case)
+ * @param openSiblings every OPEN flag already carrying that key, excluding this row
+ */
+export function planFlagReopen(
+  dedupeKey: string | null | undefined,
+  openSiblings: ExistingFlag[],
+): FlagReopenPlan {
+  const key = typeof dedupeKey === "string" ? dedupeKey.trim() : "";
+  if (!key) return { ok: true, reason: "unkeyed row — reopen is unconstrained" };
+
+  const blocker = openSiblings.filter((f) => f.status === "open").sort((a, b) => b.id - a.id)[0];
+  if (!blocker) return { ok: true, reason: "no open row holds this finding — safe to reopen" };
+
+  return {
+    ok: false,
+    blockedBy: blocker.id,
+    message:
+      `This finding is already open as flag #${blocker.id}, which carries the current numbers. ` +
+      `Reopening this older copy would put the same finding on your list twice. ` +
+      `Work #${blocker.id} instead, or resolve it first if this older row is the one you want back.`,
+  };
+}

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { planFlagWrite, supersededNote } from "../flags/supersede";
+import { planFlagWrite, planFlagReopen, supersededNote } from "../flags/supersede";
 
 describe("planFlagWrite — a recurring finding corrects its own row", () => {
   it("inserts when no dedupe key is given, so unkeyed callers are unchanged", () => {
@@ -69,5 +69,42 @@ describe("planFlagWrite — a recurring finding corrects its own row", () => {
   it("the supersede note names the survivor and stays reversible", () => {
     expect(supersededNote(136)).toMatch(/#136/);
     expect(supersededNote(136)).toMatch(/Reopen/);
+  });
+});
+
+describe("planFlagReopen — Rob's reopen click never becomes a 500 on his own ledger", () => {
+  it("allows an unkeyed reopen, which is every row that existed before 0033", () => {
+    expect(planFlagReopen(null, [{ id: 5, status: "open" }]).ok).toBe(true);
+    expect(planFlagReopen("  ", [{ id: 5, status: "open" }]).ok).toBe(true);
+  });
+
+  it("allows reopen when no sibling holds the finding open", () => {
+    expect(planFlagReopen("k", []).ok).toBe(true);
+    expect(planFlagReopen("k", [{ id: 5, status: "resolved" }]).ok).toBe(true);
+  });
+
+  it("REFUSES when a keyed twin is open — the unique index would 500 instead", () => {
+    const plan = planFlagReopen("k", [{ id: 134, status: "open" }]);
+    expect(plan.ok).toBe(false);
+    if (plan.ok) throw new Error("expected refusal");
+    expect(plan.blockedBy).toBe(134);
+    expect(plan.message).toMatch(/#134/);
+  });
+
+  it("names the NEWEST open twin, the one carrying current numbers", () => {
+    const plan = planFlagReopen("k", [
+      { id: 120, status: "open" },
+      { id: 134, status: "open" },
+      { id: 99, status: "resolved" },
+    ]);
+    if (plan.ok) throw new Error("expected refusal");
+    expect(plan.blockedBy).toBe(134);
+  });
+
+  it("refuses instead of auto-resolving the twin — it never proposes closing another row", () => {
+    const plan = planFlagReopen("k", [{ id: 134, status: "open" }]);
+    if (plan.ok) throw new Error("expected refusal");
+    expect(plan.message).toMatch(/resolve it first/i);
+    expect(Object.keys(plan)).not.toContain("supersede");
   });
 });

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { planFlagWrite, supersededNote, type ExistingFlag } from "@/lib/flags/supersede";
+import { planFlagWrite, planFlagReopen, supersededNote, type ExistingFlag } from "@/lib/flags/supersede";
 
 // Things to Address (Rob 2026-07-22): findings surfaced to Rob live on the
 // ledger — resolve with optional note, never deleted, archive keeps both dates.
@@ -45,6 +45,24 @@ export async function PATCH(req: NextRequest) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ ok: true });
   }
+  if (action === "reopen") {
+    // A keyed row cannot be reopened while its twin is open — the partial unique index from
+    // 0033 would reject it, and Rob would get a 500 on his ledger instead of an answer.
+    const { data: self, error: selfErr } = await db().from("flags").select("dedupe_key").eq("id", id).maybeSingle();
+    if (selfErr) return NextResponse.json({ error: `reopen read failed: ${selfErr.message}` }, { status: 500 });
+    if (!self) return NextResponse.json({ error: `no flag #${id}` }, { status: 404 });
+    let siblings: ExistingFlag[] = [];
+    if (self.dedupe_key) {
+      const { data, error } = await db().from("flags").select("id,status").eq("dedupe_key", self.dedupe_key).neq("id", id);
+      if (error) return NextResponse.json({ error: `reopen read failed: ${error.message}` }, { status: 500 });
+      siblings = (data ?? []) as ExistingFlag[];
+    }
+    const plan = planFlagReopen(self.dedupe_key, siblings);
+    if (!plan.ok) {
+      return NextResponse.json({ error: plan.message, blockedBy: plan.blockedBy }, { status: 409 });
+    }
+  }
+
   const row =
     action === "resolve"
       ? { status: "resolved", resolved_at: new Date().toISOString().slice(0, 10), resolution_note: typeof note === "string" && note.trim() ? note.trim() : null }
