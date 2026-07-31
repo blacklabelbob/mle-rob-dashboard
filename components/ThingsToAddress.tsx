@@ -11,6 +11,7 @@ import {
   writeFailureMessage,
   type WriteFailure,
 } from "@/lib/comms/proposalFlag";
+import { linkifyRecordIds } from "@/lib/flags/recordLinks";
 import { reopenFailureMessage, supersededBy } from "@/lib/flags/supersede";
 import {
   archiveRepeatMark,
@@ -322,8 +323,27 @@ export default function ThingsToAddress({
                 </div>
                 {/* Q84 inc.13: a detail may now be a paragraph AND a list (the meeting-archive
                     finding carries the meetings Rob has to account for). Without pre-line the
-                    newlines collapse and 23 rows render as one unreadable ribbon. */}
-                <p className="mt-0.5 whitespace-pre-line text-xs leading-relaxed text-slate-300">{f.detail}</p>
+                    newlines collapse and 23 rows render as one unreadable ribbon.
+                    inc.19: those rows name the ONE record to go confirm — “Omega Title (FL)
+                    [C-2019]”, “Dixith Magadiev [P-1010] → C-2006” — and the id was inert text
+                    on a page where every other record reference is a link. Only ids the CRM
+                    minted become links; a company NAME never does, because its ambiguity is
+                    the finding. */}
+                <p className="mt-0.5 whitespace-pre-line text-xs leading-relaxed text-slate-300">
+                  {linkifyRecordIds(f.detail).map((seg, i) =>
+                    seg.href ? (
+                      <Link
+                        key={i}
+                        href={seg.href}
+                        className="font-medium text-slate-100 underline decoration-slate-500 underline-offset-2 transition hover:decoration-white"
+                      >
+                        {seg.text}
+                      </Link>
+                    ) : (
+                      <span key={i}>{seg.text}</span>
+                    )
+                  )}
+                </p>
                 {/* inc.32: a held-domain row carries its own state and its way
                     back. Resolve is the only other affordance on this row, and
                     on this kind of row it means something narrower than usual —
