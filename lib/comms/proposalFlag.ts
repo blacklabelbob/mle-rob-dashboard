@@ -11,6 +11,7 @@
 // instead of the button quietly vanishing from the ledger.
 
 import { proposalTitle } from "./orgProposal";
+import { resolvedFrom, resolvedFromNote } from "@/lib/flags/supersede";
 
 const TITLE_PREFIX = "New company domain: ";
 
@@ -243,7 +244,41 @@ export type ResolveCopy = { label: string; tooltip: string; hint: string; notePl
  */
 export type ResolveScope = { others: string[]; here?: string | null } | null | undefined;
 
-export function resolveControlCopy(title: string, scope?: ResolveScope): ResolveCopy {
+/**
+ * Q84 inc.35 — the click is stamped with where the reviewer was standing, and only
+ * OTHER records ever see the stamp.
+ *
+ * inc.31 taught the resolve click to persist `Resolved from P-1018.`; inc.32–inc.34 fixed
+ * how that sentence READS on the pages that show it. Nobody told the person doing the
+ * clicking. `archiveResolvedFromMark` returns `null` on the page it was resolved from — by
+ * design, telling a reviewer where they are is noise — so the one fact a reviewer can never
+ * discover from their own page is that their name for this page is going on the record that
+ * other people read. On a person's page that is sharper still: #137 names no person, so
+ * `Resolved from P-1018's page` is the only trace that a company-vs-company conflict was
+ * closed by someone standing on a human's record.
+ *
+ * The disclosure goes in the HINT, not the placeholder. A placeholder asks what to type; a
+ * statement of what the click records is not a question, and burying it in grey ghost text
+ * that vanishes on the first keystroke is how a fact gets shipped without being shown.
+ *
+ * ONE rule, not a copied one: whether the clause will be written is decided by ASKING THE
+ * WRITER (`resolvedFromNote`) what it would write, so the button cannot promise a stamp the
+ * ledger does not make (or stay silent about one it does). Same drift the inc.4/inc.5
+ * ladders were merged to end.
+ *
+ * The qualification matches `archiveResolvedFromMark` exactly — bare id when the finding
+ * names this page, `'s page` when it does not or when the caller cannot prove it — so the
+ * sentence promised at the click is the sentence the other records actually render.
+ * Unproven-by-default: no `fromRecord` (the Overview digest, a caller off a record page)
+ * means no promise, and the hint is inc.33's, unchanged.
+ *
+ * @param fromRecord the record page the click will be made on, when the caller knows it
+ */
+export function resolveControlCopy(
+  title: string,
+  scope?: ResolveScope,
+  fromRecord?: string | null,
+): ResolveCopy {
   const domain = proposalDomain(title);
   if (!domain) {
     const others = scope?.others ?? [];
@@ -267,12 +302,18 @@ export function resolveControlCopy(title: string, scope?: ResolveScope): Resolve
     // #137 is open and reaches P-1018, P-1019 and P-1022 that way. The weaker clause is
     // true on both kinds of page, so an unproven caller says that instead.
     const named = scope?.here != null;
+    const spans = named
+      ? `This row is not filed here. Resolving clears it from ${list} too.`
+      : `This row is not filed here. Resolving clears it from ${list} — one finding, closed on all of them at once.`;
+    // Ask the writer what it will write; never re-implement the guard it uses.
+    const stamped = resolvedFrom(resolvedFromNote("", fromRecord, others));
+    const provenance = stamped
+      ? ` They will show it was closed from ${named ? stamped : `${stamped}'s page`}.`
+      : "";
     return {
       label: "Resolve",
       tooltip: `also clears this finding from ${list}`,
-      hint: named
-        ? `This row is not filed here. Resolving clears it from ${list} too.`
-        : `This row is not filed here. Resolving clears it from ${list} — one finding, closed on all of them at once.`,
+      hint: `${spans}${provenance}`,
       // Not "both": #129 names six records, and a prompt that miscounts the row it is
       // attached to is the class of defect this whole thread has been unpicking.
       notePlaceholder: "why is this settled on every record it names?",

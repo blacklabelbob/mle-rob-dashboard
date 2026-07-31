@@ -407,7 +407,10 @@ export default function ThingsToAddress({
           // button and the sentence above it cannot disagree.
           const scope =
             mode === "entity" ? flagNamedScope(f.entity_id, f.title, f.detail, person ?? entity) : null;
-          const copy = resolveControlCopy(f.title, scope);
+          // inc.35: the same page id `resolve()` stamps into the note, so the hint can
+          // only promise a provenance line the ledger actually writes. `mode !== "entity"`
+          // (the Overview digest) passes nothing and gets no promise — it also writes none.
+          const copy = resolveControlCopy(f.title, scope, mode === "entity" ? person ?? entity : null);
           // The ids this row already links somewhere else: the page being read (a chip
           // back to the current page is a link to nowhere) and every id the marker
           // renders as a link. Both stay visible — linkified — inside the detail.

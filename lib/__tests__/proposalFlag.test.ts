@@ -405,6 +405,53 @@ describe("resolveControlCopy (inc.18 — the permanent click, labelled)", () => 
       }
     });
   });
+
+  // Q84 inc.35 — the stamp the clicker can never see from their own page.
+  describe("what the click will be recorded as (inc.35)", () => {
+    const ordinary = "CG Roofing Group / Gulf Coast RE Group — same phone, two orgs";
+
+    it("tells the reviewer the other records will show where this was closed from", () => {
+      // `archiveResolvedFromMark` returns null on the page resolved FROM, so this is the
+      // only moment the fact is visible to the person creating it.
+      const copy = resolveControlCopy(ordinary, { others: ["C-2018"], here: "C-2017" }, "C-2017");
+      expect(copy.hint).toContain("closed from C-2017");
+      expect(copy.hint).toContain("C-2018");
+    });
+
+    it("qualifies an unnamed page exactly the way the archive renders it", () => {
+      // #137 names no person; the archive on C-2017 says "Resolved from P-1018's page",
+      // so the promise made at the click has to say the same thing.
+      const copy = resolveControlCopy(ordinary, { others: ["C-2017", "C-2018"], here: null }, "P-1018");
+      expect(copy.hint).toContain("closed from P-1018's page");
+      expect(copy.hint).not.toContain("closed from P-1018.");
+      expect(copy.hint).toContain("one finding");
+    });
+
+    it("promises nothing when the writer would write nothing", () => {
+      // Unproven-by-default, and decided by asking `resolvedFromNote` — not by a copy of
+      // its guard. No page, a malformed id, or a row naming no other record: inc.33's
+      // hint, character-identical.
+      const base = resolveControlCopy(ordinary, { others: ["C-2018"], here: "C-2017" });
+      for (const from of [null, undefined, "", "  ", "C2017", "rob", "P-", "C-2017x"]) {
+        expect(resolveControlCopy(ordinary, { others: ["C-2018"], here: "C-2017" }, from).hint).toBe(base.hint);
+      }
+      expect(resolveControlCopy(ordinary, { others: [], here: "C-2017" }, "C-2017").hint).toBe("");
+    });
+
+    it("keeps the disclosure out of the note prompt, which stays a question", () => {
+      const copy = resolveControlCopy(ordinary, { others: ["C-2018"], here: null }, "P-1018");
+      expect(copy.notePlaceholder).toBe("why is this settled on every record it names?");
+      expect(copy.notePlaceholder).not.toContain("P-1018");
+    });
+
+    it("leaves a proposal row's permanence copy alone", () => {
+      // A proposal never gets the clause written (`resolve()` skips it), so promising one
+      // would be a false statement about the click.
+      const copy = resolveControlCopy(proposal, { others: ["C-2018"], here: null }, "P-1018");
+      expect(copy.hint).toContain("permanent");
+      expect(copy.hint).not.toContain("P-1018");
+    });
+  });
 });
 
 describe("writeFailureMessage (inc.19)", () => {
