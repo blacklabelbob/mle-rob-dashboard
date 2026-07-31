@@ -158,7 +158,16 @@ export function classifyUnexplainedRows(rows: ArchiveRowDetail[]): UnexplainedRe
 
     // Identification first: a row with no date or no real name cannot be compared to
     // anything, so it can be neither a duplicate nor a memory request yet.
-    if (!row.day || isPlaceholderTitle(row.title)) {
+    //
+    // EXCEPT when the row already names WHO it was with. A day plus a counterparty identifies
+    // a meeting as surely as a title does — "2026-07-28, Omega Title" is not a mystery row,
+    // it is a meeting whose title field was never typed. Routing it to needs-identification
+    // said the fix was clerical and hid the one row in the pile that only Rob can close: the
+    // 7/28 Omega meeting the queue has named for three increments sat under "give it a real
+    // title", where it read as filing work nobody needed to do. Both gaps are still reported;
+    // what changes is WHO is being asked, which is the whole point of the buckets.
+    const identifiedByCounterparty = Boolean(row.day) && Boolean((row.company || "").trim());
+    if (!row.day || (isPlaceholderTitle(row.title) && !identifiedByCounterparty)) {
       return {
         row,
         gaps,
@@ -169,12 +178,18 @@ export function classifyUnexplainedRows(rows: ArchiveRowDetail[]): UnexplainedRe
       };
     }
 
-    const twin = recorded.find(
-      (r) =>
-        r.day === row.day &&
-        !isPlaceholderTitle(r.title) &&
-        titleOverlap(r.title, row.title) >= TITLE_MATCH_FLOOR,
-    );
+    // A placeholder title can now reach this point, so guard BOTH sides: inc.1's rule is that
+    // a derived or placeholder title is never evidence two rows are the same meeting. Without
+    // this guard, "Meeting 2026-07-28" could overlap its way onto a recorded row and quietly
+    // delete an in-person meeting nobody else recorded.
+    const twin = isPlaceholderTitle(row.title)
+      ? undefined
+      : recorded.find(
+          (r) =>
+            r.day === row.day &&
+            !isPlaceholderTitle(r.title) &&
+            titleOverlap(r.title, row.title) >= TITLE_MATCH_FLOOR,
+        );
     if (twin) {
       return {
         row,
@@ -189,7 +204,9 @@ export function classifyUnexplainedRows(rows: ArchiveRowDetail[]): UnexplainedRe
       row,
       gaps,
       disposition: "needs-human-account",
-      nextStep: "no recorder saw this — someone who was in the room has to say what happened",
+      nextStep: isPlaceholderTitle(row.title)
+        ? `no recorder saw this — someone who was in the room with ${(row.company || "").trim()} that day has to say what happened (and give it a real title)`
+        : "no recorder saw this — someone who was in the room has to say what happened",
     };
   });
 

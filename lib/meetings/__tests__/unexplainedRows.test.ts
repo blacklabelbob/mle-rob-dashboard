@@ -93,6 +93,39 @@ describe("classifyUnexplainedRows", () => {
     expect(report.open[0].nextStep).toMatch(/Meeting Title/);
   });
 
+  it("asks the human who was there — not for a title — when a placeholder-titled row names the counterparty and the day", () => {
+    // The live 7/28 Omega row exactly: Notion's "Company Meeting with" says Omega Title, the
+    // Call Date says 2026-07-28, and the title field was never typed. Day + counterparty
+    // identify that meeting as surely as a title would, so the ask is what happened in it —
+    // filing it under "give it a real title" made the only row Rob can close look clerical.
+    const report = classifyUnexplainedRows([
+      row({ id: "u1", title: "Meeting 2026-07-28", day: "2026-07-28", company: "Omega Title" }),
+    ]);
+    expect(report.open[0].disposition).toBe("needs-human-account");
+    expect(report.open[0].gaps).toContain("placeholder title");
+    expect(report.open[0].nextStep).toMatch(/Omega Title/);
+    expect(report.open[0].nextStep).toMatch(/real title/);
+  });
+
+  it("still asks for a NAME when a placeholder-titled row names no counterparty", () => {
+    // The counterparty is what does the identifying. Without it a placeholder title on a
+    // dated row is still an unidentifiable meeting, and nobody can be asked to recall it.
+    const report = classifyUnexplainedRows([row({ id: "u1", title: "Meeting 2026-06-16", day: "2026-06-16" })]);
+    expect(report.open[0].disposition).toBe("needs-identification");
+  });
+
+  it("never lets a placeholder title be evidence of a duplicate, even once the row is identified by counterparty", () => {
+    // Widening the identification rule let a placeholder title reach the twin check for the
+    // first time. Overlapping "Meeting 2026-07-10" onto a recorded row would delete an
+    // in-person meeting nobody else recorded — unrecoverable, versus one extra click.
+    const report = classifyUnexplainedRows([
+      recorded({ id: "r1", title: "Meeting 2026-07-10 with Gulf Coast", day: "2026-07-10" }),
+      row({ id: "u1", title: "Meeting 2026-07-10", day: "2026-07-10", company: "Gulf Coast RE Group" }),
+    ]);
+    expect(report.open[0].disposition).toBe("needs-human-account");
+    expect(report.open[0].twin).toBeUndefined();
+  });
+
   it("asks for a DATE first when there is none — an undated row can never be matched to anything", () => {
     const report = classifyUnexplainedRows([row({ id: "u1", title: "Gulf Coast RE kickoff" })]);
     expect(report.open[0].disposition).toBe("needs-identification");
