@@ -24,7 +24,9 @@
 //       Attendees now go through redactAttendees() (scripts/manifest-privacy.mjs).
 //
 // Idempotent: keyed on the Fireflies transcript id, so re-running overwrites a body rather
-// than accumulating copies, and the manifest is rebuilt from what is actually on disk.
+// than accumulating copies. A run that cannot read a meeting SUBTRACTS NOTHING: it carries the
+// previous manifest row forward untouched, and any bodyOnDisk it writes is checked against the
+// disk rather than assumed — see scripts/manifest-carryforward.mjs for the run that broke this.
 //
 // Usage:  node scripts/fireflies-ingest.mjs [--limit 50]
 // Key:    FIREFLIES_API_KEY — read from the environment, else ~/Projects/!env/.env.master
@@ -34,6 +36,7 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { homedir } from "node:os";
 import { redactAttendees } from "./manifest-privacy.mjs";
+import { indexPreviousManifest, resolveFailedRow } from "./manifest-carryforward.mjs";
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), "..");
 const OUT_DIR = join(REPO, "MLE Internal Meetings");
@@ -97,6 +100,11 @@ if (!key) {
 
 mkdirSync(BODY_DIR, { recursive: true });
 
+// Read what we already knew BEFORE overwriting it, so a failed fetch has something to fall
+// back to. Without this the rebuild is destructive: whatever the API declines to re-send
+// this run is gone from the committed file.
+const previousRows = indexPreviousManifest(existsSync(MANIFEST) ? readFileSync(MANIFEST, "utf8") : null);
+
 const { transcripts } = await gql(key, LIST, { limit: LIMIT });
 console.log(`Fireflies returned ${transcripts.length} meeting(s).`);
 
@@ -110,9 +118,16 @@ for (const t of transcripts) {
     ({ transcript: full } = await gql(key, ONE, { id: t.id }));
   } catch (err) {
     // One unreadable meeting must not abandon the other twelve — record it and continue.
+    // It must also not DELETE the twelve: this row is carried forward, never downgraded.
     failed += 1;
-    console.warn(`  ! ${t.id} (${t.title}): ${err.message.slice(0, 140)}`);
-    manifest.push({ id: t.id, title: t.title, date: t.dateString, bodyOnDisk: false, error: "fetch-failed" });
+    const previous = previousRows.get(t.id);
+    console.warn(
+      `  ! ${t.id} (${t.title}): ${err.message.slice(0, 140)}` +
+        (previous ? " — keeping the row from the last good run" : ""),
+    );
+    manifest.push(
+      resolveFailedRow({ stub: t, previous, bodyOnDisk: existsSync(join(BODY_DIR, `${t.id}.json`)) }),
+    );
     continue;
   }
 
