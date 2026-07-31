@@ -67,6 +67,15 @@ export type ArchiveCheck = {
 const norm = (s: string | undefined) =>
   (s || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 
+/**
+ * The one floor, for every consumer. Q84 inc.4 collapsed the duplicated placeholder ladder
+ * and inc.5 collapses this one: `titleOverlap` and the number it is compared against are a
+ * single rule, and a copy of the function with a hand-typed `0.6` beside it is the same
+ * divergence-in-waiting. Exported so `unexplainedRows.ts` and `notion-meetings-sync.mjs`
+ * read the number rather than restate it — raising it here raises it everywhere at once.
+ */
+export const TITLE_MATCH_FLOOR = 0.6;
+
 /** Fraction of the shorter title's significant words that the other title also has. */
 export function titleOverlap(a: string | undefined, b: string | undefined): number {
   const A = new Set(norm(a).split(" ").filter((w) => w.length > 3));
@@ -87,8 +96,6 @@ export function recordingKey(url: string | undefined): string {
   const tail = s.split(/[?#]/)[0].split("/").filter(Boolean).pop() || "";
   return tail.toLowerCase();
 }
-
-const TITLE_MATCH_FLOOR = 0.6;
 
 /**
  * Reconcile one archive against one set of CRM meeting activities.

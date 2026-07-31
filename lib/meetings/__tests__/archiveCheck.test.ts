@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   checkArchiveAgainstCrm,
   recordingKey,
+  TITLE_MATCH_FLOOR,
   titleOverlap,
   type ArchiveRow,
   type CrmMeeting,
@@ -36,6 +37,26 @@ describe("titleOverlap", () => {
   it("is 0 when either side has nothing significant to compare", () => {
     expect(titleOverlap("", "anything meaningful")).toBe(0);
     expect(titleOverlap("a of to", "a of to")).toBe(0);
+  });
+});
+
+/**
+ * Q84 inc.5 — the floor is one number for three consumers now (this module's CRM check,
+ * `unexplainedRows`' duplicate rule, and the sync's recording→recording collapse). Pinning
+ * the value here is what makes moving it a deliberate, visible change rather than a silent
+ * one: the sync welding two distinct meetings together is unrecoverable, so nobody should be
+ * able to loosen the rule for one caller and not notice they loosened it for all three.
+ */
+describe("TITLE_MATCH_FLOOR", () => {
+  it("is the single exported floor every meeting-matching caller compares against", () => {
+    expect(TITLE_MATCH_FLOOR).toBe(0.6);
+  });
+
+  it("brackets the rule it governs: a real re-title clears it, two unrelated calls do not", () => {
+    expect(titleOverlap("Gulf Coast roofing intro call", "Intro call with Gulf Coast roofing")).toBeGreaterThanOrEqual(
+      TITLE_MATCH_FLOOR,
+    );
+    expect(titleOverlap("Gulf Coast intro", "PropLogix pricing review")).toBeLessThan(TITLE_MATCH_FLOOR);
   });
 });
 

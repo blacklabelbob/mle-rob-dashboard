@@ -36,6 +36,7 @@ import { homedir } from "node:os";
 // (`npm run sync:meetings`); `node scripts/notion-meetings-sync.mjs` alone can no longer
 // resolve it, and failing loudly on a missing import beats keeping a second copy in step.
 import { isPlaceholderTitle } from "../lib/meetings/unexplainedRows.ts";
+import { TITLE_MATCH_FLOOR, titleOverlap } from "../lib/meetings/archiveCheck.ts";
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), "..");
 const BODY_DIR = join(REPO, "MLE Internal Meetings", "transcripts");
@@ -172,16 +173,15 @@ async function readAllRows() {
   return out;
 }
 
-const norm = (s) => (s || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
-
-function titleOverlap(a, b) {
-  const A = new Set(norm(a).split(" ").filter((w) => w.length > 3));
-  const B = new Set(norm(b).split(" ").filter((w) => w.length > 3));
-  if (!A.size || !B.size) return 0;
-  let hit = 0;
-  for (const w of A) if (B.has(w)) hit++;
-  return hit / Math.min(A.size, B.size);
-}
+// THE SECOND LADDER, COLLAPSED (Q84 inc.5). `titleOverlap` + `norm` + a hand-typed `0.6`
+// lived here as a character-identical copy of `lib/meetings/archiveCheck.ts`, which is the
+// exact defect inc.4 named and only half-cured: two copies of the predicate that decides
+// "are these the same meeting" is a divergence waiting to happen, and this one carried a
+// load-bearing promise — inc.3 documented the classifier's duplicate rule as "deliberately
+// inc.1's timid one", a claim that is only true while the two implementations agree. It is
+// now true by construction rather than by inspection. Imported through scripts/ts-loader.mjs
+// (precedent: notion-crm-check.mjs) — failing loudly on a missing import beats silent drift.
+// The import itself sits with the others at the top of the file.
 
 /**
  * Match a recording to an existing row. Order matters — the recording URL is proof, the
@@ -195,7 +195,7 @@ function matchRow(body, rows, claimed) {
   const sameDay = rows.filter((r) => r.day && r.day === body.day && !claimed.has(r.id));
   if (!sameDay.length) return null;
 
-  const strong = sameDay.find((r) => titleOverlap(r.title, body.title) >= 0.6);
+  const strong = sameDay.find((r) => titleOverlap(r.title, body.title) >= TITLE_MATCH_FLOOR);
   if (strong) return { row: strong, how: "date+title" };
 
   // Exactly one un-claimed row on that day, and this recording has no rival: the only
@@ -294,7 +294,7 @@ function collapseDuplicateRecordings(candidates) {
         k.body.day === c.body.day &&
         !isJunkTitle(k.body.title) &&
         !isJunkTitle(c.body.title) &&
-        titleOverlap(k.body.title, c.body.title) >= 0.6,
+        titleOverlap(k.body.title, c.body.title) >= TITLE_MATCH_FLOOR,
     );
     if (twin) suppressed.push({ ...c, twin });
     else kept.push(c);

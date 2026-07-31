@@ -17,7 +17,7 @@
  * lands in the bucket that asks a human, never in one that guesses.
  */
 
-import { titleOverlap } from "./archiveCheck";
+import { TITLE_MATCH_FLOOR, titleOverlap } from "./archiveCheck";
 
 export type ArchiveRowDetail = {
   id: string;
@@ -118,8 +118,6 @@ export function isPlaceholderTitle(title: string | undefined): boolean {
   if (/^untitled recording \(/i.test(s)) return true;
   return false;
 }
-
-const TITLE_MATCH_FLOOR = 0.6;
 
 /** Order the work-list by who can act, then newest first. */
 const RANK: Record<Disposition, number> = {
