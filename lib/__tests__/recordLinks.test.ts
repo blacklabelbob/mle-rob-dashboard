@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { linkifyRecordIds } from "@/lib/flags/recordLinks";
+import { flagEntityHref, linkifyRecordIds } from "@/lib/flags/recordLinks";
 
 /** The invariant that makes this safe to drop into a paragraph Rob reads. */
 function rejoin(detail: string) {
@@ -74,5 +74,45 @@ describe("linkifyRecordIds", () => {
     const detail = "c-2019 and C- and C-abc are not record ids";
     expect(linkifyRecordIds(detail).filter((s) => s.href)).toEqual([]);
     expect(rejoin(detail)).toBe(detail);
+  });
+});
+
+describe("flagEntityHref", () => {
+  it("is null for a flag with no entity at all", () => {
+    expect(flagEntityHref(null)).toBeNull();
+    expect(flagEntityHref(undefined)).toBeNull();
+    expect(flagEntityHref("")).toBeNull();
+  });
+
+  it("addresses the two record families the CRM mints", () => {
+    expect(flagEntityHref("P-1010")).toBe("/people/P-1010");
+    expect(flagEntityHref("C-2019")).toBe("/companies/C-2019");
+  });
+
+  it.each([
+    "cg-roofing-group",
+    "will",
+    "david-cates",
+    "derm-clinic-pilot",
+    "spinoff-homeclonevault",
+    "deal-gulf-coast-equity-phase4",
+    "the-title-base",
+    "naples-spine-joint",
+  ])("refuses the slug %s — every entity_id on prod is one of these", (slug) => {
+    // Before inc.20 each of these rendered as href="/people/<slug>", which is Next's
+    // notFound page. A name that is not a link beats a link to the wrong place.
+    expect(flagEntityHref(slug)).toBeNull();
+  });
+
+  it("is anchored, so an id buried in a longer slug never half-matches", () => {
+    expect(flagEntityHref("cg-C-2019")).toBeNull();
+    expect(flagEntityHref("C-2019-draft")).toBeNull();
+    expect(flagEntityHref("MLE-2026-100123")).toBeNull();
+    expect(flagEntityHref(" C-2019")).toBeNull();
+  });
+
+  it("agrees with the detail linkifier about where a record lives", () => {
+    const inDetail = linkifyRecordIds("see C-2019 now").find((s) => s.href);
+    expect(flagEntityHref("C-2019")).toBe(inDetail?.href);
   });
 });

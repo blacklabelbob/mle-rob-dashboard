@@ -21,6 +21,23 @@
 // send Rob to the wrong record, which is exactly the mistake the near-miss bucket exists
 // to prevent. An id is unambiguous or it is not a link.
 
+// Q84 inc.20 — the SAME page prints a record reference in a second place, and there the
+// rule was inverted: `flagEntityHref` below replaces `href={`/people/${f.entity_id}`}`,
+// which the ledger applied to every flag whose `entity_id` was non-null.
+//
+// Measured on prod, not assumed: all 16 flags that carry an `entity_id` carry a SLUG —
+// `cg-roofing-group`, `will`, `derm-clinic-pilot`, `spinoff-homeclonevault`,
+// `deal-gulf-coast-equity-phase4`. Not one is a `P-####`. So the entity-name link was
+// dead on 100% of the rows that had it (10 open today), including the two equity rows
+// Rob asked for in dev_chat #53. `/people/P-1010` renders Dixith Magadiev;
+// `/people/deal-gulf-coast-equity-phase4` renders Next's notFound.
+//
+// The narrow rule is inc.19's, unchanged: link ids the CRM minted, never a name. A slug
+// is a name with the spaces removed — `derm-clinic-pilot` and `deal-gulf-coast-equity-phase4`
+// have no record at all, and `cg-roofing-group` only LOOKS resolvable. Sending Rob to a
+// guessed record is worse than sending him nowhere, so an unrecognised entity_id renders
+// as plain text, exactly as `entity_id: null` already did.
+
 /** One piece of a finding's detail: plain prose, or an id that addresses a record. */
 export type DetailSegment =
   | { text: string; href?: undefined }
@@ -83,4 +100,22 @@ export function linkifyRecordIds(detail: string): DetailSegment[] {
 
   if (cursor < detail.length) out.push({ text: detail.slice(cursor) });
   return out;
+}
+
+/**
+ * Where a flag's own `entity_id` points, or `null` when it does not address a record.
+ *
+ * Anchored (`^…$`) rather than scanned: this is one whole id, not prose. A value like
+ * `deal-gulf-coast-equity-phase4` contains no id and must not half-match; a hypothetical
+ * `cg-C-2019` is not the id `C-2019` either.
+ *
+ * Off the same `RECORD_ROUTES` table the detail linkifier uses, so a third record family
+ * lights up in both places at once and the two can never disagree about where `C-2019` lives.
+ */
+export function flagEntityHref(entityId: string | null | undefined): string | null {
+  if (!entityId) return null;
+  const m = /^([CP])-\d+$/.exec(entityId);
+  if (!m) return null;
+  const route = RECORD_ROUTES[m[1]];
+  return route ? `${route}/${entityId}` : null;
 }

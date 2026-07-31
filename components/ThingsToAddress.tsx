@@ -11,7 +11,7 @@ import {
   writeFailureMessage,
   type WriteFailure,
 } from "@/lib/comms/proposalFlag";
-import { linkifyRecordIds } from "@/lib/flags/recordLinks";
+import { flagEntityHref, linkifyRecordIds } from "@/lib/flags/recordLinks";
 import { reopenFailureMessage, supersededBy } from "@/lib/flags/supersede";
 import {
   archiveRepeatMark,
@@ -229,8 +229,14 @@ export default function ThingsToAddress({
                 )}
                 <div className="min-w-0">
                   <span className={`mr-2 rounded px-1.5 py-px text-[10px] uppercase ${sevStyle[f.severity]}`}>{f.severity}</span>
-                  {f.entity_id ? (
-                    <Link href={`/people/${f.entity_id}`} className="font-medium text-slate-200 hover:underline">
+                  {/* inc.20: linked only when entity_id is an id the CRM minted. Every
+                      flag on prod carries a SLUG here, so this link 404'd on all of them;
+                      a name that is not a link is the honest state, not a lost feature. */}
+                  {flagEntityHref(f.entity_id) ? (
+                    <Link
+                      href={flagEntityHref(f.entity_id) as string}
+                      className="font-medium text-slate-200 hover:underline"
+                    >
                       {f.entity_name}
                     </Link>
                   ) : (
@@ -312,8 +318,10 @@ export default function ThingsToAddress({
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div className="min-w-0">
                 <div className="text-sm font-semibold">
-                  {f.entity_id ? (
-                    <Link href={`/people/${f.entity_id}`} className="hover:underline">
+                  {/* inc.20: same rule as the digest above and as the ids inside the
+                      detail — an id is unambiguous or it is not a link. */}
+                  {flagEntityHref(f.entity_id) ? (
+                    <Link href={flagEntityHref(f.entity_id) as string} className="hover:underline">
                       {f.entity_name}
                     </Link>
                   ) : (
