@@ -352,6 +352,59 @@ describe("resolveControlCopy (inc.18 — the permanent click, labelled)", () => 
       expect(copy.hint).not.toContain("C-2018");
     });
   });
+
+  // Q84 inc.33 — the write side of the question inc.32 answered for the archive.
+  describe("a page the finding reaches without naming (inc.33)", () => {
+    const ordinary = "CG Roofing Group / Gulf Coast RE Group — same phone, two orgs";
+
+    it('says "too" only where the page is provably one of the records named', () => {
+      // On C-2017's page #137 names C-2017, so C-2018 is genuinely the OTHER one.
+      const copy = resolveControlCopy(ordinary, { others: ["C-2018"], here: "C-2017" });
+      expect(copy.hint).toContain("C-2018");
+      expect(copy.hint).toContain("too");
+    });
+
+    it("never makes an unnamed page one of the records the finding is about", () => {
+      // Measured on prod: #137 is filed against neither C-2017 nor C-2018 and reaches
+      // P-1018 / P-1019 / P-1022 through `org_memberships`, naming no person. "clears
+      // it from C-2017, C-2018 too" tells that reviewer the finding is partly theirs.
+      const copy = resolveControlCopy(ordinary, { others: ["C-2017", "C-2018"], here: null });
+      expect(copy.hint).not.toContain("too");
+      expect(copy.hint).toContain("C-2017, C-2018");
+      expect(copy.hint).toContain("one finding");
+    });
+
+    it("treats an absent `here` as unproven, never as proven (flagNamedScope's own rule)", () => {
+      // A caller that cannot say which page it is on must not get the stronger claim.
+      const absent = resolveControlCopy(ordinary, { others: ["C-2018"] });
+      expect(absent.hint).toBe(resolveControlCopy(ordinary, { others: ["C-2018"], here: null }).hint);
+      expect(absent.hint).not.toContain("too");
+    });
+
+    it("keeps the tooltip and the hint claiming the same thing on both branches (inc.17 rule)", () => {
+      for (const here of ["C-2017", null]) {
+        const copy = resolveControlCopy(ordinary, { others: ["C-2018", "P-1010"], here });
+        for (const s of [copy.tooltip, copy.hint]) {
+          expect(s).toContain("C-2018");
+          expect(s).toContain("P-1010");
+        }
+      }
+    });
+
+    it("still says the row is not filed here, whichever page it is read on", () => {
+      // The `entity_id IS NULL` fact is true on every page this row reaches; only the
+      // question of whether the finding NAMES this page changes between them.
+      for (const here of ["C-2017", null]) {
+        expect(resolveControlCopy(ordinary, { others: ["C-2018"], here }).hint).toContain("not filed here");
+      }
+    });
+
+    it("leaves a row that spans no other page ordinary, proven or not", () => {
+      for (const here of ["C-2017", null, undefined]) {
+        expect(resolveControlCopy(ordinary, { others: [], here }).hint).toBe("");
+      }
+    });
+  });
 });
 
 describe("writeFailureMessage (inc.19)", () => {

@@ -227,7 +227,21 @@ export type ResolveCopy = { label: string; tooltip: string; hint: string; notePl
  * hint has room for one and permanence is the graver of the two — a domain shut out of the
  * CRM forever outranks a row also sitting on another page.
  */
-export type ResolveScope = { others: string[] } | null | undefined;
+/**
+ * Q84 inc.33 — `here` is carried, not just `others`, because the hint's last word depends
+ * on it.
+ *
+ * inc.32 fixed the READ side of this exact question: the archive's mark asserted "this
+ * finding names this record too" on pages the row reaches without naming. The WRITE side
+ * was left saying the same thing one control earlier. `NamedScope` already carries `here`
+ * and `ThingsToAddress` already passes the whole object, so this widens the type over a
+ * value that was always there rather than threading a new argument through.
+ *
+ * Optional and unproven-by-default, the same rule `flagNamedScope` and
+ * `archiveResolvedFromMark` follow: a caller that cannot prove the page is named gets the
+ * sentence that is true either way, never the stronger one.
+ */
+export type ResolveScope = { others: string[]; here?: string | null } | null | undefined;
 
 export function resolveControlCopy(title: string, scope?: ResolveScope): ResolveCopy {
   const domain = proposalDomain(title);
@@ -245,10 +259,20 @@ export function resolveControlCopy(title: string, scope?: ResolveScope): Resolve
     // reviewer cannot check against anything, and the ids are already linked one line
     // above. Uncapped for the same reason the chips are (#129 names six).
     const list = others.join(", ");
+    // The one word that changes, and why. On C-2017's page "…from C-2018 TOO" is right:
+    // this row names C-2017, so C-2018 is the OTHER one. On P-1018's page — where
+    // `/api/admin/flags?person=` fans out through `org_memberships` and lands #137, a
+    // conflict between C-2017 and C-2018 that names no person — "too" makes this person
+    // one of the records the finding is about, and they are not. Measured on prod today:
+    // #137 is open and reaches P-1018, P-1019 and P-1022 that way. The weaker clause is
+    // true on both kinds of page, so an unproven caller says that instead.
+    const named = scope?.here != null;
     return {
       label: "Resolve",
       tooltip: `also clears this finding from ${list}`,
-      hint: `This row is not filed here. Resolving clears it from ${list} too.`,
+      hint: named
+        ? `This row is not filed here. Resolving clears it from ${list} too.`
+        : `This row is not filed here. Resolving clears it from ${list} — one finding, closed on all of them at once.`,
       // Not "both": #129 names six records, and a prompt that miscounts the row it is
       // attached to is the class of defect this whole thread has been unpicking.
       notePlaceholder: "why is this settled on every record it names?",
