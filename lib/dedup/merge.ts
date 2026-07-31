@@ -16,6 +16,7 @@
 // destroy money data — the plan REFUSES with blockers instead of guessing.
 
 import { pairKey } from "@/lib/dedup/run";
+import { mergedNote } from "@/lib/dedup/resolutionNote";
 
 // Contact-ish fields folded survivor←duplicate when the survivor's is empty.
 // Money fields (quoted_amount, signed, estimate) are structurally absent.
@@ -181,7 +182,7 @@ export function planPersonMerge(input: {
     table: "dedup_review",
     action: "update",
     where: { pair_key: pairKey("person", { aId, bId }) },
-    set: { status: "resolved", resolved_at: now, resolution_note: `merged: ${dId} → ${sId}` },
+    set: { status: "resolved", resolved_at: now, resolution_note: mergedNote(dId, sId) },
   });
   ops.push({ table: "people", action: "delete", where: { id: dId } });
 

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { dismissedNote } from "@/lib/dedup/resolutionNote";
 
 // Duplicate review queue (PRD Tasks 3.5 + 4.2). The nightly detector proposes
 // pairs; Rob disposes here — dismiss ("not a duplicate") or merge. Merge is
@@ -75,7 +76,10 @@ export default function DedupQueue() {
       const r = await fetch("/api/admin/dedup", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pairKey, action: "dismiss", note: "reviewed: not a duplicate" }),
+        // inc.47: the wording is the dedup module's, not this component's — see
+        // lib/dedup/resolutionNote.ts for why one literal in JSX was the whole
+        // reason three closers read consistently.
+        body: JSON.stringify({ pairKey, action: "dismiss", note: dismissedNote() }),
       });
       if (!r.ok) setError("Dismiss failed — try again.");
       else await load();

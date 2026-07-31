@@ -1,6 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { collectDedupRows } from "@/lib/dedup/run";
+import { autoResolvedNote } from "@/lib/dedup/resolutionNote";
 
 // One detector run, shared by the admin route (manual POST) and the nightly
 // Vercel cron (PRD Task 3.5). Caller owns the client and the clock.
@@ -65,7 +66,7 @@ export async function runDedupDetector(
       .update({
         status: "resolved",
         resolved_at: now,
-        resolution_note: "auto: signals no longer present in source records",
+        resolution_note: autoResolvedNote(),
       })
       .in("pair_key", stale);
     if (error) return { ok: false, error: error.message };
