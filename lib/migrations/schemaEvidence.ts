@@ -1,5 +1,5 @@
 /**
- * Q84 inc.52 — what the LIVE schema can prove about a migration, and what it cannot.
+ * Q84 inc.52/53 — what the LIVE schema can prove about a migration, and what it cannot.
  *
  * inc.51 built the backlog off markers in the files: 2 pending, 0 disagreements,
  * and **36 unmarked** — every migration written before the convention existed.
@@ -14,7 +14,10 @@
  *
  * The trap, and the reason this module is more careful than "does the table
  * exist": **that root sees objects, not rules.** CHECK constraints, GRANTs, RLS
- * policies, indexes, functions and triggers are all invisible to it. `0034` is
+ * policies, indexes and triggers are all invisible to it. (inc.53 correction:
+ * *functions* were on that list and should not have been — the root publishes
+ * every exposed one as `/rpc/<name>`. Only trigger functions and functions
+ * outside the exposed schema are genuinely invisible.) `0034` is
  * exactly this case — the `dedup_review` TABLE exists on prod (it was created by
  * hand, which is why inc.50 found no migration for it) while the CHECKs that
  * migration adds do not. A verdict of "table present → applied" would have
@@ -34,9 +37,19 @@
 /** table/view name → column names, as published by the PostgREST OpenAPI root. */
 export type LiveSchema = Record<string, string[]>;
 
+/**
+ * The full shape the root publishes. inc.52 read only `definitions` and therefore
+ * declared every `create function` invisible — but the same document also lists
+ * every function PostgREST exposes, as an `/rpc/<name>` path. Six of them are
+ * live on prod, so "functions cannot be seen from here" was simply false for the
+ * ones that are callable, and it was costing two files a verdict they had earned.
+ */
+export type LiveShape = { tables: LiveSchema; rpcs: string[] };
+
 export type SchemaObject =
   | { kind: "table"; table: string }
-  | { kind: "column"; table: string; column: string };
+  | { kind: "column"; table: string; column: string }
+  | { kind: "function"; name: string };
 
 export type ParsedMigration = {
   /** Objects the OpenAPI root can adjudicate. */
@@ -59,6 +72,7 @@ const CREATE_TABLE = /\bcreate\s+table\s+(?:if\s+not\s+exists\s+)?([\w".]+)/gi;
 const CREATE_VIEW = /\bcreate\s+(?:or\s+replace\s+)?(?:materialized\s+)?view\s+(?:if\s+not\s+exists\s+)?([\w".]+)/gi;
 const ALTER_TABLE = /^\s*alter\s+table\s+(?:if\s+exists\s+)?([\w".]+)/i;
 const ADD_COLUMN = /\badd\s+column\s+(?:if\s+not\s+exists\s+)?([\w"]+)/gi;
+const CREATE_FUNCTION = /\bcreate\s+(?:or\s+replace\s+)?function\s+([\w".]+)\s*\(/gi;
 
 /**
  * Statements whose effect is real but invisible to the OpenAPI root. Listed by
@@ -74,7 +88,8 @@ const UNVERIFIABLE: Array<[RegExp, string]> = [
   [/\bcreate\s+(?:unique\s+)?index\b/i, "create index"],
   [/\bcreate\s+policy\b/i, "create policy"],
   [/\benable\s+row\s+level\s+security\b/i, "enable rls"],
-  [/\bcreate\s+(?:or\s+replace\s+)?function\b/i, "create function"],
+  // `create function` is NOT here — it is adjudicated per-function below, because
+  // some are visible (exposed as /rpc/<name>) and some structurally never can be.
   [/\bcreate\s+trigger\b/i, "create trigger"],
   [/\bcreate\s+type\b/i, "create type"],
   [/\b(?:insert\s+into|update\s+\w+\s+set|delete\s+from)\b/i, "data change"],
@@ -86,7 +101,12 @@ export function parseMigration(sql: string): ParsedMigration {
   const seen = new Set<string>();
 
   const push = (o: SchemaObject) => {
-    const key = o.kind === "table" ? `t:${o.table}` : `c:${o.table}.${o.column}`;
+    const key =
+      o.kind === "table"
+        ? `t:${o.table}`
+        : o.kind === "function"
+          ? `f:${o.name}`
+          : `c:${o.table}.${o.column}`;
     if (seen.has(key)) return;
     seen.add(key);
     objects.push(o);
@@ -113,8 +133,41 @@ export function parseMigration(sql: string): ParsedMigration {
   }
 
   const unverifiable: string[] = [];
+  const note = (label: string) => {
+    if (!unverifiable.includes(label)) unverifiable.push(label);
+  };
   for (const [re, label] of UNVERIFIABLE) {
-    if (re.test(body) && !unverifiable.includes(label)) unverifiable.push(label);
+    if (re.test(body)) note(label);
+  }
+
+  // Functions split in two, and the split is the whole point of grading them
+  // individually rather than as one blanket "create function" label:
+  //
+  //   returns trigger      → PostgREST never exposes it. Invisible forever; no
+  //                          probe short of writing a row can observe it, and a
+  //                          write is not read-only. Honestly permanent.
+  //   non-public schema    → not in the exposed schema, so also invisible here.
+  //   anything else        → published as /rpc/<name> and adjudicable.
+  //
+  // The return type is read from the FIRST `returns` after the name and bounded
+  // by the next `create … function`, so the read cannot bridge into a later
+  // definition — the same bridge that made inc.52's first run invent a column.
+  CREATE_FUNCTION.lastIndex = 0;
+  const defs: Array<{ qualified: string; from: number }> = [];
+  for (let m = CREATE_FUNCTION.exec(body); m; m = CREATE_FUNCTION.exec(body)) {
+    defs.push({
+      qualified: m[1].replace(/["`]/g, "").trim().toLowerCase(),
+      from: m.index + m[0].length,
+    });
+  }
+  for (const [i, def] of defs.entries()) {
+    const window = body.slice(def.from, defs[i + 1]?.from ?? body.length);
+    const returns = /\breturns\s+(\w+)/i.exec(window)?.[1]?.toLowerCase();
+    const schema = def.qualified.includes(".") ? def.qualified.split(".").slice(-2)[0] : "public";
+
+    if (returns === "trigger") note("create trigger function");
+    else if (schema !== "public") note(`create function in schema ${schema}`);
+    else push({ kind: "function", name: bareName(def.qualified) });
   }
 
   return { objects, unverifiable };
@@ -141,16 +194,46 @@ export type Evidence = {
 };
 
 function describe(o: SchemaObject): string {
-  return o.kind === "table" ? o.table : `${o.table}.${o.column}`;
+  if (o.kind === "table") return o.table;
+  if (o.kind === "function") return `${o.name}()`;
+  return `${o.table}.${o.column}`;
 }
 
-export function schemaEvidence(name: string, sql: string, live: LiveSchema): Evidence {
+/**
+ * Callers that only have tables (and every test written before functions were
+ * adjudicable) keep working: a bare LiveSchema means "no rpc list was supplied",
+ * which is not the same as "prod exposes no functions" — so a function verdict
+ * is withheld rather than reported missing. Absence of evidence, again, is not
+ * evidence of absence, and this is the one place that distinction could quietly
+ * turn into a false `objects-missing`.
+ */
+export function asLiveShape(live: LiveSchema | LiveShape): LiveShape {
+  return "tables" in live && "rpcs" in live ? (live as LiveShape) : { tables: live as LiveSchema, rpcs: [] };
+}
+
+export function schemaEvidence(name: string, sql: string, live: LiveSchema | LiveShape): Evidence {
+  const shape = asLiveShape(live);
+  const knowsRpcs = "tables" in live && "rpcs" in live;
   const { objects, unverifiable } = parseMigration(sql);
   const present: string[] = [];
   const missing: string[] = [];
+  // Objects this call actually GRADED. An object we decline to adjudicate must
+  // not count toward "the file has visible objects" — otherwise a file whose only
+  // object was withheld reads as `objects-present-unverifiable-rules` with an
+  // empty present list, i.e. a sentence claiming things exist while naming none.
+  let graded = 0;
 
   for (const o of objects) {
-    const cols = live[o.table];
+    if (o.kind === "function" && !knowsRpcs) {
+      if (!unverifiable.includes("create function")) unverifiable.push("create function");
+      continue;
+    }
+    graded += 1;
+    if (o.kind === "function") {
+      (shape.rpcs.includes(o.name) ? present : missing).push(describe(o));
+      continue;
+    }
+    const cols = shape.tables[o.table];
     const exists = o.kind === "table" ? cols !== undefined : (cols?.includes(o.column) ?? false);
     (exists ? present : missing).push(describe(o));
   }
@@ -165,7 +248,7 @@ export function schemaEvidence(name: string, sql: string, live: LiveSchema): Evi
       reason: `prod is missing ${missing.join(", ")} — this migration has not fully landed`,
     };
   }
-  if (!objects.length) {
+  if (!graded) {
     return {
       name,
       verdict: "no-visible-objects",
@@ -214,7 +297,7 @@ export type EvidenceReport = {
  */
 export function evidenceReport(
   files: Array<{ name: string; sql: string }>,
-  live: LiveSchema,
+  live: LiveSchema | LiveShape,
 ): EvidenceReport {
   const evidence = [...files]
     .sort((a, b) => a.name.localeCompare(b.name))
@@ -245,4 +328,23 @@ export function liveSchemaFromOpenApi(doc: unknown): LiveSchema {
     out[table.toLowerCase()] = Object.keys(def?.properties ?? {}).map((c) => c.toLowerCase());
   }
   return out;
+}
+
+/**
+ * Same document, the half inc.52 did not read: PostgREST publishes each exposed
+ * function as a path `/rpc/<name>`. Names only — arity and return type are not
+ * recoverable from the root, so this proves a function of that name is callable
+ * and nothing finer. That is still strictly more than the "invisible" this
+ * replaces.
+ */
+export function liveRpcsFromOpenApi(doc: unknown): string[] {
+  const paths = ((doc ?? {}) as { paths?: Record<string, unknown> }).paths ?? {};
+  return Object.keys(paths)
+    .filter((p) => p.startsWith("/rpc/"))
+    .map((p) => p.slice("/rpc/".length).toLowerCase())
+    .filter(Boolean);
+}
+
+export function liveShapeFromOpenApi(doc: unknown): LiveShape {
+  return { tables: liveSchemaFromOpenApi(doc), rpcs: liveRpcsFromOpenApi(doc) };
 }

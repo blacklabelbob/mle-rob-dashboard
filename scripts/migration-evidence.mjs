@@ -4,7 +4,8 @@
  * inc.51 left 36 migrations `unmarked`. Back-filling `APPLY-STATUS: APPLIED` on
  * all 36 by assertion would have been one sed away and worth nothing. This asks
  * prod instead: PostgREST's OpenAPI root (`GET /rest/v1/`) lists every exposed
- * table/view and its columns, read-only, no schema privileges needed.
+ * table/view and its columns — and, as inc.53 found, every exposed function as
+ * an `/rpc/<name>` path. Read-only, no schema privileges needed.
  *
  * What it will and will not conclude lives in lib/migrations/schemaEvidence.ts
  * (pure, 10 tests). The short version: a MISSING object proves a file has not
@@ -25,7 +26,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { migrationBacklog } from "../lib/migrations/applyStatus.ts";
-import { evidenceReport, liveSchemaFromOpenApi } from "../lib/migrations/schemaEvidence.ts";
+import { evidenceReport, liveShapeFromOpenApi } from "../lib/migrations/schemaEvidence.ts";
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), "..");
 const DIR = join(REPO, "supabase/migrations");
@@ -52,7 +53,7 @@ if (!res.ok) {
   console.error(`OpenAPI root ${res.status}: ${(await res.text()).slice(0, 300)}`);
   process.exit(1);
 }
-const live = liveSchemaFromOpenApi(await res.json());
+const live = liveShapeFromOpenApi(await res.json());
 
 const files = readdirSync(DIR)
   .filter((f) => f.endsWith(".sql"))
@@ -63,12 +64,12 @@ const subject = ALL ? files : files.filter((f) => unmarked.has(f.name));
 const report = evidenceReport(subject, live);
 
 if (JSON_OUT) {
-  console.log(JSON.stringify({ liveTables: Object.keys(live).length, ...report }, null, 2));
+  console.log(JSON.stringify({ liveTables: Object.keys(live.tables).length, liveRpcs: live.rpcs.length, ...report }, null, 2));
   process.exit(report.notLanded.length ? 2 : 0);
 }
 
 console.log(
-  `prod exposes ${Object.keys(live).length} tables/views · grading ${subject.length} migration(s)` +
+  `prod exposes ${Object.keys(live.tables).length} tables/views + ${live.rpcs.length} rpc function(s) · grading ${subject.length} migration(s)` +
     (ALL ? " (all)" : " (unmarked only)"),
 );
 for (const e of report.evidence) console.log(`  ${e.verdict.padEnd(34)} ${e.name}  — ${e.reason}`);

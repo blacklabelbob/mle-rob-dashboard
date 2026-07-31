@@ -4,6 +4,8 @@ import {
   schemaEvidence,
   evidenceReport,
   liveSchemaFromOpenApi,
+  liveRpcsFromOpenApi,
+  liveShapeFromOpenApi,
 } from "../schemaEvidence";
 
 const LIVE = {
@@ -125,5 +127,70 @@ describe("liveSchemaFromOpenApi", () => {
   it("survives a document with neither definitions nor components", () => {
     expect(liveSchemaFromOpenApi({})).toEqual({});
     expect(liveSchemaFromOpenApi(null)).toEqual({});
+  });
+});
+
+// ── inc.53: functions ──────────────────────────────────────────────────────────
+// inc.52 declared every `create function` invisible. Half of that was true. The
+// OpenAPI root lists exposed functions as `/rpc/<name>`, so a plain SQL function
+// IS adjudicable; a `returns trigger` one never is, and neither is one created
+// outside the exposed schema. These pin the split in both directions, because
+// getting it wrong in the generous direction closes a backlog row on a guess.
+
+const SHAPE = { tables: LIVE, rpcs: ["filter_page", "has_entity_access"] };
+
+describe("functions", () => {
+  it("treats a plain function as a visible object and finds it on prod", () => {
+    const e = schemaEvidence("x.sql", "create or replace function filter_page(v jsonb)\nreturns setof record\nas $$ select 1; $$ language sql;", SHAPE);
+    expect(e.present).toContain("filter_page()");
+    expect(e.verdict).toBe("objects-present");
+    expect(e.unverifiable).not.toContain("create function");
+  });
+
+  it("reports a plain function prod does not expose as MISSING — the one direction that is proof", () => {
+    const e = schemaEvidence("x.sql", "create function ghost_fn(v jsonb) returns boolean as $$ select true; $$ language sql;", SHAPE);
+    expect(e.missing).toEqual(["ghost_fn()"]);
+    expect(e.verdict).toBe("objects-missing");
+  });
+
+  it("never adjudicates a trigger function — PostgREST cannot expose one, so it is honestly permanent", () => {
+    const { objects, unverifiable } = parseMigration(
+      "create or replace function public.touch_rows()\nreturns trigger\nlanguage plpgsql as $$ begin return new; end; $$;",
+    );
+    expect(objects).toEqual([]);
+    expect(unverifiable).toContain("create trigger function");
+  });
+
+  it("does not bridge one definition's return type into the next", () => {
+    const { objects, unverifiable } = parseMigration(
+      [
+        "create function public.touch_a() returns trigger as $$ begin return new; end; $$ language plpgsql;",
+        "create function public.rank_it(a text) returns int as $$ select 1; $$ language sql;",
+      ].join("\n"),
+    );
+    expect(unverifiable).toContain("create trigger function");
+    expect(objects).toEqual([{ kind: "function", name: "rank_it" }]);
+  });
+
+  it("withholds a verdict on a function outside the exposed schema rather than calling it missing", () => {
+    const e = schemaEvidence("x.sql", "create function auth.secret_fn() returns boolean as $$ select true; $$ language sql;", SHAPE);
+    expect(e.missing).toEqual([]);
+    expect(e.unverifiable).toContain("create function in schema auth");
+  });
+
+  it("withholds a function verdict entirely when the caller supplied no rpc list", () => {
+    const e = schemaEvidence("x.sql", "create function ghost_fn() returns boolean as $$ select true; $$ language sql;", LIVE);
+    expect(e.missing).toEqual([]);
+    expect(e.unverifiable).toContain("create function");
+    expect(e.verdict).toBe("no-visible-objects");
+  });
+});
+
+describe("liveRpcsFromOpenApi", () => {
+  it("reads /rpc/ paths and only those", () => {
+    const doc = { paths: { "/": {}, "/orgs": {}, "/rpc/filter_page": {}, "/rpc/Has_Entity_Access": {} } };
+    expect(liveRpcsFromOpenApi(doc)).toEqual(["filter_page", "has_entity_access"]);
+    expect(liveRpcsFromOpenApi({})).toEqual([]);
+    expect(liveShapeFromOpenApi(doc).rpcs).toEqual(["filter_page", "has_entity_access"]);
   });
 });
