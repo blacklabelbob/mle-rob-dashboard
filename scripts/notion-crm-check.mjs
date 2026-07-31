@@ -37,6 +37,7 @@ import { fileURLToPath } from "node:url";
 import { checkArchiveAgainstCrm } from "../lib/meetings/archiveCheck.ts";
 import { classifyUnexplainedRows } from "../lib/meetings/unexplainedRows.ts";
 import { buildArchiveFinding } from "../lib/meetings/archiveFinding.ts";
+import { buildCrmGapFinding } from "../lib/meetings/crmGapFinding.ts";
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), "..");
 const DATA_SOURCE_ID = "600498eb-b6e0-41af-a625-e369cbe5fc6a";
@@ -198,26 +199,41 @@ for (const [disposition, count, why] of BUCKETS) {
 // "still does not send a dedupeKey, so the count is corrected by hand today". A number a
 // human has to retype is a number that goes stale the first time nobody types it — the
 // exact way #132 came to say 26 while #134 said 25 about one pile.
-if (FILE_FLAG) {
-  const finding = buildArchiveFinding(unexplained);
+//
+// Q84 inc.14 — BOTH meeting findings ride the mechanism now. #133 (high severity, "40
+// recorded meetings … the CRM has ZERO meeting activities") was filed by hand on 7/30 with
+// dedupe_key NULL, while inc.7 put the archive fill on a 30-minute timer — so its count
+// goes stale on its own, on the highest-severity row on Rob's page.
+async function fileFinding(finding, emptyMessage) {
   if (!finding) {
     // Deliberately does NOT resolve the existing row: whether a finding is DONE is Rob's
     // call, and closing his to-do from a script is the machine deciding his list is finished.
-    console.log(`--flag: nothing to file — no row needs a human account. Any existing ledger row is left for Rob to close.\n`);
-  } else {
-    const res = await fetch(`${FLAGS_BASE}/api/admin/flags`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(finding),
-    });
-    const body = await res.text();
-    if (!res.ok) {
-      console.error(`--flag: ledger write FAILED ${res.status}: ${body.slice(0, 300)}`);
-      process.exit(1);
-    }
-    const json = JSON.parse(body);
-    console.log(`--flag: ledger ${json.action} — ${json.reason}${json.superseded?.length ? ` (superseded ${json.superseded.join(", ")})` : ""}\n`);
+    console.log(`--flag: ${emptyMessage} Any existing ledger row is left for Rob to close.`);
+    return;
   }
+  const res = await fetch(`${FLAGS_BASE}/api/admin/flags`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(finding),
+  });
+  const body = await res.text();
+  if (!res.ok) {
+    console.error(`--flag: ledger write FAILED ${res.status}: ${body.slice(0, 300)}`);
+    process.exit(1);
+  }
+  const json = JSON.parse(body);
+  console.log(
+    `--flag: [${finding.dedupeKey}] ledger ${json.action} — ${json.reason}` +
+      `${json.superseded?.length ? ` (superseded ${json.superseded.join(", ")})` : ""}`,
+  );
+}
+
+if (FILE_FLAG) {
+  // Filed in this order on purpose: the CRM gap is the structural one (no path writes a
+  // meeting activity), the human-account rows are the residue no pipeline can ever fix.
+  await fileFinding(buildCrmGapFinding(check), "nothing to file — every archived meeting has a CRM activity.");
+  await fileFinding(buildArchiveFinding(unexplained), "nothing to file — no row needs a human account.");
+  console.log("");
 }
 
 console.log(

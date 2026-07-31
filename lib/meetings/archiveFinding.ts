@@ -58,7 +58,7 @@ const ISO_TAIL = /\s+\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(:\d{2})?(\.\d+)?(Z|[+-]\d{
  * information: a date that does not match the row's own Call Date might be saying something
  * ("… | Q1 close 2026-03-31") and is left alone.
  */
-function trimDateTail(title: string, day: string): string {
+export function trimDateTail(title: string, day: string): string {
   const withoutStamp = title.replace(ISO_TAIL, "").trim();
   if (!day) return withoutStamp;
   const bare = withoutStamp.replace(/\s+(\d{4}-\d{2}-\d{2})$/, (m, d: string) => (d === day ? "" : m));
