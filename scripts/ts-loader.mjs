@@ -22,14 +22,30 @@ import { pathToFileURL } from "node:url";
 
 const CANDIDATES = [".ts", "/index.ts"];
 
+// Q84 inc.15: `@/…` is the repo's own path alias (tsconfig `paths`, `@/*` → repo root) and
+// most of `lib/` imports its siblings that way. Without it here, a script that reaches into
+// `lib/` can only use modules whose whole import graph happens to be relative — which is how
+// `seed-local-crm.mjs` ended up COPYING logic, the exact failure the header above describes.
+// Resolved to a real file URL under the repo root and then handed to Node, so the extension
+// guessing below still applies and a genuinely missing `@/…` file still reports as missing.
+const REPO_ROOT = new URL("../", import.meta.url);
+
 /** Registered as a resolve hook; `next` is Node's own resolution. */
 export async function resolve(specifier, context, next) {
+  if (specifier.startsWith("@/")) {
+    return resolve(new URL(specifier.slice(2), REPO_ROOT).href, context, next);
+  }
   try {
     return await next(specifier, context);
   } catch (err) {
     // Only extension-guessing is in scope. A bare package name that is genuinely absent
     // must keep reporting as absent rather than being probed for on disk.
-    if (err?.code !== "ERR_MODULE_NOT_FOUND" || !specifier.startsWith(".")) throw err;
+    // Relative specifiers, plus the absolute `file:` URLs the `@/` branch above rewrites to —
+    // both are paths into this repo. A bare package name that is genuinely absent must still
+    // report as absent rather than being probed for on disk.
+    if (err?.code !== "ERR_MODULE_NOT_FOUND" || !(specifier.startsWith(".") || specifier.startsWith("file:"))) {
+      throw err;
+    }
     for (const suffix of CANDIDATES) {
       try {
         return await next(specifier + suffix, context);

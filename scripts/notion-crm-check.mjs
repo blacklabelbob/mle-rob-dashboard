@@ -38,6 +38,7 @@ import { checkArchiveAgainstCrm } from "../lib/meetings/archiveCheck.ts";
 import { classifyUnexplainedRows } from "../lib/meetings/unexplainedRows.ts";
 import { buildArchiveFinding } from "../lib/meetings/archiveFinding.ts";
 import { buildCrmGapFinding } from "../lib/meetings/crmGapFinding.ts";
+import { planMeetingActivities } from "../lib/meetings/activityPlan.ts";
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), "..");
 const DATA_SOURCE_ID = "600498eb-b6e0-41af-a625-e369cbe5fc6a";
@@ -130,13 +131,24 @@ async function readCrmMeetings() {
   }));
 }
 
-const [archive, crm] = await Promise.all([readArchive(), readCrmMeetings()]);
+async function readOrgs() {
+  const url = `${SUPABASE_URL}/rest/v1/orgs?select=id,name&order=id&limit=5000`;
+  const res = await fetch(url, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } });
+  if (!res.ok) throw new Error(`Supabase ${res.status}: ${(await res.text()).slice(0, 300)}`);
+  return (await res.json()).map((o) => ({ id: o.id, name: o.name || "" }));
+}
+
+const [archive, crm, orgs] = await Promise.all([readArchive(), readCrmMeetings(), readOrgs()]);
 const check = checkArchiveAgainstCrm(archive, crm);
 const unexplained = classifyUnexplainedRows(archive);
+// Which company would each orphaned meeting attach to? Answered, never acted on — see
+// lib/meetings/activityPlan.ts. The archive rows carry `company`; `ArchiveCheck.archiveOnly`
+// passes them straight through, so the plan reads the same rows printed above.
+const activityPlan = planMeetingActivities(check.archiveOnly, orgs);
 const clip = (s, n) => (s && s.length > n ? `${s.slice(0, n - 1)}…` : s || "");
 
 if (AS_JSON) {
-  console.log(JSON.stringify({ ...check, unexplained }, null, 2));
+  console.log(JSON.stringify({ ...check, unexplained, activityPlan }, null, 2));
   process.exit(0);
 }
 
@@ -157,6 +169,38 @@ if (c.crmMeetings === 0) {
 console.log(`── ${c.archiveOnly} meeting(s) in the archive the CRM has NO activity for ──`);
 console.log(`   (the meeting happened; nothing about it reached the org or person record)`);
 for (const r of check.archiveOnly) console.log(`  ${r.day || "(no date)"}  ${clip(r.title, 60) || "(untitled)"}  ${r.url || ""}`);
+
+// ── who each orphan would attach to (plan only) ────────────────────────────────────────
+// The ledger row says "one pipeline closes all N", which is true and is also why the number
+// has never moved: it reads as one 40-row task. It is not. Some of these rows name a company
+// the CRM already has and a pipeline could file unattended; the rest need a human before any
+// pipeline could help. Printed cheapest-first so the expensive ask shrinks before it is asked.
+const ap = activityPlan.counts;
+if (ap.considered) {
+  console.log(`\n── of those ${ap.considered}, where an activity WOULD go (PLAN ONLY — nothing is written) ──`);
+  console.log(
+    `   ${ap.attachable} attachable · ${ap.unknownCompany} company not in the CRM · ` +
+      `${ap.ambiguousCompany} company name is ambiguous · ${ap.noDate} company known but no Call Date · ` +
+      `${ap.noCompany} row never said who it was with`,
+  );
+  const PLAN_BUCKETS = [
+    ["attachable", "a pipeline could file these unattended once one exists"],
+    ["unknown-company", "cheap for a human — add the org, or fix the spelling in Notion"],
+    ["ambiguous-company", "two CRM orgs share the name — merge/rename first, never picked here"],
+    ["no-date", "company known, day missing — an activity is an event on a day"],
+    ["no-company", "only someone who was there can say who it was with"],
+  ];
+  for (const [disposition, why] of PLAN_BUCKETS) {
+    const items = activityPlan.rows.filter((r) => r.disposition === disposition);
+    if (!items.length) continue;
+    console.log(`\n  ${items.length} · ${disposition.toUpperCase()}`);
+    console.log(`     ${why}`);
+    for (const item of items) {
+      console.log(`     ${item.row.day || "(no date)"}  ${clip(item.row.title, 52) || "(untitled)"}`);
+      console.log(`         → ${item.nextStep}`);
+    }
+  }
+}
 
 console.log(`\n── ${c.crmOnly} CRM meeting activit(ies) with no archive row ──`);
 console.log(`   (either in-person/unrecorded and the archive is short a row, or the CRM row is wrong)`);
