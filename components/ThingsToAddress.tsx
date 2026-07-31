@@ -280,9 +280,13 @@ export default function ThingsToAddress({
               // the six NULL-entity rows that NAME minted ids onto those records' pages, so
               // "has no record page, so resolve it here" became false for them — #137 is on
               // /companies/C-2017 today. One predicate for the tooltip and the filter.
+              // inc.38: the last reader of the RAW named-id set, and the one whose answer
+              // decides whether checking a box loses a finding. inc.37 confirmed the marker's
+              // and the chips' ids against the CRM and left this one inferring from the
+              // pattern. Same `named_ref` the row already carries — the digest gets it too.
               const read = overviewReadControl(
                 f.title,
-                flagHasRecordSurface(titleHref(f), f.title, f.detail)
+                flagHasRecordSurface(titleHref(f), f.title, f.detail, f.named_ref)
               );
               return (
               <li key={f.id} className="flex items-start gap-3 text-sm" title={f.detail}>

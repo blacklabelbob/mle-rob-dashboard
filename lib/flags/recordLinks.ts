@@ -406,13 +406,32 @@ export function selectRecordFlags<
  * `titleHref` is the caller's already-resolved link (server-side across deals; see
  * `flagTitleHref`). A row without one still has a surface if it NAMES a minted id, because
  * `selectRecordFlags` keeps it on that record's page.
+ *
+ * Q84 inc.38 — inc.37 proved a minted-LOOKING id is not a record (prod #101 prints `P-1043`,
+ * an example inside a quote of Rob's own words, and no such person exists) and threaded the
+ * server's confirmed set into the scope marker and the chips. It did not thread it here, so
+ * the one remaining reader of the raw set is the control that decides whether checking a box
+ * loses a finding: `overviewReadControl`'s second clause. On a row whose only named ids were
+ * phantoms this would answer "it has a record page, so it stays there" — the same promise
+ * inc.24 found false for slug rows and inc.25 refused to ship before `/deals/[id]` rendered —
+ * while `selectRecordFlags` intersects against ids the CRM holds and puts it on no page at all.
+ *
+ * Stated rather than oversold: **no live row hits this today.** All 131 prod flags were
+ * re-read and every named id checked against the 19 orgs + 22 people; #101 is the only row
+ * naming a phantom and it also names P-1001 and C-2001, so its tooltip is right either way.
+ * This closes the predicate, not an observed lie — the ladder's rule is that an unconfirmed
+ * id never decides anything, and this was the last place one still did.
+ *
+ * `minted` is optional and unproven-by-default, exactly as on `flagNamedScope` and
+ * `flagRecordChips`: a caller that cannot say gets today's answer, never a silent drop.
  */
 export function flagHasRecordSurface(
   titleHref: string | null | undefined,
   title: string | null | undefined,
   detail: string | null | undefined,
+  minted?: Iterable<string> | null,
 ): boolean {
-  return Boolean(titleHref) || flagNamedRecordIds(title, detail).length > 0;
+  return Boolean(titleHref) || mintedOnly(flagNamedRecordIds(title, detail), minted).length > 0;
 }
 
 // Q84 inc.28 — inc.26 put the six NULL-entity rows onto the pages of the records they NAME,

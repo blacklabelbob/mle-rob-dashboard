@@ -566,6 +566,40 @@ describe("flagHasRecordSurface (inc.27 — the tooltip's question, answered like
     // ...and the row no page shows is the one told to resolve on the Overview.
     expect(flagHasRecordSurface(null, rows[2].title, rows[2].detail)).toBe(false);
   });
+
+  // Q84 inc.38 — inc.37 proved a minted-LOOKING id is not a record and confirmed the
+  // marker's and the chips' ids against the CRM. This was the last reader still inferring
+  // a record page from the pattern alone, and it is the one whose answer decides whether
+  // checking a box on the Overview clears a finding's only surface.
+  it("inc.38: a phantom id is not a record page — the tooltip stops promising one", () => {
+    // #101's real shape, reduced: the CRM holds P-1001 and C-2001; P-1043 is an example
+    // inside a quote and no such person exists.
+    const detail = 'the id in the address bar is the one to say out loud ("pull up P-1043")';
+    expect(flagHasRecordSurface(null, "Say the id, not the name", detail, ["P-1001", "C-2001"])).toBe(false);
+    // Unfiltered — a caller that cannot say — keeps today's answer rather than dropping it.
+    expect(flagHasRecordSurface(null, "Say the id, not the name", detail)).toBe(true);
+  });
+
+  it("inc.38: a row naming a real record keeps its page even when it also names a phantom", () => {
+    // Prod #101 itself: the only partial row on the ledger today (all 131 re-read). Its
+    // tooltip was right before this change and must stay right after it.
+    const detail = "P-1001 at C-2001 — the id to say out loud is the one in the bar (\"pull up P-1043\")";
+    expect(flagHasRecordSurface(null, "Say the id, not the name", detail, ["P-1001", "C-2001"])).toBe(true);
+  });
+
+  it("inc.38: a title link still wins before any id is confirmed — evidence order unchanged", () => {
+    // A filed row reaches its page through `entity_ref`/deals, never through the sentence,
+    // so an empty confirmed set must not take the page away from it.
+    expect(flagHasRecordSurface("/deals/deal-gulf-coast-equity-phase4", "Gulf Coast equity", "P-1043", [])).toBe(true);
+  });
+
+  it("inc.38: agrees with selectRecordFlags on the phantom row too — still one predicate", () => {
+    // The same coupling as the test above, extended to the case inc.37 uncovered: a page
+    // asked for by minted id can never match a phantom, so the tooltip must not claim one.
+    const rows = [{ id: 101, entity_id: null, title: "Say the id", detail: "pull up P-1043" }];
+    expect(selectRecordFlags(rows, ["P-1001"], ["P-1001"])).toHaveLength(0);
+    expect(flagHasRecordSurface(null, rows[0].title, rows[0].detail, ["P-1001", "C-2001"])).toBe(false);
+  });
 });
 
 // Q84 inc.28 — the row is on the page (inc.26) and the Overview no longer calls it
