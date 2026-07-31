@@ -8,6 +8,7 @@ import {
   overviewReadControl,
   proposalDomain,
   resolveControlCopy,
+  resolveNoteFor,
   writeFailureMessage,
   type WriteFailure,
 } from "@/lib/comms/proposalFlag";
@@ -22,7 +23,6 @@ import {
   archiveResolvedFromMark,
   reopenFailureMessage,
   resolutionNoteBody,
-  resolvedFromNote,
   supersededBy,
 } from "@/lib/flags/supersede";
 import {
@@ -212,17 +212,15 @@ export default function ThingsToAddress({
     // inc.30's tooltip promises exactly that — but only the page it was clicked
     // on knows which one that was. Recorded in the note (no migration; the same
     // grammar `supersededNote` already uses), and only for a row that names
-    // ANOTHER record. Never on a proposal — a proposal's closure is already told
-    // in full by `archiveConsequence`, and "resolved from C-…" on top of it is a
-    // second sentence about the same click. inc.44 made that reader immune to the
-    // clause (it strips via `resolutionNoteBody`), so this is now a choice about
-    // wording, not a load-bearing promise this component keeps on its behalf.
-    const note = proposalDomain(f.title)
-      ? withNote
-      // inc.43: `home` is the record the row is filed on. A row filed on C-2001 arrives
-      // on a member's page through `org_memberships` with no named scope, and until now
-      // that click recorded nothing — so C-2001's archive read as if it was closed there.
-      : resolvedFromNote(withNote, person ?? entity, others ?? [], home);
+    // ANOTHER record. inc.43: `home` is the record the row is FILED on — a row filed
+    // on C-2001 arrives on a member's page through `org_memberships` with no named
+    // scope, and until then that click recorded nothing, so C-2001's archive read as
+    // if it was closed there.
+    // inc.45: the proposal exemption used to be a ternary right here, with a comment
+    // asking the next caller to remember it. It now lives inside `resolveNoteFor`,
+    // where the Resolve BUTTON reads the same answer — this component no longer keeps
+    // a promise on the button's behalf, and a second resolve path cannot skip it.
+    const note = resolveNoteFor(f.title, withNote, person ?? entity, others ?? [], home);
     // The note is cleared only on success: on a proposal it is the sole record
     // of why a domain was shut out, and re-typing it is how it ends up blank.
     if (await patch(f.id, f.title, { id: f.id, action: "resolve", note }, "resolve")) {

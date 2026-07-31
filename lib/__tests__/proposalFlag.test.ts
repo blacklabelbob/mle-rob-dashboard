@@ -7,6 +7,7 @@ import {
   overviewReadControl,
   proposalDomain,
   resolveControlCopy,
+  resolveNoteFor,
   suggestedNameFromDetail,
   verticalPickerState,
   writeFailureMessage,
@@ -501,12 +502,58 @@ describe("resolveControlCopy (inc.18 — the permanent click, labelled)", () => 
     });
 
     it("leaves a proposal row's permanence copy alone", () => {
-      // A proposal never gets the clause written (`resolve()` skips it), so promising one
-      // would be a false statement about the click.
+      // A proposal never gets the clause written, so promising one would be a false
+      // statement about the click. inc.45: this is now DERIVED — the button asks
+      // `resolveNoteFor` the same question the writer answers, instead of inheriting
+      // a ternary the component happened to hold.
       const copy = resolveControlCopy(proposal, { others: ["C-2018"], here: null }, "P-1018");
       expect(copy.hint).toContain("permanent");
       expect(copy.hint).not.toContain("P-1018");
     });
+
+    it("stays silent on a proposal filed on ANOTHER record — inc.43's stamping shape", () => {
+      // inc.43 taught the no-others branch to disclose a stamp when the row is filed
+      // elsewhere. A proposal reaching a member's page through `org_memberships` hits
+      // exactly that shape, and must still say nothing: the clause is not written there.
+      const copy = resolveControlCopy(proposal, null, "P-1018", "C-2001");
+      expect(copy.hint).not.toContain("P-1018");
+      expect(copy.hint).not.toContain("closed from");
+      expect(copy.hint).toBe(resolveControlCopy(proposal).hint);
+    });
+  });
+});
+
+describe("resolveNoteFor (inc.45 — one rule for what the click writes)", () => {
+  const proposal = proposalTitle("the-title-base.com");
+  const ordinary = "PropLogix — business name mismatch";
+
+  it("writes no provenance clause on a proposal, however it is scoped", () => {
+    // Both shapes that stamp on an ordinary row: named others, and filed-elsewhere.
+    expect(resolveNoteFor(proposal, "vendor, not a customer", "P-1018", ["C-2018"])).toBe(
+      "vendor, not a customer",
+    );
+    expect(resolveNoteFor(proposal, "vendor", "P-1018", [], "C-2001")).toBe("vendor");
+    expect(resolveNoteFor(proposal, "", "P-1018", ["C-2018"])).toBe("");
+  });
+
+  it("is `resolvedFromNote`, unchanged, on an ordinary row", () => {
+    // Not a re-implementation — the ordinary ladder is the one the archive already reads.
+    for (const args of [
+      ["why", "P-1018", ["C-2018"], null],
+      ["why", "P-1018", [], "C-2001"],
+      ["why", "P-1018", [], null],
+      ["", "C-2017", ["C-2018"], "C-2017"],
+      ["why", null, ["C-2018"], "C-2001"],
+    ] as const) {
+      expect(resolveNoteFor(ordinary, args[0], args[1], args[2], args[3])).toBe(
+        resolvedFromNote(args[0], args[1], args[2], args[3]),
+      );
+    }
+  });
+
+  it("trims a proposal's note the same way the ordinary branch does", () => {
+    // The skip must not become a second grammar: `resolvedFromNote` trims its body.
+    expect(resolveNoteFor(proposal, "  vendor  ", "P-1018", ["C-2018"])).toBe("vendor");
   });
 });
 

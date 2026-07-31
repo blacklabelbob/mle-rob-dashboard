@@ -348,14 +348,56 @@ export function resolveControlCopy(
       notePlaceholder: "why is this settled on every record it names?",
     };
   }
+  // Q84 inc.45 — the proposal branch's silence about provenance is now DERIVED, not
+  // hardcoded. It was true only because `ThingsToAddress.resolve()` held a ternary; the
+  // button itself never asked. That is the shape inc.44 took out of `archiveConsequence`
+  // one layer down — a reader whose correctness is a promise the caller keeps — and
+  // inc.35's rule for the other branch already says the answer must come from asking the
+  // writer. Same question, same answer, one function: today `resolveNoteFor` writes no
+  // clause on a proposal, so this stays silent and the hint is byte-identical; the day
+  // that rule changes, the button follows instead of lying.
+  const proposalStamp = resolvedFrom(
+    resolveNoteFor(title, "", fromRecord, scope?.others ?? [], homeRecord),
+  );
   return {
     label: "Not a company",
     // The tooltip and the hint carry the same fact, because the button and the
     // line beneath it disagreeing is the inc.17 defect.
     tooltip: `permanent — ${domain} is never proposed again`,
-    hint: `Dismissing is permanent: ${domain} won't be proposed again. If it is a company, use Create company.`,
+    hint:
+      `Dismissing is permanent: ${domain} won't be proposed again. If it is a company, use Create company.` +
+      (proposalStamp ? ` The archive will show it was closed from ${proposalStamp}'s page.` : ""),
     notePlaceholder: "why isn't this a company?",
   };
+}
+
+/**
+ * Q84 inc.45 — what a resolve click WRITES, decided in one place.
+ *
+ * The rule "a proposal's closure carries no `Resolved from …` clause" lived as a ternary
+ * inside `ThingsToAddress.resolve()`, with a comment asking the next caller to remember
+ * it. inc.44 removed the mirror image of that arrangement from `archiveConsequence` — a
+ * reader that was correct only because one caller kept a promise — and the reasoning is
+ * unchanged here: a second resolve path (a route, a script, a second component) writes the
+ * clause onto a proposal without touching this file, and the archive then tells Rob to
+ * hand-add a company that already exists. The rule is a wording choice (inc.44 proved the
+ * archive no longer depends on it), and a choice is exactly what has to live where every
+ * caller reads it.
+ *
+ * It sits in THIS file, not in `lib/flags/supersede.ts`, because the rule is about
+ * proposals and `supersede` knowing what a proposal is would be an import cycle.
+ *
+ * @param title the flag's title — the only thing that says whether this row is a proposal
+ */
+export function resolveNoteFor(
+  title: string,
+  note: string,
+  fromRecord?: string | null,
+  others: readonly string[] = [],
+  homeRecord?: string | null,
+): string {
+  if (proposalDomain(title)) return (note ?? "").trim();
+  return resolvedFromNote(note, fromRecord, others, homeRecord);
 }
 
 /**
