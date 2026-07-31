@@ -75,9 +75,20 @@ export type UnexplainedReport = {
 };
 
 /**
- * Titles that name no meeting. Same ladder as `scripts/notion-meetings-sync.mjs` uses to
- * decide a title is safe to overwrite — the same string should mean the same thing on both
- * sides of the seam, or one pass will "fix" what the other calls fine.
+ * Titles that name no meeting.
+ *
+ * THIS IS THE ONLY LADDER. `scripts/notion-meetings-sync.mjs` imports this exact function
+ * through `scripts/ts-loader.mjs` to decide which titles it may overwrite — it used to carry
+ * a second hand-kept copy called `isJunkTitle`, and two copies of a predicate that decides
+ * "may this pass destroy what a human typed" is a divergence waiting to happen. One ladder,
+ * one place, graded by the tests below: the same string now means the same thing on both
+ * sides of the seam because it is the same code, not because two comments say so.
+ *
+ * Every rule here is TIMID on purpose. A false positive does not merely misfile a row — it
+ * licenses the sync to overwrite a title a person chose, which is the one change that would
+ * make the archive untrustworthy. So each pattern must match the WHOLE string: "Meeting
+ * 2026-07-30" says nothing and is fair game; "Meeting 2026-07-30 with Gulf Coast" names a
+ * counterparty and is left alone.
  */
 export function isPlaceholderTitle(title: string | undefined): boolean {
   const s = (title || "").trim();
@@ -86,6 +97,22 @@ export function isPlaceholderTitle(title: string | undefined): boolean {
   if (/^[a-z]{3}-[a-z]{4}-[a-z]{3}$/i.test(s)) return true;
   if (/^[A-Z][a-z]{2} \d{1,2},? \d{1,2}:\d{2}\s?[AP]M$/i.test(s)) return true;
   if (/^fireflies demo meeting$/i.test(s)) return true;
+  // A bare ISO timestamp, e.g. "2026-07-29T14:01:00.000-04:00" — a machine's stamp that
+  // leaked into the title field. Same reasoning as the "Jul 29, 02:13 PM" rule above. And
+  // "Meeting 2026-07-30" is the same nothing with the word in front: it restates a column
+  // the row already has, so it needs a NAME, not a human who was in the room. (Q84 inc.3
+  // found three of these misfiled as needs-human-account for want of this rule.)
+  //
+  // The optional prefix and the timestamp tail are ONE pattern on purpose. Written as two
+  // rules they drifted immediately — the first draft of this ladder gave "Meeting …" a
+  // shorter tail than the bare stamp, and `Meeting 2026-06-16T11:05:00.000-04:00` slipped
+  // through while the identical string without the word was caught.
+  if (
+    /^(meeting[\s:_-]+)?\d{4}-\d{2}-\d{2}([ T]\d{2}:\d{2}(:\d{2})?(\.\d+)?(Z|[+-]\d{2}:?\d{2})?)?$/i.test(
+      s,
+    )
+  )
+    return true;
   // A derived title states what was known and nothing more; it is honest, but it is not a
   // human naming the meeting, so it can never stand as evidence that two rows are the same.
   if (/^untitled recording \(/i.test(s)) return true;

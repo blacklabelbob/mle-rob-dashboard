@@ -19,10 +19,11 @@
 // junk-titled duplicate beside a good row. So every recording is matched to an existing row
 // first, and only a genuinely unmatched one is created.
 //
-// Usage:
-//   node scripts/notion-meetings-sync.mjs            # PLAN (default, writes nothing)
-//   node scripts/notion-meetings-sync.mjs --apply    # write to Notion
-//   node scripts/notion-meetings-sync.mjs --json     # machine-readable plan
+// Usage (must go through the TS loader — the junk-title ladder is imported, not copied):
+//   npm run sync:meetings              # PLAN (default, writes nothing)
+//   npm run sync:meetings -- --apply   # write to Notion
+//   npm run sync:meetings -- --json    # machine-readable plan
+//   node --import ./scripts/ts-loader.mjs scripts/notion-meetings-sync.mjs [--apply|--json]
 //
 // Key: NOTION_API_KEY from .env.local, else ~/Projects/!env/.env.master.
 
@@ -30,6 +31,11 @@ import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { homedir } from "node:os";
+// The junk-title ladder lives in the tested module, not here — see the comment on
+// `isJunkTitle` below. This is why the script must be run through `scripts/ts-loader.mjs`
+// (`npm run sync:meetings`); `node scripts/notion-meetings-sync.mjs` alone can no longer
+// resolve it, and failing loudly on a missing import beats keeping a second copy in step.
+import { isPlaceholderTitle } from "../lib/meetings/unexplainedRows.ts";
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), "..");
 const BODY_DIR = join(REPO, "MLE Internal Meetings", "transcripts");
@@ -102,19 +108,19 @@ const domainOf = (e) => (typeof e === "string" && e.includes("@") ? e.split("@")
 
 /**
  * A title is JUNK when it identifies nothing: empty, the literal word "Meeting", a Google
- * Meet room code (bsn-kwzp-wch), a bare timestamp ("Jul 29, 02:13 PM"), or the Fireflies
- * demo placeholder. Anything else is a human's title and is LEFT ALONE — overwriting a
- * title a person chose is the one change that would make this pass untrustworthy.
+ * Meet room code (bsn-kwzp-wch), a bare timestamp ("Jul 29, 02:13 PM" or an ISO stamp), the
+ * Fireflies demo placeholder, or the word "Meeting" plus a date it already carries in a
+ * column. Anything else is a human's title and is LEFT ALONE — overwriting a title a person
+ * chose is the one change that would make this pass untrustworthy.
+ *
+ * THE LADDER IS NOT DEFINED HERE ANY MORE, and that is the point of Q84 inc.4. This file
+ * used to keep its own hand-copied `isJunkTitle` beside `lib/meetings/unexplainedRows.ts`'s
+ * `isPlaceholderTitle`, with a comment on each asking the reader to keep them in step. Two
+ * copies of the predicate that decides "may this pass destroy what a human typed" is a
+ * divergence waiting to happen — so this now imports the tested one and the comment is no
+ * longer load-bearing.
  */
-function isJunkTitle(t) {
-  const s = (t || "").trim();
-  if (!s) return true;
-  if (/^meeting$/i.test(s)) return true;
-  if (/^[a-z]{3}-[a-z]{4}-[a-z]{3}$/i.test(s)) return true;
-  if (/^[A-Z][a-z]{2} \d{1,2},? \d{1,2}:\d{2}\s?[AP]M$/i.test(s)) return true;
-  if (/^fireflies demo meeting$/i.test(s)) return true;
-  return false;
-}
+const isJunkTitle = isPlaceholderTitle;
 
 /** Build an honest title from what is actually known. Never invents a topic. */
 function deriveTitle(body) {

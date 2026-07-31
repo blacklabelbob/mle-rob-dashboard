@@ -26,7 +26,8 @@
     "transcripts:verify": "node --import ./scripts/ts-loader.mjs scripts/transcripts-to-supabase.mjs --verify",
     "transcripts:apply": "node --import ./scripts/ts-loader.mjs scripts/transcripts-to-supabase.mjs --apply",
     "gen:role-grants": "node --import ./scripts/ts-loader.mjs scripts/gen-role-grants.mjs",
-    "check:archive": "node --import ./scripts/ts-loader.mjs scripts/notion-crm-check.mjs"
+    "check:archive": "node --import ./scripts/ts-loader.mjs scripts/notion-crm-check.mjs",
+    "sync:meetings": "node --import ./scripts/ts-loader.mjs scripts/notion-meetings-sync.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.110.0",

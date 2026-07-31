@@ -30,8 +30,36 @@ describe("isPlaceholderTitle", () => {
     expect(isPlaceholderTitle("Untitled recording (12 min) — 2026-06-18")).toBe(true);
   });
 
+  it("treats 'Meeting <date>' as a placeholder — it restates a column and names nothing", () => {
+    expect(isPlaceholderTitle("Meeting 2026-07-30")).toBe(true);
+    expect(isPlaceholderTitle("meeting 2026-07-30")).toBe(true);
+    expect(isPlaceholderTitle("Meeting - 2026-07-30")).toBe(true);
+    expect(isPlaceholderTitle("Meeting 2026-07-30 14:01")).toBe(true);
+    // The full ISO tail, with the word in front. A first draft gave this rule a shorter
+    // tail than the bare-stamp rule and this exact live row slipped through.
+    expect(isPlaceholderTitle("Meeting 2026-06-16T11:05:00.000-04:00")).toBe(true);
+  });
+
+  it("treats a bare ISO timestamp as a placeholder — a machine stamp in the title field", () => {
+    expect(isPlaceholderTitle("2026-07-29T14:01:00-04:00")).toBe(true);
+    expect(isPlaceholderTitle("2026-07-29T14:01:00Z")).toBe(true);
+    expect(isPlaceholderTitle("2026-07-29 14:01")).toBe(true);
+    expect(isPlaceholderTitle("2026-07-29")).toBe(true);
+  });
+
   it("accepts a real human title", () => {
     expect(isPlaceholderTitle("Omega principals — in person")).toBe(false);
+  });
+
+  // THE DIRECTION THAT MATTERS MOST. This predicate is what licenses
+  // `scripts/notion-meetings-sync.mjs` to OVERWRITE a title, so a false positive destroys
+  // what a person typed. Every rule must match the whole string and nothing more.
+  it("leaves a human title alone even when a date or the word 'Meeting' is in it", () => {
+    expect(isPlaceholderTitle("Meeting 2026-07-30 with Gulf Coast")).toBe(false);
+    expect(isPlaceholderTitle("2026-07-29 Omega debrief")).toBe(false);
+    expect(isPlaceholderTitle("Weekly Review 2026-07-17")).toBe(false);
+    expect(isPlaceholderTitle("Meeting notes")).toBe(false);
+    expect(isPlaceholderTitle("Q3 planning meeting")).toBe(false);
   });
 });
 
