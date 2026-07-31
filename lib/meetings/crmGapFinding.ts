@@ -50,7 +50,12 @@ function rowLines(rows: ArchiveRow[]): string {
  * from the arithmetic.
  */
 const HUMAN_BUCKETS: Array<[ActivityDisposition, string]> = [
-  ["unknown-company", "the company is named and the CRM does not have it — add the org, or fix the spelling in Notion"],
+  [
+    "unknown-company",
+    // Q84 inc.17: some of these name a DOMAIN, and the fix for those is one field on the org
+    // in the CRM, not a retype in Notion. The per-row line below says which is which.
+    "the company is named and the CRM does not have it — add the org, add its domain, or fix the spelling in Notion",
+  ],
   ["ambiguous-company", "two CRM orgs share the name — merge or rename them first; picking one here would weld the call onto whichever sorted first"],
   ["no-date", "the company is known and the row has no Call Date — an activity is an event on a day"],
   ["attachable", "a pipeline could file these unattended once one exists — nothing else is owed"],

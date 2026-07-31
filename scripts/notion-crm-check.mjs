@@ -132,10 +132,17 @@ async function readCrmMeetings() {
 }
 
 async function readOrgs() {
-  const url = `${SUPABASE_URL}/rest/v1/orgs?select=id,name&order=id&limit=5000`;
+  // domain AND website: the live rows use them inconsistently (one org has a bare `domain`,
+  // most have only a full `website` URL), and reading one field would miss real orgs.
+  const url = `${SUPABASE_URL}/rest/v1/orgs?select=id,name,domain,website&order=id&limit=5000`;
   const res = await fetch(url, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } });
   if (!res.ok) throw new Error(`Supabase ${res.status}: ${(await res.text()).slice(0, 300)}`);
-  return (await res.json()).map((o) => ({ id: o.id, name: o.name || "" }));
+  return (await res.json()).map((o) => ({
+    id: o.id,
+    name: o.name || "",
+    domain: o.domain || "",
+    website: o.website || "",
+  }));
 }
 
 const [archive, crm, orgs] = await Promise.all([readArchive(), readCrmMeetings(), readOrgs()]);
@@ -185,7 +192,7 @@ if (ap.considered) {
   );
   const PLAN_BUCKETS = [
     ["attachable", "a pipeline could file these unattended once one exists"],
-    ["unknown-company", "cheap for a human — add the org, or fix the spelling in Notion"],
+    ["unknown-company", "cheap for a human — add the org, its domain, or fix the spelling in Notion"],
     ["ambiguous-company", "two CRM orgs share the name — merge/rename first, never picked here"],
     ["no-date", "company known, day missing — an activity is an event on a day"],
     ["no-company", "only someone who was there can say who it was with"],
