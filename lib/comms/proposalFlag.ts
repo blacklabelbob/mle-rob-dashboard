@@ -302,9 +302,17 @@ export function resolveControlCopy(
     // #137 is open and reaches P-1018, P-1019 and P-1022 that way. The weaker clause is
     // true on both kinds of page, so an unproven caller says that instead.
     const named = scope?.here != null;
+    // Q84 inc.40 — the plural was written for #137 and is wrong the moment the row
+    // names ONE other record. On P-1018's page a finding naming only C-2017 arrives
+    // through `org_memberships` with `here === null` and `others === ["C-2017"]`, and
+    // "closed on all of them at once" then invites Rob to picture a set when the whole
+    // finding lives on exactly one page — a page he is not standing on. The singular
+    // says the same true thing and says which page it is.
     const spans = named
       ? `This row is not filed here. Resolving clears it from ${list} too.`
-      : `This row is not filed here. Resolving clears it from ${list} — one finding, closed on all of them at once.`;
+      : others.length === 1
+        ? `This row is not filed here. Resolving clears it from ${list} — the only record it names.`
+        : `This row is not filed here. Resolving clears it from ${list} — one finding, closed on all of them at once.`;
     // Ask the writer what it will write; never re-implement the guard it uses.
     const stamped = resolvedFrom(resolvedFromNote("", fromRecord, others));
     const provenance = stamped
@@ -312,7 +320,16 @@ export function resolveControlCopy(
       : "";
     return {
       label: "Resolve",
-      tooltip: `also clears this finding from ${list}`,
+      // Q84 inc.40 — "ALSO" is the tooltip's copy of the word inc.33 took out of the
+      // hint, and it was left in. `also clears this finding from C-2017` means "as well
+      // as clearing it here", which is exactly the claim `here === null` disproves: the
+      // page being read is not one of the records this finding is about, it is a page
+      // the `?person=` fan-out reached through a membership. The hint says the weaker,
+      // true thing on that branch; the tooltip — the one sentence sitting ON the control
+      // at the moment of the click — kept promising the stronger one, so the button and
+      // the line under it disagreed. That is the inc.17 defect this file keeps citing,
+      // one control later.
+      tooltip: named ? `also clears this finding from ${list}` : `clears this finding from ${list}`,
       hint: `${spans}${provenance}`,
       // Not "both": #129 names six records, and a prompt that miscounts the row it is
       // attached to is the class of defect this whole thread has been unpicking.

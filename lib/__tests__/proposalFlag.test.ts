@@ -381,6 +381,43 @@ describe("resolveControlCopy (inc.18 — the permanent click, labelled)", () => 
       expect(absent.hint).not.toContain("too");
     });
 
+    // Q84 inc.40 — the same question, asked of the tooltip instead of the hint.
+    it('drops "also" from the tooltip on a page the finding does not name', () => {
+      // "ALSO clears this finding from C-2017" means "as well as clearing it here" —
+      // the exact claim `here === null` disproves. The hint stopped saying it at inc.33;
+      // the tooltip, which is the sentence sitting ON the control at the click, did not.
+      const unnamed = resolveControlCopy(ordinary, { others: ["C-2017", "C-2018"], here: null });
+      expect(unnamed.tooltip).not.toContain("also");
+      expect(unnamed.tooltip).toContain("clears this finding from C-2017, C-2018");
+      // And it is still SAID on the page that is genuinely one of the records named.
+      const namedHere = resolveControlCopy(ordinary, { others: ["C-2018"], here: "C-2017" });
+      expect(namedHere.tooltip).toContain("also clears this finding from C-2018");
+    });
+
+    it("treats an absent `here` as unproven in the tooltip too, never as proven", () => {
+      // Same unproven-by-default rule the hint follows: no `here` ⇒ the weaker sentence.
+      const absent = resolveControlCopy(ordinary, { others: ["C-2018"] });
+      expect(absent.tooltip).toBe(resolveControlCopy(ordinary, { others: ["C-2018"], here: null }).tooltip);
+      expect(absent.tooltip).not.toContain("also");
+    });
+
+    it("does not call one record a set the reviewer is closing all at once", () => {
+      // The inc.28 wording was written for #137, which names two orgs. A row naming ONE
+      // org reaches a person's page the same way (`?person=` → `org_memberships`), and
+      // there "closed on all of them at once" invites Rob to picture a set when the whole
+      // finding lives on a single page he is not standing on.
+      const one = resolveControlCopy(ordinary, { others: ["C-2017"], here: null });
+      expect(one.hint).not.toContain("all of them");
+      expect(one.hint).toContain("This row is not filed here.");
+      expect(one.hint).toContain("C-2017");
+      expect(one.hint).toContain("the only record it names");
+      expect(one.hint).not.toContain("too");
+      // Two or more still get the plural — this narrows a sentence, it does not replace it.
+      expect(resolveControlCopy(ordinary, { others: ["C-2017", "C-2018"], here: null }).hint).toContain(
+        "one finding, closed on all of them at once",
+      );
+    });
+
     it("keeps the tooltip and the hint claiming the same thing on both branches (inc.17 rule)", () => {
       for (const here of ["C-2017", null]) {
         const copy = resolveControlCopy(ordinary, { others: ["C-2018", "P-1010"], here });
