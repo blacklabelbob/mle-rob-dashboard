@@ -31,17 +31,20 @@
 // Usage:  node scripts/fireflies-ingest.mjs [--limit 50]
 // Key:    FIREFLIES_API_KEY — read from the environment, else ~/Projects/!env/.env.master
 
-import { mkdirSync, writeFileSync, readFileSync, existsSync } from "node:fs";
+import { mkdirSync, writeFileSync, readFileSync, existsSync, readdirSync, rmSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { homedir } from "node:os";
 import { redactAttendees } from "./manifest-privacy.mjs";
 import { indexPreviousManifest, resolveFailedRow } from "./manifest-carryforward.mjs";
+import { EXIT_QUOTA, parseRateLimit, cooldownState, cooldownNotice } from "./fireflies-quota.mjs";
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), "..");
 const OUT_DIR = join(REPO, "MLE Internal Meetings");
 const BODY_DIR = join(OUT_DIR, "transcripts");
 const MANIFEST = join(OUT_DIR, "manifest.json");
+// Gitignored: this is machine state about an API's quota, not a fact about a meeting.
+const COOLDOWN = join(OUT_DIR, ".fireflies-quota-until");
 const ENDPOINT = "https://api.fireflies.ai/graphql";
 
 const limitArg = process.argv.indexOf("--limit");
@@ -71,8 +74,39 @@ async function gql(key, query, variables = {}) {
   if (!res.ok) throw new Error(`Fireflies HTTP ${res.status}: ${text.slice(0, 400)}`);
   const json = JSON.parse(text);
   // GraphQL returns 200 with an errors array — a silent partial is worse than a stop.
-  if (json.errors?.length) throw new Error(`Fireflies GraphQL: ${JSON.stringify(json.errors).slice(0, 500)}`);
+  if (json.errors?.length) {
+    const err = new Error(`Fireflies GraphQL: ${JSON.stringify(json.errors).slice(0, 500)}`);
+    // A daily quota is not a broken pipeline; tag it so the caller can say which one happened.
+    const { limited, retryAfterMs } = parseRateLimit(json.errors);
+    if (limited) {
+      err.rateLimited = true;
+      err.retryAfterMs = retryAfterMs;
+    }
+    throw err;
+  }
   return json.data;
+}
+
+/** Transcripts already in the repo — the count a cooldown notice reports as untouched. */
+function bodiesOnDisk() {
+  try {
+    return readdirSync(BODY_DIR).filter((f) => f.endsWith(".json")).length;
+  } catch {
+    return 0;
+  }
+}
+
+/**
+ * Stop the run because Fireflies' quota is spent. Records the expiry so the next 30-minute
+ * firing skips the API entirely instead of spending a request to be refused again, and exits
+ * EX_TEMPFAIL so the wrapper reports a wait rather than a failure. Writes nothing else: the
+ * manifest is left exactly as the last good run wrote it.
+ */
+function stopForQuota(retryAfterMs) {
+  if (retryAfterMs) writeFileSync(COOLDOWN, `${retryAfterMs}\n`);
+  const minutesLeft = retryAfterMs ? Math.ceil((retryAfterMs - Date.now()) / 60_000) : null;
+  console.error(cooldownNotice({ untilMs: retryAfterMs, minutesLeft, onDisk: bodiesOnDisk() }));
+  process.exit(EXIT_QUOTA);
 }
 
 const LIST = `
@@ -105,7 +139,27 @@ mkdirSync(BODY_DIR, { recursive: true });
 // this run is gone from the committed file.
 const previousRows = indexPreviousManifest(existsSync(MANIFEST) ? readFileSync(MANIFEST, "utf8") : null);
 
-const { transcripts } = await gql(key, LIST, { limit: LIMIT });
+// Don't spend a request to be refused. If a previous run banked an expiry that has not passed,
+// this run is over before it starts — same outcome, same exit code, zero API calls consumed.
+const cooldown = cooldownState({
+  stamp: existsSync(COOLDOWN) ? readFileSync(COOLDOWN, "utf8") : null,
+  now: Date.now(),
+});
+if (cooldown.waiting) {
+  console.error(cooldownNotice({ untilMs: cooldown.untilMs, minutesLeft: cooldown.minutesLeft, onDisk: bodiesOnDisk() }));
+  process.exit(EXIT_QUOTA);
+}
+// Expired stamp: the quota lifted, so the file is a lie about the present. Clear it now rather
+// than leaving stale state for a future reader to misinterpret.
+if (existsSync(COOLDOWN)) rmSync(COOLDOWN, { force: true });
+
+let transcripts;
+try {
+  ({ transcripts } = await gql(key, LIST, { limit: LIMIT }));
+} catch (err) {
+  if (err.rateLimited) stopForQuota(err.retryAfterMs);
+  throw err;
+}
 console.log(`Fireflies returned ${transcripts.length} meeting(s).`);
 
 const manifest = [];
@@ -117,6 +171,11 @@ for (const t of transcripts) {
   try {
     ({ transcript: full } = await gql(key, ONE, { id: t.id }));
   } catch (err) {
+    // A quota hit mid-loop is different in kind from one unreadable meeting: every remaining
+    // fetch will be refused too. Stop before writing a manifest built from a half-read run —
+    // the file on disk stays exactly as the last good run left it, which is the carry-forward
+    // rule taken to its conclusion rather than an exception to it.
+    if (err.rateLimited) stopForQuota(err.retryAfterMs);
     // One unreadable meeting must not abandon the other twelve — record it and continue.
     // It must also not DELETE the twelve: this row is carried forward, never downgraded.
     failed += 1;
