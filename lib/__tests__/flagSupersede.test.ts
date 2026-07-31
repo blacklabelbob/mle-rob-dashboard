@@ -306,11 +306,69 @@ describe("archiveResolvedFromMark — why the row is on THIS page (inc.32)", () 
     );
   });
 
-  it("still says nothing at all where inc.31 said nothing — page settled from, Overview, no clause", () => {
+  it("still says nothing at all where inc.31 said nothing — page settled from, Overview", () => {
     expect(archiveResolvedFromMark(stored, "C-2017", true, named)).toBeNull();
     expect(archiveResolvedFromMark(stored, "C-2017", false, named)).toBeNull();
     expect(archiveResolvedFromMark(stored, null, true, named)).toBeNull();
-    expect(archiveResolvedFromMark("plain note", "C-2018", true, named)).toBeNull();
+    // inc.36 amends the fourth case this test used to pin: a clause-less row that names
+    // ANOTHER record now says the ledger does not know where it was closed, instead of
+    // reading as one closed on the page being read. Silence stays for every other shape.
+    expect(archiveResolvedFromMark("plain note", "C-2018", true, named)).not.toBeNull();
+  });
+});
+
+describe("archiveResolvedFromMark — a row with NO provenance clause (inc.36)", () => {
+  // Prod #99, measured 2026-07-31: resolved, `entity_id NULL`, names P-1001 + C-2001,
+  // closed 2026-07-29 — two days before inc.31 taught the click to record where it
+  // happened. It renders on both records' pages carrying no clause at all.
+  const legacy = "Fixed 2026-07-29 (Q70 inc.8, deployed). supabaseStore.fromPerson now persists legacy_slug.";
+  const named = ["P-1001", "C-2001"];
+
+  it("says the ledger does not know, and never guesses a page", () => {
+    const mark = archiveResolvedFromMark(legacy, "C-2001", false, named);
+    expect(mark).toBe(
+      "It is one finding, closed once on every record it names — the ledger has no record of where it was closed."
+    );
+    expect(mark).not.toMatch(/[CP]-\d+/);
+    expect(mark).not.toContain("Resolved from");
+  });
+
+  it("reads the same on either record — neither page is told it was the one worked on", () => {
+    expect(archiveResolvedFromMark(legacy, "P-1001", false, named)).toBe(
+      archiveResolvedFromMark(legacy, "C-2001", false, named)
+    );
+    // `namesThisPage` decides nothing here: there is no click location to qualify.
+    expect(archiveResolvedFromMark(legacy, "P-1001", true, named)).toBe(
+      archiveResolvedFromMark(legacy, "P-1001", false, named)
+    );
+  });
+
+  it("stays silent on a row that spans nothing — 'closed here' is not news", () => {
+    expect(archiveResolvedFromMark(legacy, "C-2001", true, ["C-2001"])).toBeNull();
+    expect(archiveResolvedFromMark(legacy, "C-2001", true, [])).toBeNull();
+  });
+
+  it("is unproven-by-default — no `named`, no sentence", () => {
+    expect(archiveResolvedFromMark(legacy, "C-2001")).toBeNull();
+    expect(archiveResolvedFromMark(legacy, "C-2001", true, null)).toBeNull();
+    expect(archiveResolvedFromMark(legacy, null, true, named)).toBeNull();
+    // A row closed with NO note at all is the commonest shape of this defect, not an
+    // unproven one: nothing was recorded, and the row still names two records.
+    expect(archiveResolvedFromMark(null, "C-2001", true, named)).toBe(
+      archiveResolvedFromMark(legacy, "C-2001", true, named)
+    );
+  });
+
+  it("leaves a superseded row to the story it already tells", () => {
+    const superseded = "Superseded by flag #142 — reopen if this row still matters on its own.";
+    expect(supersededBy(superseded)).toBe(142);
+    expect(archiveResolvedFromMark(superseded, "C-2001", true, named)).toBeNull();
+  });
+
+  it("does not fire once the clause exists — inc.31's rows are untouched", () => {
+    const withClause = resolvedFromNote("", "P-1001", ["C-2001"]);
+    expect(archiveResolvedFromMark(withClause, "P-1001", true, named)).toBeNull();
+    expect(archiveResolvedFromMark(withClause, "C-2001", false, named)).toContain("Resolved from P-1001");
   });
 });
 
@@ -352,6 +410,8 @@ describe("archiveResolvedFromMark — the id the click came FROM (inc.34)", () =
   it("changes nothing about WHERE the sentence appears", () => {
     expect(archiveResolvedFromMark(fromPerson, "P-1018", false, named)).toBeNull();
     expect(archiveResolvedFromMark(fromPerson, null, false, named)).toBeNull();
-    expect(archiveResolvedFromMark("plain note", "C-2017", true, named)).toBeNull();
+    // inc.36: a clause-less row spanning other records is no longer silent — but it still
+    // prints no id, so nothing here claims a click location it cannot prove.
+    expect(archiveResolvedFromMark("plain note", "C-2017", true, named)).not.toMatch(/[CP]-\d+/);
   });
 });

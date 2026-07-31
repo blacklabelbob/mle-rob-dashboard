@@ -264,6 +264,36 @@ export function resolutionNoteBody(note: string | null | undefined): string {
  * absence of the argument is absence of proof, never proof of absence, and the fallback is
  * the wording that cannot be false either way.
  *
+ * Q84 inc.36 — the row that carries NO clause at all.
+ *
+ * inc.35 asked whether the Overview should disclose that its resolve stores no provenance.
+ * Checked against the code: the Overview digest has no Resolve control — it returns early
+ * with a read checkbox and the proposal button, and nothing else — so that click cannot
+ * happen and there is nothing there to disclose. The premise was wrong; the defect it was
+ * looking for is real and lives one page family over, on prod today.
+ *
+ * Flag **#99** is resolved, `entity_id NULL`, names **P-1001 + C-2001**, and was closed on
+ * 2026-07-29 — two days before inc.31 taught the click to record where it happened. It
+ * renders on both records' pages, and on both this function returns `null`, so it reads
+ * exactly like a finding somebody worked on the page being read. Same class as inc.31's
+ * original defect, with the opposite cause: not a sentence that is false, an ABSENCE that
+ * is read as a fact. Every row resolved before inc.31 — and any closed by a script rather
+ * than a click — is in this state, and no migration can invent where they were closed.
+ *
+ * So the line says what IS known and refuses the rest: one finding, closed once for every
+ * record it names, and the ledger has no record of where. It never guesses a page, and it
+ * is written only when the row demonstrably spans records the reader is not on (`named`
+ * carries an id that is not this page) — on an ordinary single-record row "closed here"
+ * is not news, which is the same reason inc.31 writes nothing for `others` empty.
+ *
+ * Unproven-by-default, as everywhere else on this ladder: a caller that passes no `named`
+ * gets silence, never the sentence.
+ *
+ * A SUPERSEDED row is left alone. It already renders the pass that closed it and a Reopen
+ * control beside it (inc.10) — telling Rob the ledger does not know where it was closed,
+ * directly under a line naming the flag that closed it, is a contradiction the reader has
+ * to resolve, and the ledger loses either way.
+ *
  * @param named every id the row prints (`flagNamedScope().named`), when the caller has it
  */
 export function archiveResolvedFromMark(
@@ -274,7 +304,14 @@ export function archiveResolvedFromMark(
 ): string | null {
   const from = resolvedFrom(note);
   const page = (pageId ?? "").trim();
-  if (!from || !page || from === page) return null;
+  if (!from) {
+    if (!page || supersededBy(note) !== null) return null;
+    const spans = Array.isArray(named) && named.some((id) => id !== page);
+    return spans
+      ? "It is one finding, closed once on every record it names — the ledger has no record of where it was closed."
+      : null;
+  }
+  if (!page || from === page) return null;
   const fromIsNamed = Array.isArray(named) && named.includes(from);
   const head = fromIsNamed ? `Resolved from ${from}` : `Resolved from ${from}'s page`;
   return namesThisPage === true
