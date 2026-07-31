@@ -370,6 +370,32 @@ describe("archiveResolvedFromMark — a row with NO provenance clause (inc.36)",
     expect(archiveResolvedFromMark(withClause, "P-1001", true, named)).toBeNull();
     expect(archiveResolvedFromMark(withClause, "C-2001", false, named)).toContain("Resolved from P-1001");
   });
+
+  // Q84 inc.42 — the plural was written for #99's two records.
+  it("says the singular, and WHICH record, when the row names exactly one", () => {
+    const mark = archiveResolvedFromMark(legacy, "P-1018", false, ["C-2001"]);
+    expect(mark).toBe(
+      "It is one finding, and C-2001 is the only record it names — the ledger has no record of where it was closed."
+    );
+    // The reader is on a page the finding never names; the sentence must not imply a set.
+    expect(mark).not.toContain("every record");
+  });
+
+  it("counts what the row NAMES, not what is left over — two records keep inc.36's plural", () => {
+    // On C-2001's own page a two-record row also leaves exactly one other id, and there
+    // "every record it names" is true. `others.length` would have flipped this one too.
+    expect(archiveResolvedFromMark(legacy, "C-2001", true, named)).toBe(
+      "It is one finding, closed once on every record it names — the ledger has no record of where it was closed."
+    );
+    expect(archiveResolvedFromMark(legacy, "P-1018", false, named)).toBe(
+      archiveResolvedFromMark(legacy, "C-2001", true, named)
+    );
+  });
+
+  it("still says nothing when the one record it names IS this page", () => {
+    expect(archiveResolvedFromMark(legacy, "C-2001", true, ["C-2001"])).toBeNull();
+    expect(archiveResolvedFromMark(legacy, "C-2001", false, ["C-2001"])).toBeNull();
+  });
 });
 
 describe("archiveResolvedFromMark — the id the click came FROM (inc.34)", () => {

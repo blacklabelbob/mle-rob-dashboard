@@ -289,6 +289,15 @@ export function resolutionNoteBody(note: string | null | undefined): string {
  * Unproven-by-default, as everywhere else on this ladder: a caller that passes no `named`
  * gets silence, never the sentence.
  *
+ * Q84 inc.42 — the same sentence, counted.
+ *
+ * "on every record it names" was written for #99's two, and inc.40 found the identical
+ * plural on the OPEN row's control being read on a page reached by the person fan-out,
+ * where the row names one record and Rob is not on it. This clause has that shape too, so
+ * it gets that rule — not a second copy of it: one named record that is not this page
+ * prints the singular AND the id, because the reader's next question is which page it
+ * lives on. Two or more keeps inc.36's sentence verbatim.
+ *
  * A SUPERSEDED row is left alone. It already renders the pass that closed it and a Reopen
  * control beside it (inc.10) — telling Rob the ledger does not know where it was closed,
  * directly under a line naming the flag that closed it, is a contradiction the reader has
@@ -306,10 +315,22 @@ export function archiveResolvedFromMark(
   const page = (pageId ?? "").trim();
   if (!from) {
     if (!page || supersededBy(note) !== null) return null;
-    const spans = Array.isArray(named) && named.some((id) => id !== page);
-    return spans
-      ? "It is one finding, closed once on every record it names — the ledger has no record of where it was closed."
-      : null;
+    const all = Array.isArray(named) ? named : [];
+    const others = all.filter((id) => id !== page);
+    if (others.length === 0) return null;
+    // Q84 inc.42 — inc.40's one-vs-many, on the counterpart clause. inc.36's sentence
+    // was authored against prod #99, which names P-1001 AND C-2001, and "on every record
+    // it names" is right there. It is not right when the row names exactly ONE record and
+    // the reader is not on it: `/api/admin/flags?person=` fans out through
+    // `org_memberships`, so a resolved finding naming only C-2001 reaches a member's page
+    // with `others === ["C-2001"]`, and the plural invites Rob to picture a set when the
+    // whole finding lives on one page — the one it does name, and does not say which.
+    // `all.length` is the test, not `others.length`: on C-2001's own page a two-record row
+    // also leaves one other, and there the plural is true. Same fact, right number, and
+    // the singular says WHICH record — exactly the trade inc.40 made on the open row.
+    return all.length === 1
+      ? `It is one finding, and ${others[0]} is the only record it names — the ledger has no record of where it was closed.`
+      : "It is one finding, closed once on every record it names — the ledger has no record of where it was closed.";
   }
   if (!page || from === page) return null;
   const fromIsNamed = Array.isArray(named) && named.includes(from);
