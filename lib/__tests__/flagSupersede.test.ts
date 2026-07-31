@@ -5,6 +5,10 @@ import {
   supersededNote,
   supersededBy,
   reopenFailureMessage,
+  resolvedFromNote,
+  resolvedFrom,
+  resolutionNoteBody,
+  archiveResolvedFromMark,
 } from "../flags/supersede";
 
 describe("planFlagWrite — a recurring finding corrects its own row", () => {
@@ -213,5 +217,63 @@ describe("planFlagWrite — an unchanged re-run writes nothing", () => {
   it("still inserts when the finding recurs after Rob resolved it", () => {
     const plan = planFlagWrite("k", [{ id: 134, status: "resolved", ...content }], content);
     expect(plan.action).toBe("insert");
+  });
+});
+
+// Q84 inc.31 — the resolve write records WHERE a cross-record finding was settled.
+describe("resolvedFromNote / archiveResolvedFromMark (inc.31)", () => {
+  it("appends the clause when the row names another record", () => {
+    expect(resolvedFromNote("same company, kept C-2018", "C-2017", ["C-2018"])).toBe(
+      "same company, kept C-2018 Resolved from C-2017."
+    );
+  });
+
+  it("records the clause alone when the reviewer typed nothing", () => {
+    expect(resolvedFromNote("", "C-2017", ["C-2018"])).toBe("Resolved from C-2017.");
+  });
+
+  it("writes nothing extra on an ordinary row — it names no other record", () => {
+    expect(resolvedFromNote("done", "C-2017", [])).toBe("done");
+    expect(resolvedFromNote("", "C-2017", [])).toBe("");
+  });
+
+  it("writes nothing off a record page, and nothing for a page id that is not a minted id", () => {
+    expect(resolvedFromNote("done", undefined, ["C-2018"])).toBe("done");
+    expect(resolvedFromNote("done", "deal-gulf-coast", ["C-2018"])).toBe("done");
+  });
+
+  it("is idempotent — a note already carrying the clause gets no second one", () => {
+    const once = resolvedFromNote("", "C-2017", ["C-2018"]);
+    expect(resolvedFromNote(once, "C-2017", ["C-2018"])).toBe(once);
+  });
+
+  it("reads the clause back, and separates the reviewer's words from the ledger's", () => {
+    const stored = resolvedFromNote("one company, two rows", "C-2017", ["C-2018"]);
+    expect(resolvedFrom(stored)).toBe("C-2017");
+    expect(resolutionNoteBody(stored)).toBe("one company, two rows");
+    expect(resolutionNoteBody("plain note")).toBe("plain note");
+    expect(resolvedFrom("plain note")).toBeNull();
+  });
+
+  it("cannot be confused with a superseded note — that grammar is anchored at the start", () => {
+    const note = supersededNote(137);
+    expect(resolvedFrom(note)).toBeNull();
+    expect(resolutionNoteBody(note)).toBe(note);
+    expect(supersededBy(resolvedFromNote("", "C-2017", ["C-2018"]))).toBeNull();
+  });
+
+  it("marks the OTHER pages and says nothing on the page it was settled from", () => {
+    const stored = resolvedFromNote("", "C-2017", ["C-2018"]);
+    expect(archiveResolvedFromMark(stored, "C-2018")).toContain("Resolved from C-2017");
+    expect(archiveResolvedFromMark(stored, "C-2017")).toBeNull();
+    expect(archiveResolvedFromMark("plain note", "C-2018")).toBeNull();
+    expect(archiveResolvedFromMark(null, "C-2018")).toBeNull();
+  });
+
+  it("says nothing on the Overview — the sentence ends in 'this record' and there is none", () => {
+    const stored = resolvedFromNote("", "C-2017", ["C-2018"]);
+    expect(archiveResolvedFromMark(stored, undefined)).toBeNull();
+    expect(archiveResolvedFromMark(stored, null)).toBeNull();
+    expect(archiveResolvedFromMark(stored, "  ")).toBeNull();
   });
 });

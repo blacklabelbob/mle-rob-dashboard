@@ -18,7 +18,13 @@ import {
   flagRecordChips,
   linkifyRecordIds,
 } from "@/lib/flags/recordLinks";
-import { reopenFailureMessage, supersededBy } from "@/lib/flags/supersede";
+import {
+  archiveResolvedFromMark,
+  reopenFailureMessage,
+  resolutionNoteBody,
+  resolvedFromNote,
+  supersededBy,
+} from "@/lib/flags/supersede";
 import {
   archiveRepeatMark,
   archiveRepeatSummary,
@@ -190,10 +196,20 @@ export default function ThingsToAddress({
     await patch(f.id, f.title, { id: f.id, action: "read" }, "read");
   }
 
-  async function resolve(f: Flag, withNote: string) {
+  async function resolve(f: Flag, withNote: string, others?: readonly string[]) {
+    // inc.31: the click clears this row off every page the finding names, and
+    // inc.30's tooltip promises exactly that — but only the page it was clicked
+    // on knows which one that was. Recorded in the note (no migration; the same
+    // grammar `supersededNote` already uses), and only for a row that names
+    // ANOTHER record. Never on a proposal: `archiveConsequence` reads the tail
+    // of a created-row's note, and a clause appended there would change what it
+    // decides.
+    const note = proposalDomain(f.title)
+      ? withNote
+      : resolvedFromNote(withNote, person ?? entity, others ?? []);
     // The note is cleared only on success: on a proposal it is the sole record
     // of why a domain was shut out, and re-typing it is how it ends up blank.
-    if (await patch(f.id, f.title, { id: f.id, action: "resolve", note: withNote }, "resolve")) {
+    if (await patch(f.id, f.title, { id: f.id, action: "resolve", note }, "resolve")) {
       setNoteFor(null);
       setNote("");
     }
@@ -540,14 +556,14 @@ export default function ThingsToAddress({
                       value={note}
                       onChange={(e) => setNote(e.target.value)}
                       onKeyDown={(e) => {
-                        if (e.key === "Enter") resolve(f, note);
+                        if (e.key === "Enter") resolve(f, note, scope?.others);
                         if (e.key === "Escape") setNoteFor(null);
                       }}
                       placeholder={copy.notePlaceholder}
                       className="w-52 rounded-md border border-white/20 bg-black/40 px-2 py-1 text-xs text-white outline-none"
                     />
                     <button
-                      onClick={() => resolve(f, note)}
+                      onClick={() => resolve(f, note, scope?.others)}
                       disabled={busy}
                       className="rounded-md bg-emerald-500/90 px-2.5 py-1 text-xs font-semibold text-white hover:bg-emerald-400"
                     >
@@ -557,7 +573,7 @@ export default function ThingsToAddress({
                 ) : (
                   <div className="flex gap-1.5">
                     <button
-                      onClick={() => resolve(f, "")}
+                      onClick={() => resolve(f, "", scope?.others)}
                       disabled={busy}
                       title={copy.tooltip}
                       className="rounded-md bg-emerald-500/90 px-2.5 py-1 text-xs font-semibold text-white transition hover:bg-emerald-400"
@@ -644,7 +660,21 @@ export default function ThingsToAddress({
                   <span className="ml-2 opacity-70">
                     notified {f.notified_at} · resolved {f.resolved_at}
                   </span>
-                  {f.resolution_note && <div className="mt-0.5 italic text-slate-500">“{f.resolution_note}”</div>}
+                  {/* inc.31: quoted in italics as the reviewer's OWN sentence, so the
+                      provenance clause the write appends is stripped back out here and
+                      printed below as the ledger's line. Putting machine words inside
+                      Rob's quotation marks is the same class of lie as a stale count. */}
+                  {resolutionNoteBody(f.resolution_note) && (
+                    <div className="mt-0.5 italic text-slate-500">“{resolutionNoteBody(f.resolution_note)}”</div>
+                  )}
+                  {/* inc.31: on THIS page the row reads as settled with no hint that the
+                      click happened on a different company's page. The page it was resolved
+                      from gets nothing — see `archiveResolvedFromMark`. */}
+                  {archiveResolvedFromMark(f.resolution_note, person ?? entity) && (
+                    <div className="mt-0.5 text-slate-500">
+                      {archiveResolvedFromMark(f.resolution_note, person ?? entity)}
+                    </div>
+                  )}
                   {/* inc.21: a dismissed proposal is the only archive row whose
                       closure is still doing something — the domain stays shut
                       out. Created rows say so in their own note and get nothing

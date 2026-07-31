@@ -149,6 +149,95 @@ export function supersededBy(note: string | null | undefined): number | null {
   return Number.isSafeInteger(id) && id > 0 ? id : null;
 }
 
+/**
+ * Q84 inc.31 — where a cross-record finding was actually settled.
+ *
+ * inc.30 taught the Resolve control to say "also clears this finding from C-2018" before
+ * the click. The click then PATCHes ONE flag row, which is correct — there is one finding,
+ * not two — and every page that names it agrees, because they all re-read the same row.
+ * What none of them carries is WHO closed it and FROM WHERE. On C-2018 the row simply
+ * appears under "Resolved (n)" with two dates and, if the reviewer typed one, a note. A
+ * reviewer standing on C-2018 cannot tell a finding somebody worked on C-2018 from one
+ * dismissed on C-2017 while looking at a different company's problem — and that is exactly
+ * the row where the difference decides whether to trust the closure or reopen it.
+ *
+ * NO MIGRATION, and that is a decision rather than a shortcut: the ledger already holds a
+ * machine-written grammar inside `resolution_note` (`supersededNote`/`supersededBy`), read
+ * back by the archive on every render. A second column for a fact this string can carry
+ * would be a schema change on prod for one sentence — and `0025`/`0033` in this repo are
+ * the standing reminder that a committed migration is not an applied one.
+ *
+ * The clause is APPENDED, never prepended: `supersededBy` is anchored at `^`, so the two
+ * grammars cannot be confused for each other no matter what the reviewer types.
+ *
+ * Rob's words stay Rob's. The archive renders `resolution_note` in quotes, in italics, as
+ * the reviewer's own sentence — so the machine clause is stripped back out for that render
+ * (`resolutionNoteBody`) and shown as the machine's line instead. Attributing a sentence
+ * the ledger wrote to the person who closed the row is the same lie as a stale count.
+ *
+ * Written ONLY for a row that names another record (`others` non-empty). On the ordinary
+ * ledger row — filed against the page you are reading it on — "resolved from here" is not
+ * news, and a line every archive row carries is a line nobody reads.
+ */
+const RESOLVED_FROM = /(?:^|\s)Resolved from ([CP]-\d+)\.$/;
+
+/**
+ * The note to PERSIST for a resolve click, given where the click happened.
+ *
+ * @param note       what the reviewer typed (may be empty — the clause is worth recording alone)
+ * @param fromRecord the record page the click was made on, or null/undefined off a record page
+ * @param others     the OTHER records this row names (`flagNamedScope().others`)
+ */
+export function resolvedFromNote(
+  note: string,
+  fromRecord: string | null | undefined,
+  others: readonly string[],
+): string {
+  const body = (note ?? "").trim();
+  const from = (fromRecord ?? "").trim();
+  if (!others.length || !/^[CP]-\d+$/.test(from)) return body;
+  // Idempotent: a note that already ends in the clause is not given a second one.
+  if (resolvedFrom(body) !== null) return body;
+  return body ? `${body} Resolved from ${from}.` : `Resolved from ${from}.`;
+}
+
+/** Read the clause back off an archive row. `null` when the row carries no provenance. */
+export function resolvedFrom(note: string | null | undefined): string | null {
+  if (typeof note !== "string") return null;
+  const m = RESOLVED_FROM.exec(note.trim());
+  return m ? m[1] : null;
+}
+
+/** The reviewer's own words, with the machine clause removed — what the archive quotes. */
+export function resolutionNoteBody(note: string | null | undefined): string {
+  if (typeof note !== "string") return "";
+  const trimmed = note.trim();
+  if (resolvedFrom(trimmed) === null) return trimmed;
+  return trimmed.replace(RESOLVED_FROM, "").trim();
+}
+
+/**
+ * The archive line for a row settled somewhere else — or `null` on the page it was settled on.
+ *
+ * The page it WAS resolved from gets nothing: the reviewer standing there either made the
+ * click or is reading the note they typed, and telling them where they are is noise. Every
+ * other page the finding names gets the sentence, because there it is the whole story.
+ *
+ * The Overview digest gets nothing either, and for the same reason `flagNamedScope` is null
+ * there: the sentence ends in "this record", and on the Overview there is no record to be
+ * "this" one. A line that reads as true on C-2018 and as nonsense on the Overview is the
+ * defect inc.27 was — so the mark is written for a page or not written at all.
+ */
+export function archiveResolvedFromMark(
+  note: string | null | undefined,
+  pageId: string | null | undefined,
+): string | null {
+  const from = resolvedFrom(note);
+  const page = (pageId ?? "").trim();
+  if (!from || !page || from === page) return null;
+  return `Resolved from ${from} — this finding names this record too, so it closed here with it.`;
+}
+
 export type ReopenFailure = { text: string; certain: boolean };
 
 /**
