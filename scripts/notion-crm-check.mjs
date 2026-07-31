@@ -1,0 +1,155 @@
+#!/usr/bin/env node
+/**
+ * `npm run check:archive` — compare the Notion meeting archive against the CRM.
+ *
+ * Q84's actual purpose, in Rob's words (2026-07-30): *"having the Notion in place will help
+ * me confirm the validity of what's in the CRM"*. `scripts/notion-meetings-sync.mjs` FILLS
+ * the archive; this script CHECKS the CRM against it. Opposite directions, no overlap.
+ *
+ * STRICTLY READ-ONLY. It opens no write path at all: no Notion page create or update, no
+ * Supabase insert/update, no `--apply` flag to forget. The one POST it issues is Notion's
+ * `/data_sources/<id>/query` — a READ that the Notion API requires be sent as a POST because
+ * the filter travels in the body. Stated explicitly rather than claimed as "no POST", because
+ * a reviewer who greps for `method: "POST"` will find it, and a comment that has to be
+ * explained away is worth less than one that is simply true.
+ *
+ * A disagreement between the archive and the CRM is a question for a human — auto-reconciling
+ * it would write a meeting record nobody verified onto a company, which is exactly the failure
+ * the archive exists to catch.
+ *
+ * The decisions live in `lib/meetings/archiveCheck.ts` (pure, 10 tests); this file is the
+ * I/O around it, imported through `scripts/ts-loader.mjs` so the ladder that runs here is
+ * the ladder the tests grade.
+ *
+ *   node --import ./scripts/ts-loader.mjs scripts/notion-crm-check.mjs [--json]
+ */
+
+import { readFileSync } from "node:fs";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+import { checkArchiveAgainstCrm } from "../lib/meetings/archiveCheck.ts";
+
+const REPO = join(dirname(fileURLToPath(import.meta.url)), "..");
+const DATA_SOURCE_ID = "600498eb-b6e0-41af-a625-e369cbe5fc6a";
+const NOTION_VERSION = "2025-09-03";
+const AS_JSON = process.argv.includes("--json");
+
+function env(key) {
+  const inline = process.env[key];
+  if (inline) return inline.trim();
+  try {
+    const file = readFileSync(join(REPO, ".env.local"), "utf8");
+    const m = file.match(new RegExp(`^${key}=(.*)$`, "m"));
+    return m ? m[1].trim() : "";
+  } catch {
+    return "";
+  }
+}
+
+const NOTION_KEY = env("NOTION_API_KEY");
+const SUPABASE_URL = env("SUPABASE_URL");
+const SUPABASE_KEY = env("SUPABASE_SERVICE_ROLE_KEY");
+
+const missing = [
+  !NOTION_KEY && "NOTION_API_KEY",
+  !SUPABASE_URL && "SUPABASE_URL",
+  !SUPABASE_KEY && "SUPABASE_SERVICE_ROLE_KEY",
+].filter(Boolean);
+if (missing.length) {
+  console.error(`Cannot check — missing ${missing.join(", ")} in env or .env.local.`);
+  process.exit(2);
+}
+
+const plain = (rich) => (Array.isArray(rich) ? rich.map((r) => r.plain_text).join("") : "");
+
+async function readArchive() {
+  const out = [];
+  let cursor;
+  do {
+    const res = await fetch(`https://api.notion.com/v1/data_sources/${DATA_SOURCE_ID}/query`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${NOTION_KEY}`,
+        "Notion-Version": NOTION_VERSION,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ page_size: 100, ...(cursor ? { start_cursor: cursor } : {}) }),
+    });
+    if (!res.ok) throw new Error(`Notion ${res.status}: ${(await res.text()).slice(0, 300)}`);
+    const json = await res.json();
+    for (const page of json.results) {
+      const p = page.properties || {};
+      const start = p["Call Date"]?.date?.start || "";
+      out.push({
+        id: page.id,
+        url: page.url,
+        title: plain(p["Meeting Title"]?.title),
+        day: start.slice(0, 10),
+        recording: p["Call Recording"]?.url || "",
+      });
+    }
+    cursor = json.has_more ? json.next_cursor : null;
+  } while (cursor);
+  return out;
+}
+
+async function readCrmMeetings() {
+  const cols = "id,summary,occurred_at,transcript_url,recording_url,org_id,person_id";
+  const url = `${SUPABASE_URL}/rest/v1/activities?select=${cols}&type=eq.meeting&order=occurred_at.desc&limit=1000`;
+  const res = await fetch(url, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } });
+  if (!res.ok) throw new Error(`Supabase ${res.status}: ${(await res.text()).slice(0, 300)}`);
+  const rows = await res.json();
+  return rows.map((r) => ({
+    id: r.id,
+    summary: r.summary || "",
+    // The archive stores a calendar day; `occurred_at` is an instant. Slicing the stored
+    // ISO string keeps this module clock-free and matches how the sync writes Call Date.
+    day: (r.occurred_at || "").slice(0, 10),
+    transcriptUrl: r.transcript_url || "",
+    recordingUrl: r.recording_url || "",
+    orgId: r.org_id,
+    personId: r.person_id,
+  }));
+}
+
+const [archive, crm] = await Promise.all([readArchive(), readCrmMeetings()]);
+const check = checkArchiveAgainstCrm(archive, crm);
+const clip = (s, n) => (s && s.length > n ? `${s.slice(0, n - 1)}…` : s || "");
+
+if (AS_JSON) {
+  console.log(JSON.stringify(check, null, 2));
+  process.exit(0);
+}
+
+const c = check.counts;
+console.log(`\nArchive rows: ${c.archiveRows}   ·   CRM meeting activities: ${c.crmMeetings}   ·   agreed: ${c.matched}\n`);
+
+// An empty CRM side and a badly-matching CRM side produce the SAME archiveOnly list, and
+// they are not the same problem. With zero meeting activities there is nothing to reconcile:
+// the gap is that no path writes one, so saying "40 rows failed to match" would describe a
+// matching failure that never happened. Name the real shape instead of implying the other.
+if (c.crmMeetings === 0) {
+  console.log(`⚠  The CRM holds NO meeting activities at all, so nothing below is a failed`);
+  console.log(`   MATCH — there was nothing to match against. Every archived meeting is`);
+  console.log(`   missing from the CRM because no path writes one, not because the`);
+  console.log(`   reconciliation disagreed.\n`);
+}
+
+console.log(`── ${c.archiveOnly} meeting(s) in the archive the CRM has NO activity for ──`);
+console.log(`   (the meeting happened; nothing about it reached the org or person record)`);
+for (const r of check.archiveOnly) console.log(`  ${r.day || "(no date)"}  ${clip(r.title, 60) || "(untitled)"}  ${r.url || ""}`);
+
+console.log(`\n── ${c.crmOnly} CRM meeting activit(ies) with no archive row ──`);
+console.log(`   (either in-person/unrecorded and the archive is short a row, or the CRM row is wrong)`);
+for (const m of check.crmOnly) console.log(`  ${m.day || "(no date)"}  ${clip(m.summary, 60) || "(no summary)"}  [${m.id}]`);
+
+if (c.ambiguous) {
+  console.log(`\n── ${c.ambiguous} archive row(s) that could honestly be more than one CRM meeting ──`);
+  console.log(`   (never auto-resolved — picking wrong welds a call onto the wrong company)`);
+  for (const a of check.ambiguous) {
+    console.log(`  ${a.row.day}  ${clip(a.row.title, 56)}`);
+    for (const cand of a.candidates) console.log(`      · ${clip(cand.summary, 60) || "(no summary)"}  [${cand.id}]`);
+  }
+}
+
+console.log(`\nREAD-ONLY — this script changes nothing on either side.\n`);

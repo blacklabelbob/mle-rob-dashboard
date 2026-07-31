@@ -181,8 +181,29 @@ export function auditTrailBreaches(
 // Matched against comment-stripped source on purpose: a comment explaining
 // that some OTHER workflow is the Gmail one must not implicate the file it
 // sits in (this is real — the n8n error webhook has exactly that comment).
+//
+// `gmail` excludes the bare domain literal `gmail.com` (Q84 inc.2). The first
+// real false positive proved the distinction the guard's own opening sentence
+// already draws: `scripts/notion-meetings-sync.mjs` classifies MEETING ATTENDEE
+// domains against a free-mail denylist (`gmail.com`, `yahoo.com`, …) to decide
+// which attendees are guests. It holds no mail credential and opens no mailbox
+// connection — declaring it in MAIL_READ_SCOPES would have required inventing a
+// mailbox, a credential and an audit trail that do not exist, which is a worse
+// answer to Rob's question than the false positive was.
+//
+// This narrowing is stated as a cost, not waved through: a reader that names
+// Gmail ONLY as `gmail.com` and by no other marker is no longer caught here.
+// Every actual way to read that mailbox still is — the API surface (`gmail.users
+// .messages`, `GMAIL_TOKEN`) matches the bare word, and `imap.gmail.com` matches
+// the imap marker — so what is given up is the string, not a route in.
 export const MAIL_SOURCE_MARKERS: readonly { name: string; re: RegExp }[] = [
-  { name: "gmail", re: /\bgmail\b/i },
+  { name: "gmail", re: /\bgmail\b(?!\.com)/i },
+  // Found while narrowing the marker above (Q84 inc.2): `\bgmail\b` never fired on
+  // `GMAIL_TOKEN`, because `_` is a word character and kills the boundary — so a
+  // module holding a Gmail credential under the obvious name was invisible to this
+  // guard the whole time. Widening the word marker would drag `gmail.com` back in;
+  // a credential-shaped name is its own, sharper, piece of evidence.
+  { name: "gmail-credential", re: /\bGMAIL_[A-Z0-9_]+\b/ },
   { name: "imap", re: /\bimap\b/i },
   { name: "email-payload", re: /\bEmailPayload\b/ },
   { name: "mailbox-registry", re: /\bMAILBOX_LINKS\b|\bresolveMailboxLink\b/ },

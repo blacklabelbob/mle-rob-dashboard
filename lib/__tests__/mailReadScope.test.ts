@@ -80,6 +80,28 @@ describe("mail read scope (Q76)", () => {
     expect(mailReadMarkers(esign!.source)).toEqual([]);
   });
 
+  it("a free-mail domain denylist is not a mailbox read, but the Gmail API still is", () => {
+    // Real case (Q84 inc.2): scripts/notion-meetings-sync.mjs classifies meeting
+    // ATTENDEE domains against a free-mail denylist to decide which attendees are
+    // guests. It holds no mail credential and opens no mailbox. Declaring it would
+    // have meant inventing a mailbox, a credential and an audit trail.
+    const sync = TREE.find((f) => f.path === "scripts/notion-meetings-sync.mjs");
+    expect(sync).toBeDefined();
+    expect(sync!.source).toMatch(/gmail\.com/);
+    expect(mailReadMarkers(sync!.source)).toEqual([]);
+
+    // The narrowing is a domain literal, NOT the provider: both live ways to reach
+    // that mailbox still trip the guard, so the exemption cannot be widened into a
+    // hole by writing the API call next to the denylist.
+    expect(mailReadMarkers('const FREE = ["gmail.com", "yahoo.com"];')).toEqual([]);
+    expect(mailReadMarkers("gmail.users.messages.list({})")).toEqual(["gmail"]);
+    // Not a regression of this increment — `\bgmail\b` never fired here, because
+    // `_` is a word character. A Gmail credential under the obvious name was
+    // invisible to this guard until the marker below was added.
+    expect(mailReadMarkers("process.env.GMAIL_TOKEN")).toEqual(["gmail-credential"]);
+    expect(mailReadMarkers('connect("imap.gmail.com")')).toEqual(["imap"]);
+  });
+
   it("the marker set survives scripts/ vocabulary — no reader declared there", () => {
     // The deliberate pass this widening required: several scripts talk about a
     // "mailbox" (privacy manifest, PII guards, synthetic seed) without ever
