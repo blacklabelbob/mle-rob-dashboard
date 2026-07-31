@@ -68,7 +68,7 @@ describe("buildCrmGapFinding", () => {
     const f = buildCrmGapFinding(check({ archiveRows: 40, crmMeetings: 0 }, rows), plan)!;
     expect(f.detail).toContain("necessary and NOT sufficient");
     expect(f.detail).toContain("1 could be filed unattended today");
-    expect(f.detail).toContain("1 name a company the CRM does not have");
+    expect(f.detail).toContain("1 name a company the CRM does not match");
     expect(f.detail).toContain("1 never said who the meeting was with at all");
     // The one row a human has to move is named; the wall is counted, not printed.
     expect(f.detail).toContain("UNKNOWN-COMPANY");
@@ -123,5 +123,22 @@ describe("buildCrmGapFinding", () => {
   it("never shares a key with the needs-human-account finding", async () => {
     const { KEY_NEEDS_HUMAN_ACCOUNT } = await import("../archiveFinding");
     expect(KEY_CRM_GAP).not.toBe(KEY_NEEDS_HUMAN_ACCOUNT);
+  });
+});
+
+// Q84 inc.18 — the sentence that sent a reader to create a duplicate org.
+describe("near-miss wording in the gap finding", () => {
+  it("says confirm-don't-create when the plan found a close record", () => {
+    const check = {
+      matched: [],
+      archiveOnly: [{ id: "n1", title: "Meeting", day: "2026-07-28", company: "Omega Title" }],
+      crmOnly: [],
+      ambiguous: [],
+      counts: { archiveRows: 1, crmMeetings: 3, matched: 0, archiveOnly: 1, crmOnly: 0, ambiguous: 0 },
+    } as unknown as Parameters<typeof buildCrmGapFinding>[0];
+    const plan = planMeetingActivities(check.archiveOnly, [{ id: "C-2019", name: "Omega Title (FL)" }]);
+    const f = buildCrmGapFinding(check, plan);
+    expect(f?.detail).toContain("1 of those DO have a close record in the CRM already");
+    expect(f?.detail).not.toContain("name a company the CRM does not have");
   });
 });

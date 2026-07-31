@@ -145,13 +145,28 @@ async function readOrgs() {
   }));
 }
 
-const [archive, crm, orgs] = await Promise.all([readArchive(), readCrmMeetings(), readOrgs()]);
+// Q84 inc.18: people, read for ONE purpose — an unknown-company row whose "Company Meeting
+// with" holds a human's name ("Dixith") must not be reported as a missing company when the
+// CRM already knows that person and their org. Nothing here ever attaches to a person.
+async function readPeople() {
+  const url = `${SUPABASE_URL}/rest/v1/people?select=id,name,org_id&order=id&limit=5000`;
+  const res = await fetch(url, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } });
+  if (!res.ok) throw new Error(`Supabase ${res.status}: ${(await res.text()).slice(0, 300)}`);
+  return (await res.json()).map((p) => ({ id: p.id, name: p.name || "", orgId: p.org_id || "" }));
+}
+
+const [archive, crm, orgs, people] = await Promise.all([
+  readArchive(),
+  readCrmMeetings(),
+  readOrgs(),
+  readPeople(),
+]);
 const check = checkArchiveAgainstCrm(archive, crm);
 const unexplained = classifyUnexplainedRows(archive);
 // Which company would each orphaned meeting attach to? Answered, never acted on — see
 // lib/meetings/activityPlan.ts. The archive rows carry `company`; `ArchiveCheck.archiveOnly`
 // passes them straight through, so the plan reads the same rows printed above.
-const activityPlan = planMeetingActivities(check.archiveOnly, orgs);
+const activityPlan = planMeetingActivities(check.archiveOnly, orgs, people);
 const clip = (s, n) => (s && s.length > n ? `${s.slice(0, n - 1)}…` : s || "");
 
 if (AS_JSON) {

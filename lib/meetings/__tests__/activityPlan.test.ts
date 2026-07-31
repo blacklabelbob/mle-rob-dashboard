@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { extractHost, planMeetingActivities, type CrmOrg } from "@/lib/meetings/activityPlan";
+import {
+  extractHost,
+  planMeetingActivities,
+  stripQualifier,
+  type CrmOrg,
+  type CrmPerson,
+} from "@/lib/meetings/activityPlan";
 import type { ArchiveRowDetail } from "@/lib/meetings/unexplainedRows";
 
 const row = (over: Partial<ArchiveRowDetail> = {}): ArchiveRowDetail => ({
@@ -157,5 +163,67 @@ describe("extractHost", () => {
 
   it("takes the host out of an address pasted into a website field", () => {
     expect(extractHost("rob@aivoicetech.io")).toBe("aivoicetech.io");
+  });
+});
+
+// Q84 inc.18 — the two rows inc.17 called "companies the CRM genuinely does not have" are
+// both in the CRM. These pin the behaviour that stopped a duplicate org from being created.
+describe("near misses on unknown-company rows", () => {
+  const QUALIFIED: CrmOrg[] = [{ id: "C-2019", name: "Omega Title (FL)" }];
+  const PEOPLE: CrmPerson[] = [
+    { id: "P-1010", name: "Dixith Magadiev", orgId: "C-2006" },
+    { id: "P-1016", name: "George Guest Genie", orgId: "" },
+  ];
+
+  it("names the qualified org instead of calling the company missing", () => {
+    const plan = planMeetingActivities([row({ company: "Omega Title" })], QUALIFIED);
+    const r = plan.rows[0];
+    expect(r.disposition).toBe("unknown-company"); // still NOT a match
+    expect(r.nearMiss).toEqual({ kind: "org-qualifier", orgs: QUALIFIED });
+    expect(r.nextStep).toContain("Omega Title (FL) [C-2019]");
+    expect(r.nextStep).not.toContain("missing from the CRM");
+  });
+
+  it("never lets the stripped index shadow an exact match", () => {
+    const both: CrmOrg[] = [...QUALIFIED, { id: "C-3000", name: "Omega Title" }];
+    const plan = planMeetingActivities([row({ company: "Omega Title" })], both);
+    expect(plan.rows[0].disposition).toBe("attachable");
+    expect(plan.rows[0].org?.id).toBe("C-3000");
+  });
+
+  it("reports a person's first name in a company field as a person, with their org", () => {
+    const plan = planMeetingActivities([row({ company: "Dixith" })], ORGS, PEOPLE);
+    const r = plan.rows[0];
+    expect(r.disposition).toBe("unknown-company");
+    expect(r.nearMiss).toEqual({ kind: "person-not-company", people: [PEOPLE[0]] });
+    expect(r.nextStep).toContain("Dixith Magadiev [P-1010] → C-2006");
+    expect(r.nextStep).toContain("do NOT create a new org");
+  });
+
+  it("says the company is the missing record when the matched person has none", () => {
+    const plan = planMeetingActivities([row({ company: "George" })], ORGS, PEOPLE);
+    expect(plan.rows[0].nextStep).toContain("that person has no company in the CRM yet");
+    expect(plan.rows[0].nextStep).not.toContain("do NOT create a new org");
+  });
+
+  it("falls back to the plain unknown sentence when the CRM holds nothing close", () => {
+    const plan = planMeetingActivities([row({ company: "Nowhere Inc" })], ORGS, PEOPLE);
+    expect(plan.rows[0].nearMiss).toBeUndefined();
+    expect(plan.rows[0].nextStep).toContain("either the company is missing from the CRM");
+  });
+
+  it("leaves the domain ask alone — a host is not a near miss", () => {
+    const plan = planMeetingActivities([row({ company: "cgroofing.net" })], QUALIFIED, PEOPLE);
+    expect(plan.rows[0].nearMiss).toBeUndefined();
+    expect(plan.rows[0].nextStep).toContain("names this meeting by domain");
+  });
+});
+
+describe("stripQualifier", () => {
+  it("removes only a trailing parenthetical", () => {
+    expect(stripQualifier("Omega Title (FL)")).toBe("Omega Title");
+    expect(stripQualifier("Dix Healthcare AI (7 models)")).toBe("Dix Healthcare AI");
+    expect(stripQualifier("(FL) Omega Title")).toBe("(FL) Omega Title");
+    expect(stripQualifier("Omega Title")).toBe("Omega Title");
   });
 });

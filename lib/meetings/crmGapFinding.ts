@@ -92,11 +92,19 @@ function planLines(plan: ActivityPlan): string {
 function planSentence(plan: ActivityPlan): string {
   const p = plan.counts;
   const needsHuman = p.unknownCompany + p.ambiguousCompany + p.noDate + p.noCompany;
+  const nearMisses = plan.rows.filter((r: ActivityPlanRow) => r.nearMiss).length;
   const built =
     `Building that pipeline is necessary and NOT sufficient: of the ${p.considered}, ` +
     `${p.attachable} could be filed unattended today (the archive names a company the CRM ` +
     `already has). The other ${needsHuman} need a person first — ` +
-    `${p.unknownCompany} name a company the CRM does not have, ` +
+    // Q84 inc.18: "does not have" was FALSE for two of these rows — the CRM held Omega Title
+    // under a qualified name and Dixith as a person — and a reader following that sentence
+    // creates the duplicate. The near misses are counted apart because their ask is the
+    // opposite one: confirm an existing record, do not add a new one.
+    `${p.unknownCompany} name a company the CRM does not match` +
+    (nearMisses
+      ? ` (${nearMisses} of those DO have a close record in the CRM already — confirm it, do not create a second)` : "") +
+    `, ` +
     `${p.ambiguousCompany} name a company two CRM orgs answer to, ` +
     `${p.noDate} have a known company and no Call Date, and ` +
     `${p.noCompany} never said who the meeting was with at all.`;

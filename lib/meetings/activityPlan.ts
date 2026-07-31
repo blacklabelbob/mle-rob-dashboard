@@ -39,6 +39,30 @@
 // that meeting unattended. The affordance moves from "go retype something in Notion" to "tell
 // the CRM the other domain this company uses".
 
+// Q84 inc.18 — the named-next premise was wrong AGAIN, and in the same direction: the two
+// "companies the CRM genuinely does not have" are both IN the CRM.
+//
+// inc.17 named this increment on the reading that the last two unknown-company rows —
+// `Omega Title` and `Dixith` — are companies the CRM has never heard of, so the honest next
+// step was the org-proposals route. The live rows say otherwise:
+//
+//   - `Omega Title`  → the CRM holds **Omega Title (FL)** [C-2019]. Same company, a state
+//                      qualifier in the name field. Exact-after-normalization cannot see it.
+//   - `Dixith`       → not a company at all. The CRM holds the PERSON **Dixith Magadiev**
+//                      [P-1010], attached to **Dix Healthcare AI (7 models)** [C-2006]. The
+//                      archive's "Company Meeting with" field was filled with a human's name.
+//
+// Acting on the old premise would have created two duplicate orgs through org-proposals —
+// exactly the corruption this module exists to refuse, arrived at by following its own plan.
+// So the wrong instruction is the defect: both rows currently tell a reader "either the
+// company is missing from the CRM or the spelling differs", and BOTH halves are false.
+//
+// The fix is a NEAR MISS, never a match. This pass still attaches nothing and still refuses
+// to equate two strings that are not equal — a "(FL)" could just as easily be "(TX)" on a
+// different company, and a first name is shared by many people. What changes is that the row
+// now names the record it nearly hit, with its id, so the human answering it is confirming a
+// specific record rather than being sent to create a new one.
+
 import { normalizeName } from "@/lib/dedup/match";
 import type { ArchiveRowDetail } from "./unexplainedRows";
 
@@ -48,6 +72,34 @@ import type { ArchiveRowDetail } from "./unexplainedRows";
  * have only a full `website` URL — and an index that read one field would miss real orgs.
  */
 export type CrmOrg = { id: string; name: string; domain?: string | null; website?: string | null };
+
+/**
+ * The CRM's people, carried only so an unknown-company row can say WHICH person it nearly hit.
+ * A person is never a match target — a meeting activity attaches to a company — but "Dixith"
+ * in a company field is a fact about a person, and the CRM already knows which org they work
+ * for. Reporting that beats telling a human the company is missing when it is not.
+ */
+export type CrmPerson = { id: string; name: string; orgId?: string | null };
+
+/**
+ * Why an unknown-company row is unknown, when the CRM holds something close. NEVER a match:
+ * every one of these is a question with a specific record attached, answered by a human once.
+ *
+ *   - `org-qualifier`      — an org whose name differs only by a trailing parenthetical
+ *                            ("Omega Title" vs "Omega Title (FL)"). Not auto-equated: the
+ *                            qualifier can be what distinguishes two real companies.
+ *   - `person-not-company` — the value names a CRM person, not a company. Their org is the
+ *                            likely answer, but the archive did not say so and this pass does
+ *                            not decide it.
+ */
+export type NearMiss =
+  | { kind: "org-qualifier"; orgs: CrmOrg[] }
+  | { kind: "person-not-company"; people: CrmPerson[] };
+
+/** A trailing parenthetical qualifier, removed. "Omega Title (FL)" → "Omega Title". */
+export function stripQualifier(name: string): string {
+  return (name || "").replace(/\s*\([^()]*\)\s*$/, "").trim();
+}
 
 /**
  * A host, or "" when the value is not one. Deliberately strict: scheme, `www.`, port, path,
@@ -107,6 +159,12 @@ export type ActivityPlanRow = {
   org?: CrmOrg;
   /** Set only when `ambiguous-company` — every org that normalized to the same name. */
   candidates?: CrmOrg[];
+  /**
+   * Set only when `unknown-company` AND the CRM holds something close. Its presence changes
+   * the ask from "create the company" to "confirm this record" — the difference between a
+   * clean CRM and two rows for one company.
+   */
+  nearMiss?: NearMiss;
   /** Plain-language next step, in the words of the field a human would go fix. */
   nextStep: string;
 };
@@ -163,6 +221,48 @@ function byHost(orgs: CrmOrg[]): Map<string, CrmOrg[]> {
 }
 
 /**
+ * Index orgs by their name with a trailing qualifier removed — but ONLY where that actually
+ * differs from the full name, so a plain org never appears here and this index can never
+ * shadow the exact one. Feeds near misses, never matches.
+ */
+function byStrippedName(orgs: CrmOrg[]): Map<string, CrmOrg[]> {
+  const index = new Map<string, CrmOrg[]>();
+  for (const org of orgs) {
+    const full = normalizeName(org.name || "");
+    const stripped = normalizeName(stripQualifier(org.name || ""));
+    if (!stripped || stripped === full) continue;
+    const bucket = index.get(stripped);
+    if (bucket) bucket.push(org);
+    else index.set(stripped, [org]);
+  }
+  return index;
+}
+
+/**
+ * Index people by full name AND by first name. The first-name key is deliberately loose — it
+ * collides, and that is acceptable precisely because nothing here ever becomes a match: every
+ * colliding person is reported, and a human picks. A single-token company field ("Dixith") is
+ * the case this exists for.
+ */
+function byPersonName(people: CrmPerson[]): Map<string, CrmPerson[]> {
+  const index = new Map<string, CrmPerson[]>();
+  const add = (key: string, person: CrmPerson) => {
+    if (!key) return;
+    const bucket = index.get(key);
+    if (bucket) {
+      if (!bucket.some((p) => p.id === person.id)) bucket.push(person);
+    } else index.set(key, [person]);
+  };
+  for (const person of people) {
+    const full = (person.name || "").trim();
+    if (!full) continue;
+    add(normalizeName(full), person);
+    add(normalizeName(full.split(/\s+/)[0]), person);
+  }
+  return index;
+}
+
+/**
  * @param archiveOnly the meetings the CRM has no activity for — `ArchiveCheck.archiveOnly`,
  *   read with the `company` field the Notion row carries ("Company Meeting with").
  * @param orgs every CRM org, id + name.
@@ -170,9 +270,15 @@ function byHost(orgs: CrmOrg[]): Map<string, CrmOrg[]> {
  * The whole archive row is carried through, not just an id, so a report can print the day
  * and the title without a second lookup that could disagree with this pass.
  */
-export function planMeetingActivities(archiveOnly: ArchiveRowDetail[], orgs: CrmOrg[]): ActivityPlan {
+export function planMeetingActivities(
+  archiveOnly: ArchiveRowDetail[],
+  orgs: CrmOrg[],
+  people: CrmPerson[] = []
+): ActivityPlan {
   const index = byNormalizedName(orgs);
   const hostIndex = byHost(orgs);
+  const strippedIndex = byStrippedName(orgs);
+  const personIndex = byPersonName(people);
   const rows: ActivityPlanRow[] = archiveOnly.map((row) => {
     const named = (row.company || "").trim();
     if (!named) {
@@ -233,14 +339,52 @@ export function planMeetingActivities(archiveOnly: ArchiveRowDetail[], orgs: Crm
     // A domain-shaped value gets its own ask. It is NOT a spelling problem — nobody
     // mistypes a host — and the fix is one field in the CRM, not a retype in Notion. Once
     // that host is on the org, this row attaches itself on the next run, permanently.
+    if (namedHost) {
+      return {
+        row,
+        disposition: "unknown-company",
+        nextStep:
+          `the archive names this meeting by domain (${namedHost}) and no CRM org carries that host — ` +
+          "add it to the right org's Domain field in the CRM (a company can use more than one) " +
+          "and this row attaches itself; a look-alike host is never assumed to be the same company",
+      };
+    }
+    // Before telling anyone the company is missing, check what the CRM nearly has. Saying
+    // "missing" when it is not is how a second row for one company gets created.
+    // Org qualifier first: it is evidence about a COMPANY, which is what the field claims to
+    // hold. A person's name in that field is a filling mistake, and ranked accordingly.
+    const qualifierHits = strippedIndex.get(normalizeName(named)) || [];
+    if (qualifierHits.length) {
+      return {
+        row,
+        disposition: "unknown-company",
+        nearMiss: { kind: "org-qualifier", orgs: qualifierHits },
+        nextStep:
+          `no CRM org is named exactly “${named}”, but ${qualifierHits.length === 1 ? "one is" : `${qualifierHits.length} are`} ` +
+          `the same name plus a qualifier: ${qualifierHits.map((o) => `${o.name} [${o.id}]`).join(", ")} — ` +
+          "confirm it is the same company (rename it or fill its Domain), and this row attaches itself; " +
+          "the qualifier is not dropped here because it can be what separates two real companies",
+      };
+    }
+    const personHits = personIndex.get(normalizeName(named)) || [];
+    if (personHits.length) {
+      const withOrg = personHits.filter((p) => p.orgId);
+      return {
+        row,
+        disposition: "unknown-company",
+        nearMiss: { kind: "person-not-company", people: personHits },
+        nextStep:
+          `“${named}” is not a company in the CRM — it names ${personHits.length === 1 ? "a person" : `${personHits.length} people`}: ` +
+          personHits.map((p) => `${p.name} [${p.id}]${p.orgId ? ` → ${p.orgId}` : " (no org)"}`).join(", ") +
+          (withOrg.length
+            ? ` — put that person's company in Notion's “Company Meeting with”; do NOT create a new org, ${withOrg.length === 1 ? "theirs" : "one of these"} already exists`
+            : " — and that person has no company in the CRM yet, so the company is the missing record, not the meeting"),
+      };
+    }
     return {
       row,
       disposition: "unknown-company",
-      nextStep: namedHost
-        ? `the archive names this meeting by domain (${namedHost}) and no CRM org carries that host — ` +
-          "add it to the right org's Domain field in the CRM (a company can use more than one) " +
-          "and this row attaches itself; a look-alike host is never assumed to be the same company"
-        : `no CRM org is named “${named}” — either the company is missing from the CRM or the spelling differs`,
+      nextStep: `no CRM org is named “${named}” — either the company is missing from the CRM or the spelling differs`,
     };
   });
 
