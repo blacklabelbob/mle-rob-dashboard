@@ -95,6 +95,121 @@ const UNVERIFIABLE: Array<[RegExp, string]> = [
   [/\b(?:insert\s+into|update\s+\w+\s+set|delete\s+from)\b/i, "data change"],
 ];
 
+/**
+ * inc.56 — splitting on `;` is wrong the moment a function body exists.
+ *
+ * The ADD_COLUMN scan above splits on a bare `;` and gets away with it: a
+ * fragment of a `$$ … $$` body either matches `alter table` or it does not, and
+ * a fragment that matches nothing costs nothing. Statement COVERAGE cannot get
+ * away with it — every fragment of a function body would surface as its own
+ * unrecognised statement, and a checker that cries wolf on `if not found then`
+ * gets ignored exactly like the prose markers this ladder replaced.
+ *
+ * So: dollar-quoted blocks (`$$`, `$fn$`) and single-quoted strings are opaque —
+ * a `;` inside one is body text, not a terminator.
+ */
+export function splitStatements(sql: string): string[] {
+  const body = stripComments(sql);
+  const out: string[] = [];
+  let buf = "";
+  let open: string | null = null;
+
+  for (let i = 0; i < body.length; ) {
+    if (open) {
+      if (open === "'" && body[i] === "'") open = null;
+      else if (open !== "'" && body.startsWith(open, i)) {
+        buf += open;
+        i += open.length;
+        open = null;
+        continue;
+      }
+      buf += body[i];
+      i += 1;
+      continue;
+    }
+    const dollar = /^\$[A-Za-z_]*\$/.exec(body.slice(i));
+    if (dollar) {
+      open = dollar[0];
+      buf += dollar[0];
+      i += dollar[0].length;
+      continue;
+    }
+    if (body[i] === "'") {
+      open = "'";
+      buf += body[i];
+      i += 1;
+      continue;
+    }
+    if (body[i] === ";") {
+      out.push(buf);
+      buf = "";
+      i += 1;
+      continue;
+    }
+    buf += body[i];
+    i += 1;
+  }
+  out.push(buf);
+
+  return out.map((s) => s.replace(/\s+/g, " ").trim()).filter(Boolean);
+}
+
+/**
+ * Statements that leave nothing behind for any later read, write or plan to
+ * differ on — so their absence from every rule above is correct, not a gap.
+ * Named explicitly rather than pattern-matched, for the same reason UNVERIFIABLE
+ * is: a catch-all that swallows the unknown is what this whole pass exists to
+ * stop. `set` is matched as a LEADING token only — `alter table … set default`
+ * leads with `alter`, and that one is a real change this must not excuse.
+ */
+const NO_EFFECT = /^(begin|start\s+transaction|commit|end|rollback|set|reset)\b/i;
+
+/**
+ * Every rule that claims a statement. Object rules are re-tested per statement
+ * (not against the whole file) so a claim is only credited to the statement it
+ * actually describes — a file whose `create table` sits three statements away
+ * must not launder an unlisted statement beside it.
+ */
+function statementIsClaimed(stmt: string): boolean {
+  for (const re of [CREATE_TABLE, CREATE_VIEW, CREATE_FUNCTION]) {
+    re.lastIndex = 0;
+    if (re.test(stmt)) return true;
+  }
+  if (ALTER_TABLE.test(stmt)) return true;
+  return UNVERIFIABLE.some(([re]) => re.test(stmt));
+}
+
+/**
+ * The inverse of inc.55's failure, and the reason it needs the same treatment.
+ *
+ * inc.55 fixed labels the parser emitted but the ceiling did not classify. This
+ * is the other side: statements the parser never labels AT ALL. `UNVERIFIABLE`
+ * lists the shapes a human was actually seen to write, so a migration written
+ * with a shape nobody listed (`alter table … alter column … set default`,
+ * `comment on`, `alter type … add value`, a bare `do $$ … $$`) contributes no
+ * capping label — and a file with no capping label and its tables present reports
+ * `objects-present`, the STRONGEST verdict on the ladder. It would have earned
+ * that verdict by the checker not knowing what it was looking at.
+ *
+ * Each unclaimed statement becomes a label the ceiling reports as `unclassified`
+ * — deliberately, and never folded into permanent or probeable. Nobody has
+ * decided what could settle a shape nobody has read yet, and pretending
+ * otherwise is the guess this module exists to kill.
+ */
+export function unrecognisedStatements(sql: string): string[] {
+  const out: string[] = [];
+  for (const stmt of splitStatements(sql)) {
+    if (NO_EFFECT.test(stmt)) continue;
+    if (statementIsClaimed(stmt)) continue;
+    const fp = stmt.toLowerCase().split(" ").slice(0, 4).join(" ");
+    if (fp && !out.includes(fp)) out.push(fp);
+  }
+  return out;
+}
+
+/** Prefix of the labels above. Excluded from `parserEmittableLabels()` on purpose — see there. */
+export const UNRECOGNISED_LABEL = "unrecognised statement: ";
+
 export function parseMigration(sql: string): ParsedMigration {
   const body = stripComments(sql);
   const objects: SchemaObject[] = [];
@@ -139,6 +254,11 @@ export function parseMigration(sql: string): ParsedMigration {
   for (const [re, label] of UNVERIFIABLE) {
     if (re.test(body)) note(label);
   }
+
+  // inc.56 — what no rule above claimed. Reported as its own label rather than
+  // silently omitted, so a shape nobody enumerated caps the file instead of
+  // letting it claim the strongest verdict on the ladder.
+  for (const fp of unrecognisedStatements(sql)) note(`${UNRECOGNISED_LABEL}${fp}`);
 
   // Functions split in two, and the split is the whole point of grading them
   // individually rather than as one blanket "create function" label:
@@ -246,6 +366,12 @@ const PERMANENT_PREFIXES = ["create function in schema "];
  * the exact misreading inc.54 built this ceiling to kill. The templated label is
  * represented by a concrete instance, because that is what the prefix rule has
  * to classify.
+ *
+ * inc.56's `unrecognised statement: …` labels are NOT listed here, and that is
+ * the point of them: they exist to land in `unclassified`. Giving them a home in
+ * one of the three sets would classify a statement nobody has read — the exact
+ * assertion-over-evidence move this ladder was built to stop. A separate test
+ * pins them to `unclassified` so the omission stays deliberate, not forgotten.
  */
 export function parserEmittableLabels(): string[] {
   return [...UNVERIFIABLE.map(([, label]) => label), "create trigger function", "create function in schema private"];

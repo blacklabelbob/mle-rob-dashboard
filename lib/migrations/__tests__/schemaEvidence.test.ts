@@ -7,6 +7,9 @@ import {
   liveRpcsFromOpenApi,
   liveShapeFromOpenApi,
   evidenceCeiling,
+  splitStatements,
+  unrecognisedStatements,
+  UNRECOGNISED_LABEL,
   parserEmittableLabels,
 } from "../schemaEvidence";
 
@@ -269,12 +272,82 @@ describe("evidenceCeiling — can this file EVER be adjudicated read-only", () =
     );
     expect(r.noEvidence).toEqual(["a.sql", "b.sql", "c.sql"]);
     // inc.55: c.sql's `create type` moved from unclassified to probeable, so no
-    // SQL a human can write lands in `unclassified` any more — that bucket now
-    // means "somebody added a label and skipped the ceiling", nothing else.
+    // LABELLED statement lands in `unclassified` any more.
+    //
+    // inc.56 correction — that comment used to read "no SQL a human can write",
+    // and that was false in the direction that mattered: a statement the parser
+    // labels nothing for (`comment on`, `do $$ … $$`, `drop trigger`) now emits
+    // an `unrecognised statement:` label, which lands here on purpose. So the
+    // bucket means one of two things, both worth reading: a label added without
+    // a ceiling, or a shape nobody has classified yet. The four statements below
+    // are all recognised, which is why this list is still empty.
     expect(r.noEvidenceCeiling.probeable).toEqual(["a.sql", "c.sql"]);
     expect(r.noEvidenceCeiling.permanent).toEqual(["b.sql"]);
     expect(r.noEvidenceCeiling.unclassified).toEqual([]);
     const { probeable, permanent, unclassified } = r.noEvidenceCeiling;
     expect(probeable.length + permanent.length + unclassified.length).toBe(r.noEvidence.length);
+  });
+});
+
+/**
+ * inc.56 — the inverse of inc.55's failure. inc.55 fixed labels the ceiling did
+ * not classify; these cover statements the parser never labels at all, which let
+ * a file report the STRONGEST verdict for a reason nobody checked.
+ */
+describe("statement coverage (inc.56)", () => {
+  it("does not split on a semicolon inside a function body or a string", () => {
+    const sql = `
+      create function bump() returns trigger as $$
+      begin
+        new.updated_at = now();
+        return new;
+      end;
+      $$ language plpgsql;
+      insert into notes (body) values ('a; b; c');
+    `;
+    // Two statements, not seven — the six inner semicolons are body text.
+    expect(splitStatements(sql)).toHaveLength(2);
+    expect(unrecognisedStatements(sql)).toEqual([]);
+  });
+
+  it("reports a statement shape no rule claims, and names it", () => {
+    expect(unrecognisedStatements("comment on column people.phase2_estimate is 'x';")).toEqual([
+      "comment on column people.phase2_estimate",
+    ]);
+    expect(unrecognisedStatements("do $$ begin if true then null; end if; end $$;")).toEqual(["do $$ begin if"]);
+  });
+
+  it("ignores statements that leave nothing behind for any read to differ on", () => {
+    expect(unrecognisedStatements("begin; commit; set search_path = public; reset role;")).toEqual([]);
+  });
+
+  it("does not excuse an unlisted change just because it leads with a claimed word", () => {
+    // `alter table … set default` leads with `alter`, so ALTER_TABLE claims it —
+    // this pins the known hole rather than pretending it is covered.
+    expect(unrecognisedStatements("alter table people alter column tier set default 'a';")).toEqual([]);
+    // But a bare `set` is session-only and genuinely no-effect.
+    expect(unrecognisedStatements("set local role app_reader;")).toEqual([]);
+  });
+
+  it("STOPS a file claiming 'does nothing else' when it does something unread", () => {
+    // 0014_phase2_estimate.sql, live: it reported `objects-present` — "all exist
+    // on prod and this file does nothing else" — while running two COMMENT ONs.
+    const sql = `
+      alter table people add column phase2_estimate numeric;
+      comment on column people.phase2_estimate is 'phase 2 estimate';
+    `;
+    const e = schemaEvidence("0014.sql", sql, { people: ["id", "phase2_estimate"] });
+    expect(e.verdict).toBe("objects-present-unverifiable-rules");
+    expect(e.unverifiable).toContain("unrecognised statement: comment on column people.phase2_estimate");
+  });
+
+  it("lands an unrecognised statement in `unclassified` — deliberately, not by omission", () => {
+    const c = evidenceCeiling(["unrecognised statement: comment on table x"]);
+    expect(c.ceiling).toBe("unclassified");
+    expect(c.reason).toContain("do not assume either way");
+    // And it stays out of parserEmittableLabels: that list is held to the three
+    // ceiling sets by a test, so listing these would force a classification for
+    // a shape nobody has read — the guess this whole module exists to kill.
+    expect(parserEmittableLabels().some((l) => l.startsWith(UNRECOGNISED_LABEL))) .toBe(false);
   });
 });
