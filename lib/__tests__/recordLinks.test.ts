@@ -4,6 +4,7 @@ import {
   dealEntityHref,
   entityOrFilter,
   expandEntityFilter,
+  flagHasRecordSurface,
   flagNamedRecordIds,
   selectRecordFlags,
   flagEntityHref,
@@ -471,5 +472,48 @@ describe("entityOrFilter", () => {
 
   it("still pulls the null rows when no record ids survive the widening", () => {
     expect(entityOrFilter([])).toBe("entity_id.in.(),entity_id.is.null");
+  });
+});
+
+describe("flagHasRecordSurface (inc.27 — the tooltip's question, answered like the filter)", () => {
+  it("is true for a row whose title links — the case that already worked", () => {
+    expect(flagHasRecordSurface("/companies/C-2017", "registry conflict", "filed here")).toBe(true);
+  });
+
+  it("is true for a NULL-entity row that NAMES a minted id — prod #137, which inc.26 put on C-2017", () => {
+    // The whole point: no entity_ref, no href, and it still renders on that company's page.
+    expect(
+      flagHasRecordSurface(null, "CG Roofing Group / Gulf Coast RE Group", "registry conflict — C-2017 vs C-2018"),
+    ).toBe(true);
+  });
+
+  it("reads the title too, so a finding that puts its id in the header is not called page-less", () => {
+    expect(flagHasRecordSurface(null, "P-1010 has no company", "")).toBe(true);
+  });
+
+  it("is false when the row names no record at all — the honest 'resolve it here'", () => {
+    expect(flagHasRecordSurface(null, "New company domain: roofco.com", "seen in two meetings")).toBe(false);
+  });
+
+  it("never reads a NAME — an un-minted entity_name is not a record page", () => {
+    // The exact guess inc.19/inc.20 refused twice: "CG Roofing Group" addresses nothing.
+    expect(flagHasRecordSurface(null, "CG Roofing Group / Gulf Coast RE Group", "no ids in this sentence")).toBe(false);
+  });
+
+  it("agrees with selectRecordFlags on every row — one predicate, not two", () => {
+    // The coupling that keeps this from going stale a third time: if a record page would
+    // show the row, the tooltip must not tell Rob there is no record page.
+    const rows = [
+      { id: 137, entity_id: null, title: "CG Roofing Group / Gulf Coast RE Group", detail: "C-2017 vs C-2018" },
+      { id: 26, entity_id: "cg-roofing-group", title: "registry conflict", detail: "filed against the record" },
+      { id: 55, entity_id: null, title: "New company domain: roofco.com", detail: "seen twice, no ids" },
+    ];
+    for (const r of rows) {
+      const shown = selectRecordFlags(rows, ["C-2017", "cg-roofing-group"], ["C-2017"]).some((k) => k.id === r.id);
+      const href = flagTitleHref(resolveFlagEntityId(r.entity_id, { "cg-roofing-group": "C-2017" }), r.entity_id, null);
+      if (shown) expect(flagHasRecordSurface(href, r.title, r.detail)).toBe(true);
+    }
+    // ...and the row no page shows is the one told to resolve on the Overview.
+    expect(flagHasRecordSurface(null, rows[2].title, rows[2].detail)).toBe(false);
   });
 });

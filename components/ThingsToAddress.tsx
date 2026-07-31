@@ -11,7 +11,12 @@ import {
   writeFailureMessage,
   type WriteFailure,
 } from "@/lib/comms/proposalFlag";
-import { flagEntityHref, flagRecordChips, linkifyRecordIds } from "@/lib/flags/recordLinks";
+import {
+  flagEntityHref,
+  flagHasRecordSurface,
+  flagRecordChips,
+  linkifyRecordIds,
+} from "@/lib/flags/recordLinks";
 import { reopenFailureMessage, supersededBy } from "@/lib/flags/supersede";
 import {
   archiveRepeatMark,
@@ -248,7 +253,14 @@ export default function ThingsToAddress({
               // inc.25: `deal-gulf-coast-equity-phase4` now HAS a page, and `/deals/[id]`
               // renders this section, so the checkbox's "stays on the record" promise is
               // true for it. Both halves shipped together for exactly that reason.
-              const read = overviewReadControl(f.title, Boolean(titleHref(f)));
+              // inc.27: a link is no longer the only evidence of a record page. inc.26 put
+              // the six NULL-entity rows that NAME minted ids onto those records' pages, so
+              // "has no record page, so resolve it here" became false for them — #137 is on
+              // /companies/C-2017 today. One predicate for the tooltip and the filter.
+              const read = overviewReadControl(
+                f.title,
+                flagHasRecordSurface(titleHref(f), f.title, f.detail)
+              );
               return (
               <li key={f.id} className="flex items-start gap-3 text-sm" title={f.detail}>
                 {read.checkbox ? (

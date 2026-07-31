@@ -302,9 +302,15 @@ export function writeFailureMessage(
  * So the control tells the truth per row instead of one caption for all of
  * them: no checkbox on a proposal (an unclickable one still invites the click),
  * and on an ordinary flag a tooltip whose second clause depends on whether that
- * flag actually HAS a record page — `hasRecord` is `entity_id`, and an
- * entity-less finding pointing at a page that does not exist is the same lie in
- * a quieter place.
+ * flag actually HAS a record page — and an entity-less finding pointing at a
+ * page that does not exist is the same lie in a quieter place.
+ *
+ * Q84 inc.27 — `hasRecord` is NOT `entity_id`, and hard-coding that reading here
+ * is what let this caption go stale twice. It is whatever the record page's own
+ * filter would keep, which is now three different joins (minted id, legacy slug,
+ * deal row) plus a row that merely NAMES a minted id. The caller answers it with
+ * `flagHasRecordSurface` — one predicate shared with that filter — so this stays
+ * a question about truthfulness and never a second copy of the routing rules.
  *
  * The proposal line names the two exits, because "why won't this go away" is
  * only useful when answered with what does make it go away.

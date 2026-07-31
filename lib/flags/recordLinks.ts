@@ -376,6 +376,45 @@ export function selectRecordFlags<
   );
 }
 
+// Q84 inc.27 — inc.26 gave those six NULL-entity rows a record surface and deliberately
+// left the Overview control alone, on the reasoning that `overviewReadControl` needs an
+// `entity_ref` + a resolving href "which a NULL-entity row has neither of — so the checkbox
+// stays off". That reasoning was half wrong, and the wrong half is the one Rob reads.
+//
+// The checkbox was never off: `overviewReadControl` returns `checkbox: true` for every
+// non-proposal row regardless. `hasRecord` decides the TOOLTIP's second clause, and for
+// these six it now says the opposite of what is true — measured on prod today, flag #137
+// (`entity_id: null`, `entity_href: null`) is returned by `/api/admin/flags?entities=C-2017`
+// and renders on that company's page, while the Overview tells Rob "it has no record page,
+// so resolve it here".
+//
+// That is the same class of defect inc.20 fixed for proposals and inc.24 for slug rows —
+// a control describing an outcome that isn't the real one — only quieter, because here the
+// click is SAFE and the caption is what lies. Rob resolves a finding on the Overview that
+// he could have worked on the company's page, or leaves it unread because clearing it looks
+// like losing it.
+//
+// The rule is not re-derived here: `flagNamedRecordIds` is the same function inc.26's filter
+// keeps rows with, so "the tooltip says it has a record page" and "a record page shows it"
+// are one predicate. No name is read; a `titleHref` is still the stronger evidence and is
+// checked first.
+
+/**
+ * Whether a flag has a record page at all — the tooltip's question, answered with the same
+ * evidence the record page's own filter uses.
+ *
+ * `titleHref` is the caller's already-resolved link (server-side across deals; see
+ * `flagTitleHref`). A row without one still has a surface if it NAMES a minted id, because
+ * `selectRecordFlags` keeps it on that record's page.
+ */
+export function flagHasRecordSurface(
+  titleHref: string | null | undefined,
+  title: string | null | undefined,
+  detail: string | null | undefined,
+): boolean {
+  return Boolean(titleHref) || flagNamedRecordIds(title, detail).length > 0;
+}
+
 /**
  * A PostgREST `or=` filter matching the rows either arm above can keep: an `entity_id` in
  * the widened list, or no `entity_id` at all.
