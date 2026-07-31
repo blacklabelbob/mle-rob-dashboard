@@ -6,6 +6,7 @@ import {
   expandEntityFilter,
   flagHasRecordSurface,
   flagNamedRecordIds,
+  flagNamedScope,
   selectRecordFlags,
   flagEntityHref,
   flagTitleHref,
@@ -515,5 +516,62 @@ describe("flagHasRecordSurface (inc.27 — the tooltip's question, answered like
     }
     // ...and the row no page shows is the one told to resolve on the Overview.
     expect(flagHasRecordSurface(null, rows[2].title, rows[2].detail)).toBe(false);
+  });
+});
+
+// Q84 inc.28 — the row is on the page (inc.26) and the Overview no longer calls it
+// page-less (inc.27). This is what it must SAY once it is there.
+describe("flagNamedScope — a finding that is on this page without being filed against it", () => {
+  const NAME_137 = "CG Roofing Group / Gulf Coast RE Group";
+  const DETAIL_137 = "the registry lists C-2017 and C-2018 under one FEIN — confirm which is the filer";
+
+  it("marks prod #137 on C-2017's page and names the OTHER company it is also sitting on", () => {
+    const s = flagNamedScope(null, NAME_137, DETAIL_137, "C-2017");
+    expect(s).toEqual({ named: ["C-2017", "C-2018"], here: "C-2017", others: ["C-2018"] });
+  });
+
+  it("says nothing about a FILED row — its header already names the record it is filed against", () => {
+    expect(flagNamedScope("cg-roofing-group", "registry conflict", DETAIL_137, "C-2017")).toBeNull();
+    expect(flagNamedScope("C-2017", "registry conflict", DETAIL_137, "C-2017")).toBeNull();
+  });
+
+  it("says nothing when the finding names no minted id — that row got here by being filed", () => {
+    expect(flagNamedScope(null, "New company domain: roofco.com", "seen in two meetings", "C-2017")).toBeNull();
+  });
+
+  it("never reads a NAME: 'CG Roofing Group' in the header addresses nothing", () => {
+    expect(flagNamedScope(null, NAME_137, "no ids in this sentence", "C-2017")).toBeNull();
+  });
+
+  it("leaves `here` null rather than guessing when the page id is not one the row names", () => {
+    // The fan-out case: `?person=P-1010` also pulls that person's org's flags, so a row can
+    // legitimately be on a page whose id it never prints. Naming a record it does not name
+    // would be the exact wrong-record mistake this whole thread refuses.
+    const s = flagNamedScope(null, NAME_137, DETAIL_137, "P-1010");
+    expect(s).toEqual({ named: ["C-2017", "C-2018"], here: null, others: ["C-2017", "C-2018"] });
+  });
+
+  it("works with no page id at all — the caller may not know which record it is rendering", () => {
+    expect(flagNamedScope(null, NAME_137, DETAIL_137)?.here).toBeNull();
+  });
+
+  it("every id it prints is a linkable record — the marker can never point at a 404", () => {
+    const s = flagNamedScope(null, "P-1010 and C-2006 disagree", "see also C-2019", "C-2006");
+    for (const id of s?.named ?? []) expect(flagEntityHref(id)).toBeTruthy();
+    expect(s?.others).toEqual(["P-1010", "C-2019"]);
+  });
+
+  it("marks exactly the rows selectRecordFlags kept for NAMING, and no others", () => {
+    // The coupling test, same shape as inc.27's: the page shows two kinds of row, and the
+    // marker must appear on precisely the kind that is not filed against this record.
+    const rows = [
+      { id: 137, entity_id: null, title: NAME_137, detail: DETAIL_137 },
+      { id: 26, entity_id: "cg-roofing-group", title: "registry conflict", detail: "filed against C-2017" },
+      { id: 55, entity_id: null, title: "New company domain: roofco.com", detail: "seen twice, no ids" },
+    ];
+    const shown = selectRecordFlags(rows, ["C-2017", "cg-roofing-group"], ["C-2017"]);
+    expect(shown.map((r) => r.id)).toEqual([137, 26]);
+    const marked = shown.filter((r) => flagNamedScope(r.entity_id, r.title, r.detail, "C-2017"));
+    expect(marked.map((r) => r.id)).toEqual([137]);
   });
 });

@@ -415,6 +415,62 @@ export function flagHasRecordSurface(
   return Boolean(titleHref) || flagNamedRecordIds(title, detail).length > 0;
 }
 
+// Q84 inc.28 — inc.26 put the six NULL-entity rows onto the pages of the records they NAME,
+// and inc.27 made the Overview stop calling them page-less. Both were about getting the row
+// TO the page. Neither said anything about what the row looks like once it is there, and on
+// the page it now reads as that record's own finding.
+//
+// Prod #137 is the case: `entity_id` NULL, `entity_name` the single string
+// "CG Roofing Group / Gulf Coast RE Group", detail naming C-2017 and C-2018. On
+// /companies/C-2017 it renders with the same header, the same chips and the same Resolve
+// button as C-2017's four filed rows. Nothing on it says the finding is a conflict BETWEEN
+// two companies, that it is filed against neither, or that the identical row is also sitting
+// on C-2018's page — so resolving it on one page silently clears it from the other, which is
+// correct behaviour (one ledger row, one id) described nowhere.
+//
+// Same evidence rule as every increment in this thread, and it reads NO name: the marker is
+// built from `flagNamedRecordIds`, the function `selectRecordFlags` filters with, so a row
+// can only be captioned "names C-2018" when it literally prints that id. `entity_name` —
+// the ambiguous half — is never parsed, and a row with an `entity_id` gets no marker at all,
+// because that row IS filed and the header is telling the truth about it.
+
+/** Why a NULL-entity finding is on the page being read, and what else it is about. */
+export type NamedScope = {
+  /** Every minted id the finding names, in print order — the records it spans. */
+  named: string[];
+  /** The one that is the page being read, when the caller can prove which page that is. */
+  here: string | null;
+  /** The rest — the records this same row is also sitting on right now. */
+  others: string[];
+};
+
+/**
+ * The scope note for a finding on a record page, or `null` when the row needs none.
+ *
+ * `null` for a filed row (`entity_id` set): it is filed against a record, its header names
+ * that record, and there is nothing to disclose. `null` too when the text names no minted
+ * id, which on a record page means the row got there by being filed — belt and braces with
+ * the arm above rather than a second rule.
+ *
+ * `pageId` is the id in the URL. It is optional and unproven-by-default on purpose: the
+ * flags route fans a `?person=` query out through org memberships, so a row can legitimately
+ * be on a page whose id it does not name. When that happens `here` is `null` and the caller
+ * says only what is true — which records the row names — instead of guessing which one is
+ * the page.
+ */
+export function flagNamedScope(
+  entityId: string | null | undefined,
+  title: string | null | undefined,
+  detail: string | null | undefined,
+  pageId?: string | null,
+): NamedScope | null {
+  if (entityId) return null;
+  const named = flagNamedRecordIds(title, detail);
+  if (named.length === 0) return null;
+  const here = pageId && named.includes(pageId) ? pageId : null;
+  return { named, here, others: named.filter((id) => id !== here) };
+}
+
 /**
  * A PostgREST `or=` filter matching the rows either arm above can keep: an `entity_id` in
  * the widened list, or no `entity_id` at all.

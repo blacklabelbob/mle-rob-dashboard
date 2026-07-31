@@ -14,6 +14,7 @@ import {
 import {
   flagEntityHref,
   flagHasRecordSurface,
+  flagNamedScope,
   flagRecordChips,
   linkifyRecordIds,
 } from "@/lib/flags/recordLinks";
@@ -432,6 +433,44 @@ export default function ThingsToAddress({
                     )
                   )}
                 </p>
+                {/* inc.28: this row may not be THIS record's finding. inc.26 put the
+                    NULL-entity rows onto the pages of the records they name, and there
+                    they render exactly like the filed ones — #137 is a conflict BETWEEN
+                    C-2017 and C-2018, filed against neither, sitting on both pages, and
+                    Resolve here clears it from there. Said before the click. Only ids the
+                    finding printed are named; `entity_name` is never read. */}
+                {mode === "entity" &&
+                  (() => {
+                    const scope = flagNamedScope(f.entity_id, f.title, f.detail, person ?? entity);
+                    if (!scope) return null;
+                    return (
+                      <p className="mt-1 text-[11px] leading-relaxed text-slate-400">
+                        <span className="mr-1.5 rounded border border-slate-400/30 bg-slate-400/10 px-1.5 py-px text-[10px] font-medium text-slate-300">
+                          not filed here
+                        </span>
+                        {scope.others.length > 0 ? (
+                          <>
+                            it names{" "}
+                            {scope.others.map((id, i) => (
+                              <span key={id}>
+                                {i > 0 && ", "}
+                                <Link href={flagEntityHref(id) as string} className="text-sky-300 hover:underline">
+                                  {id}
+                                </Link>
+                              </span>
+                            ))}{" "}
+                            {scope.here ? "as well as this record" : "and appears on each named record"} — one
+                            ledger row on every one of those pages, so resolving it here resolves it there too.
+                          </>
+                        ) : (
+                          <>
+                            it is filed against no record — it appears here because it names{" "}
+                            <span className="font-mono text-slate-300">{scope.named[0]}</span>.
+                          </>
+                        )}
+                      </p>
+                    );
+                  })()}
                 {/* inc.32: a held-domain row carries its own state and its way
                     back. Resolve is the only other affordance on this row, and
                     on this kind of row it means something narrower than usual —
