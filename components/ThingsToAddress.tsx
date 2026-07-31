@@ -11,6 +11,7 @@ import {
   writeFailureMessage,
   type WriteFailure,
 } from "@/lib/comms/proposalFlag";
+import { reopenFailureMessage, supersededBy } from "@/lib/flags/supersede";
 import {
   archiveRepeatMark,
   archiveRepeatSummary,
@@ -111,6 +112,32 @@ export default function ThingsToAddress({
     } catch {
       setFailed({ id, ...writeFailureMessage(action, null, title) });
       return false;
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  // inc.10: reopen is its own request because its refusal is its own answer. A
+  // keyed row cannot reopen while its twin is open (0033's partial unique index),
+  // and the route replies 409 with a sentence naming that twin — which `patch`
+  // would flatten into "try again", the one thing that cannot work here.
+  async function reopen(f: Flag) {
+    setFailed(null);
+    setBusy(true);
+    try {
+      const r = await fetch("/api/admin/flags", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: f.id, action: "reopen" }),
+      });
+      if (!r.ok) {
+        const body = await r.json().catch(() => null);
+        setFailed({ id: f.id, ...reopenFailureMessage(r.status, body?.error) });
+        return;
+      }
+      await load();
+    } catch {
+      setFailed({ id: f.id, ...reopenFailureMessage(null) });
     } finally {
       setBusy(false);
     }
@@ -470,6 +497,35 @@ export default function ThingsToAddress({
                       back at this very decision. The row says so itself, so the
                       return next week reads as the design and not as a bug. */}
                   {held && <div className="mt-0.5 text-slate-500">{held}</div>}
+                  {/* inc.10: this row is the only one on the ledger Rob did not
+                      close himself — a pass closed it and printed "Reopen if this
+                      row still matters on its own" in the note above. Until now
+                      that sentence was an instruction with no control anywhere on
+                      the page. Rows Rob resolved get nothing: an undo button on
+                      his own judgement is the opposite mistake. */}
+                  {supersededBy(f.resolution_note) !== null && (
+                    <div className="mt-1 flex flex-wrap items-center gap-2">
+                      <button
+                        onClick={() => reopen(f)}
+                        disabled={busy}
+                        title={`Put this back on the open list. It stays closed if flag #${supersededBy(
+                          f.resolution_note
+                        )} still holds the same finding.`}
+                        className="rounded-md bg-white/10 px-2.5 py-1 text-[11px] font-medium text-white transition hover:bg-white/20 disabled:opacity-50"
+                      >
+                        Reopen
+                      </button>
+                      {failed?.id === f.id && (
+                        <p
+                          className={`max-w-[24rem] text-[11px] leading-snug ${
+                            failed.certain ? "text-amber-300" : "text-red-300"
+                          }`}
+                        >
+                          {failed.text}
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </li>
                 );
               })}

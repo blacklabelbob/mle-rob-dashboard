@@ -76,6 +76,62 @@ export function supersededNote(survivorId: number): string {
   return `Superseded by flag #${survivorId} — same finding, re-run with current numbers. Reopen if this row still matters on its own.`;
 }
 
+/**
+ * Q84 inc.10 — read `supersededNote` back off an archive row.
+ *
+ * The note is not decoration: it is the ONE row on the ledger that Rob did not close
+ * himself. A row he resolved carries his own judgement and his own note; a superseded
+ * row carries a sentence the machine wrote, inviting a click. Telling the two apart is
+ * what decides where the Reopen control may appear — offering it on Rob's own
+ * resolutions would be the ledger second-guessing him, which is the opposite defect.
+ *
+ * Deliberately anchored (`^Superseded by flag #N`) rather than a loose search: a
+ * resolution note Rob typed that merely mentions another flag must not grow a button.
+ *
+ * @returns the survivor's flag id, or null if this row was not superseded by a pass
+ */
+export function supersededBy(note: string | null | undefined): number | null {
+  if (typeof note !== "string") return null;
+  const m = /^Superseded by flag #(\d+)\b/.exec(note.trim());
+  if (!m) return null;
+  const id = Number(m[1]);
+  return Number.isSafeInteger(id) && id > 0 ? id : null;
+}
+
+export type ReopenFailure = { text: string; certain: boolean };
+
+/**
+ * Q84 inc.10 — what Rob reads when a Reopen click does not land.
+ *
+ * The 409 case is the whole reason this is not a generic failure line. `planFlagReopen`
+ * already composes a sentence naming the row that blocks this one (`This finding is
+ * already open as flag #N…`) — flattening that into "nothing changed, try again" would
+ * turn an answer into a dead end, and trying again is exactly what cannot work. So a
+ * refusal is passed THROUGH verbatim, and it is `certain`: the ledger is unchanged and
+ * we know it.
+ *
+ * `status === null` means the request never came back — the state is unknown, so the
+ * next instruction is reload, not re-click.
+ */
+export function reopenFailureMessage(
+  status: number | null,
+  serverMessage?: string | null,
+): ReopenFailure {
+  if (status === null) {
+    return {
+      text: "Couldn't reach the server — this may or may not have reopened. Reload before clicking again.",
+      certain: false,
+    };
+  }
+  if (status === 409 && typeof serverMessage === "string" && serverMessage.trim()) {
+    return { text: serverMessage.trim(), certain: true };
+  }
+  if (status === 404) {
+    return { text: "That row is no longer on the ledger — nothing reopened.", certain: true };
+  }
+  return { text: `Still resolved — nothing changed (server said ${status}). Try again.`, certain: true };
+}
+
 export type FlagReopenPlan =
   | { ok: true; reason: string }
   | { ok: false; blockedBy: number; message: string };

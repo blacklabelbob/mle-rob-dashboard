@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { planFlagWrite, planFlagReopen, supersededNote } from "../flags/supersede";
+import {
+  planFlagWrite,
+  planFlagReopen,
+  supersededNote,
+  supersededBy,
+  reopenFailureMessage,
+} from "../flags/supersede";
 
 describe("planFlagWrite — a recurring finding corrects its own row", () => {
   it("inserts when no dedupe key is given, so unkeyed callers are unchanged", () => {
@@ -106,5 +112,51 @@ describe("planFlagReopen — Rob's reopen click never becomes a 500 on his own l
     if (plan.ok) throw new Error("expected refusal");
     expect(plan.message).toMatch(/resolve it first/i);
     expect(Object.keys(plan)).not.toContain("supersede");
+  });
+});
+
+// Q84 inc.10 — the control that makes the note's own offer clickable.
+describe("supersededBy — telling the machine's closure from Rob's", () => {
+  it("reads the survivor id straight back off the note the pass wrote", () => {
+    expect(supersededBy(supersededNote(136))).toBe(136);
+  });
+
+  it("returns null for a row Rob resolved himself — his judgement gets no undo button", () => {
+    expect(supersededBy("Handled on the 7/29 call")).toBeNull();
+    expect(supersededBy(null)).toBeNull();
+    expect(supersededBy(undefined)).toBeNull();
+    expect(supersededBy("")).toBeNull();
+  });
+
+  it("does NOT match a note that merely mentions a flag mid-sentence", () => {
+    expect(supersededBy("Same thing as flag #134, closing this one")).toBeNull();
+    expect(supersededBy("not superseded by flag #134")).toBeNull();
+  });
+});
+
+describe("reopenFailureMessage — a refusal is an answer, not a dead end", () => {
+  it("passes a 409 through verbatim so the blocking row is named", () => {
+    const plan = planFlagReopen("k", [{ id: 134, status: "open" }]);
+    if (plan.ok) throw new Error("expected refusal");
+    const msg = reopenFailureMessage(409, plan.message);
+    expect(msg.text).toBe(plan.message);
+    expect(msg.text).toMatch(/#134/);
+    // The ledger is unchanged and we know it — retrying is not the next move.
+    expect(msg.certain).toBe(true);
+  });
+
+  it("falls back to a plain sentence when a 409 arrives with no message", () => {
+    expect(reopenFailureMessage(409, null).text).toMatch(/nothing changed/i);
+    expect(reopenFailureMessage(409, "   ").text).toMatch(/nothing changed/i);
+  });
+
+  it("says the row is gone on 404 rather than inviting a retry", () => {
+    expect(reopenFailureMessage(404).text).toMatch(/no longer on the ledger/i);
+  });
+
+  it("asks for a reload when the request never came back — the state is unknown", () => {
+    const msg = reopenFailureMessage(null);
+    expect(msg.certain).toBe(false);
+    expect(msg.text).toMatch(/reload/i);
   });
 });
