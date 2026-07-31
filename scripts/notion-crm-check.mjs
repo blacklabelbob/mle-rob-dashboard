@@ -6,12 +6,19 @@
  * me confirm the validity of what's in the CRM"*. `scripts/notion-meetings-sync.mjs` FILLS
  * the archive; this script CHECKS the CRM against it. Opposite directions, no overlap.
  *
- * STRICTLY READ-ONLY. It opens no write path at all: no Notion page create or update, no
- * Supabase insert/update, no `--apply` flag to forget. The one POST it issues is Notion's
+ * READ-ONLY BY DEFAULT, and the one exception is named rather than buried. It creates and
+ * updates nothing on either side it reconciles: no Notion page create or update, no Supabase
+ * insert/update, no `--apply` flag to forget. The one POST it always issues is Notion's
  * `/data_sources/<id>/query` — a READ that the Notion API requires be sent as a POST because
  * the filter travels in the body. Stated explicitly rather than claimed as "no POST", because
  * a reviewer who greps for `method: "POST"` will find it, and a comment that has to be
  * explained away is worth less than one that is simply true.
+ *
+ * `--flag` (Q84 inc.11, opt-in) additionally writes ONE row to Rob's ledger via
+ * `/api/admin/flags`, carrying a stable `dedupeKey` so the finding CORRECTS its own row
+ * instead of stacking a fourth contradicting count beside #132/#134/#136. That is a write,
+ * so it is a flag you have to type — but it is the findings channel, not the archive: it
+ * touches no meeting, no company, no money field. Without `--flag` nothing is written.
  *
  * A disagreement between the archive and the CRM is a question for a human — auto-reconciling
  * it would write a meeting record nobody verified onto a company, which is exactly the failure
@@ -29,11 +36,16 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { checkArchiveAgainstCrm } from "../lib/meetings/archiveCheck.ts";
 import { classifyUnexplainedRows } from "../lib/meetings/unexplainedRows.ts";
+import { buildArchiveFinding } from "../lib/meetings/archiveFinding.ts";
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), "..");
 const DATA_SOURCE_ID = "600498eb-b6e0-41af-a625-e369cbe5fc6a";
 const NOTION_VERSION = "2025-09-03";
 const AS_JSON = process.argv.includes("--json");
+const FILE_FLAG = process.argv.includes("--flag");
+// Prod by default: the ledger Rob reads is the deployed one, and a finding filed onto a
+// localhost database is a finding nobody sees.
+const FLAGS_BASE = (process.env.FLAGS_BASE_URL || "https://mle-rob-dashboard.vercel.app").replace(/\/$/, "");
 
 function env(key) {
   const inline = process.env[key];
@@ -181,4 +193,35 @@ for (const [disposition, count, why] of BUCKETS) {
   }
 }
 
-console.log(`\nREAD-ONLY — this script changes nothing on either side.\n`);
+// ── the ledger row (opt-in) ────────────────────────────────────────────────────────────
+// inc.8 built the dedupe mechanism and then said, in its own commit body, that this script
+// "still does not send a dedupeKey, so the count is corrected by hand today". A number a
+// human has to retype is a number that goes stale the first time nobody types it — the
+// exact way #132 came to say 26 while #134 said 25 about one pile.
+if (FILE_FLAG) {
+  const finding = buildArchiveFinding(unexplained.counts);
+  if (!finding) {
+    // Deliberately does NOT resolve the existing row: whether a finding is DONE is Rob's
+    // call, and closing his to-do from a script is the machine deciding his list is finished.
+    console.log(`--flag: nothing to file — no row needs a human account. Any existing ledger row is left for Rob to close.\n`);
+  } else {
+    const res = await fetch(`${FLAGS_BASE}/api/admin/flags`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(finding),
+    });
+    const body = await res.text();
+    if (!res.ok) {
+      console.error(`--flag: ledger write FAILED ${res.status}: ${body.slice(0, 300)}`);
+      process.exit(1);
+    }
+    const json = JSON.parse(body);
+    console.log(`--flag: ledger ${json.action} — ${json.reason}${json.superseded?.length ? ` (superseded ${json.superseded.join(", ")})` : ""}\n`);
+  }
+}
+
+console.log(
+  FILE_FLAG
+    ? `Read-only on both sides it reconciles — the only write was the one ledger row above.\n`
+    : `READ-ONLY — this script changes nothing on either side.\n`,
+);
