@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import DocumentsSection from "@/components/esign/DocumentsSection";
 import EquityOnRecord from "@/components/EquityOnRecord";
 import RepReceivableAlertsPanel from "@/components/RepReceivableAlerts";
+import ThingsToAddress from "@/components/ThingsToAddress";
 import { dealCandidate } from "@/lib/equity";
 import { todayInET } from "@/lib/integrity/overdue";
 import { loadDealReceivableAlerts } from "@/lib/rep/receivableAlertsLoad";
@@ -168,6 +169,12 @@ export default async function DealPage({ params }: { params: Promise<{ id: strin
               <p className="mt-2 whitespace-pre-wrap text-sm text-slate-300">{deal.notes}</p>
             </section>
           )}
+
+          {/* Q84 inc.25: findings filed against this deal. Companies and people have had
+              this section since Q70; deals never did, so flag #83 — the Gulf Coast 30%
+              equity row Rob raised in dev-chat #53 — lived on the Overview and nowhere
+              else. `entity` (not `person`) because a deal has no memberships to fan out. */}
+          <ThingsToAddress mode="entity" entity={deal.id} />
         </aside>
       </div>
     </main>

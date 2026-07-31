@@ -42,6 +42,8 @@ type Flag = {
   resolution_note: string | null;
   /** inc.23: resolved server-side — see `withEntityRefs` in app/api/admin/flags/route.ts. */
   entity_ref?: string | null;
+  /** inc.25: the title's link target, server-resolved across every record family (incl. deals). */
+  entity_href?: string | null;
 };
 
 /**
@@ -52,9 +54,30 @@ type Flag = {
  */
 const entityRef = (f: Flag) => f.entity_ref ?? f.entity_id;
 
-async function fetchFlags(person?: string): Promise<Flag[] | null> {
+/**
+ * inc.25: where a row's title links, one answer for every render site and the read gate.
+ *
+ * Server-resolved (`entity_href`) because a DEAL id can only be confirmed against the deals
+ * table, which this client cannot read. Falls back to the pure minted/legacy rule so a
+ * response served before inc.25 renders exactly as it did yesterday — never a guessed link.
+ */
+const titleHref = (f: Flag) => f.entity_href ?? flagEntityHref(entityRef(f));
+
+/**
+ * inc.25: `person` fans a query out through org memberships; `entity` does not.
+ *
+ * A DEAL has no memberships to fan out through, and asking `?person=deal-…` would run a
+ * lookup that can only ever come back empty. `?entities=` is the route's exact-match arm,
+ * which is what a deal page wants: its own findings, nobody else's.
+ */
+async function fetchFlags(person?: string, entity?: string): Promise<Flag[] | null> {
   try {
-    const r = await fetch(person ? `/api/admin/flags?person=${person}` : "/api/admin/flags");
+    const url = person
+      ? `/api/admin/flags?person=${encodeURIComponent(person)}`
+      : entity
+        ? `/api/admin/flags?entities=${encodeURIComponent(entity)}`
+        : "/api/admin/flags";
+    const r = await fetch(url);
     if (!r.ok) return null;
     return (await r.json()).flags;
   } catch {
@@ -72,9 +95,12 @@ const sevStyle: Record<Flag["severity"], string> = {
 export default function ThingsToAddress({
   mode = "entity",
   person,
+  entity,
 }: {
   mode?: "overview" | "entity";
   person?: string;
+  /** inc.25: an exact `entity_id` to match — a deal id, which has no memberships to fan out. */
+  entity?: string;
 }) {
   const [flags, setFlags] = useState<Flag[]>([]);
   const [showArchive, setShowArchive] = useState(false);
@@ -86,19 +112,19 @@ export default function ThingsToAddress({
   const [failed, setFailed] = useState<(WriteFailure & { id: number }) | null>(null);
 
   const load = useCallback(async () => {
-    const next = await fetchFlags(person);
+    const next = await fetchFlags(person, entity);
     if (next) setFlags(next);
-  }, [person]);
+  }, [person, entity]);
 
   useEffect(() => {
     let cancelled = false;
-    fetchFlags(person).then((next) => {
+    fetchFlags(person, entity).then((next) => {
       if (next && !cancelled) setFlags(next);
     });
     return () => {
       cancelled = true;
     };
-  }, [person]);
+  }, [person, entity]);
 
   // inc.19: both writes used to swallow their own failure — `markRead` never
   // read `r.ok`, `resolve` had an empty else. A refused PATCH rendered as
@@ -219,7 +245,10 @@ export default function ThingsToAddress({
               // `entity_id` is true for `deal-gulf-coast-equity-phase4`, which names a
               // DEAL and reaches nothing — the tooltip would promise a page to stay on
               // that does not exist, and marking read would clear its only surface.
-              const read = overviewReadControl(f.title, Boolean(entityRef(f) && flagEntityHref(entityRef(f))));
+              // inc.25: `deal-gulf-coast-equity-phase4` now HAS a page, and `/deals/[id]`
+              // renders this section, so the checkbox's "stays on the record" promise is
+              // true for it. Both halves shipped together for exactly that reason.
+              const read = overviewReadControl(f.title, Boolean(titleHref(f)));
               return (
               <li key={f.id} className="flex items-start gap-3 text-sm" title={f.detail}>
                 {read.checkbox ? (
@@ -247,9 +276,9 @@ export default function ThingsToAddress({
                       a name that is not a link is the honest state, not a lost feature.
                       inc.23: a legacy slug now counts, because `legacy_slug` is a key the
                       CRM wrote down at the renumber, not an inference off the name. */}
-                  {flagEntityHref(entityRef(f)) ? (
+                  {titleHref(f) ? (
                     <Link
-                      href={flagEntityHref(entityRef(f)) as string}
+                      href={titleHref(f) as string}
                       className="font-medium text-slate-200 hover:underline"
                     >
                       {f.entity_name}
@@ -348,8 +377,8 @@ export default function ThingsToAddress({
                 <div className="text-sm font-semibold">
                   {/* inc.20: same rule as the digest above and as the ids inside the
                       detail — an id is unambiguous or it is not a link. */}
-                  {flagEntityHref(entityRef(f)) ? (
-                    <Link href={flagEntityHref(entityRef(f)) as string} className="hover:underline">
+                  {titleHref(f) ? (
+                    <Link href={titleHref(f) as string} className="hover:underline">
                       {f.entity_name}
                     </Link>
                   ) : (

@@ -247,6 +247,66 @@ export function expandEntityFilter(
   return out;
 }
 
+// Q84 inc.25 — inc.24 named the one `entity_id` left on prod that reaches nothing in
+// EITHER direction, and this closes it: `deal-gulf-coast-equity-phase4` on flag #83,
+// the Gulf Coast 30% equity row Rob raised in dev-chat #53.
+//
+// inc.20 read that value correctly given what it could see — "a slug is a name with the
+// spaces removed" — and inc.23 said it "resolves to nothing … no org or person carries
+// that slug", which is true and was the wrong table. It is not a slug of anything: it is
+// the PRIMARY KEY of a row in `deals`, and `/deals/deal-gulf-coast-equity-phase4` is a
+// real page that renders today. All 8 deal ids on prod have this shape (`deal-jonathan-polk`,
+// `deal-cg-roofing-group`), because deals were never renumbered by Q70 and so have no
+// `legacy_slug` to join through.
+//
+// So this is the SAME distinction the whole thread turns on, not a loosening of it: the id
+// is not matched by pattern — `deal-` as a prefix rule would link `deal-whatever-someone-typed`
+// to a 404 — it is confirmed against the deals the CRM actually holds. Present in the table
+// or plain text, exactly as an unclaimed legacy slug already behaves.
+//
+// The two halves land together on purpose. Linking the ledger row without giving the deal
+// page its findings would flip the Overview checkbox on for #83 while its "stays on the
+// record until resolved" promise was still false — the precise data-loss lie inc.24 fixed.
+// `/deals/[id]` now renders the section, so the promise is true before the control appears.
+
+/** The deal ids the CRM holds — the only proof that `/deals/<id>` resolves. */
+export type DealIndex = ReadonlySet<string> | string[] | null | undefined;
+
+/**
+ * Where a flag's `entity_id` points when it names a DEAL, or `null` when it does not.
+ *
+ * Membership-tested, never pattern-matched, for the reason above. Kept separate from
+ * `flagEntityHref` because the two answer different questions: that one reads an id whose
+ * shape the CRM guarantees (`C-2017`), this one needs evidence the row exists.
+ */
+export function dealEntityHref(entityId: string | null | undefined, dealIds: DealIndex): string | null {
+  if (!entityId || !dealIds) return null;
+  // Narrowed on the ARRAY arm, not on `instanceof Set`: `ReadonlySet` is a structural type
+  // with no constructor, so `instanceof` compiles but leaves the else-branch typed as the
+  // whole union — the compiler catches it here rather than the check silently inverting.
+  const has = Array.isArray(dealIds) ? dealIds.includes(entityId) : dealIds.has(entityId);
+  return has ? `/deals/${entityId}` : null;
+}
+
+/**
+ * The single href a flag's title should link to, across every record family — or `null`.
+ *
+ * One function so the ledger's two render sites (digest and full row) and the read-control
+ * gate can never disagree about whether a row has a page. Order is by strength of evidence:
+ * an id the CRM minted, then the record that id was renumbered from, then a deal row.
+ *
+ * `entityRef` is inc.23's already-resolved value (`entity_ref`), passed in rather than
+ * recomputed so a client rendering a pre-inc.23 response degrades to plain text, never to
+ * a link pointing somewhere else.
+ */
+export function flagTitleHref(
+  entityRef: string | null | undefined,
+  entityId: string | null | undefined,
+  dealIds: DealIndex,
+): string | null {
+  return flagEntityHref(entityRef) ?? dealEntityHref(entityId, dealIds);
+}
+
 /** A record a flag names, ready to render as a link. */
 export type RecordChip = { id: string; href: string };
 

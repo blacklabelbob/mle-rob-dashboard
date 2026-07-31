@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   buildSlugIndex,
+  dealEntityHref,
   expandEntityFilter,
   flagEntityHref,
+  flagTitleHref,
   flagRecordChips,
   linkifyRecordIds,
   resolveFlagEntityId,
@@ -326,5 +328,56 @@ describe("expandEntityFilter (inc.24 — the record page's side of the same look
     expect(expandEntityFilter(["C-2017"], contested)).toEqual(["C-2017", "caleb-green"]);
     expect(expandEntityFilter(["P-1018"], contested)).toEqual(["P-1018", "caleb-green"]);
     expect(buildSlugIndex(contested)["caleb-green"]).toBeUndefined();
+  });
+});
+
+// Q84 inc.25 — the last entity_id on prod that reached nothing: flag #83's
+// `deal-gulf-coast-equity-phase4`, which is not a slug of anything — it is a row in `deals`.
+describe("dealEntityHref", () => {
+  const DEALS = new Set(["deal-gulf-coast-equity-phase4", "deal-cg-roofing-group"]);
+
+  it("links the deal the CRM actually holds — flag #83's row, live on prod", () => {
+    expect(dealEntityHref("deal-gulf-coast-equity-phase4", DEALS)).toBe("/deals/deal-gulf-coast-equity-phase4");
+  });
+
+  it("REFUSES a `deal-` shaped id the table does not have — the prefix is not evidence", () => {
+    // The whole point: a pattern rule would link this straight to a notFound page, which is
+    // the "sent Rob to a record that isn't there" failure inc.20 and inc.23 both refused.
+    expect(dealEntityHref("deal-invented-by-a-typo", DEALS)).toBeNull();
+  });
+
+  it("does not link a legacy org/person slug just because a deal set was passed", () => {
+    expect(dealEntityHref("cg-roofing-group", DEALS)).toBeNull();
+  });
+
+  it("accepts an array as well as a Set, and is null-safe on both arguments", () => {
+    expect(dealEntityHref("deal-jonathan-polk", ["deal-jonathan-polk"])).toBe("/deals/deal-jonathan-polk");
+    expect(dealEntityHref("deal-jonathan-polk", null)).toBeNull();
+    expect(dealEntityHref(null, DEALS)).toBeNull();
+  });
+});
+
+describe("flagTitleHref", () => {
+  const DEALS = new Set(["deal-gulf-coast-equity-phase4"]);
+
+  it("prefers the minted id the CRM resolved over anything else", () => {
+    // entity_ref is inc.23's answer; it outranks a deal lookup because it is the stronger
+    // evidence, and the two can never both be true for one row anyway.
+    expect(flagTitleHref("C-2017", "cg-roofing-group", DEALS)).toBe("/companies/C-2017");
+  });
+
+  it("falls through to the deal page when no org or person claimed the id", () => {
+    expect(flagTitleHref(null, "deal-gulf-coast-equity-phase4", DEALS)).toBe("/deals/deal-gulf-coast-equity-phase4");
+  });
+
+  it("stays plain text when neither arm resolves — the honest state, not a lost link", () => {
+    expect(flagTitleHref(null, "derm-clinic-pilot", DEALS)).toBeNull();
+    expect(flagTitleHref(null, null, DEALS)).toBeNull();
+  });
+
+  it("degrades to inc.23's behaviour when no deal index is available", () => {
+    // A pre-inc.25 response, or a failed deals read: the row renders as it did yesterday.
+    expect(flagTitleHref(null, "deal-gulf-coast-equity-phase4", null)).toBeNull();
+    expect(flagTitleHref("P-1008", "will", null)).toBe("/people/P-1008");
   });
 });

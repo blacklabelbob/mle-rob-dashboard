@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { planFlagWrite, planFlagReopen, supersededNote, type ExistingFlag } from "@/lib/flags/supersede";
-import { buildSlugIndex, expandEntityFilter, resolveFlagEntityId } from "@/lib/flags/recordLinks";
+import { buildSlugIndex, expandEntityFilter, flagTitleHref, resolveFlagEntityId } from "@/lib/flags/recordLinks";
 
 // Things to Address (Rob 2026-07-22): findings surfaced to Rob live on the
 // ledger — resolve with optional note, never deleted, archive keeps both dates.
@@ -81,7 +81,22 @@ async function withEntityRefs<T extends { entity_id: string | null }>(rows: T[])
       index = buildSlugIndex([...(orgs.data ?? []), ...(people.data ?? [])]);
     }
   }
-  return rows.map((r) => ({ ...r, entity_ref: resolveFlagEntityId(r.entity_id, index) }));
+
+  // Q84 inc.25 — an `entity_id` no org or person claims may still be a DEAL's primary key
+  // (`deal-gulf-coast-equity-phase4`, flag #83), and `/deals/<id>` is a real page. Confirmed
+  // against the rows the CRM holds, never inferred from the `deal-` prefix: an id the table
+  // does not have stays plain text. Same non-fatal contract as the slug lookup above.
+  const unresolved = [...new Set(rows.map((r) => r.entity_id).filter((id): id is string => Boolean(id) && !resolveFlagEntityId(id, index)))];
+  let dealIds = new Set<string>();
+  if (unresolved.length) {
+    const { data, error } = await db().from("deals").select("id").in("id", unresolved);
+    if (!error) dealIds = new Set((data ?? []).map((d) => d.id as string));
+  }
+
+  return rows.map((r) => {
+    const entity_ref = resolveFlagEntityId(r.entity_id, index);
+    return { ...r, entity_ref, entity_href: flagTitleHref(entity_ref, r.entity_id, dealIds) };
+  });
 }
 
 // resolve (with optional note) — or reopen if Rob changes his mind
