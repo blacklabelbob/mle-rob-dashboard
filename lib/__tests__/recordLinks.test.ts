@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import {
   buildSlugIndex,
   dealEntityHref,
@@ -796,5 +798,73 @@ describe("mintedOnly / flagNamedScope — the CRM confirms which named ids are r
       ["C-2017", "C-2018"],
     );
     expect(s).toEqual({ named: ["C-2017", "C-2018"], here: "C-2017", others: ["C-2018"] });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Q84 inc.81 — the last reader of a printed id that never got the confirmed set.
+//
+// inc.37 established the rule and stated the cost of breaking it in the source:
+// "the chips take the same confirmed set as the marker, and they have to". inc.38
+// carried `named_ref` to the Overview for the surface predicate. The chips two
+// lines below it were left on the 2-argument call — so on the ONE surface Rob
+// scans, an id shape the CRM never minted rendered as a chip linking to a record
+// that does not exist, while the full row correctly refused to draw it.
+// ---------------------------------------------------------------------------
+describe("Q84 inc.81 — the digest's chips take the same confirmed set as the row's", () => {
+  // A detail that prints two well-formed ids of which the CRM holds exactly one.
+  // This is not hypothetical: `flagNamedRecordIds` reads ids out of PROSE, and
+  // prose is written by checks that quote transcripts and pre-renumber records.
+  const DETAIL = "Heard as Omega Title [C-2019]; the older note still says [C-1994].";
+  const HELD = ["C-2019"];
+
+  it("draws only the id the CRM holds when it is handed the confirmed set", () => {
+    expect(flagRecordChips(null, DETAIL, null, HELD).map((c) => c.id)).toEqual(["C-2019"]);
+  });
+
+  it("draws the dead link when the set is withheld — the defect, pinned", () => {
+    // The 2-argument call the Overview used to make. Kept as a test rather than a
+    // comment so that re-introducing it is a failure and not a code review.
+    expect(flagRecordChips(null, DETAIL).map((c) => c.id)).toEqual(["C-2019", "C-1994"]);
+  });
+
+  it("still degrades open when the server could not confirm — null is not an empty CRM", () => {
+    // `withEntityRefs` returns `named_ref: null` when the lookup itself errored. A
+    // filter built from that would hide every chip on a database hiccup, which is a
+    // worse lie than an occasional dead link. Unfiltered is the honest fallback, and
+    // it is the same fallback the full row already had.
+    expect(flagRecordChips(null, DETAIL, null, null).map((c) => c.id)).toEqual(["C-2019", "C-1994"]);
+    expect(flagRecordChips(null, DETAIL, null, undefined).map((c) => c.id)).toEqual(["C-2019", "C-1994"]);
+  });
+
+  it("draws nothing when the CRM confirmed none of them — [] is an answer, null is not", () => {
+    expect(flagRecordChips(null, DETAIL, null, [])).toEqual([]);
+  });
+
+  it("agrees with the predicate that decides the row even has a record surface", () => {
+    // One confirmed set, three readers: the chips, the surface predicate, the scope.
+    // If they ever disagree the Overview offers a way into a record it also claims
+    // the finding cannot reach.
+    expect(flagHasRecordSurface(null, "Two orgs", DETAIL, HELD)).toBe(true);
+    expect(mintedOnly(flagNamedRecordIds("Two orgs", DETAIL), HELD)).toEqual(["C-2019"]);
+    expect(flagRecordChips(null, DETAIL, null, HELD).map((c) => c.id)).toEqual(
+      mintedOnly(flagNamedRecordIds("Two orgs", DETAIL), HELD),
+    );
+  });
+
+  it("every flagRecordChips call site in the ledger passes the confirmed set", () => {
+    // CR-3: the rule lives in a check, not in a comment. Both call sites are JSX and
+    // neither is reachable from a unit test, so the source is the artifact under test —
+    // the same reason inc.20's digest/row split went unnoticed for eighteen increments.
+    const src = readFileSync(
+      path.join(process.cwd(), "components", "ThingsToAddress.tsx"),
+      "utf8",
+    );
+    // Closed on `).map(` rather than on the first `)`: the first argument is itself a
+    // call (`entityRef(f)`), so a naive `[^)]*` reads one nested paren and asserts against
+    // "entityRef(f" — a guard that fails on correct code, which is how guards get deleted.
+    const calls = [...src.matchAll(/flagRecordChips\(([\s\S]*?)\)\.map\(/g)].map((m) => m[1]);
+    expect(calls.length).toBe(2); // exactly two surfaces: the digest and the full row
+    for (const args of calls) expect(args).toContain("f.named_ref");
   });
 });

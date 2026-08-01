@@ -420,7 +420,15 @@ export default function ThingsToAddress({
                       entity_name is TWO orgs in one string with a null entity_id.
                       These are the ids the row already prints in its detail, made
                       reachable where the row is scanned. No name is resolved. */}
-                  {flagRecordChips(entityRef(f), f.detail).map((chip) => (
+                  {/* Q84 inc.81: `named_ref` — the server's CONFIRMED subset — was passed to
+                      every other reader of a printed id (the surface predicate five lines up,
+                      the resolve scope, the full row's own chips) and not to this one. An id
+                      the detail prints but the CRM never minted became a chip here linking to
+                      a record that does not exist, while the row below correctly suppressed
+                      it. `alreadyLinked` stays null on purpose: that argument is about ids
+                      THIS page already renders as links, and the Overview is nobody's record
+                      page. inc.37's rule, verbatim: one set, both renders. */}
+                  {flagRecordChips(entityRef(f), f.detail, null, f.named_ref).map((chip) => (
                     <Link
                       key={chip.id}
                       href={chip.href}
