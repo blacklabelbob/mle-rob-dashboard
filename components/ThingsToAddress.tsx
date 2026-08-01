@@ -37,7 +37,7 @@ import {
   groupRepeatsWithinSeverity,
   rowRepeatMark,
 } from "@/lib/comms/heldDomainFlag";
-import { hostConfirmControls } from "@/lib/flags/hostConfirmView";
+import { hostConfirmControls, hostConfirmKey } from "@/lib/flags/hostConfirmView";
 
 // "Things to Address" (Rob 2026-07-22): findings Max surfaces, resolved in-place
 // with an optional note. Resolved items are never removed — they archive into an
@@ -137,6 +137,12 @@ export default function ThingsToAddress({
   // inc.19: keyed by flag id so the sentence sits on the row it is about — a
   // ledger-wide banner can't say WHICH dismiss failed.
   const [failed, setFailed] = useState<(WriteFailure & { id: number }) | null>(null);
+  // Q84 inc.75: the confirm writes to the ORG, and the flag row's payload is re-minted by
+  // `check:archive` — up to 30 minutes later. Between those two moments the only thing that
+  // knows the Domain was written is this component, and without it the identical button sits
+  // there after a successful click and the second one answers 409. `hostConfirmKey` is the one
+  // spelling both sides use. Cleared by a reload, which is honest: the server is the authority.
+  const [written, setWritten] = useState<string[]>([]);
 
   const load = useCallback(async () => {
     const next = await fetchFlags(person, entity);
@@ -241,6 +247,10 @@ export default function ThingsToAddress({
         });
         return;
       }
+      // inc.75: recorded only on the 2xx path — an unreachable server (below) leaves the
+      // control offering the write, because "may or may not have been written" must never
+      // render as "written".
+      setWritten((w) => (w.includes(hostConfirmKey(host, orgId)) ? w : [...w, hostConfirmKey(host, orgId)]));
       await load();
     } catch {
       setFailed({
@@ -506,6 +516,7 @@ export default function ThingsToAddress({
           const controls = hostConfirmControls(
             f.payload,
             mode === "entity" ? (person ?? entity ?? null) : null,
+            written,
           );
           const copy = resolveControlCopy(
             f.title,
@@ -653,8 +664,20 @@ export default function ThingsToAddress({
                     screen); on any other page the same action is a link to that page, because
                     a button here would edit a record this page does not even render. Renders
                     nothing at all while `payload` is NULL, which is every row on prod today. */}
+                {/* Q84 inc.75: a control whose write already landed is a STATEMENT, not an
+                    offer — no click, no hover affordance, and it says the finding stays open
+                    on purpose. Rendered before the button branch so a done action can never
+                    also be clickable. */}
                 {controls.map((c) =>
-                  c.here ? (
+                  c.done ? (
+                    <span
+                      key={`${c.host}-${c.orgId}`}
+                      title={c.tooltip}
+                      className="rounded-md border border-emerald-400/40 bg-emerald-500/15 px-2.5 py-1 text-xs font-semibold text-emerald-100"
+                    >
+                      ✓ {c.label}
+                    </span>
+                  ) : c.here ? (
                     <button
                       key={`${c.host}-${c.orgId}`}
                       onClick={() => confirmHost(f, c.host, c.orgId)}

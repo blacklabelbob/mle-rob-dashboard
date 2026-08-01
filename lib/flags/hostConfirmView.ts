@@ -27,12 +27,32 @@ export type HostConfirmControl = {
   host: string;
   orgId: string;
   here: boolean;
-  /** The control's own words. A link and a button do not say the same thing. */
+  /**
+   * Q84 inc.75 — this exact write already succeeded, so the control is a STATEMENT, not an
+   * offer. `true` only ever on a `here` control: a link is navigation and cannot have written
+   * anything. Never renders as a button — see `hostConfirmControls`.
+   */
+  done: boolean;
+  /** The control's own words. A link, a button and a done state do not say the same thing. */
   label: string;
   tooltip: string;
   /** Where a non-`here` control sends the reader. `null` on a `here` control — it writes. */
   href: string | null;
 };
+
+/**
+ * Q84 inc.75 — the ONE spelling of "this action" that the view and its caller share.
+ *
+ * The component records what it wrote and this module decides what that means; if they spelled
+ * the pair differently the done state would silently never match, and the failure would look
+ * exactly like the bug it fixes. Host and org are both already graded by the codec, so this is
+ * a join, not a normaliser.
+ */
+export function hostConfirmKey(host: string, orgId: string): string {
+  // A space cannot occur in either half — org ids are `C-<digits>` and `extractHost` never
+  // returns whitespace — so the join is unambiguous without escaping.
+  return [orgId, host].join(" ");
+}
 
 /**
  * The controls a row renders on the page it is being read on.
@@ -42,20 +62,46 @@ export type HostConfirmControl = {
  *   exactly as it does now until the push lands.
  * @param pageId the record id of the page being read, or `null` on the Overview digest, where
  *   there is no org page to be "on" and therefore no writable action.
+ * @param written Q84 inc.75 — `hostConfirmKey` for every action whose write the caller has
+ *   SEEN succeed. Omit it and every control behaves exactly as it did in inc.73.
  */
-export function hostConfirmControls(payload: unknown, pageId: string | null): HostConfirmControl[] {
+export function hostConfirmControls(
+  payload: unknown,
+  pageId: string | null,
+  written: readonly string[] = [],
+): HostConfirmControl[] {
   const graded = readHostConfirmPayload(payload);
   if (!graded) return [];
-  return graded.actions.map((a) => control(a, pageId));
+  const done = new Set(written);
+  return graded.actions.map((a) => control(a, pageId, done));
 }
 
-function control(a: HostConfirm, pageId: string | null): HostConfirmControl {
+function control(a: HostConfirm, pageId: string | null, written: ReadonlySet<string>): HostConfirmControl {
   const here = !!pageId && pageId === a.orgId;
   if (here) {
+    // Q84 inc.75 — the write already landed. The payload cannot know that (it is re-minted by
+    // the next `check:archive` run, up to 30 minutes away), so the caller's observation is the
+    // only evidence there is, and it is only ever about the page it is on.
+    if (written.has(hostConfirmKey(a.host, a.orgId))) {
+      return {
+        host: a.host,
+        orgId: a.orgId,
+        here: true,
+        done: true,
+        label: `Domain set to ${a.host}`,
+        // Says the two things a reader would otherwise have to guess: the finding is still
+        // open because closing it is Rob's call (inc.73), and the control goes away on its own.
+        tooltip:
+          `Written — this company's Domain is ${a.host}. The finding stays open on purpose: ` +
+          "whether it is settled is your call on Resolve. The next archive check drops this control.",
+        href: null,
+      };
+    }
     return {
       host: a.host,
       orgId: a.orgId,
       here: true,
+      done: false,
       // Names the field it fills, because the point of confirming HERE is that the field is on
       // screen with its old value one click away (inc.69).
       label: `Set Domain to ${a.host}`,
@@ -69,6 +115,8 @@ function control(a: HostConfirm, pageId: string | null): HostConfirmControl {
     host: a.host,
     orgId: a.orgId,
     here: false,
+    // A link wrote nothing, so it can never claim it did — whatever the caller passed in.
+    done: false,
     label: `${a.host} → ${a.orgId}`,
     // Says why it is a link and not a button, so a reader on the wrong page is not left
     // wondering where the control went.
