@@ -320,12 +320,57 @@ describe("statement coverage (inc.56)", () => {
     expect(unrecognisedStatements("comment on column people.phase2_estimate is null;")).toEqual([
       "comment on column people.phase2_estimate",
     ]);
-    expect(unrecognisedStatements("create sequence if not exists s;")).toEqual(["create sequence if not"]);
+    // Re-aimed inc.59: `create sequence` is now a claimed shape (read-probeable
+    // via the column default the root publishes), so it is no longer unrecognised.
     expect(unrecognisedStatements("do $$ begin if true then null; end if; end $$;")).toEqual(["do $$ begin if"]);
   });
 
   it("ignores statements that leave nothing behind for any read to differ on", () => {
     expect(unrecognisedStatements("begin; commit; set search_path = public; reset role;")).toEqual([]);
+  });
+
+  it("treats a TEMP table as leaving nothing behind — 0031, live (inc.59)", () => {
+    // Session-scoped: it cannot outlive the migration, so no later read, write or
+    // plan differs on it. All four spellings, since the SQL standard allows them.
+    for (const stmt of [
+      "create temporary table _people_renumber on commit drop as select id from people;",
+      "create temp table t as select 1;",
+      "create global temporary table t (a int);",
+      "create local temp table t (a int);",
+    ]) {
+      expect(unrecognisedStatements(stmt)).toEqual([]);
+    }
+    // …and it must never be read as a table prod should be carrying. A phantom
+    // object here would report `_people_renumber` MISSING and declare an applied
+    // migration unapplied — the loudest possible wrong verdict on this ladder.
+    const p = parseMigration("create temporary table _people_renumber on commit drop as select id from people;");
+    expect(p.objects).toEqual([]);
+    expect(p.unverifiable).toEqual([]);
+  });
+
+  it("does NOT wave through an UNLOGGED table — durable, not session-scoped (inc.59)", () => {
+    // The near-miss neighbour of the rule above: `unlogged` is not crash-safe but
+    // it IS durable, so it must not ride the temp exemption. It stays LOUD —
+    // unrecognised, therefore `unclassified` — rather than silently excused.
+    // No parse rule is added for it: zero migrations write one (measured
+    // 2026-08-01), and inc.56's coverage check is what will name it the day one
+    // does. This pins which side of the line it falls on, not a rule for it.
+    expect(unrecognisedStatements("create unlogged table keep_me (a int);")).toEqual([
+      "create unlogged table keep_me",
+    ]);
+    expect(evidenceCeiling([`${UNRECOGNISED_LABEL}create unlogged table keep_me`]).ceiling).toBe("unclassified");
+  });
+
+  it("does not invent a `drop sequence` rule for a shape nobody has written (inc.59)", () => {
+    // Same discipline inc.58 applied to `drop index` / `drop function`: the twin
+    // is imaginable, but zero migrations write it (measured 2026-08-01), so it
+    // gets no capping label — it surfaces loudly instead.
+    // It earns no capping label of its own — what it carries is the loud
+    // unrecognised marker, which is the whole difference being pinned here.
+    expect(parseMigration("drop sequence people_record_no_seq;").unverifiable).toEqual([
+      `${UNRECOGNISED_LABEL}drop sequence people_record_no_seq`,
+    ]);
+    expect(unrecognisedStatements("drop sequence people_record_no_seq;")).toEqual(["drop sequence people_record_no_seq"]);
   });
 
   it("does not excuse an unlisted change just because it leads with a claimed word", () => {

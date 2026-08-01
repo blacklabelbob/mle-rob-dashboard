@@ -139,6 +139,16 @@ const UNVERIFIABLE: Array<[RegExp, string]> = [
   // changes what a read returns for some role (its twin is read-probeable).
   [/\bdrop\s+trigger\b/i, "drop trigger"],
   [/\bdrop\s+policy\b/i, "drop policy"],
+  // inc.59 — a sequence is a durable object the root never lists BY NAME, so the
+  // handover expected `permanent`. Prod said otherwise before this line was
+  // written: the OpenAPI root publishes a column's DEFAULT (88 properties carry
+  // one, measured 2026-08-01), so a sequence an exposed column defaults to shows
+  // up as `nextval('…_seq'::regclass)` — settled by the weakest read on the
+  // ladder, no extra key. Same shape as `create type`, and the same honest limit:
+  // that read only speaks when some exposed column uses it. `drop sequence` is
+  // deliberately NOT here — zero migrations write it, and a rule for a shape
+  // nobody has written is the assertion this ladder exists to kill.
+  [/\bcreate\s+sequence\b/i, "create sequence"],
   // inc.58 — `update \w+ set` missed an ALIASED update (`update orgs o set …`)
   // and a schema-qualified one (`update public.orgs set …`). Carried since
   // inc.56, harmless until now only by luck: `0003` and `0031` each also run an
@@ -218,8 +228,19 @@ export function splitStatements(sql: string): string[] {
  * is: a catch-all that swallows the unknown is what this whole pass exists to
  * stop. `set` is matched as a LEADING token only — `alter table … set default`
  * leads with `alter`, and that one is a real change this must not excuse.
+ *
+ * inc.59 — `create temporary table` is the first SUBTRACTION from the capping
+ * side rather than an addition to it. A temp table lives in a per-session
+ * `pg_temp` schema and cannot outlive the session that made it, so no later read,
+ * write or plan can differ on whether the migration ran — which is this set's
+ * whole criterion. Its visible work is done by the statements it feeds (0031's
+ * two are `… as select` sources for two `update`s), and those are capped on their
+ * own as `data change`, so nothing is excused by dropping the shell.
+ * `unlogged` is deliberately NOT here: an unlogged table is durable, merely
+ * uncrash-safe, and it is exactly the kind of thing this must not wave through.
  */
-const NO_EFFECT = /^(begin|start\s+transaction|commit|end|rollback|set|reset)\b/i;
+const NO_EFFECT =
+  /^(begin|start\s+transaction|commit|end|rollback|set|reset|create\s+(?:global\s+|local\s+)?temp(?:orary)?\s+table)\b/i;
 
 /**
  * Every rule that claims a statement. Object rules are re-tested per statement
@@ -428,6 +449,15 @@ const READ_PROBEABLE = new Set([
   // and no migration writes `create type`, so this classifies a label the parser
   // can emit, not a file that exists today.)
   "create type",
+  // inc.59 — same family as `create type`, established by the same read: the root
+  // carries column defaults, so a sequence some exposed column defaults to is
+  // visible as its `nextval(…)`. The limit, stated rather than implied: measured
+  // 2026-08-01, prod has 0 nextval defaults and 0031's two sequences back no
+  // column, so nothing settles them today. That withholds no verdict — a sequence
+  // nothing defaults to is reached only by the `nextval()` calls in the file, and
+  // those land in the `update` statements this same list already caps as
+  // `data change`.
+  "create sequence",
   // inc.57 — a comment this call did not grade because no descriptions were
   // supplied. The same OpenAPI root carries them, so supplying them settles it:
   // read-probeable by the weakest access there is.
