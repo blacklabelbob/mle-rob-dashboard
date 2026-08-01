@@ -37,6 +37,7 @@ import {
   groupRepeatsWithinSeverity,
   rowRepeatMark,
 } from "@/lib/comms/heldDomainFlag";
+import { hostConfirmControls } from "@/lib/flags/hostConfirmView";
 
 // "Things to Address" (Rob 2026-07-22): findings Max surfaces, resolved in-place
 // with an optional note. Resolved items are never removed — they archive into an
@@ -63,6 +64,13 @@ type Flag = {
    * failed, and every printed id is used, exactly as before this field existed.
    */
   named_ref?: string[] | null;
+  /**
+   * Q84 inc.73: the row's structured action, straight off `flags.payload` (0035, PENDING).
+   * `unknown` because it comes from jsonb and no assumption about its shape is earned here —
+   * `hostConfirmControls` grades it. NULL on all 133 prod rows today, which renders as
+   * nothing, which is exactly how this ledger reads before the push lands.
+   */
+  payload?: unknown;
 };
 
 /**
@@ -194,6 +202,52 @@ export default function ThingsToAddress({
       await load();
     } catch {
       setFailed({ id: f.id, ...reopenFailureMessage(null) });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  /**
+   * Q84 inc.73 — the confirm click. Its own request, not `patch`, because its refusal is its
+   * own answer and it is the answer that matters: the server re-runs `hostClaimConflict` at
+   * the moment of the click (inc.69) and replies 409 with a SENTENCE naming the record that
+   * already holds the host. `patch` would flatten that into "try again", which is the one
+   * thing that cannot work — the second click fails identically.
+   *
+   * It writes to the ORG, not to the flag. The finding stays open: whether it is settled is
+   * Rob's call on the Resolve button, and a write that silently closed the row would take
+   * that judgement away.
+   */
+  async function confirmHost(f: Flag, host: string, orgId: string) {
+    setFailed(null);
+    setBusy(true);
+    try {
+      const r = await fetch("/api/admin/people", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: orgId, changes: { domain: host } }),
+      });
+      if (!r.ok) {
+        const body = await r.json().catch(() => null);
+        // The server's own words when it has them — it knows WHICH record is in the way and
+        // this component does not. `certain` because a refused PATCH wrote nothing.
+        setFailed({
+          id: f.id,
+          text:
+            typeof body?.error === "string" && body.error
+              ? `Not written — ${body.error}.`
+              : `Not written — ${orgId}'s Domain is unchanged (server said ${r.status}).`,
+          certain: true,
+        });
+        return;
+      }
+      await load();
+    } catch {
+      setFailed({
+        id: f.id,
+        text: `Couldn't reach the server — ${orgId}'s Domain may or may not have been set to ${host}. Reload before clicking again.`,
+        certain: false,
+      });
     } finally {
       setBusy(false);
     }
@@ -445,6 +499,14 @@ export default function ThingsToAddress({
           // inc.43: the record the row is FILED on — `entity_ref` first, because 16 flags
           // on prod carry a pre-Q70 slug and a slug is not a page anyone can be sent to.
           const home = mode === "entity" ? entityRef(f) : null;
+          // Q84 inc.73: the PAGE, which is not `home`. `home` is the record the finding is
+          // FILED on — null for #133, which is filed against nobody — and the question a
+          // confirm control asks is "am I on the org this action writes to". That is the page
+          // id, the same one the scope marker and the note provenance are computed from.
+          const controls = hostConfirmControls(
+            f.payload,
+            mode === "entity" ? (person ?? entity ?? null) : null,
+          );
           const copy = resolveControlCopy(
             f.title,
             scope,
@@ -585,6 +647,34 @@ export default function ThingsToAddress({
                     resolved title counts as existing), stops that domain from
                     ever being proposed again. Resolving was the one click that
                     could silently lose a company. */}
+                {/* Q84 inc.73: the shortcut the last five increments were building toward —
+                    one control per action the finding carries. A control is a BUTTON only on
+                    the org it writes to (inc.69: the undo belongs where the field is on
+                    screen); on any other page the same action is a link to that page, because
+                    a button here would edit a record this page does not even render. Renders
+                    nothing at all while `payload` is NULL, which is every row on prod today. */}
+                {controls.map((c) =>
+                  c.here ? (
+                    <button
+                      key={`${c.host}-${c.orgId}`}
+                      onClick={() => confirmHost(f, c.host, c.orgId)}
+                      disabled={busy}
+                      title={c.tooltip}
+                      className="rounded-md border border-sky-400/40 bg-sky-500/15 px-2.5 py-1 text-xs font-semibold text-sky-100 transition hover:bg-sky-500/25 disabled:opacity-50"
+                    >
+                      {c.label}
+                    </button>
+                  ) : (
+                    <Link
+                      key={`${c.host}-${c.orgId}`}
+                      href={c.href as string}
+                      title={c.tooltip}
+                      className="rounded-md border border-white/15 px-2.5 py-1 font-mono text-[11px] text-slate-300 transition hover:border-white/40 hover:text-white"
+                    >
+                      {c.label}
+                    </Link>
+                  )
+                )}
                 {proposalDomain(f.title) && (
                   <OrgProposalCreate
                     domain={proposalDomain(f.title) as string}
