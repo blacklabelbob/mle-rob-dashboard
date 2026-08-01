@@ -61,11 +61,16 @@ describe("the live migrations directory", () => {
     ).toEqual([]);
   });
 
-  it("the backlog is exactly the two migrations Rob still has to push", () => {
+  // Q84 inc.71 — this pin is deliberately a LIVE-DIRECTORY assertion, and it earned its
+  // keep this run: adding `0035_flag_payload.sql` failed it before the file was mentioned
+  // anywhere else. Growing the list is a decision, not a maintenance chore — every entry
+  // added here lengthens the ONE `supabase db push` Rob owes, and that has to be seen.
+  it("the backlog is exactly the three migrations Rob still has to push", () => {
     const { pending } = migrationBacklog(FILES);
     expect(pending.map((p) => p.name)).toEqual([
       "0032_role_read_grants.sql",
       "0034_dedup_review.sql",
+      "0035_flag_payload.sql",
     ]);
     // Nameless work is unassignable work — a pending migration says whose push it is.
     for (const entry of pending) expect(entry.owner).toBe("rob");
