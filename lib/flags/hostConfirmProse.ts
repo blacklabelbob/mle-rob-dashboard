@@ -30,6 +30,7 @@
 //
 // Pure per CR-3: no clock, no network, no React.
 
+import { WITHIN_ARCHIVE_CHECK } from "@/lib/meetings/archiveCadence";
 import { FIELDS_TO_FILL_HEADING, UNATTENDED_CLOSE_CLAUSE } from "@/lib/meetings/crmGapFinding";
 import { CONFIRM_INSTRUCTION } from "@/lib/meetings/hostProposal";
 import { hostConfirmKey, type HostConfirmControl } from "./hostConfirmView";
@@ -123,16 +124,12 @@ function retargetHeading(line: string, controls: readonly HostConfirmControl[]):
 }
 
 /**
- * How long the promised unattended close can take, at the OUTSIDE.
- *
- * Provenance, because a number invented here would be a lie with a decimal point:
- * `com.aivoicetech.meeting-intake.plist` fires `meeting-intake.sh` on `StartInterval 1800`,
- * which calls `scripts/meeting-archive-sync.sh`, which runs `notion-crm-check --flag` — the
- * only thing that re-mints this row. Half an hour is the gap between ticks, so it is a
- * CEILING and never a countdown: this module has no clock (CR-3) and cannot know how long
- * ago the last tick ran.
+ * Q84 inc.79 — the ceiling moved to `lib/meetings/archiveCadence`, where the CONTROL can read
+ * it too without this module and `hostConfirmView` importing each other. Re-exported because
+ * the constant was inc.78's public answer to "how long", and a caller that already found it
+ * here should not have to be told it moved.
  */
-export const ARCHIVE_CHECK_CEILING_MINUTES = 30;
+export { ARCHIVE_CHECK_CEILING_MINUTES } from "@/lib/meetings/archiveCadence";
 
 /**
  * Q84 inc.78 — the heading's second clause promises a close that nothing has started yet.
@@ -161,7 +158,7 @@ function sayWhenTheCloseLands(line: string, done: number): string {
   const end = at + UNATTENDED_CLOSE_CLAUSE.length;
   return (
     line.slice(0, end) +
-    ` — the ${done} already set on the next archive check, within ${ARCHIVE_CHECK_CEILING_MINUTES} minutes` +
+    ` — the ${done} already set on the next archive check, ${WITHIN_ARCHIVE_CHECK}` +
     line.slice(end)
   );
 }

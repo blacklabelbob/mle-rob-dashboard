@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildHostConfirmPayload } from "../hostConfirm";
 import { hostConfirmControls, hostConfirmKey } from "../hostConfirmView";
+import { ARCHIVE_CHECK_CEILING_MINUTES, WITHIN_ARCHIVE_CHECK } from "@/lib/meetings/archiveCadence";
 
 // The live row this exists for: prod flag #133, filed against NO record, rendered on both
 // /companies/C-2017 and /companies/C-2018, carrying one action for each.
@@ -108,5 +109,38 @@ describe("hostConfirmControls — an action whose write already landed", () => {
     expect(
       hostConfirmControls(LIVE, "C-2017", ["C-2017", "cgroofing.net", "cgroofing.net C-2017"]).every((c) => !c.done),
     ).toBe(true);
+  });
+});
+
+// Q84 inc.79 — the control that produced the write now says WHEN it goes away. The paragraph
+// above it has carried the ceiling since inc.78; the button did not, so one reader got a dated
+// promise and an open-ended one about the same thirty minutes.
+describe("hostConfirmControls — the done control says when the wait ends", () => {
+  const doneControl = () =>
+    hostConfirmControls(LIVE, "C-2017", [hostConfirmKey("cgroofing.net", "C-2017")]).find(
+      (c) => c.orgId === "C-2017",
+    )!;
+
+  it("names the ceiling on the done tooltip, in the ONE spelling the heading uses", () => {
+    expect(doneControl().tooltip).toContain(WITHIN_ARCHIVE_CHECK);
+    expect(WITHIN_ARCHIVE_CHECK).toBe(`within ${ARCHIVE_CHECK_CEILING_MINUTES} minutes`);
+  });
+
+  it("is a CEILING, never a countdown and never a clock time", () => {
+    const tooltip = doneControl().tooltip;
+    // The leading space is what makes this mean something: "within 30 minutes" contains
+    // "in 30 minutes", so the bare substring can never fail.
+    expect(tooltip).not.toContain(" in 30 minutes");
+    expect(tooltip).not.toMatch(/\d{1,2}:\d{2}/);
+    expect(tooltip).toContain("The next archive check drops this control");
+  });
+
+  it("says it ONLY where a write landed — an offer and a link promise nothing about the wait", () => {
+    const fresh = hostConfirmControls(LIVE, "C-2017");
+    for (const c of fresh) expect(c.tooltip).not.toContain(WITHIN_ARCHIVE_CHECK);
+    const link = hostConfirmControls(LIVE, "C-2017", [hostConfirmKey("cgroofing.net", "C-2017")]).find(
+      (c) => c.orgId === "C-2018",
+    )!;
+    expect(link.tooltip).not.toContain(WITHIN_ARCHIVE_CHECK);
   });
 });

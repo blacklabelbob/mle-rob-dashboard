@@ -15,6 +15,7 @@
 //
 // Pure per CR-3: no clock, no network, no Supabase, no React.
 
+import { WITHIN_ARCHIVE_CHECK } from "@/lib/meetings/archiveCadence";
 import { readHostConfirmPayload, type HostConfirm } from "./hostConfirm";
 
 /**
@@ -80,7 +81,7 @@ function control(a: HostConfirm, pageId: string | null, written: ReadonlySet<str
   const here = !!pageId && pageId === a.orgId;
   if (here) {
     // Q84 inc.75 — the write already landed. The payload cannot know that (it is re-minted by
-    // the next `check:archive` run, up to 30 minutes away), so the caller's observation is the
+    // the next `check:archive` run, up to `ARCHIVE_CHECK_CEILING_MINUTES` away), so the caller's observation is the
     // only evidence there is, and it is only ever about the page it is on.
     if (written.has(hostConfirmKey(a.host, a.orgId))) {
       return {
@@ -91,9 +92,16 @@ function control(a: HostConfirm, pageId: string | null, written: ReadonlySet<str
         label: `Domain set to ${a.host}`,
         // Says the two things a reader would otherwise have to guess: the finding is still
         // open because closing it is Rob's call (inc.73), and the control goes away on its own.
+        //
+        // Q84 inc.79 — "goes away on its own" now says WHEN. The paragraph above this control
+        // has carried the ceiling since inc.78; the control that produced the write did not, so
+        // one reader got a dated promise and an open-ended one about the same 30 minutes. Same
+        // refusals as inc.78: a CEILING, never a countdown, and never a clock time — this module
+        // has no clock (CR-3), and the number is the plist's, read from one place.
         tooltip:
           `Written — this company's Domain is ${a.host}. The finding stays open on purpose: ` +
-          "whether it is settled is your call on Resolve. The next archive check drops this control.",
+          "whether it is settled is your call on Resolve. The next archive check drops this " +
+          `control, ${WITHIN_ARCHIVE_CHECK}.`,
         href: null,
       };
     }

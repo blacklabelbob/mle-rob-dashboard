@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { retargetConfirmProse } from "../hostConfirmProse";
 import { hostConfirmControls } from "../hostConfirmView";
 import { CONFIRM_INSTRUCTION } from "@/lib/meetings/hostProposal";
+import { ARCHIVE_CHECK_CEILING_MINUTES, WITHIN_ARCHIVE_CHECK } from "@/lib/meetings/archiveCadence";
 
 /**
  * Q84 inc.76 — the row's prose stops instructing a hand-edit on exactly the pairs that have a
@@ -102,6 +103,18 @@ describe("retargetConfirmProse", () => {
         // bare `not.toContain` here can never fail and would be a test that only looks strict.
         expect(head).toContain("within 30 minutes");
         expect(head).not.toContain(" in 30 minutes");
+      });
+
+      // Q84 inc.79 — the control two lines below this heading promises the same wait. The
+      // literals above pin what the reader sees; this pins that BOTH readers get it from one
+      // place, so the day the plist's interval changes there is a single number to move.
+      it("spells the wait the same way the control's own tooltip does", () => {
+        const written = ["C-2010 cgroofing.net"];
+        const head = retargetConfirmProse(DETAIL, hostConfirmControls(PAYLOAD, "C-2010", written)).split("\n")[0];
+        const tooltip = hostConfirmControls(PAYLOAD, "C-2010", written).find((c) => c.done)!.tooltip;
+        expect(head).toContain(WITHIN_ARCHIVE_CHECK);
+        expect(tooltip).toContain(WITHIN_ARCHIVE_CHECK);
+        expect(WITHIN_ARCHIVE_CHECK).toBe(`within ${ARCHIVE_CHECK_CEILING_MINUTES} minutes`);
       });
 
       it("stays silent while nothing has been written from this page", () => {
