@@ -9,9 +9,11 @@ import { CONFIRM_INSTRUCTION } from "@/lib/meetings/hostProposal";
  */
 
 // The shape `buildCrmGapFinding` actually emits, kept verbatim so a change to that format fails
-// here rather than silently disabling the swap on prod.
+// here rather than silently disabling the swap on prod. Q84 inc.78 — the heading now carries its
+// REAL second clause; until this line was corrected the comment above it was false, and every
+// heading assertion here ran against a heading with nothing after the insertion point.
 const DETAIL =
-  "2 FIELD(S) TO FILL IN THE CRM:\n" +
+  "2 FIELD(S) TO FILL IN THE CRM, and then 3 row(s) answer themselves unattended, permanently:\n" +
   "• cgroofing.net — put it in the right org's Domain field (a company can use more than one). Heard on: 2026-07-29 CG call\n" +
   `    → likely CG Roofing Group [C-2010] — the host is a near-miss of a host it already carries; the Domain field is empty. ${CONFIRM_INSTRUCTION}; a look-alike host is never assumed to be the same company\n` +
   "• gulfregroup.com — put it in the right org's Domain field (a company can use more than one). Heard on: 2026-07-28 Gulf call\n" +
@@ -70,7 +72,8 @@ describe("retargetConfirmProse", () => {
     it("grades the count by what the reader can do, without rewriting the count itself", () => {
       const out = retargetConfirmProse(DETAIL, hostConfirmControls(PAYLOAD, "C-2010"));
       expect(out.split("\n")[0]).toBe(
-        "2 FIELD(S) TO FILL IN THE CRM (1 one click away right here · 1 one click away on the company's own page):",
+        "2 FIELD(S) TO FILL IN THE CRM (1 one click away right here · 1 one click away on the company's own page)," +
+          " and then 3 row(s) answer themselves unattended, permanently:",
       );
     });
 
@@ -79,19 +82,66 @@ describe("retargetConfirmProse", () => {
       expect(retargetConfirmProse(DETAIL, controls).split("\n")[0]).toContain("1 already set from this page");
     });
 
+    // Q84 inc.78 — the clause promises a close that only the 30-minute check performs.
+    describe("the unattended-close clause", () => {
+      it("says when the close lands, once a write has actually landed", () => {
+        const controls = hostConfirmControls(PAYLOAD, "C-2010", ["C-2010 cgroofing.net"]);
+        expect(retargetConfirmProse(DETAIL, controls).split("\n")[0]).toBe(
+          "2 FIELD(S) TO FILL IN THE CRM (1 already set from this page · 1 one click away on the company's own page)," +
+            " and then 3 row(s) answer themselves unattended, permanently" +
+            " — the 1 already set on the next archive check, within 30 minutes:",
+        );
+      });
+
+      it("never weakens the promise it qualifies", () => {
+        const controls = hostConfirmControls(PAYLOAD, "C-2010", ["C-2010 cgroofing.net"]);
+        const head = retargetConfirmProse(DETAIL, controls).split("\n")[0];
+        expect(head).toContain("unattended, permanently");
+        // A ceiling, never a countdown — this module has no clock. The leading space is the
+        // whole assertion: "within 30 minutes" contains "in 30 minutes" as a substring, so a
+        // bare `not.toContain` here can never fail and would be a test that only looks strict.
+        expect(head).toContain("within 30 minutes");
+        expect(head).not.toContain(" in 30 minutes");
+      });
+
+      it("stays silent while nothing has been written from this page", () => {
+        const head = retargetConfirmProse(DETAIL, hostConfirmControls(PAYLOAD, "C-2010")).split("\n")[0];
+        expect(head).toContain("unattended, permanently:");
+        expect(head).not.toContain("archive check");
+      });
+
+      it("never fires on a line the heading half declined to grade", () => {
+        // The payload claims more hosts than the heading counts: both halves stand down.
+        const detail = DETAIL.replace("2 FIELD(S)", "1 FIELD(S)");
+        const controls = hostConfirmControls(PAYLOAD, "C-2010", ["C-2010 cgroofing.net"]);
+        expect(retargetConfirmProse(detail, controls).split("\n")[0]).toBe(
+          "1 FIELD(S) TO FILL IN THE CRM, and then 3 row(s) answer themselves unattended, permanently:",
+        );
+      });
+
+      it("leaves prose that merely quotes the clause alone", () => {
+        const detail = `those row(s) answer themselves unattended, permanently is the promise\n${DETAIL}`;
+        const controls = hostConfirmControls(PAYLOAD, "C-2010", ["C-2010 cgroofing.net"]);
+        expect(retargetConfirmProse(detail, controls).split("\n")[0]).toBe(
+          "those row(s) answer themselves unattended, permanently is the promise",
+        );
+      });
+    });
+
     it("counts the fields no control was minted for as still typed by hand", () => {
       // Three empty fields found, one proposal confident enough to mint an action.
       const detail = DETAIL.replace("2 FIELD(S)", "3 FIELD(S)");
       const one = { kind: "host-confirm", actions: [PAYLOAD.actions[0]] };
       expect(retargetConfirmProse(detail, hostConfirmControls(one, "C-2010")).split("\n")[0]).toBe(
-        "3 FIELD(S) TO FILL IN THE CRM (1 one click away right here · 2 still typed by hand):",
+        "3 FIELD(S) TO FILL IN THE CRM (1 one click away right here · 2 still typed by hand)" +
+          ", and then 3 row(s) answer themselves unattended, permanently:",
       );
     });
 
     it("leaves the heading alone when the payload claims more hosts than the heading counts", () => {
       const detail = DETAIL.replace("2 FIELD(S)", "1 FIELD(S)");
       expect(retargetConfirmProse(detail, hostConfirmControls(PAYLOAD, "C-2010")).split("\n")[0]).toBe(
-        "1 FIELD(S) TO FILL IN THE CRM:",
+        "1 FIELD(S) TO FILL IN THE CRM, and then 3 row(s) answer themselves unattended, permanently:",
       );
     });
 

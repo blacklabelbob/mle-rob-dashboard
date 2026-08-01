@@ -42,6 +42,17 @@ export const KEY_CRM_GAP = "meeting-archive/crm-gap";
  */
 export const FIELDS_TO_FILL_HEADING = "FIELD(S) TO FILL IN THE CRM";
 
+/**
+ * Q84 inc.78 — the heading's SECOND clause, spelled once for the same reason as the first.
+ *
+ * It promises that filling the fields closes those rows with nobody watching, and that is
+ * true. What it cannot say from here is WHEN: this row is re-minted only by `check:archive`,
+ * which runs inside `scripts/meeting-archive-sync.sh` on the meeting-intake timer — so a
+ * Domain written from the ledger changes nothing on the page until the next tick. The
+ * read-time module says when, and only once a write has actually landed.
+ */
+export const UNATTENDED_CLOSE_CLAUSE = "row(s) answer themselves unattended, permanently";
+
 /** One line per meeting the CRM never heard about. Same shape as the archive finding's list. */
 function rowLines(rows: ArchiveRow[]): string {
   return rows
@@ -208,7 +219,7 @@ function attendanceBlock(entries: RowAttendance[], orgs: CrmOrg[] = []): string 
       });
     blocks.push(
       `${byHost.size} ${FIELDS_TO_FILL_HEADING}, and then ${entries.filter((e) => e.resolution.kind === "unknown-hosts").length} ` +
-        `row(s) answer themselves unattended, permanently:\n${lines.join("\n")}`,
+        `${UNATTENDED_CLOSE_CLAUSE}:\n${lines.join("\n")}`,
     );
   }
 

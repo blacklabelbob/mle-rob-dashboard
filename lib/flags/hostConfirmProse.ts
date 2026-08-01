@@ -30,7 +30,7 @@
 //
 // Pure per CR-3: no clock, no network, no React.
 
-import { FIELDS_TO_FILL_HEADING } from "@/lib/meetings/crmGapFinding";
+import { FIELDS_TO_FILL_HEADING, UNATTENDED_CLOSE_CLAUSE } from "@/lib/meetings/crmGapFinding";
 import { CONFIRM_INSTRUCTION } from "@/lib/meetings/hostProposal";
 import { hostConfirmKey, type HostConfirmControl } from "./hostConfirmView";
 
@@ -117,7 +117,53 @@ function retargetHeading(line: string, controls: readonly HostConfirmControl[]):
   if (link) parts.push(`${link} one click away on the company's own page`);
   if (byHand) parts.push(`${byHand} still typed by hand`);
 
-  return line.slice(0, at + FIELDS_TO_FILL_HEADING.length) + ` (${parts.join(" · ")})` + line.slice(at + FIELDS_TO_FILL_HEADING.length);
+  const end = at + FIELDS_TO_FILL_HEADING.length;
+  const graded = line.slice(0, end) + ` (${parts.join(" · ")})` + line.slice(end);
+  return sayWhenTheCloseLands(graded, done);
+}
+
+/**
+ * How long the promised unattended close can take, at the OUTSIDE.
+ *
+ * Provenance, because a number invented here would be a lie with a decimal point:
+ * `com.aivoicetech.meeting-intake.plist` fires `meeting-intake.sh` on `StartInterval 1800`,
+ * which calls `scripts/meeting-archive-sync.sh`, which runs `notion-crm-check --flag` — the
+ * only thing that re-mints this row. Half an hour is the gap between ticks, so it is a
+ * CEILING and never a countdown: this module has no clock (CR-3) and cannot know how long
+ * ago the last tick ran.
+ */
+export const ARCHIVE_CHECK_CEILING_MINUTES = 30;
+
+/**
+ * Q84 inc.78 — the heading's second clause promises a close that nothing has started yet.
+ *
+ * *"and then N row(s) answer themselves unattended, permanently"* is a true sentence about a
+ * field nobody has filled. The moment Rob DOES fill one from this page it becomes a sentence
+ * about a write that has already landed — and the row on screen still says N, because the
+ * only thing that re-reads the archive is the 30-minute check. He would reload, see the same
+ * number, and conclude the click did nothing. That is inc.75's *"did it work?"* ambiguity
+ * arriving one level up, and the fix is the same: state the past tense, then state the wait.
+ *
+ * THE REFUSALS:
+ *   - Said ONLY when a write has landed from this page. With nothing set, the promise is
+ *     future tense about a future action and a cadence bolted to it is trivia.
+ *   - A ceiling, never a countdown, and never a clock time — see the constant above.
+ *   - *"permanently"* is never weakened or removed. The wait is about WHEN the row closes,
+ *     not whether it stays closed; this clause adds to that promise and does not qualify it.
+ *   - It rides the SAME grading pass as the count in front of it: one decision, not two. If
+ *     the heading half declined (no controls, a count the payload disagrees with, no integer
+ *     in front), this never fires either, so prose quoting the clause elsewhere is untouched.
+ */
+function sayWhenTheCloseLands(line: string, done: number): string {
+  if (!done) return line;
+  const at = line.indexOf(UNATTENDED_CLOSE_CLAUSE);
+  if (at < 0) return line;
+  const end = at + UNATTENDED_CLOSE_CLAUSE.length;
+  return (
+    line.slice(0, end) +
+    ` — the ${done} already set on the next archive check, within ${ARCHIVE_CHECK_CEILING_MINUTES} minutes` +
+    line.slice(end)
+  );
 }
 
 /** done beats a button, a button beats a link — the most a reader can do about that host. */

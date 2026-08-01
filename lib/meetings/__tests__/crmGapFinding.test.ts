@@ -277,6 +277,23 @@ describe("buildCrmGapFinding — the confirm payload", () => {
     );
   });
 
+  // Q84 inc.78 — same duty for the clause AFTER the heading: the swap only says when the close
+  // lands if the sentence it appends to is the one the builder writes. `UNATTENDED_CLOSE_CLAUSE`
+  // is shared, so this pins that the shared spelling really is what lands in `detail`.
+  it("emits the unattended-close clause the swap dates, and dates it in place", async () => {
+    const { retargetConfirmProse } = await import("@/lib/flags/hostConfirmProse");
+    const { hostConfirmControls } = await import("@/lib/flags/hostConfirmView");
+
+    const f = buildCrmGapFinding(base, undefined, heard(["cgroofing.net", "gulfregroup.com"]), [CG, GULF])!;
+    // The write Rob just made from CG's page — the only thing that makes the wait worth stating.
+    const controls = hostConfirmControls(f.payload, CG.id, [`${CG.id} cgroofing.net`]);
+    expect(retargetConfirmProse(f.detail, controls).split("\n").find((l) => l.includes("FIELD(S) TO FILL IN THE CRM"))).toBe(
+      "2 FIELD(S) TO FILL IN THE CRM (1 already set from this page · 1 one click away on the company's own page), " +
+        "and then 2 row(s) answer themselves unattended, permanently — the 1 already set on the next archive check, " +
+        "within 30 minutes:",
+    );
+  });
+
   it("is absent, not empty, on a finding with no attendance evidence at all", () => {
     expect("payload" in buildCrmGapFinding(base)!).toBe(false);
   });
