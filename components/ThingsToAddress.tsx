@@ -362,8 +362,24 @@ export default function ThingsToAddress({
                 f.title,
                 flagHasRecordSurface(titleHref(f), f.title, f.detail, f.named_ref)
               );
+              // Q84 inc.80: this tooltip IS the detail — the row says "hover for detail" — and
+              // it was handing Rob the STORED sentence while the full row rendered the graded
+              // one. inc.76–79 retired "Confirm it and put the host on that org" and the
+              // heading that counts fields to type; the digest never heard, so the Overview
+              // (the scan surface Rob actually reads) kept re-issuing the instruction that
+              // three increments took out of the row below it.
+              //
+              // `null` for the page, deliberately: the Overview is not any org's page, so
+              // every action grades to a LINK and the sentence says whose page the control is
+              // on — never "the control on this row", because on the digest there is none.
+              // `written` is not passed for the same reason: nothing on this surface writes,
+              // and a done state here could only ever be a claim about somewhere else.
+              const digestDetail = retargetConfirmProse(
+                f.detail,
+                hostConfirmControls(f.payload, null)
+              );
               return (
-              <li key={f.id} className="flex items-start gap-3 text-sm" title={f.detail}>
+              <li key={f.id} className="flex items-start gap-3 text-sm" title={digestDetail}>
                 {read.checkbox ? (
                   <input
                     type="checkbox"

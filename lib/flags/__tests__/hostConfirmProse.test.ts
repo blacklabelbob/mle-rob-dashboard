@@ -166,6 +166,46 @@ describe("retargetConfirmProse", () => {
     });
   });
 
+  /**
+   * Q84 inc.80 — the OVERVIEW DIGEST, whose tooltip IS this detail ("hover for detail") and
+   * which was rendering it raw while the full row rendered it graded. The digest is not any
+   * org's page, so it passes `null` — every action is a link, and the sentence must say whose
+   * page the control is on rather than pointing at a control that is not on this surface.
+   */
+  describe("the Overview digest (no page)", () => {
+    it("re-aims EVERY pair at the company's own page — never at a control on this row", () => {
+      const out = retargetConfirmProse(DETAIL, hostConfirmControls(PAYLOAD, null));
+      const [cg, gulf] = out.split("\n").filter((l) => l.trimStart().startsWith("→"));
+      expect(cg).toContain("Confirm it on C-2010's own page");
+      expect(gulf).toContain("Confirm it on C-2011's own page");
+      expect(out).not.toContain(CONFIRM_INSTRUCTION);
+      // There is no control on the digest, so nothing here may claim one.
+      expect(out).not.toContain("control on this row");
+    });
+
+    it("grades the heading as clicks on the company's page, never as clicks right here", () => {
+      expect(retargetConfirmProse(DETAIL, hostConfirmControls(PAYLOAD, null)).split("\n")[0]).toBe(
+        "2 FIELD(S) TO FILL IN THE CRM (2 one click away on the company's own page)," +
+          " and then 3 row(s) answer themselves unattended, permanently:",
+      );
+    });
+
+    it("cannot be told a write landed — the digest writes nothing", () => {
+      // Even handed the key of a write that DID land elsewhere, a page-less control is a link:
+      // a done state here would be a claim about a surface this one cannot see.
+      const controls = hostConfirmControls(PAYLOAD, null, ["C-2010 cgroofing.net"]);
+      const out = retargetConfirmProse(DETAIL, controls);
+      expect(out).not.toContain("Done — this company's Domain is");
+      expect(out.split("\n")[0]).not.toContain("already set from this page");
+      expect(out.split("\n")[0]).not.toContain("archive check");
+    });
+
+    it("is byte-for-byte the stored detail on a pre-0035 row", () => {
+      // Every prod row today: payload NULL, so the tooltip reads exactly as it does now.
+      expect(retargetConfirmProse(DETAIL, hostConfirmControls(null, null))).toBe(DETAIL);
+    });
+  });
+
   it("does not let a bullet's host reach an instruction outside its own continuation", () => {
     const stray =
       "• cgroofing.net — put it in the right org's Domain field. Heard on: 2026-07-29 CG call\n" +
