@@ -202,14 +202,14 @@ if (ap.considered) {
   console.log(`\n── of those ${ap.considered}, where an activity WOULD go (PLAN ONLY — nothing is written) ──`);
   console.log(
     `   ${ap.attachable} attachable · ${ap.unknownCompany} company not in the CRM · ` +
-      `${ap.ambiguousCompany} company name is ambiguous · ${ap.noDate} company known but no Call Date · ` +
+      `${ap.ambiguousCompany} company name is ambiguous · ${ap.noDate} company known but no readable day · ` +
       `${ap.noCompany} row never said who it was with`,
   );
   const PLAN_BUCKETS = [
     ["attachable", "a pipeline could file these unattended once one exists"],
     ["unknown-company", "cheap for a human — add the org, its domain, or fix the spelling in Notion"],
     ["ambiguous-company", "two CRM orgs share the name — merge/rename first, never picked here"],
-    ["no-date", "company known, day missing — an activity is an event on a day"],
+    ["no-date", "company known, no day readable anywhere on the row — an activity is an event on a day"],
     ["no-company", "only someone who was there can say who it was with"],
   ];
   for (const [disposition, why] of PLAN_BUCKETS) {
@@ -218,10 +218,15 @@ if (ap.considered) {
     console.log(`\n  ${items.length} · ${disposition.toUpperCase()}`);
     console.log(`     ${why}`);
     for (const item of items) {
-      console.log(`     ${item.row.day || "(no date)"}  ${clip(item.row.title, 52) || "(untitled)"}`);
+      // A day recovered from the title is printed as such, never in the Call Date column: the
+      // reader must be able to see at a glance which rows a human dated and which this pass did.
+      const day = item.row.day || (item.dayFrom === "title" ? `${item.occursOn}*` : "(no date)");
+      console.log(`     ${day}  ${clip(item.row.title, 52) || "(untitled)"}`);
       console.log(`         → ${item.nextStep}`);
     }
   }
+  if (activityPlan.rows.some((r) => r.dayFrom === "title"))
+    console.log(`\n  * day read from the row's own title — Notion's Call Date is still empty there`);
 }
 
 console.log(`\n── ${c.crmOnly} CRM meeting activit(ies) with no archive row ──`);

@@ -67,6 +67,49 @@ describe("planMeetingActivities", () => {
     expect(plan.counts).toMatchObject({ attachable: 0, noDate: 1 });
   });
 
+  // Q84 inc.63 — the live row this closes is `Meeting 2026-07-30` / Martin Fierro Restaurant,
+  // which was being told to type in a date it was already stating.
+  it("attaches a row whose own title states the day, and says the day came from the title", () => {
+    const plan = planMeetingActivities(
+      [row({ company: "Gulf Coast Roofing", day: "", title: "Meeting 2026-07-30" })],
+      ORGS,
+    );
+    expect(plan.rows[0].disposition).toBe("attachable");
+    expect(plan.rows[0].occursOn).toBe("2026-07-30");
+    expect(plan.rows[0].dayFrom).toBe("title");
+    expect(plan.rows[0].nextStep).toContain("read from the row's own title");
+    expect(plan.counts).toMatchObject({ attachable: 1, noDate: 0 });
+  });
+
+  it("never reads a day out of a human-chosen title that merely contains one", () => {
+    const plan = planMeetingActivities(
+      [row({ company: "Gulf Coast Roofing", day: "", title: "Gulf Coast RE KICKOFF 2026-07-22" })],
+      ORGS,
+    );
+    // Scanning inside a real title is how a wrong day gets welded onto a real meeting.
+    expect(plan.rows[0].disposition).toBe("no-date");
+    expect(plan.rows[0].occursOn).toBeUndefined();
+  });
+
+  it("prefers the day a human typed over the stamp in the title, and never overwrites it", () => {
+    const plan = planMeetingActivities(
+      [row({ company: "Gulf Coast Roofing", day: "2026-07-22", title: "Meeting 2026-07-30" })],
+      ORGS,
+    );
+    expect(plan.rows[0].occursOn).toBe("2026-07-22");
+    expect(plan.rows[0].dayFrom).toBe("call-date");
+    expect(plan.rows[0].nextStep).not.toContain("read from the row's own title");
+  });
+
+  it("does not let a recovered day rescue a row whose company is still unknown", () => {
+    const plan = planMeetingActivities(
+      [row({ company: "Some Co The CRM Lacks", day: "", title: "Meeting 2026-07-30" })],
+      ORGS,
+    );
+    expect(plan.rows[0].disposition).toBe("unknown-company");
+    expect(plan.rows[0].occursOn).toBeUndefined();
+  });
+
   it("carries the whole archive row through so a report needs no second lookup", () => {
     const plan = planMeetingActivities([row({ company: "Gulf Coast Roofing", url: "https://notion/x" })], ORGS);
     expect(plan.rows[0].row.day).toBe("2026-07-22");

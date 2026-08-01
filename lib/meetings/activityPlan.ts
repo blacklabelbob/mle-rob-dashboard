@@ -63,8 +63,34 @@
 // now names the record it nearly hit, with its id, so the human answering it is confirming a
 // specific record rather than being sent to create a new one.
 
+// Q84 inc.63 — the same false sentence inc.62 killed in the REPORT was still on the path that
+// decides what gets WRITTEN, and here it was also blocking a row that has nothing wrong with it.
+//
+// `Meeting 2026-07-30` (Martin Fierro Restaurant) was bucketed `no-date` and told *"the row has
+// no Call Date — set it in Notion; an activity with no day cannot be written, and a guessed day
+// is a wrong record"*. The day is not guessed and it is not missing: the row is STATING it, in
+// its own title. So the row was told to supply a fact it had already supplied, and a meeting a
+// pipeline could file sat in the human pile.
+//
+// The recovery is `effectiveDay` — inc.62's ladder, imported, NOT re-implemented (this repo has
+// twice paid to delete a second copy of one name rule). It reads only the whole-string stamp
+// shapes; `Gulf Coast RE KICKOFF 2026-07-22` yields nothing, because scanning inside a human
+// title is how a wrong day gets welded onto a real meeting.
+//
+// WHY A RECOVERED DAY IS TRUSTED ENOUGH TO WRITE, checked on prod before this was written and
+// not assumed: on every archive row carrying BOTH a human Call Date and a stamped title, the two
+// agree — `2026-07-28 / Meeting 2026-07-28`, `2026-06-16 / Meeting 2026-06-16T11:05…`,
+// `2026-06-05 / 2026-06-05T13:56…`. Three for three, zero disagreements in 41 rows. That is the
+// evidence, and `dayFromTitleStamp` is pinned against those exact shapes.
+//
+// It is still not laundered into looking like something a human typed. Every row now carries
+// `occursOn` (the day an activity would be dated) beside `dayFrom` ("call-date" | "title"), so
+// the writer Q85 builds can hold its own policy on title-derived days instead of inheriting this
+// module's opinion as an unmarked fact. `no-date` stays exactly as it was for rows where no day
+// can be read — there the sentence is true.
+
 import { normalizeName } from "@/lib/dedup/match";
-import type { ArchiveRowDetail } from "./unexplainedRows";
+import { effectiveDay, type ArchiveRowDetail } from "./unexplainedRows";
 
 /**
  * The CRM side, narrowed to what a match can honestly use. `domain` and `website` are both
@@ -133,11 +159,13 @@ export function extractHost(value: string | null | undefined): string {
  *   - `no-company`       — the archive row never said who the meeting was with. Only someone
  *                          who was there can, so this lands in the same pile as the rows in
  *                          `unexplainedRows` — it is not a matching failure.
- *   - `no-date`          — the company IS known and the row carries no Call Date. An activity
- *                          is an event on a day; there is nothing to write into `occurred_at`.
- *                          Caught because the first live run called such a row "attachable"
- *                          and a plan that overstates what a pipeline can do unattended is
- *                          how the pipeline later writes a meeting onto the wrong day.
+ *   - `no-date`          — the company IS known and NO day can be read from the row at all —
+ *                          neither Call Date nor a stamped title. An activity is an event on a
+ *                          day; there is nothing to write into `occurred_at`. Caught because
+ *                          the first live run called such a row "attachable" and a plan that
+ *                          overstates what a pipeline can do unattended is how the pipeline
+ *                          later writes a meeting onto the wrong day. Since inc.63 this bucket
+ *                          means what it says: a row whose title states its day is not in it.
  */
 export type ActivityDisposition =
   | "attachable"
@@ -157,6 +185,17 @@ export type ActivityPlanRow = {
   matchedBy?: "name" | "domain";
   /** Set only when `attachable` — the one org an activity would be written onto. */
   org?: CrmOrg;
+  /**
+   * The day an activity would be dated, on the rows where one can be read. Carried so a writer
+   * never has to re-derive it and reach a different answer than the plan a human approved.
+   */
+  occursOn?: string;
+  /**
+   * Where `occursOn` came from. Never collapsed into the day itself: `call-date` is a human
+   * typing what happened, `title` is this module reading a machine stamp out of a title nobody
+   * chose. They are not equally strong, and the writer is entitled to treat them differently.
+   */
+  dayFrom?: "call-date" | "title";
   /** Set only when `ambiguous-company` — every org that normalized to the same name. */
   candidates?: CrmOrg[];
   /**
@@ -302,15 +341,20 @@ export function planMeetingActivities(
     const hostHits = nameHits.length ? [] : namedHost ? hostIndex.get(namedHost) || [] : [];
     const hits = nameHits.length ? nameHits : hostHits;
     const matchedBy: "name" | "domain" = nameHits.length ? "name" : "domain";
-    if (hits.length === 1 && !row.day) {
+    // The day, resolved once. `row.day` is what a human typed and always wins; the title stamp
+    // is only consulted when that field is empty, so this can never overwrite a human.
+    const occursOn = effectiveDay(row);
+    const dayFrom: "call-date" | "title" = row.day ? "call-date" : "title";
+    if (hits.length === 1 && !occursOn) {
       return {
         row,
         disposition: "no-date",
         org: hits[0],
         matchedBy,
         nextStep:
-          `the company is known (${hits[0].name}) but the row has no Call Date — set it in Notion; ` +
-          "an activity with no day cannot be written, and a guessed day is a wrong record",
+          `the company is known (${hits[0].name}) but no day can be read from this row — ` +
+          "set Call Date in Notion; an activity with no day cannot be written, and a guessed day " +
+          "is a wrong record",
       };
     }
     if (hits.length === 1) {
@@ -319,9 +363,15 @@ export function planMeetingActivities(
         disposition: "attachable",
         org: hits[0],
         matchedBy,
+        occursOn,
+        dayFrom,
         nextStep:
-          `a meeting activity would attach to ${hits[0].name} [${hits[0].id}]` +
+          `a meeting activity would attach to ${hits[0].name} [${hits[0].id}] on ${occursOn}` +
           (matchedBy === "domain" ? ` (matched on the org's own domain ${namedHost})` : "") +
+          (dayFrom === "title"
+            ? " — the day is read from the row's own title, not from Call Date, so filling Call " +
+              "Date in Notion is still worth doing"
+            : "") +
           " — nothing is written by this pass",
       };
     }
