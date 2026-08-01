@@ -257,6 +257,18 @@ export function confirmIsWritable(host: string, org: CrmOrg, orgs: CrmOrg[]): bo
 }
 
 /**
+ * Q84 inc.76 — the sentence, in ONE place, because the ledger now rewrites it.
+ *
+ * This line was written when a confirm was something Rob did by hand in the Domain field.
+ * inc.69–75 put a control on the same row that does exactly this, so on a row that HAS the
+ * control the sentence is stale instructions — and `lib/flags/hostConfirmProse.ts` swaps it for
+ * what the control actually offers. It can only find it if both ends spell it identically, and
+ * a hand-copied second spelling would fail silently (the swap simply never fires), which is the
+ * same failure mode inc.75 refused for `hostConfirmKey`.
+ */
+export const CONFIRM_INSTRUCTION = "Confirm it and put the host on that org";
+
+/**
  * The line printed under an unknown host. Always ends in a question a human answers, never in
  * an instruction that assumes the proposal is right — and when two orgs tie it says so and
  * picks neither, because a coin flip here puts a call on the wrong company's record.
@@ -284,7 +296,7 @@ export function proposalText(proposal: HostProposal | null, orgs: CrmOrg[] = [])
         "about the host it already carries is a human's call"
       );
     }
-    return head + "Confirm it and put the host on that org; a look-alike host is never assumed to be the same company";
+    return head + `${CONFIRM_INSTRUCTION}; a look-alike host is never assumed to be the same company`;
   }
   const listed = proposal.candidates
     .map((c) => `${c.org.name} [${c.org.id}] (${proposalReasonText(c.reason)})`)

@@ -38,6 +38,7 @@ import {
   rowRepeatMark,
 } from "@/lib/comms/heldDomainFlag";
 import { hostConfirmControls, hostConfirmKey } from "@/lib/flags/hostConfirmView";
+import { retargetConfirmProse } from "@/lib/flags/hostConfirmProse";
 
 // "Things to Address" (Rob 2026-07-22): findings Max surfaces, resolved in-place
 // with an optional note. Resolved items are never removed — they archive into an
@@ -565,7 +566,11 @@ export default function ThingsToAddress({
                     minted become links; a company NAME never does, because its ambiguity is
                     the finding. */}
                 <p className="mt-0.5 whitespace-pre-line text-xs leading-relaxed text-slate-300">
-                  {linkifyRecordIds(f.detail).map((seg, i) =>
+                  {/* Q84 inc.76: the prose is re-aimed at the control BEFORE it is linkified —
+                      the row stopped telling Rob to hand-edit a field the moment a button on
+                      the same row started doing it. Only the pairs that actually have a control
+                      change; with no controls this is `f.detail` unchanged. */}
+                  {linkifyRecordIds(retargetConfirmProse(f.detail, controls)).map((seg, i) =>
                     seg.href ? (
                       <Link
                         key={i}
