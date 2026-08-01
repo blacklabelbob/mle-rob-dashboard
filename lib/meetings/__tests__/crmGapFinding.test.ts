@@ -256,6 +256,27 @@ describe("buildCrmGapFinding — the confirm payload", () => {
     expect(buildCrmGapFinding(base, undefined, heard(["cgroofing.net"]))!.payload).toBeUndefined();
   });
 
+  // Q84 inc.77 — the read-time heading swap, pinned to the string the BUILDER emits rather than a
+  // hand-typed approximation of it. hostConfirmProse.test.ts owns the swap's rules; this owns the
+  // one fact that test cannot know: that the heading it targets is the heading prod actually
+  // writes, mid-sentence suffix and all. If `attendanceBlock` re-words that line, this fails here
+  // instead of the swap silently never firing on the ledger.
+  it("emits a heading the read-time swap can find, and grades it in place", async () => {
+    const { retargetConfirmProse } = await import("@/lib/flags/hostConfirmProse");
+    const { hostConfirmControls } = await import("@/lib/flags/hostConfirmView");
+
+    const f = buildCrmGapFinding(base, undefined, heard(["cgroofing.net", "gulfregroup.com"]), [CG, GULF])!;
+    const heading = f.detail.split("\n").find((l) => l.includes("FIELD(S) TO FILL IN THE CRM"))!;
+    // The real line carries a second clause after the heading — the swap must land BEFORE it.
+    expect(heading).toBe("2 FIELD(S) TO FILL IN THE CRM, and then 2 row(s) answer themselves unattended, permanently:");
+
+    const out = retargetConfirmProse(f.detail, hostConfirmControls(f.payload, CG.id));
+    expect(out.split("\n").find((l) => l.includes("FIELD(S) TO FILL IN THE CRM"))).toBe(
+      "2 FIELD(S) TO FILL IN THE CRM (1 one click away right here · 1 one click away on the company's own page), " +
+        "and then 2 row(s) answer themselves unattended, permanently:",
+    );
+  });
+
   it("is absent, not empty, on a finding with no attendance evidence at all", () => {
     expect("payload" in buildCrmGapFinding(base)!).toBe(false);
   });

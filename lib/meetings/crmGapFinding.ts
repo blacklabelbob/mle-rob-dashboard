@@ -31,6 +31,17 @@ import { buildHostConfirmPayload } from "@/lib/flags/hostConfirm";
  */
 export const KEY_CRM_GAP = "meeting-archive/crm-gap";
 
+/**
+ * Q84 inc.77 — the ONE spelling of the host block's heading, shared with the module that
+ * re-aims it at read time (`lib/flags/hostConfirmProse.ts`).
+ *
+ * The count in front of it is a count of CRM fields the check found empty; it says nothing
+ * about how they get filled, and cannot, for the same reason inc.76 gave: this text is
+ * composed before the row is written, and whether a control will render is not knowable
+ * then. A hand-copied second spelling would make the read-time swap silently never fire.
+ */
+export const FIELDS_TO_FILL_HEADING = "FIELD(S) TO FILL IN THE CRM";
+
 /** One line per meeting the CRM never heard about. Same shape as the archive finding's list. */
 function rowLines(rows: ArchiveRow[]): string {
   return rows
@@ -196,7 +207,7 @@ function attendanceBlock(entries: RowAttendance[], orgs: CrmOrg[] = []): string 
         );
       });
     blocks.push(
-      `${byHost.size} FIELD(S) TO FILL IN THE CRM, and then ${entries.filter((e) => e.resolution.kind === "unknown-hosts").length} ` +
+      `${byHost.size} ${FIELDS_TO_FILL_HEADING}, and then ${entries.filter((e) => e.resolution.kind === "unknown-hosts").length} ` +
         `row(s) answer themselves unattended, permanently:\n${lines.join("\n")}`,
     );
   }

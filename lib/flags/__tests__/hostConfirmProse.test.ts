@@ -64,6 +64,45 @@ describe("retargetConfirmProse", () => {
     expect(out.split("\n")[2]).toContain(CONFIRM_INSTRUCTION);
   });
 
+  // Q84 inc.77 — the heading counts fields the check found empty; what it costs to fill each one
+  // is only knowable at read time, and only from the controls actually in hand.
+  describe("the block heading", () => {
+    it("grades the count by what the reader can do, without rewriting the count itself", () => {
+      const out = retargetConfirmProse(DETAIL, hostConfirmControls(PAYLOAD, "C-2010"));
+      expect(out.split("\n")[0]).toBe(
+        "2 FIELD(S) TO FILL IN THE CRM (1 one click away right here · 1 one click away on the company's own page):",
+      );
+    });
+
+    it("says which are already set once the caller has seen the write land", () => {
+      const controls = hostConfirmControls(PAYLOAD, "C-2010", ["C-2010 cgroofing.net"]);
+      expect(retargetConfirmProse(DETAIL, controls).split("\n")[0]).toContain("1 already set from this page");
+    });
+
+    it("counts the fields no control was minted for as still typed by hand", () => {
+      // Three empty fields found, one proposal confident enough to mint an action.
+      const detail = DETAIL.replace("2 FIELD(S)", "3 FIELD(S)");
+      const one = { kind: "host-confirm", actions: [PAYLOAD.actions[0]] };
+      expect(retargetConfirmProse(detail, hostConfirmControls(one, "C-2010")).split("\n")[0]).toBe(
+        "3 FIELD(S) TO FILL IN THE CRM (1 one click away right here · 2 still typed by hand):",
+      );
+    });
+
+    it("leaves the heading alone when the payload claims more hosts than the heading counts", () => {
+      const detail = DETAIL.replace("2 FIELD(S)", "1 FIELD(S)");
+      expect(retargetConfirmProse(detail, hostConfirmControls(PAYLOAD, "C-2010")).split("\n")[0]).toBe(
+        "1 FIELD(S) TO FILL IN THE CRM:",
+      );
+    });
+
+    it("never touches a line that only mentions the heading without a count in front of it", () => {
+      const detail = `FIELD(S) TO FILL IN THE CRM is what that block is called\n${DETAIL}`;
+      expect(retargetConfirmProse(detail, hostConfirmControls(PAYLOAD, "C-2010")).split("\n")[0]).toBe(
+        "FIELD(S) TO FILL IN THE CRM is what that block is called",
+      );
+    });
+  });
+
   it("does not let a bullet's host reach an instruction outside its own continuation", () => {
     const stray =
       "• cgroofing.net — put it in the right org's Domain field. Heard on: 2026-07-29 CG call\n" +

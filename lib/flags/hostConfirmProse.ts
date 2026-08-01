@@ -25,8 +25,12 @@
 //   - Called with no controls the whole detail is returned identical, so a pre-0035 ledger reads
 //     exactly as it does today.
 //
+// Q84 inc.77 extends the same read-time rule one level up, to the block's HEADING — see
+// `retargetHeading`. Same evidence, same refusals, one more stale instruction retired.
+//
 // Pure per CR-3: no clock, no network, no React.
 
+import { FIELDS_TO_FILL_HEADING } from "@/lib/meetings/crmGapFinding";
 import { CONFIRM_INSTRUCTION } from "@/lib/meetings/hostProposal";
 import { hostConfirmKey, type HostConfirmControl } from "./hostConfirmView";
 
@@ -46,7 +50,7 @@ const ORG_ID = /\[(C-\d+)\]/;
  *   affordance the reader can actually see, not the one some other page has.
  */
 export function retargetConfirmProse(detail: string, controls: readonly HostConfirmControl[]): string {
-  if (!controls.length || !detail.includes(CONFIRM_INSTRUCTION)) return detail;
+  if (!controls.length) return detail;
   const byKey = new Map(controls.map((c) => [hostConfirmKey(c.host, c.orgId), c] as const));
 
   let host: string | null = null;
@@ -57,7 +61,7 @@ export function retargetConfirmProse(detail: string, controls: readonly HostConf
       // down the row belongs to whatever bullet is above IT, or to none.
       if (!ARROW.test(line)) {
         host = BULLET.exec(line)?.[1] ?? null;
-        return line;
+        return retargetHeading(line, controls);
       }
       if (!host || !line.includes(CONFIRM_INSTRUCTION)) return line;
       const orgId = ORG_ID.exec(line)?.[1];
@@ -66,6 +70,60 @@ export function retargetConfirmProse(detail: string, controls: readonly HostConf
       return control ? line.replace(CONFIRM_INSTRUCTION, instructionFor(control)) : line;
     })
     .join("\n");
+}
+
+/**
+ * Q84 inc.77 — the same stale instruction one level up.
+ *
+ * `N FIELD(S) TO FILL IN THE CRM` counts fields the check found empty, and it was written when
+ * filling one meant typing. On the rows that now carry a control some of that N is clicks — but
+ * NOT necessarily all of it, and that is the whole difficulty: a proposal is only minted where
+ * one org is close enough to name, so a row can honestly be "3 fields, 2 of them a click". A
+ * heading that said "3 clicks" would send Rob looking for a button that was never minted.
+ *
+ * THE REFUSALS:
+ *   - The `N` itself is never rewritten. It is what the stored row asserts, and a control that
+ *     has already been clicked does not un-find the gap the check found.
+ *   - Every host is counted ONCE, at its strongest state (done > button here > link elsewhere),
+ *     so a payload carrying two actions for one host cannot inflate the count past the heading's.
+ *   - If the controls cover MORE hosts than the heading counts, the payload and the prose
+ *     disagree and the line is returned untouched — a disagreement is not something to narrate
+ *     over in a parenthetical.
+ *   - A link is never described as a click "here" (inc.73's rule); it says whose page it is on.
+ */
+function retargetHeading(line: string, controls: readonly HostConfirmControl[]): string {
+  const at = line.indexOf(FIELDS_TO_FILL_HEADING);
+  if (at <= 0) return line;
+  const total = Number(line.slice(0, at).trim());
+  if (!Number.isInteger(total) || total <= 0) return line;
+
+  // Strongest state per host: what a reader can do about that field, once.
+  const strongest = new Map<string, HostConfirmControl>();
+  for (const c of controls) {
+    const held = strongest.get(c.host);
+    if (!held || rank(c) > rank(held)) strongest.set(c.host, c);
+  }
+  if (!strongest.size || strongest.size > total) return line;
+
+  const states = [...strongest.values()];
+  const done = states.filter((c) => c.done).length;
+  const here = states.filter((c) => c.here && !c.done).length;
+  const link = states.filter((c) => !c.here).length;
+  const byHand = total - strongest.size;
+
+  const parts: string[] = [];
+  if (done) parts.push(`${done} already set from this page`);
+  if (here) parts.push(`${here} one click away right here`);
+  if (link) parts.push(`${link} one click away on the company's own page`);
+  if (byHand) parts.push(`${byHand} still typed by hand`);
+
+  return line.slice(0, at + FIELDS_TO_FILL_HEADING.length) + ` (${parts.join(" · ")})` + line.slice(at + FIELDS_TO_FILL_HEADING.length);
+}
+
+/** done beats a button, a button beats a link — the most a reader can do about that host. */
+function rank(control: HostConfirmControl): number {
+  if (control.done) return 2;
+  return control.here ? 1 : 0;
 }
 
 function instructionFor(control: HostConfirmControl): string {
