@@ -14,6 +14,8 @@ import {
   COMMENT_UNEXPOSED,
   humanDescription,
   parserEmittableLabels,
+  statementsToGrade,
+  doBlockBody,
 } from "../schemaEvidence";
 
 const LIVE = {
@@ -320,9 +322,13 @@ describe("statement coverage (inc.56)", () => {
     expect(unrecognisedStatements("comment on column people.phase2_estimate is null;")).toEqual([
       "comment on column people.phase2_estimate",
     ]);
-    // Re-aimed inc.59: `create sequence` is now a claimed shape (read-probeable
-    // via the column default the root publishes), so it is no longer unrecognised.
-    expect(unrecognisedStatements("do $$ begin if true then null; end if; end $$;")).toEqual(["do $$ begin if"]);
+    // Re-aimed inc.60: the DO WRAPPER is no longer the unrecognised shape — the
+    // block is opened and its body graded, so what surfaces is the statement
+    // inside it. A bare `null` is PL/pgSQL's no-op and could plausibly join
+    // NO_EFFECT, but ZERO migrations write one (measured 2026-08-01), and a rule
+    // for a shape nobody wrote is the assertion this ladder exists to kill. So it
+    // stays loud, and the day someone writes one it will say so by name.
+    expect(unrecognisedStatements("do $$ begin if true then null; end if; end $$;")).toEqual(["null"]);
   });
 
   it("ignores statements that leave nothing behind for any read to differ on", () => {
@@ -541,5 +547,69 @@ describe("shapes the parser half-knew (inc.58)", () => {
     // them the day someone writes one.
     expect(parserEmittableLabels()).not.toContain("drop index");
     expect(unrecognisedStatements("drop index if exists ix_people_name;")).toEqual(["drop index if exists"]);
+  });
+});
+
+describe("a `do $$ … $$` block is graded by its BODY (inc.60)", () => {
+  // Live before this: `0011` and `0032` both reported
+  // `unrecognised statement: do $$ begin if` — a fingerprint of the block's
+  // punctuation, naming nothing anyone can act on, and the last thing holding
+  // anything in `unclassified`.
+  const ROLE_BLOCK =
+    "do $$ begin if not exists (select 1 from pg_roles where rolname = 'mle_rep_read') then create role mle_rep_read nologin; end if; end $$;";
+
+  it("reads the statements inside instead of fingerprinting the wrapper", () => {
+    expect(statementsToGrade(ROLE_BLOCK).some((s) => /^create role/i.test(s))).toBe(true);
+    expect(unrecognisedStatements(ROLE_BLOCK)).toEqual([]);
+    expect(parseMigration(ROLE_BLOCK).unverifiable).toContain("create role");
+  });
+
+  it("caps a role where the grant beside it is capped — one key settles both", () => {
+    expect(evidenceCeiling(["create role"]).ceiling).toBe(evidenceCeiling(["grant"]).ceiling);
+    expect(evidenceCeiling(["grant", "revoke", "create role"]).ceiling).toBe("probeable-read-only");
+  });
+
+  it("strips PL/pgSQL block structure so an anchored rule can still see its statement", () => {
+    // THE REGRESSION THIS PINS: `ALTER_TABLE` is anchored at the start of a
+    // statement (un-anchored is what made inc.52 invent a column). Opening a
+    // block without stripping `begin`/`if … then` would leave
+    // `begin if … then alter table deals …` unrecognised — 0026 and 0024 would
+    // have gone BACKWARDS while the increment claimed progress.
+    const sql =
+      "do $$ begin if to_regclass('deals') is not null then alter table deals add constraint deals_phase_range check (phase in (1,2,3)); end if; end $$;";
+    expect(unrecognisedStatements(sql)).toEqual([]);
+    expect(parseMigration(sql).unverifiable).toEqual(expect.arrayContaining(["add constraint", "check constraint"]));
+  });
+
+  it("does not report a DECLARE section as statements that ran", () => {
+    // `declare r record; cols text; refcols text;` is three declarations, not
+    // three statements. The first cut reported `cols text` and `refcols text` as
+    // unrecognised — an alarm about something that does not exist.
+    const sql = "do $$ declare r record; cols text; refcols text; begin perform 1; end $$;";
+    expect(unrecognisedStatements(sql)).not.toContain("cols text");
+    expect(unrecognisedStatements(sql)).not.toContain("refcols text");
+  });
+
+  it("keeps work inside the block LOUD — only structure is stripped, never statements", () => {
+    // `execute`, `perform`, `raise` and `return` do work, so they are graded like
+    // anything else. A block that quietly excused its own body would be worth
+    // less than the fingerprint it replaced.
+    const sql = "do $$ begin execute format('alter table %I drop constraint %I', 'people', 'ck'); end $$;";
+    expect(unrecognisedStatements(sql)).toEqual(["execute format('alter table %i"]);
+    expect(evidenceCeiling(parseMigration(sql).unverifiable).ceiling).toBe("unclassified");
+  });
+
+  it("recognises the block itself, and only the block", () => {
+    expect(doBlockBody("do $$ begin end $$")).toBe(" begin end ");
+    expect(doBlockBody("do language plpgsql $fn$ begin end $fn$")).toBe(" begin end ");
+    expect(doBlockBody("create table people (id text)")).toBeNull();
+    // A function body is NOT a DO block — it is already adjudicated per-function.
+    expect(doBlockBody("create function f() returns int as $$ begin return 1; end $$ language plpgsql")).toBeNull();
+  });
+
+  it("does not invent a `drop role` nobody wrote", () => {
+    // Zero migrations write it — same discipline as inc.58's `drop index`.
+    expect(parserEmittableLabels()).not.toContain("drop role");
+    expect(unrecognisedStatements("drop role mle_rep_read;")).toEqual(["drop role mle_rep_read"]);
   });
 });

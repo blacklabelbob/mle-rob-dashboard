@@ -149,6 +149,12 @@ const UNVERIFIABLE: Array<[RegExp, string]> = [
   // deliberately NOT here — zero migrations write it, and a rule for a shape
   // nobody has written is the assertion this ladder exists to kill.
   [/\bcreate\s+sequence\b/i, "create sequence"],
+  // inc.60 — surfaced by grading DO bodies, not guessed at: `create role` is what
+  // both DO blocks in the repo actually do (`0011`, `0032` — measured 2026-08-01,
+  // 3 statements across 2 files), and it is durable, catalog-only and invisible to
+  // the OpenAPI root. `drop role` is deliberately NOT here — zero migrations write
+  // it, same discipline inc.58 used on `drop index` and inc.59 on `drop sequence`.
+  [/\bcreate\s+role\b/i, "create role"],
   // inc.58 — `update \w+ set` missed an ALIASED update (`update orgs o set …`)
   // and a schema-qualified one (`update public.orgs set …`). Carried since
   // inc.56, harmless until now only by luck: `0003` and `0031` each also run an
@@ -222,6 +228,94 @@ export function splitStatements(sql: string): string[] {
 }
 
 /**
+ * inc.60 — a `do $$ … $$` block, opened up.
+ *
+ * The block was the last shape holding anything in `unclassified`, and the
+ * tempting move was to cap it by fiat — call it permanent because its body is
+ * arbitrary. That is a guess about statements sitting in plain text. A DO block
+ * has no effect of its own: everything it does, its BODY does. So the body is
+ * graded through the same rules as any other statement, and the block itself
+ * contributes no label.
+ *
+ * Returns the body of a DO block, or `null` when the statement is not one.
+ * `language plpgsql` may sit on either side of the body, which is why both are
+ * matched rather than assumed.
+ */
+export function doBlockBody(stmt: string): string | null {
+  const m = /^do\s+(?:language\s+[\w"]+\s+)?(\$[A-Za-z_]*\$)([\s\S]*)\1(?:\s+language\s+[\w"]+)?\s*$/i.exec(
+    stmt.trim(),
+  );
+  return m ? m[2] : null;
+}
+
+/**
+ * PL/pgSQL block structure, stripped so the SQL inside it can be read.
+ *
+ * Splitting a body on `;` leaves `begin if to_regclass('deals') is not null then
+ * alter table deals drop constraint …` as one fragment — and `ALTER_TABLE` is
+ * anchored at the start of a statement (deliberately: inc.52's un-anchored read
+ * invented a column). Without stripping, opening the block would have made
+ * `0026` and `0024` newly unrecognised — a REGRESSION dressed as progress.
+ *
+ * Only pure block structure is stripped. `execute`, `perform`, `raise` and
+ * `return` are NOT here: they do work, so they must be graded like anything else
+ * and surface loudly when no rule claims them. (`execute format($f$ … $f$)` is
+ * claimed today by the constraint text inside it, which is honest — the literal
+ * really is right there.)
+ */
+const PLPGSQL_STRUCTURE =
+  /^(?:begin|if\b.*?\bthen|elsif\b.*?\bthen|elseif\b.*?\bthen|else|end\s+if|end\s+loop|end\s+case|end|loop|foreach\b.*?\bloop|while\b.*?\bloop|for\b.*?\bloop|case\b.*?\bwhen|exception|when\b.*?\bthen|<<\w+>>)\s*/i;
+
+function stripBlockStructure(fragment: string): string {
+  let out = fragment.trim();
+  for (let i = 0; i < 8; i += 1) {
+    const m = PLPGSQL_STRUCTURE.exec(out);
+    if (!m || !m[0].trim()) break;
+    out = out.slice(m[0].length).trim();
+  }
+  return out;
+}
+
+/**
+ * Every statement a file should be graded on: its top-level statements, with any
+ * DO block replaced by the statements inside it. Depth-bounded because a body
+ * could nest another block, and an unbounded recursion over parsed text is a
+ * hang waiting for the one migration nobody has written yet.
+ */
+export function statementsToGrade(sql: string, depth = 0): string[] {
+  const out: string[] = [];
+  for (const stmt of splitStatements(sql)) {
+    const body = depth < 4 ? doBlockBody(stmt) : null;
+    if (body === null) {
+      out.push(stmt);
+      continue;
+    }
+    // A DECLARE section is not a run of statements — its `;`-separated fragments
+    // are variable declarations. The first cut of this stripped only the fragment
+    // that led with `declare` and reported `0031`'s `cols text` and `refcols text`
+    // as unrecognised STATEMENTS, which is an alarm about something that does not
+    // exist — the same class of lie as inc.52's invented column, just quieter. The
+    // section runs until the `begin` that opens the executable block.
+    let declaring = false;
+    for (const raw of statementsToGrade(body, depth + 1)) {
+      let frag = raw.trim();
+      if (declaring || /^declare\b/i.test(frag)) {
+        const opens = /\bbegin\b/i.exec(frag);
+        if (!opens) {
+          declaring = true;
+          continue;
+        }
+        declaring = false;
+        frag = frag.slice(opens.index + opens[0].length).trim();
+      }
+      const bare = stripBlockStructure(frag);
+      if (bare) out.push(bare);
+    }
+  }
+  return out;
+}
+
+/**
  * Statements that leave nothing behind for any later read, write or plan to
  * differ on — so their absence from every rule above is correct, not a gap.
  * Named explicitly rather than pattern-matched, for the same reason UNVERIFIABLE
@@ -276,8 +370,7 @@ function statementIsClaimed(stmt: string): boolean {
  * is the other side: statements the parser never labels AT ALL. `UNVERIFIABLE`
  * lists the shapes a human was actually seen to write, so a migration written
  * with a shape nobody listed (`alter table … alter column … set default`,
- * `comment on`, `alter type … add value`, a bare `do $$ … $$`) contributes no
- * capping label — and a file with no capping label and its tables present reports
+ * `comment on`, `alter type … add value`) contributes no capping label — and a file with no capping label and its tables present reports
  * `objects-present`, the STRONGEST verdict on the ladder. It would have earned
  * that verdict by the checker not knowing what it was looking at.
  *
@@ -288,7 +381,7 @@ function statementIsClaimed(stmt: string): boolean {
  */
 export function unrecognisedStatements(sql: string): string[] {
   const out: string[] = [];
-  for (const stmt of splitStatements(sql)) {
+  for (const stmt of statementsToGrade(sql)) {
     if (NO_EFFECT.test(stmt)) continue;
     if (statementIsClaimed(stmt)) continue;
     const fp = stmt.toLowerCase().split(" ").slice(0, 4).join(" ");
@@ -458,6 +551,13 @@ const READ_PROBEABLE = new Set([
   // those land in the `update` statements this same list already caps as
   // `data change`.
   "create sequence",
+  // inc.60 — a role is invisible to this root, but it is exactly what the ONE
+  // remaining probeable file is waiting on: reading as that role either works or
+  // fails "role does not exist". Same access as the `grant` sitting beside it in
+  // `0032`, so it caps nothing that grant did not already cap — and it settles by
+  // the same single key. The honest limit: this ladder does not hold that key
+  // today, which is why the file stays in the bucket rather than being graded.
+  "create role",
   // inc.57 — a comment this call did not grade because no descriptions were
   // supplied. The same OpenAPI root carries them, so supplying them settles it:
   // read-probeable by the weakest access there is.
