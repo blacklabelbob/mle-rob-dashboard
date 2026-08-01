@@ -54,8 +54,93 @@ export function hostConfirmPayload(host: string, orgId: string): HostConfirm | n
 }
 
 /**
- * Read a payload off a stored row. `unknown` in, because this comes from jsonb and every
- * assumption about its shape has to be earned here rather than at the call site.
+ * Q84 inc.72 — WHAT THE FIRST WRITER PROVED: ONE FINDING CARRIES MORE THAN ONE ACTION.
+ *
+ * inc.71 built the codec for "this host, for this org" as if a payload were a single action,
+ * because at that point nothing had ever written one. Building the writer showed the shape was
+ * wrong the moment it met the row it exists for: the CRM-gap finding is **one** `flags` row
+ * (`dedupe_key: meeting-archive/crm-gap`, prod #133) and it lists **two** confirmable hosts
+ * today — `cgroofing.net → C-2017` and `gulfregroup.com → C-2018`. A one-action payload could
+ * only ever offer Rob the first of them.
+ *
+ * Changing it costs nothing and is stated rather than glossed: **no payload has ever been
+ * written** — 0035 is still pending, the route does not persist the column, all 133 prod rows
+ * read NULL. This is finishing a design at the first moment evidence contradicted it, not a
+ * migration of stored data.
+ *
+ * The kind stays `host-confirm`: it is still one kind of action, carried in the plural.
+ */
+export type HostConfirmPayload = { kind: typeof HOST_CONFIRM_KIND; actions: HostConfirm[] };
+
+/**
+ * Grade a whole finding's worth of proposals into the payload it carries, or `null` for
+ * "write no payload at all".
+ *
+ * PER-ACTION, NOT ALL-OR-NOTHING: one unusable pair drops itself and the others survive,
+ * because each action is a separate button under a separate host line — and inc.71's pinned
+ * failure direction is "Rob sees the finding without the shortcut", which is exactly what a
+ * dropped action renders as.
+ *
+ * TWO ACTIONS POINTING AT ONE ORG ARE BOTH DROPPED. An org has exactly ONE free `domain` slot
+ * (inc.68), so two hosts proposed for the same org is two buttons where at most one can
+ * succeed — the second click would hit the server's `occupied` refusal. That is a tie, and
+ * this tree does not break ties: `ambiguous-orgs`, `ambiguous-company` and `proposalText`'s
+ * two-candidate case all report and pick neither. A human says which host that org gets.
+ *
+ * A REPEATED HOST IS COLLAPSED, NOT DROPPED — the same host proposed for the same org twice
+ * is one action stated twice (a host can be heard on several meetings), so de-duping it loses
+ * nothing. The same host proposed for two DIFFERENT orgs is a genuine disagreement and both go.
+ */
+export function buildHostConfirmPayload(
+  pairs: Array<{ host: string; orgId: string }>,
+): HostConfirmPayload | null {
+  const graded = pairs.map((p) => hostConfirmPayload(p.host, p.orgId)).filter((a): a is HostConfirm => !!a);
+
+  const byHost = new Map<string, HostConfirm[]>();
+  for (const action of graded) {
+    const at = byHost.get(action.host) ?? [];
+    if (!at.some((a) => a.orgId === action.orgId)) at.push(action);
+    byHost.set(action.host, at);
+  }
+
+  const orgCount = new Map<string, number>();
+  const oneOrgEach: HostConfirm[] = [];
+  for (const [, list] of byHost) {
+    if (list.length !== 1) continue; // one host, two orgs — a tie, never broken
+    oneOrgEach.push(list[0]);
+    orgCount.set(list[0].orgId, (orgCount.get(list[0].orgId) ?? 0) + 1);
+  }
+
+  const actions = oneOrgEach
+    .filter((a) => orgCount.get(a.orgId) === 1) // two hosts, one org — one free slot, so neither
+    .sort((a, b) => a.host.localeCompare(b.host));
+
+  return actions.length ? { kind: HOST_CONFIRM_KIND, actions } : null;
+}
+
+/**
+ * Read the payload off a stored row. `unknown` in, because this comes from jsonb and every
+ * assumption about its shape has to be earned here rather than at the call site. Re-graded on
+ * the way OUT through the same builder, so a hand-written row — or one written before a rule
+ * tightened — is not trusted for having parsed.
+ */
+export function readHostConfirmPayload(payload: unknown): HostConfirmPayload | null {
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) return null;
+  const row = payload as Record<string, unknown>;
+  if (row.kind !== HOST_CONFIRM_KIND) return null;
+  if (!Array.isArray(row.actions)) return null;
+  const pairs: Array<{ host: string; orgId: string }> = [];
+  for (const raw of row.actions) {
+    const one = readHostConfirm(raw);
+    if (!one) return null; // a malformed member means the row is not trustworthy, not that it is shorter
+    pairs.push({ host: one.host, orgId: one.orgId });
+  }
+  return buildHostConfirmPayload(pairs);
+}
+
+/**
+ * Read ONE action. `unknown` in, because this comes from jsonb and every assumption about its
+ * shape has to be earned here rather than at the call site.
  */
 export function readHostConfirm(payload: unknown): HostConfirm | null {
   if (!payload || typeof payload !== "object" || Array.isArray(payload)) return null;

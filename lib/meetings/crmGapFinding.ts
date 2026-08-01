@@ -19,7 +19,8 @@ import { type ArchiveFinding, trimDateTail } from "./archiveFinding";
 import type { ArchiveCheck, ArchiveRow } from "./archiveCheck";
 import type { ActivityDisposition, ActivityPlan, ActivityPlanRow, CrmOrg } from "./activityPlan";
 import type { AttendanceResolution } from "./attendeeCompany";
-import { proposalText, proposeOrgForHost } from "./hostProposal";
+import { confirmIsWritable, proposalText, proposeOrgForHost } from "./hostProposal";
+import { buildHostConfirmPayload } from "@/lib/flags/hostConfirm";
 
 /**
  * The key #133 is being ADOPTED onto, deliberately: the point is to correct that row, not
@@ -224,6 +225,39 @@ function attendanceBlock(entries: RowAttendance[], orgs: CrmOrg[] = []): string 
 }
 
 /**
+ * Q84 inc.72 — the machine-readable half of the same two lines the prose already prints.
+ *
+ * EXACTLY the rows `confirmIsWritable` returns true for, and that is not a convenience: the
+ * sentence Rob reads ("Confirm it and put the host on that org") and the action a button would
+ * take are now emitted from ONE condition. A payload minted on a looser rule than the prose is
+ * a button under a line that does not offer one — and one minted on a tighter rule is a line
+ * offering a button that never appears. `proposalText` asks the same function.
+ *
+ * A tie (`pick === null`) mints nothing, because the prose does not propose an org there
+ * either — "say which one" has no click.
+ */
+function confirmActionsFor(hosts: string[], orgs: CrmOrg[]) {
+  const pairs: Array<{ host: string; orgId: string }> = [];
+  for (const host of hosts) {
+    const proposal = proposeOrgForHost(host, orgs);
+    if (!proposal?.pick) continue;
+    if (!confirmIsWritable(proposal.host, proposal.pick, orgs)) continue;
+    pairs.push({ host: proposal.host, orgId: proposal.pick.id });
+  }
+  return buildHostConfirmPayload(pairs);
+}
+
+/** Every guest host this finding's attendance evidence could not place. Same read as the prose. */
+function unknownHostsIn(entries: RowAttendance[]): string[] {
+  const hosts = new Set<string>();
+  for (const { resolution } of entries) {
+    if (resolution.kind !== "unknown-hosts") continue;
+    for (const host of resolution.hosts) hosts.add(host);
+  }
+  return [...hosts];
+}
+
+/**
  * The ledger row for "meetings that happened and never reached the CRM".
  *
  * Returns null when every archive row has a CRM activity — a row saying "0 meetings are
@@ -293,8 +327,13 @@ export function buildCrmGapFinding(
       (plan ? ` ${planSentence(plan)}` : "") +
       `\n\n${rowLines(check.archiveOnly)}${heardBlock}`;
 
+  // Minted from the same hosts and the same guard the prose above used. `undefined` rather
+  // than an empty payload when nothing is confirmable — absent is how "no button" is said.
+  const payload = confirmActionsFor(unknownHostsIn(attendance), orgs) ?? undefined;
+
   return {
     entityName: "CRM meeting record",
+    ...(payload ? { payload } : {}),
     title: noPipeline
       ? `${counts.archiveRows} recorded meetings are in the archive; the CRM has NO meeting activities`
       : `${missing} archived meetings never reached the CRM`,

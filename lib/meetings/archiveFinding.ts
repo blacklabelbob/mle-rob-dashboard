@@ -14,6 +14,7 @@
 // the point is to CORRECT that row, not to open a fourth one beside it.
 
 import { isPlaceholderTitle, type UnexplainedReport, type UnexplainedRow } from "./unexplainedRows";
+import type { HostConfirmPayload } from "@/lib/flags/hostConfirm";
 
 /** The classifier's own count block — referenced, not re-declared, so the two cannot drift. */
 export type UnexplainedCounts = UnexplainedReport["counts"];
@@ -26,6 +27,17 @@ export type ArchiveFinding = {
   detail: string;
   severity: "high" | "medium" | "low";
   dedupeKey: string;
+  /**
+   * Q84 inc.72 — the structured half of a finding, beside the prose half and never inside it.
+   * Optional because most findings carry no action at all, and absent is the only honest way
+   * to say "no button": an empty object would be a shape a reader has to interpret.
+   *
+   * NOT PERSISTED YET, and that is the guard rather than a flag to remember to flip: the
+   * `flags` POST route names the columns it writes, `payload` is not among them, and the
+   * column itself is 0035 (PENDING in Rob's one `supabase db push`). So this rides in-process
+   * today and cannot 400 the ledger write that works.
+   */
+  payload?: HostConfirmPayload;
 };
 
 /**

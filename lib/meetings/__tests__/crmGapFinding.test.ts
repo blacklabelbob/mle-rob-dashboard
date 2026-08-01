@@ -218,3 +218,45 @@ describe("attendance evidence on the gap finding", () => {
     expect(gap([{ row: row("a", "2026-06-18", "x"), resolution: { kind: "no-external" } }]).dedupeKey).toBe(KEY_CRM_GAP);
   });
 });
+
+// Q84 inc.72 — the finding now carries the machine-readable half beside the prose half.
+// The live shape: the stored host is on `website`, `domain` is null, so the slot is free.
+describe("buildCrmGapFinding — the confirm payload", () => {
+  const CG = { id: "C-2017", name: "CG Roofing Group", website: "cgroofinggroup.com" };
+  const GULF = { id: "C-2018", name: "Gulf Coast RE Group", website: "gulfcoastregroup.com" };
+  const base = check({ archiveRows: 3, crmMeetings: 0 }, [row("a", "2026-06-18", "Caleb sync")]);
+  const heard = (hosts: string[]): Parameters<typeof buildCrmGapFinding>[2] =>
+    hosts.map((h, i) => ({ row: row(`r${i}`, "2026-06-18", "Caleb sync"), resolution: { kind: "unknown-hosts", hosts: [h] } }));
+
+  it("mints one action per confirmable host — both of Rob's live cases on one row", () => {
+    const f = buildCrmGapFinding(base, undefined, heard(["cgroofing.net", "gulfregroup.com"]), [CG, GULF])!;
+    expect(f.payload).toEqual({
+      kind: "host-confirm",
+      actions: [
+        { kind: "host-confirm", host: "cgroofing.net", orgId: "C-2017" },
+        { kind: "host-confirm", host: "gulfregroup.com", orgId: "C-2018" },
+      ],
+    });
+  });
+
+  it("mints exactly what the prose offers — no payload where the line withholds the instruction", () => {
+    // domain already full (inc.68 `occupied`) → prose drops the write verb, so no button either
+    const full = buildCrmGapFinding(base, undefined, heard(["cgroofing.net"]), [{ ...CG, domain: "cgroofinggroup.com" }])!;
+    expect(full.detail).toContain("not a field to fill");
+    expect(full.payload).toBeUndefined();
+    const writable = buildCrmGapFinding(base, undefined, heard(["cgroofing.net"]), [CG])!;
+    expect(writable.detail).toContain("Confirm it and put the host on that org");
+    expect(writable.payload?.actions).toHaveLength(1);
+  });
+
+  it("mints nothing when the prose proposes no org at all", () => {
+    // a tie says "say which one"; nothing close says nothing — neither has a click
+    expect(buildCrmGapFinding(base, undefined, heard(["cgroofing.net"]), [CG, { ...CG, id: "C-2019" }])!.payload).toBeUndefined();
+    expect(buildCrmGapFinding(base, undefined, heard(["cgroofing.net"]), [{ id: "C-9", name: "PropLogix", website: "proplogix.com" }])!.payload).toBeUndefined();
+    expect(buildCrmGapFinding(base, undefined, heard(["cgroofing.net"]))!.payload).toBeUndefined();
+  });
+
+  it("is absent, not empty, on a finding with no attendance evidence at all", () => {
+    expect("payload" in buildCrmGapFinding(base)!).toBe(false);
+  });
+});
