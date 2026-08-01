@@ -39,6 +39,11 @@ import { classifyUnexplainedRows } from "../lib/meetings/unexplainedRows.ts";
 import { buildArchiveFinding } from "../lib/meetings/archiveFinding.ts";
 import { buildCrmGapFinding } from "../lib/meetings/crmGapFinding.ts";
 import { planMeetingActivities } from "../lib/meetings/activityPlan.ts";
+import {
+  indexRecordingsByKey,
+  attendanceForRow,
+  attendanceNextStep,
+} from "../lib/meetings/attendeeCompany.ts";
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), "..");
 const DATA_SOURCE_ID = "600498eb-b6e0-41af-a625-e369cbe5fc6a";
@@ -155,6 +160,26 @@ async function readPeople() {
   return (await res.json()).map((p) => ({ id: p.id, name: p.name || "", orgId: p.org_id || "" }));
 }
 
+/**
+ * Q84 inc.65 — the recordings this machine actually holds, read off the manifest the sync
+ * already maintains. Read with a `try`: a missing or unparseable manifest must degrade the
+ * report to what it printed yesterday, never take down a CRM check over an attendee list.
+ */
+function readRecordings() {
+  try {
+    const raw = readFileSync(join(REPO, "MLE Internal Meetings", "manifest.json"), "utf8");
+    const parsed = JSON.parse(raw);
+    const items = Array.isArray(parsed) ? parsed : parsed.meetings || [];
+    return items.map((m) => ({
+      id: m.id || m.fireflies || "",
+      title: m.title || "",
+      attendeeDomains: [m.organizerDomain, ...(m.participantDomains || [])].filter(Boolean),
+    }));
+  } catch {
+    return [];
+  }
+}
+
 const [archive, crm, orgs, people] = await Promise.all([
   readArchive(),
   readCrmMeetings(),
@@ -169,8 +194,23 @@ const unexplained = classifyUnexplainedRows(archive);
 const activityPlan = planMeetingActivities(check.archiveOnly, orgs, people);
 const clip = (s, n) => (s && s.length > n ? `${s.slice(0, n - 1)}…` : s || "");
 
+// Q84 inc.65 — for every planned row, what its own recording's attendee list can say. Keyed by
+// the Notion page id so the printer below never re-does the join and reaches a second answer.
+// Rows with no recording are absent from this map, which is the honest state, not a gap.
+const recordingIndex = indexRecordingsByKey(readRecordings());
+const attendanceByRow = new Map();
+for (const item of activityPlan.rows) {
+  const hit = attendanceForRow(item.row, recordingIndex, orgs);
+  if (hit) attendanceByRow.set(item.row.id, hit);
+}
+
 if (AS_JSON) {
-  console.log(JSON.stringify({ ...check, unexplained, activityPlan }, null, 2));
+  const attendance = [...attendanceByRow].map(([rowId, hit]) => ({
+    rowId,
+    recording: hit.recording.title || hit.recording.id,
+    resolution: hit.resolution,
+  }));
+  console.log(JSON.stringify({ ...check, unexplained, activityPlan, attendance }, null, 2));
   process.exit(0);
 }
 
@@ -223,7 +263,28 @@ if (ap.considered) {
       const day = item.row.day || (item.dayFrom === "title" ? `${item.occursOn}*` : "(no date)");
       console.log(`     ${day}  ${clip(item.row.title, 52) || "(untitled)"}`);
       console.log(`         → ${item.nextStep}`);
+      // Q84 inc.65 — a second, INDEPENDENT reading of the same row, printed under the first
+      // rather than replacing it: the plan above read Notion's "Company Meeting with" field,
+      // this reads who was actually in the room. Where the field is empty and a recorder was
+      // there, this is the only line on the row with any evidence on it at all.
+      const hit = attendanceByRow.get(item.row.id);
+      if (hit) console.log(`         ⌕ recording says: ${attendanceNextStep(hit.resolution)}`);
     }
+  }
+  // The number this pass can actually move, stated where the ask is made — and the bucket it
+  // CANNOT move is named out loud in the same breath. `no-external` rows are not a silent
+  // remainder: they are calls where everyone mailed from gmail or our own domain, and inc.64
+  // measured that this is most of them. Hiding that would make the yield look bigger than it is.
+  const heard = [...attendanceByRow.values()];
+  if (heard.length) {
+    const tally = (kind) => heard.filter((h) => h.resolution.kind === kind).length;
+    console.log(
+      `\n  ⌕ ${heard.length} of those rows have a recording on disk — ` +
+        `${tally("resolved")} name a CRM company outright · ${tally("unknown-hosts")} name a host no org carries ` +
+        `(fix once in the org's Domain field and they answer themselves) · ` +
+        `${tally("ambiguous-orgs")} had two companies in the room · ` +
+        `${tally("no-external")} carried only our own domains or free mailboxes and can never name a company.`,
+    );
   }
   if (activityPlan.rows.some((r) => r.dayFrom === "title"))
     console.log(`\n  * day read from the row's own title — Notion's Call Date is still empty there`);

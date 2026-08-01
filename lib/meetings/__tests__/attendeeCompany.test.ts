@@ -8,6 +8,9 @@ import {
   externalGuestHosts,
   resolveCompanyFromAttendance,
   attendanceNextStep,
+  indexRecordingsByKey,
+  attendanceForRow,
+  type MeetingRecording,
 } from "../attendeeCompany";
 import type { CrmOrg } from "../activityPlan";
 
@@ -116,5 +119,43 @@ describe("attendanceNextStep", () => {
     );
     expect(step).toContain("Company Meeting with");
     expect(step).toContain("coin flip");
+  });
+});
+
+// Q84 inc.65 — the join. An archive row carries a Call Recording url, not an attendee list;
+// these pin that the two meet on the Fireflies id and NOWHERE else, and that a row with no
+// recording gets a null rather than a company.
+describe("attendanceForRow", () => {
+  const RECORDINGS: MeetingRecording[] = [
+    { id: "01ABCDEF", title: "PropLogix intro", attendeeDomains: ["rob@aivoicetech.io", "dana@proplogix.com"] },
+    { id: "https://app.fireflies.ai/view/01ZZZZZZ", title: "Caleb", attendeeDomains: ["ops@cgroofing.net"] },
+  ];
+  const index = indexRecordingsByKey(RECORDINGS);
+
+  it("joins a share-shaped url on the row to a bare id in the manifest", () => {
+    const hit = attendanceForRow({ recording: "https://app.fireflies.ai/view/01abcdef?tab=summary" }, index, ORGS);
+    expect(hit?.resolution).toEqual({ kind: "resolved", org: ORGS[0], hosts: ["proplogix.com"] });
+  });
+
+  it("joins a bare id on the row to a url-shaped id in the manifest", () => {
+    expect(attendanceForRow({ recording: "01zzzzzz" }, index, ORGS)?.resolution.kind).toBe("unknown-hosts");
+  });
+
+  it("returns null for a row with no recording — the in-person rows stay unanswered", () => {
+    expect(attendanceForRow({}, index, ORGS)).toBeNull();
+    expect(attendanceForRow({ recording: "" }, index, ORGS)).toBeNull();
+  });
+
+  it("returns null for a recording this machine does not hold, rather than guessing", () => {
+    expect(attendanceForRow({ recording: "01NEVERDOWNLOADED" }, index, ORGS)).toBeNull();
+  });
+
+  it("keeps the first entry on a duplicated id instead of merging two rooms into one", () => {
+    const dupe = indexRecordingsByKey([
+      ...RECORDINGS,
+      { id: "01ABCDEF", attendeeDomains: ["ops@cgroofinggroup.com"] },
+    ]);
+    const hit = attendanceForRow({ recording: "01abcdef" }, dupe, ORGS);
+    expect(hit?.resolution).toEqual({ kind: "resolved", org: ORGS[0], hosts: ["proplogix.com"] });
   });
 });

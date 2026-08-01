@@ -30,6 +30,7 @@
 
 import { genericDomainSet } from "@/lib/comms/genericDomains";
 import { extractHost, indexOrgsByHost, type CrmOrg } from "./activityPlan";
+import { recordingKey } from "./archiveCheck";
 
 /**
  * Rob's own hosts — the ones that appear on BOTH sides of every meeting and therefore identify
@@ -128,6 +129,61 @@ export function resolveCompanyFromAttendance(
   if (!hit.length) return { kind: "unknown-hosts", hosts };
   if (hit.length > 1) return { kind: "ambiguous-orgs", orgs: hit, hosts: matchedHosts };
   return { kind: "resolved", org: hit[0], hosts: matchedHosts };
+}
+
+/**
+ * Q84 inc.65 — the join, so the answer above reaches the report that asks the question.
+ *
+ * `resolveCompanyFromAttendance` reads an attendee list, and an archive row does not carry one:
+ * it carries a Call Recording url. The recordings on disk carry the attendee domains and their
+ * own Fireflies id. So the two sides meet on the recording ID — the same key
+ * `checkArchiveAgainstCrm` already matches CRM activities on, imported rather than re-derived,
+ * because two url parsers that disagree would silently join the wrong meeting to the wrong room.
+ *
+ * A row with no recording url joins to nothing and gets `null`. That is the honest answer for
+ * the 25+ in-person rows: no recorder was there, so no attendee list exists to read.
+ */
+export type MeetingRecording = {
+  /** The Fireflies id, or any url ending in it — `recordingKey` reduces both to the same key. */
+  id: string;
+  title?: string;
+  /** Attendee emails or bare domains; organizer included. Either shape is accepted upstream. */
+  attendeeDomains: readonly (string | null | undefined)[];
+};
+
+/**
+ * Recordings keyed by Fireflies id. FIRST WINS on a duplicate id, and the duplicate is not
+ * silently merged: two manifest entries with one id is a manifest defect, and quietly unioning
+ * their attendee lists would invent a meeting that had everyone from both in the room.
+ */
+export function indexRecordingsByKey(recordings: MeetingRecording[]): Map<string, MeetingRecording> {
+  const index = new Map<string, MeetingRecording>();
+  for (const rec of recordings) {
+    const key = recordingKey(rec.id);
+    if (!key || index.has(key)) continue;
+    index.set(key, rec);
+  }
+  return index;
+}
+
+export type RowAttendance = { recording: MeetingRecording; resolution: AttendanceResolution };
+
+/**
+ * What the recording of THIS archive row can say about its company — or `null` when the row
+ * has no recording url, or names one no manifest entry carries (a recording the CRM knows
+ * about and this machine has never downloaded is not evidence of anything).
+ */
+export function attendanceForRow(
+  row: { recording?: string },
+  recordings: Map<string, MeetingRecording>,
+  orgs: CrmOrg[],
+  opts: { ownHosts?: Iterable<string>; extraGeneric?: Iterable<string> } = {}
+): RowAttendance | null {
+  const key = recordingKey(row.recording);
+  if (!key) return null;
+  const recording = recordings.get(key);
+  if (!recording) return null;
+  return { recording, resolution: resolveCompanyFromAttendance(recording.attendeeDomains, orgs, opts) };
 }
 
 /** The sentence a human reads. Names the field to go fix, never a guess about the meeting. */
