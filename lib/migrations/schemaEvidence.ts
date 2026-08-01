@@ -337,6 +337,33 @@ const NO_EFFECT =
   /^(begin|start\s+transaction|commit|end|rollback|set|reset|create\s+(?:global\s+|local\s+)?temp(?:orary)?\s+table)\b/i;
 
 /**
+ * inc.61 — the verification echo a human types at the END of a migration to see
+ * the number they just created: `0004_flags.sql` closes with
+ * `select count(*) as flags from flags;`. It is a READ. It leaves nothing behind
+ * for any later read, write or plan to differ on, which is `NO_EFFECT`'s whole
+ * criterion — so it belongs on the capping side's subtraction list, not in
+ * `unrecognised statement:`.
+ *
+ * It is NOT folded into `NO_EFFECT` and NOT written as `^select`, because a
+ * leading-token rule on `select` is exactly the catch-all this module exists to
+ * stop: `select ... into` creates a table, `with x as (insert ...) select` writes
+ * rows, `select nextval(...)` burns a sequence, `select my_fn()` can do anything
+ * a function can do, `select ... for update` takes locks. Any of those would be
+ * waved through by a token match and never seen again.
+ *
+ * So this matches the WHOLE statement and only the one shape a human was
+ * actually seen to write: `count(*)` — immutable, argument-free — over a plain
+ * table name, with an optional alias, and nothing else. No `where` (its
+ * predicate can call a volatile function), no join, no CTE, no `into`. Anything
+ * larger stays unrecognised and surfaces loudly, which is the correct default.
+ *
+ * Deliberately does NOT touch 0031's `select string_agg(quote_ident(...), ...)
+ * into cols` — that assigns a variable and drives an `execute format(...)`, so it
+ * is work, and it stays on the loud list where inc.56 put it.
+ */
+const READ_ONLY_ECHO = /^select\s+count\s*\(\s*\*\s*\)(?:\s+as\s+[A-Za-z_][\w$]*|\s+as\s+"[^"]+")?\s+from\s+(?:[A-Za-z_][\w$]*|"[^"]+")(?:\.(?:[A-Za-z_][\w$]*|"[^"]+"))?$/i;
+
+/**
  * Every rule that claims a statement. Object rules are re-tested per statement
  * (not against the whole file) so a claim is only credited to the statement it
  * actually describes — a file whose `create table` sits three statements away
@@ -383,6 +410,7 @@ export function unrecognisedStatements(sql: string): string[] {
   const out: string[] = [];
   for (const stmt of statementsToGrade(sql)) {
     if (NO_EFFECT.test(stmt)) continue;
+    if (READ_ONLY_ECHO.test(stmt)) continue;
     if (statementIsClaimed(stmt)) continue;
     const fp = stmt.toLowerCase().split(" ").slice(0, 4).join(" ");
     if (fp && !out.includes(fp)) out.push(fp);

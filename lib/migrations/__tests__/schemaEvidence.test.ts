@@ -379,6 +379,46 @@ describe("statement coverage (inc.56)", () => {
     expect(unrecognisedStatements("drop sequence people_record_no_seq;")).toEqual(["drop sequence people_record_no_seq"]);
   });
 
+  it("excuses the verification echo at the end of 0004 — and NOTHING wider (inc.61)", () => {
+    // The one shape a human was actually seen to write: 0004_flags.sql closes
+    // with a count of what it just inserted. It is a read that leaves nothing
+    // behind, so it belongs on NO_EFFECT's side of the line, not in the loud
+    // bucket. The whole statement is matched — an alias and a schema qualifier
+    // are the only variation allowed.
+    expect(unrecognisedStatements("select count(*) as flags from flags;")).toEqual([]);
+    expect(unrecognisedStatements("select count(*) from public.flags;")).toEqual([]);
+    expect(unrecognisedStatements('select count( * ) as "n rows" from "flags";')).toEqual([]);
+  });
+
+  it("keeps every OTHER select loud — a token match on `select` would write rows (inc.61)", () => {
+    // This is the reason the rule above is anchored at both ends rather than
+    // written `^select`. Each of these leads with `select` and each of them does
+    // real work; a leading-token exemption would wave all five through and they
+    // would never be seen again.
+    const writes = [
+      "select count(*) into totals from flags",
+      "select nextval('people_record_no_seq')",
+      "select backfill_everything()",
+      "select count(*) from flags where slow_fn(id)",
+    ];
+    for (const stmt of writes) {
+      expect(unrecognisedStatements(`${stmt};`)).toHaveLength(1);
+    }
+    // The fifth shape is the one that proves the point differently, and it is
+    // asserted as what it actually is rather than lumped in above: a writing CTE
+    // leads with `with`, and the `insert` inside it is already claimed as
+    // `data change` — so it is capped, not excused. Either way it is not silent.
+    expect(
+      parseMigration("with moved as (insert into flags (title) values ('x') returning id) select count(*) from moved;")
+        .unverifiable,
+    ).toEqual(["data change"]);
+    // And 0031's real one — it assigns a variable that drives an `execute
+    // format(…)`, so it is work and stays exactly where inc.56 put it.
+    expect(
+      unrecognisedStatements("select string_agg(quote_ident(a.attname), ', ') into cols from pg_attribute a;"),
+    ).toEqual(["select string_agg(quote_ident(a.attname), ', ')"]);
+  });
+
   it("does not excuse an unlisted change just because it leads with a claimed word", () => {
     // `alter table … set default` leads with `alter`, so ALTER_TABLE claims it —
     // this pins the known hole rather than pretending it is covered.
