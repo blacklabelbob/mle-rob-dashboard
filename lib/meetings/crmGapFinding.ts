@@ -17,8 +17,9 @@
 
 import { type ArchiveFinding, trimDateTail } from "./archiveFinding";
 import type { ArchiveCheck, ArchiveRow } from "./archiveCheck";
-import type { ActivityDisposition, ActivityPlan, ActivityPlanRow } from "./activityPlan";
+import type { ActivityDisposition, ActivityPlan, ActivityPlanRow, CrmOrg } from "./activityPlan";
 import type { AttendanceResolution } from "./attendeeCompany";
+import { proposalText, proposeOrgForHost } from "./hostProposal";
 
 /**
  * The key #133 is being ADOPTED onto, deliberately: the point is to correct that row, not
@@ -139,7 +140,7 @@ export type RowAttendance = { row: ArchiveRow; resolution: AttendanceResolution 
  * evidence look like it moves more rows than it does — the same overclaim inc.15 disproved.
  * `ambiguous-orgs` is reported, never resolved: two companies in the room is a human's call.
  */
-function attendanceBlock(entries: RowAttendance[]): string {
+function attendanceBlock(entries: RowAttendance[], orgs: CrmOrg[] = []): string {
   if (!entries.length) return "";
   const tally = (kind: AttendanceResolution["kind"]) =>
     entries.filter((e) => e.resolution.kind === kind).length;
@@ -179,7 +180,16 @@ function attendanceBlock(entries: RowAttendance[]): string {
           .sort((a, b) => (b.day || "").localeCompare(a.day || ""))
           .map((r) => `${r.day || "(no date)"} ${trimDateTail((r.title || "").trim(), r.day) || "(untitled)"}`)
           .join("; ");
-        return `• ${host} — put it in the right org's Domain field (a company can use more than one). Heard on: ${at}`;
+        // Q84 inc.67 — "put it in the RIGHT org's Domain field" is only actionable if Rob
+        // already knows which org that is, and both live hosts are near-misses of hosts the
+        // CRM holds. When one org is close enough to name, the ask becomes a yes/no instead
+        // of a search. When nothing is close, the line is byte-identical to inc.66's — no
+        // filler sentence pretending the CRM helped.
+        const proposal = proposalText(proposeOrgForHost(host, orgs));
+        return (
+          `• ${host} — put it in the right org's Domain field (a company can use more than one). Heard on: ${at}` +
+          (proposal ? `\n    → ${proposal}` : "")
+        );
       });
     blocks.push(
       `${byHost.size} FIELD(S) TO FILL IN THE CRM, and then ${entries.filter((e) => e.resolution.kind === "unknown-hosts").length} ` +
@@ -239,6 +249,7 @@ export function buildCrmGapFinding(
   check: ArchiveCheck,
   plan?: ActivityPlan,
   attendance: RowAttendance[] = [],
+  orgs: CrmOrg[] = [],
 ): ArchiveFinding | null {
   const { counts } = check;
   const missing = counts.archiveOnly;
@@ -263,7 +274,7 @@ export function buildCrmGapFinding(
   // (Notion's company field vs who was actually in the room), so it sits beside the plan
   // rather than inside it. Empty when no planned row has a recording here — the honest state
   // for the in-person rows, never a fabricated "0 of 0" paragraph.
-  const heard = attendanceBlock(attendance);
+  const heard = attendanceBlock(attendance, orgs);
   const heardBlock = heard ? `\n\n${heard}` : "";
 
   const detail = noPipeline

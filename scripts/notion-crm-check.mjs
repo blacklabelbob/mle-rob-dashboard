@@ -377,6 +377,9 @@ if (FILE_FLAG) {
         row: activityPlan.rows.find((r) => r.row.id === rowId).row,
         resolution: hit.resolution,
       })),
+      // Q84 inc.67 — the same orgs the plan was built from, so an unrecognised guest host can
+      // name the org it most likely belongs to instead of asking Rob to go find it.
+      orgs,
     ),
     "nothing to file — every archived meeting has a CRM activity.",
   );

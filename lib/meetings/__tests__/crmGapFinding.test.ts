@@ -166,6 +166,23 @@ describe("attendance evidence on the gap finding", () => {
     expect(f.detail.match(/• cgroofing\.net/g)).toHaveLength(1);
   });
 
+  // Q84 inc.67 — the host line names the org Rob should confirm, when the CRM holds one close.
+  it("proposes the likely owner of an unknown host, and stays byte-identical when it cannot", () => {
+    const attendance: Parameters<typeof buildCrmGapFinding>[2] = [
+      { row: row("a", "2026-06-18", "Caleb sync"), resolution: { kind: "unknown-hosts", hosts: ["cgroofing.net"] } },
+    ];
+    const base = check({ archiveRows: 3, crmMeetings: 0 }, [row("a", "2026-06-18", "Caleb sync")]);
+    const withOrgs = buildCrmGapFinding(base, undefined, attendance, [
+      { id: "C-0001", name: "CG Roofing Group", domain: "cgroofinggroup.com" },
+    ])!;
+    expect(withOrgs.detail).toContain("likely CG Roofing Group [C-0001]");
+    expect(withOrgs.detail).toContain("without the word “group”");
+
+    // An org list with nothing close must not add a sentence — the fallback ask is unchanged.
+    const noneClose = buildCrmGapFinding(base, undefined, attendance, [{ id: "C-9", name: "PropLogix", domain: "proplogix.com" }])!;
+    expect(noneClose.detail).toBe(buildCrmGapFinding(base, undefined, attendance)!.detail);
+  });
+
   it("says no-external out loud instead of burying rows that can never name a company", () => {
     const f = gap([
       { row: row("a", "2026-06-18", "Caleb sync"), resolution: { kind: "unknown-hosts", hosts: ["cgroofing.net"] } },
