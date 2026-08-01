@@ -7,6 +7,7 @@ import {
   buildSlugIndex,
   entityOrFilter,
   expandEntityFilter,
+  flagEntityHref,
   flagNamedRecordIds,
   flagTitleHref,
   resolveFlagEntityId,
@@ -143,9 +144,27 @@ async function withEntityRefs<T extends { entity_id: string | null }>(rows: T[])
     if (!error) dealIds = new Set((data ?? []).map((d) => d.id as string));
   }
 
+  // Q84 inc.82 — the title link asked whether the id was SHAPED like a record, never whether
+  // the CRM holds one. inc.37 fixed that for every id a flag PRINTS (`named_ref`); the id a
+  // flag is FILED ON kept inferring from the pattern, so `entity_id: "P-1043"` would render a
+  // title link into the same dead end inc.81 took out of the chips. Confirmed here, off the
+  // same two tables, with the same non-fatal contract as the two lookups above: a failed read
+  // passes `null` — "not asked" — and every row links exactly as it linked yesterday.
+  const refs = [...new Set(rows.map((r) => resolveFlagEntityId(r.entity_id, index)).filter((id): id is string => Boolean(id) && Boolean(flagEntityHref(id))))];
+  let held: Set<string> | null = null;
+  if (refs.length) {
+    const [orgs, people] = await Promise.all([
+      db().from("orgs").select("id").in("id", refs.filter((id) => id.startsWith("C-"))),
+      db().from("people").select("id").in("id", refs.filter((id) => id.startsWith("P-"))),
+    ]);
+    if (!orgs.error && !people.error) held = new Set([...(orgs.data ?? []), ...(people.data ?? [])].map((r) => r.id as string));
+  } else {
+    held = new Set<string>();
+  }
+
   return rows.map((r) => {
     const entity_ref = resolveFlagEntityId(r.entity_id, index);
-    return { ...r, entity_ref, entity_href: flagTitleHref(entity_ref, r.entity_id, dealIds) };
+    return { ...r, entity_ref, entity_href: flagTitleHref(entity_ref, r.entity_id, dealIds, held) };
   });
 }
 

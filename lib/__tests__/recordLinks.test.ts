@@ -436,6 +436,54 @@ describe("flagTitleHref", () => {
     expect(flagTitleHref(null, "deal-gulf-coast-equity-phase4", null)).toBeNull();
     expect(flagTitleHref("P-1008", "will", null)).toBe("/people/P-1008");
   });
+
+  // Q84 inc.82 — the title arm gets the deal arm's evidence bar. `P-1043` is the shape prod
+  // #101 quotes as an EXAMPLE of saying a record number out loud; people run P-1001..P-1022,
+  // so a flag filed on it linked into Next's "This page could not be found."
+  const HELD = new Set(["C-2017", "P-1008"]);
+
+  it("refuses a title link for an id the CRM never minted", () => {
+    expect(flagTitleHref("P-1043", "P-1043", null, HELD)).toBeNull();
+    expect(flagTitleHref("C-9999", "C-9999", null, HELD)).toBeNull();
+  });
+
+  it("still links every id the CRM does hold", () => {
+    expect(flagTitleHref("C-2017", "cg-roofing-group", DEALS, HELD)).toBe("/companies/C-2017");
+    expect(flagTitleHref("P-1008", "will", null, HELD)).toBe("/people/P-1008");
+  });
+
+  it("treats an unasked lookup as unasked — a blipped read never de-links the ledger", () => {
+    // The non-fatal contract, identical to inc.37's `named_ref`: absence of proof is not
+    // proof of absence. Hiding every title link on a hiccup is the worse lie.
+    expect(flagTitleHref("P-1043", "P-1043", null, null)).toBe("/people/P-1043");
+    expect(flagTitleHref("P-1043", "P-1043", null, undefined)).toBe("/people/P-1043");
+  });
+
+  it("confirmed-none suppresses every org/person title link and nothing else", () => {
+    expect(flagTitleHref("C-2017", "cg-roofing-group", DEALS, [])).toBeNull();
+    // The deal arm is membership-tested on its own index and is untouched by this one.
+    expect(flagTitleHref(null, "deal-gulf-coast-equity-phase4", DEALS, [])).toBe("/deals/deal-gulf-coast-equity-phase4");
+  });
+
+  it("falls through to the deal arm when the unminted id is also a deal", () => {
+    // Refusing the org/person link must not swallow a page that does resolve.
+    expect(flagTitleHref("C-9999", "deal-gulf-coast-equity-phase4", DEALS, HELD)).toBe("/deals/deal-gulf-coast-equity-phase4");
+  });
+});
+
+// Q84 inc.82 — the client's own fallback is the door this fix could have walked back out of.
+// `f.entity_href ?? flagEntityHref(entityRef(f))` cannot tell "the field is absent" from "the
+// server was asked and said no page", so the refusal above would have been re-derived off the
+// id's shape one line later. JSX is unreachable from a unit test, so the source is read — the
+// same guard shape inc.81 used, and it was proved by reinstating `??` and watching this fail.
+describe("Q84 inc.82 — ThingsToAddress does not resurrect a refused title link", () => {
+  it("distinguishes an absent entity_href from a null one", () => {
+    const src = readFileSync(new URL("../../components/ThingsToAddress.tsx", import.meta.url), "utf8");
+    const line = src.split("\n").find((l) => l.startsWith("const titleHref = "));
+    expect(line, "titleHref must stay a single top-level const the guard can read").toBeTruthy();
+    expect(line).toContain("f.entity_href !== undefined");
+    expect(line).not.toContain("f.entity_href ??");
+  });
 });
 
 // Q84 inc.26 — every value below is read off prod: 115 of 131 flags carry no `entity_id`,

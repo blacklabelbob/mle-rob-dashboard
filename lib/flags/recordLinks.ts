@@ -298,13 +298,26 @@ export function dealEntityHref(entityId: string | null | undefined, dealIds: Dea
  * `entityRef` is inc.23's already-resolved value (`entity_ref`), passed in rather than
  * recomputed so a client rendering a pre-inc.23 response degrades to plain text, never to
  * a link pointing somewhere else.
+ *
+ * Q84 inc.82 — `held` closes the last door inc.81 left open. `flagEntityHref` reads an id's
+ * SHAPE, and a shape is not a record: an `entity_id` of `P-1043` is well-formed and minted by
+ * nobody, so the title linked into Next's "This page could not be found." exactly as the chip
+ * did. The deal arm one function up has always demanded membership for the same reason; this
+ * gives the org/person arm the same evidence bar. Contract is inc.37's, verbatim: `null` /
+ * `undefined` means NOT ASKED and filters nothing (a blipped lookup must leave Rob the ledger
+ * he read yesterday, never a page-wide de-linking), an empty set means CONFIRMED NONE. A ref
+ * that resolved out of `legacy_slug` came from the CRM's own rows and passes on its own merit.
  */
 export function flagTitleHref(
   entityRef: string | null | undefined,
   entityId: string | null | undefined,
   dealIds: DealIndex,
+  held?: Iterable<string> | null,
 ): string | null {
-  return flagEntityHref(entityRef) ?? dealEntityHref(entityId, dealIds);
+  const confirmed = held === null || held === undefined ? null : new Set(held);
+  const direct = flagEntityHref(entityRef);
+  if (direct && confirmed && !confirmed.has(entityRef as string)) return dealEntityHref(entityId, dealIds);
+  return direct ?? dealEntityHref(entityId, dealIds);
 }
 
 // Q84 inc.26 — inc.24 fixed the record-page filter for flags that CARRY an `entity_id`.

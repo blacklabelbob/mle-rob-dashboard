@@ -88,8 +88,14 @@ const entityRef = (f: Flag) => f.entity_ref ?? f.entity_id;
  * Server-resolved (`entity_href`) because a DEAL id can only be confirmed against the deals
  * table, which this client cannot read. Falls back to the pure minted/legacy rule so a
  * response served before inc.25 renders exactly as it did yesterday — never a guessed link.
+ *
+ * Q84 inc.82: `undefined` (the field is ABSENT — a pre-inc.25 response) falls back; `null`
+ * (the server was asked and said no page) does NOT. `??` could not tell those apart, so the
+ * moment the server started refusing an unminted `entity_id` the client would have re-derived
+ * the same dead link off its shape and undone the fix one line later — inc.37's rule again:
+ * one set, both renders.
  */
-const titleHref = (f: Flag) => f.entity_href ?? flagEntityHref(entityRef(f));
+const titleHref = (f: Flag) => (f.entity_href !== undefined ? f.entity_href : flagEntityHref(entityRef(f)));
 
 /**
  * inc.25: `person` fans a query out through org memberships; `entity` does not.
