@@ -185,7 +185,10 @@ function attendanceBlock(entries: RowAttendance[], orgs: CrmOrg[] = []): string 
         // CRM holds. When one org is close enough to name, the ask becomes a yes/no instead
         // of a search. When nothing is close, the line is byte-identical to inc.66's — no
         // filler sentence pretending the CRM helped.
-        const proposal = proposalText(proposeOrgForHost(host, orgs));
+        // Q84 inc.70 — `orgs` is passed a second time on purpose: the first decides WHICH org
+        // to propose, this one decides whether the write that proposal implies would survive
+        // the server's own rule (inc.69's 409). Same table, two different questions.
+        const proposal = proposalText(proposeOrgForHost(host, orgs), orgs);
         return (
           `• ${host} — put it in the right org's Domain field (a company can use more than one). Heard on: ${at}` +
           (proposal ? `\n    → ${proposal}` : "")

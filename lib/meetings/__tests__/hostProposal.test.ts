@@ -5,7 +5,15 @@
 
 import { describe, expect, it } from "vitest";
 import type { CrmOrg } from "../activityPlan";
-import { hostLabel, hostWriteSlot, proposalText, proposeOrgForHost, writeSlotText } from "../hostProposal";
+import {
+  confirmIsWritable,
+  confirmSafetyText,
+  hostLabel,
+  hostWriteSlot,
+  proposalText,
+  proposeOrgForHost,
+  writeSlotText,
+} from "../hostProposal";
 
 const CG: CrmOrg = { id: "C-0001", name: "CG Roofing Group", domain: "cgroofinggroup.com" };
 const GULF: CrmOrg = { id: "C-0002", name: "Gulf Coast RE Group", website: "https://www.gulfcoastregroup.com/about" };
@@ -125,5 +133,49 @@ describe("hostWriteSlot", () => {
     const cgText = proposalText(proposeOrgForHost("cgroofing.net", ORGS));
     expect(cgText).toContain("CG Roofing Group [C-0001]");
     expect(cgText).toContain("already holds cgroofinggroup.com");
+  });
+});
+
+// Q84 inc.70 — the ledger stated inc.68's half of "safe" and the server enforces inc.69's too,
+// so a row could promise a write the PATCH route would answer with a 409. Both halves now come
+// from the same modules the server uses.
+describe("the write the proposal asks for is the write the server would accept", () => {
+  it("stops appending an instruction the schema cannot carry out — the live defect", () => {
+    // CG's `domain` is full. inc.68 pinned the occupied WORDING to carry no write verb, but the
+    // sentence after it said "put the host on that org" regardless. C-2010 on prod is exactly
+    // this shape, so this was one proposal away from being read by Rob.
+    const taken = proposalText(proposeOrgForHost("cgroofing.net", ORGS), ORGS);
+    expect(taken).toContain("CG Roofing Group [C-0001]");
+    expect(taken).toContain("not a field to fill");
+    expect(taken).not.toContain("put the host on that org");
+    expect(taken).not.toMatch(/fill it|replace|overwrite/i);
+  });
+
+  it("still earns the instruction when both halves say yes", () => {
+    const free = proposalText(proposeOrgForHost("gulfregroup.com", ORGS), ORGS);
+    expect(free).toContain("Domain field is empty");
+    expect(free).toContain("Confirm it and put the host on that org");
+    expect(confirmIsWritable("gulfregroup.com", GULF, ORGS)).toBe(true);
+  });
+
+  it("refuses the click when ANOTHER org already carries the host, slot free or not", () => {
+    // Unreachable from the unknown-hosts caller by construction (nothing matched `indexOrgsByHost`)
+    // and reported rather than swallowed: reaching it means this ladder and the resolver disagree.
+    const empty: CrmOrg = { id: "C-0009", name: "Empty Slot Co" };
+    expect(hostWriteSlot("proplogix.com", empty)).toEqual({ kind: "free" });
+    expect(confirmIsWritable("proplogix.com", empty, ORGS)).toBe(false);
+    expect(confirmSafetyText("proplogix.com", empty, ORGS)).toContain("PropLogix");
+  });
+
+  it("names the other record rather than reporting a bare refusal", () => {
+    const empty: CrmOrg = { id: "C-0009", name: "Empty Slot Co" };
+    expect(confirmSafetyText("proplogix.com", empty, ORGS)).toContain("[C-0003]");
+  });
+
+  it("leaves the line byte-identical to inc.68 when no org table is supplied", () => {
+    // The default keeps the collision half from firing on a caller that has nothing to check.
+    expect(proposalText(proposeOrgForHost("gulfregroup.com", ORGS))).toBe(
+      proposalText(proposeOrgForHost("gulfregroup.com", ORGS), ORGS),
+    );
   });
 });

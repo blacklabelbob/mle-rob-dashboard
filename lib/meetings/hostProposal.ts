@@ -20,6 +20,7 @@
 //   - Nothing is written. This returns what a human WOULD confirm.
 
 import { extractHost, type CrmOrg } from "./activityPlan";
+import { hostClaimConflict, hostClaimMessage } from "./hostClaim";
 import { normalizeName } from "@/lib/dedup/match";
 
 /**
@@ -221,22 +222,69 @@ export function proposalReasonText(reason: HostProposalReason): string {
 }
 
 /**
+ * Q84 inc.70 — WHETHER THE WRITE THIS LINE ASKS FOR WOULD ACTUALLY BE ACCEPTED.
+ *
+ * inc.68 checked the destination slot (`domain` empty on this org). inc.69 checked the host
+ * (no OTHER record already resolves by it) and enforced that one server-side, as a 409 on the
+ * People PATCH route. Two halves of "safe", built one increment apart — and the ledger row was
+ * still stating only inc.68's half. A row can therefore promise *"one field to fill and nothing
+ * is displaced"* about a write the server would refuse. **The page and the server now read the
+ * same two rules from the same modules**, so the promise cannot drift from the enforcement.
+ *
+ * ⚠️ A LIVE DEFECT THIS CLOSED, not a hypothetical: the pick line appended *"Confirm it and put
+ * the host on that org"* UNCONDITIONALLY — including when the slot came back `occupied`. inc.68
+ * pinned the occupied *wording* to contain no fill/replace/overwrite verb, then the sentence
+ * after it said exactly that anyway. C-2010 (The Title Base) has a full `domain` slot on prod
+ * today, so this was one proposal away from telling Rob to put a host in a field that has one.
+ * The instruction is now emitted ONLY when both halves say yes.
+ *
+ * On the conflict half being unreachable FROM THIS CALLER, said out loud rather than dressed up:
+ * a host only reaches an `unknown-hosts` row when `indexOrgsByHost` — which keys BOTH `website`
+ * and `domain` — matched nothing, so `hostClaimConflict` returns `clear` on every row Rob can
+ * see today. It is wired anyway for the reason `already` is reported rather than swallowed
+ * (inc.68): reaching it means this ladder and `resolveCompanyFromAttendance` disagree, and a
+ * disagreement between two host ladders is the thing worth printing, not the thing to smooth over.
+ */
+export function confirmSafetyText(host: string, org: CrmOrg, orgs: CrmOrg[]): string {
+  const claim = hostClaimConflict(host, org, orgs);
+  if (claim.kind !== "clear") return hostClaimMessage(claim, host);
+  return writeSlotText(hostWriteSlot(host, org));
+}
+
+/** Whether a confirm click could be carried out at all — both halves, not either one. */
+export function confirmIsWritable(host: string, org: CrmOrg, orgs: CrmOrg[]): boolean {
+  return hostClaimConflict(host, org, orgs).kind === "clear" && hostWriteSlot(host, org).kind === "free";
+}
+
+/**
  * The line printed under an unknown host. Always ends in a question a human answers, never in
  * an instruction that assumes the proposal is right — and when two orgs tie it says so and
  * picks neither, because a coin flip here puts a call on the wrong company's record.
+ *
+ * @param orgs every CRM org, so the write can be checked against the whole table and not just
+ *   against the proposed org's own record. Defaults to empty: with no table to check, the
+ *   host-collision half cannot fire, which leaves the line exactly where inc.68 left it.
  */
-export function proposalText(proposal: HostProposal | null): string {
+export function proposalText(proposal: HostProposal | null, orgs: CrmOrg[] = []): string {
   if (!proposal || !proposal.candidates.length) return "";
   if (proposal.pick) {
     const [only] = proposal.candidates;
     // Q84 inc.68 — the slot is stated on the SAME line as the pick, because "confirm it and put
     // the host on that org" is an instruction, and an instruction that cannot be carried out
     // without displacing a stored host is worse than no instruction at all.
-    const slot = writeSlotText(hostWriteSlot(proposal.host, only.org));
-    return (
-      `likely ${only.org.name} [${only.org.id}] — ${proposalReasonText(only.reason)}; ${slot}. ` +
-      "Confirm it and put the host on that org; a look-alike host is never assumed to be the same company"
-    );
+    const state = confirmSafetyText(proposal.host, only.org, orgs);
+    const head = `likely ${only.org.name} [${only.org.id}] — ${proposalReasonText(only.reason)}; ${state}. `;
+    // Q84 inc.70 — the instruction is earned, not appended. Where the write would be refused the
+    // line closes on what is actually true, with no write verb anywhere in it: the proposal is
+    // still worth reading (it names the company), it is just not a field edit.
+    if (!confirmIsWritable(proposal.host, only.org, orgs)) {
+      return (
+        head +
+        "So this one is not a field to fill — the org above is who it looks like, and what to do " +
+        "about the host it already carries is a human's call"
+      );
+    }
+    return head + "Confirm it and put the host on that org; a look-alike host is never assumed to be the same company";
   }
   const listed = proposal.candidates
     .map((c) => `${c.org.name} [${c.org.id}] (${proposalReasonText(c.reason)})`)
