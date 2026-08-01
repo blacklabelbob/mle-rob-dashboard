@@ -2,6 +2,8 @@ import { describe, it, expect } from "vitest";
 import {
   classifyUnexplainedRows,
   isPlaceholderTitle,
+  dayFromTitleStamp,
+  effectiveDay,
   type ArchiveRowDetail,
 } from "../unexplainedRows";
 
@@ -178,5 +180,88 @@ describe("classifyUnexplainedRows", () => {
       needsIdentification: 1,
       needsHumanAccount: 2,
     });
+  });
+});
+
+describe("dayFromTitleStamp — the date the row was already stating", () => {
+  it("reads the day back out of the exact stamp shapes the placeholder ladder catches", () => {
+    // The three shapes actually sitting on prod with an empty Call Date.
+    expect(dayFromTitleStamp("2026-07-31T10:14:00.000-04:00")).toBe("2026-07-31");
+    expect(dayFromTitleStamp("2026-07-29T14:01:00.000-04:00")).toBe("2026-07-29");
+    expect(dayFromTitleStamp("Meeting 2026-07-30")).toBe("2026-07-30");
+    expect(dayFromTitleStamp("Meeting 2026-06-16T11:05:00.000-04:00")).toBe("2026-06-16");
+    expect(dayFromTitleStamp("  2026-01-02  ")).toBe("2026-01-02");
+  });
+
+  it("REFUSES every title that merely contains a date — guessing a day welds a wrong one on", () => {
+    expect(dayFromTitleStamp("Rob & Dix | notes from 2026-07-29")).toBe("");
+    expect(dayFromTitleStamp("2026-07-29 Omega principals")).toBe("");
+    expect(dayFromTitleStamp("Gulf Coast RE KICKOFF 2026-07-22")).toBe("");
+    expect(dayFromTitleStamp("Weekly Review 2026-07-17 — pipeline")).toBe("");
+    expect(dayFromTitleStamp("")).toBe("");
+    expect(dayFromTitleStamp(undefined)).toBe("");
+    expect(dayFromTitleStamp("Meeting")).toBe("");
+    // A calendar-impossible stamp is refused, not passed through.
+    expect(dayFromTitleStamp("2026-13-01")).toBe("");
+    expect(dayFromTitleStamp("2026-07-32")).toBe("");
+  });
+
+  it("every shape it reads is one the ladder already calls a placeholder", () => {
+    for (const t of ["2026-07-31T10:14:00.000-04:00", "Meeting 2026-07-30", "2026-01-02"]) {
+      expect(isPlaceholderTitle(t)).toBe(true);
+    }
+  });
+
+  it("effectiveDay prefers what a human typed and never overwrites it", () => {
+    expect(effectiveDay(row({ id: "a", title: "Meeting 2026-07-30", day: "2026-07-01" }))).toBe("2026-07-01");
+    expect(effectiveDay(row({ id: "b", title: "Meeting 2026-07-30" }))).toBe("2026-07-30");
+    expect(effectiveDay(row({ id: "c", title: "Omega principals" }))).toBe("");
+  });
+});
+
+describe("a row whose only date is in its own title", () => {
+  it("stops being told to type a date it is already stating", () => {
+    const [r] = classifyUnexplainedRows([row({ id: "stamp", title: "2026-07-31T10:14:00.000-04:00" })]).rows;
+    expect(r.disposition).toBe("needs-identification");
+    expect(r.derivedDay).toBe("2026-07-31");
+    // The gap stays: the Notion column really is empty and that is the field to go fix.
+    expect(r.gaps).toContain("no date");
+    expect(r.nextStep).not.toMatch(/cannot be matched to anything, ever/);
+    expect(r.nextStep).toMatch(/2026-07-31/);
+    expect(r.nextStep).toMatch(/real Meeting Title/);
+  });
+
+  it("keeps the old sentence for a row that genuinely states no day anywhere", () => {
+    const [r] = classifyUnexplainedRows([row({ id: "blank", title: "Meeting" })]).rows;
+    expect(r.derivedDay).toBeUndefined();
+    expect(r.nextStep).toMatch(/set Call Date/);
+  });
+
+  it("a recovered day plus a named counterparty routes to the human who was in the room", () => {
+    const [r] = classifyUnexplainedRows([
+      row({ id: "omega", title: "Meeting 2026-07-28", company: "Omega Title" }),
+    ]).rows;
+    expect(r.disposition).toBe("needs-human-account");
+    expect(r.derivedDay).toBe("2026-07-28");
+    expect(r.nextStep).toMatch(/someone who was in the room with Omega Title/);
+  });
+
+  it("NEVER lets a recovered day merge a row onto a recorded meeting", () => {
+    // Same day, and the recorded row's title even contains that stamp. A placeholder title is
+    // still never evidence — inc.1's rule survives the date becoming knowable.
+    const report = classifyUnexplainedRows([
+      recorded({ id: "r1", title: "Meeting 2026-07-30", day: "2026-07-30" }),
+      row({ id: "stamp", title: "Meeting 2026-07-30" }),
+    ]);
+    expect(report.counts.possibleDuplicate).toBe(0);
+    expect(report.rows.find((r) => r.row.id === "stamp")?.twin).toBeUndefined();
+  });
+
+  it("sorts a title-dated row by that date instead of dumping it at the bottom", () => {
+    const report = classifyUnexplainedRows([
+      row({ id: "old", title: "Omega principals", day: "2026-07-01", company: "Omega" }),
+      row({ id: "stamped-new", title: "Meeting 2026-07-28", company: "Joseph" }),
+    ]);
+    expect(report.open.map((r) => r.row.id)).toEqual(["stamped-new", "old"]);
   });
 });

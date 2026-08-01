@@ -55,6 +55,12 @@ export type UnexplainedRow = {
   nextStep: string;
   /** Set only for `possible-duplicate` — the recorded row this looks like. */
   twin?: ArchiveRowDetail;
+  /**
+   * Set only when Call Date is empty AND the row's own title states the day. Present means
+   * "this date was read off the title, not typed by a human" — a caller may act on it, but
+   * it must never be printed as though someone entered it.
+   */
+  derivedDay?: string;
 };
 
 export type UnexplainedReport = {
@@ -119,6 +125,43 @@ export function isPlaceholderTitle(title: string | undefined): boolean {
   return false;
 }
 
+/**
+ * The one shape whose date can be READ BACK OUT of the title.
+ *
+ * `isPlaceholderTitle` already recognises a bare ISO stamp that leaked into the Meeting Title
+ * field — but recognising it and reading it are different things, and until now nothing read
+ * it. A row titled `2026-07-31T10:14:00.000-04:00` with an empty Call Date was told *"set Call
+ * Date — without a day this row cannot be matched to anything, ever"*: a sentence that is
+ * false about the row it is printed on, and an ask for information the row is already stating.
+ * Three rows on prod are exactly this.
+ *
+ * DELIBERATELY the SAME pattern as the ladder's stamp rule and nothing wider. It does not
+ * scan for a date anywhere inside a title — `Rob & Dix | notes from 2026-07-29` names a
+ * meeting whose date could be anything, and guessing there is how a wrong day gets welded
+ * onto a real meeting. Whole string, optional `Meeting ` prefix, stamp, nothing else. A
+ * calendar-impossible stamp (month 13, day 32) is refused rather than passed through.
+ *
+ * Returns "" when the title is any other shape — including every human-chosen title.
+ */
+export function dayFromTitleStamp(title: string | undefined): string {
+  const m =
+    /^(?:meeting[\s:_-]+)?(\d{4})-(\d{2})-(\d{2})(?:[ T]\d{2}:\d{2}(?::\d{2})?(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?)?$/i.exec(
+      (title || "").trim(),
+    );
+  if (!m) return "";
+  const [, y, mo, d] = m;
+  if (+mo < 1 || +mo > 12 || +d < 1 || +d > 31) return "";
+  return `${y}-${mo}-${d}`;
+}
+
+/**
+ * The day this row can be placed on: what a human typed into Call Date, or failing that what
+ * the row's own title already states. Never a guess — see `dayFromTitleStamp`.
+ */
+export function effectiveDay(row: ArchiveRowDetail): string {
+  return row.day || dayFromTitleStamp(row.title);
+}
+
 /** Order the work-list by who can act, then newest first. */
 const RANK: Record<Disposition, number> = {
   "possible-duplicate": 0, // cheapest to close, and closing it shrinks what Rob is asked for
@@ -166,15 +209,25 @@ export function classifyUnexplainedRows(rows: ArchiveRowDetail[]): UnexplainedRe
     // 7/28 Omega meeting the queue has named for three increments sat under "give it a real
     // title", where it read as filing work nobody needed to do. Both gaps are still reported;
     // what changes is WHO is being asked, which is the whole point of the buckets.
-    const identifiedByCounterparty = Boolean(row.day) && Boolean((row.company || "").trim());
-    if (!row.day || (isPlaceholderTitle(row.title) && !identifiedByCounterparty)) {
+    //
+    // A day recovered from the row's own title counts here exactly as a typed one does. The
+    // gap list still reports "no date", because the Notion column IS empty and that is the
+    // field a reader goes and fixes — what changes is the SENTENCE, which stops asking a
+    // human to retype a date the row is already stating.
+    const derivedDay = row.day ? "" : dayFromTitleStamp(row.title);
+    const day = row.day || derivedDay;
+    const identifiedByCounterparty = Boolean(day) && Boolean((row.company || "").trim());
+    if (!day || (isPlaceholderTitle(row.title) && !identifiedByCounterparty)) {
       return {
         row,
         gaps,
+        ...(derivedDay ? { derivedDay } : {}),
         disposition: "needs-identification",
-        nextStep: !row.day
+        nextStep: !day
           ? "set Call Date — without a day this row cannot be matched to anything, ever"
-          : "give it a real Meeting Title — nobody can say which meeting this is",
+          : derivedDay
+            ? `give it a real Meeting Title — the date is already in the title (${derivedDay}); copy it into Call Date and name the meeting`
+            : "give it a real Meeting Title — nobody can say which meeting this is",
       };
     }
 
@@ -203,6 +256,7 @@ export function classifyUnexplainedRows(rows: ArchiveRowDetail[]): UnexplainedRe
     return {
       row,
       gaps,
+      ...(derivedDay ? { derivedDay } : {}),
       disposition: "needs-human-account",
       nextStep: isPlaceholderTitle(row.title)
         ? `no recorder saw this — someone who was in the room with ${(row.company || "").trim()} that day has to say what happened (and give it a real title)`
@@ -212,7 +266,13 @@ export function classifyUnexplainedRows(rows: ArchiveRowDetail[]): UnexplainedRe
 
   const open = classified
     .filter((r) => r.disposition !== "complete")
-    .sort((a, b) => RANK[a.disposition] - RANK[b.disposition] || (b.row.day || "").localeCompare(a.row.day || ""));
+    .sort(
+      (a, b) =>
+        RANK[a.disposition] - RANK[b.disposition] ||
+        // Newest first on the day it can actually be placed on — a row whose date was only
+        // ever in its title used to sort to the very bottom as though it were undated.
+        effectiveDay(b.row).localeCompare(effectiveDay(a.row)),
+    );
 
   const count = (d: Disposition) => classified.filter((r) => r.disposition === d).length;
 
