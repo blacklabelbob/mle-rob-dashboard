@@ -139,6 +139,25 @@ export function readHostConfirmPayload(payload: unknown): HostConfirmPayload | n
 }
 
 /**
+ * Q84 inc.74 — the same payload, as ONE comparable string, for deciding whether a re-run is
+ * saying something new.
+ *
+ * Graded first, so the comparison is between MEANINGS and not bytes: a stored row whose action
+ * list is in a different order, or which carries a member this codec now refuses, must not read
+ * as "changed" (a pointless rewrite of Rob's row) or as "same" (a stale button) on the strength
+ * of its formatting. `buildHostConfirmPayload` sorts, de-dupes and drops, so two payloads that
+ * would render the same controls stringify identically.
+ *
+ * `null` means "carries no actions" — the same thing an absent payload means, and deliberately
+ * the same value, so a row that never had one and a row whose actions all became unusable
+ * compare equal. They render identically; a difference the reader cannot see is not news.
+ */
+export function canonicalHostConfirmPayload(payload: unknown): string | null {
+  const graded = readHostConfirmPayload(payload);
+  return graded ? JSON.stringify(graded) : null;
+}
+
+/**
  * Read ONE action. `unknown` in, because this comes from jsonb and every assumption about its
  * shape has to be earned here rather than at the call site.
  */

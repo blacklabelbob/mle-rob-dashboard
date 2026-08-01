@@ -28,6 +28,17 @@ export type ExistingFlag = {
   title?: string | null;
   detail?: string | null;
   severity?: string | null;
+  /**
+   * Q84 inc.74 — the row's stored payload, ALREADY GRADED AND CANONICALISED by the caller
+   * (`JSON.stringify(readHostConfirmPayload(row.payload))`, or `null` for "no actions").
+   *
+   * A string, not the jsonb, on purpose: this module is the pure content comparator for every
+   * finding and must not learn what a host-confirm action is. Key order and a payload that no
+   * longer grades are the caller's problem, decided once by the codec that owns the shape.
+   *
+   * `undefined` means NOT READ — which is the live state on a prod without the column.
+   */
+  payloadJson?: string | null;
 };
 
 /** The content a re-run is asserting, when the caller wants an unchanged run to write nothing. */
@@ -35,6 +46,15 @@ export type FlagContent = {
   title: string;
   detail: string;
   severity: string;
+  /**
+   * Q84 inc.74 — the canonical payload this run asserts, or `null` for "carries no actions".
+   *
+   * OMIT IT (`undefined`) when the payload could not be read off the existing row — the state
+   * on a pre-0035 database, where nothing can be written either. Then the comparison is
+   * byte-for-byte what it was before this field existed, which is what keeps the 30-minute
+   * re-run of prod #133 from re-dating Rob's row every tick over a column that is not there.
+   */
+  payloadJson?: string | null;
 };
 
 export type FlagWritePlan =
@@ -52,11 +72,28 @@ export type FlagWritePlan =
 function isSameContent(existing: ExistingFlag, incoming: FlagContent): boolean {
   if (typeof existing.title !== "string" || typeof existing.detail !== "string") return false;
   if (typeof existing.severity !== "string") return false;
-  return (
-    existing.title.trim() === incoming.title.trim() &&
-    existing.detail.trim() === incoming.detail.trim() &&
-    existing.severity === incoming.severity
-  );
+  if (
+    existing.title.trim() !== incoming.title.trim() ||
+    existing.detail.trim() !== incoming.detail.trim() ||
+    existing.severity !== incoming.severity
+  ) {
+    return false;
+  }
+
+  // Q84 inc.74 — THE DAY 0035 LANDS, THE PROSE DOES NOT CHANGE.
+  //
+  // The CRM-gap finding's sentence has been stable for runs at a time; what the push adds is a
+  // column, so the very first run after it asserts the SAME title and detail with actions
+  // attached for the first time. Compared on prose alone that is "unchanged", nothing is
+  // written, and the button never appears — the row would sit there needing a reworded
+  // sentence to acquire a control. So a payload that differs is news.
+  //
+  // Only when the caller can prove it, which is the rule every unproven-by-default check on
+  // this ladder already follows: `undefined` means the column was not read (pre-0035), and
+  // there payload is not part of the comparison at all — it cannot be written either, so a
+  // difference could never be resolved and would re-date Rob's row on every 30-minute tick.
+  if (incoming.payloadJson === undefined) return true;
+  return existing.payloadJson === incoming.payloadJson;
 }
 
 /**

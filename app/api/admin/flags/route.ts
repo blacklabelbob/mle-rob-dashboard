@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { planFlagWrite, planFlagReopen, supersededNote, type ExistingFlag } from "@/lib/flags/supersede";
+import { canonicalHostConfirmPayload, readHostConfirmPayload } from "@/lib/flags/hostConfirm";
+import { isMissingColumn, payloadNote, type DbError } from "@/lib/flags/payloadColumn";
 import {
   buildSlugIndex,
   entityOrFilter,
@@ -193,7 +195,7 @@ export async function PATCH(req: NextRequest) {
 // lib/flags/supersede.ts for why: three open rows once claimed 26, 25 and a third
 // count for the same meeting-archive finding.
 export async function POST(req: NextRequest) {
-  const { entityId, entityName, title, detail, severity, dedupeKey } = await req.json();
+  const { entityId, entityName, title, detail, severity, dedupeKey, payload } = await req.json();
   if (!entityName || !title || !detail) {
     return NextResponse.json({ error: "need entityName, title, detail" }, { status: 400 });
   }
@@ -206,18 +208,69 @@ export async function POST(req: NextRequest) {
     severity: ["high", "medium", "low"].includes(severity) ? severity : "medium",
   };
 
+  // Q84 inc.74 — the caller's payload is RE-GRADED here, never stored as sent. This route is
+  // reachable by any agent or script in the fleet, and what it writes becomes a button that
+  // PATCHes a CRM record; the codec is the only thing allowed to say what a valid action is.
+  // Anything it refuses becomes `null` — no payload, therefore no button — which is inc.71's
+  // pinned failure direction: Rob sees the finding without the shortcut, never a control
+  // pointing somewhere unverified.
+  const graded = readHostConfirmPayload(payload);
+  const payloadJson = canonicalHostConfirmPayload(graded);
+
   let existing: ExistingFlag[] = [];
+  // Unknown until a database answers. On the pre-0035 prod every payload path below is a
+  // no-op and this route behaves byte-for-byte as it did yesterday.
+  let hasPayloadColumn = true;
   if (key) {
     // Content comes back too (Q84 inc.12) so a scheduled re-run that says nothing new
     // can decline to re-date Rob's row.
-    const { data, error } = await db().from("flags").select("id,status,title,detail,severity").eq("dedupe_key", key);
+    const read = async (columns: string) =>
+      (await db().from("flags").select(columns).eq("dedupe_key", key)) as {
+        data: Array<Record<string, unknown>> | null;
+        error: DbError;
+      };
+    let { data, error } = await read("id,status,title,detail,severity,payload");
+    if (isMissingColumn(error, "payload")) {
+      // Pre-0035. Read what the table actually has — the dedupe decision must still be made,
+      // and making it off no read at all is the stacking bug this whole mechanism exists for.
+      hasPayloadColumn = false;
+      ({ data, error } = await read("id,status,title,detail,severity"));
+    }
     // A failed read must not become an insert: that is the stacking bug, reached by a
     // different door. Refuse loudly and let the caller retry.
     if (error) return NextResponse.json({ error: `dedupe read failed: ${error.message}` }, { status: 500 });
-    existing = (data ?? []) as ExistingFlag[];
+    existing = (data ?? []).map((r) => ({
+      id: r.id as number,
+      status: r.status as ExistingFlag["status"],
+      title: r.title as string | null,
+      detail: r.detail as string | null,
+      severity: r.severity as string | null,
+      // Graded on the way out through the same codec as the way in, so a row written by hand —
+      // or before a rule tightened — is not counted as equal just because its bytes match.
+      // Left `undefined` when the column was not read: unproven, therefore not compared.
+      ...(hasPayloadColumn
+        ? { payloadJson: canonicalHostConfirmPayload(r.payload) }
+        : {}),
+    }));
   }
 
-  const plan = planFlagWrite(key, existing, row);
+  const plan = planFlagWrite(key, existing, hasPayloadColumn ? { ...row, payloadJson } : row);
+
+  // Q84 inc.74 — one write, attempted WITH the payload and retried without it on the single
+  // error that means "this database is pre-0035". The retry is what keeps prod #133 — Rob's
+  // highest-severity row, re-asserted every 30 minutes — landing exactly as it lands today.
+  // Any other error is returned, not retried: a guard that swallowed failures would report a
+  // ledger write that never happened.
+  const withPayload = <T extends object>(base: T) => (hasPayloadColumn ? { ...base, payload: graded } : base);
+  const write = async <T extends object>(
+    run: (values: T & { payload?: unknown }) => PromiseLike<{ error: DbError }>,
+    base: T,
+  ): Promise<{ error: DbError }> => {
+    const first = await run(withPayload(base));
+    if (!isMissingColumn(first.error, "payload")) return first;
+    hasPayloadColumn = false;
+    return await run(base);
+  };
 
   if (plan.action === "unchanged") {
     // Nothing written on purpose — see lib/flags/supersede.ts. The response still says
@@ -225,13 +278,13 @@ export async function POST(req: NextRequest) {
   } else if (plan.action === "update") {
     // notified_at moves to today — the row is being re-asserted, and a stale date reads
     // as "nobody has looked at this since".
-    const { error } = await db()
-      .from("flags")
-      .update({ ...row, notified_at: new Date().toISOString().slice(0, 10) })
-      .eq("id", plan.id);
+    const { error } = await write(
+      (values) => db().from("flags").update(values).eq("id", (plan as { id: number }).id),
+      { ...row, notified_at: new Date().toISOString().slice(0, 10) },
+    );
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   } else {
-    const { error } = await db().from("flags").insert({ ...row, dedupe_key: key });
+    const { error } = await write((values) => db().from("flags").insert(values), { ...row, dedupe_key: key });
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
@@ -254,5 +307,9 @@ export async function POST(req: NextRequest) {
     reason: plan.reason,
     superseded: plan.supersede,
     id: plan.action === "insert" ? undefined : plan.id,
+    // Q84 inc.74 — the caller is TOLD when its actions did not land, rather than reading `ok`
+    // and assuming they did. `null` when it sent none: a note about a payload that was never
+    // offered reads as a failure that did not happen.
+    payload: payloadNote(Boolean(graded), hasPayloadColumn && plan.action !== "unchanged"),
   });
 }
