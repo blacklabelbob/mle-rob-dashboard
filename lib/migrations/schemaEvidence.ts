@@ -131,7 +131,25 @@ const UNVERIFIABLE: Array<[RegExp, string]> = [
   // some are visible (exposed as /rpc/<name>) and some structurally never can be.
   [/\bcreate\s+trigger\b/i, "create trigger"],
   [/\bcreate\s+type\b/i, "create type"],
-  [/\b(?:insert\s+into|update\s+\w+\s+set|delete\s+from)\b/i, "data change"],
+  // inc.58 — the DROP mirrors. The parser listed each `create` and none of its
+  // twin, so a migration that only tears down contributed no capping label at
+  // all. Each mirror is capped exactly where its twin is, because removing an
+  // object is observed by the same access that would have observed adding it:
+  // `drop trigger` needs a write (its twin is write-observable), `drop policy`
+  // changes what a read returns for some role (its twin is read-probeable).
+  [/\bdrop\s+trigger\b/i, "drop trigger"],
+  [/\bdrop\s+policy\b/i, "drop policy"],
+  // inc.58 — `update \w+ set` missed an ALIASED update (`update orgs o set …`)
+  // and a schema-qualified one (`update public.orgs set …`). Carried since
+  // inc.56, harmless until now only by luck: `0003` and `0031` each also run an
+  // unaliased update, so the file still earned the label by a different
+  // statement — the per-statement coverage check is what made the gap visible.
+  // The alias is optional and may not be the word `set`, or `update orgs set`
+  // would read `set` as the alias and then demand a second one.
+  [
+    /\b(?:insert\s+into|update\s+(?:only\s+)?[\w".]+(?:\s+(?:as\s+)?(?!set\b)[\w"]+)?\s+set\b|delete\s+from)\b/i,
+    "data change",
+  ],
 ];
 
 /**
@@ -393,6 +411,11 @@ const READ_PROBEABLE = new Set([
   "grant",
   "revoke",
   "create policy",
+  // inc.58 — same cap as its twin, and for the twin's own reason: a policy is
+  // what decides whether a row comes back for a role, so removing one changes
+  // what a read returns just as adding one does. Nothing about the direction
+  // makes it harder to see.
+  "drop policy",
   "enable rls",
   "data change",
   // inc.55 — `create type` is settled by a READ, and by the weakest one on this
@@ -417,6 +440,10 @@ const WRITE_OBSERVABLE = new Set([
   "add constraint",
   "check constraint",
   "create trigger",
+  // inc.58 — a trigger is invisible to every read whether it is there or not;
+  // only writing a row shows the difference. That is true of its absence too,
+  // so the mirror is permanent for the read-only ladder exactly as its twin is.
+  "drop trigger",
   "create trigger function",
   // A comment on something the data API does not publish. No read, write or plan
   // through this API reaches it — only catalog access would, which this ladder

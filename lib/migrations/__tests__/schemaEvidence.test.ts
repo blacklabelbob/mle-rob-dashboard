@@ -447,3 +447,54 @@ describe("schemaEvidence — comment on (inc.57)", () => {
     ]);
   });
 });
+
+describe("shapes the parser half-knew (inc.58)", () => {
+  it("labels an ALIASED update as a data change — the hole that survived inc.56", () => {
+    // `update \w+ set` matched `update orgs set` and nothing else. Live, 0003 and
+    // 0031 each ran `update orgs o set …`, and both escaped the label; the files
+    // were still capped only because each ALSO ran an unaliased update elsewhere.
+    // A migration that only ever aliases would have reported the strongest verdict.
+    for (const sql of [
+      "update orgs o set name = 'x';",
+      "update orgs as o set name = 'x';",
+      "update public.orgs set name = 'x';",
+      "update only orgs o set name = 'x';",
+    ]) {
+      expect(parseMigration(sql).unverifiable).toContain("data change");
+      expect(unrecognisedStatements(sql)).toEqual([]);
+    }
+  });
+
+  it("still labels the unaliased form — the alias is optional, not the alias `set`", () => {
+    // Without the lookahead, `update orgs set …` reads `set` as the alias and then
+    // demands a second `set` that is not there, silently losing the common case.
+    expect(parseMigration("update orgs set name = 'x';").unverifiable).toContain("data change");
+  });
+
+  it("claims the DROP mirrors its `create` twins had all along", () => {
+    // Live: `drop trigger if exists` in 5 migrations and `drop policy if exists`
+    // in 1 contributed NO capping label, because the parser listed only the
+    // create side of each pair.
+    expect(parseMigration("drop trigger if exists t on people;").unverifiable).toContain("drop trigger");
+    expect(parseMigration("drop policy if exists p on orgs;").unverifiable).toContain("drop policy");
+    expect(unrecognisedStatements("drop trigger if exists t on people; drop policy if exists p on orgs;")).toEqual([]);
+  });
+
+  it("caps each mirror exactly where its twin is capped", () => {
+    // Removing an object is observed by the same access that would have observed
+    // adding it — so the direction changes nothing about the ceiling.
+    expect(evidenceCeiling(["drop trigger"]).ceiling).toBe(evidenceCeiling(["create trigger"]).ceiling);
+    expect(evidenceCeiling(["drop policy"]).ceiling).toBe(evidenceCeiling(["create policy"]).ceiling);
+    expect(evidenceCeiling(["drop trigger"]).permanent).toEqual(["drop trigger"]);
+    expect(evidenceCeiling(["drop policy"]).probeable).toEqual(["drop policy"]);
+  });
+
+  it("does not invent a mirror nobody wrote", () => {
+    // `drop index` and `drop function` are equally imaginable and appear in ZERO
+    // migrations. A rule for a shape nobody wrote is the assertion this ladder
+    // exists to kill — so they stay unclaimed, and the coverage check will name
+    // them the day someone writes one.
+    expect(parserEmittableLabels()).not.toContain("drop index");
+    expect(unrecognisedStatements("drop index if exists ix_people_name;")).toEqual(["drop index if exists"]);
+  });
+});
