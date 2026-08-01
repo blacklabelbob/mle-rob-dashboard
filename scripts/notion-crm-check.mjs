@@ -366,8 +366,18 @@ if (FILE_FLAG) {
   // The plan goes to the ledger row, not just the console: inc.15 proved "one pipeline
   // closes all 40" wrong on the live data and the highest-severity row on Rob's page went on
   // saying it, because the breakdown existed only for whoever ran this in a terminal.
+  // Q84 inc.66 — the attendance evidence rides the SAME deduped row rather than a second
+  // hand-filed one. inc.64 posted this finding by hand with no dedupeKey, which is exactly how
+  // #133 came to sit on Rob's page saying 40 forever. One row, corrected every run.
   await fileFinding(
-    buildCrmGapFinding(check, activityPlan),
+    buildCrmGapFinding(
+      check,
+      activityPlan,
+      [...attendanceByRow].map(([rowId, hit]) => ({
+        row: activityPlan.rows.find((r) => r.row.id === rowId).row,
+        resolution: hit.resolution,
+      })),
+    ),
     "nothing to file — every archived meeting has a CRM activity.",
   );
   await fileFinding(buildArchiveFinding(unexplained), "nothing to file — no row needs a human account.");

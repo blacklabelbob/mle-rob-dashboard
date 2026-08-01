@@ -142,3 +142,62 @@ describe("near-miss wording in the gap finding", () => {
     expect(f?.detail).not.toContain("name a company the CRM does not have");
   });
 });
+
+// Q84 inc.66 — the attendance evidence on the ledger row. inc.64 filed this by HAND with no
+// dedupeKey; these pin that it now rides the deduped row AND that it is stated in the unit Rob
+// acts in (fields to fill), not the unit the data arrived in (rows to read).
+describe("attendance evidence on the gap finding", () => {
+  const gap = (attendance: Parameters<typeof buildCrmGapFinding>[2]) =>
+    buildCrmGapFinding(
+      check({ archiveRows: 3, crmMeetings: 0 }, [row("a", "2026-06-18", "Caleb sync")]),
+      undefined,
+      attendance,
+    )!;
+
+  it("groups unknown hosts by HOST, not by row — two meetings on one host is ONE field to fill", () => {
+    const f = gap([
+      { row: row("a", "2026-06-18", "Caleb sync"), resolution: { kind: "unknown-hosts", hosts: ["cgroofing.net"] } },
+      { row: row("b", "2026-06-16", "Caleb again"), resolution: { kind: "unknown-hosts", hosts: ["cgroofing.net"] } },
+    ]);
+    expect(f.detail).toContain("1 FIELD(S) TO FILL IN THE CRM");
+    expect(f.detail).toContain("2 row(s) answer themselves unattended");
+    expect(f.detail).toContain("cgroofing.net");
+    // both meetings hang UNDER the single host line rather than each asking for its own fix
+    expect(f.detail.match(/• cgroofing\.net/g)).toHaveLength(1);
+  });
+
+  it("says no-external out loud instead of burying rows that can never name a company", () => {
+    const f = gap([
+      { row: row("a", "2026-06-18", "Caleb sync"), resolution: { kind: "unknown-hosts", hosts: ["cgroofing.net"] } },
+      { row: row("c", "2026-06-05", "Internal"), resolution: { kind: "no-external" } },
+      { row: row("d", "2026-06-04", "Internal 2"), resolution: { kind: "no-external" } },
+    ]);
+    expect(f.detail).toContain("2 carried only our own domains or free mailboxes and can never name");
+  });
+
+  it("reports two companies in the room and never picks one", () => {
+    const f = gap([
+      {
+        row: row("e", "2026-07-01", "Joint call"),
+        resolution: {
+          kind: "ambiguous-orgs",
+          orgs: [{ id: "C-1", name: "Alpha" }, { id: "C-2", name: "Beta" }],
+          hosts: ["alpha.com", "beta.com"],
+        },
+      },
+    ]);
+    expect(f.detail).toContain("TWO COMPANIES IN THE ROOM — never auto-picked");
+    expect(f.detail).toContain("Alpha, Beta");
+    expect(f.detail).not.toContain("FIELD(S) TO FILL");
+  });
+
+  it("adds nothing at all when no planned row has a recording here", () => {
+    const withOut = buildCrmGapFinding(check({ archiveRows: 3, crmMeetings: 0 }, [row("a", "2026-06-18", "Caleb sync")]))!;
+    expect(withOut.detail).not.toContain("have a recording on this machine");
+    expect(gap([]).detail).toBe(withOut.detail);
+  });
+
+  it("keeps the one deduped key — it corrects its own row instead of opening a second", () => {
+    expect(gap([{ row: row("a", "2026-06-18", "x"), resolution: { kind: "no-external" } }]).dedupeKey).toBe(KEY_CRM_GAP);
+  });
+});

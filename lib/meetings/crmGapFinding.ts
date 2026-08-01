@@ -18,6 +18,7 @@
 import { type ArchiveFinding, trimDateTail } from "./archiveFinding";
 import type { ArchiveCheck, ArchiveRow } from "./archiveCheck";
 import type { ActivityDisposition, ActivityPlan, ActivityPlanRow } from "./activityPlan";
+import type { AttendanceResolution } from "./attendeeCompany";
 
 /**
  * The key #133 is being ADOPTED onto, deliberately: the point is to correct that row, not
@@ -115,6 +116,101 @@ function planSentence(plan: ActivityPlan): string {
 }
 
 /**
+ * One planned row paired with what its own recording's attendee list said. Exactly the shape
+ * `attendanceForRow` already returns, carried by the caller — this module reads it, it never
+ * performs the join (that key lives in `archiveCheck.recordingKey` and stays there).
+ */
+export type RowAttendance = { row: ArchiveRow; resolution: AttendanceResolution };
+
+/**
+ * The attendance evidence, folded into the CRM-gap row — because inc.64 filed this finding by
+ * HAND, with no dedupeKey, which is the exact disease inc.8→inc.14 spent seven increments
+ * curing on #133 and #134: a ledger number nobody re-types goes stale on Rob's page. It rides
+ * the mechanism now or it does not go on the page at all.
+ *
+ * **Grouped by HOST, not by row, and that is the entire point of printing it.** inc.64/65
+ * measured 3 rows behind 2 unknown hosts (`cgroofing.net`, `gulfregroup.com`); listing 3 rows
+ * asks Rob to read three meetings, listing 2 hosts asks him to fill two Domain fields — after
+ * which those rows attach themselves unattended, permanently. The ask CONVERTS rather than
+ * shrinks, so it is stated in the unit he acts in.
+ *
+ * `no-external` is said out loud in the tally rather than dropped. Those calls carried only our
+ * own domains or free mailboxes and can NEVER name a company; omitting them would make this
+ * evidence look like it moves more rows than it does — the same overclaim inc.15 disproved.
+ * `ambiguous-orgs` is reported, never resolved: two companies in the room is a human's call.
+ */
+function attendanceBlock(entries: RowAttendance[]): string {
+  if (!entries.length) return "";
+  const tally = (kind: AttendanceResolution["kind"]) =>
+    entries.filter((e) => e.resolution.kind === kind).length;
+
+  // host → the rows whose recording carried it. A host can appear on more than one meeting;
+  // that is one field to fill, not one per meeting, so the rows hang UNDER the host.
+  const byHost = new Map<string, ArchiveRow[]>();
+  for (const { row, resolution } of entries) {
+    if (resolution.kind !== "unknown-hosts") continue;
+    for (const host of resolution.hosts) {
+      const at = byHost.get(host) ?? [];
+      at.push(row);
+      byHost.set(host, at);
+    }
+  }
+
+  const resolved = entries.filter((e) => e.resolution.kind === "resolved");
+  const ambiguous = entries.filter((e) => e.resolution.kind === "ambiguous-orgs");
+
+  const head =
+    `${entries.length} of those rows have a recording on this machine, so who was in the room ` +
+    `is known independently of what Notion's "Company Meeting with" field says: ` +
+    `${tally("resolved")} name a CRM company outright · ${byHost.size} distinct guest host(s) ` +
+    `across ${tally("unknown-hosts")} row(s) that no CRM org carries · ` +
+    `${tally("ambiguous-orgs")} had two companies in the room and are never picked here · ` +
+    `${tally("no-external")} carried only our own domains or free mailboxes and can never name ` +
+    `a company at all.`;
+
+  const blocks: string[] = [head];
+
+  if (byHost.size) {
+    const lines = [...byHost.entries()]
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([host, rows]) => {
+        const at = rows
+          .slice()
+          .sort((a, b) => (b.day || "").localeCompare(a.day || ""))
+          .map((r) => `${r.day || "(no date)"} ${trimDateTail((r.title || "").trim(), r.day) || "(untitled)"}`)
+          .join("; ");
+        return `• ${host} — put it in the right org's Domain field (a company can use more than one). Heard on: ${at}`;
+      });
+    blocks.push(
+      `${byHost.size} FIELD(S) TO FILL IN THE CRM, and then ${entries.filter((e) => e.resolution.kind === "unknown-hosts").length} ` +
+        `row(s) answer themselves unattended, permanently:\n${lines.join("\n")}`,
+    );
+  }
+
+  if (resolved.length) {
+    const lines = resolved
+      .map((e) =>
+        `• ${e.row.day || "(no date)"} — ${trimDateTail((e.row.title || "").trim(), e.row.day) || "(untitled)"}` +
+        `\n    → the room says ${e.resolution.kind === "resolved" ? e.resolution.org.name : ""}`,
+      )
+      .join("\n");
+    blocks.push(`${resolved.length} · ROOM NAMES A CRM COMPANY — evidence from the attendee list, not from prose:\n${lines}`);
+  }
+
+  if (ambiguous.length) {
+    const lines = ambiguous
+      .map((e) =>
+        `• ${e.row.day || "(no date)"} — ${trimDateTail((e.row.title || "").trim(), e.row.day) || "(untitled)"}` +
+        `\n    → two CRM orgs were in the room (${e.resolution.kind === "ambiguous-orgs" ? e.resolution.orgs.map((o) => o.name).join(", ") : ""}) — a human says which`,
+      )
+      .join("\n");
+    blocks.push(`${ambiguous.length} · TWO COMPANIES IN THE ROOM — never auto-picked:\n${lines}`);
+  }
+
+  return blocks.join("\n\n");
+}
+
+/**
  * The ledger row for "meetings that happened and never reached the CRM".
  *
  * Returns null when every archive row has a CRM activity — a row saying "0 meetings are
@@ -139,7 +235,11 @@ function planSentence(plan: ActivityPlan): string {
  *   reconciliation alone — that is precisely the sentence inc.15 disproved. Missing is not
  *   the same as zero, so no breakdown is printed rather than an invented one.
  */
-export function buildCrmGapFinding(check: ArchiveCheck, plan?: ActivityPlan): ArchiveFinding | null {
+export function buildCrmGapFinding(
+  check: ArchiveCheck,
+  plan?: ActivityPlan,
+  attendance: RowAttendance[] = [],
+): ArchiveFinding | null {
   const { counts } = check;
   const missing = counts.archiveOnly;
   if (!missing) return null;
@@ -159,10 +259,17 @@ export function buildCrmGapFinding(check: ArchiveCheck, plan?: ActivityPlan): Ar
   const planned = plan ? planLines(plan) : "";
   const planBlock = plan ? ` ${planSentence(plan)}${planned ? `\n\n${planned}` : ""}` : "";
 
+  // Printed LAST and as its own block: it is a second, independent reading of the same rows
+  // (Notion's company field vs who was actually in the room), so it sits beside the plan
+  // rather than inside it. Empty when no planned row has a recording here — the honest state
+  // for the in-person rows, never a fabricated "0 of 0" paragraph.
+  const heard = attendanceBlock(attendance);
+  const heardBlock = heard ? `\n\n${heard}` : "";
+
   const detail = noPipeline
     ? `${shared} Nothing here is a failed MATCH — with zero meeting activities there was ` +
       `nothing to match against. Every archived meeting is missing because no path writes ` +
-      `a meeting activity, not because the reconciliation disagreed.${planBlock}`
+      `a meeting activity, not because the reconciliation disagreed.${planBlock}${heardBlock}`
     : // The partial gap keeps its OWN uncapped list: there the rows are the ask one by one,
       // and the plan's grouped list drops the no-company wall on purpose. Swapping one for
       // the other would silently shorten a list Rob reads as complete. Plan sentence only.
@@ -170,7 +277,7 @@ export function buildCrmGapFinding(check: ArchiveCheck, plan?: ActivityPlan): Ar
       `each one is its own missing record. Never auto-reconciled: writing an activity onto ` +
       `the wrong company is unrecoverable, an unmatched pair is a click to fix.` +
       (plan ? ` ${planSentence(plan)}` : "") +
-      `\n\n${rowLines(check.archiveOnly)}`;
+      `\n\n${rowLines(check.archiveOnly)}${heardBlock}`;
 
   return {
     entityName: "CRM meeting record",
