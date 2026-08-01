@@ -5,7 +5,7 @@
 
 import { describe, expect, it } from "vitest";
 import type { CrmOrg } from "../activityPlan";
-import { hostLabel, proposalText, proposeOrgForHost } from "../hostProposal";
+import { hostLabel, hostWriteSlot, proposalText, proposeOrgForHost, writeSlotText } from "../hostProposal";
 
 const CG: CrmOrg = { id: "C-0001", name: "CG Roofing Group", domain: "cgroofinggroup.com" };
 const GULF: CrmOrg = { id: "C-0002", name: "Gulf Coast RE Group", website: "https://www.gulfcoastregroup.com/about" };
@@ -85,5 +85,45 @@ describe("proposeOrgForHost", () => {
     expect(text).toContain("without the word “coast”");
     expect(text).toContain("Confirm it");
     expect(text).not.toMatch(/%|score|confiden/i);
+  });
+});
+
+// Q84 inc.68 — the ask says "put it in the Domain field". An org has TWO host slots and no more,
+// so that sentence is only true while `domain` is empty. On prod all 19 orgs read null today; this
+// pins the check that keeps it true, and is the precondition a one-click confirm would need.
+describe("hostWriteSlot", () => {
+  it("calls the slot free when the org stores no second host — both live cases", () => {
+    expect(hostWriteSlot("gulfregroup.com", GULF)).toEqual({ kind: "free" });
+    expect(hostWriteSlot("acme.com", { id: "C-0020", name: "Acme", domain: "" })).toEqual({ kind: "free" });
+  });
+
+  it("calls it occupied when a DIFFERENT host is already in the domain field", () => {
+    expect(hostWriteSlot("cgroofing.net", CG)).toEqual({ kind: "occupied", storedHost: "cgroofinggroup.com" });
+  });
+
+  it("reads the stored value through the same host parser, URL or bare", () => {
+    const urlish: CrmOrg = { id: "C-0021", name: "Acme Roofing Co", domain: "https://WWW.Acme.com/x" };
+    expect(hostWriteSlot("acmeroof.net", urlish)).toEqual({ kind: "occupied", storedHost: "acme.com" });
+    expect(hostWriteSlot("ACME.com", urlish)).toEqual({ kind: "already" });
+    // A subdomain is a DIFFERENT host, not the same one — `extractHost` keeps it, and treating
+    // `mail.acme.com` as already-stored would call a slot taken that is actually free.
+    expect(hostWriteSlot("mail.acme.com", urlish)).toEqual({ kind: "occupied", storedHost: "acme.com" });
+  });
+
+  it("never tells a reader to fill a field that is taken", () => {
+    expect(writeSlotText({ kind: "free" })).toContain("empty");
+    const taken = writeSlotText(hostWriteSlot("cgroofing.net", CG));
+    expect(taken).toContain("cgroofinggroup.com");
+    expect(taken).toContain("two hosts at most");
+    expect(taken).not.toMatch(/fill|replace|overwrite/i);
+  });
+
+  it("puts the slot on the ledger line beside the org it names", () => {
+    // Free: the ask stays actionable and says so.
+    expect(proposalText(proposeOrgForHost("gulfregroup.com", ORGS))).toContain("Domain field is empty");
+    // Occupied: same pick, but the reader is told the field is spoken for rather than to fill it.
+    const cgText = proposalText(proposeOrgForHost("cgroofing.net", ORGS));
+    expect(cgText).toContain("CG Roofing Group [C-0001]");
+    expect(cgText).toContain("already holds cgroofinggroup.com");
   });
 });

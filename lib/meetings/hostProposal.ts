@@ -152,6 +152,58 @@ export function proposeOrgForHost(host: string, orgs: CrmOrg[]): HostProposal | 
   };
 }
 
+/**
+ * Q84 inc.68 — WHERE the host would go, which is a different question from WHICH org it belongs to.
+ *
+ * inc.67 named the org. The ask under it says *"put it in the right org's Domain field (a company
+ * can use more than one)"* — and a company can use more than one only up to a point: an org record
+ * carries exactly TWO host slots, `website` (the primary, and on prod every org that has any host
+ * has this one) and `domain` (added by inc.21 for exactly this case, the SECOND host). There is no
+ * third. So "fill the Domain field" is safe advice only while that field is empty, and nothing has
+ * ever checked it.
+ *
+ * On prod today it IS empty — all 19 orgs read `domain: null`, both live cases included — so this
+ * is a precondition being stated before it can be violated, not a live break. Stating it is the
+ * point: **the one-click confirm inc.67 asked about cannot exist until something knows whether the
+ * slot is free**, because a click that silently overwrote a stored host would delete a key
+ * `indexOrgsByHost` currently matches on, and the row it broke would not fail loudly — it would
+ * just stop resolving.
+ *
+ *   - `free`      — `domain` is empty. One field, nothing lost. The only state a confirm may write.
+ *   - `occupied`  — `domain` already holds a DIFFERENT host. Both slots are spoken for; a third
+ *                   host is a schema question for a human, never a click.
+ *   - `already`   — `domain` is this exact host. Unreachable in principle: an org storing the host
+ *                   is matched by `resolveCompanyFromAttendance` before anything reaches here.
+ *                   Reported rather than swallowed, because reaching it means the two disagree.
+ */
+export type HostWriteSlot =
+  | { kind: "free" }
+  | { kind: "occupied"; storedHost: string }
+  | { kind: "already" };
+
+/** Whether this host could be written to that org's `domain` without destroying a stored host. */
+export function hostWriteSlot(host: string, org: CrmOrg): HostWriteSlot {
+  const stored = extractHost(org.domain || "");
+  if (!stored) return { kind: "free" };
+  if (stored === extractHost(host)) return { kind: "already" };
+  return { kind: "occupied", storedHost: stored };
+}
+
+/** What the reader is told about the slot. Never an instruction the CRM cannot carry out. */
+export function writeSlotText(slot: HostWriteSlot): string {
+  switch (slot.kind) {
+    case "free":
+      return "its Domain field is empty, so this is one field to fill and nothing is displaced";
+    case "occupied":
+      return (
+        `its Domain field already holds ${slot.storedHost} — an org carries two hosts at most ` +
+        "(website + domain) and both are taken, so a third host is a human's call, not a field edit"
+      );
+    case "already":
+      return "that org already stores this exact host, which should have matched before reaching here";
+  }
+}
+
 /** The half-sentence a human reads after the org's name. States the comparison, not a verdict. */
 export function proposalReasonText(reason: HostProposalReason): string {
   switch (reason.rung) {
@@ -173,8 +225,12 @@ export function proposalText(proposal: HostProposal | null): string {
   if (!proposal || !proposal.candidates.length) return "";
   if (proposal.pick) {
     const [only] = proposal.candidates;
+    // Q84 inc.68 — the slot is stated on the SAME line as the pick, because "confirm it and put
+    // the host on that org" is an instruction, and an instruction that cannot be carried out
+    // without displacing a stored host is worse than no instruction at all.
+    const slot = writeSlotText(hostWriteSlot(proposal.host, only.org));
     return (
-      `likely ${only.org.name} [${only.org.id}] — ${proposalReasonText(only.reason)}. ` +
+      `likely ${only.org.name} [${only.org.id}] — ${proposalReasonText(only.reason)}; ${slot}. ` +
       "Confirm it and put the host on that org; a look-alike host is never assumed to be the same company"
     );
   }
