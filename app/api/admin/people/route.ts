@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { buildPatchRow, shapeRowForTable } from "@/lib/adminEdit";
 import { applyHumanNotesEdit } from "@/lib/notes";
+import { hostClaimConflict, hostClaimMessage } from "@/lib/meetings/hostClaim";
+import type { CrmOrg } from "@/lib/meetings/activityPlan";
 
 // Admin edits from the People table (Rob's 2026-07-17 dev-chat request).
 // Talks to Supabase directly — folds into the StorageAdapter contract with Task 2.3.
@@ -45,6 +47,24 @@ export async function PATCH(req: NextRequest) {
   const s = db();
   try {
     const target = (await isOrgId(s, id)) ? "orgs" : "people";
+    // Q84 inc.69 — the second-host write is the one edit on this route that can break OTHER
+    // records. `orgs.domain` feeds `indexOrgsByHost`, which returns a bucket: two orgs on one
+    // host is not an error anywhere, it just makes every meeting named by that host resolve
+    // `ambiguous-orgs` and attach to nobody. So the failure of a duplicate is silent and lands
+    // on rows that work today. Checked here rather than in the client because the client is a
+    // shared inline editor and this is a rule about the whole table, not about one box.
+    if (target === "orgs" && typeof row.domain === "string" && row.domain.trim()) {
+      const all = await s.from("orgs").select("id, name, website, domain");
+      if (all.error) return NextResponse.json({ error: all.error.message }, { status: 500 });
+      const orgs = (all.data ?? []) as CrmOrg[];
+      const self = orgs.find((o) => o.id === id);
+      if (self) {
+        const claim = hostClaimConflict(row.domain, self, orgs);
+        if (claim.kind !== "clear") {
+          return NextResponse.json({ error: hostClaimMessage(claim, row.domain) }, { status: 409 });
+        }
+      }
+    }
     if (typeof humanNotes === "string") {
       const cur = await s.from(target).select("notes").eq("id", id).maybeSingle();
       if (cur.error) return NextResponse.json({ error: cur.error.message }, { status: 500 });

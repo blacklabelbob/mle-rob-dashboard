@@ -162,9 +162,13 @@ export function proposeOrgForHost(host: string, orgs: CrmOrg[]): HostProposal | 
  * third. So "fill the Domain field" is safe advice only while that field is empty, and nothing has
  * ever checked it.
  *
- * On prod today it IS empty — all 19 orgs read `domain: null`, both live cases included — so this
- * is a precondition being stated before it can be violated, not a live break. Stating it is the
- * point: **the one-click confirm inc.67 asked about cannot exist until something knows whether the
+ * CORRECTED BY inc.69, which re-read the same table: **"all 19 orgs read `domain: null`" was
+ * wrong.** C-2010 (The Title Base) has carried `domain: thetitlebase.com` since 2026-07-23 —
+ * its own website host, duplicated into the second slot by that day's intake, months before
+ * inc.68 measured. inc.68's conclusion survives (the two orgs it names, C-2017 and C-2018, do
+ * read null, so the ledger's instruction is true for them) but its census did not, and the
+ * difference matters: the slot was never universally free, so this check was already load-
+ * bearing when it was written, not merely pre-emptive. Stating it is still the point: **the one-click confirm inc.67 asked about cannot exist until something knows whether the
  * slot is free**, because a click that silently overwrote a stored host would delete a key
  * `indexOrgsByHost` currently matches on, and the row it broke would not fail loudly — it would
  * just stop resolving.

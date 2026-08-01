@@ -27,17 +27,31 @@ export function useRecordSave(personId: string, opts: { refresh?: boolean } = {}
   const { refresh = true } = opts;
   const router = useRouter();
   const [state, setState] = useState<SaveState>("idle");
+  // Q84 inc.69 — the server can now REFUSE an edit for a reason a human needs (a host
+  // another company already resolves by). An amber-to-red pulse says "no" and nothing
+  // else, which is the same failure as a ledger row that ends in a terminal command:
+  // the reason exists, on a surface Rob does not have. Carried out so the field can
+  // print it. Stays null on network failures — there is no reason to report there.
+  const [reason, setReason] = useState<string | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   async function save(changes: Record<string, unknown>): Promise<boolean> {
     setState("saving");
+    setReason(null);
     try {
       const r = await fetch("/api/admin/people", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: personId, changes }),
       });
-      if (!r.ok) throw new Error(String(r.status));
+      if (!r.ok) {
+        const said = await r.json().catch(() => null);
+        const message = said && typeof said.error === "string" ? said.error : null;
+        // The refusal stays on screen until the next edit — it is not a pulse to be
+        // missed. Only the pulse is timed out below.
+        if (message) setReason(message);
+        throw new Error(String(r.status));
+      }
       setState("saved");
       if (timer.current) clearTimeout(timer.current);
       timer.current = setTimeout(() => setState("idle"), 1200);
@@ -51,7 +65,7 @@ export function useRecordSave(personId: string, opts: { refresh?: boolean } = {}
     }
   }
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
-  return { save, state };
+  return { save, state, reason };
 }
 
 function pulseClass(state: SaveState) {
@@ -102,7 +116,7 @@ export function InlineText({
   inputClassName?: string;
   title?: string;
 }) {
-  const { save, state } = useRecordSave(personId);
+  const { save, state, reason } = useRecordSave(personId);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState("");
   const [shown, setShown] = useSyncedState(value); // optimistic
@@ -147,7 +161,7 @@ export function InlineText({
   }
 
   const empty = shown == null || shown === "";
-  return (
+  const button = (
     <button
       type="button"
       onClick={open}
@@ -156,6 +170,16 @@ export function InlineText({
     >
       {empty ? placeholder : format ? format(shown as string | number) : String(shown)}
     </button>
+  );
+  // Q84 inc.69 — a refused edit says WHY, in place, under the box that refused it. The
+  // value has already rolled back to what it was, so the sentence is the only thing that
+  // explains the rollback. Rendered only when the server gave a reason.
+  if (!reason) return button;
+  return (
+    <span className="block">
+      {button}
+      <span className="mt-1 block text-xs leading-snug text-rose-300">{reason}</span>
+    </span>
   );
 }
 
