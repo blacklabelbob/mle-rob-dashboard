@@ -244,8 +244,11 @@ function byNormalizedName(orgs: CrmOrg[]): Map<string, CrmOrg[]> {
  * state, and collapsing them would make an ambiguous row look decided. An org contributing the
  * same host twice (bare `domain` plus a `website` URL of it) is counted once: that is one
  * company stating one address, not an ambiguity.
+ *
+ * Exported since Q84 inc.64 so `attendeeCompany` matches attendee domains against the SAME index
+ * this module matches archive company fields against. A second host index would be a second rule.
  */
-function byHost(orgs: CrmOrg[]): Map<string, CrmOrg[]> {
+export function indexOrgsByHost(orgs: CrmOrg[]): Map<string, CrmOrg[]> {
   const index = new Map<string, CrmOrg[]>();
   for (const org of orgs) {
     for (const host of new Set([extractHost(org.domain), extractHost(org.website)])) {
@@ -315,7 +318,7 @@ export function planMeetingActivities(
   people: CrmPerson[] = []
 ): ActivityPlan {
   const index = byNormalizedName(orgs);
-  const hostIndex = byHost(orgs);
+  const hostIndex = indexOrgsByHost(orgs);
   const strippedIndex = byStrippedName(orgs);
   const personIndex = byPersonName(people);
   const rows: ActivityPlanRow[] = archiveOnly.map((row) => {

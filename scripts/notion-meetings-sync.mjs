@@ -37,6 +37,11 @@ import { homedir } from "node:os";
 // resolve it, and failing loudly on a missing import beats keeping a second copy in step.
 import { isPlaceholderTitle } from "../lib/meetings/unexplainedRows.ts";
 import { TITLE_MATCH_FLOOR, titleOverlap } from "../lib/meetings/archiveCheck.ts";
+// Q84 inc.64 — "whose domain is ours" is now one constant, not two. This script and
+// `lib/meetings/attendeeCompany.ts` both have to know that aivoicetech.io / boostuppayments.com /
+// fireflies.ai identify no counterparty; a second hand-kept copy is the exact defect inc.4/inc.5
+// spent two increments deleting. Same three hosts as before — no behaviour change.
+import { OWN_MEETING_HOSTS } from "../lib/meetings/attendeeCompany.ts";
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), "..");
 const BODY_DIR = join(REPO, "MLE Internal Meetings", "transcripts");
@@ -104,7 +109,11 @@ function readBodies() {
 }
 
 const FREE_MAIL = new Set(["gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "icloud.com", "aol.com"]);
-const OWN_DOMAINS = new Set(["aivoicetech.io", "fireflies.ai", "boostuppayments.com"]);
+const OWN_DOMAINS = new Set(OWN_MEETING_HOSTS);
+// FREE_MAIL above stays this script's own and NARROWER than the comms ladder's ~90-domain
+// `genericDomainSet()` on purpose: widening it here would change which guest domains reach the
+// derived titles this pass writes into Notion, and that is a behaviour change, not a cleanup.
+// Named so it is inherited rather than rediscovered.
 const domainOf = (e) => (typeof e === "string" && e.includes("@") ? e.split("@").pop().toLowerCase().trim() : "");
 
 /**
