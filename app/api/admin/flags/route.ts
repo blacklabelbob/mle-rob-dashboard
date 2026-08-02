@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { planFlagWrite, planFlagReopen, reopenNote, supersededNote, type ExistingFlag } from "@/lib/flags/supersede";
+import { planFlagWrite, planFlagReopen, reopenNote, flagReopenRefusal, supersededNote, type ExistingFlag } from "@/lib/flags/supersede";
 import { canonicalHostConfirmPayload, readHostConfirmPayload } from "@/lib/flags/hostConfirm";
 import { isMissingColumn, payloadNote, type DbError } from "@/lib/flags/payloadColumn";
 import {
@@ -186,9 +186,15 @@ export async function PATCH(req: NextRequest) {
   if (action === "reopen") {
     // A keyed row cannot be reopened while its twin is open — the partial unique index from
     // 0033 would reject it, and Rob would get a 500 on his ledger instead of an answer.
-    const { data: self, error: selfErr } = await db().from("flags").select("dedupe_key,resolution_note").eq("id", id).maybeSingle();
+    const { data: self, error: selfErr } = await db().from("flags").select("dedupe_key,resolution_note,status").eq("id", id).maybeSingle();
     if (selfErr) return NextResponse.json({ error: `reopen read failed: ${selfErr.message}` }, { status: 500 });
     if (!self) return NextResponse.json({ error: `no flag #${id}` }, { status: 404 });
+    // Q84 inc.93: a row ROB closed is not the endpoint's to undo (inc.10's rule, which until
+    // now lived only in a React conditional). Checked BEFORE the sibling query — a refusal
+    // about this row alone needs no read of any other, and the twin-blocker message would be
+    // the less useful answer on a row that should not be reopening at all.
+    const refusal = flagReopenRefusal((self as { status?: string | null }).status, (self as { resolution_note?: string | null }).resolution_note);
+    if (refusal) return NextResponse.json({ error: refusal }, { status: 409 });
     let siblings: ExistingFlag[] = [];
     if (self.dedupe_key) {
       const { data, error } = await db().from("flags").select("id,status").eq("dedupe_key", self.dedupe_key).neq("id", id);

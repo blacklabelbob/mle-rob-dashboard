@@ -9,6 +9,7 @@ import {
   resolvedFrom,
   resolutionNoteBody,
   reopenNote,
+  flagReopenRefusal,
   archiveResolvedFromMark,
   qualifiedRecordRef,
 } from "../flags/supersede";
@@ -667,5 +668,53 @@ describe("Q84 inc.92 — reopen drops the machine's sentence and keeps Rob's", (
   it("is the same stripper the archive quotes with — one rule, not a second copy", () => {
     const stored = "Caleb confirmed. Resolved from C-2017.";
     expect(reopenNote(stored)).toBe(resolutionNoteBody(stored));
+  });
+});
+
+describe("Q84 inc.93 — the endpoint refuses to undo a close ROB made", () => {
+  it("lets the one reopen the UI offers through — the row a pass closed", () => {
+    // inc.10's live path. This must stay open or the button becomes a 409 on the only row
+    // that draws it.
+    expect(flagReopenRefusal("resolved", supersededNote(137))).toBeNull();
+  });
+
+  it("refuses a row Rob resolved with his own words", () => {
+    const refusal = flagReopenRefusal("resolved", "Rob 7/23: 100% comped, nothing owed.");
+    expect(refusal).toContain("you resolved this finding yourself");
+  });
+
+  it("refuses a row Rob resolved with NO note — silence is still his judgement", () => {
+    // 39 of 40 resolved prod rows are his; the Resolve control's note is optional, so an
+    // empty note must not read as "the machine closed it".
+    expect(flagReopenRefusal("resolved", null)).not.toBeNull();
+    expect(flagReopenRefusal("resolved", "")).not.toBeNull();
+  });
+
+  it("refuses a row carrying only the provenance clause — that clause is not a machine CLOSE", () => {
+    // `Resolved from C-…` records where the reviewer was standing (inc.31), not who decided.
+    expect(flagReopenRefusal("resolved", "Resolved from C-2017.")).not.toBeNull();
+  });
+
+  it("does NOT refuse an already-open row — a retried click is a no-op, not an error", () => {
+    // inc.48's rule, carried across: 409-ing a no-op teaches a caller to fear a button that
+    // did nothing wrong.
+    expect(flagReopenRefusal("open", null)).toBeNull();
+    expect(flagReopenRefusal("open", "Rob: handled.")).toBeNull();
+    expect(flagReopenRefusal(null, null)).toBeNull();
+    expect(flagReopenRefusal(undefined, "anything")).toBeNull();
+  });
+
+  it("names re-filing as the way back, so the refusal is an answer and not a wall", () => {
+    const refusal = flagReopenRefusal("resolved", "Rob: same person, merged by hand.") ?? "";
+    expect(refusal).toContain("file it again");
+  });
+
+  it("agrees with the control inc.10 draws — one ladder (`supersededBy`), two questions", () => {
+    // Where the UI draws the button, the server must accept; everywhere else it refuses. The
+    // only permitted disagreement is the already-open row, covered above.
+    for (const note of [supersededNote(1), "Rob: done.", "Resolved from C-2017.", null, ""]) {
+      const uiDraws = supersededBy(note) !== null;
+      expect(flagReopenRefusal("resolved", note) === null).toBe(uiDraws);
+    }
   });
 });

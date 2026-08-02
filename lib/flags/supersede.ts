@@ -351,6 +351,52 @@ export function reopenNote(note: string | null | undefined): string | null {
   return body ? body : null;
 }
 
+/**
+ * Q84 inc.93 — may the ENDPOINT perform this reopen, and if not, what does it tell the caller?
+ *
+ * inc.92 answered the note question and named this one in the same breath: it stopped the
+ * reopen DESTROYING Rob's sentence, but the click that destroyed it is still honoured. inc.10
+ * settled where the control may appear — `supersededBy(note) !== null`, i.e. only the rows a
+ * pass closed — and said why in one line: *"an undo button on Rob's decision is the
+ * mirror-image mistake."* The endpoint never heard it. `PATCH { action: "reopen" }` has always
+ * honoured any id, so the rule that protects Rob's judgement lives entirely in a React
+ * conditional, which is inc.48's shape exactly: *"the UI never offered the click, which is not
+ * the same as the server refusing to honour it."*
+ *
+ * Measured live read-only this increment: of 40 resolved prod rows, **exactly 1** carries the
+ * machine's stamp and **39** are Rob's own closes. So the button the UI draws on 1 row, the
+ * endpoint answers on 40 — one PATCH each away from putting a call he made back on his list.
+ *
+ * The UI question and the server question share ONE ladder (`supersededBy`) and disagree on
+ * exactly one input, deliberately — the same disagreement inc.48 wrote down for `dedup`:
+ *
+ *   an ALREADY-OPEN row → no control (there is nothing to undo), but no refusal either.
+ *   Reopening an open row writes the values it already holds; a double click or a retried
+ *   request is a no-op, and 409-ing a no-op teaches a caller to fear a button that did
+ *   nothing wrong.
+ *
+ * It REFUSES rather than reopening-and-preserving, and inc.92 is the reason that is not a
+ * half-measure: a kept body renders NOWHERE while the row is open, so "reopen but keep his
+ * words" still takes his judgement off the ledger and shows him nothing about it. Re-filing
+ * is the honest alternative and the refusal names it — a returning finding is a NEW row with
+ * today's numbers, which is what `dedupeKey` has done since inc.8, and the close he made
+ * stays in the archive with the sentence he typed.
+ *
+ * @returns the refusal to send back, or null if the write may proceed
+ */
+export function flagReopenRefusal(
+  status: string | null | undefined,
+  note: string | null | undefined,
+): string | null {
+  if (status !== "resolved") return null; // already open — the write is a no-op, not an error
+  if (supersededBy(note) !== null) return null; // a pass closed it; this is the click inc.10 built
+  return (
+    "you resolved this finding yourself — reopening it from here would undo your own call with " +
+    "no record of why. If it has come back, file it again so the new row carries today's " +
+    "numbers; your close and the note you wrote stay in the archive either way."
+  );
+}
+
 /** The reviewer's own words, with the machine clause removed — what the archive quotes. */
 export function resolutionNoteBody(note: string | null | undefined): string {
   if (typeof note !== "string") return "";
