@@ -993,4 +993,17 @@ describe("Q84 inc.81 — the digest's chips take the same confirmed set as the r
     expect(args).toContain("archiveScope?.named");
     expect(args).toContain("f.named_ref");
   });
+
+  it("the resolve control is handed the same printed ids as the archive mark (inc.85)", () => {
+    // CR-3. inc.35's rule is that the button's qualification matches what the record
+    // renders; inc.84 changed the record's side. One deleted argument here silently puts
+    // the two back out of step, and the call is JSX — unreachable from a unit test.
+    const src = readFileSync(
+      path.join(process.cwd(), "components", "ThingsToAddress.tsx"),
+      "utf8",
+    );
+    const call = /resolveControlCopy\(([\s\S]*?)\n\s*\);/.exec(src);
+    expect(call).not.toBeNull();
+    expect((call as RegExpExecArray)[1]).toContain("f.named_ref");
+  });
 });

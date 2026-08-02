@@ -558,6 +558,10 @@ export default function ThingsToAddress({
             scope,
             mode === "entity" ? person ?? entity : null,
             home,
+            // inc.85: the row's PRINTED ids, so the filed row's hint qualifies the stamped
+            // id the same way the archive mark will render it (inc.84). `scope` is null for
+            // a filed row because it is FILED, never because it names nothing.
+            f.named_ref,
           );
           // The ids this row already links somewhere else: the page being read (a chip
           // back to the current page is a link to nowhere) and every id the marker

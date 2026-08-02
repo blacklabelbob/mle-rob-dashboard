@@ -272,14 +272,37 @@ export type ResolveScope = { others: string[]; here?: string | null } | null | u
  * Unproven-by-default: no `fromRecord` (the Overview digest, a caller off a record page)
  * means no promise, and the hint is inc.33's, unchanged.
  *
+ * Q84 inc.85 — the filed row's hint qualified as a PAGE an id the row can print.
+ *
+ * inc.84 fixed this question on the READ side and thereby broke the agreement inc.35 wrote
+ * above: "the qualification matches `archiveResolvedFromMark` exactly … so the sentence
+ * promised at the click is the sentence the other records actually render." The archive mark
+ * now asks whether the row PRINTS the stamped id (`named_ref`, filed or not). This control
+ * still could not ask, because a filed row reaches the `others.length === 0` branch — and
+ * that branch's stated reason for skipping the test, *"this row names no records"*, is FALSE
+ * for it. `scope` is null there because `flagNamedScope` returns null the moment `entity_id`
+ * is set — for FILING, before it ever looks at what the row names. Prod #145 is filed on
+ * C-2010 and prints C-2010, C-2017 and C-2018.
+ *
+ * So the branch gets the same evidence the archive mark got: `printed`, the row's minted
+ * printed ids. A filed row reaches a member's page through `org_memberships`, and when the
+ * row names that person the click stamps an id the row itself prints — the archive on the
+ * home record renders it bare, and the button promised "'s page". One question, one answer,
+ * on both sides of the click.
+ *
+ * Unproven-by-default like every other argument on this ladder: omitted, the hint keeps the
+ * pre-inc.85 "'s page", which is true whether or not the finding names the record.
+ *
  * @param fromRecord the record page the click will be made on, when the caller knows it
  * @param homeRecord the record the row is FILED on, when it has one (Q84 inc.43)
+ * @param printed every minted id the row PRINTS (`named_ref`), filed or not (Q84 inc.85)
  */
 export function resolveControlCopy(
   title: string,
   scope?: ResolveScope,
   fromRecord?: string | null,
   homeRecord?: string | null,
+  printed?: readonly string[] | null,
 ): ResolveCopy {
   const domain = proposalDomain(title);
   if (!domain) {
@@ -291,13 +314,17 @@ export function resolveControlCopy(
       // Asked of the writer, never guessed: same rule as the branch below, so the silent
       // case stays silent and the one that stamps says so.
       const homeStamp = resolvedFrom(resolvedFromNote("", fromRecord, [], homeRecord));
+      // Q84 inc.85 — the test DOES exist here, and skipping it was the defect. Empty
+      // `others` on a filed row is not "names no records": `scope` is null for FILING.
+      // Same evidence and same wording as `archiveResolvedFromMark`'s head, so the
+      // promise and the rendered line cannot disagree. Unproven (`printed` omitted or
+      // null) keeps "'s page", the clause that is true either way.
+      const stampIsNamed = Array.isArray(printed) && homeStamp !== null && printed.includes(homeStamp);
       return {
         label: "Resolve",
         tooltip: "mark this handled",
-        // "'s page" with no qualification test, because there is none to run: this row
-        // names no records, so the page being clicked is provably not one of them.
         hint: homeStamp
-          ? `This row is filed on ${homeRecord}, not here. Resolving it will show there that it was closed from ${homeStamp}'s page.`
+          ? `This row is filed on ${homeRecord}, not here. Resolving it will show there that it was closed from ${stampIsNamed ? homeStamp : `${homeStamp}'s page`}.`
           : "",
         notePlaceholder: "optional note…",
       };

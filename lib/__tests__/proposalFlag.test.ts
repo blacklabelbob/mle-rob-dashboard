@@ -256,6 +256,41 @@ describe("resolveControlCopy (inc.18 — the permanent click, labelled)", () => 
     });
   });
 
+  // Q84 inc.85 — inc.84 moved the READ side to the row's printed ids; this is the same
+  // question on the WRITE side, which could not ask it because a filed row lands in the
+  // branch above with `scope` null for FILING, not for naming nothing.
+  it("prints the stamped id BARE when the filed row itself names that record", () => {
+    // The shape of prod #145 (filed on C-2010, printing other minted ids), moved to the
+    // person fan-out: a row filed on C-2001 that names P-1018, resolved from P-1018's page.
+    // `archiveResolvedFromMark` renders "Resolved from P-1018" there — bare — so a hint
+    // saying "P-1018's page" is the button promising a sentence the record will not show.
+    const copy = resolveControlCopy("PropLogix — P-1018 has no email", undefined, "P-1018", "C-2001", [
+      "P-1018",
+    ]);
+    expect(copy.hint).toBe(
+      "This row is filed on C-2001, not here. Resolving it will show there that it was closed from P-1018.",
+    );
+    expect(copy.hint).not.toContain("P-1018's page");
+  });
+
+  it("keeps “'s page” when the row does not print the stamp, and when nobody asked", () => {
+    const qualified =
+      "This row is filed on C-2001, not here. Resolving it will show there that it was closed from P-1018's page.";
+    // Confirmed-and-absent: the row prints another record, not this page.
+    expect(resolveControlCopy("PropLogix", undefined, "P-1018", "C-2001", ["C-2017"]).hint).toBe(qualified);
+    // Confirmed-none.
+    expect(resolveControlCopy("PropLogix", undefined, "P-1018", "C-2001", []).hint).toBe(qualified);
+    // Not asked — null and omitted both keep the pre-inc.85 wording, which is true either way.
+    expect(resolveControlCopy("PropLogix", undefined, "P-1018", "C-2001", null).hint).toBe(qualified);
+    expect(resolveControlCopy("PropLogix", undefined, "P-1018", "C-2001").hint).toBe(qualified);
+  });
+
+  it("cannot invent a stamp the writer would not write, however many ids the row prints", () => {
+    // The qualification only ever changes the WORDING of a stamp `resolvedFromNote` makes.
+    // On the row's own page there is no stamp, and printed ids must not conjure one.
+    expect(resolveControlCopy("PropLogix", undefined, "C-2001", "C-2001", ["C-2001"]).hint).toBe("");
+  });
+
   it("promises nothing where the writer writes nothing — its own page, a slug, no page", () => {
     const silent = { label: "Resolve", tooltip: "mark this handled", hint: "", notePlaceholder: "optional note…" };
     expect(resolveControlCopy("PropLogix", undefined, "C-2001", "C-2001")).toEqual(silent);
