@@ -254,7 +254,9 @@ describe("resolveControlCopy (inc.18 — the permanent click, labelled)", () => 
       // lives on C-2001; the control has to say so, like both other branches' tooltips do.
       tooltip: "clears this finding on C-2001",
       hint: "This row is filed on C-2001, not here. Resolving it will show there that it was closed from P-1018's page.",
-      notePlaceholder: "optional note…",
+      // Q84 inc.89 — was `optional note…` through inc.88. The reason has to be readable on
+      // C-2001, where the row lives and where the deciding did not happen.
+      notePlaceholder: "why is this settled on C-2001?",
     });
   });
 
@@ -283,7 +285,31 @@ describe("resolveControlCopy (inc.18 — the permanent click, labelled)", () => 
       const copy = resolveControlCopy("PropLogix", undefined, from, home);
       expect(copy.hint).toBe("");
       expect(copy.tooltip).toBe("mark this handled");
+      // Q84 inc.89 — the note prompt joins the same gate. Three renderers, one proof.
+      expect(copy.notePlaceholder).toBe("optional note…");
     }
+  });
+
+  // Q84 inc.89 — the note prompt was the last silent part of this control.
+  it("asks the reason a row filed elsewhere was closed from a page it does not live on", () => {
+    // `optional note…` is an invitation to leave it blank, and this is the row where blank
+    // costs the most: whoever opens C-2001 next quarter sees a closed finding, a stamp
+    // saying it was closed from somewhere else, and no reason.
+    const copy = resolveControlCopy("PropLogix — name mismatch", undefined, "P-1018", "C-2001");
+    expect(copy.notePlaceholder).toBe("why is this settled on C-2001?");
+    expect(copy.notePlaceholder).not.toContain("optional");
+    // The page being read is not the answer's audience, and naming it here would repeat
+    // the disclosure the hint already makes.
+    expect(copy.notePlaceholder).not.toContain("P-1018");
+  });
+
+  it("names one record because there IS one, unlike the branch that names six", () => {
+    // The spans branch stays generic ("every record it names") because #129 names six and
+    // a miscount is the defect this thread unpicks. A filed row has exactly one filing.
+    const filed = resolveControlCopy("PropLogix", undefined, "P-1018", "C-2010");
+    expect(filed.notePlaceholder).toBe("why is this settled on C-2010?");
+    const spans = resolveControlCopy("PropLogix", { others: ["C-2017", "C-2018"], here: null }, "P-1018");
+    expect(spans.notePlaceholder).toBe("why is this settled on every record it names?");
   });
 
   // Q84 inc.85 — inc.84 moved the READ side to the row's printed ids; this is the same

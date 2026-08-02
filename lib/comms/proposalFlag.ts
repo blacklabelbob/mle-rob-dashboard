@@ -367,11 +367,35 @@ export function resolveControlCopy(
       // "clears this finding ON C-2001", not "also clears": there is ONE row and it lives
       // there — this page reaches it through `org_memberships`, it holds no copy of its own.
       // "also" would assert the same thing inc.40 took out one branch over.
+      // Q84 inc.89 — the last part of this control still saying nothing.
+      //
+      // inc.87 gave this branch its hint and inc.88 its tooltip; the note prompt kept
+      // inc.18's `optional note…` — the exact string that file's own header calls out:
+      // "a reviewer asked 'optional note…' writes nothing, and next quarter nobody can
+      // tell a vendor from a missed customer." It is worse here than on the proposal row
+      // it was written about. The finding LIVES on another record; this page reaches it
+      // through `org_memberships` and holds no copy. Whoever opens C-2001 next quarter
+      // sees a closed row, a stamp saying it was closed from somewhere else, and no
+      // reason — and cannot ask the page they are on, because the deciding never
+      // happened there.
+      //
+      // The spans branch already asks its version of this ("why is this settled on every
+      // record it names?"); this one is the sharper case and was the silent one.
+      //
+      // Names the record, unlike the spans branch, and that is not an inconsistency: the
+      // reason that prompt stays generic is that #129 names six records and a miscount is
+      // the defect this thread keeps unpicking. Here there is exactly ONE — `homeRecord`,
+      // the row's filing — so naming it counts nothing and tells the reviewer which page
+      // the answer is going to be read on.
+      //
+      // Gated on the SAME `homeStamp` as the tooltip and hint, so the three renderers of
+      // this agreement cannot disagree: where they are silent (the row's own page, a slug
+      // home, no page read) the prompt is inc.18's, unchanged. Unproven-by-default.
       return {
         label: "Resolve",
         tooltip: homeStamp ? `clears this finding on ${homeRecord}` : "mark this handled",
         hint: filedElsewhereHint,
-        notePlaceholder: "optional note…",
+        notePlaceholder: homeStamp ? `why is this settled on ${homeRecord}?` : "optional note…",
       };
     }
     // Named, never counted: "also clears it from 2 other records" is a number the
