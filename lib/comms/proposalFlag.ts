@@ -320,12 +320,35 @@ export function resolveControlCopy(
       // promise and the rendered line cannot disagree. Unproven (`printed` omitted or
       // null) keeps "'s page", the clause that is true either way.
       const stampIsNamed = Array.isArray(printed) && homeStamp !== null && printed.includes(homeStamp);
+      // Q84 inc.87 — the question this branch never answered, now that the archive does.
+      //
+      // inc.86 gave the RESOLVED row's mark the clause "this finding names this record
+      // too, so it closed here with it", off the same evidence and only where filing did
+      // not put the row on the page. The OPEN row — the one still needing Rob's click —
+      // says only that it is filed elsewhere, which answers where it lives and leaves
+      // "why is this on MY page then" unanswered at the one moment he is deciding. Two
+      // renderers of one agreement, one of them silent, is the inc.17 shape.
+      //
+      // No new argument and no second rule: `homeStamp` IS the page being read
+      // (`resolvedFromNote` stamps `fromRecord`, and `ThingsToAddress` passes the page id
+      // as `fromRecord`), so `stampIsNamed` already IS "does this row print this page's
+      // id" — the exact test inc.86 runs. Unlike inc.84/inc.86, where one value was
+      // answering two questions about two different subjects, here the subject is the
+      // same id by construction, and that is why one boolean is honest rather than an arm.
+      //
+      // The misattribution inc.86 refused cannot arise here either: `homeStamp` is null
+      // unless `resolvedFromNote` found the filing to be a DIFFERENT record from the page
+      // (`home !== from`), so this branch is never read on the filing's own page.
+      // Unproven-by-default: `printed` omitted or null keeps the pre-inc.87 sentence.
+      const filedElsewhereHint = homeStamp
+        ? stampIsNamed
+          ? `This row is filed on ${homeRecord}, not here — this finding names this record too. Resolving it will show there that it was closed from ${homeStamp}.`
+          : `This row is filed on ${homeRecord}, not here. Resolving it will show there that it was closed from ${homeStamp}'s page.`
+        : "";
       return {
         label: "Resolve",
         tooltip: "mark this handled",
-        hint: homeStamp
-          ? `This row is filed on ${homeRecord}, not here. Resolving it will show there that it was closed from ${stampIsNamed ? homeStamp : `${homeStamp}'s page`}.`
-          : "",
+        hint: filedElsewhereHint,
         notePlaceholder: "optional note…",
       };
     }

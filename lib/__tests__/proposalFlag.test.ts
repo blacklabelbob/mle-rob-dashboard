@@ -267,10 +267,36 @@ describe("resolveControlCopy (inc.18 — the permanent click, labelled)", () => 
     const copy = resolveControlCopy("PropLogix — P-1018 has no email", undefined, "P-1018", "C-2001", [
       "P-1018",
     ]);
-    expect(copy.hint).toBe(
-      "This row is filed on C-2001, not here. Resolving it will show there that it was closed from P-1018.",
-    );
+    expect(copy.hint).toContain("closed from P-1018.");
     expect(copy.hint).not.toContain("P-1018's page");
+  });
+
+  // Q84 inc.87 — the archive answers "why is this row here at all" (inc.86); the OPEN
+  // control, read at the moment of the click, did not.
+  it("tells Rob why a filed row is on THIS page when the row names it", () => {
+    const copy = resolveControlCopy("PropLogix — P-1018 has no email", undefined, "P-1018", "C-2001", [
+      "P-1018",
+    ]);
+    expect(copy.hint).toBe(
+      "This row is filed on C-2001, not here — this finding names this record too. " +
+        "Resolving it will show there that it was closed from P-1018.",
+    );
+  });
+
+  it("never claims the naming when the row does not print this page's id", () => {
+    // Same refusal as `archiveResolvedFromMark`: unproven is not proof of absence, and
+    // absence is not the stronger sentence. All four spellings keep inc.85's wording.
+    for (const printed of [["C-2017"], [], null, undefined] as const) {
+      const hint = resolveControlCopy("PropLogix", undefined, "P-1018", "C-2001", printed).hint;
+      expect(hint).not.toContain("names this record too");
+      expect(hint).toContain("closed from P-1018's page.");
+    }
+  });
+
+  it("is never read on the filing's own page, so it cannot credit naming for a placement", () => {
+    // inc.86's refusal, structural here: `resolvedFromNote` stamps nothing when the page
+    // IS the filing, so the whole sentence — clause included — is absent there.
+    expect(resolveControlCopy("PropLogix", undefined, "C-2001", "C-2001", ["C-2001"]).hint).toBe("");
   });
 
   it("keeps “'s page” when the row does not print the stamp, and when nobody asked", () => {
