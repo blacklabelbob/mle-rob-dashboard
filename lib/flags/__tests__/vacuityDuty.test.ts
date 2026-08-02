@@ -237,6 +237,37 @@ describe("dischargedBy", () => {
       dischargedBy("subjects", `readFileSync(p); expect(other(f)).toBe(1);${" ".repeat(60)}\nconst s = subjects(f);`),
     ).toBe(false);
   });
+
+  // Q84 inc.128 — THE DISK READ MUST BE AT MODULE SCOPE, and the case below is why that is not
+  // pedantry: a read inside `it.skip(…)` NEVER EXECUTES, so the file says `readFileSync` and no
+  // file was ever opened. inc.127's rule counted that as a real-tree pin.
+  it("refuses a disk read that only ever runs inside a skipped test", () => {
+    expect(
+      dischargedBy(
+        "subjects",
+        'it.skip("walks", () => { const f = readFileSync(p); });\nit("x", () => { expect(subjects(fixture)).toEqual([]); });',
+      ),
+    ).toBe(false);
+  });
+
+  // ...and the same read hoisted out of the block is accepted, which is the pattern this repo
+  // already uses everywhere (CR-3 — the module is pure, the caller owns the filesystem).
+  it("accepts the same read hoisted to module scope", () => {
+    expect(
+      dischargedBy(
+        "subjects",
+        'const f = readFileSync(p);\nit("x", () => { expect(subjects(f)).toEqual([]); });',
+      ),
+    ).toBe(true);
+  });
+
+  // The vacuity-notice path is unchanged and deliberately so: it pins the SENTENCE Rob would read,
+  // which owes nothing to the filesystem. Narrowing it would have been a second, unmeasured change.
+  it("still accepts a vacuity-notice pin written inside a test block", () => {
+    expect(
+      dischargedBy("subjects", 'it("x", () => { expect(vacuousGuardNotice(subjects(f), g, s)).toBeNull(); });'),
+    ).toBe(true);
+  });
 });
 
 describe("inModuleProxies", () => {

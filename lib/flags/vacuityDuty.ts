@@ -361,9 +361,63 @@ export function treeScanRecognisers(
  * better answered elsewhere, which is the shape inc.115 and inc.117 deleted.
  */
 const READS_DISK = /readdirSync|readFileSync|readdir\(|readFile\(/;
+const READS_DISK_ALL = /readdirSync|readFileSync|readdir\(|readFile\(/g;
+
+/** `it(` / `test(` and their modifiers — `it.skip(`, `test.each(`, `it.concurrent.only(`. */
+const TEST_BLOCK_OPEN = /\b(?:it|test)(?:\.\w+)*\s*\(/g;
 
 /** How far an `expect(` reaches — these assertions are one statement, several of them wrapped. */
 const ASSERTION_WINDOW = 400;
+
+/**
+ * Byte ranges of every `it(…)` / `test(…)` callback body in `testText`, by brace balance.
+ *
+ * DELIBERATELY A LEXICAL SCAN AND NOT A PARSER, WITH BOTH FAILURE DIRECTIONS STATED. An unbalanced
+ * brace inside a string or comment can widen a range (a module-scope read then reads as nested →
+ * a FALSE RED, which is loud and gets fixed) or close one early (a nested read reads as
+ * module-scope → back to the pre-inc.128 rule, no worse than before). Neither direction can
+ * manufacture evidence that was not there.
+ */
+function testBlockRanges(testText: string): Array<[number, number]> {
+  const ranges: Array<[number, number]> = [];
+  for (const match of testText.matchAll(TEST_BLOCK_OPEN)) {
+    const open = testText.indexOf("{", match.index ?? 0);
+    if (open < 0) continue;
+    let depth = 0;
+    for (let at = open; at < testText.length; at++) {
+      if (testText[at] === "{") depth++;
+      else if (testText[at] === "}" && --depth === 0) {
+        ranges.push([open, at]);
+        break;
+      }
+    }
+  }
+  return ranges;
+}
+
+/**
+ * Whether `testText` reads the real tree AT MODULE SCOPE — outside every `it(…)` body.
+ *
+ * inc.127 left this residual open by name: the disk read and the assertion need not be in the same
+ * test. Requiring the same `it(…)` block was measured and refused (4 of 19 — this repo walks the
+ * tree ONCE at describe scope by design, CR-3). SCOPE is the tie that rule could not make by BLOCK,
+ * and the difference is not stylistic: a module-scope read executes on import, before every
+ * assertion in the file and unconditionally, while a read inside an `it(…)` body runs only if that
+ * test runs. `it.skip`, `.only` elsewhere, or a `-t` filter and the disk is never touched — yet the
+ * file still says `readFileSync` and the pre-inc.128 rule still called that a real-tree pin.
+ *
+ * MEASURED BEFORE ADOPTING, exactly as inc.127's two candidates were: 19 of 19 live recognisers
+ * still discharge. Zero false reds, because the pattern this repo already follows IS the walk at
+ * module scope.
+ */
+function readsDiskAtModuleScope(testText: string): boolean {
+  const ranges = testBlockRanges(testText);
+  for (const match of testText.matchAll(READS_DISK_ALL)) {
+    const at = match.index ?? 0;
+    if (!ranges.some(([open, close]) => at > open && at < close)) return true;
+  }
+  return false;
+}
 
 /**
  * Whether some assertion in `testText` is ABOUT `name` — the name inside an `expect(…)` statement,
@@ -384,7 +438,10 @@ function assertsAbout(name: string, testText: string): boolean {
 
 export function dischargedBy(name: string, testText: string): boolean {
   if (!assertsAbout(name, testText)) return false;
-  return testText.includes("vacuousGuardNotice") || READS_DISK.test(testText);
+  if (testText.includes("vacuousGuardNotice")) return true;
+  // inc.128 — the read must be at module scope, not merely somewhere in the file. `READS_DISK`
+  // remains the vocabulary both paths share; only WHERE it counts has narrowed.
+  return READS_DISK.test(testText) && readsDiskAtModuleScope(testText);
 }
 
 // AND IT MAY PIN THE RECOGNISER THROUGH ITS OWN WRAPPER, WHICH THE FIRST RUN OF THIS SCAN PROVED.
@@ -451,7 +508,9 @@ export function undischargedVacuityNotice(recognisers: readonly Recogniser[]): s
     `NAMED subject read off the real tree — strictly the stronger fix — or, where no subject is ` +
     `stable enough to name, print vacuousGuardNotice. A string fixture does not discharge this: it ` +
     `proves the regex works on text someone typed, not on the repo. The name must appear inside an ` +
-    `assertion; importing it is not evidence. What that proves is that a test ASSERTS ABOUT the ` +
-    `name in a file that reads the real tree — not that the assertion ran against what was read.`
+    `assertion; importing it is not evidence. The disk read must sit at MODULE SCOPE, outside every ` +
+    `it(...) body — a read inside a skipped or filtered test never runs. What that proves is that a ` +
+    `test ASSERTS ABOUT the name in a file that walked the real tree before it — not that the ` +
+    `assertion ran against what was walked.`
   );
 }
