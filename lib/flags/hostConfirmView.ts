@@ -17,6 +17,7 @@
 
 import { WITHIN_ARCHIVE_CHECK } from "@/lib/meetings/archiveCadence";
 import { readHostConfirmPayload, type HostConfirm } from "./hostConfirm";
+import { scopeHostConfirmPayload } from "./payloadScope";
 
 /**
  * One rendered control.
@@ -56,6 +57,19 @@ export function hostConfirmKey(host: string, orgId: string): string {
 }
 
 /**
+ * Q84 inc.102 — the row a payload is being read OFF, for scope.
+ *
+ * The same three fields `scopeHostConfirmPayload` grades against at the POST, in the same
+ * order, because they are the same question asked at the other end of the seam.
+ */
+export type HostConfirmRow = {
+  title?: string | null;
+  detail?: string | null;
+  /** The record the row is FILED on — `entity_id`, not the page being read. */
+  entityId?: string | null;
+};
+
+/**
  * The controls a row renders on the page it is being read on.
  *
  * @param payload the row's raw `flags.payload` — `unknown`, straight off jsonb. NULL on every
@@ -65,13 +79,33 @@ export function hostConfirmKey(host: string, orgId: string): string {
  *   there is no org page to be "on" and therefore no writable action.
  * @param written Q84 inc.75 — `hostConfirmKey` for every action whose write the caller has
  *   SEEN succeed. Omit it and every control behaves exactly as it did in inc.73.
+ * @param row Q84 inc.102 — the row's own title/detail/`entity_id`, so an action pointing at an
+ *   org this finding cannot reach is dropped HERE too, not only at the POST that inc.101 gated.
+ *   Omit it and every control behaves exactly as it did in inc.73 — the reader is unchanged for
+ *   any caller that has not been taught the row.
  */
 export function hostConfirmControls(
   payload: unknown,
   pageId: string | null,
   written: readonly string[] = [],
+  row?: HostConfirmRow,
 ): HostConfirmControl[] {
-  const graded = readHostConfirmPayload(payload);
+  // Q84 inc.102 — inc.101 put the scope rule on ONE door: `POST /api/admin/flags`. Two paths
+  // reach a stored payload without ever passing it: the ~133 rows written before that rule
+  // existed, and any other writer of the column. On both, an out-of-scope action survives to
+  // here — and by inc.73's rule it can never be `here` (a row reaches a page only by being
+  // filed on it or naming it, inc.26), so it renders as a LINK into a page where the finding
+  // Rob clicked from does not appear. inc.37/inc.81's dead end, one door further in.
+  //
+  // The same function the POST calls, never a second copy of the ladder (inc.4/inc.5) — the
+  // two ends of the seam cannot drift into two opinions about what a row reaches. Dropping,
+  // not refusing, for inc.101's reason: the pinned failure direction is "Rob sees the finding
+  // without the shortcut", never "Rob loses the finding", and what is dropped here was only
+  // ever an unclickable link.
+  const scoped = row
+    ? scopeHostConfirmPayload(row.title, row.detail, row.entityId, payload).payload
+    : payload;
+  const graded = readHostConfirmPayload(scoped);
   if (!graded) return [];
   const done = new Set(written);
   return graded.actions.map((a) => control(a, pageId, done));

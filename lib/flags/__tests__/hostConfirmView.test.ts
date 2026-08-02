@@ -144,3 +144,78 @@ describe("hostConfirmControls — the done control says when the wait ends", () 
     expect(link.tooltip).not.toContain(WITHIN_ARCHIVE_CHECK);
   });
 });
+
+// Q84 inc.102 — the reader's own scope gate. inc.101 put the rule on `POST /api/admin/flags`;
+// a row written before that rule, or by any other writer of the column, reaches the reader
+// having never passed it. These pin that the SECOND door closes the same way the first does.
+describe("hostConfirmControls — an action the row cannot reach", () => {
+  // #133's real prose: both ids are printed in the detail, which is why it renders on both.
+  const NAMES_BOTH =
+    "• cgroofing.net → likely CG Roofing Group [C-2017]\n" +
+    "• gulfregroup.com → likely Gulf Coast RE Group [C-2018]";
+  const STRAY = buildHostConfirmPayload([
+    { host: "cgroofing.net", orgId: "C-2017" },
+    { host: "elsewhere.com", orgId: "C-9999" },
+  ]);
+
+  it("changes NOTHING for a caller that does not hand in the row — inc.73 exactly", () => {
+    expect(hostConfirmControls(STRAY, "C-2017")).toEqual(hostConfirmControls(STRAY, "C-2017", []));
+    expect(hostConfirmControls(STRAY, "C-2017").map((c) => c.orgId)).toEqual(["cgroofing.net", "elsewhere.com"].map(
+      (h) => (h === "cgroofing.net" ? "C-2017" : "C-9999"),
+    ));
+  });
+
+  it("drops it once the row IS handed in, and keeps the one the row names", () => {
+    const controls = hostConfirmControls(STRAY, "C-2017", [], { title: "Hosts to place", detail: NAMES_BOTH });
+    expect(controls.map((c) => c.orgId)).toEqual(["C-2017"]);
+    expect(controls[0].here).toBe(true);
+  });
+
+  it("reaches the org the row is FILED on even when the prose never names it", () => {
+    const controls = hostConfirmControls(STRAY, "C-9999", [], {
+      title: "Hosts to place",
+      detail: NAMES_BOTH,
+      entityId: "C-9999",
+    });
+    expect(controls.map((c) => c.orgId).sort()).toEqual(["C-2017", "C-9999"]);
+    expect(controls.find((c) => c.orgId === "C-9999")!.here).toBe(true);
+  });
+
+  it("costs Rob no affordance on any page the row actually reaches", () => {
+    // The failure direction, pinned where it can be pinned: on a page this row DOES reach,
+    // the out-of-scope action was already a link (inc.73), so dropping it removes nothing
+    // clickable. `null` is the Overview digest, which has no org page to be on at all.
+    for (const pageId of ["C-2017", "C-2018", "P-1010", null]) {
+      const before = hostConfirmControls(STRAY, pageId);
+      const after = hostConfirmControls(STRAY, pageId, [], { title: "Hosts to place", detail: NAMES_BOTH });
+      const gone = before.filter((b) => !after.some((a) => a.orgId === b.orgId));
+      expect(gone.map((c) => c.orgId)).toEqual(["C-9999"]);
+      for (const c of gone) expect(c.here).toBe(false);
+      // Nothing SURVIVING changed shape: the gate subtracts, it never re-words.
+      for (const a of after) expect(before.find((b) => b.orgId === a.orgId)).toEqual(a);
+    }
+  });
+
+  it("is NOT merely tidying a dead link — ungated, the stray action offers a live WRITE", () => {
+    // inc.101 reasoned that an out-of-scope action "can never be `here`, the button is
+    // unreachable by construction". That holds for the ROUTE, where the construction is
+    // inc.26's — a row reaches a page only by naming it or being filed on it. It does NOT
+    // hold for this module, which is handed a `pageId` and compares it, and cannot know the
+    // caller obeyed inc.26. Hand it the page the stray action names and the ungated reader
+    // renders a real Set-Domain button: a write to C-9999 from a finding that says nothing
+    // about C-9999. So the reader-side gate removes a WRITE, not a broken link.
+    const ungated = hostConfirmControls(STRAY, "C-9999").find((c) => c.orgId === "C-9999")!;
+    expect(ungated.here).toBe(true);
+    expect(ungated.href).toBeNull();
+    expect(ungated.label).toBe("Set Domain to elsewhere.com");
+    expect(
+      hostConfirmControls(STRAY, "C-9999", [], { title: "Hosts to place", detail: NAMES_BOTH }).map((c) => c.orgId),
+    ).toEqual(["C-2017"]);
+  });
+
+  it("keeps the real producer's row whole — the prose prints the ids the actions carry", () => {
+    expect(hostConfirmControls(LIVE, "C-2017", [], { title: "Hosts to place", detail: NAMES_BOTH })).toEqual(
+      hostConfirmControls(LIVE, "C-2017"),
+    );
+  });
+});

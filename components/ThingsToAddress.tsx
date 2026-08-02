@@ -396,9 +396,18 @@ export default function ThingsToAddress({
               // on — never "the control on this row", because on the digest there is none.
               // `written` is not passed for the same reason: nothing on this surface writes,
               // and a done state here could only ever be a claim about somewhere else.
+              //
+              // inc.102: the row is handed in so an action naming an org this finding cannot
+              // reach is dropped before it can be described. The digest's sentence names the
+              // page a control lives on — for an out-of-scope action that page does not carry
+              // this finding, so the sentence would send Rob somewhere it is not.
               const digestDetail = retargetConfirmProse(
                 f.detail,
-                hostConfirmControls(f.payload, null)
+                hostConfirmControls(f.payload, null, [], {
+                  title: f.title,
+                  detail: f.detail,
+                  entityId: f.entity_id,
+                })
               );
               return (
               <li key={f.id} className="flex items-start gap-3 text-sm" title={digestDetail}>
@@ -560,10 +569,14 @@ export default function ThingsToAddress({
           // FILED on — null for #133, which is filed against nobody — and the question a
           // confirm control asks is "am I on the org this action writes to". That is the page
           // id, the same one the scope marker and the note provenance are computed from.
+          // inc.102: the ROW, so the scope rule inc.101 put on the POST also holds for the
+          // rows written before it existed. `f.entity_id` is the record the row is FILED on
+          // (not `home`, which prefers the resolvable ref) — the same field the POST grades.
           const controls = hostConfirmControls(
             f.payload,
             mode === "entity" ? (person ?? entity ?? null) : null,
             written,
+            { title: f.title, detail: f.detail, entityId: f.entity_id },
           );
           const copy = resolveControlCopy(
             f.title,
