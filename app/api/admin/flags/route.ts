@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { planFlagWrite, planFlagReopen, supersededNote, type ExistingFlag } from "@/lib/flags/supersede";
+import { planFlagWrite, planFlagReopen, reopenNote, supersededNote, type ExistingFlag } from "@/lib/flags/supersede";
 import { canonicalHostConfirmPayload, readHostConfirmPayload } from "@/lib/flags/hostConfirm";
 import { isMissingColumn, payloadNote, type DbError } from "@/lib/flags/payloadColumn";
 import {
@@ -179,10 +179,14 @@ export async function PATCH(req: NextRequest) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ ok: true });
   }
+  // Q84 inc.92: what a reopen leaves behind in `resolution_note`. Null until the row is read,
+  // and the read only happens on the reopen branch — a resolve never consults it (inc.91: the
+  // resolve path is handed what the reviewer typed FRESH, never the stored note).
+  let keptNote: string | null = null;
   if (action === "reopen") {
     // A keyed row cannot be reopened while its twin is open — the partial unique index from
     // 0033 would reject it, and Rob would get a 500 on his ledger instead of an answer.
-    const { data: self, error: selfErr } = await db().from("flags").select("dedupe_key").eq("id", id).maybeSingle();
+    const { data: self, error: selfErr } = await db().from("flags").select("dedupe_key,resolution_note").eq("id", id).maybeSingle();
     if (selfErr) return NextResponse.json({ error: `reopen read failed: ${selfErr.message}` }, { status: 500 });
     if (!self) return NextResponse.json({ error: `no flag #${id}` }, { status: 404 });
     let siblings: ExistingFlag[] = [];
@@ -195,12 +199,15 @@ export async function PATCH(req: NextRequest) {
     if (!plan.ok) {
       return NextResponse.json({ error: plan.message, blockedBy: plan.blockedBy }, { status: 409 });
     }
+    // The machine's closure sentence goes; a sentence a human typed stays. Computed AFTER the
+    // 409 so a refused reopen writes nothing at all.
+    keptNote = reopenNote((self as { resolution_note?: string | null }).resolution_note);
   }
 
   const row =
     action === "resolve"
       ? { status: "resolved", resolved_at: new Date().toISOString().slice(0, 10), resolution_note: typeof note === "string" && note.trim() ? note.trim() : null }
-      : { status: "open", resolved_at: null, resolution_note: null };
+      : { status: "open", resolved_at: null, resolution_note: keptNote };
   const { error } = await db().from("flags").update(row).eq("id", id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true });

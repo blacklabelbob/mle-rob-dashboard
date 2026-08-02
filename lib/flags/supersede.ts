@@ -313,6 +313,44 @@ export function qualifiedRecordRef(id: string, rowNamesIt: boolean): string {
   return rowNamesIt ? id : `${id}'s page`;
 }
 
+/**
+ * Q84 inc.92 — what `resolution_note` becomes when a row is REOPENED.
+ *
+ * The question inc.91 handed over was whether reopen should keep `resolutionNoteBody` and
+ * drop only the machine's clause. Read from the code, the naive form of that fix is WRONG
+ * and provably so on the ONE reopen a human can actually click: `resolutionNoteBody` strips
+ * the `Resolved from C-…` clause and nothing else, while inc.10 draws the Reopen control
+ * ONLY where `supersededBy(note) !== null`. So "keep the body" would carry
+ * `Superseded by flag #137 — …` onto a now-OPEN row, and `supersededBy` is the same
+ * predicate that renders the superseded marker and the button: the row would sit in the
+ * open list describing itself as superseded and offering to be reopened again.
+ *
+ * The worry underneath it is still real, one caller over. The UI never offers reopen on a
+ * row ROB closed — inc.10: "an undo button on Rob's decision is the mirror-image mistake" —
+ * but the endpoint has always honoured a PATCH against any id, and honoured it by writing
+ * `resolution_note: null`. That is the inc.48 shape exactly ("the UI never offered the
+ * click, which is not the same as the server refusing to honour it"), except here the cost
+ * is not a dangling reference but Rob's own sentence, destroyed with no copy anywhere.
+ *
+ * So: drop every sentence the MACHINE wrote, keep every word a HUMAN typed, and return null
+ * when nothing human remains. Both grammars are removed, not one — `supersededNote` is the
+ * whole note when the machine closed the row, so a machine row still reopens to a clean
+ * null exactly as it does today, and the live path is byte-identical.
+ *
+ * A kept body renders NOWHERE while the row is open (the archive quote at
+ * `ThingsToAddress.tsx` is inside the resolved list) and the next resolve overwrites it with
+ * what the reviewer types fresh. That is the point rather than an objection: this is not a
+ * feature, it is refusing to delete Rob's words on a click that never asked to.
+ */
+export function reopenNote(note: string | null | undefined): string | null {
+  if (typeof note !== "string") return null;
+  // The machine's own closure sentence, anchored at `^` by `supersededBy` — when it is
+  // there, it IS the note, so nothing human survives it.
+  if (supersededBy(note) !== null) return null;
+  const body = resolutionNoteBody(note);
+  return body ? body : null;
+}
+
 /** The reviewer's own words, with the machine clause removed — what the archive quotes. */
 export function resolutionNoteBody(note: string | null | undefined): string {
   if (typeof note !== "string") return "";

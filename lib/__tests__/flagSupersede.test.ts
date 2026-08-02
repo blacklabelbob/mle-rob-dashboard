@@ -8,6 +8,7 @@ import {
   resolvedFromNote,
   resolvedFrom,
   resolutionNoteBody,
+  reopenNote,
   archiveResolvedFromMark,
   qualifiedRecordRef,
 } from "../flags/supersede";
@@ -624,5 +625,47 @@ describe("Q84 inc.90 — one wording rule, three renderers, and the predicate th
     // inc.86 refused: a filed row is NOT readable on every record it names, so the spans
     // branch must keep answering from `scope.here` while the head answers from `named_ref`.
     expect(qualifiedRecordRef).toHaveLength(2);
+  });
+});
+
+describe("Q84 inc.92 — reopen drops the machine's sentence and keeps Rob's", () => {
+  it("returns null for the machine's own closure note — the one reopen the UI offers", () => {
+    // inc.10 draws the Reopen control ONLY where `supersededBy` is non-null, so this is the
+    // live path: it must stay byte-identical to the `resolution_note: null` it wrote before.
+    expect(reopenNote(supersededNote(137))).toBeNull();
+  });
+
+  it("is why 'keep resolutionNoteBody' was the WRONG fix — that keeps the superseded grammar", () => {
+    // The proof the naive handover fix breaks the live click: `resolutionNoteBody` strips only
+    // the `Resolved from` clause, so it would carry `Superseded by flag #137 …` onto an OPEN
+    // row — and `supersededBy` is the same predicate that renders the marker and the button.
+    const machine = supersededNote(137);
+    expect(resolutionNoteBody(machine)).toBe(machine);
+    expect(supersededBy(resolutionNoteBody(machine))).toBe(137);
+    expect(reopenNote(machine)).toBeNull();
+  });
+
+  it("keeps a sentence a human typed — reopen must not delete Rob's words", () => {
+    expect(reopenNote("Caleb confirmed the split is 35/65.")).toBe("Caleb confirmed the split is 35/65.");
+  });
+
+  it("keeps the human half and drops the machine's provenance clause", () => {
+    expect(reopenNote("Caleb confirmed. Resolved from C-2017.")).toBe("Caleb confirmed.");
+  });
+
+  it("returns null when the clause was the whole note — nothing human to keep", () => {
+    expect(reopenNote("Resolved from C-2017.")).toBeNull();
+  });
+
+  it("returns null for an empty, blank or absent note", () => {
+    expect(reopenNote(null)).toBeNull();
+    expect(reopenNote(undefined)).toBeNull();
+    expect(reopenNote("")).toBeNull();
+    expect(reopenNote("   ")).toBeNull();
+  });
+
+  it("is the same stripper the archive quotes with — one rule, not a second copy", () => {
+    const stored = "Caleb confirmed. Resolved from C-2017.";
+    expect(reopenNote(stored)).toBe(resolutionNoteBody(stored));
   });
 });
