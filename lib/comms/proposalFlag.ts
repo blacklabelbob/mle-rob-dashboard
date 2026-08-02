@@ -345,9 +345,31 @@ export function resolveControlCopy(
           ? `This row is filed on ${homeRecord}, not here — this finding names this record too. Resolving it will show there that it was closed from ${homeStamp}.`
           : `This row is filed on ${homeRecord}, not here. Resolving it will show there that it was closed from ${homeStamp}'s page.`
         : "";
+      // Q84 inc.88 — the THIRD renderer of this agreement, and the only one on the control.
+      //
+      // inc.87 taught this branch's hint two facts and left the tooltip at inc.18's bare
+      // `mark this handled`. That is not inc.40's defect — inc.40 was a tooltip promising
+      // MORE than the line beneath it ("ALSO clears…" on a page the row does not name).
+      // Here it promises nothing at all, which is the inc.17 shape in the silent direction:
+      // the click closes a row that lives on ANOTHER record, and the one sentence sitting on
+      // the button at the moment Rob decides says only "handled". Both other branches' tooltips
+      // state the CONSEQUENCE (`clears this finding from …`, `permanent — … never proposed
+      // again`); this one alone states nothing.
+      //
+      // So the tooltip carries the consequence and the hint keeps the explanation — short
+      // tooltip / long hint is right, silent tooltip is not. No new argument and no second
+      // rule: it is gated on the SAME `homeStamp` the hint is, so the two cannot disagree —
+      // where the hint is silent (the row's own page, a slug home, no page read) the tooltip
+      // is inc.18's, unchanged. `homeStamp !== null` on this branch is only reachable through
+      // `resolvedFromNote`'s `filedElsewhere`, which already proves `homeRecord` is a minted
+      // id different from the page, so naming it here cannot name the page being read.
+      //
+      // "clears this finding ON C-2001", not "also clears": there is ONE row and it lives
+      // there — this page reaches it through `org_memberships`, it holds no copy of its own.
+      // "also" would assert the same thing inc.40 took out one branch over.
       return {
         label: "Resolve",
-        tooltip: "mark this handled",
+        tooltip: homeStamp ? `clears this finding on ${homeRecord}` : "mark this handled",
         hint: filedElsewhereHint,
         notePlaceholder: "optional note…",
       };

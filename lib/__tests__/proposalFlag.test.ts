@@ -250,10 +250,40 @@ describe("resolveControlCopy (inc.18 — the permanent click, labelled)", () => 
   it("discloses the stamp a filed row's off-page resolve now makes", () => {
     expect(resolveControlCopy("PropLogix — name mismatch", undefined, "P-1018", "C-2001")).toEqual({
       label: "Resolve",
-      tooltip: "mark this handled",
+      // Q84 inc.88 — was `mark this handled` through inc.87. The click closes a row that
+      // lives on C-2001; the control has to say so, like both other branches' tooltips do.
+      tooltip: "clears this finding on C-2001",
       hint: "This row is filed on C-2001, not here. Resolving it will show there that it was closed from P-1018's page.",
       notePlaceholder: "optional note…",
     });
+  });
+
+  // Q84 inc.88 — the tooltip is the third renderer of the agreement and the only one ON
+  // the control. inc.87 gave the hint two facts and left this one mute.
+  it("names the record the click actually closes, on the button itself", () => {
+    const copy = resolveControlCopy("PropLogix — P-1018 has no email", undefined, "P-1018", "C-2001", [
+      "P-1018",
+    ]);
+    expect(copy.tooltip).toBe("clears this finding on C-2001");
+    // Not "also": there is one row and it lives on C-2001. "Also" is the word inc.40
+    // removed one branch over, for asserting a copy on the page being read.
+    expect(copy.tooltip).not.toContain("also");
+  });
+
+  it("keeps the tooltip and the hint gated on the SAME proof, so they cannot disagree", () => {
+    // Every case where the hint stays silent — the row's own page, a legacy slug for a
+    // home, no page read, no home at all — keeps inc.18's bare tooltip. One `homeStamp`,
+    // both renderers.
+    for (const [from, home] of [
+      ["C-2001", "C-2001"],
+      ["P-1018", "cg-roofing-group"],
+      [null, "C-2001"],
+      ["P-1018", null],
+    ] as const) {
+      const copy = resolveControlCopy("PropLogix", undefined, from, home);
+      expect(copy.hint).toBe("");
+      expect(copy.tooltip).toBe("mark this handled");
+    }
   });
 
   // Q84 inc.85 — inc.84 moved the READ side to the row's printed ids; this is the same
