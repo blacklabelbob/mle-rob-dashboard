@@ -282,6 +282,59 @@ describe("the calls the guard declined to grade", () => {
   });
 });
 
+// Q84 inc.112 — every rule here is built on the list of calls, and the list matched one spelling
+// of the name. A file that renames the reader was invisible at every door, including inc.111's.
+describe("the reader reached through another name", () => {
+  it("counts a call through an import alias, gated and ungated alike", () => {
+    const imported = `import { ${READER} as read } from "@/lib/flags/hostConfirmView";`;
+    const ungated = { path: "components/Aliased.tsx", text: `${imported}\nconst c = read(f.payload, page);` };
+    const gated = {
+      path: "components/AliasedGated.tsx",
+      text: `${imported}\nconst c = read(f.payload, page, written, { title: f.title, entityId: f.entity_id });`,
+    };
+    expect(readerCallers([ungated, gated])).toEqual([
+      "components/Aliased.tsx",
+      "components/AliasedGated.tsx",
+    ]);
+    expect(ungatedReaderCallers([ungated, gated])).toEqual(["components/Aliased.tsx"]);
+  });
+
+  it("counts a call through a local binding, and is not fooled by a call assigned to a name", () => {
+    const bound = `const read = ${READER};\nconst c = read(f.payload, page);`;
+    expect(ungatedReaderCallers([{ path: "a.tsx", text: bound }])).toEqual(["a.tsx"]);
+    // `const c = hostConfirmControls(...)` is the call itself, not a second name for the reader.
+    expect(readerCallers([{ path: "b.tsx", text: GATED }])).toEqual(["b.tsx"]);
+    expect(ungatedReaderCallers([{ path: "b.tsx", text: GATED }])).toEqual([]);
+  });
+
+  it("does not read somebody else's property or a longer name as the alias", () => {
+    const decoy = `const read = ${READER};\nconst x = mod.read(f.payload, page);\nconst y = readAll(f.payload, page);`;
+    expect(ungatedReaderCallers([{ path: "a.tsx", text: decoy }])).toEqual([]);
+  });
+
+  it("applies the row rules through the alias too — the same function, the same rules", () => {
+    const text = `const read = ${READER};\nread(f.payload, page, written, { title: other.title });`;
+    expect(mismatchedRowCallers([{ path: "a.tsx", text }])).toEqual(["a.tsx"]);
+  });
+
+  it("gives up on an alias it cannot pin, and REPORTS giving up rather than going quiet", () => {
+    const shadowed = `const read = ${READER};\nfunction g() { const read = other; }\nread(f.payload, page);`;
+    expect(ungatedReaderCallers([{ path: "a.tsx", text: shadowed }])).toEqual([]);
+    expect(abstainedReaderCallers([{ path: "a.tsx", text: shadowed }])).toEqual([
+      { path: "a.tsx", reason: ABSTENTION.aliasAmbiguous },
+    ]);
+    const reassigned = `let read = ${READER};\nread = other;\nread(f.payload, page);`;
+    expect(abstainedReaderCallers([{ path: "a.tsx", text: reassigned }])).toEqual([
+      { path: "a.tsx", reason: ABSTENTION.aliasAmbiguous },
+    ]);
+  });
+
+  it("says nothing about a file whose alias it followed cleanly", () => {
+    const clean = `const read = ${READER};\nread(f.payload, page, written, { title: f.title });`;
+    expect(abstainedReaderCallers([{ path: "a.tsx", text: clean }])).toEqual([]);
+  });
+});
+
 describe("the real tree", () => {
   it("has the live caller in the walk — an empty walk is not a clean bill of health", () => {
     expect(readerCallers(TREE)).toContain(LIVE_CALLER);

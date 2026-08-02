@@ -68,11 +68,14 @@ export type SourceFile = {
  */
 function callArgLists(text: string): string[][] {
   const lists: string[][] = [];
-  const needle = `${READER}(`;
-  for (let i = text.indexOf(needle); i !== -1; i = text.indexOf(needle, i + 1)) {
-    if (/function\s+$/.test(text.slice(Math.max(0, i - 12), i))) continue;
-    const args = scanArgs(text, i + needle.length);
-    if (args) lists.push(args);
+  for (const name of [READER, ...aliasNames(text).names]) {
+    const call = new RegExp(`(?<![\\w$.])${name}\\s*\\(`, "g");
+    for (let m = call.exec(text); m; m = call.exec(text)) {
+      // `export function hostConfirmControls(` is the reader, not a call.
+      if (/function\s+$/.test(text.slice(Math.max(0, m.index - 12), m.index))) continue;
+      const args = scanArgs(text, m.index + m[0].length);
+      if (args) lists.push(args);
+    }
   }
   return lists;
 }
@@ -315,6 +318,9 @@ export const ABSTENTION = {
   declaredTwice: "its row's name is declared more than once, and scope is not readable here",
   writtenTo: "its row is written to after it is declared, so the declaration is not what was passed",
   unreadable: "its row's declaration could not be read to the end",
+  // inc.112 — a file-level ignorance rather than a per-call one: the alias itself is unreadable.
+  aliasAmbiguous:
+    "it binds the reader to a name that is declared more than once or written to, so calls through that name were not counted at all",
 } as const;
 
 export type AbstentionReason = (typeof ABSTENTION)[keyof typeof ABSTENTION];
@@ -362,6 +368,13 @@ export function abstainedReaderCallers(files: readonly SourceFile[]): ReaderAbst
   const out: ReaderAbstention[] = [];
   for (const file of files) {
     if (file.path === RULE_FILE) continue;
+    if (aliasNames(file.text).ambiguous) {
+      const key = `${file.path} ${ABSTENTION.aliasAmbiguous}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        out.push({ path: file.path, reason: ABSTENTION.aliasAmbiguous });
+      }
+    }
     for (const args of callArgLists(file.text)) {
       if (args.length < ROW_ARG_COUNT) continue;
       const row = args[ROW_ARG_COUNT - 1];
@@ -451,4 +464,59 @@ export function ungatedReaderRefusal(offenders: readonly string[]): string | nul
     `compiler will not object, but an ungated reader renders a live "Set Domain to …" button ` +
     `for an org the finding never names. Pass { title, detail, entityId } as the fourth argument.`
   );
+}
+
+// Q84 inc.112 — A CALL THE WALK NEVER SAW.
+//
+// inc.111 taught this file to say when it could not READ a call. It could not say anything about
+// a call it never FOUND. `callArgLists` matched the literal text `hostConfirmControls(`, so a file
+// that binds the reader to another name — `import { hostConfirmControls as read }`, or a plain
+// `const read = hostConfirmControls` — contributes no calls at all. Every rule here is built on
+// that list, so such a file is absent from `readerCallers`, absent from `ungatedReaderCallers`,
+// and absent from inc.111's own coverage list. Silence at every door, including the door built to
+// report silence.
+//
+// AND THE REAL-TREE TEST CANNOT CATCH IT. It asserts the live caller is IN the walk before it
+// asserts nobody offends (inc.106's precedent), which proves the walk is not globally empty. One
+// aliased file is invisible while that assertion stays green — the walk was never the unit of
+// ignorance, the FILE is.
+//
+// FOLLOWING THE ALIAS IS NOT A GUESS, which is what separates this from inc.109's and inc.110's
+// refusals. `read` and `hostConfirmControls` are the same function, so the arity and the row rules
+// apply to a call through either name with identical force; resolving the binding restores
+// coverage rather than inventing a verdict.
+//
+// WHERE IT STOPS IS THE SAME PLACE EVERYTHING ELSE STOPS. A name declared twice, or written to,
+// is a name this file cannot claim is still the reader — following it there would accuse whoever
+// owns the other declaration, the one failure the doctrine forbids. So an ambiguous alias is not
+// followed and not judged; it is REPORTED as coverage (inc.111's shape), because a binding this
+// file gave up on is exactly the state that used to look identical to health.
+
+/**
+ * Names this file binds to the reader, plus whether any binding had to be given up on.
+ *
+ * Two spellings, both textual: `X as read` (import or re-export) and `const|let|var read = X` where
+ * the right-hand side is the bare identifier — `const c = X(...)` is a CALL, not an alias, and the
+ * lookahead is what tells them apart.
+ *
+ * LIMIT, stated rather than covered up: a reader reached through a property (`mod.hostConfirm…`),
+ * a default import, or an element of an object/array is not a binding this reads.
+ */
+function aliasNames(text: string): { names: string[]; ambiguous: boolean } {
+  const found = new Set<string>();
+  const asBinding = new RegExp(`(?<![\\w$.])${READER}\\s+as\\s+([A-Za-z_$][\\w$]*)`, "g");
+  for (let m = asBinding.exec(text); m; m = asBinding.exec(text)) found.add(m[1]);
+  const assigned = new RegExp(
+    `(?<![\\w$.])(?:const|let|var)\\s+([A-Za-z_$][\\w$]*)\\s*(?::[^=;]*)?=\\s*${READER}(?![\\w$.(])`,
+    "g",
+  );
+  for (let m = assigned.exec(text); m; m = assigned.exec(text)) found.add(m[1]);
+
+  const names: string[] = [];
+  let ambiguous = false;
+  for (const name of found) {
+    if (declarationEnds(text, name).length > 1 || writtenTo(text, name)) ambiguous = true;
+    else names.push(name);
+  }
+  return { names: names.sort(), ambiguous };
 }
