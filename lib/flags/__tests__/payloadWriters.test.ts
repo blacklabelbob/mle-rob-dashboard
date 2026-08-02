@@ -10,7 +10,13 @@ import {
   type SourceFile,
 } from "../payloadWriters";
 import { missingAnchorNotice } from "../anchorPin";
-import { scannedByWalk, SOURCE_FILE, unscannedNotice, unscannedSources } from "../scanPerimeter";
+import {
+  descendableDir,
+  scannedByWalk,
+  SOURCE_FILE,
+  unscannedNotice,
+  unscannedSources,
+} from "../scanPerimeter";
 
 // Q84 inc.106 — the rule is tested on strings AND driven off the real tree, the 0021/0034/inc.51
 // precedent. A guard that only ever sees its own fixtures proves the regex compiles; the walk is
@@ -30,8 +36,10 @@ function walk(dir: string, acc: string[]): string[] {
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) {
       // Tests write fixture payloads by design — this module's own fixtures below would
-      // otherwise report themselves.
-      if (entry.name === "node_modules" || entry.name === "__tests__" || entry.name.startsWith(".")) continue;
+      // otherwise report themselves. Q84 inc.119 — the three names were hand-copied here and in
+      // the read door's walk; `descendableDir` is the perimeter's own answer, so widening the
+      // module can no longer leave both walks skipping a directory it now claims.
+      if (!descendableDir(entry.name)) continue;
       walk(full, acc);
     } else if (SOURCE_FILE.test(entry.name)) {
       acc.push(rel(full));

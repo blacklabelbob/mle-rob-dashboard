@@ -47,10 +47,23 @@ export const SOURCE_FILE = /\.[cm]?[jt]sx?$/;
 /**
  * Skipped on purpose, not missed. `__tests__` is excluded by BOTH doors and for the same kind of
  * reason: a test may state the reader's core rule without a scope, and a test writes fixture
- * payloads by design. `node_modules` and dot-dirs are not ours. Reporting any of them as a blind
- * spot would train the reader to skim the list, which is how a real `src/` would then get skimmed.
+ * payloads by design. `node_modules` is not ours. Reporting either as a blind spot would train the
+ * reader to skim the list, which is how a real `src/` would then get skimmed.
+ *
+ * Q84 inc.119 — this list used to exist TWICE more: each door's test walk re-checked the same three
+ * directory names by hand before descending. That is inc.115's defect in the one place it still
+ * survived, and its direction is the dangerous one — delete a name here and the module's perimeter
+ * widens while both walks keep skipping the directory, so the guard claims coverage nothing hands
+ * it. `descendableDir` is now the single answer and both walks ask it.
  */
-const NOT_OURS = /(^|\/)(node_modules|__tests__|\.[^/]+)\//;
+export const EXCLUDED_DIRS = ["node_modules", "__tests__"] as const;
+
+/** Whether a walk should descend into a directory. Dot-dirs are excluded by shape, not by name. */
+export function descendableDir(name: string): boolean {
+  return !name.startsWith(".") && !(EXCLUDED_DIRS as readonly string[]).includes(name);
+}
+
+const NOT_OURS = new RegExp(`(^|/)(${EXCLUDED_DIRS.join("|")}|\\.[^/]+)/`);
 
 /** Whether a repo-relative path is one the walk would hand to a guard's rules. */
 export function scannedByWalk(filePath: string): boolean {
@@ -87,5 +100,67 @@ export function unscannedNotice(paths: readonly string[], guard: string): string
     `${many ? "them" : "it"} — ${[...paths].join(", ")}. A caller there could break any rule that ` +
     `guard enforces and it would stay green. Add the root to SCANNED_ROOTS, or the extension to ` +
     `SOURCE_FILE, so the file enters.`
+  );
+}
+
+// Q84 inc.119 — A DIRECTORY CLAIM IS NOT A PATH CLAIM, AND inc.118's OWN DISCRIMINATOR PROVES IT.
+//
+// inc.118 answered "can a rule hang off a name that never becomes an Anchor" with: yes, and the
+// VALUE gives it away — a string shaped like a repo-relative path IS a claim about the tree, so no
+// roster of blessed identifiers is needed. `SCANNED_ROOTS` is a claim about the tree of exactly the
+// same load-bearing kind, and that scan is structurally blind to it in two independent ways: it is
+// an array rather than a string literal, and `REPO_PATH` requires a slash and an extension ON
+// PURPOSE. Loosening it would not help. The value of a directory claim is `"app"` — indistinguishable
+// from every kind constant in this family (`"note"`, `"email"`, `"host-confirm"`), so keying on the
+// value cannot separate a perimeter from a vocabulary. A scan finds claims and asks whether each is
+// pinned; for directories that direction is unavailable, so this one INVERTS it: take the declared
+// perimeter and ask whether the tree still satisfies it. That is the honest limit inc.117 named
+// where a list beats a scan — and it costs nothing new to remember, because the list already exists
+// and is the perimeter itself.
+//
+// HALF THE HANDOVER WAS WRONG AND READING IT FIRST IS WHY (inc.109/inc.110/inc.116, again): it
+// claimed `unscannedSources` "cannot report a root that was never asked for". Both walks recurse
+// from `process.cwd()`, not from `SCANNED_ROOTS`, so a new `src/` — or a root RENAMED, which is the
+// same event seen from the other side — surfaces its files as unscanned and turns the suite red.
+// That direction was already closed by inc.114. What no rule asks is the opposite: whether a root
+// this perimeter still NAMES holds anything at all.
+//
+// WHY A PHANTOM ROOT IS AN OFFENCE AND NOT COVERAGE, WHICH IS THE DISTINCTION inc.111 AND inc.114
+// TURN ON. A root that yields nothing is not correct-but-unwatched code; there is no code. It is a
+// promise that has quietly stopped being about anything, and the failure it hides arrives via the
+// notice above: a reader who renames `scripts/` to `bin/` is told to "Add the root to
+// SCANNED_ROOTS", does exactly that, and leaves `scripts` behind as a dead entry. The perimeter then
+// documents coverage of a directory that does not exist, and the next reader believes it.
+
+/**
+ * Roots this perimeter claims that the caller's walk found nothing under.
+ *
+ * `paths` must be every source path the walk yielded, repo-relative — the same listing
+ * `unscannedSources` takes. An empty listing makes every root look dead, so a caller that pins this
+ * must also pin that it actually walked something (inc.106's lesson, and inc.114's).
+ */
+export function unpopulatedRoots(paths: readonly string[]): string[] {
+  return SCANNED_ROOTS.filter(
+    (root) => !paths.some((p) => p.startsWith(`${root}/`) && scannedByWalk(p)),
+  ).sort();
+}
+
+/**
+ * The sentence a phantom root prints.
+ *
+ * It does NOT lead with `Nothing below is wrong` — that promise belongs to coverage notices, and
+ * borrowing it here would teach the reader that the two mean the same thing. This one names a stale
+ * claim, and the fix is to delete the entry rather than to create a directory to satisfy it.
+ */
+export function unpopulatedRootNotice(roots: readonly string[], guard: string): string | null {
+  if (!roots.length) return null;
+  const many = roots.length !== 1;
+  return (
+    `SCANNED_ROOTS names ${roots.length} director${many ? "ies" : "y"} holding no source file this ` +
+    `walk can see — ${[...roots].join(", ")}. ${guard} reports a clean tree for ` +
+    `${many ? "them" : "it"} because there is nothing there, not because it checked. A root is ` +
+    `usually left behind after a rename: the file it lost showed up as unscanned, someone added the ` +
+    `new root as the notice told them to, and the old one stayed. Remove the dead entry — do not ` +
+    `create a directory to make this green.`
   );
 }

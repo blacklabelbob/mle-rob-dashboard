@@ -10,6 +10,7 @@ import {
   READER_GATE_GUARD,
   SCANNED_ROOTS,
   SOURCE_FILE,
+  descendableDir,
   scannedByWalk,
   unscannedNotice,
   unscannedSources,
@@ -41,7 +42,8 @@ function walk(dir: string, acc: string[]): string[] {
     // Tests call the reader two-arg BY DESIGN — that is the point of the module doc: a test
     // may state the reader's core rule without also stating a scope. Production may not.
     if (entry.isDirectory()) {
-      if (entry.name === "node_modules" || entry.name === "__tests__" || entry.name.startsWith(".")) continue;
+      // Q84 inc.119 — was a hand-copy of the perimeter's own exclusion list, in both door walks.
+      if (!descendableDir(entry.name)) continue;
       walk(full, acc);
     } else if (SOURCE_FILE.test(entry.name)) {
       acc.push(rel(full));

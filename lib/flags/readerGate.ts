@@ -607,6 +607,7 @@ function fileLevelIgnorance(text: string): AbstentionReason[] {
 export {
   SCANNED_ROOTS,
   SOURCE_FILE,
+  descendableDir,
   scannedByWalk,
   unscannedSources,
   unscannedNotice,
