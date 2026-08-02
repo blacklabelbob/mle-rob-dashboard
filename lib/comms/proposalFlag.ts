@@ -11,7 +11,12 @@
 // instead of the button quietly vanishing from the ledger.
 
 import { proposalTitle } from "./orgProposal";
-import { resolutionNoteBody, resolvedFrom, resolvedFromNote } from "@/lib/flags/supersede";
+import {
+  qualifiedRecordRef,
+  resolutionNoteBody,
+  resolvedFrom,
+  resolvedFromNote,
+} from "@/lib/flags/supersede";
 
 const TITLE_PREFIX = "New company domain: ";
 
@@ -340,10 +345,13 @@ export function resolveControlCopy(
       // unless `resolvedFromNote` found the filing to be a DIFFERENT record from the page
       // (`home !== from`), so this branch is never read on the filing's own page.
       // Unproven-by-default: `printed` omitted or null keeps the pre-inc.87 sentence.
+      //
+      // Q84 inc.90 — the qualification is `qualifiedRecordRef`'s, shared with the archive
+      // mark and the spans branch below. Only the string is shared: `stampIsNamed` above is
+      // still this branch's own evidence, for the reason inc.86 gave.
+      const alsoNamesThisPage = stampIsNamed ? " — this finding names this record too" : "";
       const filedElsewhereHint = homeStamp
-        ? stampIsNamed
-          ? `This row is filed on ${homeRecord}, not here — this finding names this record too. Resolving it will show there that it was closed from ${homeStamp}.`
-          : `This row is filed on ${homeRecord}, not here. Resolving it will show there that it was closed from ${homeStamp}'s page.`
+        ? `This row is filed on ${homeRecord}, not here${alsoNamesThisPage}. Resolving it will show there that it was closed from ${qualifiedRecordRef(homeStamp, stampIsNamed)}.`
         : "";
       // Q84 inc.88 — the THIRD renderer of this agreement, and the only one on the control.
       //
@@ -423,9 +431,10 @@ export function resolveControlCopy(
         : `This row is not filed here. Resolving clears it from ${list} — one finding, closed on all of them at once.`;
     // Ask the writer what it will write; never re-implement the guard it uses.
     const stamped = resolvedFrom(resolvedFromNote("", fromRecord, others));
-    const provenance = stamped
-      ? ` They will show it was closed from ${named ? stamped : `${stamped}'s page`}.`
-      : "";
+    // inc.90: the third copy of the rule, and the one written inline inside a template.
+    // `named` here is `scope.here != null` — the SPANS question, which inc.86 refused to
+    // widen. The render is shared; that evidence stays this branch's.
+    const provenance = stamped ? ` They will show it was closed from ${qualifiedRecordRef(stamped, named)}.` : "";
     return {
       label: "Resolve",
       // Q84 inc.40 — "ALSO" is the tooltip's copy of the word inc.33 took out of the

@@ -9,6 +9,7 @@ import {
   resolvedFrom,
   resolutionNoteBody,
   archiveResolvedFromMark,
+  qualifiedRecordRef,
 } from "../flags/supersede";
 
 describe("planFlagWrite — a recurring finding corrects its own row", () => {
@@ -574,5 +575,31 @@ describe("archiveResolvedFromMark — the tail clause, for a FILED row (inc.86)"
         archiveResolvedFromMark(stored, "P-1018", false, undefined, printed),
       );
     }
+  });
+});
+
+describe("Q84 inc.90 — one wording rule, three renderers, and the predicate they must NOT share", () => {
+  it("renders the id bare when the row names it, and 's page when it does not", () => {
+    expect(qualifiedRecordRef("C-2017", true)).toBe("C-2017");
+    expect(qualifiedRecordRef("C-2017", false)).toBe("C-2017's page");
+  });
+
+  it("is the SAME string the archive mark's head renders — the copy that drifted first", () => {
+    const stored = "Resolved from C-2017.";
+    const printed = ["C-2010", "C-2017", "C-2018"];
+    expect(archiveResolvedFromMark(stored, "C-2018", false, undefined, printed, "C-2010")).toContain(
+      `Resolved from ${qualifiedRecordRef("C-2017", true)} —`,
+    );
+    expect(archiveResolvedFromMark(stored, "C-2018", false, undefined, [], "C-2010")).toContain(
+      `Resolved from ${qualifiedRecordRef("C-2017", false)} —`,
+    );
+  });
+
+  it("takes a proven ANSWER, never the evidence — inc.84/inc.86/inc.87 keep three questions", () => {
+    // The load-bearing refusal. If this function ever grows a `printed`/`named`/`filedOn`
+    // argument it becomes one predicate for three questions again, which is the widening
+    // inc.86 refused: a filed row is NOT readable on every record it names, so the spans
+    // branch must keep answering from `scope.here` while the head answers from `named_ref`.
+    expect(qualifiedRecordRef).toHaveLength(2);
   });
 });

@@ -268,6 +268,34 @@ export function resolvedFrom(note: string | null | undefined): string | null {
   return m ? m[1] : null;
 }
 
+/**
+ * Q84 inc.90 — the one string rule three renderers were each keeping a private copy of.
+ *
+ * inc.90's question was whether the archive mark and the Resolve button should share ONE
+ * predicate, since both were computing `printed.includes(stamp)`. Read from the code, the
+ * answer is no, and emphatically: sharing the predicate would undo inc.84, inc.86 and inc.87.
+ * Those three increments were spent proving that "does this row name that id" is answered
+ * from DIFFERENT evidence depending on which branch is asking — the head reads `printed`
+ * (`named_ref`, filing-agnostic), the spans branch reads `scope.here` and must NOT be widened
+ * (a filed row is not readable on every record it names), the filed branch reads `printed`
+ * against the page being read. Collapsing them into one predicate is the misattribution
+ * inc.86 refused, wearing a third coat.
+ *
+ * What all three genuinely do share is what they do with the ANSWER: a row that names the id
+ * gets it bare, a row that does not — or a caller that cannot prove it — gets `X's page`.
+ * That rule was written out three times in two files, and one of them read `${stamped}'s
+ * page` inline inside a template. inc.4/inc.5 were merged because two ladders drifted apart
+ * exactly like this; a third copy of a string is how the fourth one gets written differently.
+ *
+ * So the RENDER is shared and the PREDICATE deliberately is not. `rowNamesIt` is a boolean
+ * the caller has already proven its own way — this function does not ask how, and must not
+ * grow an evidence argument, because that is the door back to one predicate for three
+ * questions.
+ */
+export function qualifiedRecordRef(id: string, rowNamesIt: boolean): string {
+  return rowNamesIt ? id : `${id}'s page`;
+}
+
 /** The reviewer's own words, with the machine clause removed — what the archive quotes. */
 export function resolutionNoteBody(note: string | null | undefined): string {
   if (typeof note !== "string") return "";
@@ -450,7 +478,9 @@ export function archiveResolvedFromMark(
   // `printed` when the caller has it; `named` is the pre-inc.84 answer and the fallback.
   const namesFrom = Array.isArray(printed) ? printed : Array.isArray(named) ? named : [];
   const fromIsNamed = namesFrom.includes(from);
-  const head = fromIsNamed ? `Resolved from ${from}` : `Resolved from ${from}'s page`;
+  // inc.90: the qualification is one rule shared with both of the Resolve control's
+  // branches; the EVIDENCE above stays this branch's own. See `qualifiedRecordRef`.
+  const head = `Resolved from ${qualifiedRecordRef(from, fromIsNamed)}`;
   // inc.86: the tail asks the same filing-agnostic question as the head — does the row PRINT
   // this page's id — but only where filing did not put the row here. On the filing's own page
   // the header already answers "why is this here", and naming would be the wrong answer to it.
