@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { planFlagWrite, planFlagReopen, reopenNote, flagReopenRefusal, resolvedFrom, supersededNote, type ExistingFlag } from "@/lib/flags/supersede";
-import { canonicalHostConfirmPayload, readHostConfirmPayload } from "@/lib/flags/hostConfirm";
+import { canonicalHostConfirmPayload } from "@/lib/flags/hostConfirm";
+import { payloadScopeNote, scopeHostConfirmPayload } from "@/lib/flags/payloadScope";
 import { isMissingColumn, payloadNote, type DbError } from "@/lib/flags/payloadColumn";
 import { unverifiedActorRefusal } from "@/lib/flags/resolveActor";
 import { filedClauseRefusal, routeClauseRefusal } from "@/lib/flags/reviewerClause";
@@ -285,7 +286,14 @@ export async function POST(req: NextRequest) {
   // Anything it refuses becomes `null` — no payload, therefore no button — which is inc.71's
   // pinned failure direction: Rob sees the finding without the shortcut, never a control
   // pointing somewhere unverified.
-  const graded = readHostConfirmPayload(payload);
+  //
+  // Q84 inc.101 — and re-graded against THIS ROW as well as against the codec. An action whose
+  // org the finding neither names nor is filed on can never render its button (inc.73: a
+  // control writes only on its own org's page, and inc.26: a row reaches a page by being filed
+  // there or by naming it), so it would ship as a link into a page the finding is absent from.
+  // Dropped per-action, and reported below. See lib/flags/payloadScope.ts.
+  const scoped = scopeHostConfirmPayload(title, detail, entityId, payload);
+  const graded = scoped.payload;
   const payloadJson = canonicalHostConfirmPayload(graded);
 
   let existing: ExistingFlag[] = [];
@@ -382,5 +390,8 @@ export async function POST(req: NextRequest) {
     // and assuming they did. `null` when it sent none: a note about a payload that was never
     // offered reads as a failure that did not happen.
     payload: payloadNote(Boolean(graded), hasPayloadColumn && plan.action !== "unchanged"),
+    // Q84 inc.101 — the same rule for actions that never reached the write at all. `null` when
+    // none were dropped, so a caller whose payload was entirely in scope reads nothing about it.
+    payloadScope: payloadScopeNote(scoped.dropped),
   });
 }
