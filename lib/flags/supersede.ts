@@ -387,8 +387,34 @@ export function resolutionNoteBody(note: string | null | undefined): string {
  * Unproven-by-default like every other argument here: omitted, the head falls back to `named`
  * and no existing caller changes meaning.
  *
+ * Q84 inc.86 — the THIRD question `flagNamedScope`'s null was answering by arm.
+ *
+ * inc.84 split the head's question off `named`; the tail clause was left on `namesThisPage`,
+ * which the one caller computes as `flagNamedScope(...).here != null` — null for every filed
+ * row, again before it looks at what the row prints. So *"this finding names this record too,
+ * so it closed here with it"* could never fire for a filed row, and the reason was arm, not
+ * evidence: filing has no bearing on whether a row PRINTS the page's id either.
+ *
+ * It is not simply widened to `printed`, because on the filing's OWN page that would be a new
+ * misattribution rather than a stale sentence. A filed row is on C-2010's page BECAUSE it is
+ * filed there — `selectRecordFlags` puts it there on `entity_id`, not on what the detail
+ * names — and the row's header already says so. Telling Rob it "names this record too, so it
+ * closed here with it" would credit the naming for a placement filing made, which is inc.32's
+ * defect wearing the other coat.
+ *
+ * The live case is the one that reaches a page filing did NOT choose: the org-membership
+ * fan-out puts a row filed on C-2010 onto each member's page, and there — page ≠ filing — a
+ * printed page id is the same fact `namesThisPage` has always meant, and the stronger sentence
+ * is true and is the reader's answer to *why is this row here at all*.
+ *
+ * `filedOn` is therefore evidence, not a flag: omitted or empty, nothing widens and this is
+ * the pre-inc.86 function for every existing caller. It never narrows — a caller that has
+ * already PROVEN the page is named (`namesThisPage === true`) keeps that answer whatever
+ * filing says.
+ *
  * @param named every record the row SPANS (`flagNamedScope().named`), when the caller has it
  * @param printed every minted id the row PRINTS (`named_ref`), filed or not, for the head
+ * @param filedOn the row's `entity_id`, so a printed page id off the filing's own page counts
  */
 export function archiveResolvedFromMark(
   note: string | null | undefined,
@@ -396,6 +422,7 @@ export function archiveResolvedFromMark(
   namesThisPage?: boolean,
   named?: readonly string[] | null,
   printed?: readonly string[] | null,
+  filedOn?: string | null,
 ): string | null {
   const from = resolvedFrom(note);
   const page = (pageId ?? "").trim();
@@ -424,7 +451,13 @@ export function archiveResolvedFromMark(
   const namesFrom = Array.isArray(printed) ? printed : Array.isArray(named) ? named : [];
   const fromIsNamed = namesFrom.includes(from);
   const head = fromIsNamed ? `Resolved from ${from}` : `Resolved from ${from}'s page`;
-  return namesThisPage === true
+  // inc.86: the tail asks the same filing-agnostic question as the head — does the row PRINT
+  // this page's id — but only where filing did not put the row here. On the filing's own page
+  // the header already answers "why is this here", and naming would be the wrong answer to it.
+  const filing = (filedOn ?? "").trim();
+  const namesHere =
+    namesThisPage === true || (filing !== "" && filing !== page && namesFrom.includes(page));
+  return namesHere
     ? `${head} — this finding names this record too, so it closed here with it.`
     : `${head} — it is one finding, so closing it there closed it here.`;
 }

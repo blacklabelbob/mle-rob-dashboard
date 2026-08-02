@@ -889,12 +889,17 @@ export default function ThingsToAddress({
                     // row, and it must stay that way (a filed row is not on every record it
                     // names). The head's question is different and filing does not touch it,
                     // so it gets the row's printed ids straight off the server.
+                    // inc.86: `here` is null for a filed row for the same reason, so the tail
+                    // clause got the same arm answer. `f.entity_id` is passed as evidence, not
+                    // as a second rule — the function decides, and only off the filing's own
+                    // page, where the header already says why the row is there.
                     const mark = archiveResolvedFromMark(
                       f.resolution_note,
                       person ?? entity,
                       archiveScope?.here != null,
                       archiveScope?.named,
-                      f.named_ref
+                      f.named_ref,
+                      f.entity_id
                     );
                     return mark ? <div className="mt-0.5 text-slate-500">{mark}</div> : null;
                   })()}

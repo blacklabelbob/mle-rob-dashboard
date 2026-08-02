@@ -523,3 +523,56 @@ describe("archiveResolvedFromMark — a FILED row names ids too (inc.84)", () =>
     );
   });
 });
+
+describe("archiveResolvedFromMark — the tail clause, for a FILED row (inc.86)", () => {
+  // Same prod #145 shape: filed on C-2010, prints C-2010 + C-2017 + C-2018, resolved from
+  // C-2017. The org-membership fan-out is what makes this reachable — the row lands on a
+  // member's page, and there the question "does this row name this page" is a real one.
+  const printed = ["C-2010", "P-1018", "C-2018"];
+  const stored = resolvedFromNote("", "C-2017", [], "C-2010");
+
+  it("says the row names this record when it PRINTS it and filing did not put it here", () => {
+    // P-1018 is reached through `org_memberships` on the filing C-2010, not by filing.
+    expect(archiveResolvedFromMark(stored, "P-1018", false, undefined, printed, "C-2010")).toBe(
+      "Resolved from C-2017's page — this finding names this record too, so it closed here with it.",
+    );
+  });
+
+  it("was the defect: the same row, same evidence, got the weaker sentence by arm", () => {
+    // The pre-inc.86 call, verbatim — `namesThisPage` came from `flagNamedScope(...).here`,
+    // which is null for every filed row before it looks at what the row prints.
+    expect(archiveResolvedFromMark(stored, "P-1018", false, undefined, printed)).toBe(
+      "Resolved from C-2017's page — it is one finding, so closing it there closed it here.",
+    );
+  });
+
+  it("REFUSES it on the filing's OWN page — filing put the row there, not naming", () => {
+    // C-2010 is printed AND is the filing. The header already answers "why is this here";
+    // crediting the naming would be inc.32's misattribution wearing the other coat.
+    const mark = archiveResolvedFromMark(stored, "C-2010", false, undefined, printed, "C-2010");
+    expect(mark).toBe(
+      "Resolved from C-2017's page — it is one finding, so closing it there closed it here.",
+    );
+    expect(mark).not.toContain("names this record");
+  });
+
+  it("never claims a page the row does not print, filed or not", () => {
+    expect(
+      archiveResolvedFromMark(stored, "P-1099", false, undefined, printed, "C-2010"),
+    ).not.toContain("names this record");
+  });
+
+  it("only ever widens — a caller that PROVED the page is named keeps that answer", () => {
+    expect(
+      archiveResolvedFromMark(stored, "C-2010", true, undefined, printed, "C-2010"),
+    ).toContain("names this record too");
+  });
+
+  it("is unproven-by-default — omitted or empty, every existing caller is unchanged", () => {
+    for (const filing of [undefined, null, "", "   "] as const) {
+      expect(archiveResolvedFromMark(stored, "P-1018", false, undefined, printed, filing)).toBe(
+        archiveResolvedFromMark(stored, "P-1018", false, undefined, printed),
+      );
+    }
+  });
+});

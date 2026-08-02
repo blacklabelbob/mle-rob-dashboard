@@ -992,6 +992,9 @@ describe("Q84 inc.81 — the digest's chips take the same confirmed set as the r
     // filed row is closed on records its filing never puts it on.
     expect(args).toContain("archiveScope?.named");
     expect(args).toContain("f.named_ref");
+    // inc.86: the tail clause needs the filing to tell "the fan-out put this row here" from
+    // "filing put it here". Deleted, a filed row silently loses the sentence again.
+    expect(args).toContain("f.entity_id");
   });
 
   it("the resolve control is handed the same printed ids as the archive mark (inc.85)", () => {
