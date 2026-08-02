@@ -4,6 +4,7 @@ import path from "node:path";
 import {
   ABSTENTION,
   READER,
+  READER_ANCHOR,
   ROW_ARG_COUNT,
   RULE_FILE,
   READER_GATE_GUARD,
@@ -21,6 +22,7 @@ import {
   ungatedReaderRefusal,
   type SourceFile,
 } from "../readerGate";
+import { missingAnchorNotice } from "../anchorPin";
 
 // Q84 inc.107 — tested on strings AND driven off the real tree (the 0021/0034/inc.51 precedent,
 // same as inc.106's payloadWriters). Fixtures prove the scan; the walk is what makes the next
@@ -445,6 +447,21 @@ describe("the real tree", () => {
 
   it("has the live caller in the walk — an empty walk is not a clean bill of health", () => {
     expect(readerCallers(TREE)).toContain(LIVE_CALLER);
+  });
+
+  // Q84 inc.116 — the pin above is on a CALLER, and it was standing in for a pin on the READER.
+  // It holds only while a live caller exists; the day the last one is refactored away, the reader
+  // could be deleted and every rule below would pass on a name that is nowhere. Both are kept: one
+  // proves the walk reaches production, this proves there is something to reach.
+  it("still has the reader DECLARED somewhere the walk can see", () => {
+    expect(missingAnchorNotice(READER_ANCHOR, READER_GATE_GUARD, TREE)).toBeNull();
+  });
+
+  it("does not count this module's own prose as that proof — it quotes the declaration twice", () => {
+    const rule = TREE.filter((f) => f.path === RULE_FILE);
+    expect(rule).toHaveLength(1);
+    expect(rule[0].text).toContain(`export function ${READER}(`);
+    expect(missingAnchorNotice(READER_ANCHOR, READER_GATE_GUARD, rule)).not.toBeNull();
   });
 
   it("has no production caller reading a payload without its row", () => {

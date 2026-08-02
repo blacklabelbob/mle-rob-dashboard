@@ -26,6 +26,18 @@
 // is covered. That split is inc.114's and it is deliberate — a guard that walks the disk cannot be
 // unit-tested on strings, and a contract that is only ever a literal in a test cannot be shared.
 
+/**
+ * A source file as read off disk. `path` is repo-relative, with `/` separators.
+ *
+ * Q84 inc.116 — this shape was declared THREE times (both doors and, nearly, the anchor pin) and
+ * it is the perimeter's own vocabulary: it is what the walk hands a guard. Declared once here and
+ * re-exported by both doors, so their existing importers are untouched.
+ */
+export type SourceFile = {
+  path: string;
+  text: string;
+};
+
 /** The directories the walk descends. A repo-root file (no `/`) is scanned too — `proxy.ts` is production. */
 export const SCANNED_ROOTS = ["app", "components", "lib", "scripts"] as const;
 

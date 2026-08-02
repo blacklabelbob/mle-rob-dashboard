@@ -29,6 +29,9 @@
 // Pure per CR-3: handed file contents, returns a verdict. No filesystem, no clock, no network —
 // the walk belongs to the caller, so the rule stays testable on strings.
 
+import type { Anchor } from "./anchorPin";
+import type { SourceFile } from "./scanPerimeter";
+
 /** The reader whose scope argument is optional in the type system and mandatory in production. */
 export const READER = "hostConfirmControls";
 
@@ -47,11 +50,21 @@ export const ROW_ARG_COUNT = 4;
  */
 export const RULE_FILE = "lib/flags/readerGate.ts";
 
-/** A source file as read off disk. `path` is repo-relative, with `/` separators. */
-export type SourceFile = {
-  path: string;
-  text: string;
-};
+/**
+ * Q84 inc.116 — the reader must still BE somewhere, and the pin is deliberately a DECLARATION pin
+ * rather than a text match: this file spells `export function hostConfirmControls(` twice above,
+ * explaining that a declaration is not a call, so a looser rule would let this module's own
+ * commentary vouch for a reader that had been renamed out of existence.
+ *
+ * The read door's old real-tree pin was on a CALLER, which is a weaker promise wearing this one's
+ * name: it holds only while a live caller exists. Both are kept — a caller proves the walk reaches
+ * production, this proves there is something to call.
+ */
+export const READER_ANCHOR: Anchor = { kind: "declaration", name: READER };
+
+// Q84 inc.116 — `SourceFile` is the perimeter's vocabulary, declared once in `./scanPerimeter`.
+// Re-exported here so this module's existing importers are unchanged.
+export type { SourceFile };
 
 /**
  * The argument lists of every `hostConfirmControls(...)` CALL in a file.

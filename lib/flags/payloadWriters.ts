@@ -25,14 +25,26 @@
 // Pure per CR-3: it is handed file contents and returns a verdict. No filesystem, no clock, no
 // network — the walk belongs to the caller, so the rule stays testable on strings.
 
+import type { Anchor } from "./anchorPin";
+import type { SourceFile } from "./scanPerimeter";
+
 /** The one file allowed to put a payload into a `flags` row, because it is the one that scopes. */
 export const SCOPED_PAYLOAD_WRITER = "app/api/admin/flags/route.ts";
 
-/** A source file as read off disk. `path` is repo-relative, with `/` separators. */
-export type SourceFile = {
-  path: string;
-  text: string;
-};
+/**
+ * Q84 inc.116 — this door's whole rule is "every writer except that one path", so if the path
+ * stops existing the rule excludes nothing and reports nothing, and the green means only that
+ * there is no subject. The pin used to be a bespoke `TREE.some(...)` in this door's test; it is
+ * the shared shape now, so it and the read door's pin strengthen together.
+ */
+export const SCOPED_PAYLOAD_WRITER_ANCHOR: Anchor = { kind: "path", name: SCOPED_PAYLOAD_WRITER };
+
+/** This door's name in a notice — a shared check must say WHICH door went blind (inc.115). */
+export const PAYLOAD_WRITE_GUARD = "the flags.payload write gate";
+
+// Q84 inc.116 — `SourceFile` is the perimeter's vocabulary, declared once in `./scanPerimeter`.
+// Re-exported here so this module's existing importers are unchanged.
+export type { SourceFile };
 
 /**
  * `payload` used as an OBJECT KEY — `{ payload`, `, payload:`, `, payload }`.

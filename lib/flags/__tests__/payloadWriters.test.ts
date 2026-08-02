@@ -2,15 +2,15 @@ import { describe, expect, it } from "vitest";
 import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import {
+  PAYLOAD_WRITE_GUARD,
   SCOPED_PAYLOAD_WRITER,
+  SCOPED_PAYLOAD_WRITER_ANCHOR,
   unscopedPayloadWriterRefusal,
   unscopedPayloadWriters,
   type SourceFile,
 } from "../payloadWriters";
+import { missingAnchorNotice } from "../anchorPin";
 import { scannedByWalk, SOURCE_FILE, unscannedNotice, unscannedSources } from "../scanPerimeter";
-
-/** This door's name in an `unscannedNotice` — a shared perimeter must say which guard went blind. */
-const PAYLOAD_WRITE_GUARD = "the flags.payload write gate";
 
 // Q84 inc.106 — the rule is tested on strings AND driven off the real tree, the 0021/0034/inc.51
 // precedent. A guard that only ever sees its own fixtures proves the regex compiles; the walk is
@@ -92,8 +92,12 @@ describe("who may write flags.payload", () => {
 });
 
 describe("the real tree", () => {
-  it("has the scoped route in it, so the walk is proven to be looking at something", () => {
-    expect(TREE.some((f) => f.path === SCOPED_PAYLOAD_WRITER)).toBe(true);
+  // Q84 inc.116 — this was a bespoke `TREE.some(...)` here and a DIFFERENT, weaker assertion in the
+  // read door's test. Same question, two answers, so strengthening one did nothing for the other.
+  // It is the shared pin now: rename the scoped route and this door does not quietly excuse every
+  // writer, it says so.
+  it("still has the door it excludes — an anchor that names nothing excuses everything", () => {
+    expect(missingAnchorNotice(SCOPED_PAYLOAD_WRITER_ANCHOR, PAYLOAD_WRITE_GUARD, TREE)).toBeNull();
   });
 
   it("routes every payload write through the door that scopes it", () => {
