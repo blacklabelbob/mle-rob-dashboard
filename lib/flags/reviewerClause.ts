@@ -166,3 +166,63 @@ export function routeClauseRefusal(
 
   return clauseRefusalMessage(typed);
 }
+
+/**
+ * Q84 inc.100 — the same sentence arriving through the OTHER door, where the route can prove
+ * it outright.
+ *
+ * inc.99 closed the fleet's one off-page RESOLVE (an agent instruction, gated by a test). Its
+ * handover asked the obvious next thing: `meeting-scribe`'s other write is a POST, whose
+ * `detail` is free text composed by the same agent that has just read a ledger whose house
+ * sentence is literally `Resolved from C-1234.` — can a FILED finding end in it too?
+ *
+ * IT CAN, AND IT COSTS MORE THAN A MISREAD SENTENCE. `flagNamedScope` reads the `detail` (and
+ * the title) for minted ids, and every one of prod's 142 rows carries a null `entity_id`, so
+ * every row is scope-bearing. An id inside that trailing sentence therefore joins `named` —
+ * the row starts rendering on that record's page with a Resolve button on it — and joins
+ * `others`, which is the exact input `resolvedFromNote` early-returns on
+ * (`!others.length && !filedElsewhere`). So a fabricated stamp in the DETAIL manufactures the
+ * condition under which the machine later writes a REAL one into the note. Not provenance that
+ * merely reads wrong: provenance that becomes genuine.
+ *
+ * WHY THIS ONE IS PROVABLE AT THE SERVER WHEN inc.98's WAS NOT. inc.98 could only close a
+ * subset, because on the resolve path the client appends the machine's stamp before sending —
+ * a legitimate stamp and a typed clause arrive as the identical string, and refusing both would
+ * delete the provenance inc.34/inc.35 were spent building. Here the FIELD tells them apart:
+ * `resolvedFromNote` writes that sentence into `resolution_note` and nowhere else, and no
+ * producer in this repo writes it into a `title` or a `detail`. There is no legitimate author
+ * to refuse, so this refusal is total rather than a subset — and it is the first one on this
+ * ladder that can say so honestly.
+ *
+ * IT REFUSES A POSITION, NOT AN ID. Eight rows on prod name minted ids inside their detail and
+ * are meant to; that is how a finding reaches the records it concerns. Only the TERMINAL
+ * sentence is the ledger's grammar (`RESOLVED_FROM` is anchored at `$`), so moving the id
+ * earlier keeps every bit of the row's reach and costs the caller nothing real.
+ *
+ * @param title  the title being filed
+ * @param detail the detail being filed
+ */
+export function filedClauseRefusal(
+  title: string | null | undefined,
+  detail: string | null | undefined,
+): string | null {
+  // Detail first: it is the longer field, the one an agent narrates into, and the one every
+  // caller must send. Same reader as the writer's own (inc.4/inc.5) — never a second regex.
+  const inDetail = resolvedFrom((detail ?? "").trim());
+  if (inDetail !== null) return filedClauseRefusalMessage("detail", inDetail);
+  const inTitle = resolvedFrom((title ?? "").trim());
+  if (inTitle !== null) return filedClauseRefusalMessage("title", inTitle);
+  return null;
+}
+
+/** The one sentence, written once (inc.90), naming the alternative rather than just the no. */
+function filedClauseRefusalMessage(field: "title" | "detail", typed: string): string {
+  return (
+    `This flag's ${field} ends with "Resolved from ${typed}." — that sentence is the ledger's ` +
+    `own record of which page a finding was CLOSED from, and a flag being filed has not been ` +
+    `closed by anyone. Ending there also puts ${typed} in the records this row names, so it ` +
+    `would appear on that record's page and the resolve stamp written later would cite a page ` +
+    `nobody clicked. Move the id earlier in the sentence — "…, filed against ${typed}" — and ` +
+    `the row still reaches ${typed} exactly as it would have.`
+  );
+}

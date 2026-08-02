@@ -1,7 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { reviewerClauseRefusal, routeClauseRefusal } from "../reviewerClause";
+import { filedClauseRefusal, reviewerClauseRefusal, routeClauseRefusal } from "../reviewerClause";
 import { resolveNoteFor } from "@/lib/comms/proposalFlag";
-import { resolvedFrom, resolutionNoteBody, archiveResolvedFromMark } from "../supersede";
+import { resolvedFrom, resolvedFromNote, resolutionNoteBody, archiveResolvedFromMark } from "../supersede";
+import { flagNamedRecordIds, flagNamedScope } from "../recordLinks";
 
 // Q84 inc.97 — the three paths where `resolveNoteFor` writes no stamp, which are exactly the
 // paths where a reviewer's own trailing clause survives into the ledger unclaimed.
@@ -106,5 +107,67 @@ describe("routeClauseRefusal", () => {
     // `resolveNoteFor` ever starts stamping proposals, this refusal goes quiet with it.
     expect(resolveNoteFor(PROPOSAL, "", "C-0", ["C-1"])).toBe("");
     expect(resolveNoteFor(ORDINARY, "", "C-0", ["C-1"])).toBe("Resolved from C-0.");
+  });
+});
+
+// Q84 inc.100 — the same grammar arriving on a POST, where the FIELD tells the two authors
+// apart and the refusal can therefore be total instead of a subset.
+describe("filedClauseRefusal", () => {
+  it("says nothing about the findings the fleet actually files today", () => {
+    // Shapes taken from prod: details that name minted ids mid-sentence, and details with none.
+    for (const detail of [
+      "Two records hold acme.com — C-2017 and C-2019 — and only one can keep it.",
+      "No recorder was on this. Drop what you remember into docs/plans/sources/.",
+      "Closed after C-2018 was checked, then re-filed here.",
+      "",
+    ]) {
+      expect(filedClauseRefusal("UNCAPTURED MEETING — 2026-07-28 — Omega", detail), detail).toBeNull();
+    }
+  });
+
+  it("refuses a filed detail ending in the ledger's own closure sentence", () => {
+    const message = filedClauseRefusal(ORDINARY, "Same domain on two records. Resolved from C-2017.");
+    expect(message).toContain("detail");
+    expect(message).toContain("C-2017");
+    // Names the alternative rather than only the no (inc.93), and the alternative preserves reach.
+    expect(message).toContain("Move the id earlier");
+  });
+
+  it("refuses the title too — `flagNamedScope` reads both fields for ids", () => {
+    const message = filedClauseRefusal("Domain conflict. Resolved from P-1018.", "acme.com");
+    expect(message).toContain("title");
+    expect(message).toContain("P-1018");
+  });
+
+  it("is the writer's own reader, so the two can never drift apart", () => {
+    // Whatever `resolvedFrom` reads back off a note is exactly what this refuses in a detail.
+    for (const s of ["Resolved from C-2017.", "Handled. Resolved from P-1018."]) {
+      expect(resolvedFrom(s)).not.toBeNull();
+      expect(filedClauseRefusal(ORDINARY, s)).not.toBeNull();
+    }
+    for (const s of ["Resolved from C-2017 today.", "resolved from C-2017.", "C-2017."]) {
+      expect(resolvedFrom(s)).toBeNull();
+      expect(filedClauseRefusal(ORDINARY, s), s).toBeNull();
+    }
+  });
+
+  it("refuses a POSITION, not an id — the same id earlier in the detail is fine", () => {
+    const named = "Filed against C-2017 after the 7/28 sweep.";
+    expect(filedClauseRefusal(ORDINARY, named)).toBeNull();
+    // And the row still reaches C-2017, which is the whole claim the message makes to the caller.
+    expect(flagNamedRecordIds(ORDINARY, named)).toContain("C-2017");
+  });
+
+  it("closes the scope-manufacturing path: the refused id would have joined `others`", () => {
+    // This is why it matters. The trailing clause puts C-2017 in the ids the row names, and a
+    // non-empty `others` is exactly what makes `resolvedFromNote` stamp for real later.
+    const bad = "Same domain on two records. Resolved from C-2017.";
+    const scope = flagNamedScope(null, ORDINARY, bad, null, ["C-2017"]);
+    expect(scope?.others).toContain("C-2017");
+    expect(resolvedFromNote("Handled.", "C-2019", scope?.others ?? [])).toBe(
+      "Handled. Resolved from C-2019.",
+    );
+    // …and with the fabricated clause gone there is nothing else named, so no stamp is written.
+    expect(resolvedFromNote("Handled.", "C-2019", [])).toBe("Handled.");
   });
 });

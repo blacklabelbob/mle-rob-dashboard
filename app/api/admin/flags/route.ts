@@ -4,7 +4,7 @@ import { planFlagWrite, planFlagReopen, reopenNote, flagReopenRefusal, resolvedF
 import { canonicalHostConfirmPayload, readHostConfirmPayload } from "@/lib/flags/hostConfirm";
 import { isMissingColumn, payloadNote, type DbError } from "@/lib/flags/payloadColumn";
 import { unverifiedActorRefusal } from "@/lib/flags/resolveActor";
-import { routeClauseRefusal } from "@/lib/flags/reviewerClause";
+import { filedClauseRefusal, routeClauseRefusal } from "@/lib/flags/reviewerClause";
 import {
   buildSlugIndex,
   entityOrFilter,
@@ -263,6 +263,13 @@ export async function POST(req: NextRequest) {
   if (!entityName || !title || !detail) {
     return NextResponse.json({ error: "need entityName, title, detail" }, { status: 400 });
   }
+  // Q84 inc.100: a FILED row whose title or detail ends in `Resolved from C-….` claims a
+  // closure that has not happened, and — because `flagNamedScope` reads both fields — pulls
+  // that id into the records the row names, which is the very input that makes the resolve
+  // path stamp for real later. Unlike the PATCH side (inc.98) nothing legitimate writes that
+  // sentence into these fields, so this refusal is total rather than a subset.
+  const filedClause = filedClauseRefusal(title, detail);
+  if (filedClause) return NextResponse.json({ error: filedClause }, { status: 400 });
   const key = typeof dedupeKey === "string" && dedupeKey.trim() ? dedupeKey.trim() : null;
   const row = {
     entity_id: entityId ?? null,
