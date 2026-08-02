@@ -69,6 +69,26 @@ describe("treeScanRecognisers", () => {
     ).toEqual([{ path: "lib/b.ts", name: "breaches" }]);
   });
 
+  it("recognises one over a walk type declared as an interface, not a type alias", () => {
+    // Q84 inc.124 — which keyword the author reached for must not decide whether their guard is
+    // asked whether it owes a vacuity pin.
+    expect(
+      treeScanRecognisers([
+        { path: "lib/a.ts", text: "export interface BlobFile { path: string; content: string }" },
+        { path: "lib/b.ts", text: "export function breaches(f: readonly BlobFile[]): string[] {" },
+      ]),
+    ).toEqual([{ path: "lib/b.ts", name: "breaches" }]);
+  });
+
+  it("ignores an interface carrying a path and no bytes — the negative survives the wider grammar", () => {
+    expect(
+      treeScanRecognisers([
+        { path: "lib/a.ts", text: "export interface Readiness { path: string; ready: boolean }" },
+        { path: "lib/b.ts", text: "export function worst(all: readonly Readiness[]): string[] {" },
+      ]),
+    ).toEqual([]);
+  });
+
   it("ignores a list of findings ABOUT files — a reducer is not a guard", () => {
     expect(
       treeScanRecognisers([
@@ -204,10 +224,17 @@ describe("the live guard family", () => {
     expect(types).toContain("SourceFile");
     // Declared in `lib/coreSeam.ts` — a name nothing in `lib/flags/` has ever mentioned.
     expect(types).toContain("SeamFile");
+    // Q84 inc.124 — declared as an `export interface`, the form 235 exported declarations on this
+    // tree use and the derivation could not read until now.
+    expect(types).toContain("AssetSource");
     // A finding ABOUT a file is not a file: `{path, name}` and `{path, reason}` stay out, or this
     // rule degrades into "any type holding a path".
     expect(types).not.toContain("Recogniser");
     expect(types).not.toContain("ReaderAbstention");
+    // And that negative holds in the newly admitted form: both are interfaces carrying a `path` and
+    // no bytes, so widening the grammar did not widen the meaning.
+    expect(types).not.toContain("RepairDoorReadiness");
+    expect(types).not.toContain("ResearchDigest");
   });
 
   it("has no recogniser that could go vacuous unnoticed", () => {
