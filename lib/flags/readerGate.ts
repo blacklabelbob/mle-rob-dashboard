@@ -184,12 +184,98 @@ function mentions(text: string, root: string): boolean {
   return new RegExp(`(?<![\\w$.])${root}(?![\\w$])`).test(text);
 }
 
+// Q84 inc.109 — THE HOISTED ROW WAS NOT ABSTAINED ON. IT WAS NAGGED.
+//
+// inc.108 handed over a suspicion phrased as a gap: `mismatchedRowCallers` "abstains on a hoisted
+// row". Read at the function rather than taken on its word, and it is the opposite — a bare
+// identifier mentions nothing, so `!mentions("row", "f")` is TRUE and the correct caller is
+// REPORTED. Not a blind spot: a false positive, on the spelling a refactor most likely produces.
+//
+// That is the one failure this file cannot afford. `payloadWriters.ts` states it a increment
+// earlier in its own words — a guard that cries wolf is a guard somebody deletes — and it is
+// worse here, because the sentence this guard prints accuses a correct author of grading the
+// wrong finding.
+//
+// THE ASYMMETRY IS THE BUG. The module doc already claims the right doctrine: abstain rather than
+// guess. It honours it on the PAYLOAD side (a bare `payload` has no root, so no opinion) and
+// breaks it on the ROW side, where an argument it equally cannot read is treated as proof of
+// mismatch. Same ignorance, opposite verdict.
+//
+// SO THE ANSWER TO "FOLLOW IT, OR STATE THE LIMIT" IS BOTH, AND IN THAT ORDER. A `const row =
+// {...}` in the same file is readable, deterministically — following it keeps the real catch (a
+// hoisted row built off ANOTHER object still offends). What cannot be read — an imported row, a
+// parameter, a destructured binding, or a name declared twice — is abstained on, which is what
+// inc.108 wrongly believed was already happening.
+
+/** A bare identifier, i.e. a row passed by name rather than written at the call site. */
+function bareIdentifier(arg: string): string | null {
+  const t = arg.trim();
+  return /^[A-Za-z_$][\w$]*$/.test(t) && t !== "undefined" ? t : null;
+}
+
+/**
+ * The initializer of `const|let|var <name> = …` in the same file, or null.
+ *
+ * Null covers three honest ignorances that must not read as a mismatch: no declaration here (the
+ * row is imported, a parameter, or destructured), more than one declaration of the name (which of
+ * them reached the call is a scope question this cannot answer), and an unterminated initializer.
+ *
+ * LIMIT, stated rather than covered up: textual and file-local. A shadowed name in a nested scope
+ * resolves to whichever single declaration exists; reassignment after declaration is not seen.
+ */
+function declaredInitializer(text: string, name: string): string | null {
+  const decl = new RegExp(`(?<![\\w$.])(?:const|let|var)\\s+${name}\\s*(?::[^=;]*)?=`, "g");
+  let found: number | null = null;
+  for (let m = decl.exec(text); m; m = decl.exec(text)) {
+    if (found !== null) return null; // declared twice — which one reached the call is not knowable here
+    found = m.index + m[0].length;
+  }
+  if (found === null) return null;
+  return scanInitializer(text, found);
+}
+
+/** The initializer text from just after `=` to the top-level `;` or line end that closes it. */
+function scanInitializer(text: string, start: number): string | null {
+  let depth = 0;
+  let out = "";
+  for (let i = start; i < text.length; i++) {
+    const c = text[i];
+    if (c === '"' || c === "'" || c === "`") {
+      const end = skipString(text, i, c);
+      if (end === -1) return null;
+      out += text.slice(i, end + 1);
+      i = end;
+      continue;
+    }
+    if (c === "(" || c === "[" || c === "{") depth++;
+    else if (c === ")" || c === "]" || c === "}") depth--;
+    else if ((c === ";" || c === "\n") && depth === 0) break;
+    out += c;
+  }
+  const trimmed = out.trim();
+  return trimmed ? trimmed : null;
+}
+
+/**
+ * What the row argument actually says: itself when written at the call site, its declaration when
+ * passed by name, or null when this file cannot read it and must therefore say nothing.
+ */
+function rowEvidence(fileText: string, rowArg: string): string | null {
+  const name = bareIdentifier(rowArg);
+  if (!name) return rowArg;
+  return declaredInitializer(fileText, name);
+}
+
 /**
  * Files where a gated reader call hands over a row that never mentions the object the payload
  * was read off — a row from somewhere else, or a literal standing in for one.
  *
  * Separate from `ungatedReaderCallers` on purpose: that one names calls that show Rob too much,
  * this one names calls that grade the wrong finding. A file can offend both lists.
+ *
+ * A row passed by name is resolved to its declaration in the same file (inc.109) — and when it
+ * cannot be resolved, this abstains, because an argument it cannot read is not evidence of a
+ * mismatch. Reporting it was inc.108's actual defect, not its stated one.
  */
 export function mismatchedRowCallers(files: readonly SourceFile[]): string[] {
   return files
@@ -200,7 +286,10 @@ export function mismatchedRowCallers(files: readonly SourceFile[]): string[] {
         const row = args[ROW_ARG_COUNT - 1];
         if (row === "undefined") return false; // likewise
         const root = receiverRoot(args[0]);
-        return !!root && !mentions(row, root);
+        if (!root) return false; // no root to match — no opinion
+        const evidence = rowEvidence(f.text, row);
+        if (evidence === null) return false; // a row this cannot read is not a row from elsewhere
+        return !mentions(evidence, root);
       }),
     )
     .map((f) => f.path)

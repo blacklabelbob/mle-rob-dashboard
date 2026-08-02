@@ -141,6 +141,43 @@ describe("a gated call whose row came from somewhere else", () => {
     expect(mismatchedRowCallers([{ path: RULE_FILE, text: MISMATCHED }])).toEqual([]);
   });
 
+  // Q84 inc.109 — the hoisted row. inc.108 handed this over as an abstention; it was a NAG.
+  describe("a row passed by name", () => {
+    const call = `${READER}(f.payload, page, written, row);`;
+
+    it("is followed to its declaration and left alone when it is the same row", () => {
+      const hoisted = `const row = { title: f.title, detail: f.detail, entityId: f.entity_id };\n${call}`;
+      expect(mismatchedRowCallers([{ path: "a.tsx", text: hoisted }])).toEqual([]);
+    });
+
+    it("still offends when the hoisted row was built off another object — the catch survives", () => {
+      const wrong = `const row = { title: other.title, detail: other.detail };\n${call}`;
+      expect(mismatchedRowCallers([{ path: "a.tsx", text: wrong }])).toEqual(["a.tsx"]);
+    });
+
+    it("reads a type annotation on the declaration without losing the initializer", () => {
+      const typed = `const row: RowScope = { title: f.title, detail: f.detail };\n${call}`;
+      expect(mismatchedRowCallers([{ path: "a.tsx", text: typed }])).toEqual([]);
+    });
+
+    it("abstains when the row is declared nowhere in the file — imported, a param, destructured", () => {
+      expect(mismatchedRowCallers([{ path: "a.tsx", text: call }])).toEqual([]);
+      const destructured = `const { row } = props;\n${call}`;
+      expect(mismatchedRowCallers([{ path: "a.tsx", text: destructured }])).toEqual([]);
+    });
+
+    it("abstains when the name is declared twice — which one reached the call is not knowable here", () => {
+      const twice = `const row = { title: other.title };\nfunction g() { const row = { title: f.title }; }\n${call}`;
+      expect(mismatchedRowCallers([{ path: "a.tsx", text: twice }])).toEqual([]);
+    });
+
+    it("does not resolve a declaration that merely ends in the name", () => {
+      // `myRow` is a different binding; matching it would grade the call on someone else's object.
+      const other = `const myRow = { title: other.title };\n${call}`;
+      expect(mismatchedRowCallers([{ path: "a.tsx", text: other }])).toEqual([]);
+    });
+  });
+
   it("the refusal names the confusion, not the syntax", () => {
     expect(mismatchedRowRefusal([])).toBeNull();
     const said = mismatchedRowRefusal(["components/Wrong.tsx"])!;
