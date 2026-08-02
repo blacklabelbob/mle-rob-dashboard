@@ -576,46 +576,22 @@ function fileLevelIgnorance(text: string): AbstentionReason[] {
 // ours. Reporting either would train the reader to ignore the list, which is how a real `src/`
 // would then get ignored too.
 
-/** The directories the walk descends. A repo-root file (no `/`) is scanned too — `proxy.ts` is production. */
-export const SCANNED_ROOTS = ["app", "components", "lib", "scripts"] as const;
+// Q84 inc.115 — THE PERIMETER MOVED OUT OF THIS FILE, and the move is the finding, not a tidy-up.
+// The WRITE door (`payloadWriters.ts`, inc.106) kept its own hand-copied roots and extension filter
+// in its own test — the same two literals inc.114 had just proven wrong here, still wrong there. A
+// perimeter that belongs to one guard is a perimeter the other guard copies. It now lives in
+// `./scanPerimeter`, owned once, imported by both doors; these re-exports keep this module's
+// existing importers unchanged.
+export {
+  SCANNED_ROOTS,
+  SOURCE_FILE,
+  scannedByWalk,
+  unscannedSources,
+  unscannedNotice,
+} from "./scanPerimeter";
 
-/** Every spelling of a source file this repo can execute: ts/tsx/js/jsx and the m·c variants. */
-export const SOURCE_FILE = /\.[cm]?[jt]sx?$/;
-
-/** Skipped on purpose, not missed: a test may state the reader's core rule without a scope. */
-const NOT_OURS = /(^|\/)(node_modules|__tests__|\.[^/]+)\//;
-
-/** Whether a repo-relative path is one the walk would hand to the rules above. */
-export function scannedByWalk(filePath: string): boolean {
-  if (!SOURCE_FILE.test(filePath) || NOT_OURS.test(filePath)) return false;
-  const slash = filePath.indexOf("/");
-  if (slash === -1) return true;
-  return (SCANNED_ROOTS as readonly string[]).includes(filePath.slice(0, slash));
-}
-
-/**
- * Source files the caller found that the walk would never have visited — the guard's blind spot,
- * stated as a list rather than as a comment claiming there isn't one.
- *
- * Coverage, not an offence: every path here may be perfectly correct code. What is wrong is only
- * that no rule in this module has ever looked at it.
- */
-export function unscannedSources(paths: readonly string[]): string[] {
-  return paths.filter((p) => SOURCE_FILE.test(p) && !NOT_OURS.test(p) && !scannedByWalk(p)).sort();
-}
-
-/** The sentence a blind spot prints. Same first-clause promise as `abstentionNotice`. */
-export function unscannedNotice(paths: readonly string[]): string | null {
-  if (!paths.length) return null;
-  const many = paths.length !== 1;
-  return (
-    `Nothing below is wrong: ${paths.length} source file${many ? "s" : ""} ` +
-    `${many ? "are" : "is"} outside every rule in this module because the walk never visited ` +
-    `${many ? "them" : "it"} — ${[...paths].join(", ")}. A caller there could omit the row, grade ` +
-    `another finding, or alias the reader, and this guard would stay green. Add the root to ` +
-    `SCANNED_ROOTS, or the extension to SOURCE_FILE, so the file enters.`
-  );
-}
+/** This module's name in an `unscannedNotice` — the notice must say WHICH door went blind. */
+export const READER_GATE_GUARD = "the payload-read gate";
 
 function aliasNames(text: string): { names: string[]; ambiguous: boolean } {
   const found = new Set<string>();

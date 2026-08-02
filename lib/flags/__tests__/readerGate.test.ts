@@ -6,6 +6,7 @@ import {
   READER,
   ROW_ARG_COUNT,
   RULE_FILE,
+  READER_GATE_GUARD,
   SCANNED_ROOTS,
   SOURCE_FILE,
   scannedByWalk,
@@ -419,18 +420,21 @@ describe("what the walk never visited", () => {
     expect(unscannedSources(["supabase/migrations/0035_x.sql", "docs/plans/PRD.md"])).toEqual([]);
   });
 
-  it("says in its first clause that nothing listed is an offence", () => {
-    const said = unscannedNotice(["src/App.tsx"])!;
+  it("says in its first clause that nothing listed is an offence, and names the blind door", () => {
+    const said = unscannedNotice(["src/App.tsx"], READER_GATE_GUARD)!;
     expect(said).toContain("Nothing below is wrong");
     expect(said).toContain("src/App.tsx");
     expect(said).toContain("SCANNED_ROOTS");
-    expect(unscannedNotice([])).toBeNull();
+    // Q84 inc.115 — both doors share one perimeter now, so a notice that does not say which of
+    // them went quiet is a notice nobody can act on.
+    expect(said).toContain(READER_GATE_GUARD);
+    expect(unscannedNotice([], READER_GATE_GUARD)).toBeNull();
   });
 });
 
 describe("the real tree", () => {
   it("has no source file in this repo outside the guard's reach", () => {
-    expect(unscannedNotice(unscannedSources(ALL_SOURCE))).toBeNull();
+    expect(unscannedNotice(unscannedSources(ALL_SOURCE), READER_GATE_GUARD)).toBeNull();
   });
 
   it("actually walked the repo — an empty listing would satisfy every rule below", () => {
