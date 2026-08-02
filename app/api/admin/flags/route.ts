@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { planFlagWrite, planFlagReopen, reopenNote, flagReopenRefusal, supersededNote, type ExistingFlag } from "@/lib/flags/supersede";
 import { canonicalHostConfirmPayload, readHostConfirmPayload } from "@/lib/flags/hostConfirm";
 import { isMissingColumn, payloadNote, type DbError } from "@/lib/flags/payloadColumn";
+import { unverifiedActorRefusal } from "@/lib/flags/resolveActor";
 import {
   buildSlugIndex,
   entityOrFilter,
@@ -170,10 +171,18 @@ async function withEntityRefs<T extends { entity_id: string | null }>(rows: T[])
 
 // resolve (with optional note) — or reopen if Rob changes his mind
 export async function PATCH(req: NextRequest) {
-  const { id, action, note } = await req.json();
+  const payload = await req.json();
+  const { id, action, note } = payload ?? {};
   if (typeof id !== "number" || !["resolve", "reopen", "read", "unread"].includes(action)) {
     return NextResponse.json({ error: "need { id, action: resolve|reopen, note? }" }, { status: 400 });
   }
+  // Q84 inc.96: this handler used to destructure three keys and DROP the rest silently, so a
+  // caller sending `resolvedBy` would get a 200 and believe the ledger recorded it. There is
+  // no verified actor to record (no session; Q73's roles are Postgres read grants behind the
+  // service key), so an author on the wire is a claim about itself — inc.95's misattribution
+  // made durable. See lib/flags/resolveActor.ts for the full ruling.
+  const actorRefusal = unverifiedActorRefusal(payload);
+  if (actorRefusal) return NextResponse.json({ error: actorRefusal }, { status: 400 });
   if (action === "read" || action === "unread") {
     const { error } = await db().from("flags").update({ read_at: action === "read" ? new Date().toISOString().slice(0, 10) : null }).eq("id", id);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
