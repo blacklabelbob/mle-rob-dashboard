@@ -1,5 +1,6 @@
 import { resolvedFrom } from "@/lib/flags/supersede";
 import { resolveNoteFor } from "@/lib/comms/proposalFlag";
+import { flagNamedRecordIds } from "@/lib/flags/recordLinks";
 
 /**
  * Q84 inc.97 — the reviewer's own trailing `Resolved from C-….` read back as the ledger's
@@ -81,6 +82,15 @@ export function reviewerClauseRefusal(
   // written. There is nothing to disentangle and no reader that could be misled.
   if (typed === (fromRecord ?? "").trim()) return null;
 
+  return clauseRefusalMessage(typed);
+}
+
+/**
+ * The one sentence, written once. inc.90's lesson: a string spelled out in two places is how
+ * the third copy gets written differently — and this one is read by a human deciding whether
+ * their own words are safe, so the two callers disagreeing would be worse than usual.
+ */
+function clauseRefusalMessage(typed: string): string {
   return (
     `This note ends with "Resolved from ${typed}." — the ledger reads that sentence as its ` +
     `own record of which page a finding was closed from, so it would be taken out of your ` +
@@ -89,4 +99,70 @@ export function reviewerClauseRefusal(
     `sentence does not end there — "Closed after ${typed} was checked", or put the id earlier ` +
     `— and it stays exactly as you typed it.`
   );
+}
+
+/**
+ * Q84 inc.98 — the same refusal at the ROUTE, and it is deliberately NARROWER than the one
+ * the UI runs.
+ *
+ * inc.96's ruling, which inc.97 then re-proved on its own path: *the UI never offering a thing
+ * is not the same as the server refusing it.* `PATCH /api/admin/flags` stores `note.trim()`
+ * raw, so every no-stamp path inc.97 closed is still reachable by any agent, script or curl in
+ * the fleet. The handover asked whether the route can be handed enough of the row to run the
+ * one ladder. Read from the code, it cannot — and the shape of what it *can* do is the finding.
+ *
+ * WHAT THE ROUTE DOES NOT HAVE. Every branch of `resolvedFromNote` pivots on `fromRecord` —
+ * the record page the click was made on — and that is browser context, not a column. It is
+ * not on the wire, and putting it there would be a claim the route cannot check, which is
+ * exactly what inc.96 refused for `resolvedBy`. Worse, the route cannot even tell the two
+ * authors apart after the fact: the CLIENT appends the machine stamp before sending, so a
+ * legitimate stamp and a reviewer's typed clause arrive as the identical string. Refusing
+ * every trailing clause would refuse the writer's own provenance on precisely the rows
+ * inc.34/inc.35 were spent building — inc.97's reader problem, moved one layer out.
+ *
+ * WHAT IT DOES HAVE, and why this is a strict SUBSET rather than a second, different rule:
+ *
+ *  1. *Does this row stamp at all?* — asked, not restated, by running `resolveNoteFor` on an
+ *     empty note with a probe `from` that would stamp on any ordinary row (the idiom
+ *     `proposalHint` already uses). A title that suppresses the clause for a stamping `from`
+ *     suppresses it for every `from`, so no browser context is needed to know the answer. A
+ *     proposal is the one such row today; the day that rule changes here follows it for free,
+ *     which is why this asks the writer instead of importing `proposalDomain`.
+ *  2. *Could the exempt case apply?* — inc.97 lets a reviewer standing on C-2017 type
+ *     "Resolved from C-2017.", because there is nothing to disentangle. The route cannot know
+ *     where they stood, so it over-approximates: any record the row is FILED on or NAMES is
+ *     treated as a page the click could have come from, held or not. Ids the row has no
+ *     relationship to are the only ones refused. Over-approximating here costs refusals, and
+ *     a refusal the UI would not have shown is the inc.94 defect (a layer disagreeing with the
+ *     layer above it) — so the miss is taken deliberately in that direction.
+ *
+ * The result: the server closes the proposal path outright and leaves the other two to the
+ * client, and that gap is stated rather than papered over. It is not "the same ladder", and
+ * calling it that would be the false claim.
+ *
+ * @param title  the flag's title — what says whether this row is a proposal
+ * @param detail the flag's detail — read only for the ids the row prints
+ * @param note   what the caller is asking to persist
+ * @param homeRecord the record the row is filed on (`entity_ref ?? entity_id`), when known
+ */
+export function routeClauseRefusal(
+  title: string | null | undefined,
+  detail: string | null | undefined,
+  note: string,
+  homeRecord?: string | null,
+): string | null {
+  const typed = resolvedFrom((note ?? "").trim());
+  if (typed === null) return null;
+
+  // Probe `from`/`others` chosen only so an ordinary row WOULD stamp; the empty note keeps
+  // the answer collision-free (a caller's own text can never be mistaken for the stamp).
+  const rowTitle = title ?? "";
+  if (resolveNoteFor(rowTitle, "", "C-0", ["C-1"]) !== "") return null;
+
+  const reachable = new Set(flagNamedRecordIds(rowTitle, detail));
+  const home = (homeRecord ?? "").trim();
+  if (home) reachable.add(home);
+  if (reachable.has(typed)) return null;
+
+  return clauseRefusalMessage(typed);
 }

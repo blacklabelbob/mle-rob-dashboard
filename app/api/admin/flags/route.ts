@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { planFlagWrite, planFlagReopen, reopenNote, flagReopenRefusal, supersededNote, type ExistingFlag } from "@/lib/flags/supersede";
+import { planFlagWrite, planFlagReopen, reopenNote, flagReopenRefusal, resolvedFrom, supersededNote, type ExistingFlag } from "@/lib/flags/supersede";
 import { canonicalHostConfirmPayload, readHostConfirmPayload } from "@/lib/flags/hostConfirm";
 import { isMissingColumn, payloadNote, type DbError } from "@/lib/flags/payloadColumn";
 import { unverifiedActorRefusal } from "@/lib/flags/resolveActor";
+import { routeClauseRefusal } from "@/lib/flags/reviewerClause";
 import {
   buildSlugIndex,
   entityOrFilter,
@@ -192,6 +193,28 @@ export async function PATCH(req: NextRequest) {
   // and the read only happens on the reopen branch — a resolve never consults it (inc.91: the
   // resolve path is handed what the reviewer typed FRESH, never the stored note).
   let keptNote: string | null = null;
+  // Q84 inc.98: a note ending `Resolved from C-….` is read back as the LEDGER's provenance.
+  // inc.97 closed that at the button; the route stores `note.trim()` raw and is reachable by
+  // any agent in the fleet, so the same note lands unrefused through the door beside it. Only
+  // asked when there is a clause to judge — an ordinary note pays no read. See
+  // lib/flags/reviewerClause.ts for why the rule here is strictly narrower than the client's.
+  if (action === "resolve" && typeof note === "string" && resolvedFrom(note.trim())) {
+    const { data: self, error } = await db()
+      .from("flags")
+      .select("title,detail,entity_id")
+      .eq("id", id)
+      .maybeSingle();
+    // A read that failed proves nothing either way, and writing on "unproven" is how the
+    // guard becomes decorative. Same contract as the reopen read below.
+    if (error) return NextResponse.json({ error: `resolve read failed: ${error.message}` }, { status: 500 });
+    if (!self) return NextResponse.json({ error: `no flag #${id}` }, { status: 404 });
+    // The legacy-slug lookup (inc.24) is NOT run here: a slug is not a minted id, so it can
+    // never be the clause's target, and the only cost is a home page whose `entity_id` is a
+    // pre-Q70 slug not counting as reachable. No proposal row on prod carries one.
+    const row = self as { title?: string | null; detail?: string | null; entity_id?: string | null };
+    const refusal = routeClauseRefusal(row.title, row.detail, note, resolveFlagEntityId(row.entity_id ?? null, null));
+    if (refusal) return NextResponse.json({ error: refusal }, { status: 400 });
+  }
   if (action === "reopen") {
     // A keyed row cannot be reopened while its twin is open — the partial unique index from
     // 0033 would reject it, and Rob would get a 500 on his ledger instead of an answer.
