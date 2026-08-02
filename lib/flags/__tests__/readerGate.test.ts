@@ -335,6 +335,51 @@ describe("the reader reached through another name", () => {
   });
 });
 
+// Q84 inc.113 — inc.112 followed the reader under another LOCAL name. A property has no local name
+// to follow, and the call needle excludes a dot by design, so such a file was invisible everywhere.
+describe("the reader reached through a property", () => {
+  const NAMESPACED = `import * as mod from "@/lib/flags/hostConfirmView";\nconst c = mod.${READER}(f.payload, page);`;
+
+  it("reports the uncounted spelling instead of going quiet about the file", () => {
+    expect(abstainedReaderCallers([{ path: "a.tsx", text: NAMESPACED }])).toEqual([
+      { path: "a.tsx", reason: ABSTENTION.propertyAccess },
+    ]);
+  });
+
+  it("does NOT count or grade the call — the receiver is a cross-file fact this walk lacks", () => {
+    // Three arguments: it would be an offence if this file were entitled to call it the reader.
+    expect(readerCallers([{ path: "a.tsx", text: NAMESPACED }])).toEqual([]);
+    expect(ungatedReaderCallers([{ path: "a.tsx", text: NAMESPACED }])).toEqual([]);
+    expect(mismatchedRowCallers([{ path: "a.tsx", text: NAMESPACED }])).toEqual([]);
+  });
+
+  it("covers the property BINDING too, whose calls run through a name inc.112 never sees", () => {
+    const bound = `const read = mod.${READER};\nconst c = read(f.payload, page);`;
+    expect(abstainedReaderCallers([{ path: "a.tsx", text: bound }])).toEqual([
+      { path: "a.tsx", reason: ABSTENTION.propertyAccess },
+    ]);
+  });
+
+  it("says nothing about the direct call or a longer name — the abstention is not the default", () => {
+    expect(abstainedReaderCallers([{ path: "a.tsx", text: GATED }])).toEqual([]);
+    expect(
+      abstainedReaderCallers([{ path: "a.tsx", text: `const c = mod.${READER}Extra(f.payload);` }]),
+    ).toEqual([]);
+  });
+
+  it("excludes its own source, which spells the property out in its own doctrine", () => {
+    expect(abstainedReaderCallers([{ path: RULE_FILE, text: NAMESPACED }])).toEqual([]);
+  });
+
+  it("stacks with the alias it gave up on — one file can be uncounted two ways", () => {
+    const both = `const read = ${READER};\nread = other;\nconst c = mod.${READER}(f.payload, page);`;
+    expect(abstainedReaderCallers([{ path: "a.tsx", text: both }])).toEqual([
+      { path: "a.tsx", reason: ABSTENTION.aliasAmbiguous },
+      { path: "a.tsx", reason: ABSTENTION.propertyAccess },
+    ]);
+  });
+});
+
 describe("the real tree", () => {
   it("has the live caller in the walk — an empty walk is not a clean bill of health", () => {
     expect(readerCallers(TREE)).toContain(LIVE_CALLER);

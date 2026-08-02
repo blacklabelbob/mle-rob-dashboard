@@ -321,6 +321,9 @@ export const ABSTENTION = {
   // inc.112 — a file-level ignorance rather than a per-call one: the alias itself is unreadable.
   aliasAmbiguous:
     "it binds the reader to a name that is declared more than once or written to, so calls through that name were not counted at all",
+  // inc.113 — the reader reached with no local binding to follow: a property off some receiver.
+  propertyAccess:
+    "it reaches the reader through a property, and this file cannot tell whether that receiver is the module that exports it, so calls through it were not counted at all",
 } as const;
 
 export type AbstentionReason = (typeof ABSTENTION)[keyof typeof ABSTENTION];
@@ -368,11 +371,11 @@ export function abstainedReaderCallers(files: readonly SourceFile[]): ReaderAbst
   const out: ReaderAbstention[] = [];
   for (const file of files) {
     if (file.path === RULE_FILE) continue;
-    if (aliasNames(file.text).ambiguous) {
-      const key = `${file.path} ${ABSTENTION.aliasAmbiguous}`;
+    for (const reason of fileLevelIgnorance(file.text)) {
+      const key = `${file.path} ${reason}`;
       if (!seen.has(key)) {
         seen.add(key);
-        out.push({ path: file.path, reason: ABSTENTION.aliasAmbiguous });
+        out.push({ path: file.path, reason });
       }
     }
     for (const args of callArgLists(file.text)) {
@@ -502,6 +505,51 @@ export function ungatedReaderRefusal(offenders: readonly string[]): string | nul
  * LIMIT, stated rather than covered up: a reader reached through a property (`mod.hostConfirm…`),
  * a default import, or an element of an object/array is not a binding this reads.
  */
+// Q84 inc.113 — A NAME THIS FILE IS NOT ALLOWED TO CLAIM.
+//
+// inc.112 followed the reader under another LOCAL name. It handed over the spellings that have no
+// local name to follow: `mod.hostConfirmControls(...)` off a namespace import, and a default import
+// renamed at the import site. Read at `callArgLists`, and both are still invisible — the needle's
+// lookbehind `(?<![\w$.])` excludes a dot on purpose, so a property call is not merely uncounted,
+// it is EXCLUDED BY DESIGN, and no rule downstream ever hears about the file.
+//
+// FOLLOWING IT WOULD BE THE GUESS inc.112 WAS NOT. `read` and `hostConfirmControls` were provably
+// the same function — one binding, in one file, in view. `mod.hostConfirmControls` is the same
+// function only if `mod` is the module that exports it, and that is a CROSS-FILE fact this walk
+// does not have: it is handed text and never resolves a specifier. Counting the call would apply
+// the arity and row rules to a function this file cannot show is the reader — an accusation built
+// on an unread premise, which is the one failure the doctrine forbids (inc.109, inc.110).
+//
+// SO THE HONEST MOVE IS THE ONE inc.111 BUILT THE SHAPE FOR: report it as coverage. The property
+// access is textual evidence the walk already holds and has never used, and the abstention says
+// exactly what is true — this file reaches the reader by a spelling that was not counted — without
+// claiming anything about whether the call is right. Silent-and-uncounted and silent-and-clean stop
+// being the same colour, which is the whole of inc.111.
+//
+// THE OTHER HALF OF THE HANDOVER GETS A LIMIT, NOT A RULE. `import read from "./hostConfirmView"`
+// renames at the import site and never writes the reader's name at all, so there is no textual
+// evidence to abstain on — a file-level notice would have to fire on every file or none. Stated
+// here rather than covered up: this guard sees names, and a default import erases the name.
+
+/** Whether the file reaches the reader through a property — `ns.hostConfirmControls`, `?.` alike. */
+function propertyAccess(text: string): boolean {
+  return new RegExp(`\\.\\s*${READER}(?![\\w$])`).test(text);
+}
+
+/**
+ * The ignorances that belong to the FILE rather than to one call: a binding this file gave up on
+ * (inc.112) and a reader reached through a property it may not claim is the reader (inc.113).
+ *
+ * Both mean the same thing operationally — calls exist here that no rule in this module counted —
+ * and neither is an offence, which is why they leave by the coverage door.
+ */
+function fileLevelIgnorance(text: string): AbstentionReason[] {
+  const reasons: AbstentionReason[] = [];
+  if (aliasNames(text).ambiguous) reasons.push(ABSTENTION.aliasAmbiguous);
+  if (propertyAccess(text)) reasons.push(ABSTENTION.propertyAccess);
+  return reasons;
+}
+
 function aliasNames(text: string): { names: string[]; ambiguous: boolean } {
   const found = new Set<string>();
   const asBinding = new RegExp(`(?<![\\w$.])${READER}\\s+as\\s+([A-Za-z_$][\\w$]*)`, "g");
