@@ -223,6 +223,20 @@ describe("dischargedBy", () => {
   it("refuses a real-tree test that never names the function", () => {
     expect(dischargedBy("subjects", "readFileSync(p); expect(other(files)).toContain(x)")).toBe(false);
   });
+
+  // Q84 inc.127 — a MENTION is not evidence. An import line names every function a test imports.
+  it("refuses a real-tree test that only imports the function", () => {
+    expect(
+      dischargedBy("subjects", 'import { subjects } from "../x";\nreadFileSync(p);\nexpect(1).toBe(1)'),
+    ).toBe(false);
+  });
+
+  // ...and the name must be in THAT assertion, not three statements downstream of one.
+  it("refuses a name that merely follows an unrelated assertion", () => {
+    expect(
+      dischargedBy("subjects", `readFileSync(p); expect(other(f)).toBe(1);${" ".repeat(60)}\nconst s = subjects(f);`),
+    ).toBe(false);
+  });
 });
 
 describe("inModuleProxies", () => {
@@ -371,14 +385,15 @@ describe("the live guard family", () => {
     ]);
   });
 
-  // Q84 inc.126 — AND THE LIMIT OF THAT SELF-MEMBERSHIP, MEASURED RATHER THAN ASSERTED. `dischargedBy`
-  // wants a name and a disk read in one file. A test that exercises these four must import them by
-  // name and must read the real tree to be worth anything, so the import block alone satisfies both
-  // conditions: strip every assertion out of THIS file and all four remain discharged. They cannot
-  // be reported undischarged whatever the test stops doing. Not a self-only hole — any recogniser
-  // pinned by its own real-tree test gets the same free pass — which is why no self-exemption was
-  // added; a hand-chosen exclusion would delete the sound half to paper over this one.
-  it("cannot report its own exports undischarged, even by a test that asserts nothing", () => {
+  // Q84 inc.126 measured the limit of that self-membership; Q84 inc.127 CLOSED it, so this pin is
+  // inverted rather than deleted — the fact it recorded was true when written and is false now.
+  // `dischargedBy` wanted a name and a disk read in one file, and a test that exercises these four
+  // must import them by name, so the import block alone discharged them however little the file
+  // asserted. It now wants the name inside an `expect(…)`: strip every assertion out of THIS file
+  // and all four come back UNDISCHARGED. Measured across the whole tree before the rule changed —
+  // 19 of 19 recognisers still discharge, zero false reds — so this is not a self-exemption, which
+  // is what inc.126 rightly refused.
+  it("reports its own exports undischarged when its test asserts nothing", () => {
     const own = readFileSync(path.join(REPO, "lib/flags/__tests__/vacuityDuty.test.ts"), "utf8");
     const assertionFree = own
       .split("\n")
@@ -386,7 +401,14 @@ describe("the live guard family", () => {
       .join("\n");
     const self = recognisers.filter((r) => r.path === "lib/flags/vacuityDuty.ts");
     expect(self.length).toBe(4);
-    for (const r of self) expect(dischargedBy(r.name, assertionFree)).toBe(true);
+    for (const r of self) expect(dischargedBy(r.name, assertionFree)).toBe(false);
+  });
+
+  // Q84 inc.127 — and the OTHER direction, which is what makes the rule above worth having rather
+  // than merely stricter: with its assertions intact, every one of the nineteen still discharges.
+  // A rule that closes a hole by turning the tree red is not a fix, it is a different bug.
+  it("still discharges every live recogniser once assertions are required", () => {
+    expect(undischargedRecognisers(recognisers, tests, modules)).toEqual([]);
   });
 
   it("has no recogniser that could go vacuous unnoticed", () => {

@@ -177,6 +177,35 @@
 // and would delete the detection direction — the sound half — to paper over the other. The limit is
 // pinned in code below instead, so it cannot be rediscovered as prose a sixth time.
 
+// Q84 inc.127 — A MENTION WAS BEING READ AS EVIDENCE, AND THE FIX COSTS NOTHING ON THIS TREE.
+//
+// inc.126 measured the hole and left it open on purpose: `dischargedBy` asked for the NAME and a
+// disk read in one file, and an import line supplies the name. Strip every assertion out of a
+// module's own test and its recognisers stayed discharged. inc.126 declined to paper over that with
+// a self-exemption — the right call — and handed the real question here: can a discharging test be
+// required to ASSERT something about the name, and what does that cost on guards like `anchorSites`
+// that are pinned only through a wrapper?
+//
+// MEASURED ON THE REAL TREE BEFORE ANY CODE, BOTH CANDIDATE RULES, AND THEY ARE NOT CLOSE.
+//   • name inside an `expect(…)` somewhere in the file — 19 of 19 recognisers still discharge.
+//     ZERO false reds. Including `anchorSites`, whose wrapper `missingAnchorNotice` is what the
+//     assertions actually name; the proxy hop already handles that and needed no change.
+//   • name inside an `expect(…)` in the SAME `it(…)` block as the disk read — 4 of 19. FIFTEEN
+//     false reds, and the reason is structural rather than sloppy: this repo walks the tree ONCE at
+//     describe scope and asserts against the result in many blocks (CR-3 — the module is pure, the
+//     caller owns the filesystem). That rule would demand every test re-read the disk per assertion,
+//     punishing the exact pattern the perimeter was built around. Refused, and the number is why.
+//
+// SO THE RULE NOW WANTS AN ASSERTION, AND THE HOLE inc.126 MEASURED IS CLOSED: assertion-free, this
+// module's own four exports come back UNDISCHARGED, where before they could not. That test is
+// inverted below rather than deleted — the fact it pinned was true when written and is false now.
+//
+// THE RESIDUAL LIMIT IS REAL AND IS SAID OUT LOUD RATHER THAN LEFT FOR inc.128 TO FIND. The disk
+// read and the assertion still need not be in the same test — that is the 15/19 measurement above,
+// accepted deliberately. What this rule proves is that a test ASSERTS ABOUT the named subject in a
+// file that reads the real tree; it does not prove the assertion ran against what was read. That is
+// what a name-matching rule can honestly claim, so the notice now says so instead of implying more.
+
 import { SOURCE_FILE, type SourceFile } from "./scanPerimeter";
 
 /**
@@ -313,6 +342,9 @@ export function treeScanRecognisers(
 /**
  * Whether a body of test text discharges the duty for a named recogniser.
  *
+ * A MENTION IS NOT EVIDENCE — inc.127. The name must sit inside an `expect(…)`, because an import
+ * line names every function a test imports and that was enough until inc.127 measured it.
+ *
  * TWO WAYS, AND BOTH ARE REAL EVIDENCE RATHER THAN A MENTION. Either the test prints the vacuity
  * notice for it (`vacuousGuardNotice` — inc.120's sentence), or it reads the REAL TREE off disk
  * while naming the function, which is strictly stronger: a named live subject proves the recogniser
@@ -330,8 +362,28 @@ export function treeScanRecognisers(
  */
 const READS_DISK = /readdirSync|readFileSync|readdir\(|readFile\(/;
 
+/** How far an `expect(` reaches — these assertions are one statement, several of them wrapped. */
+const ASSERTION_WINDOW = 400;
+
+/**
+ * Whether some assertion in `testText` is ABOUT `name` — the name inside an `expect(…)` statement,
+ * not merely present in the file. An import line names every function a test imports, so a mention
+ * proves only that the module was loaded (inc.126 measured that: assertion-free, this module's own
+ * exports still discharged). Bounded to one statement so a name three assertions later cannot ride
+ * along on an unrelated `expect(`.
+ */
+function assertsAbout(name: string, testText: string): boolean {
+  const mentioned = new RegExp(`\\b${name}\\b`);
+  for (let at = testText.indexOf("expect("); at >= 0; at = testText.indexOf("expect(", at + 1)) {
+    const statement = testText.slice(at, at + ASSERTION_WINDOW);
+    const end = statement.indexOf(";");
+    if (mentioned.test(end >= 0 ? statement.slice(0, end) : statement)) return true;
+  }
+  return false;
+}
+
 export function dischargedBy(name: string, testText: string): boolean {
-  if (!testText.includes(name)) return false;
+  if (!assertsAbout(name, testText)) return false;
   return testText.includes("vacuousGuardNotice") || READS_DISK.test(testText);
 }
 
@@ -398,6 +450,8 @@ export function undischargedVacuityNotice(recognisers: readonly Recogniser[]): s
     `guard returns the same empty array it returns on a clean repo, staying green forever. Pin a ` +
     `NAMED subject read off the real tree — strictly the stronger fix — or, where no subject is ` +
     `stable enough to name, print vacuousGuardNotice. A string fixture does not discharge this: it ` +
-    `proves the regex works on text someone typed, not on the repo.`
+    `proves the regex works on text someone typed, not on the repo. The name must appear inside an ` +
+    `assertion; importing it is not evidence. What that proves is that a test ASSERTS ABOUT the ` +
+    `name in a file that reads the real tree — not that the assertion ran against what was read.`
   );
 }
