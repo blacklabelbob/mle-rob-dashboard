@@ -88,6 +88,62 @@
 // "no subject" and the one that actually justifies the omission. Left undone deliberately — and the
 // day a walk type is declared OUTSIDE `SCANNED_ROOTS` and re-exported in, that reasoning expires.
 
+// Q84 inc.125 — THE VOCABULARY WAS DERIVED FROM THE TREE AND STILL ASKED A HAND-WRITTEN QUESTION.
+//
+// inc.123 derived WHICH TYPES are walk output instead of naming them. inc.124 widened the
+// declaration FORM it could read. Both left the same literal standing one level down: a type
+// counted as walk output only if its bytes field was spelled `text`, `content` or `source` — three
+// names typed into this file. A guard whose walk type spells its bytes `body` or `raw` means
+// exactly the same thing and is invisible. That is the identical hand-chosen literal inc.117,
+// inc.118, inc.123 and inc.124 each deleted once, surviving in a fourth place.
+//
+// THE HANDOVER ASKED WHETHER THAT SET IS DERIVABLE FROM HOW THE WALK'S OWN PRODUCERS POPULATE IT,
+// OR WHETHER WIDENING IT IS THE OVER-REACH `Recogniser` PROVED. IT IS DERIVABLE, AND THE DERIVATION
+// IS STRICTLY NARROWER THAN A WIDER NAME LIST — WHICH IS WHY IT IS NOT THAT OVER-REACH. A field is
+// the file's own bytes when something on this tree READS A FILE INTO IT. Not when it is called
+// `source`: `SeamFile.source` is a file's bytes and a referral `source` is a label, and no list of
+// names can tell those apart. A disk read can, and it is in the code already.
+//
+// MEASURED ON THIS TREE, IN BOTH DIRECTIONS, BEFORE THE RULE WAS WRITTEN — and the measurement is
+// quoted here as it came back, because an earlier draft of this very comment stated it from
+// intention rather than from a run and got it wrong twice, which is the defect inc.124 was about.
+// The derivation returns FIVE names, not the three that used to be typed here: `body`, `content`,
+// `raw`, `source`, `text` — read off 16 disk-read sites across 9 producer files
+// (`lib/flags/__tests__/{anchorRegistry,pathConstants,payloadWriters,readerGate,vacuityDuty,
+// fleetResolveDoc}.test.ts`, `lib/__tests__/{coreSeam,mailReadScope}.test.ts`,
+// `scripts/gen-agent-inventory.mjs`). `body` and `raw` are real only because THIS increment's own
+// test fixtures read a file into them — the derivation reads text, and a fixture string in a test
+// file is text. That is disclosed rather than excluded: excluding this one file by name would be
+// the same hand-chosen literal the whole thread keeps deleting, and the widening is bounded,
+// because a field name only adds a CANDIDATE that still needs a real type declaring `path` plus
+// that field before anything becomes walk output.
+//
+// SO IT CHANGES ZERO ANSWERS TODAY — verified in both directions, not assumed: the old hard-coded
+// three and the derived five both return exactly `AssetSource`, `FleetDoc`, `MailFile`, `SeamFile`,
+// `SourceFile`. It closes no live hole, reported as it is rather than dressed up as a save, exactly
+// as inc.124 was. What it closes is the next one: the day a guard reads a file into `body`, its
+// type joins the vocabulary without anyone remembering to come back here.
+//
+// THE `path` REQUIREMENT ON THE ENCLOSING LITERAL IS WHAT KEEPS IT FROM BECOMING NOISE, and it is
+// pinned in the negative. `{ config: readFileSync(...) }` is a file read into a variable, not the
+// walk handing a guard a file; without that requirement `config` would enter the vocabulary and
+// every type carrying a `config: string` would read as walk output. Same shape as `Recogniser`
+// (inc.123): the discriminator is the PAIR, never either half.
+//
+// THE PRODUCERS LIVE MOSTLY IN TESTS, WHICH BOTH DOORS EXCLUDE — so the caller must hand them in
+// separately, and `treeScanRecognisers` defaults `producers` to `files` only so a single-set caller
+// keeps working. THE DEFAULT IS A TRAP IF THE REAL CALLER TAKES IT, AND THE TRAP IS WORSE THAN THE
+// FIRST DRAFT OF THIS PARAGRAPH CLAIMED — corrected here from a run, because the draft asserted the
+// shape of the failure from intention and got it wrong, which is the exact defect inc.124 was about.
+// Hand this scan modules alone and the vocabulary collapses to `["content"]` — what
+// `scripts/gen-agent-inventory.mjs` populates, the tree's one non-test producer. `SourceFile` does
+// drop out, and with it 18 of the 19 live recognisers. BUT NOT ALL 19: `FleetDoc` spells its bytes
+// `content` too, so `resolveInstructionSubjects` (`lib/flags/fleetResolveDoc.ts`) SURVIVES, and the
+// guard reports ONE recogniser, all discharged, on a tree that has nineteen. A zero would look like
+// a misconfiguration to anyone reading it; a plausible-looking 1 is what actually gets believed.
+// That is this family's own failure mode pointed at itself, so the real-tree test pins NAMED members
+// of both derived sets, and pins this collapse by its exact survivor rather than by prose.
+
 import { SOURCE_FILE, type SourceFile } from "./scanPerimeter";
 
 /**
@@ -103,22 +159,69 @@ import { SOURCE_FILE, type SourceFile } from "./scanPerimeter";
  * derived roster turns into noise the reader learns to skim. That negative holds for the newly
  * admitted form too, and is pinned there: `RepairDoorReadiness` and `ResearchDigest` are interfaces
  * carrying a `path` and no bytes, and both stay out.
+ *
+ * WHICH FIELD HOLDS THE BYTES IS NO LONGER TYPED IN HERE EITHER — see `contentsFieldNames`.
  */
 const WALK_OUTPUT_TYPE =
   /export (?:type ([A-Za-z0-9_]+)\s*=\s*|interface ([A-Za-z0-9_]+)[^{}]*)(\{[^}]*\})/g;
 const HAS_PATH = /\bpath\s*\??:\s*string/;
-const HAS_CONTENTS = /\b(text|content|source)\s*\??:\s*string/;
+
+/**
+ * `NAME: readFileSync(…)` / `NAME: await readFile(…)`, however the fs import is spelled — a field
+ * being handed a file's own bytes.
+ */
+const FIELD_FROM_DISK =
+  /([A-Za-z0-9_]+)\s*:\s*(?:await\s+)?(?:[A-Za-z0-9_.]*\.)?readFile(?:Sync)?\s*\(/g;
+
+/** How far back to look for the enclosing literal — these are 1–4 line object literals. */
+const LITERAL_WINDOW = 300;
+
+/** A `path` KEY in the enclosing literal: `path:` or the shorthand `path,`. */
+const PATH_KEY = /(^|[{,\s])path\s*[:,]/;
+
+/**
+ * Every field name on the given files that something actually reads a file INTO, alongside a
+ * `path` — the vocabulary of "this field holds the file's own bytes", read off the tree rather
+ * than typed in.
+ *
+ * `producers` is normally modules AND tests: most of this repo's walks live in test files by
+ * design (CR-3 — the module stays pure and the caller owns the filesystem), so a producer set
+ * built from modules alone is nearly empty and the vocabulary silently collapses.
+ */
+export function contentsFieldNames(producers: readonly SourceFile[]): string[] {
+  const found = new Set<string>();
+  for (const file of producers) {
+    if (!SOURCE_FILE.test(file.path)) continue;
+    for (const match of file.text.matchAll(FIELD_FROM_DISK)) {
+      const back = file.text.slice(Math.max(0, match.index - LITERAL_WINDOW), match.index);
+      // `${` opens no object literal; blanking it stops a template interpolation from being read
+      // as the start of one, which would hide the `path` key sitting just above.
+      const open = back.replace(/\$\{/g, "  ").lastIndexOf("{");
+      if (PATH_KEY.test(open >= 0 ? back.slice(open) : back)) found.add(match[1]);
+    }
+  }
+  return [...found].sort();
+}
 
 /**
  * Every type name on the given files that a walk could hand out — the vocabulary this scan then
  * looks for in parameter lists, read off the tree instead of typed in here.
+ *
+ * `contentsFields` comes from `contentsFieldNames`. An empty set means no producer was found, and
+ * the honest answer to that is NO walk types rather than all of them: a scan that cannot see a
+ * single disk read has not proven the tree is clean, it has proven it was handed the wrong files.
  */
-export function walkOutputTypes(files: readonly SourceFile[]): string[] {
+export function walkOutputTypes(
+  files: readonly SourceFile[],
+  contentsFields: readonly string[],
+): string[] {
+  if (contentsFields.length === 0) return [];
+  const hasContents = new RegExp(`\\b(${contentsFields.join("|")})\\s*\\??:\\s*string`);
   const found = new Set<string>();
   for (const file of files) {
     if (!SOURCE_FILE.test(file.path)) continue;
     for (const [, aliasName, interfaceName, body] of file.text.matchAll(WALK_OUTPUT_TYPE)) {
-      if (HAS_PATH.test(body) && HAS_CONTENTS.test(body)) found.add(aliasName ?? interfaceName);
+      if (HAS_PATH.test(body) && hasContents.test(body)) found.add(aliasName ?? interfaceName);
     }
   }
   return [...found].sort();
@@ -152,10 +255,14 @@ export type Recogniser = {
  * walk excludes them anyway (`EXCLUDED_DIRS`). Non-source files are ignored by extension so a
  * caller handing us markdown does not produce phantom recognisers.
  */
-export function treeScanRecognisers(files: readonly SourceFile[]): Recogniser[] {
+export function treeScanRecognisers(
+  files: readonly SourceFile[],
+  producers: readonly SourceFile[] = files,
+): Recogniser[] {
   // The vocabulary comes from the same files the recognisers do: hand the scan a wider tree and it
-  // learns that tree's walk types, rather than staying fluent only in `lib/flags/`.
-  const WALK_INPUT = walkInput(walkOutputTypes(files));
+  // learns that tree's walk types, rather than staying fluent only in `lib/flags/`. And which field
+  // holds a file's bytes comes from `producers` — whatever this tree actually reads a file into.
+  const WALK_INPUT = walkInput(walkOutputTypes(files, contentsFieldNames(producers)));
   if (!WALK_INPUT) return [];
   const found: Recogniser[] = [];
   for (const file of files) {

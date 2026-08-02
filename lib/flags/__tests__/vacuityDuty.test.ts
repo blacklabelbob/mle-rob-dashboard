@@ -8,6 +8,7 @@ import {
   dischargedBy,
   inModuleProxies,
   walkOutputTypes,
+  contentsFieldNames,
 } from "../vacuityDuty";
 import { SCANNED_ROOTS, SOURCE_FILE, type SourceFile } from "../scanPerimeter";
 
@@ -46,7 +47,68 @@ for (const root of SCANNED_ROOTS) walk(path.join(REPO, root), `${root}/`);
 // Q84 inc.123 — a fixture must now DECLARE the walk type it uses, because the vocabulary is derived
 // from the same files the recognisers are. That is not incidental: it is the rule under test. A
 // fixture that names `SourceFile[]` without declaring it is a file set in which no walk type exists.
-const DECLARES = "export type SourceFile = { path: string; text: string };\n";
+// Q84 inc.125 — and it must now also show a PRODUCER filling that type's bytes field from disk,
+// for the same reason: which field holds the bytes is derived from what the tree reads a file into,
+// so a fixture declaring `text: string` and never reading a file into `text` is a file set in which
+// nothing is walk output. Same discipline inc.123 introduced, one level down.
+const DECLARES =
+  "export type SourceFile = { path: string; text: string };\n" +
+  'const walked = { path: rel, text: readFileSync(abs, "utf8") };\n';
+
+describe("contentsFieldNames", () => {
+  it("reads the bytes field off a real disk read, whatever it is spelled", () => {
+    // The case the hard-coded `text|content|source` could not see: same meaning, different noun.
+    const fields = contentsFieldNames([
+      { path: "lib/w.ts", text: 'const f = { path: rel, body: readFileSync(abs, "utf8") };' },
+    ]);
+    expect(fields).toEqual(["body"]);
+  });
+
+  it("reads the promise form and a namespaced import too", () => {
+    const fields = contentsFieldNames([
+      { path: "lib/w.ts", text: "const f = { path: rel, raw: await fs.readFile(abs) };" },
+    ]);
+    expect(fields).toEqual(["raw"]);
+  });
+
+  it("requires the enclosing literal to carry a path — a file read is not a walked file", () => {
+    // Without this the rule would mean "any field ever handed a file", and `config: string` on any
+    // type would read as walk output. The discriminator is the PAIR, never either half.
+    const fields = contentsFieldNames([
+      { path: "lib/w.ts", text: 'const c = { config: readFileSync(abs, "utf8") };' },
+    ]);
+    expect(fields).toEqual([]);
+  });
+
+  it("is not fooled by a template interpolation standing between path and the read", () => {
+    // `${f}` opens a brace that is not a literal; reading it as one hides the `path` key above it.
+    const fields = contentsFieldNames([
+      {
+        path: "lib/w.ts",
+        text: "const d = {\n  path: `.claude/agents/${f}`,\n  content: readFileSync(abs),\n};",
+      },
+    ]);
+    expect(fields).toEqual(["content"]);
+  });
+});
+
+describe("walkOutputTypes", () => {
+  it("admits a type whose bytes field the tree's own producers name", () => {
+    const files = [
+      { path: "lib/w.ts", text: 'const f = { path: rel, body: readFileSync(abs, "utf8") };' },
+      { path: "lib/t.ts", text: "export type Blob = { path: string; body: string };" },
+    ];
+    expect(walkOutputTypes(files, contentsFieldNames(files))).toEqual(["Blob"]);
+  });
+
+  it("finds NO walk types when no producer was handed in, rather than all of them", () => {
+    // The trap named in the module: an empty vocabulary means the scan was handed the wrong files,
+    // and answering "nothing is walk output" keeps that indistinguishable from a clean tree only
+    // for a caller that ignores it. The real-tree test above pins the members by name for that.
+    const files = [{ path: "lib/t.ts", text: "export type Blob = { path: string; body: string };" }];
+    expect(walkOutputTypes(files, contentsFieldNames(files))).toEqual([]);
+  });
+});
 
 describe("treeScanRecognisers", () => {
   it("recognises a function that consumes the walk and answers with a list", () => {
@@ -63,7 +125,12 @@ describe("treeScanRecognisers", () => {
     // The half the widened walk alone would not have fixed: a guard elsewhere brings its own noun.
     expect(
       treeScanRecognisers([
-        { path: "lib/a.ts", text: "export type BlobFile = { path: string; content: string };" },
+        {
+          path: "lib/a.ts",
+          text:
+            "export type BlobFile = { path: string; content: string };\n" +
+            "const b = { path: rel, content: readFileSync(abs) };",
+        },
         { path: "lib/b.ts", text: "export function breaches(f: readonly BlobFile[]): string[] {" },
       ]),
     ).toEqual([{ path: "lib/b.ts", name: "breaches" }]);
@@ -74,7 +141,12 @@ describe("treeScanRecognisers", () => {
     // asked whether it owes a vacuity pin.
     expect(
       treeScanRecognisers([
-        { path: "lib/a.ts", text: "export interface BlobFile { path: string; content: string }" },
+        {
+          path: "lib/a.ts",
+          text:
+            "export interface BlobFile { path: string; content: string }\n" +
+            "const b = { path: rel, content: readFileSync(abs) };",
+        },
         { path: "lib/b.ts", text: "export function breaches(f: readonly BlobFile[]): string[] {" },
       ]),
     ).toEqual([{ path: "lib/b.ts", name: "breaches" }]);
@@ -202,7 +274,12 @@ describe("the live guard family", () => {
     expect(tests.length).toBeGreaterThan(0);
   });
 
-  const recognisers = treeScanRecognisers(modules);
+  // Q84 inc.125 — PRODUCERS ARE MODULES *AND* TESTS, and that argument is the rule, not a detail.
+  // This repo's walks live in test files by design (CR-3), so `treeScanRecognisers(modules)` would
+  // derive its bytes-field vocabulary from `scripts/gen-agent-inventory.mjs` alone, lose
+  // `SourceFile`, and report a clean tree while seeing nothing. Pinned below by name, not by count.
+  const producers = [...modules, ...tests];
+  const recognisers = treeScanRecognisers(modules, producers);
 
   // Q84 inc.122 — the pair inc.121 established: the pin above proves the sweep REACHED files, this
   // one proves the rule was ABOUT some. This guard owes its own duty and discharges it here.
@@ -219,8 +296,51 @@ describe("the live guard family", () => {
     expect(recognisers).toContainEqual({ path: "lib/coreSeam.ts", name: "seamViolations" });
   });
 
+  // Q84 inc.125 — the bytes-field vocabulary, read off the real tree's own disk reads. Named
+  // members rather than a length, because an empty derived set is exactly how this scan goes blind.
+  it("learns which field holds a file's bytes from what the tree reads a file into", () => {
+    const fields = contentsFieldNames(producers);
+    // `text` (`SourceFile`), `content` (`FleetDoc`, `AssetSource`), `source` (`SeamFile`,
+    // `MailFile`) — the three that used to be typed into the module, now read off 16 disk-read
+    // sites across 9 producer files in `lib/flags/__tests__/`, `lib/__tests__/` and
+    // `scripts/gen-agent-inventory.mjs`.
+    expect(fields).toEqual(expect.arrayContaining(["content", "source", "text"]));
+
+    // AND THE LIMIT, STATED RATHER THAN HIDDEN BY AN EXACT-MATCH ASSERTION THAT WOULD JUST BREAK:
+    // this derivation reads TEXT, and a fixture string in a test file is text. The `body` and `raw`
+    // fixtures a few describes up are producer-shaped, so they widen the LIVE vocabulary. That is
+    // not fixable by excluding this file (a hand-chosen literal, the defect this whole thread keeps
+    // deleting) and it is bounded: an extra field name only adds a CANDIDATE, and a candidate still
+    // needs a real type declaring `path` plus that field to become walk output. Pinned, not assumed
+    // — the type vocabulary below is exactly the five, fixture-invented nouns included.
+    expect(fields).toContain("body");
+    expect(walkOutputTypes(modules, fields)).toEqual([
+      "AssetSource",
+      "FleetDoc",
+      "MailFile",
+      "SeamFile",
+      "SourceFile",
+    ]);
+  });
+
+  // Q84 inc.125 — THE DEFAULT `producers = files` IS THE TRAP THE MODULE COMMENT NAMES, pinned by
+  // its exact survivor because the first draft of that comment guessed the failure's shape and was
+  // wrong. Modules alone leave one non-test producer (`scripts/gen-agent-inventory.mjs`), so the
+  // vocabulary collapses to `content`, `SourceFile` drops out — and the scan still answers with the
+  // one recogniser whose walk type happens to spell its bytes that way. A plausible 1 is believed
+  // where a 0 would be questioned, which is why this is pinned by NAME and against the live count.
+  it("collapses to a believable near-silence — not to zero — when handed modules as their own producers", () => {
+    expect(contentsFieldNames(modules)).toEqual(["content"]);
+    expect(walkOutputTypes(modules, contentsFieldNames(modules))).toEqual(["AssetSource", "FleetDoc"]);
+    expect(treeScanRecognisers(modules)).toEqual([
+      { path: "lib/flags/fleetResolveDoc.ts", name: "resolveInstructionSubjects" },
+    ]);
+    // ...against a real tree that has nineteen. The gap IS the defect.
+    expect(recognisers.length).toBe(19);
+  });
+
   it("learns the walk's vocabulary from the tree, not from a list in the module", () => {
-    const types = walkOutputTypes(modules);
+    const types = walkOutputTypes(modules, contentsFieldNames(producers));
     expect(types).toContain("SourceFile");
     // Declared in `lib/coreSeam.ts` — a name nothing in `lib/flags/` has ever mentioned.
     expect(types).toContain("SeamFile");
