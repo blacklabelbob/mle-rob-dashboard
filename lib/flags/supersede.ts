@@ -363,13 +363,39 @@ export function resolutionNoteBody(note: string | null | undefined): string {
  * directly under a line naming the flag that closed it, is a contradiction the reader has
  * to resolve, and the ledger loses either way.
  *
- * @param named every id the row prints (`flagNamedScope().named`), when the caller has it
+ * Q84 inc.84 — inc.34's question was being answered "no" for every FILED row, by arm.
+ *
+ * `named` carries two different questions on one argument, and until now one caller supplied
+ * both from `flagNamedScope(...).named`. That function returns `null` the moment `entity_id`
+ * is set — deliberately, and for the SPANS question only: a filed row's header already names
+ * the record it is filed on, so there is nothing to disclose. But inc.34's question is not
+ * "which records does this row span", it is "is `from` one of the ids this row NAMES" — and a
+ * filed row prints ids like any other. Prod #145 is filed on C-2010 and prints C-2010, C-2017
+ * and C-2018. Fed a filed row, `fromIsNamed` was structurally false, so the head qualified as
+ * a PAGE an id the row has printed in its own sentence — inc.34's distinction, inverted.
+ *
+ * So the two questions get two arguments. `printed` is every minted id the row prints
+ * REGARDLESS of filing (`named_ref`, which the route computes for every row), and it is used
+ * for the head and nowhere else.
+ *
+ * The spans branch is deliberately NOT given it, and that refusal is the load-bearing half: a
+ * filed row is not readable on every record it names. `selectRecordFlags` puts it on the pages
+ * its FILING reaches — C-2010 and that org's members — and never on C-2017's. Saying "closed
+ * once on every record it names" there would not be a stale sentence, it would be a new lie,
+ * so that branch keeps reading `named` and stays silent for a filed row exactly as before.
+ *
+ * Unproven-by-default like every other argument here: omitted, the head falls back to `named`
+ * and no existing caller changes meaning.
+ *
+ * @param named every record the row SPANS (`flagNamedScope().named`), when the caller has it
+ * @param printed every minted id the row PRINTS (`named_ref`), filed or not, for the head
  */
 export function archiveResolvedFromMark(
   note: string | null | undefined,
   pageId: string | null | undefined,
   namesThisPage?: boolean,
   named?: readonly string[] | null,
+  printed?: readonly string[] | null,
 ): string | null {
   const from = resolvedFrom(note);
   const page = (pageId ?? "").trim();
@@ -393,7 +419,10 @@ export function archiveResolvedFromMark(
       : "It is one finding, closed once on every record it names — the ledger has no record of where it was closed.";
   }
   if (!page || from === page) return null;
-  const fromIsNamed = Array.isArray(named) && named.includes(from);
+  // inc.84: the head asks whether the row NAMES `from`, which filing has no bearing on.
+  // `printed` when the caller has it; `named` is the pre-inc.84 answer and the fallback.
+  const namesFrom = Array.isArray(printed) ? printed : Array.isArray(named) ? named : [];
+  const fromIsNamed = namesFrom.includes(from);
   const head = fromIsNamed ? `Resolved from ${from}` : `Resolved from ${from}'s page`;
   return namesThisPage === true
     ? `${head} — this finding names this record too, so it closed here with it.`

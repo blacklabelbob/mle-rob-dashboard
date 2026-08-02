@@ -881,11 +881,16 @@ export default function ThingsToAddress({
                     const archiveScope = flagNamedScope(
                       f.entity_id, f.title, f.detail, person ?? entity, f.named_ref
                     );
+                    // inc.84: the SPANS clause reads `archiveScope?.named` — null for a filed
+                    // row, and it must stay that way (a filed row is not on every record it
+                    // names). The head's question is different and filing does not touch it,
+                    // so it gets the row's printed ids straight off the server.
                     const mark = archiveResolvedFromMark(
                       f.resolution_note,
                       person ?? entity,
                       archiveScope?.here != null,
-                      archiveScope?.named
+                      archiveScope?.named,
+                      f.named_ref
                     );
                     return mark ? <div className="mt-0.5 text-slate-500">{mark}</div> : null;
                   })()}

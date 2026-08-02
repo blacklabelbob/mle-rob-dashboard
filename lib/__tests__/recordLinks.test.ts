@@ -976,4 +976,21 @@ describe("Q84 inc.81 — the digest's chips take the same confirmed set as the r
     expect(calls.length).toBe(2); // exactly two surfaces: the digest and the full row
     for (const args of calls) expect(args).toContain("f.named_ref");
   });
+
+  it("the archive mark is handed the row's PRINTED ids, not just its spans (inc.84)", () => {
+    // CR-3, same reason as the guard above: the call is JSX and unreachable from a unit
+    // test, and one deleted argument silently restores the pre-inc.84 answer — a filed
+    // row's own printed id qualified as somebody else's page.
+    const src = readFileSync(
+      path.join(process.cwd(), "components", "ThingsToAddress.tsx"),
+      "utf8",
+    );
+    const call = /archiveResolvedFromMark\(([\s\S]*?)\n\s*\);/.exec(src);
+    expect(call).not.toBeNull();
+    const args = (call as RegExpExecArray)[1];
+    // The spans argument must STAY the scope's — feeding it the printed ids would claim a
+    // filed row is closed on records its filing never puts it on.
+    expect(args).toContain("archiveScope?.named");
+    expect(args).toContain("f.named_ref");
+  });
 });

@@ -473,3 +473,53 @@ describe("archiveResolvedFromMark — the id the click came FROM (inc.34)", () =
     expect(archiveResolvedFromMark("plain note", "C-2017", true, named)).not.toMatch(/[CP]-\d+/);
   });
 });
+
+describe("archiveResolvedFromMark — a FILED row names ids too (inc.84)", () => {
+  // Prod #145: filed on C-2010, and its own sentence prints C-2010, C-2017, C-2018.
+  // `flagNamedScope` returns null for it — correctly, for the SPANS question — so before
+  // inc.84 the head could only ever qualify `from` as a page, whatever the row printed.
+  const printed = ["C-2010", "C-2017", "C-2018"];
+  const stored = resolvedFromNote("", "C-2017", [], "C-2010");
+
+  it("writes the clause at all — a filed row resolved somewhere other than its home", () => {
+    expect(resolvedFrom(stored)).toBe("C-2017");
+  });
+
+  it("prints the id BARE when the row names it, even with no spans list", () => {
+    const mark = archiveResolvedFromMark(stored, "C-2010", false, undefined, printed);
+    expect(mark).toContain("Resolved from C-2017 —");
+    expect(mark).not.toContain("C-2017's page");
+  });
+
+  it("was the defect: fed only the spans list, the same row qualified it as a page", () => {
+    // The pre-inc.84 call, verbatim. Kept as the record of what changed and why.
+    expect(archiveResolvedFromMark(stored, "C-2010", false, undefined)).toContain(
+      "Resolved from C-2017's page",
+    );
+  });
+
+  it("still says PAGE when the row does not name where the click happened", () => {
+    const elsewhere = resolvedFromNote("", "P-1010", [], "C-2010");
+    expect(archiveResolvedFromMark(elsewhere, "C-2010", false, undefined, printed)).toContain(
+      "Resolved from P-1010's page",
+    );
+  });
+
+  it("REFUSES the spans sentence for a filed row — it is not on every record it names", () => {
+    // The load-bearing half. `selectRecordFlags` puts a filed row on the pages its FILING
+    // reaches; C-2017's page never shows #145. Handing `printed` to that branch would not
+    // be a stale sentence, it would be a new lie, so the branch keeps reading `named`.
+    expect(archiveResolvedFromMark("plain note", "C-2010", false, undefined, printed)).toBeNull();
+  });
+
+  it("is unproven-by-default — omitted, every existing caller reads exactly as before", () => {
+    const spans = ["C-2017", "C-2018"];
+    const two = resolvedFromNote("", "C-2017", ["C-2018"]);
+    expect(archiveResolvedFromMark(two, "C-2018", true, spans)).toBe(
+      archiveResolvedFromMark(two, "C-2018", true, spans, null),
+    );
+    expect(archiveResolvedFromMark(two, "C-2018", true, spans, undefined)).toContain(
+      "Resolved from C-2017 —",
+    );
+  });
+});
