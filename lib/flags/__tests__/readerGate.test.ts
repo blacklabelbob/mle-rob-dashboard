@@ -453,9 +453,9 @@ describe("the real tree", () => {
   // It holds only while a live caller exists; the day the last one is refactored away, the reader
   // could be deleted and every rule below would pass on a name that is nowhere. Both are kept: one
   // proves the walk reaches production, this proves there is something to reach.
-  it("still has the reader DECLARED somewhere the walk can see", () => {
-    expect(missingAnchorNotice(READER_ANCHOR, READER_GATE_GUARD, TREE)).toBeNull();
-  });
+  // Q84 inc.117 — the bare pin that stood here is gone, not weakened: `anchorRegistry.test.ts`
+  // pins every registered anchor centrally, this door's included. The prose trap below stays,
+  // because it is this file's own text that springs it and no central test can know that.
 
   it("does not count this module's own prose as that proof — it quotes the declaration twice", () => {
     const rule = TREE.filter((f) => f.path === RULE_FILE);

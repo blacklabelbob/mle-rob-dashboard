@@ -397,7 +397,7 @@ export function abstainedReaderCallers(files: readonly SourceFile[]): ReaderAbst
       if (row === "undefined") continue;
       const reason = receiverRoot(args[0]) ? readRow(file.text, row).reason : ABSTENTION.noRoot;
       if (!reason) continue;
-      const key = `${file.path} ${reason}`;
+      const key = `${file.path}\u0000${reason}`;
       if (seen.has(key)) continue; // one file, one reason — a repeated spelling is not new news
       seen.add(key);
       out.push({ path: file.path, reason });

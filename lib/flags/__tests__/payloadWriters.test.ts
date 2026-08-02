@@ -96,9 +96,9 @@ describe("the real tree", () => {
   // read door's test. Same question, two answers, so strengthening one did nothing for the other.
   // It is the shared pin now: rename the scoped route and this door does not quietly excuse every
   // writer, it says so.
-  it("still has the door it excludes — an anchor that names nothing excuses everything", () => {
-    expect(missingAnchorNotice(SCOPED_PAYLOAD_WRITER_ANCHOR, PAYLOAD_WRITE_GUARD, TREE)).toBeNull();
-  });
+  // Q84 inc.117 — the bare pin that stood here is gone, not weakened: `anchorRegistry.test.ts`
+  // now pins EVERY registered anchor, this door's included, so a copy here would be the inc.115
+  // defect the registry was built to end. What this door keeps is what only it can say.
 
   it("routes every payload write through the door that scopes it", () => {
     const offenders = unscopedPayloadWriters(TREE);
