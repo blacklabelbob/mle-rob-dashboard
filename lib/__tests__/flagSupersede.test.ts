@@ -729,9 +729,26 @@ describe("Q84 inc.94 — the archive says the rule, because the refusal is unrea
 
   it("explains the asymmetry when both kinds are in the archive", () => {
     const note = archiveReopenRuleNote(prodish) ?? "";
-    expect(note).toContain("Reopen shows only on the row a pass closed");
-    expect(note).toContain("The other 39 you closed yourself");
+    expect(note).toContain("Reopen shows only on the 1 row a pass closed");
+    expect(note).toContain("The other 39 were closed by a person");
     expect(note).toContain("file it again");
+  });
+
+  // Q84 inc.95 — the sentence may not name an author the ledger never recorded.
+  it("never tells the reader HE closed them — the evidence is 'no pass claimed it', not 'Rob'", () => {
+    // Resolve provenance records the PAGE, not the human (inc.35/inc.36), and this component
+    // renders on rep account pages too. "You closed yourself" attributes a rep's click to Rob.
+    const note = archiveReopenRuleNote(prodish) ?? "";
+    expect(note).not.toMatch(/\byou\b/i);
+    expect(note).not.toMatch(/\byourself\b/i);
+  });
+
+  it("prints BOTH counts, so the header sums against the Resolved (N) beside it", () => {
+    // inc.94 gave the number on the refused side and hid it on the singular reopenable side,
+    // so the arithmetic could only be checked in one direction.
+    const note = archiveReopenRuleNote(prodish) ?? "";
+    expect(note).toContain("1 row");
+    expect(note).toContain("39");
   });
 
   it("says nothing when no Reopen button is drawn — there is no asymmetry to explain", () => {
@@ -767,7 +784,7 @@ describe("Q84 inc.94 — the archive says the rule, because the refusal is unrea
       { status: "resolved", resolution_note: null },
     ];
     const refused = rows.filter((r) => flagReopenRefusal(r.status, r.resolution_note) !== null).length;
-    expect(archiveReopenRuleNote(rows)).toContain(`The other ${refused} you closed yourself`);
+    expect(archiveReopenRuleNote(rows)).toContain(`The other ${refused} were closed by a person`);
   });
 
   it("is null on an empty or missing archive", () => {
@@ -776,11 +793,12 @@ describe("Q84 inc.94 — the archive says the rule, because the refusal is unrea
     expect(archiveReopenRuleNote(undefined)).toBeNull();
   });
 
-  it("reads singular when exactly one row is his", () => {
+  it("reads singular on both sides when exactly one row is each kind", () => {
     const note = archiveReopenRuleNote([
       { status: "resolved", resolution_note: supersededNote(1) },
       { status: "resolved", resolution_note: "Rob: comped." },
     ]) ?? "";
-    expect(note).toContain("The other one you closed yourself");
+    expect(note).toContain("Reopen shows only on the 1 row a pass closed");
+    expect(note).toContain("The other 1 was closed by a person");
   });
 });

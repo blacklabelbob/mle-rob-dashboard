@@ -413,9 +413,25 @@ export function flagReopenRefusal(
  * pass-closed rows reopens uniformly. Answering an unasked question on every one of 39 rows is
  * the noise, not the information.
  *
- * ONE LADDER, not a second: a row is "his" here precisely when the ENDPOINT would refuse it, so
- * the count in this sentence cannot drift from what the server does. And it is said ONCE under
- * the header rather than per row, for the same reason inc.44 put its summary there.
+ * ONE LADDER, not a second: a row is refused here precisely when the ENDPOINT would refuse it,
+ * so the count in this sentence cannot drift from what the server does. And it is said ONCE
+ * under the header rather than per row, for the same reason inc.44 put its summary there.
+ *
+ * Q84 inc.95 — SAY ONLY WHAT THE LEDGER CAN PROVE ABOUT WHO CLOSED THE ROW.
+ *
+ * inc.94 wrote "The other 39 you closed yourself". The evidence behind that number is one bit:
+ * `supersededBy(note) === null` — no pass claimed the row. That proves a PERSON clicked; it does
+ * not prove WHICH person. Resolve provenance records the PAGE, never the human (inc.35, inc.36),
+ * and this component renders on rep account pages as well as Rob's Overview, so a finding a rep
+ * closed is counted into a sentence addressed to Rob as his own. That is inc.36's defect (a
+ * machine sentence attributed to Rob) and inc.91's (Rob's sentence adopted as the ledger's) in a
+ * third coat: the ledger asserting an author it never recorded. "Closed by a person" is the
+ * strongest true claim, so it is the one made.
+ *
+ * BOTH NUMBERS ARE PRINTED, for the same reason. inc.94 gave the count for the refused side and
+ * hid it on the singular reopenable side ("the row a pass closed"), so the arithmetic against the
+ * `Resolved (N)` count beside it could only be checked in one direction. A header Rob is expected
+ * to trust at a glance shows its own sum.
  *
  * @returns the line for the archive header, or null when there is no asymmetry to explain
  */
@@ -423,19 +439,20 @@ export function archiveReopenRuleNote(
   rows: ReadonlyArray<{ status?: string | null; resolution_note?: string | null }> | null | undefined,
 ): string | null {
   if (!Array.isArray(rows)) return null;
-  let mine = 0;
+  let refused = 0;
   let reopenable = 0;
   for (const r of rows) {
     if (r?.status !== "resolved") continue;
     if (flagReopenRefusal(r.status, r.resolution_note) === null) reopenable += 1;
-    else mine += 1;
+    else refused += 1;
   }
   // Both kinds must be present: no button drawn means no asymmetry, all buttons means no rule.
-  if (mine < 1 || reopenable < 1) return null;
+  if (refused < 1 || reopenable < 1) return null;
   return (
-    `Reopen shows only on the ${reopenable === 1 ? "row" : `${reopenable} rows`} a pass closed. ` +
-    `The other ${mine === 1 ? "one" : mine} you closed yourself — if a finding comes back, ` +
-    `file it again so the new row carries today's numbers.`
+    `Reopen shows only on the ${reopenable === 1 ? "1 row" : `${reopenable} rows`} a pass closed. ` +
+    `The other ${refused === 1 ? "1 was" : `${refused} were`} closed by a person — the ledger has ` +
+    `no undo on someone's decision. If a finding comes back, file it again so the new row ` +
+    `carries today's numbers.`
   );
 }
 
