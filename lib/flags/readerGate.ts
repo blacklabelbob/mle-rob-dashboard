@@ -216,12 +216,14 @@ function bareIdentifier(arg: string): string | null {
 /**
  * The initializer of `const|let|var <name> = …` in the same file, or null.
  *
- * Null covers three honest ignorances that must not read as a mismatch: no declaration here (the
+ * Null covers four honest ignorances that must not read as a mismatch: no declaration here (the
  * row is imported, a parameter, or destructured), more than one declaration of the name (which of
- * them reached the call is a scope question this cannot answer), and an unterminated initializer.
+ * them reached the call is a scope question this cannot answer), an unterminated initializer, and
+ * a name written to after it is declared (inc.110 — the declaration is then no longer what the
+ * call received).
  *
  * LIMIT, stated rather than covered up: textual and file-local. A shadowed name in a nested scope
- * resolves to whichever single declaration exists; reassignment after declaration is not seen.
+ * resolves to whichever single declaration exists.
  */
 function declaredInitializer(text: string, name: string): string | null {
   const decl = new RegExp(`(?<![\\w$.])(?:const|let|var)\\s+${name}\\s*(?::[^=;]*)?=`, "g");
@@ -231,7 +233,50 @@ function declaredInitializer(text: string, name: string): string | null {
     found = m.index + m[0].length;
   }
   if (found === null) return null;
+  if (writtenTo(text, name)) return null; // the declaration is no longer the whole story
   return scanInitializer(text, found);
+}
+
+// Q84 inc.110 — A DECLARATION IS NOT A VALUE.
+//
+// inc.109 handed this over as a miss: `const row = { title: f.title }` then `row.title =
+// other.title` resolves clean and is graded clean. PROBED at the real function before it was
+// built on, and the miss is the lesser half. Three spellings, three verdicts:
+//
+//   const row = { title: f.title };   row.title = other.title;  →  []          (silent — a miss)
+//   const row = { title: other.title }; row.title = f.title;    →  ["a.tsx"]   (ACCUSED — wrong)
+//   let row = { title: f.title };     row = other;              →  []          (silent — a miss)
+//
+// The middle one is a FALSE POSITIVE — a correct caller, told it grades the wrong finding — which
+// is the failure inc.109 spent a whole increment removing from this same function. So the honest
+// answer to "detect it, or state the contract as *the row as DECLARED*" is neither: a guard whose
+// contract is the declaration is a guard that confidently grades a value nobody passed.
+//
+// A write to the name IS detectable textually — cheaply and in the same style as the declaration
+// scan — and what it proves is only that this file can no longer read the row. That is inc.109's
+// fourth ignorance, not a fifth rule: abstain. Both misses stay misses on purpose; the safe
+// direction for a nag is silence (inc.71), and the accusation is the one thing it cannot afford.
+
+/**
+ * Whether `name` is written to anywhere in the file — reassigned, mutated through a property or
+ * index, compound-assigned, or handed to `Object.assign` as the target.
+ *
+ * Deliberately NOT position-aware. A write below the call is as disqualifying as one above it:
+ * this file cannot order statements it never parsed, and either way it no longer knows the row.
+ */
+function writtenTo(text: string, name: string): boolean {
+  const use = new RegExp(`(?<![\\w$.])${name}(?![\\w$])`, "g");
+  for (let m = use.exec(text); m; m = use.exec(text)) {
+    const before = text.slice(Math.max(0, m.index - 32), m.index);
+    if (/(?:const|let|var)\s+$/.test(before)) continue; // the declaration itself, not a write
+    if (/Object\s*\.\s*assign\s*\(\s*$/.test(before)) return true;
+    // `=` that is not `==`, `===` or `=>`; through any run of `.prop` / `[expr]` accessors.
+    if (/^\s*(?:\.[A-Za-z_$][\w$]*|\[[^\]\n]*\])*\s*(?:\|\||&&|\?\?|[+\-*/%])?=(?![=>])/.test(
+        text.slice(m.index + name.length))) {
+      return true;
+    }
+  }
+  return false;
 }
 
 /** The initializer text from just after `=` to the top-level `;` or line end that closes it. */

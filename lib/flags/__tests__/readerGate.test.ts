@@ -171,6 +171,41 @@ describe("a gated call whose row came from somewhere else", () => {
       expect(mismatchedRowCallers([{ path: "a.tsx", text: twice }])).toEqual([]);
     });
 
+    // Q84 inc.110 — a declaration is not a value. Probed first: the middle case below was
+    // ACCUSED, i.e. a false positive on a correct caller, not the silent miss inc.109 handed over.
+    describe("and written to after it is declared", () => {
+      it("abstains when the mutation is the one that makes the row correct — the false positive", () => {
+        const fixed = `const row = { title: other.title };\nrow.title = f.title;\n${call}`;
+        expect(mismatchedRowCallers([{ path: "a.tsx", text: fixed }])).toEqual([]);
+      });
+
+      it("abstains when the mutation is the one that makes it wrong — silence is the safe miss", () => {
+        const broken = `const row = { title: f.title };\nrow.title = other.title;\n${call}`;
+        expect(mismatchedRowCallers([{ path: "a.tsx", text: broken }])).toEqual([]);
+      });
+
+      it("abstains on wholesale reassignment and on Object.assign — same ignorance", () => {
+        const reassigned = `let row = { title: other.title };\nrow = f;\n${call}`;
+        expect(mismatchedRowCallers([{ path: "a.tsx", text: reassigned }])).toEqual([]);
+        const assigned = `const row = { title: other.title };\nObject.assign(row, f);\n${call}`;
+        expect(mismatchedRowCallers([{ path: "a.tsx", text: assigned }])).toEqual([]);
+        const compound = `const row = { title: other.title };\nrow.detail += f.detail;\n${call}`;
+        expect(mismatchedRowCallers([{ path: "a.tsx", text: compound }])).toEqual([]);
+      });
+
+      it("does not read a comparison or an arrow as a write — the catch survives", () => {
+        const compared = `const row = { title: other.title };\nif (row.title === f.title) log(row);\n${call}`;
+        expect(mismatchedRowCallers([{ path: "a.tsx", text: compared }])).toEqual(["a.tsx"]);
+        const passed = `const row = { title: other.title };\nconst pick = () => row;\n${call}`;
+        expect(mismatchedRowCallers([{ path: "a.tsx", text: passed }])).toEqual(["a.tsx"]);
+      });
+
+      it("does not read a write to a different binding that merely ends in the name", () => {
+        const near = `const row = { title: other.title };\nmyRow.title = f.title;\n${call}`;
+        expect(mismatchedRowCallers([{ path: "a.tsx", text: near }])).toEqual(["a.tsx"]);
+      });
+    });
+
     it("does not resolve a declaration that merely ends in the name", () => {
       // `myRow` is a different binding; matching it would grade the call on someone else's object.
       const other = `const myRow = { title: other.title };\n${call}`;
