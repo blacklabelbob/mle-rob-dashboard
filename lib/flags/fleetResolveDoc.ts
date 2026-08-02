@@ -44,6 +44,50 @@ const RESOLVE_INSTRUCTION =
  */
 export const CLAUSE_CAUTION = 'must not end with "Resolved from';
 
+// Q84 inc.121 — VACUITY IS OWED WHERE GREEN IS AN EMPTY RESULT, AND THIS GUARD IS ONE FILE FROM IT.
+//
+// inc.120 handed over: is the vacuity pin owed to EVERY recogniser in this family, or only to those
+// whose healthy state is zero offenders? **ONLY TO THOSE, AND THE DISCRIMINATOR IS MECHANICAL RATHER
+// THAN A JUDGEMENT CALL: does a blinded recogniser change any assertion.** The four modules the
+// handover named — `hostConfirmProse`, `reviewerClause`, `payloadScope`, `dedupeKeyIdentity` — are
+// not tree guards at all. They are runtime functions whose RETURN VALUE is consumed: prose is
+// rewritten, a refusal is shown, a payload is dropped, a drift group is listed. Blind their
+// recognisers and the expected output stops arriving, so their tests go red on their own. A pin
+// there would be ceremony, which is the shape inc.117 refused when it ruled that ten anchorless
+// helpers owe nothing.
+//
+// THIS ONE IS THE OPPOSITE, AND IT IS THE ONLY ONE LEFT ON THE TREE. `resolveNoteInstructionGap`
+// returns `null` for a healthy file, so the whole fleet returning `null` is the same green as a
+// fleet that never resolves a flag. Measured today, its ENTIRE subject set across `.claude/agents/`
+// is **one file — `meeting-scribe.md`** — the identical one-file exposure inc.120 found on the write
+// door, in a guard nobody had looked at, reached by asking the discriminator instead of re-reading
+// the same module. Re-space that PATCH line, or quote it `'resolve'`, and this guard judges nobody
+// while the suite stays green and the failure it exists to stop — an agent free-typing a note that
+// `archiveResolvedFromMark` reads back as a page a machine was never on — returns undetected.
+//
+// THE OTHER GUARDS WERE CHECKED, NOT ASSUMED: `pathConstants` and `mailReadScope` already pin NAMED
+// real-tree subjects (strictly stronger than *some subject exists*), `coreSeam` pins a non-empty
+// `reaches` set, and `anchorRegistry` compares two non-empty sets — every one of them self-catches.
+
+/** The list this guard walks. NOT `SourceFile`: agent instructions are markdown, a different tree. */
+export type FleetDoc = { path: string; content: string };
+
+/** Whether a file instructs a resolve at all — the one matcher, so subjects and judgement agree. */
+function resolvesAFlag(content: string): boolean {
+  return RESOLVE_INSTRUCTION.test(content ?? "");
+}
+
+/** This guard's name in a notice — a shared check must say WHICH guard went blind (inc.115). */
+export const FLEET_RESOLVE_GUARD = "the fleet resolve-note gate";
+
+/** What this guard is ABOUT: every fleet doc that tells an agent to resolve a flag, gap or not. */
+export function resolveInstructionSubjects(docs: readonly FleetDoc[]): string[] {
+  return docs
+    .filter((d) => resolvesAFlag(d.content))
+    .map((d) => d.path)
+    .sort();
+}
+
 /**
  * `null` when the file is fine — which is every agent file that never resolves a flag, and any
  * that does and states the rule. Otherwise the sentence naming what is missing.
@@ -52,7 +96,7 @@ export const CLAUSE_CAUTION = 'must not end with "Resolved from';
  * @param content the file, already read by the caller
  */
 export function resolveNoteInstructionGap(path: string, content: string): string | null {
-  if (!RESOLVE_INSTRUCTION.test(content ?? "")) return null;
+  if (!resolvesAFlag(content)) return null;
   if (content.includes(CLAUSE_CAUTION)) return null;
   return (
     `${path} tells an agent to PATCH a flag resolve with a free-typed note but never says the ` +
