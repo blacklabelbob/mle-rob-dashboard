@@ -275,9 +275,32 @@ describe("resolvedFromNote / archiveResolvedFromMark (inc.31)", () => {
     expect(archiveResolvedFromMark(stored, "P-1018")).toBeNull();
   });
 
-  it("is idempotent — a note already carrying the clause gets no second one", () => {
+  it("is idempotent — a note already stamped with THIS record gets no second clause", () => {
     const once = resolvedFromNote("", "C-2017", ["C-2018"]);
     expect(resolvedFromNote(once, "C-2017", ["C-2018"])).toBe(once);
+    const typed = resolvedFromNote("kept C-2018", "C-2017", ["C-2018"]);
+    expect(resolvedFromNote(typed, "C-2017", ["C-2018"])).toBe(typed);
+  });
+
+  // Q84 inc.91 — a reviewer's own sentence must not be adopted as the ledger's provenance.
+  // Reachable only by typing: `reopen` nulls `resolution_note` and the resolve path is handed
+  // fresh text, so a stored stamp never returns here. The clause naming another record is
+  // therefore a HUMAN sentence, and the machine still records where the click happened.
+  it("does not read a reviewer's typed clause as this click's provenance", () => {
+    const typed = "Caleb confirmed. Resolved from C-2017.";
+    const stored = resolvedFromNote(typed, "C-2001", [], "C-2010");
+    expect(stored).toBe("Caleb confirmed. Resolved from C-2017. Resolved from C-2001.");
+    // the page actually clicked is what reads back...
+    expect(resolvedFrom(stored)).toBe("C-2001");
+    // ...and the reviewer's sentence stays inside the reviewer's quote.
+    expect(resolutionNoteBody(stored)).toBe("Caleb confirmed. Resolved from C-2017.");
+  });
+
+  // The refusal above must not become a licence to double-stamp: same record, one clause.
+  it("still writes exactly one clause when the typed clause names this very record", () => {
+    const stored = resolvedFromNote("Resolved from C-2001.", "C-2001", [], "C-2010");
+    expect(stored).toBe("Resolved from C-2001.");
+    expect(resolutionNoteBody(stored)).toBe("");
   });
 
   it("reads the clause back, and separates the reviewer's words from the ledger's", () => {

@@ -256,8 +256,25 @@ export function resolvedFromNote(
   const home = (homeRecord ?? "").trim();
   const filedElsewhere = /^[CP]-\d+$/.test(home) && home !== from;
   if (!others.length && !filedElsewhere) return body;
-  // Idempotent: a note that already ends in the clause is not given a second one.
-  if (resolvedFrom(body) !== null) return body;
+  // Idempotent: a note already stamped WITH THIS CLICK'S RECORD is not given a second one.
+  //
+  // Q84 inc.91 — the guard used to skip on ANY clause, and that read the wrong sentence as
+  // the machine's own. inc.90's question was whether `reopen` leaves a stamp naming a page
+  // nobody closed the row from; it does not — `PATCH { action: "reopen" }` sets
+  // `resolution_note: null`, and the resolve path is handed what the reviewer typed FRESH,
+  // never the stored note. So the persisted stamp is never fed back here, and the only body
+  // that can arrive already carrying the grammar is one a HUMAN typed.
+  //
+  // That is inc.36's defect running the other way. inc.36 was a machine sentence attributed
+  // to Rob; this was Rob's sentence adopted as the machine's provenance — `resolutionNoteBody`
+  // strips the trailing clause out of the quoted note, so his own words would vanish from his
+  // quote, be re-rendered as the ledger's stamp, and the page actually clicked would go
+  // unrecorded. Comparing against `from` keeps the true idempotence case (same record, no
+  // second clause) and refuses the masquerade: a clause naming a DIFFERENT record is not this
+  // click's provenance, so the machine still writes its own. `RESOLVED_FROM` is anchored at
+  // `$`, so the appended stamp is the one read back — and the reviewer's sentence stays inside
+  // the reviewer's quote, which is the half that matters.
+  if (resolvedFrom(body) === from) return body;
   return body ? `${body} Resolved from ${from}.` : `Resolved from ${from}.`;
 }
 
