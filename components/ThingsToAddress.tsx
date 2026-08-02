@@ -38,6 +38,7 @@ import {
   groupRepeatsWithinSeverity,
   rowRepeatMark,
 } from "@/lib/comms/heldDomainFlag";
+import { reviewerClauseRefusal } from "@/lib/flags/reviewerClause";
 import { hostConfirmControls, hostConfirmKey } from "@/lib/flags/hostConfirmView";
 import { retargetConfirmProse } from "@/lib/flags/hostConfirmProse";
 
@@ -293,6 +294,16 @@ export default function ThingsToAddress({
     // asking the next caller to remember it. It now lives inside `resolveNoteFor`,
     // where the Resolve BUTTON reads the same answer — this component no longer keeps
     // a promise on the button's behalf, and a second resolve path cannot skip it.
+    // inc.97: asked BEFORE the note is built, and refused rather than rewritten. On the paths
+    // where nothing stamps — off a record page, a row naming nothing else, a proposal — a
+    // trailing "Resolved from C-…." the reviewer typed is persisted verbatim, then read back
+    // by `archiveResolvedFromMark` as the ledger's own provenance while `resolutionNoteBody`
+    // strips it out of their quote. `certain` because this writes nothing at all.
+    const clash = reviewerClauseRefusal(f.title, withNote, person ?? entity, others ?? [], home);
+    if (clash) {
+      setFailed({ id: f.id, text: `Not written — ${clash}`, certain: true });
+      return;
+    }
     const note = resolveNoteFor(f.title, withNote, person ?? entity, others ?? [], home);
     // The note is cleared only on success: on a proposal it is the sole record
     // of why a domain was shut out, and re-typing it is how it ends up blank.
