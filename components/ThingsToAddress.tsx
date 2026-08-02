@@ -364,9 +364,13 @@ export default function ThingsToAddress({
               // decides whether checking a box loses a finding. inc.37 confirmed the marker's
               // and the chips' ids against the CRM and left this one inferring from the
               // pattern. Same `named_ref` the row already carries — the digest gets it too.
+              // inc.83: `f.entity_id` too. inc.82 made the server refuse a title link for an
+              // id-shaped `entity_id` the CRM does not hold, which is right — but it also made
+              // this call fall through to the NAMES arm, and `selectRecordFlags` never reads a
+              // filed row's sentence. A filed row with no link has no page, whatever it prints.
               const read = overviewReadControl(
                 f.title,
-                flagHasRecordSurface(titleHref(f), f.title, f.detail, f.named_ref)
+                flagHasRecordSurface(titleHref(f), f.title, f.detail, f.named_ref, f.entity_id)
               );
               // Q84 inc.80: this tooltip IS the detail — the row says "hover for detail" — and
               // it was handing Rob the STORED sentence while the full row rendered the graded

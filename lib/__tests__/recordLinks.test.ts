@@ -17,6 +17,7 @@ import {
   linkifyRecordIds,
   resolveFlagEntityId,
 } from "@/lib/flags/recordLinks";
+import { overviewReadControl } from "@/lib/comms/proposalFlag";
 
 /** The invariant that makes this safe to drop into a paragraph Rob reads. */
 function rejoin(detail: string) {
@@ -723,6 +724,66 @@ describe("flagHasRecordSurface (inc.27 — the tooltip's question, answered like
       const namesOnlyPhantom = [{ id: 901, entity_id: null, title: "conflict", detail: "C-9999 alone" }];
       expect(selectRecordFlags(namesOnlyPhantom, wanted, wanted)).toHaveLength(1);
       expect(flagHasRecordSurface(null, namesOnlyPhantom[0].title, namesOnlyPhantom[0].detail, ["P-1001"])).toBe(false);
+    });
+  });
+
+  // Q84 inc.83 — inc.82's named next. `selectRecordFlags`'s two arms are EXCLUSIVE; this
+  // predicate's were not. Before inc.82 that could not show, because an id-shaped `entity_id`
+  // always produced a link and the name arm was unreachable for a filed row. Now it is.
+  describe("inc.83: a FILED row is judged by its filing, never by its sentence", () => {
+    const HELD = ["P-1001", "C-2001", "C-2017"];
+
+    it("calls a filed-on-a-phantom row page-less even when its detail names a real record", () => {
+      // The defect, exactly: filed on P-1043 (people run P-1001..P-1022 — no such record), and
+      // the sentence happens to print C-2001. inc.82 makes the server refuse the title link.
+      const row = { id: 902, entity_id: "P-1043", title: "check this", detail: "same as C-2001" };
+      // The filter: the filed arm looks up P-1043, which no page's `entityFilter` carries, and
+      // the sentence is never read. So the row renders on NO record page.
+      const wanted = ["P-1001", "C-2001", "C-2017"];
+      expect(selectRecordFlags([row], wanted, wanted)).toHaveLength(0);
+      // Therefore the Overview is its only surface, and the tooltip must say so.
+      expect(flagHasRecordSurface(null, row.title, row.detail, HELD, row.entity_id)).toBe(false);
+      expect(overviewReadControl(row.title, false).tooltip).toContain("no record page");
+    });
+
+    it("the server's refusal is what this reads — not the id's shape", () => {
+      // `flagTitleHref` with a `held` set that does not contain P-1043 is the null above.
+      expect(flagTitleHref("P-1043", "P-1043", null, HELD)).toBeNull();
+      // And with `held` NOT ASKED (a blipped lookup) the link survives, so the row keeps its
+      // page and this predicate never reaches the filed-arm refusal. Both directions pinned:
+      // the fix must not de-page a row because a read failed.
+      expect(flagTitleHref("P-1043", "P-1043", null, null)).toBe("/people/P-1043");
+      expect(flagHasRecordSurface("/people/P-1043", "check this", "same as C-2001", HELD, "P-1043")).toBe(true);
+    });
+
+    it("leaves the NULL-entity rows inc.26/27 fixed exactly as they were", () => {
+      // Prod #137: filed against nothing, so the sentence IS how it reaches a page — the arm
+      // this increment narrowed must not touch it.
+      const row = { id: 137, entity_id: null, title: "registry conflict", detail: "C-2017 vs C-2018" };
+      expect(flagHasRecordSurface(null, row.title, row.detail, HELD, row.entity_id)).toBe(true);
+      // And a filed row that DOES resolve keeps its page through the link, as inc.39 pinned.
+      expect(flagHasRecordSurface("/companies/C-2017", "filed here", "no ids", [], "C-2017")).toBe(true);
+    });
+
+    it("omitting the argument keeps the pre-inc.83 answer — unproven by default, like `minted`", () => {
+      // A caller that cannot say gets today's behaviour, never a silent drop. This is what
+      // keeps every other call site in the repo meaning what it meant.
+      expect(flagHasRecordSurface(null, "check this", "same as C-2001", HELD)).toBe(true);
+      expect(flagHasRecordSurface(null, "check this", "same as C-2001", HELD, null)).toBe(true);
+    });
+
+    it("the read gate's call site passes the filing — the guard, because JSX is untestable", () => {
+      // CR-3, and the same reason inc.82 pinned its `!== undefined`: the argument that makes
+      // the tooltip honest is one deletion from silently reverting, and the only place it can
+      // be checked is the source. Same close-on-the-real-terminator trick as the chips guard
+      // below — the earlier arguments contain calls, so `[^)]*` would read a nested paren.
+      const src = readFileSync(
+        path.join(process.cwd(), "components", "ThingsToAddress.tsx"),
+        "utf8",
+      );
+      const calls = [...src.matchAll(/flagHasRecordSurface\(([\s\S]*?)\)\s*\n\s*\);/g)].map((m) => m[1]);
+      expect(calls.length).toBe(1); // one read gate, on the digest
+      expect(calls[0]).toContain("f.entity_id");
     });
   });
 });

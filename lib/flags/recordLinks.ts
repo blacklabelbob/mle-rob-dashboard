@@ -470,14 +470,40 @@ export function selectRecordFlags<
  * a kept row always has a confirmed named id. Measured alongside: 16 memberships on prod, zero
  * dangling. Stated as the reason, not the proof — the constraint is the reason; the count would
  * only ever be a coincidence.
+ *
+ * Q84 inc.83 — inc.82's own named next, and it is a real one. `selectRecordFlags` has TWO arms
+ * and they are EXCLUSIVE: a row with a non-null `entity_id` is matched against the page's filed
+ * list and its sentence is never read; only a NULL-entity row joins by NAMING an id. This
+ * predicate had one arm and it was inclusive — href OR names — which agreed with the filter only
+ * because, before inc.82, an id-shaped `entity_id` always produced a truthy `titleHref` and the
+ * name arm was unreachable for a filed row. inc.82 made the server refuse an unminted id, so
+ * that early return stopped firing and the fall-through opened: a row FILED on `P-1043` whose
+ * detail happens to print `C-2001` would be called page-ful here while `selectRecordFlags` puts
+ * it on no page at all — the filed arm looks up `P-1043`, which no page asks for, and never
+ * reaches the sentence. That is inc.27's defect through the door inc.82 opened, and it is the
+ * more expensive direction: the tooltip would read *"stays on the record until resolved"* while
+ * checking the box clears the finding's ONLY surface.
+ *
+ * `filedEntityId` is the row's own `entity_id`, and its absence keeps the pre-inc.83 answer —
+ * the same unproven-by-default contract `minted` carries. Note the asymmetry is deliberate: a
+ * falsy `titleHref` on a filed row is not "not asked". `entity_href` ABSENT (a pre-inc.25
+ * response) falls back to the shape rule client-side and comes back truthy; a blipped lookup
+ * passes `held: null`, which `flagTitleHref` reads as not-asked and links anyway. So reaching
+ * here with a filed row and no href means the server was asked and answered no page — and no
+ * page's `entityFilter` (its own ids plus the slugs they were renumbered from) can contain an
+ * id that resolves to no record. Structural, like the FK above; not a property of today's rows.
  */
 export function flagHasRecordSurface(
   titleHref: string | null | undefined,
   title: string | null | undefined,
   detail: string | null | undefined,
   minted?: Iterable<string> | null,
+  filedEntityId?: string | null,
 ): boolean {
-  return Boolean(titleHref) || mintedOnly(flagNamedRecordIds(title, detail), minted).length > 0;
+  if (titleHref) return true;
+  // The FILED arm is exclusive in `selectRecordFlags`; so it is here. See the note above.
+  if (filedEntityId) return false;
+  return mintedOnly(flagNamedRecordIds(title, detail), minted).length > 0;
 }
 
 // Q84 inc.28 — inc.26 put the six NULL-entity rows onto the pages of the records they NAME,
