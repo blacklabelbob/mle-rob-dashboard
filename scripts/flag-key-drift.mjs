@@ -18,7 +18,7 @@
  *   node --import ./scripts/ts-loader.mjs scripts/flag-key-drift.mjs [--flag] [--json]
  */
 
-import { findKeyDrift } from "../lib/flags/dedupeKeyIdentity.ts";
+import { findKeyDrift, findKeylessStacks, findTitleNearMisses } from "../lib/flags/dedupeKeyIdentity.ts";
 
 // Same var as scripts/migration-backlog.mjs and notion-crm-check.mjs — one name for the
 // one destination. Defaults to prod: the ledger Rob reads is the deployed one.
@@ -39,10 +39,24 @@ if (!res.ok) {
 const body = await res.json();
 const all = Array.isArray(body) ? body : (body.flags ?? []);
 const open = all.filter((f) => (f.status ?? "open") === "open");
-const groups = findKeyDrift(open.map((f) => ({ id: f.id, dedupeKey: f.dedupe_key ?? f.dedupeKey })));
+const rows = open.map((f) => ({
+  id: f.id,
+  dedupeKey: f.dedupe_key ?? f.dedupeKey,
+  entityName: f.entity_name ?? f.entityName,
+  title: f.title,
+}));
+const groups = findKeyDrift(rows);
+
+// Q84 inc.104 — the keyless population, read on its own terms. A row with no key stacks
+// unconditionally at the write door, so it is the larger exposure; but the only identity
+// strict enough to be safe is the exact one, and today it pairs nothing. The near misses
+// are printed so the refusal is visible rather than mistaken for "checked, all clear".
+const keyless = rows.filter((r) => !(typeof r.dedupeKey === "string" && r.dedupeKey.trim()));
+const stacks = findKeylessStacks(rows);
+const nearMisses = findTitleNearMisses(rows);
 
 if (JSON_OUT) {
-  console.log(JSON.stringify({ scanned: open.length, groups }, null, 2));
+  console.log(JSON.stringify({ scanned: open.length, groups, keyless: keyless.length, stacks, nearMisses }, null, 2));
 } else {
   console.log(`open flags: ${open.length} · one identity spelled more than once: ${groups.length}`);
   for (const g of groups) {
@@ -50,24 +64,46 @@ if (JSON_OUT) {
     for (const s of g.spellings) console.log(`      ${s}`);
   }
   if (!groups.length) console.log("  none — every open key is one finding, one spelling.");
+
+  console.log(`\nno key at all: ${keyless.length} · same record, same title: ${stacks.length}`);
+  for (const s of stacks) {
+    console.log(`  [${s.identity}] rows ${s.rows.map((r) => `#${r.id}`).join(", ")}`);
+  }
+  if (!stacks.length && keyless.length) {
+    console.log("  none — keyless, but no two of them are the same finding on the same record yet.");
+  }
+  if (nearMisses.length) {
+    console.log(`\nnear misses NOT paired (${nearMisses.length}) — a title alone is not a key:`);
+    for (const m of nearMisses) {
+      console.log(`  #${m.rows[0].id} vs #${m.rows[1].id} · ${(m.overlap * 100).toFixed(0)}% alike`);
+      console.log(`      differ by: ${m.differing.join(", ")}`);
+    }
+  }
 }
 
-if (!groups.length || !FLAG) {
-  if (groups.length) console.log("\nplan only — pass --flag to put this on the ledger.");
+// A keyless stack is the same defect through the other door, so it gates the write too —
+// otherwise a run that found only stacks would exit silently as though it found nothing.
+// Near misses never gate anything: they are the pairings this script REFUSED to make.
+const findings = groups.length + stacks.length;
+if (!findings || !FLAG) {
+  if (findings) console.log("\nplan only — pass --flag to put this on the ledger.");
   process.exit(0);
 }
 
 const detail =
-  groups
-    .map(
+  [
+    ...groups.map(
       (g) =>
         `${g.rows.map((r) => `#${r.id}`).join(" and ")} are one finding under ${g.spellings.length} spellings: ` +
         g.spellings.map((s) => `"${s}"`).join(" vs "),
-    )
-    .join(" · ") +
-  ". The write door matches keys exactly, so the second spelling INSERTED instead of correcting the first. " +
-  "Neither row is wrong; they are the same row. Resolve one with a note pointing at the other, and give the " +
-  "producer a module constant so the key cannot be retyped.";
+    ),
+    ...stacks.map(
+      (s) => `${s.rows.map((r) => `#${r.id}`).join(" and ")} carry NO key and are the same title on the same record`,
+    ),
+  ].join(" · ") +
+  ". The write door matches keys exactly, so the second spelling INSERTED instead of correcting the first, and a " +
+  "row with no key never even reaches that read. Neither row is wrong; they are the same row. Resolve one with a " +
+  "note pointing at the other, and give the producer a module constant so the key cannot be retyped.";
 
 const post = await fetch(`${BASE}/api/admin/flags`, {
   method: "POST",

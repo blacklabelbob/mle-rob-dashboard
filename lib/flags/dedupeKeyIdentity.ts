@@ -87,3 +87,101 @@ export function findKeyDrift(rows: KeyedRow[]): DriftGroup[] {
   }
   return groups;
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Q84 inc.104 — the other half of inc.103's population: 94 of the 104 open rows
+// carry NO key at all, and the write door stacks a keyless row unconditionally.
+//
+// The question inc.103 left was whether a row's own TITLE can stand in for the key
+// it never got. Answered against live prod, both directions, and the answer is:
+// only on an identity strict enough that today it pairs nothing.
+//
+//   STRICT (entity + every title token must match):  0 groups across all 94 rows.
+//   LOOSE  (same entity, ≥half the title tokens shared): exactly 1 pair — and it
+//          is WRONG. #142 and #120 are `Overdue follow-up: task
+//          task-homeclonevault-equity-signoff` and `… task-gulf-coast-equity-signoff`
+//          — two different tasks on two different deals, 0.64 alike because the only
+//          thing separating them is the slug in the middle.
+//
+// So the first thing a loose title identity would have done on Rob's live ledger is
+// merge two real, distinct findings. That is why the pairing rule here is exact and
+// why the near-miss is REPORTED rather than paired: the differing tokens are printed
+// so a human can see what the machine refused to assume. Same contract as the drift
+// half — recognition is advisory, the stored row is never touched, and nothing here
+// is wired into the POST route's read.
+
+export type TitledRow = KeyedRow & { entityName?: string | null; title?: string | null };
+
+/**
+ * A keyless row's stand-in identity: its entity and its title, canonicalised the same
+ * way a key is. Null for a row that HAS a key — a key is the producer's own statement
+ * of identity and this must never quietly outvote it.
+ */
+export function titleIdentity(row: TitledRow): string | null {
+  if (canonicalDedupeKey(row.dedupeKey)) return null;
+  const entity = canonicalDedupeKey(row.entityName);
+  const title = canonicalDedupeKey(row.title);
+  if (!entity || !title) return null;
+  return `${entity}::${title}`;
+}
+
+export type KeylessStack = { identity: string; rows: TitledRow[] };
+
+/** Keyless rows that are the same finding on the same record, by exact title identity. */
+export function findKeylessStacks(rows: TitledRow[]): KeylessStack[] {
+  const byIdentity = new Map<string, TitledRow[]>();
+  for (const row of rows) {
+    const identity = titleIdentity(row);
+    if (!identity) continue;
+    const bucket = byIdentity.get(identity);
+    if (bucket) bucket.push(row);
+    else byIdentity.set(identity, [row]);
+  }
+  return [...byIdentity]
+    .filter(([, bucket]) => bucket.length > 1)
+    .map(([identity, bucket]) => ({ identity, rows: bucket }));
+}
+
+export type NearMiss = {
+  rows: [TitledRow, TitledRow];
+  /** Shared title tokens over the union — 1.0 would have been a stack. */
+  overlap: number;
+  /** The tokens that differ. On prod these are the two task slugs, i.e. the finding. */
+  differing: string[];
+};
+
+/**
+ * Keyless rows on the same record whose titles nearly match — reported, never paired.
+ *
+ * This exists to make the refusal visible. Its one hit on prod (#142 vs #120) is the
+ * evidence that loosening `findKeylessStacks` would be a guess, so the output is a
+ * sentence for a human and never an input to a write.
+ */
+export function findTitleNearMisses(rows: TitledRow[], threshold = 0.5): NearMiss[] {
+  const keyless = rows.filter((r) => !canonicalDedupeKey(r.dedupeKey));
+  const misses: NearMiss[] = [];
+  for (let i = 0; i < keyless.length; i++) {
+    for (let j = i + 1; j < keyless.length; j++) {
+      const a = keyless[i];
+      const b = keyless[j];
+      const entityA = canonicalDedupeKey(a.entityName);
+      if (!entityA || entityA !== canonicalDedupeKey(b.entityName)) continue;
+      const ta = titleTokens(a.title);
+      const tb = titleTokens(b.title);
+      if (!ta.size || !tb.size) continue;
+      const shared = [...ta].filter((t) => tb.has(t));
+      const overlap = shared.length / (ta.size + tb.size - shared.length);
+      // 1.0 is a stack, already reported by findKeylessStacks; below the threshold is
+      // two unrelated findings that happen to share the word "overdue".
+      if (overlap < threshold || overlap >= 1) continue;
+      const differing = [...new Set([...ta, ...tb].filter((t) => !(ta.has(t) && tb.has(t))))].sort();
+      misses.push({ rows: [a, b], overlap, differing });
+    }
+  }
+  return misses.sort((x, y) => y.overlap - x.overlap);
+}
+
+function titleTokens(title: string | null | undefined): Set<string> {
+  const canon = canonicalDedupeKey(title);
+  return new Set(canon ? canon.split("-") : []);
+}

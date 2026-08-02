@@ -3,6 +3,9 @@ import {
   canonicalDedupeKey,
   sameFinding,
   findKeyDrift,
+  titleIdentity,
+  findKeylessStacks,
+  findTitleNearMisses,
 } from "../dedupeKeyIdentity";
 
 // The row pair this module exists for — both live on prod, both filed on C-2010.
@@ -94,5 +97,104 @@ describe("findKeyDrift", () => {
 
   it("finds nothing in an empty ledger", () => {
     expect(findKeyDrift([])).toEqual([]);
+  });
+});
+
+// Q84 inc.104 — the keyless 94. Both live prod rows verbatim; they are the whole reason
+// the pairing rule below is exact rather than a similarity score.
+const F142 = {
+  id: 142,
+  dedupeKey: null,
+  entityName: "CRM follow-ups",
+  title: "Overdue follow-up: task task-homeclonevault-equity-signoff (due 2026-07-31)",
+};
+const F120 = {
+  id: 120,
+  dedupeKey: null,
+  entityName: "CRM follow-ups",
+  title: "Overdue follow-up: task task-gulf-coast-equity-signoff (due 2026-07-29)",
+};
+
+describe("titleIdentity", () => {
+  it("stands in for a key only where there is no key", () => {
+    expect(titleIdentity(F142)).not.toBeNull();
+    expect(titleIdentity({ ...F142, dedupeKey: "crm/overdue-followup" })).toBeNull();
+  });
+
+  it("refuses to invent one from half a row", () => {
+    expect(titleIdentity({ id: 1, dedupeKey: null, entityName: "Flag ledger", title: null })).toBeNull();
+    expect(titleIdentity({ id: 2, dedupeKey: null, entityName: null, title: "Something" })).toBeNull();
+    expect(titleIdentity({ id: 3, dedupeKey: null, entityName: "  ", title: "  " })).toBeNull();
+  });
+
+  it("reads the same finding through a retyped title", () => {
+    expect(titleIdentity({ id: 1, dedupeKey: null, entityName: "Flag ledger", title: "Duplicate host slots" })).toBe(
+      titleIdentity({ id: 2, dedupeKey: null, entityName: "flag ledger", title: "duplicate  host-slot" }),
+    );
+  });
+});
+
+describe("findKeylessStacks", () => {
+  it("does NOT pair the two live overdue-task rows", () => {
+    // The point of the whole increment: these differ by a deal slug, so they are two findings.
+    expect(findKeylessStacks([F142, F120])).toEqual([]);
+  });
+
+  it("pairs a keyless row filed twice on one record", () => {
+    const a = { id: 1, dedupeKey: null, entityName: "Flag ledger", title: "Duplicate host slot" };
+    const b = { id: 2, dedupeKey: null, entityName: "Flag Ledger", title: "duplicate host slots" };
+    const stacks = findKeylessStacks([a, b, F142]);
+    expect(stacks).toHaveLength(1);
+    expect(stacks[0].rows.map((r) => r.id)).toEqual([1, 2]);
+  });
+
+  it("keeps one title on two different records apart", () => {
+    expect(
+      findKeylessStacks([
+        { id: 1, dedupeKey: null, entityName: "Gulf Coast", title: "Missing invoice" },
+        { id: 2, dedupeKey: null, entityName: "The Title Base", title: "Missing invoice" },
+      ]),
+    ).toEqual([]);
+  });
+
+  it("never outvotes a key that exists", () => {
+    expect(
+      findKeylessStacks([
+        { id: 1, dedupeKey: "crm/x", entityName: "Flag ledger", title: "Same title" },
+        { id: 2, dedupeKey: "crm/y", entityName: "Flag ledger", title: "Same title" },
+      ]),
+    ).toEqual([]);
+  });
+});
+
+describe("findTitleNearMisses", () => {
+  it("reports the #142/#120 pair and names the tokens that separate them", () => {
+    const misses = findTitleNearMisses([F142, F120]);
+    expect(misses).toHaveLength(1);
+    expect(misses[0].rows.map((r) => r.id).sort()).toEqual([120, 142]);
+    expect(misses[0].overlap).toBeGreaterThan(0.5);
+    expect(misses[0].overlap).toBeLessThan(1);
+    expect(misses[0].differing).toContain("homeclonevault");
+    expect(misses[0].differing.some((t) => t.includes("gulf"))).toBe(true);
+  });
+
+  it("does not report a pair that findKeylessStacks already grouped", () => {
+    const a = { id: 1, dedupeKey: null, entityName: "Flag ledger", title: "Duplicate host slot" };
+    const b = { id: 2, dedupeKey: null, entityName: "Flag ledger", title: "duplicate host slots" };
+    expect(findKeylessStacks([a, b])).toHaveLength(1);
+    expect(findTitleNearMisses([a, b])).toEqual([]);
+  });
+
+  it("leaves two unrelated findings on one record alone", () => {
+    expect(
+      findTitleNearMisses([
+        { id: 1, dedupeKey: null, entityName: "Flag ledger", title: "Duplicate host slot on C-2010" },
+        { id: 2, dedupeKey: null, entityName: "Flag ledger", title: "Invoice never sent for phase two" },
+      ]),
+    ).toEqual([]);
+  });
+
+  it("says nothing about rows that carry keys", () => {
+    expect(findTitleNearMisses([{ ...F142, dedupeKey: "a" }, { ...F120, dedupeKey: "b" }])).toEqual([]);
   });
 });
