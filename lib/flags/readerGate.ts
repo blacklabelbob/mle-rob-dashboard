@@ -51,6 +51,15 @@ export const ROW_ARG_COUNT = 4;
 export const RULE_FILE = "lib/flags/readerGate.ts";
 
 /**
+ * Q84 inc.118 — the self-exclusion is a rule hanging off a PATH, and until now nothing asked
+ * whether the path still pointed at anything. Move or rename this file without updating the
+ * constant and the exclusion excludes nobody: the guard would start reporting its own commentary
+ * as ungated callers, which is a nag, and the reader's fix for a nag is to widen the exclusion —
+ * so the quiet failure arrives one step later, wearing a loud one's clothes.
+ */
+export const RULE_FILE_ANCHOR: Anchor = { kind: "path", name: RULE_FILE };
+
+/**
  * Q84 inc.116 — the reader must still BE somewhere, and the pin is deliberately a DECLARATION pin
  * rather than a text match: this file spells `export function hostConfirmControls(` twice above,
  * explaining that a declaration is not a call, so a looser rule would let this module's own

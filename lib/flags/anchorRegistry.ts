@@ -33,7 +33,7 @@
 
 import type { Anchor } from "./anchorPin";
 import type { SourceFile } from "./scanPerimeter";
-import { READER_ANCHOR, READER_GATE_GUARD } from "./readerGate";
+import { READER_ANCHOR, READER_GATE_GUARD, RULE_FILE_ANCHOR } from "./readerGate";
 import { PAYLOAD_WRITE_GUARD, SCOPED_PAYLOAD_WRITER_ANCHOR } from "./payloadWriters";
 
 /**
@@ -60,6 +60,13 @@ export const ANCHORS: readonly RegisteredAnchor[] = [
     site: "lib/flags/readerGate.ts#READER_ANCHOR",
     guard: READER_GATE_GUARD,
     anchor: READER_ANCHOR,
+  },
+  {
+    // Q84 inc.118 — the read door's SECOND anchor. `READER_ANCHOR` proves there is something to
+    // call; this proves the file the rule excludes from its own scan is still where the rule says.
+    site: "lib/flags/readerGate.ts#RULE_FILE_ANCHOR",
+    guard: READER_GATE_GUARD,
+    anchor: RULE_FILE_ANCHOR,
   },
   {
     site: "lib/flags/payloadWriters.ts#SCOPED_PAYLOAD_WRITER_ANCHOR",
