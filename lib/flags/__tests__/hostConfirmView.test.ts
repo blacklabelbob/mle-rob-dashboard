@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildHostConfirmPayload } from "../hostConfirm";
 import { hostConfirmControls, hostConfirmKey } from "../hostConfirmView";
+import { scopeHostConfirmPayload } from "../payloadScope";
 import { ARCHIVE_CHECK_CEILING_MINUTES, WITHIN_ARCHIVE_CHECK } from "@/lib/meetings/archiveCadence";
 
 // The live row this exists for: prod flag #133, filed against NO record, rendered on both
@@ -217,5 +218,55 @@ describe("hostConfirmControls — an action the row cannot reach", () => {
     expect(hostConfirmControls(LIVE, "C-2017", [], { title: "Hosts to place", detail: NAMES_BOTH })).toEqual(
       hostConfirmControls(LIVE, "C-2017"),
     );
+  });
+
+  // Q84 inc.108 — inc.107 handed over a suspicion: `ungatedReaderCallers` counts arguments, so
+  // a caller passing a row whose every field is `undefined` satisfies the guard. What does the
+  // reader DO with it? Read here rather than argued, because the answer decides whether the
+  // guard needs a second rule.
+  describe("a row that names nothing", () => {
+    const EMPTY = { title: undefined, detail: undefined, entityId: undefined };
+
+    it("drops every action — the opposite of the ungated reader, not another spelling of it", () => {
+      // The guard inc.107 built exists to stop a reader that shows TOO MUCH: a live
+      // `Set Domain to elsewhere.com` write for an org the finding never names. An empty row
+      // shows too LITTLE — every control, including the in-scope one, is gone.
+      expect(hostConfirmControls(STRAY, "C-2017")).not.toEqual([]);
+      expect(hostConfirmControls(STRAY, "C-2017", [], EMPTY)).toEqual([]);
+      expect(hostConfirmControls(STRAY, "C-9999", [], EMPTY)).toEqual([]);
+      expect(hostConfirmControls(LIVE, "C-2017", [], EMPTY)).toEqual([]);
+    });
+
+    it("is what the POST does with the same row, so the two doors still hold one opinion", () => {
+      // inc.101 grades at `POST /api/admin/flags` with exactly these three fields. A row that
+      // names nothing and is filed nowhere stores a NULL payload there. The reader dropping
+      // everything is that same verdict, reached the same way — not a second ladder (inc.4/5).
+      expect(scopeHostConfirmPayload(undefined, undefined, undefined, STRAY)).toEqual({
+        payload: null,
+        dropped: ["C-2017", "C-9999"],
+      });
+    });
+
+    it("is CORRECT for a row that truly names nothing — such a row reaches no org page", () => {
+      // inc.26: a row reaches a page by being filed on it or by naming it. A row doing
+      // neither appears only on the Overview digest, where `pageId` is null and no control
+      // can ever be `here` — so every action it carried was already an unclickable link into
+      // a page the finding is absent from (inc.37/inc.81's dead end). Dropping is the honest
+      // answer, which is why the gate must NOT demand a row that names something: the demand
+      // would forbid the one call that is right for a scope-less row.
+      for (const c of hostConfirmControls(STRAY, null)) expect(c.here).toBe(false);
+      expect(hostConfirmControls(STRAY, null, [], EMPTY)).toEqual([]);
+    });
+
+    it("still keeps whatever the row DOES reach — emptiness is not a switch", () => {
+      // The failure the guard should chase is not "some fields are blank" but "these are not
+      // this row's fields". One populated field is enough to bring its own action back.
+      expect(
+        hostConfirmControls(STRAY, "C-2017", [], { ...EMPTY, entityId: "C-2017" }).map((c) => c.orgId),
+      ).toEqual(["C-2017"]);
+      expect(
+        hostConfirmControls(STRAY, "C-9999", [], { ...EMPTY, detail: "stray [C-9999]" }).map((c) => c.orgId),
+      ).toEqual(["C-9999"]);
+    });
   });
 });

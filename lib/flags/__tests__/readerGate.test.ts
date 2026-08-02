@@ -5,6 +5,8 @@ import {
   READER,
   ROW_ARG_COUNT,
   RULE_FILE,
+  mismatchedRowCallers,
+  mismatchedRowRefusal,
   readerCallers,
   ungatedReaderCallers,
   ungatedReaderRefusal,
@@ -99,6 +101,54 @@ describe("who may read a payload without its row", () => {
   });
 });
 
+// Q84 inc.108 — the count says a row is PRESENT; only this says it is THIS row.
+describe("a gated call whose row came from somewhere else", () => {
+  const MISMATCHED = `${READER}(f.payload, page, written, { title: other.title, detail: other.detail });`;
+
+  it("is invisible to the argument count — every argument is there and well-formed", () => {
+    expect(ungatedReaderCallers([{ path: "a.tsx", text: MISMATCHED }])).toEqual([]);
+    expect(mismatchedRowCallers([{ path: "a.tsx", text: MISMATCHED }])).toEqual(["a.tsx"]);
+  });
+
+  it("passes the two live spellings, which read the payload and the row off the same object", () => {
+    expect(mismatchedRowCallers([{ path: "a.tsx", text: GATED }])).toEqual([]);
+    // The digest call: multi-line, `null` for the page, the row's three fields off `f`.
+    const digest = `${READER}(f.payload, null, [], {\n  title: f.title,\n  detail: f.detail,\n  entityId: f.entity_id,\n})`;
+    expect(mismatchedRowCallers([{ path: "a.tsx", text: digest }])).toEqual([]);
+  });
+
+  it("abstains when the payload is not read off an object — no root, no opinion", () => {
+    expect(mismatchedRowCallers([{ path: "a.tsx", text: `${READER}(payload, page, [], row)` }])).toEqual([]);
+  });
+
+  it("leaves the ungated and the omitted row to the guard that already names them", () => {
+    expect(mismatchedRowCallers([{ path: "a.tsx", text: UNGATED }])).toEqual([]);
+    expect(
+      mismatchedRowCallers([{ path: "a.tsx", text: `${READER}(f.payload, page, [], undefined)` }]),
+    ).toEqual([]);
+  });
+
+  it("does not mistake a property named like the root for the root itself", () => {
+    expect(
+      mismatchedRowCallers([{ path: "a.tsx", text: `${READER}(f.payload, page, [], { title: row.f })` }]),
+    ).toEqual(["a.tsx"]);
+    expect(
+      mismatchedRowCallers([{ path: "a.tsx", text: `${READER}(f.payload, page, [], { title: fx.title })` }]),
+    ).toEqual(["a.tsx"]);
+  });
+
+  it("excludes its own source for the same reason the other guard does", () => {
+    expect(mismatchedRowCallers([{ path: RULE_FILE, text: MISMATCHED }])).toEqual([]);
+  });
+
+  it("the refusal names the confusion, not the syntax", () => {
+    expect(mismatchedRowRefusal([])).toBeNull();
+    const said = mismatchedRowRefusal(["components/Wrong.tsx"])!;
+    expect(said).toContain("components/Wrong.tsx");
+    expect(said).toContain("DIFFERENT finding's reach");
+  });
+});
+
 describe("the real tree", () => {
   it("has the live caller in the walk — an empty walk is not a clean bill of health", () => {
     expect(readerCallers(TREE)).toContain(LIVE_CALLER);
@@ -106,6 +156,10 @@ describe("the real tree", () => {
 
   it("has no production caller reading a payload without its row", () => {
     expect(ungatedReaderRefusal(ungatedReaderCallers(TREE))).toBeNull();
+  });
+
+  it("has no production caller grading a payload against another row", () => {
+    expect(mismatchedRowRefusal(mismatchedRowCallers(TREE))).toBeNull();
   });
 
   it("pins the row's position, because the guard counts arguments to find it", () => {

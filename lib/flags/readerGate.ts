@@ -151,6 +151,75 @@ export function ungatedReaderCallers(files: readonly SourceFile[]): string[] {
     .sort();
 }
 
+// Q84 inc.108 — WHAT THE ARGUMENT COUNT CANNOT SEE.
+//
+// inc.107 handed over a suspicion: a caller passing a row whose every field is `undefined`
+// satisfies `ungatedReaderCallers` and might drop every action. The first half is true. The
+// second half was READ at the reader rather than argued, and it does not make the guard wrong —
+// an all-empty row drops everything, which is the OPPOSITE failure from the one this file
+// chases, and it is the correct answer for a row that genuinely names nothing (inc.26: such a
+// row reaches no org page, so every action it carried was already an unclickable link). The
+// route stores `null` for exactly that row. So the gate must NOT demand a row that names
+// something: the demand would forbid the one call that is right. Pinned in
+// `hostConfirmView.test.ts` → "a row that names nothing".
+//
+// THE HOLE THE COUNT ACTUALLY LEAVES is narrower and real: the fourth argument must be THIS
+// row. Both live calls read the payload and all three fields off the same `f`. Nothing stops a
+// caller handing `f.payload` alongside some OTHER row's title and detail — and that reader is
+// not over- or under-permissive, it is simply wrong about which finding it is grading, in the
+// one direction inc.101's ladder cannot detect (both rows are well-formed).
+//
+// ABSTAINS RATHER THAN GUESSES. If the payload argument is not read off an object — a bare
+// `payload` variable — there is no root to match and this says nothing. It fires only when the
+// payload demonstrably comes from an object and the row demonstrably does not mention it.
+
+/** The root identifier of a member expression (`f.payload` → `f`), or null for anything else. */
+function receiverRoot(arg: string): string | null {
+  const m = /^([A-Za-z_$][\w$]*)\s*\./.exec(arg.trim());
+  return m ? m[1] : null;
+}
+
+/** Whether `text` uses `root` as an identifier, not as somebody else's property. */
+function mentions(text: string, root: string): boolean {
+  return new RegExp(`(?<![\\w$.])${root}(?![\\w$])`).test(text);
+}
+
+/**
+ * Files where a gated reader call hands over a row that never mentions the object the payload
+ * was read off — a row from somewhere else, or a literal standing in for one.
+ *
+ * Separate from `ungatedReaderCallers` on purpose: that one names calls that show Rob too much,
+ * this one names calls that grade the wrong finding. A file can offend both lists.
+ */
+export function mismatchedRowCallers(files: readonly SourceFile[]): string[] {
+  return files
+    .filter((f) => f.path !== RULE_FILE)
+    .filter((f) =>
+      callArgLists(f.text).some((args) => {
+        if (args.length < ROW_ARG_COUNT) return false; // ungatedReaderCallers' business
+        const row = args[ROW_ARG_COUNT - 1];
+        if (row === "undefined") return false; // likewise
+        const root = receiverRoot(args[0]);
+        return !!root && !mentions(row, root);
+      }),
+    )
+    .map((f) => f.path)
+    .sort();
+}
+
+/** The sentence a mismatched row prints. Names the confusion, not the syntax. */
+export function mismatchedRowRefusal(offenders: readonly string[]): string | null {
+  if (!offenders.length) return null;
+  const many = offenders.length !== 1;
+  return (
+    `${offenders.length} file${many ? "s" : ""} hand${many ? "" : "s"} ${READER} a row that never ` +
+    `mentions the object its payload came from: ${[...offenders].join(", ")}. The call is gated ` +
+    `and every argument is well-formed, so nothing else will ever object — but the payload is ` +
+    `graded against a DIFFERENT finding's reach, which silently keeps or drops the wrong ` +
+    `actions. Read title, detail and entityId off the same row as the payload.`
+  );
+}
+
 /**
  * The sentence a failing check prints. Says what the omission COSTS, because the signature will
  * not: the compiler accepts the two-argument call, and the only thing that ever objects is this.
