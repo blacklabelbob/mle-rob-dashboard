@@ -357,6 +357,38 @@ describe("the live guard family", () => {
     expect(types).not.toContain("ResearchDigest");
   });
 
+  // Q84 inc.126 — THE SCAN IS A MEMBER OF THE FAMILY IT JUDGES, pinned by name because a count is
+  // exactly the pin this thread has refused twice. Four of the nineteen are this module's own
+  // exports; each takes the walk's output and answers with an empty-when-healthy list, so inc.121's
+  // discriminator catches them the same way it catches everyone else's guards.
+  it("counts its own exports among the recognisers it judges", () => {
+    const self = recognisers.filter((r) => r.path === "lib/flags/vacuityDuty.ts").map((r) => r.name);
+    expect(self).toEqual([
+      "contentsFieldNames",
+      "treeScanRecognisers",
+      "undischargedRecognisers",
+      "walkOutputTypes",
+    ]);
+  });
+
+  // Q84 inc.126 — AND THE LIMIT OF THAT SELF-MEMBERSHIP, MEASURED RATHER THAN ASSERTED. `dischargedBy`
+  // wants a name and a disk read in one file. A test that exercises these four must import them by
+  // name and must read the real tree to be worth anything, so the import block alone satisfies both
+  // conditions: strip every assertion out of THIS file and all four remain discharged. They cannot
+  // be reported undischarged whatever the test stops doing. Not a self-only hole — any recogniser
+  // pinned by its own real-tree test gets the same free pass — which is why no self-exemption was
+  // added; a hand-chosen exclusion would delete the sound half to paper over this one.
+  it("cannot report its own exports undischarged, even by a test that asserts nothing", () => {
+    const own = readFileSync(path.join(REPO, "lib/flags/__tests__/vacuityDuty.test.ts"), "utf8");
+    const assertionFree = own
+      .split("\n")
+      .filter((line) => !line.includes("expect("))
+      .join("\n");
+    const self = recognisers.filter((r) => r.path === "lib/flags/vacuityDuty.ts");
+    expect(self.length).toBe(4);
+    for (const r of self) expect(dischargedBy(r.name, assertionFree)).toBe(true);
+  });
+
   it("has no recogniser that could go vacuous unnoticed", () => {
     const undischarged = undischargedRecognisers(recognisers, tests, modules);
     expect(undischargedVacuityNotice(undischarged)).toBeNull();

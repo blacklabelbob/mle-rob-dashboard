@@ -144,6 +144,39 @@
 // That is this family's own failure mode pointed at itself, so the real-tree test pins NAMED members
 // of both derived sets, and pins this collapse by its exact survivor rather than by prose.
 
+// Q84 inc.126 — THE GUARD IS INSIDE ITS OWN SUBJECT SET, AND THE DISCHARGE HALF OF THAT IS UNEARNED.
+//
+// inc.125's handover asked whether this module judging itself is sound, or whether a module that
+// judges itself can go quiet about itself. MEASURED ON THE REAL TREE, BOTH DIRECTIONS SEPARATELY,
+// because they do not have the same answer.
+//
+// FOUR OF THE NINETEEN LIVE RECOGNISERS ARE THIS FILE'S OWN EXPORTS — `contentsFieldNames`,
+// `walkOutputTypes`, `treeScanRecognisers`, `undischargedRecognisers`. Not an accident of the regex:
+// each one takes `SourceFile[]` and answers with a list whose healthy value is empty, which is
+// inc.121's discriminator exactly. The scan is a member of the family it judges.
+//
+// THE DETECTION DIRECTION IS SOUND, AND IT IS SOUND FOR A REASON WORTH WRITING DOWN. If this rule
+// narrows, it stops seeing its own four along with everyone else's fifteen — a guard cannot notice
+// its own blindness, by construction. What stands between that and a silent green is not the guard;
+// it is the real-tree pin in the test, which is the whole point of the duty this module exists to
+// enforce. The mechanism defends itself only because it is pinned from outside, so the four are now
+// pinned BY NAME rather than riding on a count, which is the weak pin inc.123 already refused once.
+//
+// THE DISCHARGE DIRECTION IS NOT SOUND, AND THAT IS THIS INCREMENT'S FINDING. `dischargedBy` asks
+// for two things in one file: the name, and a disk read. A test that exercises these functions at
+// all MUST import them by name, and MUST read the real tree to be worth anything — so both
+// conditions are met by the file's import block plus a single `readFileSync(` token. MEASURED, not
+// reasoned: strip every line containing `expect(` from this module's own test and all four stay
+// discharged; cut the file down to its imports and one such token and they still do. THESE FOUR CAN
+// NEVER BE REPORTED UNDISCHARGED, whatever the test does or stops doing.
+//
+// SAID PLAINLY: THAT IS NOT A SELF-ONLY DEFECT, WHICH IS WHY NO SELF-EXEMPTION IS ADDED HERE. Every
+// recogniser whose discharging evidence lives in its own real-tree test enjoys the same free pass;
+// self-membership only makes it unavoidable rather than likely. Excluding this file from its own
+// sweep would be the hand-chosen literal inc.117/inc.118/inc.123/inc.124/inc.125 each deleted once,
+// and would delete the detection direction — the sound half — to paper over the other. The limit is
+// pinned in code below instead, so it cannot be rediscovered as prose a sixth time.
+
 import { SOURCE_FILE, type SourceFile } from "./scanPerimeter";
 
 /**
