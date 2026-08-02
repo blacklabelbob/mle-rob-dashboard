@@ -185,3 +185,76 @@ function titleTokens(title: string | null | undefined): Set<string> {
   const canon = canonicalDedupeKey(title);
   return new Set(canon ? canon.split("-") : []);
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Q84 inc.105 — inc.103's last unread half: does a RESOLVED row's key still block a
+// new spelling from re-filing?
+//
+// Measured, not reasoned. The route's dedupe read is status-BLIND — `eq("dedupe_key", key)`
+// with no status filter — so `planFlagWrite` is handed the resolved rows too and returns
+// "finding recurred after being resolved — a new row, so the resolution note survives".
+// That is the correct answer and it must stay: a resolved row's key deliberately blocks
+// NOTHING, because silently reopening would bury the note Rob wrote when he closed it.
+//
+// The gap is one layer up, in the READER. `scripts/flag-key-drift.mjs` filtered to open
+// rows, so the moment Rob resolves one of two drifted spellings the report says "every
+// open key is one finding, one spelling" — true of the open rows, false of the ledger.
+// The archive still holds a spelling no future exact-match read will ever join, and the
+// next re-file under it inserts a row that reads as a FIRST sighting when it is a
+// recurrence. Absence read as a fact, the same defect inc.36 apologised for.
+//
+// LIVE PROD, 2026-08-02: 144 rows, 104 open + 40 resolved, and **all 40 resolved rows
+// carry `dedupe_key: null`** — so cross-status drift is 0 today and this guard lights
+// nothing. Said plainly rather than dressed up: keys arrived with inc.8 and only module
+// producers write them, so no resolved row has ever had one. This is the check that
+// catches the first time one does.
+//
+// Reported, never paired — same contract as the rest of this file. A pairing here would
+// be an argument for reopening a row Rob closed, which is precisely what `planFlagWrite`
+// refuses to do.
+
+export type StatusedRow = KeyedRow & { status?: string | null };
+
+export type CrossStatusDrift = {
+  identity: string;
+  /** Spellings that appear on at least one OPEN row. */
+  openSpellings: string[];
+  /** Spellings that appear ONLY on resolved rows — invisible to an open-only reader. */
+  resolvedOnlySpellings: string[];
+  rows: StatusedRow[];
+};
+
+/** A row with no explicit status is open — the ledger's own default, and the safer read. */
+function isOpen(row: StatusedRow): boolean {
+  return (typeof row.status === "string" ? row.status : "open") === "open";
+}
+
+/**
+ * One identity whose spellings straddle the open/resolved line.
+ *
+ * Only groups where a spelling exists ONLY among resolved rows qualify: that is the
+ * spelling an open-only reader cannot see, and the one a producer can re-type into a
+ * row nothing will ever join. Drift entirely among open rows is already `findKeyDrift`'s
+ * job and is not repeated here; drift entirely among resolved rows is closed history.
+ */
+export function findCrossStatusDrift(rows: StatusedRow[]): CrossStatusDrift[] {
+  const byIdentity = new Map<string, StatusedRow[]>();
+  for (const row of rows) {
+    const identity = canonicalDedupeKey(row.dedupeKey);
+    if (!identity) continue;
+    const bucket = byIdentity.get(identity);
+    if (bucket) bucket.push(row);
+    else byIdentity.set(identity, [row]);
+  }
+  const found: CrossStatusDrift[] = [];
+  for (const [identity, bucket] of byIdentity) {
+    const spell = (r: StatusedRow) => (r.dedupeKey as string).trim();
+    const openSpellings = [...new Set(bucket.filter(isOpen).map(spell))];
+    const resolvedSpellings = [...new Set(bucket.filter((r) => !isOpen(r)).map(spell))];
+    if (!openSpellings.length || !resolvedSpellings.length) continue;
+    const resolvedOnlySpellings = resolvedSpellings.filter((s) => !openSpellings.includes(s));
+    if (!resolvedOnlySpellings.length) continue;
+    found.push({ identity, openSpellings, resolvedOnlySpellings, rows: bucket });
+  }
+  return found;
+}

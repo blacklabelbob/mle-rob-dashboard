@@ -6,6 +6,7 @@ import {
   titleIdentity,
   findKeylessStacks,
   findTitleNearMisses,
+  findCrossStatusDrift,
 } from "../dedupeKeyIdentity";
 
 // The row pair this module exists for — both live on prod, both filed on C-2010.
@@ -196,5 +197,59 @@ describe("findTitleNearMisses", () => {
 
   it("says nothing about rows that carry keys", () => {
     expect(findTitleNearMisses([{ ...F142, dedupeKey: "a" }, { ...F120, dedupeKey: "b" }])).toEqual([]);
+  });
+});
+
+// Q84 inc.105 — the spelling that survives only on a row Rob already closed.
+describe("findCrossStatusDrift — an open-only reader cannot see the archive's spelling", () => {
+  it("reports the resolved-only spelling of an identity that is still open", () => {
+    const found = findCrossStatusDrift([
+      { ...F144, status: "open" },
+      { ...F145, status: "resolved" },
+    ]);
+    expect(found).toHaveLength(1);
+    expect(found[0].openSpellings).toEqual(["org-hosts/duplicate-slot-C-2010"]);
+    expect(found[0].resolvedOnlySpellings).toEqual(["org-host/C-2010-duplicate-slot"]);
+  });
+
+  it("says nothing when both spellings are open — that is findKeyDrift's row, not this one", () => {
+    expect(findCrossStatusDrift([{ ...F144, status: "open" }, { ...F145, status: "open" }])).toEqual([]);
+    expect(findKeyDrift([F144, F145])).toHaveLength(1);
+  });
+
+  it("says nothing when the identity is entirely resolved — closed history, not a live re-file", () => {
+    expect(
+      findCrossStatusDrift([{ ...F144, status: "resolved" }, { ...F145, status: "resolved" }]),
+    ).toEqual([]);
+  });
+
+  it("says nothing when the resolved row spells it exactly as the open one does", () => {
+    expect(
+      findCrossStatusDrift([
+        { id: 133, dedupeKey: "meeting-archive/crm-gap", status: "open" },
+        { id: 132, dedupeKey: "meeting-archive/crm-gap", status: "resolved" },
+      ]),
+    ).toEqual([]);
+  });
+
+  it("treats a row with no status as open — the ledger's own default", () => {
+    const found = findCrossStatusDrift([F144, { ...F145, status: "resolved" }]);
+    expect(found).toHaveLength(1);
+    expect(found[0].openSpellings).toEqual(["org-hosts/duplicate-slot-C-2010"]);
+  });
+
+  it("ignores keyless rows on both sides — they were never joinable by key at all", () => {
+    expect(
+      findCrossStatusDrift([
+        { id: 1, dedupeKey: null, status: "open" },
+        { id: 2, dedupeKey: null, status: "resolved" },
+        { id: 3, dedupeKey: "   ", status: "resolved" },
+      ]),
+    ).toEqual([]);
+  });
+
+  it("matches prod today: 40 resolved rows, none carrying a key, so nothing lights", () => {
+    const resolved = Array.from({ length: 40 }, (_, i) => ({ id: i + 1, dedupeKey: null, status: "resolved" }));
+    expect(findCrossStatusDrift([...resolved, { ...F144, status: "open" }, { ...F145, status: "open" }])).toEqual([]);
   });
 });

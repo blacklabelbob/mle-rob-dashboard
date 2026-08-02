@@ -18,7 +18,12 @@
  *   node --import ./scripts/ts-loader.mjs scripts/flag-key-drift.mjs [--flag] [--json]
  */
 
-import { findKeyDrift, findKeylessStacks, findTitleNearMisses } from "../lib/flags/dedupeKeyIdentity.ts";
+import {
+  findCrossStatusDrift,
+  findKeyDrift,
+  findKeylessStacks,
+  findTitleNearMisses,
+} from "../lib/flags/dedupeKeyIdentity.ts";
 
 // Same var as scripts/migration-backlog.mjs and notion-crm-check.mjs — one name for the
 // one destination. Defaults to prod: the ledger Rob reads is the deployed one.
@@ -55,8 +60,22 @@ const keyless = rows.filter((r) => !(typeof r.dedupeKey === "string" && r.dedupe
 const stacks = findKeylessStacks(rows);
 const nearMisses = findTitleNearMisses(rows);
 
+// Q84 inc.105 — the ONE read here that must not stop at the open rows. A spelling that
+// survives only on a resolved row is invisible to every check above, and re-filing under
+// it inserts a row that reads as a first sighting instead of a recurrence. The open-only
+// counts above are deliberately unchanged: this is an extra window, not a wider one.
+const crossStatus = findCrossStatusDrift(
+  all.map((f) => ({ id: f.id, dedupeKey: f.dedupe_key ?? f.dedupeKey, status: f.status ?? "open" })),
+);
+
 if (JSON_OUT) {
-  console.log(JSON.stringify({ scanned: open.length, groups, keyless: keyless.length, stacks, nearMisses }, null, 2));
+  console.log(
+    JSON.stringify(
+      { scanned: open.length, ledger: all.length, groups, keyless: keyless.length, stacks, nearMisses, crossStatus },
+      null,
+      2,
+    ),
+  );
 } else {
   console.log(`open flags: ${open.length} · one identity spelled more than once: ${groups.length}`);
   for (const g of groups) {
@@ -72,6 +91,17 @@ if (JSON_OUT) {
   if (!stacks.length && keyless.length) {
     console.log("  none — keyless, but no two of them are the same finding on the same record yet.");
   }
+  console.log(
+    `\nledger incl. resolved: ${all.length} · spellings that survive only on a resolved row: ${crossStatus.length}`,
+  );
+  for (const c of crossStatus) {
+    console.log(`  [${c.identity}] open: ${c.openSpellings.join(", ")}`);
+    console.log(`      resolved-only: ${c.resolvedOnlySpellings.join(", ")} — a re-file under this reads as new`);
+  }
+  if (!crossStatus.length) {
+    console.log("  none — no resolved row carries a spelling an open row does not.");
+  }
+
   if (nearMisses.length) {
     console.log(`\nnear misses NOT paired (${nearMisses.length}) — a title alone is not a key:`);
     for (const m of nearMisses) {
@@ -84,6 +114,9 @@ if (JSON_OUT) {
 // A keyless stack is the same defect through the other door, so it gates the write too —
 // otherwise a run that found only stacks would exit silently as though it found nothing.
 // Near misses never gate anything: they are the pairings this script REFUSED to make.
+// Nor does cross-status drift (inc.105): the remedy the filed row prescribes is "resolve one
+// with a note pointing at the other", and one of those rows is ALREADY resolved. Filing that
+// sentence about a row Rob closed would be advice to undo his own closure.
 const findings = groups.length + stacks.length;
 if (!findings || !FLAG) {
   if (findings) console.log("\nplan only — pass --flag to put this on the ledger.");
