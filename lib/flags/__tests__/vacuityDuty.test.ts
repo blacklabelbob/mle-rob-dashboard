@@ -7,51 +7,86 @@ import {
   undischargedVacuityNotice,
   dischargedBy,
   inModuleProxies,
+  walkOutputTypes,
 } from "../vacuityDuty";
-import { descendableDir, SOURCE_FILE, type SourceFile } from "../scanPerimeter";
+import { SCANNED_ROOTS, SOURCE_FILE, type SourceFile } from "../scanPerimeter";
 
 // Q84 inc.122 — the rule under test is about THIS repo's guards, so the test reads them off disk.
 // Reading bytes is the caller's job (CR-3, inc.114/inc.115): the module is pure, the walk is here.
-const FLAGS_DIR = path.resolve(import.meta.dirname, "..");
+//
+// Q84 inc.123 — and the tree it reads is the PERIMETER'S, not `lib/flags/`. The old literal meant a
+// guard one directory away was never asked whether it owes this duty; `mailScopeBreaches` and
+// `seamViolations` were exactly that. Third deletion of a hand-chosen walk on this queue.
+//
+// `__tests__` is DELIBERATELY walked here, where both doors exclude it: the discharging evidence
+// lives in test files, so a walk that skips them would find every recogniser undischarged. Modules
+// and tests are split by path as they are collected, because they answer different questions.
+const REPO = path.resolve(import.meta.dirname, "../../..");
 
-function walk(dir: string, prefix: string, into: SourceFile[]): void {
+const modules: SourceFile[] = [];
+const tests: SourceFile[] = [];
+
+function walk(dir: string, prefix: string): void {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     const rel = `${prefix}${entry.name}`;
     if (entry.isDirectory()) {
-      // `__tests__` is excluded from the guards' own walk, so it is walked separately below.
-      if (descendableDir(entry.name)) walk(path.join(dir, entry.name), `${rel}/`, into);
+      if (entry.name !== "node_modules" && !entry.name.startsWith(".")) {
+        walk(path.join(dir, entry.name), `${rel}/`);
+      }
       continue;
     }
-    if (SOURCE_FILE.test(entry.name)) {
-      into.push({ path: rel, text: readFileSync(path.join(dir, entry.name), "utf8") });
-    }
+    if (!SOURCE_FILE.test(entry.name)) continue;
+    const file = { path: rel, text: readFileSync(path.join(dir, entry.name), "utf8") };
+    (rel.includes("__tests__/") ? tests : modules).push(file);
   }
 }
 
-const modules: SourceFile[] = [];
-walk(FLAGS_DIR, "lib/flags/", modules);
+for (const root of SCANNED_ROOTS) walk(path.join(REPO, root), `${root}/`);
 
-const testsDir = path.join(FLAGS_DIR, "__tests__");
-const tests: SourceFile[] = readdirSync(testsDir)
-  .filter((f) => SOURCE_FILE.test(f))
-  .map((f) => ({
-    path: `lib/flags/__tests__/${f}`,
-    text: readFileSync(path.join(testsDir, f), "utf8"),
-  }));
+// Q84 inc.123 — a fixture must now DECLARE the walk type it uses, because the vocabulary is derived
+// from the same files the recognisers are. That is not incidental: it is the rule under test. A
+// fixture that names `SourceFile[]` without declaring it is a file set in which no walk type exists.
+const DECLARES = "export type SourceFile = { path: string; text: string };\n";
 
 describe("treeScanRecognisers", () => {
   it("recognises a function that consumes the walk and answers with a list", () => {
     const found = treeScanRecognisers([
-      { path: "lib/x.ts", text: "export function subjects(files: readonly SourceFile[]): string[] {" },
+      {
+        path: "lib/x.ts",
+        text: `${DECLARES}export function subjects(files: readonly SourceFile[]): string[] {`,
+      },
     ]);
     expect(found).toEqual([{ path: "lib/x.ts", name: "subjects" }]);
+  });
+
+  it("recognises one over a walk type it has never heard of, declared anywhere in the set", () => {
+    // The half the widened walk alone would not have fixed: a guard elsewhere brings its own noun.
+    expect(
+      treeScanRecognisers([
+        { path: "lib/a.ts", text: "export type BlobFile = { path: string; content: string };" },
+        { path: "lib/b.ts", text: "export function breaches(f: readonly BlobFile[]): string[] {" },
+      ]),
+    ).toEqual([{ path: "lib/b.ts", name: "breaches" }]);
+  });
+
+  it("ignores a list of findings ABOUT files — a reducer is not a guard", () => {
+    expect(
+      treeScanRecognisers([
+        {
+          path: "lib/x.ts",
+          text:
+            "export type Finding = { path: string; reason: string };\n" +
+            "export function worst(all: readonly Finding[]): string[] {",
+        },
+      ]),
+    ).toEqual([]);
   });
 
   it("ignores a transform whose caller consumes the value", () => {
     // The class inc.121 refused: blinding this stops the expected output arriving, so it self-catches.
     expect(
       treeScanRecognisers([
-        { path: "lib/x.ts", text: "export function linkify(detail: string): Segment[] {" },
+        { path: "lib/x.ts", text: `${DECLARES}export function linkify(detail: string): Segment[] {` },
       ]),
     ).toEqual([]);
   });
@@ -59,7 +94,10 @@ describe("treeScanRecognisers", () => {
   it("ignores a walk consumer that answers with a single value, not a list", () => {
     expect(
       treeScanRecognisers([
-        { path: "lib/x.ts", text: "export function refusal(files: readonly SourceFile[]): string | null {" },
+        {
+          path: "lib/x.ts",
+          text: `${DECLARES}export function refusal(f: readonly SourceFile[]): string | null {`,
+        },
       ]),
     ).toEqual([]);
   });
@@ -67,7 +105,10 @@ describe("treeScanRecognisers", () => {
   it("ignores a file that is not source at all", () => {
     expect(
       treeScanRecognisers([
-        { path: "docs/x.md", text: "export function subjects(files: readonly SourceFile[]): string[] {" },
+        {
+          path: "docs/x.md",
+          text: `${DECLARES}export function subjects(f: readonly SourceFile[]): string[] {`,
+        },
       ]),
     ).toEqual([]);
   });
@@ -152,6 +193,21 @@ describe("the live guard family", () => {
       path: "lib/flags/payloadWriters.ts",
       name: "payloadWriteSubjects",
     });
+    // Q84 inc.123 — and one from OUTSIDE `lib/flags/`, which is the whole point of both halves of
+    // this increment: the old walk could not reach this file and the old vocabulary could not have
+    // named its type. A count would have gone on passing after either half was reverted.
+    expect(recognisers).toContainEqual({ path: "lib/coreSeam.ts", name: "seamViolations" });
+  });
+
+  it("learns the walk's vocabulary from the tree, not from a list in the module", () => {
+    const types = walkOutputTypes(modules);
+    expect(types).toContain("SourceFile");
+    // Declared in `lib/coreSeam.ts` — a name nothing in `lib/flags/` has ever mentioned.
+    expect(types).toContain("SeamFile");
+    // A finding ABOUT a file is not a file: `{path, name}` and `{path, reason}` stay out, or this
+    // rule degrades into "any type holding a path".
+    expect(types).not.toContain("Recogniser");
+    expect(types).not.toContain("ReaderAbstention");
   });
 
   it("has no recogniser that could go vacuous unnoticed", () => {

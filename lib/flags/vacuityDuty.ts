@@ -27,14 +27,65 @@
 // caller, exactly as `scanPerimeter` splits it (inc.114/inc.115): the test walks the disk and asks
 // these functions which of what it found owes a pin.
 
+// Q84 inc.123 — THE SCAN WAS HAND-CHOSEN TWICE, AND ONLY ONE OF THE TWO WAS THE DIRECTORY.
+//
+// inc.122's handover named the obvious half: the walk read `lib/flags/` and nothing else, a literal
+// picked by hand — the defect inc.114 and inc.115 each deleted once already. That half is real, and
+// the walk below is now the perimeter's own.
+//
+// WIDENING THE WALK ALONE WOULD HAVE CHANGED NOTHING, AND THAT IS THE FINDING. Handed all 417
+// source files the perimeter reaches, the rule as written still returned the same 14 recognisers,
+// every one of them inside `lib/flags/`. Not because the directory was well chosen — because the
+// RULE was keyed on two type NAMES, `SourceFile` and `FleetDoc`, and both are declared in
+// `lib/flags/`. A guard built anywhere else declares its own list type and is invisible to a
+// name-matching rule no matter how wide the walk gets. The perimeter and the vocabulary are two
+// independent hand-chosen literals, and fixing one leaves the other holding the hole.
+//
+// SO THE VOCABULARY IS DERIVED FROM THE TREE, WHICH IS inc.117/inc.118's MOVE IN A THIRD PLACE: a
+// roster nobody has to remember cannot be forgotten. And the derivation immediately found what the
+// name list could not — `mailScopeBreaches` (`lib/comms/mailReadScope.ts`), `seamViolations` and
+// `rulingBreaches` (`lib/coreSeam.ts`), three tree-scanning guards over `MailFile[]`/`SeamFile[]`
+// that owe this duty and had never once been asked. All three DISCHARGE it (inc.121 checked those
+// two modules by hand and found named real-tree pins), so this closes no live hole — reported as it
+// is rather than dressed up as a save. What it closes is the next one, which nobody would have
+// checked by hand either.
+
 import { SOURCE_FILE, type SourceFile } from "./scanPerimeter";
 
 /**
- * The walk's own output types. A parameter of one of these shapes is what makes a function a
- * TREE-SCANNING RECOGNISER rather than a transform: its argument is "every file in the repo", so
- * its result is a claim about the tree and nothing but a test ever reads it.
+ * An exported object type that is a FILE AS THE WALK HANDS IT OVER: a repo-relative `path` plus the
+ * file's own bytes. `SourceFile`, `FleetDoc`, `MailFile` and `SeamFile` are the four on this tree.
+ *
+ * THE CONTENTS FIELD IS REQUIRED, AND IT IS WHAT KEEPS THIS FROM OVER-MATCHING. Plenty of types in
+ * this family carry a `path` and are not walk output at all — `Recogniser` is `{path, name}` and
+ * `ReaderAbstention` is `{path, reason}`. Those are FINDINGS ABOUT a file, and a function consuming
+ * a list of findings is a reducer over another guard's answer, not a guard. Keying on `path` alone
+ * would have swept both in and made this rule mean "anything holding a path", which is how a
+ * derived roster turns into noise the reader learns to skim.
  */
-const WALK_INPUT = /\b(SourceFile|FleetDoc)\[\]/;
+const WALK_OUTPUT_TYPE = /export type ([A-Za-z0-9_]+) = (\{[^}]*\})/g;
+const HAS_PATH = /\bpath\s*\??:\s*string/;
+const HAS_CONTENTS = /\b(text|content|source)\s*\??:\s*string/;
+
+/**
+ * Every type name on the given files that a walk could hand out — the vocabulary this scan then
+ * looks for in parameter lists, read off the tree instead of typed in here.
+ */
+export function walkOutputTypes(files: readonly SourceFile[]): string[] {
+  const found = new Set<string>();
+  for (const file of files) {
+    if (!SOURCE_FILE.test(file.path)) continue;
+    for (const [, name, body] of file.text.matchAll(WALK_OUTPUT_TYPE)) {
+      if (HAS_PATH.test(body) && HAS_CONTENTS.test(body)) found.add(name);
+    }
+  }
+  return [...found].sort();
+}
+
+/** `Type[]` for any of the derived walk-output names — the parameter shape that makes a recogniser. */
+function walkInput(types: readonly string[]): RegExp | null {
+  return types.length ? new RegExp(`\\b(${types.join("|")})\\[\\]`) : null;
+}
 
 /** A signature whose declared return is a list — `string[]`, `PathConstant[]`, `ReaderAbstention[]`. */
 const LIST_RETURN = /^\s*(readonly\s+)?[A-Za-z_][A-Za-z0-9_.<>, |]*\[\]\s*$/;
@@ -60,6 +111,10 @@ export type Recogniser = {
  * caller handing us markdown does not produce phantom recognisers.
  */
 export function treeScanRecognisers(files: readonly SourceFile[]): Recogniser[] {
+  // The vocabulary comes from the same files the recognisers do: hand the scan a wider tree and it
+  // learns that tree's walk types, rather than staying fluent only in `lib/flags/`.
+  const WALK_INPUT = walkInput(walkOutputTypes(files));
+  if (!WALK_INPUT) return [];
   const found: Recogniser[] = [];
   for (const file of files) {
     if (!SOURCE_FILE.test(file.path)) continue;
