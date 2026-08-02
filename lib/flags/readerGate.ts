@@ -213,28 +213,12 @@ function bareIdentifier(arg: string): string | null {
   return /^[A-Za-z_$][\w$]*$/.test(t) && t !== "undefined" ? t : null;
 }
 
-/**
- * The initializer of `const|let|var <name> = …` in the same file, or null.
- *
- * Null covers four honest ignorances that must not read as a mismatch: no declaration here (the
- * row is imported, a parameter, or destructured), more than one declaration of the name (which of
- * them reached the call is a scope question this cannot answer), an unterminated initializer, and
- * a name written to after it is declared (inc.110 — the declaration is then no longer what the
- * call received).
- *
- * LIMIT, stated rather than covered up: textual and file-local. A shadowed name in a nested scope
- * resolves to whichever single declaration exists.
- */
-function declaredInitializer(text: string, name: string): string | null {
+/** Every `const|let|var <name> =` in the file, as offsets just past the `=`. */
+function declarationEnds(text: string, name: string): number[] {
   const decl = new RegExp(`(?<![\\w$.])(?:const|let|var)\\s+${name}\\s*(?::[^=;]*)?=`, "g");
-  let found: number | null = null;
-  for (let m = decl.exec(text); m; m = decl.exec(text)) {
-    if (found !== null) return null; // declared twice — which one reached the call is not knowable here
-    found = m.index + m[0].length;
-  }
-  if (found === null) return null;
-  if (writtenTo(text, name)) return null; // the declaration is no longer the whole story
-  return scanInitializer(text, found);
+  const ends: number[] = [];
+  for (let m = decl.exec(text); m; m = decl.exec(text)) ends.push(m.index + m[0].length);
+  return ends;
 }
 
 // Q84 inc.110 — A DECLARATION IS NOT A VALUE.
@@ -301,14 +285,114 @@ function scanInitializer(text: string, start: number): string | null {
   return trimmed ? trimmed : null;
 }
 
+// Q84 inc.111 — AN ABSTENTION IS NOT A CLEAN BILL OF HEALTH.
+//
+// inc.107..inc.110 each answered "accuse or stay quiet?" with quiet, and each time that was the
+// right answer: the accusation is the one thing a nag cannot afford. But the four ignorances all
+// route to the same silent `null`, and the effect compounds — a file can now be un-gradeable four
+// different ways and `mismatchedRowCallers` reports none of them. Green means EITHER "every gated
+// call was read and every one grades its own finding" OR "the guard could not read a thing." Two
+// opposite states, one colour.
+//
+// SURFACING THEM IS NOT THE NAG THIS FILE WAS BUILT TO AVOID, because it is a different sentence
+// aimed at a different question. `mismatchedRowRefusal` says *this call is wrong*; that is the
+// claim inc.109 and inc.110 proved must never be made on an unread argument. An abstention says
+// *this call was not checked* — a fact about the GUARD, not a verdict on the author, and one this
+// file can always establish with certainty because not-reading is the thing it directly observed.
+//
+// So the deliverable is a COVERAGE list, not a second lint: nothing here is an offence, and the
+// notice says so in its first clause. Its value is that the real-tree test can pin today's answer
+// — every live gated call is readable — so a refactor that hoists a row into an import turns the
+// guard quiet AND turns the suite red, instead of only the first.
+
+/**
+ * Why a gated call could not be graded. The wording is the notice's, so a reason is never
+ * paraphrased into an accusation on its way out.
+ */
+export const ABSTENTION = {
+  noRoot: "its payload is not read off an object, so there is no root to match a row against",
+  notDeclared: "its row is passed by name and declared nowhere in the same file",
+  declaredTwice: "its row's name is declared more than once, and scope is not readable here",
+  writtenTo: "its row is written to after it is declared, so the declaration is not what was passed",
+  unreadable: "its row's declaration could not be read to the end",
+} as const;
+
+export type AbstentionReason = (typeof ABSTENTION)[keyof typeof ABSTENTION];
+
+/** A gated call this file declined to grade, and the ignorance that stopped it. */
+export type ReaderAbstention = { path: string; reason: AbstentionReason };
+
+/** The row as evidence, or the ignorance that means there is none. */
+type RowRead = { evidence: string; reason?: undefined } | { evidence?: undefined; reason: AbstentionReason };
+
 /**
  * What the row argument actually says: itself when written at the call site, its declaration when
- * passed by name, or null when this file cannot read it and must therefore say nothing.
+ * passed by name, or the reason this file cannot read it and must therefore say nothing.
+ *
+ * LIMIT, stated rather than covered up: textual and file-local. A shadowed name in a nested scope
+ * resolves to whichever single declaration exists.
  */
-function rowEvidence(fileText: string, rowArg: string): string | null {
+function readRow(fileText: string, rowArg: string): RowRead {
   const name = bareIdentifier(rowArg);
-  if (!name) return rowArg;
-  return declaredInitializer(fileText, name);
+  if (!name) return { evidence: rowArg };
+  const ends = declarationEnds(fileText, name);
+  if (ends.length === 0) return { reason: ABSTENTION.notDeclared };
+  if (ends.length > 1) return { reason: ABSTENTION.declaredTwice };
+  if (writtenTo(fileText, name)) return { reason: ABSTENTION.writtenTo };
+  const initializer = scanInitializer(fileText, ends[0]);
+  return initializer === null ? { reason: ABSTENTION.unreadable } : { evidence: initializer };
+}
+
+function rowEvidence(fileText: string, rowArg: string): string | null {
+  return readRow(fileText, rowArg).evidence ?? null;
+}
+
+/**
+ * Every gated reader call `mismatchedRowCallers` declined to grade, with its reason.
+ *
+ * NOT a list of offences — every entry may be perfectly correct code, and the notice leads with
+ * that. It exists so the guard's silence can be told apart from its approval: this is the exact
+ * set of calls the mismatch rule never had an opinion about.
+ *
+ * Ungated calls and a literal `undefined` are skipped, not abstained on — they are the other
+ * guard's business and it is already loud about them.
+ */
+export function abstainedReaderCallers(files: readonly SourceFile[]): ReaderAbstention[] {
+  const seen = new Set<string>();
+  const out: ReaderAbstention[] = [];
+  for (const file of files) {
+    if (file.path === RULE_FILE) continue;
+    for (const args of callArgLists(file.text)) {
+      if (args.length < ROW_ARG_COUNT) continue;
+      const row = args[ROW_ARG_COUNT - 1];
+      if (row === "undefined") continue;
+      const reason = receiverRoot(args[0]) ? readRow(file.text, row).reason : ABSTENTION.noRoot;
+      if (!reason) continue;
+      const key = `${file.path} ${reason}`;
+      if (seen.has(key)) continue; // one file, one reason — a repeated spelling is not new news
+      seen.add(key);
+      out.push({ path: file.path, reason });
+    }
+  }
+  return out.sort((a, b) => a.path.localeCompare(b.path) || a.reason.localeCompare(b.reason));
+}
+
+/**
+ * The sentence a coverage gap prints. Says in its first clause that nothing here is an offence,
+ * because a reader who mistakes this for the refusal will "fix" correct code.
+ */
+export function abstentionNotice(abstentions: readonly ReaderAbstention[]): string | null {
+  if (!abstentions.length) return null;
+  const many = abstentions.length !== 1;
+  const lines = abstentions.map((a) => `${a.path} — ${a.reason}`).join("; ");
+  return (
+    `Nothing below is wrong: ${abstentions.length} reader call${many ? "s were" : " was"} left ` +
+    `UNGRADED because ${READER}'s mismatch rule could not read ${many ? "them" : "it"} — ${lines}. ` +
+    `The rule stays silent on ${many ? "these" : "this"} by design (an argument it cannot read is ` +
+    `not evidence of a mismatch), so its green is coverage-shaped, not proof. Write the row at the ` +
+    `call site, or off a single unwritten declaration, to bring ${many ? "them" : "it"} back under ` +
+    `the guard.`
+  );
 }
 
 /**

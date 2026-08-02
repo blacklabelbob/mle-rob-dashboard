@@ -2,9 +2,12 @@ import { describe, expect, it } from "vitest";
 import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import {
+  ABSTENTION,
   READER,
   ROW_ARG_COUNT,
   RULE_FILE,
+  abstainedReaderCallers,
+  abstentionNotice,
   mismatchedRowCallers,
   mismatchedRowRefusal,
   readerCallers,
@@ -221,6 +224,64 @@ describe("a gated call whose row came from somewhere else", () => {
   });
 });
 
+// Q84 inc.111 — the four ignorances all return the same silent null, so green means either
+// "every gated call grades its own finding" or "nothing could be read". This tells them apart.
+describe("the calls the guard declined to grade", () => {
+  const call = `${READER}(f.payload, page, written, row);`;
+
+  it("says nothing about a call it fully read — an abstention is not the default", () => {
+    expect(abstainedReaderCallers([{ path: "a.tsx", text: GATED }])).toEqual([]);
+    const hoisted = `const row = { title: f.title, detail: f.detail };\n${call}`;
+    expect(abstainedReaderCallers([{ path: "a.tsx", text: hoisted }])).toEqual([]);
+  });
+
+  it("says nothing about a call it graded as WRONG — silence is the only thing surfaced", () => {
+    const wrong = `${READER}(f.payload, page, written, { title: other.title });`;
+    expect(mismatchedRowCallers([{ path: "a.tsx", text: wrong }])).toEqual(["a.tsx"]);
+    expect(abstainedReaderCallers([{ path: "a.tsx", text: wrong }])).toEqual([]);
+  });
+
+  it("names each of the four ignorances, so a gap is actionable rather than mysterious", () => {
+    const cases: Array<[string, string]> = [
+      [call, ABSTENTION.notDeclared],
+      [`const row = { title: f.title };\nfunction g() { const row = { title: other.title }; }\n${call}`, ABSTENTION.declaredTwice],
+      [`const row = { title: other.title };\nrow.title = f.title;\n${call}`, ABSTENTION.writtenTo],
+      [`${READER}(payload, page, written, row);`, ABSTENTION.noRoot],
+    ];
+    for (const [text, reason] of cases) {
+      expect(abstainedReaderCallers([{ path: "a.tsx", text }])).toEqual([{ path: "a.tsx", reason }]);
+      // Every one of them is silent at the rule itself — that is the whole point of surfacing it.
+      expect(mismatchedRowCallers([{ path: "a.tsx", text }])).toEqual([]);
+    }
+  });
+
+  it("leaves the ungated call and the literal undefined to the guard that is already loud", () => {
+    expect(abstainedReaderCallers([{ path: "a.tsx", text: UNGATED }])).toEqual([]);
+    expect(
+      abstainedReaderCallers([{ path: "a.tsx", text: `${READER}(f.payload, page, [], undefined)` }]),
+    ).toEqual([]);
+  });
+
+  it("reports one file once per reason, however many times the spelling repeats", () => {
+    expect(abstainedReaderCallers([{ path: "a.tsx", text: `${call}\n${call}` }])).toEqual([
+      { path: "a.tsx", reason: ABSTENTION.notDeclared },
+    ]);
+  });
+
+  it("excludes its own source for the same reason every other rule here does", () => {
+    expect(abstainedReaderCallers([{ path: RULE_FILE, text: call }])).toEqual([]);
+  });
+
+  it("the notice leads with 'nothing is wrong', because a reader who misreads it edits correct code", () => {
+    expect(abstentionNotice([])).toBeNull();
+    const said = abstentionNotice([{ path: "components/X.tsx", reason: ABSTENTION.notDeclared }])!;
+    expect(said.startsWith("Nothing below is wrong")).toBe(true);
+    expect(said).toContain("components/X.tsx");
+    expect(said).toContain(ABSTENTION.notDeclared);
+    expect(said).toContain("UNGRADED");
+  });
+});
+
 describe("the real tree", () => {
   it("has the live caller in the walk — an empty walk is not a clean bill of health", () => {
     expect(readerCallers(TREE)).toContain(LIVE_CALLER);
@@ -232,6 +293,10 @@ describe("the real tree", () => {
 
   it("has no production caller grading a payload against another row", () => {
     expect(mismatchedRowRefusal(mismatchedRowCallers(TREE))).toBeNull();
+  });
+
+  it("has every gated call READABLE — so the mismatch rule's green is proof, not just silence", () => {
+    expect(abstentionNotice(abstainedReaderCallers(TREE))).toBeNull();
   });
 
   it("pins the row's position, because the guard counts arguments to find it", () => {
