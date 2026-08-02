@@ -24,6 +24,7 @@ import {
   reopenFailureMessage,
   resolutionNoteBody,
   supersededBy,
+  archiveReopenRuleNote,
 } from "@/lib/flags/supersede";
 import {
   archiveRepeatMark,
@@ -831,6 +832,17 @@ export default function ThingsToAddress({
               Counted off ALL flags, same as the badges. */}
           {archiveRepeatSummary(flags) && (
             <span className="ml-2 text-[10px] text-slate-500">· {archiveRepeatSummary(flags)}</span>
+          )}
+          {/* inc.94: inc.93's refusal cannot reach this page — the failure line
+              renders inside the same `supersededBy` block that draws the button,
+              which is exactly the case the server lets through. What Rob DOES see
+              is one row with a Reopen and the rest without, unexplained. Said once
+              here (inc.44's placement), only while the list is open and only when
+              both kinds are in it, off the same ladder the endpoint uses. */}
+          {showArchive && archiveReopenRuleNote(resolved) && (
+            <p className="mt-2 text-[10px] leading-snug text-slate-500">
+              {archiveReopenRuleNote(resolved)}
+            </p>
           )}
           {showArchive && (
             <ul className="mt-2 space-y-1.5">

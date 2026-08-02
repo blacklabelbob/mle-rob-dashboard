@@ -397,6 +397,48 @@ export function flagReopenRefusal(
   );
 }
 
+/**
+ * Q84 inc.94 — say the rule where it is READ, because the refusal can never be read.
+ *
+ * inc.93's guard is correct and unreachable from this app. `reopenFailureMessage` passes a 409
+ * through verbatim, but the failure line renders INSIDE the same `supersededBy(note) !== null`
+ * block that draws the button — and that is exactly the input for which `flagReopenRefusal`
+ * returns null. So the sentence protects the endpoint against a caller that is not the UI
+ * (curl, a script, a future page) and tells the reader of the ledger nothing at all.
+ *
+ * What the reader actually sees is an ASYMMETRY: open the archive and one row carries a Reopen
+ * button while the rest carry none, with nothing on the page saying why. That question only
+ * exists when both kinds are in front of him — so this line appears only then. An archive of
+ * nothing but his own closes shows no button to wonder about; an archive of nothing but
+ * pass-closed rows reopens uniformly. Answering an unasked question on every one of 39 rows is
+ * the noise, not the information.
+ *
+ * ONE LADDER, not a second: a row is "his" here precisely when the ENDPOINT would refuse it, so
+ * the count in this sentence cannot drift from what the server does. And it is said ONCE under
+ * the header rather than per row, for the same reason inc.44 put its summary there.
+ *
+ * @returns the line for the archive header, or null when there is no asymmetry to explain
+ */
+export function archiveReopenRuleNote(
+  rows: ReadonlyArray<{ status?: string | null; resolution_note?: string | null }> | null | undefined,
+): string | null {
+  if (!Array.isArray(rows)) return null;
+  let mine = 0;
+  let reopenable = 0;
+  for (const r of rows) {
+    if (r?.status !== "resolved") continue;
+    if (flagReopenRefusal(r.status, r.resolution_note) === null) reopenable += 1;
+    else mine += 1;
+  }
+  // Both kinds must be present: no button drawn means no asymmetry, all buttons means no rule.
+  if (mine < 1 || reopenable < 1) return null;
+  return (
+    `Reopen shows only on the ${reopenable === 1 ? "row" : `${reopenable} rows`} a pass closed. ` +
+    `The other ${mine === 1 ? "one" : mine} you closed yourself — if a finding comes back, ` +
+    `file it again so the new row carries today's numbers.`
+  );
+}
+
 /** The reviewer's own words, with the machine clause removed — what the archive quotes. */
 export function resolutionNoteBody(note: string | null | undefined): string {
   if (typeof note !== "string") return "";

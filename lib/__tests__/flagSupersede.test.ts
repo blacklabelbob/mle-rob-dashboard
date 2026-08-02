@@ -10,6 +10,7 @@ import {
   resolutionNoteBody,
   reopenNote,
   flagReopenRefusal,
+  archiveReopenRuleNote,
   archiveResolvedFromMark,
   qualifiedRecordRef,
 } from "../flags/supersede";
@@ -716,5 +717,70 @@ describe("Q84 inc.93 — the endpoint refuses to undo a close ROB made", () => {
       const uiDraws = supersededBy(note) !== null;
       expect(flagReopenRefusal("resolved", note) === null).toBe(uiDraws);
     }
+  });
+});
+
+describe("Q84 inc.94 — the archive says the rule, because the refusal is unreachable from the UI", () => {
+  // Live shape: 40 resolved rows, exactly 1 machine-superseded, 39 closed by Rob.
+  const prodish = [
+    { status: "resolved", resolution_note: supersededNote(137) },
+    ...Array.from({ length: 39 }, () => ({ status: "resolved", resolution_note: "Rob: handled." })),
+  ];
+
+  it("explains the asymmetry when both kinds are in the archive", () => {
+    const note = archiveReopenRuleNote(prodish) ?? "";
+    expect(note).toContain("Reopen shows only on the row a pass closed");
+    expect(note).toContain("The other 39 you closed yourself");
+    expect(note).toContain("file it again");
+  });
+
+  it("says nothing when no Reopen button is drawn — there is no asymmetry to explain", () => {
+    // An archive of nothing but Rob's own closes shows no button to wonder about; a line
+    // about a control that is not on the page is noise on every row of it.
+    expect(archiveReopenRuleNote([{ status: "resolved", resolution_note: "Rob: done." }])).toBeNull();
+  });
+
+  it("says nothing when every row reopens — a uniform list states its own rule", () => {
+    expect(
+      archiveReopenRuleNote([
+        { status: "resolved", resolution_note: supersededNote(1) },
+        { status: "resolved", resolution_note: supersededNote(2) },
+      ]),
+    ).toBeNull();
+  });
+
+  it("counts only RESOLVED rows — the archive is what it describes", () => {
+    expect(
+      archiveReopenRuleNote([
+        { status: "open", resolution_note: null },
+        { status: "resolved", resolution_note: supersededNote(9) },
+      ]),
+    ).toBeNull();
+  });
+
+  it("cannot drift from the server — every counted row is one the endpoint would refuse", () => {
+    // The one ladder. If `flagReopenRefusal` ever changed its mind about a note, the sentence
+    // would change with it rather than describing a rule the endpoint no longer enforces.
+    const rows = [
+      { status: "resolved", resolution_note: supersededNote(5) },
+      { status: "resolved", resolution_note: "Resolved from C-2017." },
+      { status: "resolved", resolution_note: null },
+    ];
+    const refused = rows.filter((r) => flagReopenRefusal(r.status, r.resolution_note) !== null).length;
+    expect(archiveReopenRuleNote(rows)).toContain(`The other ${refused} you closed yourself`);
+  });
+
+  it("is null on an empty or missing archive", () => {
+    expect(archiveReopenRuleNote([])).toBeNull();
+    expect(archiveReopenRuleNote(null)).toBeNull();
+    expect(archiveReopenRuleNote(undefined)).toBeNull();
+  });
+
+  it("reads singular when exactly one row is his", () => {
+    const note = archiveReopenRuleNote([
+      { status: "resolved", resolution_note: supersededNote(1) },
+      { status: "resolved", resolution_note: "Rob: comped." },
+    ]) ?? "";
+    expect(note).toContain("The other one you closed yourself");
   });
 });
