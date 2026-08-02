@@ -550,6 +550,73 @@ function fileLevelIgnorance(text: string): AbstentionReason[] {
   return reasons;
 }
 
+// Q84 inc.114 — THE FILE THAT NEVER ENTERED.
+//
+// inc.111..inc.113 taught this module to report a call it could not read, a binding it had to give
+// up on, and a spelling it is not allowed to claim. Every one of those ignorances presumes the file
+// reached the guard at all. The WALK's own boundary was never stated anywhere it could be checked:
+// the roots (`app`, `lib`, `scripts`, `components`) and the extension filter lived as two literals
+// in the TEST, so a production caller outside them is invisible to every rule at once — and no
+// abstention can fire, because the file never entered.
+//
+// THAT IS NOT HYPOTHETICAL HERE. `proxy.ts` — the app-level Basic-Auth gate — sits at the repo root
+// and is production; `scripts/net-sentinel.cjs` sits INSIDE a scanned root and was dropped by an
+// extension filter that knew `.ts|.tsx|.mjs|.js` and not `.cjs`. Six tracked source files were
+// outside the guard's reach, and nothing said so.
+//
+// SO THE ANSWER TO inc.113's HANDOVER IS BOTH HALVES, SPLIT ON WHO CAN KNOW WHAT. The filesystem
+// belongs to the caller (this module is pure per CR-3 and will not grow a `readdir`), so the WALK
+// stays in the test — but the CONTRACT it walks to moves here, as data plus a predicate, and the
+// test drives its own listing through it. The two can no longer drift by editing one literal: a
+// new top-level `src/`, or a `.jsx` production file, turns the suite red instead of quietly
+// shrinking what "no offenders" covers.
+//
+// EXCLUDED-BY-DESIGN IS NOT UNCOVERED, and the distinction is inc.113's. `__tests__` is skipped on
+// purpose — the module doc says a test MAY call the reader two-arg — and `node_modules` is not
+// ours. Reporting either would train the reader to ignore the list, which is how a real `src/`
+// would then get ignored too.
+
+/** The directories the walk descends. A repo-root file (no `/`) is scanned too — `proxy.ts` is production. */
+export const SCANNED_ROOTS = ["app", "components", "lib", "scripts"] as const;
+
+/** Every spelling of a source file this repo can execute: ts/tsx/js/jsx and the m·c variants. */
+export const SOURCE_FILE = /\.[cm]?[jt]sx?$/;
+
+/** Skipped on purpose, not missed: a test may state the reader's core rule without a scope. */
+const NOT_OURS = /(^|\/)(node_modules|__tests__|\.[^/]+)\//;
+
+/** Whether a repo-relative path is one the walk would hand to the rules above. */
+export function scannedByWalk(filePath: string): boolean {
+  if (!SOURCE_FILE.test(filePath) || NOT_OURS.test(filePath)) return false;
+  const slash = filePath.indexOf("/");
+  if (slash === -1) return true;
+  return (SCANNED_ROOTS as readonly string[]).includes(filePath.slice(0, slash));
+}
+
+/**
+ * Source files the caller found that the walk would never have visited — the guard's blind spot,
+ * stated as a list rather than as a comment claiming there isn't one.
+ *
+ * Coverage, not an offence: every path here may be perfectly correct code. What is wrong is only
+ * that no rule in this module has ever looked at it.
+ */
+export function unscannedSources(paths: readonly string[]): string[] {
+  return paths.filter((p) => SOURCE_FILE.test(p) && !NOT_OURS.test(p) && !scannedByWalk(p)).sort();
+}
+
+/** The sentence a blind spot prints. Same first-clause promise as `abstentionNotice`. */
+export function unscannedNotice(paths: readonly string[]): string | null {
+  if (!paths.length) return null;
+  const many = paths.length !== 1;
+  return (
+    `Nothing below is wrong: ${paths.length} source file${many ? "s" : ""} ` +
+    `${many ? "are" : "is"} outside every rule in this module because the walk never visited ` +
+    `${many ? "them" : "it"} — ${[...paths].join(", ")}. A caller there could omit the row, grade ` +
+    `another finding, or alias the reader, and this guard would stay green. Add the root to ` +
+    `SCANNED_ROOTS, or the extension to SOURCE_FILE, so the file enters.`
+  );
+}
+
 function aliasNames(text: string): { names: string[]; ambiguous: boolean } {
   const found = new Set<string>();
   const asBinding = new RegExp(`(?<![\\w$.])${READER}\\s+as\\s+([A-Za-z_$][\\w$]*)`, "g");

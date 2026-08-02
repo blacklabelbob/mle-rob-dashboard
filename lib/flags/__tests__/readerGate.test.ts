@@ -6,6 +6,11 @@ import {
   READER,
   ROW_ARG_COUNT,
   RULE_FILE,
+  SCANNED_ROOTS,
+  SOURCE_FILE,
+  scannedByWalk,
+  unscannedNotice,
+  unscannedSources,
   abstainedReaderCallers,
   abstentionNotice,
   mismatchedRowCallers,
@@ -20,29 +25,33 @@ import {
 // same as inc.106's payloadWriters). Fixtures prove the scan; the walk is what makes the next
 // production caller that forgets the row turn this file red instead of shipping.
 
-const ROOTS = ["app", "lib", "scripts", "components"];
-const SOURCE = /\.(ts|tsx|mjs|js)$/;
 const LIVE_CALLER = "components/ThingsToAddress.tsx";
 
-function walk(dir: string, acc: SourceFile[]): SourceFile[] {
+const rel = (full: string) => path.relative(process.cwd(), full).split(path.sep).join("/");
+
+// Q84 inc.114 — the walk collects EVERY source path in the repo and asks the guard which of them
+// it covers. The roots and the extension filter used to be two literals here; they are now the
+// module's own `scannedByWalk`, so the boundary cannot be widened in one place and not the other.
+function walk(dir: string, acc: string[]): string[] {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     const full = path.join(dir, entry.name);
+    // Tests call the reader two-arg BY DESIGN — that is the point of the module doc: a test
+    // may state the reader's core rule without also stating a scope. Production may not.
     if (entry.isDirectory()) {
-      // Tests call the reader two-arg BY DESIGN — that is the point of the module doc: a test
-      // may state the reader's core rule without also stating a scope. Production may not.
-      if (entry.name === "node_modules" || entry.name === "__tests__") continue;
+      if (entry.name === "node_modules" || entry.name === "__tests__" || entry.name.startsWith(".")) continue;
       walk(full, acc);
-    } else if (SOURCE.test(entry.name)) {
-      acc.push({
-        path: path.relative(process.cwd(), full).split(path.sep).join("/"),
-        text: readFileSync(full, "utf8"),
-      });
+    } else if (SOURCE_FILE.test(entry.name)) {
+      acc.push(rel(full));
     }
   }
   return acc;
 }
 
-const TREE: SourceFile[] = ROOTS.reduce<SourceFile[]>((acc, r) => walk(path.join(process.cwd(), r), acc), []);
+const ALL_SOURCE: string[] = walk(process.cwd(), []);
+const TREE: SourceFile[] = ALL_SOURCE.filter(scannedByWalk).map((p) => ({
+  path: p,
+  text: readFileSync(path.join(process.cwd(), p), "utf8"),
+}));
 
 const GATED = `const c = ${READER}(f.payload, page, written, { title: f.title, detail: f.detail, entityId: f.entity_id });`;
 const UNGATED = `const c = ${READER}(f.payload, page);`;
@@ -380,7 +389,56 @@ describe("the reader reached through a property", () => {
   });
 });
 
+describe("what the walk never visited", () => {
+  it("covers every scanned root, the repo root itself, and every source extension", () => {
+    for (const root of SCANNED_ROOTS) expect(scannedByWalk(`${root}/x.ts`)).toBe(true);
+    expect(scannedByWalk("proxy.ts")).toBe(true); // repo-root production file
+    for (const ext of ["ts", "tsx", "js", "jsx", "mjs", "cjs", "mts", "cts"]) {
+      expect(scannedByWalk(`lib/x.${ext}`)).toBe(true);
+    }
+  });
+
+  it("reports a source file outside the roots — the hole no abstention can fire on", () => {
+    expect(unscannedSources(["src/App.tsx", "lib/ok.ts", "hooks/useX.ts"])).toEqual([
+      "hooks/useX.ts",
+      "src/App.tsx",
+    ]);
+  });
+
+  it("does not report what is skipped BY DESIGN — a noisy list is an ignored list", () => {
+    expect(
+      unscannedSources([
+        "lib/flags/__tests__/readerGate.test.ts",
+        "node_modules/pkg/index.js",
+        ".next/server/page.js",
+      ]),
+    ).toEqual([]);
+  });
+
+  it("does not report a non-source file — a .sql migration is not a caller", () => {
+    expect(unscannedSources(["supabase/migrations/0035_x.sql", "docs/plans/PRD.md"])).toEqual([]);
+  });
+
+  it("says in its first clause that nothing listed is an offence", () => {
+    const said = unscannedNotice(["src/App.tsx"])!;
+    expect(said).toContain("Nothing below is wrong");
+    expect(said).toContain("src/App.tsx");
+    expect(said).toContain("SCANNED_ROOTS");
+    expect(unscannedNotice([])).toBeNull();
+  });
+});
+
 describe("the real tree", () => {
+  it("has no source file in this repo outside the guard's reach", () => {
+    expect(unscannedNotice(unscannedSources(ALL_SOURCE))).toBeNull();
+  });
+
+  it("actually walked the repo — an empty listing would satisfy every rule below", () => {
+    expect(TREE.length).toBeGreaterThan(100);
+    expect(ALL_SOURCE).toContain("proxy.ts");
+    expect(ALL_SOURCE).toContain("scripts/net-sentinel.cjs");
+  });
+
   it("has the live caller in the walk — an empty walk is not a clean bill of health", () => {
     expect(readerCallers(TREE)).toContain(LIVE_CALLER);
   });
