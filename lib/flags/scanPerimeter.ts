@@ -164,3 +164,56 @@ export function unpopulatedRootNotice(roots: readonly string[], guard: string): 
     `create a directory to make this green.`
   );
 }
+
+// Q84 inc.120 — A PERIMETER CAN ONLY EVER PROMISE REACHABILITY. JUDGEMENT IS THE GUARD'S OWN.
+//
+// inc.119 handed over: is "this root produced at least one JUDGEMENT" checkable per-guard without
+// making the guards depend on each other? **PER-ROOT IT IS NOT, AND THIS TREE SETTLES IT ON
+// EVIDENCE RATHER THAN ON ARGUMENT.** Across the 422 files the walk hands out today, the WRITE
+// door's rule recognises subjects under `app/` only; the READ door's recognises them under
+// `components/` and `lib/` only. Neither recognises anything under `scripts/`, and neither is
+// wrong — a root full of files no rule is ABOUT is the normal case, not a defect. A per-root
+// judgement check would be permanently red on correct code, which is the guard-crying-wolf shape
+// inc.118 and inc.111 both refused. So the perimeter stops at reachability: it promises the files
+// were HANDED OVER, never that anything looked back.
+//
+// WHAT IS CHECKABLE IS THE SAME QUESTION AT THE RIGHT ALTITUDE — PER GUARD, WHOLE TREE. A guard
+// whose recogniser matches NOTHING ANYWHERE is green for a reason indistinguishable from innocence,
+// and that is not hypothetical here: the write door's entire subject set on this tree is ONE file,
+// `app/api/admin/flags/route.ts`, the very writer it exists to privilege. Rewrite that route to
+// reach the table through a helper and `unscopedPayloadWriters` returns `[]` forever — the same
+// empty array it returns when the repo is clean. Every anchor stays green while it happens, because
+// an anchor proves the NAME still exists (inc.117, inc.118) and this is the other failure: the name
+// exists and no longer does the job.
+//
+// AND IT NEEDS NO CROSS-GUARD DEPENDENCY, WHICH WAS THE OTHER HALF OF THE HANDOVER. Each door
+// already owns the only thing required — its own recogniser. What is shared is the SHAPE of the
+// question and the sentence it prints, which is what belongs at the perimeter (inc.115's doctrine:
+// the boundary belongs to neither door, so it lives here and both import it). Nothing here knows
+// what a payload or a reader call is.
+
+/**
+ * The sentence a guard prints when it recognised nothing on a tree it demonstrably reached.
+ *
+ * `subjects` is what the guard's OWN rule matched — every file it is about, offenders and innocents
+ * alike. A caller must pin this alongside a pin that the walk actually yielded files, or the two
+ * silences (nothing walked / nothing recognised) collapse into each other.
+ *
+ * This does NOT borrow `Nothing below is wrong` — like `unpopulatedRootNotice`, it names a claim
+ * that has stopped meaning anything, not code that is merely unwatched.
+ */
+export function vacuousGuardNotice(
+  subjects: readonly string[],
+  guard: string,
+  subject: string,
+): string | null {
+  if (subjects.length) return null;
+  return (
+    `${guard} reached this whole tree and recognised no ${subject} anywhere, so it passes by ` +
+    `having nothing to judge. Its green is the same green it shows on a clean repo, which is why ` +
+    `nothing else can catch this. The rule did not stop being true — it stopped being ABOUT ` +
+    `anything, usually because the code it matches on was rewritten in a shape the recogniser no ` +
+    `longer sees. Fix the recogniser, or delete the guard; do not widen the perimeter, which is ` +
+    `already as wide as the repo.`
+  );
+}

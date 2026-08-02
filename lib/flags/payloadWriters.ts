@@ -60,16 +60,30 @@ const PAYLOAD_KEY = /[{,]\s*payload\s*(?::|,|\})/;
 const FLAGS_TABLE = /from\(\s*["'`]flags["'`]\s*\)/;
 
 /**
+ * Every file this door is ABOUT — it writes a payload key onto a flags row. The scoped writer is
+ * included on purpose: it is a subject of the rule, it is simply the one subject that is allowed.
+ *
+ * Q84 inc.120 — this is the recogniser, extracted rather than copied. `unscopedPayloadWriters` is
+ * now this set minus the one permitted path, so there is exactly one place that decides what this
+ * door can see (inc.4, inc.5, inc.115, inc.119 — a hand-copied rule deleted four times on this
+ * queue already). Splitting it matters here specifically: the vacuity pin and the offender pin must
+ * be asking about the same set, or the pin that proves the guard still has subjects could pass
+ * while the rule that judges them sees none.
+ */
+export function payloadWriteSubjects(files: readonly SourceFile[]): string[] {
+  return files
+    .filter((f) => FLAGS_TABLE.test(f.text) && PAYLOAD_KEY.test(f.text))
+    .map((f) => f.path)
+    .sort();
+}
+
+/**
  * Files that appear to write `flags.payload` without being the writer that scopes it.
  *
  * Returns repo-relative paths, sorted, so a failure reads as a list rather than a diff.
  */
 export function unscopedPayloadWriters(files: readonly SourceFile[]): string[] {
-  return files
-    .filter((f) => f.path !== SCOPED_PAYLOAD_WRITER)
-    .filter((f) => FLAGS_TABLE.test(f.text) && PAYLOAD_KEY.test(f.text))
-    .map((f) => f.path)
-    .sort();
+  return payloadWriteSubjects(files).filter((p) => p !== SCOPED_PAYLOAD_WRITER);
 }
 
 /**

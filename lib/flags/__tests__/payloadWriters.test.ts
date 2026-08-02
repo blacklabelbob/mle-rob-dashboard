@@ -5,6 +5,7 @@ import {
   PAYLOAD_WRITE_GUARD,
   SCOPED_PAYLOAD_WRITER,
   SCOPED_PAYLOAD_WRITER_ANCHOR,
+  payloadWriteSubjects,
   unscopedPayloadWriterRefusal,
   unscopedPayloadWriters,
   type SourceFile,
@@ -16,6 +17,7 @@ import {
   SOURCE_FILE,
   unscannedNotice,
   unscannedSources,
+  vacuousGuardNotice,
 } from "../scanPerimeter";
 
 // Q84 inc.106 — the rule is tested on strings AND driven off the real tree, the 0021/0034/inc.51
@@ -125,6 +127,36 @@ describe("the real tree", () => {
     expect(ALL_SOURCE).toContain("proxy.ts");
     expect(ALL_SOURCE).toContain("scripts/net-sentinel.cjs");
     expect(TREE.some((f) => f.path === "proxy.ts")).toBe(true);
+  });
+
+  // Q84 inc.120 — THE PIN THIS DOOR NEVER HAD, AND THE ONE THE READ DOOR HAS ALREADY.
+  //
+  // Everything above proves the walk reached the tree and that no file on it offends. None of it
+  // proves this door's RULE still recognises anything, and on this tree that gap is one regex wide:
+  // the entire subject set is a single file, the scoped writer itself. Rewrite that route to reach
+  // the table through a helper — no `.from("flags")` left in it — and `unscopedPayloadWriters`
+  // returns the same `[]` it returns on a clean repo, forever, with every anchor still green
+  // (an anchor proves the NAME exists; this is the name outliving the job).
+  //
+  // The read door needs no equivalent and deliberately does not get one: it pins a NAMED live
+  // caller, which is strictly stronger than "some subject exists". A weaker second copy of a
+  // question already answered better is the shape inc.115 and inc.117 deleted.
+  it("still recognises a payload write at all — a rule about nothing passes every time", () => {
+    const subjects = payloadWriteSubjects(TREE);
+    expect(vacuousGuardNotice(subjects, PAYLOAD_WRITE_GUARD, "payload write") ?? "not vacuous").toBe(
+      "not vacuous",
+    );
+    // Named, not merely counted: the one subject today is the writer this door exists to privilege,
+    // so if the rule loses sight of THAT file it has lost sight of its own reason to exist.
+    expect(subjects).toContain(SCOPED_PAYLOAD_WRITER);
+  });
+
+  // The offender set is the subject set minus one permitted path — one recogniser, asked twice.
+  // If these could disagree, the pin above could pass while the rule below judged nobody.
+  it("judges the same set it recognises", () => {
+    expect(unscopedPayloadWriters(TREE)).toEqual(
+      payloadWriteSubjects(TREE).filter((p) => p !== SCOPED_PAYLOAD_WRITER),
+    );
   });
 
   it("shares one perimeter with the read door — not a second copy that agrees today", () => {

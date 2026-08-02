@@ -10,6 +10,7 @@ import {
   scannedByWalk,
   unpopulatedRootNotice,
   unpopulatedRoots,
+  vacuousGuardNotice,
 } from "../scanPerimeter";
 
 // Q84 inc.119 — the perimeter's OWN test, and it is central on purpose.
@@ -102,6 +103,30 @@ describe("a root that names nothing", () => {
     const two = unpopulatedRootNotice(["components", "scripts"], "g") ?? "";
     expect(one).toContain("1 directory");
     expect(two).toContain("2 directories");
+  });
+});
+
+// Q84 inc.120 — reachability is all a perimeter can promise, so the thing it CAN still lend both
+// doors is the sentence for the failure one level up: a guard that reached everything and
+// recognised nothing. Kept here rather than in a door because neither door owns it and both ask it.
+describe("a guard that reached everything and recognised nothing", () => {
+  it("is silent while the guard still has subjects — offenders or not", () => {
+    expect(vacuousGuardNotice(["app/api/admin/flags/route.ts"], "g", "payload write")).toBeNull();
+  });
+
+  it("fires on an empty subject set, which is the same green as a clean repo", () => {
+    const said = vacuousGuardNotice([], "the flags.payload write gate", "payload write") ?? "";
+    expect(said).toContain("the flags.payload write gate");
+    expect(said).toContain("no payload write anywhere");
+    expect(said).toContain("stopped being ABOUT");
+  });
+
+  // Same reason `unpopulatedRootNotice` refuses it: this is a stale claim, not unwatched code, and
+  // a reader who learns the two openings mean the same thing will skim the one that matters.
+  it("does not borrow the coverage promise, and names the wrong fix", () => {
+    const said = vacuousGuardNotice([], "g", "reader call") ?? "";
+    expect(said).not.toContain("Nothing below is wrong");
+    expect(said).toContain("do not widen the perimeter");
   });
 });
 
