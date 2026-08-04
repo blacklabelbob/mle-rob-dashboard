@@ -647,3 +647,41 @@ export function testlessProducerNotice(
     `count as enough: no such number can be derived from the tree, so none is written here.`
   );
 }
+
+// Q84 inc.131 — BOTH SENTENCES ARE WRITTEN AND NOTHING MAKES A CALLER ASK FOR EITHER. inc.129 and
+// inc.130 each added a notice and each left it optional: the live guard asks `illiterateScanNotice`
+// and has never once asked `testlessProducerNotice`, so today's green — 19 recognisers, zero
+// undischarged — is still the same pair of numbers inc.125's THIN scan reports. The hole the last
+// two increments described is open in this repo right now, one call short of closed.
+//
+// THE ENTRY POINT THAT CANNOT DEMAND THEM IS `undischargedRecognisers`, AND THAT IS NOT A STYLE
+// CHOICE. It receives a recogniser LIST, never the arguments that produced it. To ask either notice
+// it would have to be handed `files` and `producers` as well — and it could not verify that those
+// are the values the scan actually ran on. A caller passing the scan one set and the notices another
+// gets a green that answers about a derivation the scan did not run: precisely the defect both
+// docstrings warn about, re-created one level up and now wearing a signature that looks like proof.
+// Argument identity is not something a parameter list can enforce.
+//
+// SO THE DEMAND BELONGS AT THE SCAN'S ENTRY POINT, WHERE THE ARGUMENTS PROVABLY ARE THE SAME ONES —
+// because there is only one place they are written. `scanTreeWithNotices` names `files` and
+// `producers` once and hands the identical bindings to the scan and to both notices, so the "must be
+// the SAME values" caveat stops being a caveat a reader has to honour and becomes a fact about the
+// code. It composes rather than re-derives: no third copy of the ladder (inc.4, inc.5, inc.115).
+//
+// ORDER AND EXCLUSIVITY ARE THE NOTICES' OWN, NOT A POLICY ADDED HERE. `testlessProducerNotice`
+// already returns null wherever the scan is blind outright, so a blind scan yields exactly one
+// sentence; this returns whatever the pair returns, in the order a reader should act on them
+// (blind before thin), and never suppresses one on the other's behalf.
+
+/** The scan, plus whatever it has to say about its own ability to see — asked with ONE argument set. */
+export function scanTreeWithNotices(
+  files: readonly SourceFile[],
+  producers: readonly SourceFile[] = files,
+): { recognisers: Recogniser[]; notices: string[] } {
+  return {
+    recognisers: treeScanRecognisers(files, producers),
+    notices: [illiterateScanNotice(files, producers), testlessProducerNotice(files, producers)].filter(
+      (n): n is string => n !== null,
+    ),
+  };
+}

@@ -3,6 +3,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import {
   treeScanRecognisers,
+  scanTreeWithNotices,
   undischargedRecognisers,
   undischargedVacuityNotice,
   dischargedBy,
@@ -452,8 +453,15 @@ describe("the live guard family", () => {
   // Q84 inc.129 — the clean-tree pin lives HERE, next to the count it is worthless without. Nineteen
   // recognisers and zero undischarged is the same pair of numbers a blind scan reports, so the
   // green above only means something once this null says the scan could read.
-  it("says the scan was literate when it reports the tree clean", () => {
-    expect(illiterateScanNotice(modules, producers)).toBeNull();
+  //
+  // Q84 inc.131 — and it is now asked through the one entry point that cannot be given a different
+  // argument set than the scan got. `illiterateScanNotice` alone was half the question: a THIN scan
+  // is literate, reports 1 recogniser and 0 undischarged, and would have passed every pin above.
+  it("says the scan could see AND was not handed a thin producer set when it reports the tree clean", () => {
+    const scanned = scanTreeWithNotices(modules, producers);
+    expect(scanned.notices).toEqual([]);
+    // Same arguments, same answer as the raw scan — the composite reports, it does not re-scan.
+    expect(scanned.recognisers).toEqual(recognisers);
   });
 });
 
@@ -584,5 +592,55 @@ describe("testlessProducerNotice", () => {
     expect(tests[0].path).toContain("__tests__");
     expect(descendableDir("__tests__")).toBe(false);
     expect(testlessProducerNotice(modules, withTest)).toBeNull();
+  });
+});
+
+// Q84 inc.131 — THE CALL. Both notices existed and neither was compulsory: the live guard asked the
+// illiteracy one and had never asked the thinness one, so a THIN scan (1 recogniser, 0 undischarged,
+// literate) would have walked past every pin in this file. `undischargedRecognisers` cannot be the
+// place that demands them — it is handed a LIST, never the arguments behind it, so requiring the
+// sentences there would mean trusting a caller to pass the same values twice, which is the very
+// failure the notices exist to catch. The scan's entry point is the only place the arguments are
+// written once.
+describe("scanTreeWithNotices", () => {
+  const producers = [...modules, ...tests];
+
+  it("carries inc.130's sentence on inc.125's collapse, which the live guard never asked for", () => {
+    const thin = scanTreeWithNotices(modules, modules);
+    // Literate, plausible, and wrong — the shape that used to pass.
+    expect(thin.recognisers.length).toBe(1);
+    expect(illiterateScanNotice(modules, modules)).toBeNull();
+    expect(thin.notices).toHaveLength(1);
+    expect(thin.notices[0]).toContain("NOT ONE sits beyond the walk's own perimeter");
+  });
+
+  it("carries inc.129's sentence on the blind scan, and only that one", () => {
+    const derived = walkOutputTypes(modules, contentsFieldNames(producers));
+    const asFiles = derived as unknown as SourceFile[];
+    const blind = scanTreeWithNotices(asFiles, asFiles);
+    expect(blind.recognisers).toEqual([]);
+    // Exactly one cause, exactly one sentence: the thinness notice defers, so nothing here has to
+    // suppress it. Two sentences for one defect would read as noise.
+    expect(blind.notices).toHaveLength(1);
+    expect(blind.notices[0]).toContain("measurement of the arguments");
+  });
+
+  it("hands the scan and both notices the identical argument set", () => {
+    // The whole reason this function exists rather than a docstring asking callers to be careful.
+    for (const [files, given] of [
+      [modules, producers],
+      [modules, modules],
+      [modules, []],
+    ] as const) {
+      const scanned = scanTreeWithNotices(files, given);
+      expect(scanned.recognisers).toEqual(treeScanRecognisers(files, given));
+      expect(scanned.notices).toEqual(
+        [illiterateScanNotice(files, given), testlessProducerNotice(files, given)].filter(Boolean),
+      );
+    }
+  });
+
+  it("defaults producers to files exactly as the scan does", () => {
+    expect(scanTreeWithNotices(modules)).toEqual(scanTreeWithNotices(modules, modules));
   });
 });
