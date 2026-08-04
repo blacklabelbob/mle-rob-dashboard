@@ -85,6 +85,7 @@ for (const target of targets) {
 
 const audit = auditWrapperClocks(scripts);
 const { findings, usesRepoStamp, skipped, triggeredBy, unrankedGateVars, strandedGateVars } = audit;
+const { silencedComposers } = audit;
 const scanned = scripts.length - skipped.length;
 
 // --brief has exactly one job: hand the driver the sentence the next increment will read. The
@@ -183,9 +184,34 @@ if (unrankedGateVars.length > 0) {
 // `process.exit(4)` inline, which would have made a stranded-only run exit 0 while printing its
 // own failure — a report that contradicts its exit code is the exact shape of defect this file
 // exists to catch (Q84 inc.149).
-if (strandedGateVars.length > 0 || unrankedGateVars.length > 0) process.exit(4);
+// Q84 inc.150 — printed last for the same reason it is appended last to the brief: the two above
+// are defects in what the wrapper DOES, this is a defect in what it can TELL you when something
+// else goes wrong. Same exit 4 — the action is the same trip into the same file.
+if (silencedComposers.length > 0) {
+  for (const v of silencedComposers) {
+    console.error(
+      `\n\u2716 ${v.script}:${v.line}  runs the prompt composer with \`2>/dev/null\` — the fallback to ` +
+        `concatenation is the only sign it ever failed`,
+    );
+  }
+  console.error(
+    `\nA composer that has failed on every tick looks exactly like one that has worked on every ` +
+      `tick. The empty-output fallback is correct and should stay — running with an unresolved ` +
+      `gate tie beats running with no standing prompt — but the REASON is thrown away with it.`,
+  );
+  console.error(
+    `Fix: capture stderr and write it to the driver log on the failing path only ` +
+      `(\`2>"$ERR"\`, then log \`$ERR\` inside the \`[ -z "$PROMPT" ]\` branch), so a healthy tick ` +
+      `stays silent and a broken one names itself.`,
+  );
+}
+
+if (strandedGateVars.length > 0 || unrankedGateVars.length > 0 || silencedComposers.length > 0) {
+  process.exit(4);
+}
 
 say("✓ every human-readable stamp reaching Rob names its zone");
 say(`✓ every DRIVER_* gate the wrappers hand the driver has a rank in GATE_ORDER`);
 say(`✓ every ranked gate a wrapper sets actually travels to the driver`);
+say(`✓ every wrapper that asks the composer for a prompt keeps its diagnostics`);
 process.exit(0);

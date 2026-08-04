@@ -50,6 +50,15 @@ export const REPO_STAMP_CALL = "intake-silence.mjs stamp";
 export const TRIGGER_CALLS = ["audit-wrapper-clocks", "audit:clocks"] as const;
 
 /**
+ * The prompt composer, spelled as it appears on the wrapper's invocation line (Q84 inc.150).
+ *
+ * Declared once here rather than grepped for at each site for the same reason `BRIEF_MARKER` is:
+ * the needle and the sentence that explains the finding have to be the same string, or the check
+ * goes quietly blind while both halves still read correctly on their own.
+ */
+export const COMPOSER_CALL = "driver-prompt.mjs";
+
+/**
  * The prefix every `--brief` sentence carries, and the ONLY thing the caller may match on
  * (Q84 inc.144).
  *
@@ -83,7 +92,13 @@ export function clockGateBrief(audit: ClockAudit): ClockGateBrief {
   // appended, never ranked against the first. Stranded is stated BEFORE unranked because a gate
   // that never arrives outranks a gate that arrives unplaced — but that is ordering inside one
   // line, which costs nobody anything, not a contest for the line.
-  const unranked = strandedGateSentence(audit) + unrankedGateSentence(audit);
+  //
+  // Q84 inc.150 appends the third on the same terms, and LAST on purpose. The other two are
+  // proven defects in what the wrapper DOES; this one is a defect in what the wrapper can TELL
+  // you, and it only costs anything on the tick something else breaks. Stating it after them is
+  // that difference written down, not a judgement that it is small.
+  const unranked =
+    strandedGateSentence(audit) + unrankedGateSentence(audit) + silencedComposerSentence(audit);
 
   if (audit.findings.length > 0) {
     const worst = audit.findings[0];
@@ -153,6 +168,29 @@ function strandedGateSentence(audit: ClockAudit): string {
   );
 }
 
+/**
+ * The suffix sentence for a wrapper that asks the composer for a prompt and throws away its
+ * answer to the question "did that work?" (Q84 inc.150).
+ *
+ * The wrapper falls back to plain concatenation whenever the composer's stdout is empty — which is
+ * correct, and is why this is not a red: running with an unresolved gate tie beats running with no
+ * standing prompt. What is wrong is that the fallback is the ONLY observable, and it looks the
+ * same whether node is missing, the loader threw, or `GATE_ORDER` has a syntax error. A composer
+ * that has failed on every tick for a week is indistinguishable from one that has worked on every
+ * tick for a week, and the difference is which gate the next increment is told to obey first.
+ */
+function silencedComposerSentence(audit: ClockAudit): string {
+  const vars = audit.silencedComposers;
+  if (vars.length === 0) return "";
+  const named = vars.map((v) => `${v.script}:${v.line}`).join(", ");
+  return (
+    ` The composer's own diagnostics are DISCARDED — ${named} runs \`${COMPOSER_CALL}\` with ` +
+    `\`2>/dev/null\`. The wrapper still falls back to concatenation, so nothing breaks loudly; it ` +
+    `breaks silently, and a composer failing every tick reads exactly like one that works. Keep ` +
+    `the fallback, keep the stderr: write it to the driver log on the failing path (Q84 inc.150).`
+  );
+}
+
 export type ClockFinding = {
   /** Script name as given (a bare basename is enough — the caller knows the directory). */
   script: string;
@@ -171,6 +209,13 @@ export type GateRankFinding = {
   line: number;
   /** The env var exactly as the wrapper spells it — what the author greps for. */
   envVar: string;
+};
+
+/** A wrapper that runs the prompt composer with its diagnostics thrown away (Q84 inc.150). */
+export type SilencedComposerFinding = {
+  script: string;
+  /** 1-indexed PHYSICAL line the composer call is written on — where the author goes to fix it. */
+  line: number;
 };
 
 export type ClockAudit = {
@@ -196,6 +241,15 @@ export type ClockAudit = {
    * fact, not a guess.
    */
   strandedGateVars: GateRankFinding[];
+  /**
+   * Wrappers that invoke the prompt composer with its stderr sent to `/dev/null` (Q84 inc.150).
+   *
+   * inc.148 and inc.149 both ask whether a gate reaches the composer. Neither asks whether the
+   * composer is ever consulted at all — and it is invoked inside a `$( )` whose failure mode is an
+   * empty string, which the wrapper handles by concatenating. That fallback is right and stays;
+   * discarding the reason is what makes the failure unobservable.
+   */
+  silencedComposers: SilencedComposerFinding[];
   /** Scripts that write to a surface AND ask the repo for their stamp — the compliant shape. */
   usesRepoStamp: string[];
   /** Scripts scanned but skipped because they touch none of Rob's surfaces. */
@@ -308,40 +362,70 @@ function driverVarAssignments(source: string): { envVar: string; line: number; t
     }
   }
 
-  // Join backslash continuations: the wrapper spreads one logical command over two lines and the
-  // command word (`node …`) sits on the second, so an assignment on the first only looks like a
-  // prefix once they are one string. Two things this got wrong on its first live run against the
-  // real `crm-build-driver.sh`, and both are why the physical line is tracked rather than assumed:
-  //   • the consumed lines must be SKIPPED, or the continuation is scanned a second time as its
-  //     own logical line and one gate is reported twice ("2 unranked gates" when there is one);
-  //   • the reported line must be the line the assignment is actually WRITTEN on — the author is
-  //     going there to fix it — not the line the joined command happens to start at.
-  for (let i = 0; i < physical.length; i++) {
-    if (/^\s*#/.test(physical[i])) continue;
-    // `offsets[n]` = index in `logical` at which physical line i+n begins.
-    const offsets = [0];
-    let logical = physical[i];
-    while (/\\\s*$/.test(logical) && i + offsets.length < physical.length) {
-      logical = logical.replace(/\\\s*$/, " ");
-      offsets.push(logical.length);
-      logical += physical[i + offsets.length - 1];
-    }
-    const lineOf = (index: number) => {
-      let n = 0;
-      while (n + 1 < offsets.length && offsets[n + 1] <= index) n++;
-      return i + n + 1;
-    };
-
+  for (const { text, lineOf } of logicalLines(source)) {
     const assign = new RegExp(`(export\\s+)?(${DRIVER_ENV_PREFIX}[A-Za-z0-9_]+)=`, "g");
-    for (const m of logical.matchAll(assign)) {
+    for (const m of text.matchAll(assign)) {
       const exported = Boolean(m[1]) || bareExported.has(m[2]);
-      const travels = exported || isCommandPrefix(logical, m.index + m[0].length);
+      const travels = exported || isCommandPrefix(text, m.index + m[0].length);
       out.push({ envVar: m[2], line: lineOf(m.index), travels });
     }
+  }
+  return out;
+}
+
+/**
+ * A wrapper's LOGICAL lines — backslash continuations joined — each able to map an offset back to
+ * the PHYSICAL line it is written on.
+ *
+ * Joining matters because the wrapper spreads one command over three lines: the gates are prefixes
+ * on the first two and the command word (`node …`) is on the third, so neither the assignments nor
+ * the composer's redirect can be judged until they are one string.
+ *
+ * EXTRACTED at inc.150 rather than copied for the new check. Two things this join got wrong on
+ * inc.148's first live run against the real `crm-build-driver.sh` — consumed lines rescanned as
+ * their own logical line (one gate reported as two), and the line number reported as the start of
+ * the joined command instead of where the text is actually written — and a second copy is how both
+ * would come back on their own schedule.
+ */
+function logicalLines(source: string): { text: string; lineOf: (index: number) => number }[] {
+  const physical = source.split("\n");
+  const out: { text: string; lineOf: (index: number) => number }[] = [];
+  for (let i = 0; i < physical.length; i++) {
+    if (/^\s*#/.test(physical[i])) continue;
+    // `offsets[n]` = index in the joined string at which physical line i+n begins.
+    const offsets = [0];
+    let text = physical[i];
+    while (/\\\s*$/.test(text) && i + offsets.length < physical.length) {
+      text = text.replace(/\\\s*$/, " ");
+      offsets.push(text.length);
+      text += physical[i + offsets.length - 1];
+    }
+    const first = i;
+    out.push({
+      text,
+      lineOf: (index: number) => {
+        let n = 0;
+        while (n + 1 < offsets.length && offsets[n + 1] <= index) n++;
+        return first + n + 1;
+      },
+    });
     i += offsets.length - 1;
   }
   return out;
 }
+
+/**
+ * Does this command send its stderr to `/dev/null`? (Q84 inc.150)
+ *
+ * Deliberately narrow: `2>` and `2>>` at `/dev/null`, and `2>&1` only when stdout is ALSO going
+ * there — because in the wrapper's actual shape (`PROMPT="$(… )"`) stdout is a capture, and
+ * `2>&1` there merges stderr into the captured VALUE rather than discarding it. That is a
+ * different defect (a warning line becomes the prompt) and calling it this one would be a guess
+ * wearing a finding's clothes.
+ */
+const discardsStderr = (command: string) =>
+  /(?:^|\s)2>>?\s*\/dev\/null/.test(command) ||
+  (/(?:^|\s)2>&1/.test(command) && /(?:^|\s)>>?\s*\/dev\/null/.test(command));
 
 /** Does a command word follow this assignment's value, before the next command separator? */
 function isCommandPrefix(logical: string, from: number): boolean {
@@ -393,6 +477,7 @@ export function auditWrapperClocks(scripts: { name: string; source: string }[]):
   const triggeredBy: string[] = [];
   const unrankedGateVars: GateRankFinding[] = [];
   const strandedGateVars: GateRankFinding[] = [];
+  const silencedComposers: SilencedComposerFinding[] = [];
   // Derived from GATE_ORDER through the same `gateEnvVar` the composer uses — a second hand-kept
   // list of names here would be the very drift inc.147 closed, reintroduced by its own check.
   const ranked = new Set(GATE_ORDER.map((g) => gateEnvVar(g.key)));
@@ -413,6 +498,16 @@ export function auditWrapperClocks(scripts: { name: string; source: string }[]):
       seen.add(envVar);
       if (assignments.some((a) => a.envVar === envVar && a.travels)) continue;
       strandedGateVars.push({ script: name, line, envVar });
+    }
+
+    // Q84 inc.150 — the composer call is judged on the JOINED command, because in the real wrapper
+    // the redirect and the script name sit on the third physical line of a three-line command
+    // while `PROMPT="$(` opens on the first. `logicalLines` already skips comments, so a
+    // commented-out invocation cannot be flagged — same rule as the trigger scan below.
+    for (const { text, lineOf } of logicalLines(source)) {
+      const at = text.indexOf(COMPOSER_CALL);
+      if (at === -1 || !discardsStderr(text)) continue;
+      silencedComposers.push({ script: name, line: lineOf(at) });
     }
 
     // A commented-out invocation is not a trigger — it is a note about one, and the whole point
@@ -443,5 +538,13 @@ export function auditWrapperClocks(scripts: { name: string; source: string }[]):
     });
   }
 
-  return { findings, usesRepoStamp, skipped, triggeredBy, unrankedGateVars, strandedGateVars };
+  return {
+    findings,
+    usesRepoStamp,
+    skipped,
+    triggeredBy,
+    unrankedGateVars,
+    strandedGateVars,
+    silencedComposers,
+  };
 }

@@ -397,4 +397,62 @@ describe("auditWrapperClocks", () => {
       expect(line!.indexOf("NEVER REACHES")).toBeLessThan(line!.indexOf("NO RANK"));
     });
   });
+
+  describe("a composer invoked with its diagnostics discarded (Q84 inc.150)", () => {
+    const wired = "npm run audit:clocks -- --brief\ndate '+%T %Z' >> crm-driver.log\n";
+
+    it("flags the real wrapper's shape — the redirect on the third line of one command", () => {
+      const { silencedComposers } = auditWrapperClocks(
+        script(
+          `${wired}PROMPT="$(cd "$REPO" && DRIVER_ORPHANED="$O" \\
+  DRIVER_CLOCK_GATE="$C" \\
+  node --import ./scripts/ts-loader.mjs scripts/driver-prompt.mjs "$BASE" 2>/dev/null)"`,
+        ),
+      );
+      expect(silencedComposers).toEqual([{ script: "some-wrapper.sh", line: 5 }]);
+    });
+
+    it("says nothing when the composer's stderr is kept", () => {
+      const { silencedComposers, ...rest } = auditWrapperClocks(
+        script(`${wired}PROMPT="$(node scripts/driver-prompt.mjs "$BASE" 2>"$ERR")"`),
+      );
+      expect(silencedComposers).toEqual([]);
+      expect(clockGateBrief({ silencedComposers, ...rest }).code).toBe(0);
+    });
+
+    it("does not flag a commented-out invocation", () => {
+      const { silencedComposers } = auditWrapperClocks(
+        script(`${wired}# node scripts/driver-prompt.mjs "$BASE" 2>/dev/null`),
+      );
+      expect(silencedComposers).toEqual([]);
+    });
+
+    it("leaves `2>&1` inside a capture alone — that merges, it does not discard", () => {
+      const { silencedComposers } = auditWrapperClocks(
+        script(`${wired}PROMPT="$(node scripts/driver-prompt.mjs "$BASE" 2>&1)"`),
+      );
+      expect(silencedComposers).toEqual([]);
+    });
+
+    it("names it in --brief and exits 4 when everything else is clean", () => {
+      const { code, line } = clockGateBrief(
+        auditWrapperClocks(script(`${wired}node scripts/driver-prompt.mjs "$BASE" 2>/dev/null`)),
+      );
+      expect(code).toBe(4);
+      expect(line).toContain("diagnostics are DISCARDED");
+      expect(line).toContain("some-wrapper.sh:3");
+    });
+
+    it("is stated after both gate findings, never instead of them", () => {
+      const { line } = clockGateBrief(
+        auditWrapperClocks(
+          script(
+            `${wired}DRIVER_CLOCK_GATE="$C"\nDRIVER_NEW_GATE="$N" node scripts/driver-prompt.mjs "$B" 2>/dev/null`,
+          ),
+        ),
+      );
+      expect(line!.indexOf("NEVER REACHES")).toBeLessThan(line!.indexOf("NO RANK"));
+      expect(line!.indexOf("NO RANK")).toBeLessThan(line!.indexOf("diagnostics are DISCARDED"));
+    });
+  });
 });
