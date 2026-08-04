@@ -30,6 +30,28 @@
 //      refused to halt the build over it; ranking it above Rob's own dump would do by wording
 //      what that increment declined to do by mechanism.
 //
+// Q84 inc.146 — the gate texts keep their absolute claims, and the rank travels WITH each one.
+//
+// THE QUESTION inc.145 LEFT. Every gate text still says it goes first in its own words, while the
+// composer above may rank it second. A sentence that contradicts its own header is the next
+// reader's confusion, so either the sentences stop making absolute claims or the header has to
+// reach them.
+//
+// THE ANSWER IS NOT TO REWORD THEM, and the reason is arithmetic. The overwhelmingly common firing
+// is ONE gate, and that is exactly the case where the absolute claim is TRUE and load-bearing —
+// "folding this dump is THIS run's TOP PRIORITY, before any other item" is what stops a run from
+// doing housekeeping while Rob's captured requirements sit unread. There is deliberately no
+// precedence line for a single gate, so softening the sentence would weaken the common case in
+// order to tidy the rare one. It would also put two authors on one Rob-facing sentence, which is
+// the thing inc.145 refused to do.
+//
+// WHAT CHANGED INSTEAD. When two or more gates fire, each verbatim text is handed over behind its
+// own rank tag — "[2 of 3 — UNFOLDED DUMP: ranked here; its own 'first' is overruled]". The
+// arbitration stops being a banner the reader passed four hundred words ago and becomes a label
+// attached to the sentence it governs, at the moment that sentence is read. The text inside is
+// still byte-for-byte the wrapper's. With one gate no tag is emitted (nothing outranks it), and
+// with zero the prompt is the base, unchanged.
+//
 // Pure per CR-3: handed the gate texts, returns the composed prompt. Reads no file, no env, no
 // clock. The shell keeps only the gathering.
 
@@ -92,15 +114,32 @@ export function precedenceLine(gates: DriverGates): string {
   );
 }
 
+/** Pinned so a reword is a test failure. The tag has to survive next to sentences that shout, so
+ *  it says which slot this is AND what became of the sentence's own claim.
+ *
+ *  Rank 1's claim is NOT overruled — it won, and telling it otherwise would be the composer
+ *  stating something false about its own decision in a prompt Rob reads. The verdict differs by
+ *  position for that reason, not for tone. */
+export function rankTag(position: number, total: number, label: string): string {
+  const verdict = position === 1 ? `its "first" stands` : `its own "first" is overruled`;
+  return `[${position} of ${total} — ${label}: ranked here; ${verdict}] `;
+}
+
 /**
  * Compose the driver's prompt from whichever gates fired plus the standing prompt.
  *
  * The gate texts pass through verbatim — they are Rob-facing sentences that have been read and
  * revised over many increments, and rewriting them here would put two authors on one sentence.
+ * When more than one fires, each is tagged with its rank so the arbitration is readable AT the
+ * sentence rather than only in a header above all of them.
  */
 export function composeDriverPrompt(gates: DriverGates, base: string): string {
   const active = fired(gates);
   if (active.length === 0) return base;
-  const body = active.map((g) => g.text).join(" ");
+  const body = active
+    .map((g, i) =>
+      active.length > 1 ? `${rankTag(i + 1, active.length, g.label)}${g.text}` : g.text,
+    )
+    .join(" ");
   return `${precedenceLine(gates)}${body} ${base}`;
 }
