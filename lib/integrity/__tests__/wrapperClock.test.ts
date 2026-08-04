@@ -4,6 +4,8 @@ import {
   censusDepartures,
   clockGateBrief,
   departureFindings,
+  reconcileOpenDepartures,
+  type OpenDeparture,
   BRIEF_MARKER,
   ROB_FACING_SURFACES,
   REPO_STAMP_CALL,
@@ -957,5 +959,61 @@ describe("departureFindings (Q84 inc.160)", () => {
 
   it("has nothing to file on a clean tick", () => {
     expect(departureFindings([])).toEqual([]);
+  });
+});
+
+describe("reconcileOpenDepartures (Q84 inc.162)", () => {
+  const open = (over: Partial<OpenDeparture> = {}): OpenDeparture => ({
+    name: "gone.sh",
+    wasRole: "judged",
+    wasTrigger: true,
+    wasRepoStamp: false,
+    orphaned: true,
+    ...over,
+  });
+
+  it("corrects a stale `high` when a replacement now runs the gate — and does NOT close it", () => {
+    const { corrections, open: next } = reconcileOpenDepartures([open()], [], ["new-driver.sh"]);
+    expect(corrections).toHaveLength(1);
+    expect(corrections[0].dedupeKey).toBe("wrapper-census-departure:gone.sh");
+    expect(corrections[0].severity).toBe("medium");
+    expect(corrections[0].detail).toContain("CORRECTION, not a closure");
+    expect(corrections[0].detail).toContain("new-driver.sh");
+    // The row stays in the open set: a correction changes what it says, never that it is open.
+    expect(next).toEqual([open({ orphaned: false })]);
+  });
+
+  it("corrects the other direction — the sibling it named has since left too", () => {
+    const [c] = reconcileOpenDepartures([open({ orphaned: false })], [], []).corrections;
+    expect(c.severity).toBe("high");
+    expect(c.detail).toContain("NO wrapper runs this gate now");
+  });
+
+  it("says nothing when the enforcement claim has not changed", () => {
+    expect(reconcileOpenDepartures([open()], [], []).corrections).toEqual([]);
+    expect(reconcileOpenDepartures([open({ orphaned: false })], [], ["b.sh"]).corrections).toEqual([]);
+  });
+
+  it("cannot invent a row: with no recorded departure it corrects nothing", () => {
+    expect(reconcileOpenDepartures([], [], ["b.sh"])).toEqual({ corrections: [], open: [] });
+  });
+
+  it("a name coming back never vouches for its own row (inc.161 sameness)", () => {
+    // `gone.sh` present in triggeredBy is not proof the same wrapper returned.
+    expect(reconcileOpenDepartures([open()], [], ["gone.sh"]).corrections).toEqual([]);
+  });
+
+  it("leaves this tick's own departure to departureFindings — no second body on one key", () => {
+    const dep = { name: "gone.sh", wasRole: "judged" as const, wasTrigger: true, wasRepoStamp: false };
+    const { corrections, open: next } = reconcileOpenDepartures([open()], [dep], ["b.sh"]);
+    expect(corrections).toEqual([]);
+    expect(next).toEqual([open({ orphaned: false })]);
+  });
+
+  it("records a newly filed departure, and only the two kinds that reach the ledger", () => {
+    const filed = { name: "a.sh", wasRole: "judged" as const, wasTrigger: false, wasRepoStamp: false };
+    const ignored = { name: "b.sh", wasRole: "skipped" as const, wasTrigger: false, wasRepoStamp: false };
+    const { open: next } = reconcileOpenDepartures([], [filed, ignored], []);
+    expect(next.map((r) => r.name)).toEqual(["a.sh"]);
   });
 });

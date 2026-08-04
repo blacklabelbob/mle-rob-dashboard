@@ -46,6 +46,7 @@ import {
   censusDepartures,
   clockGateBrief,
   departureFindings,
+  reconcileOpenDepartures,
   wrapperCensus,
   BRIEF_MARKER,
   REPO_STAMP_CALL,
@@ -150,7 +151,7 @@ const audit = auditWrapperClocks(scripts, unjudged);
  * worse lie than having no record.
  */
 async function writeCensus() {
-  if (targets.length !== 1 || targets[0] !== DEFAULT_DIR) return [];
+  if (targets.length !== 1 || targets[0] !== DEFAULT_DIR) return { departures: [], corrections: [] };
   const census = wrapperCensus(audit, scripts);
   // Q84 inc.159 — read the committed record BEFORE overwriting it. inc.158 left the census in git
   // but nothing reading it, so a wrapper could still leave the scanned set with a diff no human is
@@ -165,8 +166,14 @@ async function writeCensus() {
     previous = null;
   }
   const departures = censusDepartures(previous, census);
-  await writeFile(CENSUS_FILE, `${JSON.stringify(census, null, 2)}\n`);
-  return departures;
+  // Q84 inc.162 — carry the rows this gate has already filed, and re-measure the one claim in them
+  // that can go stale (who runs this gate now) against today's tree. A census written before
+  // inc.162 has no such list, which reads as "none recorded": nothing is corrected until a
+  // departure files a key the gate can vouch for having written.
+  const previousOpen = Array.isArray(previous?.openDepartures) ? previous.openDepartures : [];
+  const { corrections, open } = reconcileOpenDepartures(previousOpen, departures, audit.triggeredBy);
+  await writeFile(CENSUS_FILE, `${JSON.stringify({ ...census, openDepartures: open }, null, 2)}\n`);
+  return { departures, corrections };
 }
 
 /**
@@ -186,10 +193,12 @@ async function writeCensus() {
  * NOT SKIPPED WHEN `SKIP_FLAGS` IS SET — there is no such switch, on purpose. An opt-in would be
  * unset on every tick that matters, which is exactly how inc.158's census sat unread.
  */
-async function fileDepartures(list) {
+async function fileDepartures(list, corrections = []) {
   // Q84 inc.161: the same tick already knows who still runs this gate, so the row states it
   // instead of guessing "if it was the last one".
-  const findings = departureFindings(list, audit.triggeredBy);
+  // Q84 inc.162: corrections ride the same path deliberately — a correction is worth exactly what a
+  // departure is worth, costs the exit code exactly as little, and says so on stderr the same way.
+  const findings = [...departureFindings(list, audit.triggeredBy), ...corrections];
   if (findings.length === 0) return;
   const base = (process.env.FLAGS_BASE_URL || "https://mle-rob-dashboard.vercel.app").replace(/\/$/, "");
   for (const finding of findings) {
@@ -225,8 +234,9 @@ const scanned = scripts.length - skipped.length;
 // Never on a zero-wrapper scan: that outcome is "the rule was not checked", and overwriting the
 // committed record with an empty one would turn a scan that saw nothing into a repo that says
 // there is nothing to see.
-const departures = scripts.length > 0 ? await writeCensus() : [];
-await fileDepartures(departures);
+const { departures, corrections } =
+  scripts.length > 0 ? await writeCensus() : { departures: [], corrections: [] };
+await fileDepartures(departures, corrections);
 
 if (BRIEF) {
   const { code, line } = clockGateBrief(audit, departures);

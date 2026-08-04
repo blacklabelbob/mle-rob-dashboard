@@ -1170,7 +1170,15 @@ export type WrapperCensusRow = {
   triggersGate: boolean;
 };
 
-export type WrapperCensus = { wrappers: WrapperCensusRow[] };
+export type WrapperCensus = {
+  wrappers: WrapperCensusRow[];
+  /**
+   * Departures already filed to Rob's ledger, carried so the gate can CORRECT a row it wrote
+   * (Q84 inc.162). Absent on a census written before inc.162, which reads as "none recorded" —
+   * the gate then corrects nothing until the next departure files a key it can vouch for.
+   */
+  openDepartures?: OpenDeparture[];
+};
 
 export function wrapperCensus(
   audit: ClockAudit,
@@ -1279,6 +1287,23 @@ function departureSentence(departures: CensusDeparture[]): string {
   );
 }
 
+/**
+ * The two departures that change what is ENFORCED rather than what is counted (Q84 inc.160), and
+ * therefore the only two that reach Rob's ledger. Shared so a correction can never be filed for a
+ * key the departure pass would not have filed in the first place.
+ */
+const isFiled = (d: CensusDeparture): boolean => d.wasRole === "judged" || d.wasTrigger;
+
+/**
+ * Who runs this gate, excluding one name.
+ *
+ * A departed wrapper cannot count as its own replacement even if a stale caller passed the
+ * pre-departure list — and a wrapper whose NAME has come back cannot either, because inc.161
+ * established the gate cannot prove it is the same wrapper.
+ */
+const enforcersOtherThan = (name: string, triggeredBy: string[]): string[] =>
+  triggeredBy.filter((n) => n !== name);
+
 /** The shape `POST /api/admin/flags` takes. `dedupeKey` makes a re-file CORRECT its row, not stack. */
 export type DepartureFinding = {
   entityName: string;
@@ -1347,11 +1372,9 @@ export function departureFindings(
   stillTriggeredBy: string[] = [],
 ): DepartureFinding[] {
   return departures
-    .filter((d) => d.wasRole === "judged" || d.wasTrigger)
+    .filter(isFiled)
     .map((d) => {
-      // The departing wrapper cannot count as its own replacement, even if a stale caller passed
-      // the pre-departure list.
-      const remaining = stillTriggeredBy.filter((n) => n !== d.name);
+      const remaining = enforcersOtherThan(d.name, stillTriggeredBy);
       const orphaned = d.wasTrigger && remaining.length === 0;
       return {
         entityName: "Wrapper clock gate",
@@ -1379,4 +1402,100 @@ export function departureFindings(
         dedupeKey: `wrapper-census-departure:${d.name}`,
       };
     });
+}
+
+/**
+ * A departure this gate has already filed to Rob's ledger, plus the enforcement claim the row was
+ * filed with (Q84 inc.162).
+ *
+ * `orphaned` is the only mutable part, and it is the only part that can go stale: it is the claim
+ * "no wrapper runs this gate now", which was measured against the tree as it stood on the tick that
+ * filed. The row itself — what left, that it left, that Rob has to confirm it — is history and
+ * never changes.
+ */
+export type OpenDeparture = CensusDeparture & { orphaned: boolean };
+
+/**
+ * Q84 inc.162 — the row is right when it is written and can be wrong a week later. This corrects
+ * it, and does not close it.
+ *
+ * inc.161 ruled that nothing here may CLOSE a row: the gate cannot prove a returning name is the
+ * same wrapper, and the ledger records no actor for a machine's closure, so a closure would erase
+ * the distinction between what Rob decided and what a script decided. That ruling stands and this
+ * does not touch it. Every row this function corrects stays open, at the same key, still Rob's to
+ * confirm.
+ *
+ * THE STALENESS IS REAL, NOT HYPOTHETICAL, AND IT RUNS BOTH WAYS. Say `A` and `B` both run this
+ * gate. `A` leaves: `medium`, and the row says *"B still does — the clock rule is still enforced"*.
+ * `B` leaves next month: `B` gets its own `high` row, and `A`'s row still tells Rob that `B`
+ * enforces the rule, which is now false on the page he reads for money. The reverse is the same
+ * defect: the LAST gate-runner leaves (`high`, *"no green ✓ will say so"*), a replacement is wired
+ * next week, and the row keeps asserting the rule is unenforced. Both are a claim about the CURRENT
+ * tree stated in the present tense and never revisited — the same defect inc.161 fixed at filing
+ * time, surviving one tick later.
+ *
+ * A CORRECTION IS NOT A CLOSURE, and the difference is what the gate can prove. A closure asserts
+ * the loss is accounted for — a judgement about intent, about a file the gate can no longer see,
+ * and about which no machine here has standing. A correction asserts only *who runs this gate right
+ * now*, which is `triggeredBy`, re-derived from the current tree on every single tick exactly like
+ * every other line this gate prints. The gate is not being trusted with anything new; it is being
+ * required to keep saying the same measured thing it already says everywhere else.
+ *
+ * IT CANNOT INVENT A FINDING, WHICH IS THE OBJECTION inc.161 RAISED. The only keys it may re-POST
+ * are keys recorded in `openDepartures` — written by this gate at the moment it filed them. With no
+ * record it corrects nothing. It never adds a key, never removes one, and never emits a correction
+ * for a row whose enforcement claim has not actually flipped, so a quiet tick stays a quiet tick.
+ *
+ * A DEPARTURE FILED THIS TICK IS NOT ALSO CORRECTED. `departureFindings()` already POSTs that key
+ * with today's facts; a second body on the same key in the same run would be the gate arguing with
+ * itself.
+ *
+ * PURE per CR-3 — no clock, no network, no `process.env`. The caller POSTs and persists.
+ */
+export function reconcileOpenDepartures(
+  previousOpen: OpenDeparture[],
+  departures: CensusDeparture[],
+  stillTriggeredBy: string[] = [],
+): { corrections: DepartureFinding[]; open: OpenDeparture[] } {
+  const orphanedNow = (d: CensusDeparture): boolean =>
+    d.wasTrigger && enforcersOtherThan(d.name, stillTriggeredBy).length === 0;
+
+  const filedThisTick = new Map(departures.filter(isFiled).map((d) => [d.name, d]));
+  const corrections: DepartureFinding[] = [];
+  const open: OpenDeparture[] = [];
+
+  for (const row of previousOpen) {
+    const refiled = filedThisTick.get(row.name);
+    if (refiled) continue; // departureFindings() owns this key this tick.
+    const orphaned = orphanedNow(row);
+    open.push({ ...row, orphaned });
+    if (orphaned === row.orphaned) continue;
+    const remaining = enforcersOtherThan(row.name, stillTriggeredBy);
+    corrections.push({
+      entityName: "Wrapper clock gate",
+      title: `${row.name} left the audited set — ${row.wasTrigger ? "it ran the clock gate" : "it was judged by the clock gate"}`,
+      detail:
+        `CORRECTION, not a closure — this row is still open and still yours to confirm. The last ` +
+        `committed wrapper census held \`${row.name}\` (role: ${row.wasRole}` +
+        `${row.wasTrigger ? ", ran the clock gate" : ""}) and the scan has not seen it since. That ` +
+        `has not changed. What changed is what the row said about ENFORCEMENT: it was filed saying ` +
+        (row.orphaned
+          ? `no wrapper ran this gate at all, and ${remaining.join(", ")} ` +
+            `${remaining.length === 1 ? "does" : "do"} now — the clock rule is enforced again. `
+          : `the rule was still enforced by another wrapper, and NO wrapper runs this gate now — ` +
+            `the clock rule is unenforced and no green ✓ will say so. `) +
+        `Re-filed on the same key because that claim is re-measured from the current tree every ` +
+        `tick, so leaving it stale would be the defect it was written to prevent. The gate still ` +
+        `will not close this for you — it cannot prove a returning name is the same wrapper, and ` +
+        `the ledger records no actor for a machine's closure (Q84 inc.161/162).`,
+      severity: orphaned ? "high" : "medium",
+      dedupeKey: `wrapper-census-departure:${row.name}`,
+    });
+  }
+
+  for (const d of filedThisTick.values()) {
+    open.push({ ...d, orphaned: orphanedNow(d) });
+  }
+
+  return { corrections, open: open.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0)) };
 }
