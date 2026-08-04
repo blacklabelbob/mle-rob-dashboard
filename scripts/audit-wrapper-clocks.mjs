@@ -46,6 +46,7 @@ import {
   censusDepartures,
   clockGateBrief,
   departureFindings,
+  departureKey,
   reconcileOpenDepartures,
   wrapperCensus,
   BRIEF_MARKER,
@@ -171,9 +172,50 @@ async function writeCensus() {
   // inc.162 has no such list, which reads as "none recorded": nothing is corrected until a
   // departure files a key the gate can vouch for having written.
   const previousOpen = Array.isArray(previous?.openDepartures) ? previous.openDepartures : [];
-  const { corrections, open } = reconcileOpenDepartures(previousOpen, departures, audit.triggeredBy);
+  // Q84 inc.163 — the ONE piece of evidence on which a recorded key may be dropped is Rob closing
+  // the row himself, read from the ledger. Best effort, and it fails toward KEEPING: an unreachable
+  // ledger returns null, which prunes nothing. Never a timer, never a cap, never a name returning.
+  const resolvedKeys = previousOpen.length ? await resolvedDepartureKeys() : null;
+  const { corrections, open, dropped } = reconcileOpenDepartures(
+    previousOpen,
+    departures,
+    audit.triggeredBy,
+    resolvedKeys,
+  );
   await writeFile(CENSUS_FILE, `${JSON.stringify({ ...census, openDepartures: open }, null, 2)}\n`);
+  for (const row of dropped) {
+    console.error(`→ census: dropped ${row.name} — you resolved ${departureKey(row.name)} in the ledger`);
+  }
   return { departures, corrections };
+}
+
+/**
+ * Q84 inc.163 — which departure rows Rob has already resolved. Returns `null` when the ledger could
+ * not be read, and the difference matters: `[]` means "read it, he has closed none", `null` means
+ * "did not read it", and only the first may drop anything. A key the ledger has never heard of is
+ * NOT resolved — absent is not closed, so it is simply not returned here and stays tracked.
+ */
+async function resolvedDepartureKeys() {
+  const base = (process.env.FLAGS_BASE_URL || "https://mle-rob-dashboard.vercel.app").replace(/\/$/, "");
+  try {
+    const res = await fetch(`${base}/api/admin/flags`, { signal: AbortSignal.timeout(8000) });
+    if (!res.ok) return null;
+    const { flags } = await res.json();
+    if (!Array.isArray(flags)) return null;
+    // A key is closed only when the ledger holds a resolved row for it AND no open one. A
+    // superseded twin sits resolved next to a live row on the same key (`supersededNote`), and
+    // reading that as "closed" would drop a row still sitting on Rob's page.
+    const open = new Set(flags.filter((f) => f?.status === "open").map((f) => f?.dedupe_key));
+    return [
+      ...new Set(
+        flags
+          .filter((f) => f?.status === "resolved" && typeof f?.dedupe_key === "string" && !open.has(f.dedupe_key))
+          .map((f) => f.dedupe_key),
+      ),
+    ];
+  } catch {
+    return null;
+  }
 }
 
 /**

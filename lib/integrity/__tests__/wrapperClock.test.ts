@@ -4,6 +4,7 @@ import {
   censusDepartures,
   clockGateBrief,
   departureFindings,
+  departureKey,
   reconcileOpenDepartures,
   type OpenDeparture,
   BRIEF_MARKER,
@@ -995,7 +996,7 @@ describe("reconcileOpenDepartures (Q84 inc.162)", () => {
   });
 
   it("cannot invent a row: with no recorded departure it corrects nothing", () => {
-    expect(reconcileOpenDepartures([], [], ["b.sh"])).toEqual({ corrections: [], open: [] });
+    expect(reconcileOpenDepartures([], [], ["b.sh"])).toEqual({ corrections: [], open: [], dropped: [] });
   });
 
   it("a name coming back never vouches for its own row (inc.161 sameness)", () => {
@@ -1015,5 +1016,41 @@ describe("reconcileOpenDepartures (Q84 inc.162)", () => {
     const ignored = { name: "b.sh", wasRole: "skipped" as const, wasTrigger: false, wasRepoStamp: false };
     const { open: next } = reconcileOpenDepartures([], [filed, ignored], []);
     expect(next.map((r) => r.name)).toEqual(["a.sh"]);
+  });
+
+  // Q84 inc.163 — the list may shrink on exactly one piece of evidence: Rob closed the row.
+  describe("dropping a key (inc.163)", () => {
+    const KEY = departureKey("gone.sh");
+
+    it("drops a key Rob resolved, and files NO correction for it", () => {
+      // Without this, the correction POSTs a key with no open row, and `planFlagWrite` INSERTS —
+      // putting a row he closed back on his page.
+      const { corrections, open: next, dropped } = reconcileOpenDepartures([open()], [], ["new-driver.sh"], [KEY]);
+      expect(corrections).toEqual([]);
+      expect(next).toEqual([]);
+      expect(dropped.map((r) => r.name)).toEqual(["gone.sh"]);
+    });
+
+    it("an unread ledger (null) prunes nothing — absence of evidence is not a closure", () => {
+      expect(reconcileOpenDepartures([open()], [], [], null).open).toEqual([open()]);
+    });
+
+    it("a read ledger holding no resolution keeps the row", () => {
+      expect(reconcileOpenDepartures([open()], [], [], []).open).toEqual([open()]);
+    });
+
+    it("never drops on some other finding's key", () => {
+      const { open: next } = reconcileOpenDepartures([open()], [], [], ["wrapper-census-departure:other.sh"]);
+      expect(next).toEqual([open()]);
+    });
+
+    it("a departure filed THIS tick is recorded even if an older row on that key was resolved", () => {
+      // It left again. That is a new event, `departureFindings()` files it, and the ledger opens a
+      // fresh row — so the census must track it rather than drop it on last month's resolution.
+      const dep = { name: "gone.sh", wasRole: "judged" as const, wasTrigger: true, wasRepoStamp: false };
+      const { open: next, dropped } = reconcileOpenDepartures([open()], [dep], [], [KEY]);
+      expect(next.map((r) => r.name)).toEqual(["gone.sh"]);
+      expect(dropped).toEqual([]);
+    });
   });
 });

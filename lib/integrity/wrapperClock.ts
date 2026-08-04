@@ -1399,7 +1399,7 @@ export function departureFindings(
           `cannot prove it is the same wrapper, and the ledger records no actor for a machine's ` +
           `closure — closing it is yours (Q84 inc.161).`,
         severity: orphaned ? ("high" as const) : ("medium" as const),
-        dedupeKey: `wrapper-census-departure:${d.name}`,
+        dedupeKey: departureKey(d.name),
       };
     });
 }
@@ -1414,6 +1414,15 @@ export function departureFindings(
  * never changes.
  */
 export type OpenDeparture = CensusDeparture & { orphaned: boolean };
+
+/**
+ * The ledger key a departure row is filed under. One definition, because Q84 inc.163 now matches
+ * these keys against what Rob has RESOLVED — a second spelling of this string would silently mean
+ * "he has closed nothing" forever.
+ */
+export function departureKey(name: string): string {
+  return `wrapper-census-departure:${name}`;
+}
 
 /**
  * Q84 inc.162 — the row is right when it is written and can be wrong a week later. This corrects
@@ -1456,17 +1465,27 @@ export function reconcileOpenDepartures(
   previousOpen: OpenDeparture[],
   departures: CensusDeparture[],
   stillTriggeredBy: string[] = [],
-): { corrections: DepartureFinding[]; open: OpenDeparture[] } {
+  resolvedKeys: string[] | null = null,
+): { corrections: DepartureFinding[]; open: OpenDeparture[]; dropped: OpenDeparture[] } {
   const orphanedNow = (d: CensusDeparture): boolean =>
     d.wasTrigger && enforcersOtherThan(d.name, stillTriggeredBy).length === 0;
 
+  const closed = resolvedKeys === null ? null : new Set(resolvedKeys);
   const filedThisTick = new Map(departures.filter(isFiled).map((d) => [d.name, d]));
   const corrections: DepartureFinding[] = [];
   const open: OpenDeparture[] = [];
+  const dropped: OpenDeparture[] = [];
 
   for (const row of previousOpen) {
     const refiled = filedThisTick.get(row.name);
     if (refiled) continue; // departureFindings() owns this key this tick.
+    if (closed?.has(departureKey(row.name))) {
+      // Rob closed this row. Q84 inc.163 — stop tracking it, and above all do not "correct" it:
+      // a POST on a key with no open row INSERTS a new one (`planFlagWrite`, "recurred after
+      // being resolved"), so a correction here would put a row he closed back on his page.
+      dropped.push(row);
+      continue;
+    }
     const orphaned = orphanedNow(row);
     open.push({ ...row, orphaned });
     if (orphaned === row.orphaned) continue;
@@ -1489,7 +1508,7 @@ export function reconcileOpenDepartures(
         `will not close this for you — it cannot prove a returning name is the same wrapper, and ` +
         `the ledger records no actor for a machine's closure (Q84 inc.161/162).`,
       severity: orphaned ? "high" : "medium",
-      dedupeKey: `wrapper-census-departure:${row.name}`,
+      dedupeKey: departureKey(row.name),
     });
   }
 
@@ -1497,5 +1516,9 @@ export function reconcileOpenDepartures(
     open.push({ ...d, orphaned: orphanedNow(d) });
   }
 
-  return { corrections, open: open.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0)) };
+  return {
+    corrections,
+    open: open.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0)),
+    dropped,
+  };
 }
