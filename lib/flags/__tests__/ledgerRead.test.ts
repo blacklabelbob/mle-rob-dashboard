@@ -1,5 +1,26 @@
 import { describe, expect, it } from "vitest";
-import { LEDGER_KEYS_PARAM, ledgerReadUrl, parseLedgerKeys } from "../ledgerRead";
+import { LEDGER_KEYS_PARAM, ledgerReadPlan, ledgerReadUrl, parseLedgerKeys } from "../ledgerRead";
+
+// Q84 inc.167 — the un-narrowed read is a DIFFERENT read, and a caller has to be able to see that
+// before it happens. These pin the distinction itself, not the URL it produces.
+describe("ledgerReadPlan", () => {
+  it("reports a real key list as narrowed, deduped, in order", () => {
+    expect(ledgerReadPlan(["b", "a", "b"])).toEqual({ keys: ["b", "a"], narrowed: true });
+  });
+
+  it("reports every shape of 'no keys' as NOT narrowed — that is the whole-ledger read", () => {
+    expect(ledgerReadPlan([])).toEqual({ keys: [], narrowed: false });
+    expect(ledgerReadPlan()).toEqual({ keys: [], narrowed: false });
+    expect(ledgerReadPlan([""])).toEqual({ keys: [], narrowed: false });
+  });
+
+  it("agrees with the URL it builds, so the two cannot drift about what 'empty' means", () => {
+    for (const keys of [["a"], ["a", ""], [], [""], ["a", "a"]]) {
+      const narrowed = ledgerReadUrl("https://x.app", keys).includes(`?${LEDGER_KEYS_PARAM}=`);
+      expect(narrowed).toBe(ledgerReadPlan(keys).narrowed);
+    }
+  });
+});
 
 describe("ledgerReadUrl", () => {
   it("asks for exactly the keys given", () => {

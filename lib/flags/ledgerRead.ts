@@ -25,17 +25,36 @@
 export const LEDGER_KEYS_PARAM = "keys";
 
 /**
+ * Q84 inc.167 — what a key list actually asks for, decided ONCE.
+ *
+ * inc.166 made the narrowing correct but left the un-narrowed read INDISTINGUISHABLE from a
+ * narrowed one at the call site: hand `ledgerReadUrl` a forgotten, empty key list and it silently
+ * reads the whole ledger, which is the pre-inc.166 behaviour with none of the pre-inc.166 intent.
+ * `narrowed` is that distinction made observable, so a caller can refuse the implicit read and say
+ * so out loud, and so the URL builder and the caller cannot drift apart about what "empty" means —
+ * the two-copies disease inc.164 collapsed once already.
+ *
+ * PURE per CR-3, and it decides nothing about POLICY: whether an un-narrowed read is acceptable is
+ * the caller's call. This only reports which one it is about to do.
+ */
+export function ledgerReadPlan(keys: readonly string[] = []): { keys: string[]; narrowed: boolean } {
+  const wanted = [...new Set(keys.filter((k) => typeof k === "string" && k.length > 0))];
+  return { keys: wanted, narrowed: wanted.length > 0 };
+}
+
+/**
  * The URL that asks Rob's ledger about exactly `keys`.
  *
- * An empty key list asks for the WHOLE ledger rather than for nothing: the caller only reads when
- * it has keys to ask about, and a `keys=` with no value must never be read as "match nothing" —
- * that would answer "no row is open and none resolved" for every key, which is the short read this
- * increment exists to make unreachable, manufactured at full strength.
+ * An empty key list asks for the WHOLE ledger rather than for nothing: a `keys=` with no value must
+ * never be read as "match nothing" — that would answer "no row is open and none resolved" for every
+ * key, which is the short read inc.166 exists to make unreachable, manufactured at full strength.
+ * The URL layer therefore stays permissive; refusing an un-narrowed read is a caller's decision and
+ * `ledgerReadPlan().narrowed` is how a caller sees which one it is getting.
  */
 export function ledgerReadUrl(base: string, keys: readonly string[] = []): string {
   const root = `${base.replace(/\/$/, "")}/api/admin/flags`;
-  const wanted = [...new Set(keys.filter((k) => typeof k === "string" && k.length > 0))];
-  if (wanted.length === 0) return root;
+  const { keys: wanted, narrowed } = ledgerReadPlan(keys);
+  if (!narrowed) return root;
   return `${root}?${LEDGER_KEYS_PARAM}=${wanted.map(encodeURIComponent).join(",")}`;
 }
 

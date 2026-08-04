@@ -53,7 +53,7 @@ import {
   REPO_STAMP_CALL,
   TRIGGER_CALLS,
 } from "../lib/integrity/wrapperClock.ts";
-import { ledgerReadUrl } from "../lib/flags/ledgerRead.ts";
+import { ledgerReadPlan, ledgerReadUrl } from "../lib/flags/ledgerRead.ts";
 
 const DEFAULT_DIR = path.join(os.homedir(), ".claude", "scripts");
 const CENSUS_FILE = path.join(
@@ -221,8 +221,21 @@ async function writeCensus() {
  */
 async function resolvedDepartureKeys(keys = []) {
   const base = (process.env.FLAGS_BASE_URL || "https://mle-rob-dashboard.vercel.app").replace(/\/$/, "");
+  // Q84 inc.167 — THE UN-NARROWED READ IS NEVER IMPLICIT HERE. `ledgerReadUrl` widens on an empty
+  // key list on purpose (a malformed narrow must never mean "match nothing"), which means a caller
+  // that FORGETS its keys gets the whole ledger and no sign that it did. This gate refuses that
+  // read outright rather than narrowing it, because at this call site an empty list does not mean
+  // "ask about everything" — it means there is nothing to ask about, and `null` is already the
+  // answer that moves nothing in either direction (inc.163/165). The sentence is the point: a
+  // future caller that loses its keys says so on stderr instead of quietly reading 144 rows.
+  const plan = ledgerReadPlan(keys);
+  if (!plan.narrowed) {
+    console.error("→ ledger: not read — this gate asked about no keys, and a whole-ledger read is never implicit");
+    return null;
+  }
+  console.error(`→ ledger: asked about ${plan.keys.length} key(s) this gate filed — ${plan.keys.join(", ")}`);
   try {
-    const res = await fetch(ledgerReadUrl(base, keys), { signal: AbortSignal.timeout(8000) });
+    const res = await fetch(ledgerReadUrl(base, plan.keys), { signal: AbortSignal.timeout(8000) });
     if (!res.ok) return null;
     const { flags } = await res.json();
     if (!Array.isArray(flags)) return null;
