@@ -33,7 +33,17 @@ import { GATE_ORDER, gateEnvVar, DRIVER_ENV_PREFIX } from "./driverPrefixes";
 
 /** The files Rob actually opens and reads sentences out of. A stamp that lands in one of these is
  *  a stamp a human has to interpret. */
-export const ROB_FACING_SURFACES = ["PING-INBOX.md", "crm-driver.log", "meeting-intake.log"] as const;
+export const ROB_FACING_SURFACES = [
+  "PING-INBOX.md",
+  "crm-driver.log",
+  "meeting-intake.log",
+  // Q84 inc.156 — the two the daily brief tells Rob are his source of truth for ranks
+  // ("Live ranks: PROJECT-TRACKER.md (synced daily) · Diffs: PROJECT-CHANGELOG.md"). They were
+  // absent from this list for one reason: nothing that writes them is a `.sh` file, so listing
+  // them would have changed no verdict. That is the blindness, not a justification for it.
+  "PROJECT-TRACKER.md",
+  "PROJECT-CHANGELOG.md",
+] as const;
 
 /** The one in-repo formatter every wrapper this build owns is supposed to ask for its time
  *  (`node scripts/intake-silence.mjs stamp`, Q84 inc.140/141). */
@@ -264,6 +274,15 @@ export type ClockFinding = {
   format: string;
   /** Which of Rob's surfaces this script writes into — i.e. why the stamp matters. */
   surfaces: string[];
+  /**
+   * Why this format is unreadable when the format itself LOOKS compliant (Q84 inc.156).
+   *
+   * Only Python sets it, and only for the trap that would otherwise make the obvious fix a false
+   * green: `datetime.now()` is naive, so `%Z` on it renders the EMPTY STRING. A stamp that passes
+   * `namesItsZone` and prints nothing is worse than one that never claimed a zone, so the finding
+   * has to say which of the two it is.
+   */
+  note?: string;
 };
 
 /** A `DRIVER_*` gate a wrapper actually hands to the driver that `GATE_ORDER` does not rank. */
@@ -288,6 +307,14 @@ export type UnreadableScriptFinding = {
   line: number;
   /** The delimiter shell is still waiting for — usually one character off from the one written. */
   word: string;
+  /**
+   * WHICH construct swallowed the rest of the file (Q84 inc.156).
+   *
+   * Carried because the fix sentence is language-specific and a report that tells a Python author
+   * to close a heredoc is a report they will not act on. The two are the same defect — everything
+   * below the opener read as body — so they share an array and an exit code, not a wording.
+   */
+  kind: "heredoc" | "triple-quote";
 };
 
 /** A wrapper that runs the prompt composer with its diagnostics thrown away (Q84 inc.150). */
@@ -788,6 +815,139 @@ function isCommandPrefix(logical: string, from: number): boolean {
   return tokens.slice(1).some((t) => t && !/^[A-Za-z_][A-Za-z0-9_]*=/.test(t));
 }
 
+/**
+ * Which reader can judge a file (Q84 inc.156).
+ *
+ * Dispatch is by SHEBANG first, extension second — the reverse of what `collect()` used to do, and
+ * the reason inc.155 had three files to name. `daily-driver.sh.bak-2026-07-17` is shell that no
+ * extension test matches; `judge-cover.py` is Python that an extension test matches and the shell
+ * parser would then read wrongly. The line that says how the kernel will run the file is the only
+ * one that answers "what language is this".
+ */
+export type ScriptLanguage = "shell" | "python" | "unknown";
+export function languageOf(name: string, source: string): ScriptLanguage {
+  const shebang = source.startsWith("#!") ? source.slice(0, source.indexOf("\n") + 1 || undefined) : "";
+  if (shebang) {
+    if (/\bpython[0-9.]*\b/.test(shebang)) return "python";
+    if (/\b(ba|z|k|da)?sh\b/.test(shebang)) return "shell";
+    return "unknown";
+  }
+  if (name.endsWith(".py")) return "python";
+  if (name.endsWith(".sh")) return "shell";
+  return "unknown";
+}
+
+/**
+ * Python source with its comments removed, one output line per physical line.
+ *
+ * Deliberately NOT the shell reader with different needles. Three of Python's rules differ in ways
+ * that decide findings: a triple-quoted block runs nothing and must be blanked (shell's unquoted
+ * heredoc still executes `$( )`, which inc.152 had to preserve); an unclosed single-quote is a
+ * syntax error that cannot carry to the next line, so state is reset at every newline (carrying it
+ * is exactly the bug inc.152 found in the shell path); and `#` is a comment in both, which is the
+ * only rule that survives being borrowed.
+ *
+ * String CONTENT is kept, unlike the surface scan's needs — the format being judged lives inside a
+ * string literal, so stripping literals would delete the evidence.
+ */
+export function pythonCodeLines(source: string): {
+  code: string[];
+  unterminated: { word: string; line: number } | null;
+} {
+  const out: string[] = [];
+  let triple: string | null = null;
+  let tripleLine = 0;
+  const raws = source.split("\n");
+  for (let n = 0; n < raws.length; n++) {
+    const raw = raws[n];
+    let kept = "";
+    let i = 0;
+    while (i < raw.length) {
+      if (triple) {
+        const end = raw.indexOf(triple, i);
+        if (end === -1) {
+          i = raw.length;
+          break;
+        }
+        i = end + 3;
+        triple = null;
+        continue;
+      }
+      const three = raw.slice(i, i + 3);
+      if (three === '"""' || three === "'''") {
+        triple = three;
+        tripleLine = n + 1;
+        kept += three;
+        i += 3;
+        continue;
+      }
+      const ch = raw[i];
+      if (ch === "#") break; // comment — and a `#` inside a literal never reaches here
+      kept += ch;
+      i++;
+      if (ch === '"' || ch === "'") {
+        // Consume the literal whole, so a `#` or a quote inside it decides nothing.
+        while (i < raw.length && raw[i] !== ch) {
+          if (raw[i] === "\\") {
+            kept += raw[i];
+            i++;
+          }
+          if (i < raw.length) {
+            kept += raw[i];
+            i++;
+          }
+        }
+        if (i < raw.length) {
+          kept += raw[i];
+          i++;
+        }
+      }
+    }
+    out.push(kept);
+  }
+  return { code: out, unterminated: triple ? { word: triple, line: tripleLine } : null };
+}
+
+/** `strftime("%Y-%m-%d %H:%M")` — the format is a literal argument, quoted either way. */
+const PY_STRFTIME = /strftime\(\s*(['"])((?:[^'"\\]|\\.)*)\1/g;
+
+/**
+ * A clock read with no zone attached — `datetime.now()` / `datetime.utcnow()` bare.
+ *
+ * `.astimezone()` and any `tz=`/`timezone` argument make it aware, and an aware object is the ONLY
+ * one whose `%Z` prints anything. Python renders `%Z` on a naive datetime as the empty string —
+ * silently, with no error — so this is the difference between a fix and a fix-shaped no-op.
+ */
+const PY_NAIVE_CLOCK = /datetime\.(?:utcnow\(\s*\)|now\(\s*\))(?!\s*\.astimezone)/;
+const PY_AWARE_HINT = /\.astimezone\(|\btz\s*=|\btimezone\b|\bZoneInfo\b/;
+
+/**
+ * Which of Rob's surfaces a Python script WRITES to.
+ *
+ * Same shape as the shell scan and the same one level of indirection — `TRACKER_MD = MEM /
+ * "PROJECT-TRACKER.md"` fifty lines above `TRACKER_MD.write_text(...)`. What differs is what counts
+ * as a write: `open(PATH)` defaults to READ, so a mode argument is required before it counts, or
+ * the same "reading a surface proves nothing" rule inc.142 wrote would be broken by its own port.
+ */
+function pythonSurfacesWritten(source: string): string[] {
+  const lines = pythonCodeLines(source).code;
+  return ROB_FACING_SURFACES.filter((surface) => {
+    const held = new Set<string>();
+    for (const line of lines) {
+      const m = /^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=/.exec(line);
+      if (m && line.includes(surface)) held.add(m[1]);
+    }
+    const names = [...held];
+    return lines.some((line) => {
+      const namesTarget =
+        line.includes(surface) || names.some((v) => new RegExp(`\\b${v}\\b`).test(line));
+      if (!namesTarget) return false;
+      if (/\.write_text\(|\.write_bytes\(/.test(line)) return true;
+      return /\bopen\([^)]*["'][aw]/.test(line);
+    });
+  });
+}
+
 function formatsOn(line: string): string[] {
   const out: string[] = [];
   for (const m of line.matchAll(QUOTED_FORMAT)) out.push(m[1]);
@@ -815,11 +975,63 @@ export function auditWrapperClocks(
   const strandedGateVars: GateRankFinding[] = [];
   const silencedComposers: SilencedComposerFinding[] = [];
   const unreadable: UnreadableScriptFinding[] = [];
+  // Copied, not mutated in place: a caller's array is its own, and this list now grows from two
+  // sources — files the caller could not read, and files this function has no reader for.
+  const unjudgedNames = [...unjudged];
   // Derived from GATE_ORDER through the same `gateEnvVar` the composer uses — a second hand-kept
   // list of names here would be the very drift inc.147 closed, reintroduced by its own check.
   const ranked = new Set(GATE_ORDER.map((g) => gateEnvVar(g.key)));
 
   for (const { name, source } of scripts) {
+    const language = languageOf(name, source);
+    if (language === "unknown") {
+      // Handed to this gate but in a language it has no reader for. Named, never counted clean —
+      // inc.155's whole finding was that silence here reads as coverage.
+      if (!unjudgedNames.includes(name)) unjudgedNames.push(name);
+      continue;
+    }
+    if (language === "python") {
+      const parsed = pythonCodeLines(source);
+      if (parsed.unterminated) {
+        unreadable.push({
+          script: name,
+          line: parsed.unterminated.line,
+          word: parsed.unterminated.word,
+          kind: "triple-quote",
+        });
+      }
+      const code = parsed.code;
+      if (code.some((l) => TRIGGER_CALLS.some((needle) => l.includes(needle)))) triggeredBy.push(name);
+
+      const surfaces = pythonSurfacesWritten(source);
+      if (surfaces.length === 0) {
+        skipped.push(name);
+        continue;
+      }
+      if (code.some((l) => l.includes(REPO_STAMP_CALL))) usesRepoStamp.push(name);
+
+      code.forEach((line, i) => {
+        for (const m of line.matchAll(PY_STRFTIME)) {
+          const format = m[2];
+          if (!statesAnInstant(format)) continue;
+          const naive = PY_NAIVE_CLOCK.test(line) && !PY_AWARE_HINT.test(line);
+          if (namesItsZone(format) && !naive) continue;
+          findings.push({
+            script: name,
+            line: i + 1,
+            format,
+            surfaces: [...surfaces],
+            note: namesItsZone(format)
+              ? "names %Z, but reads a NAIVE datetime — Python renders %Z on it as the empty " +
+                "string, so this prints no zone at all. Fix the clock, not the format: " +
+                "datetime.now().astimezone()."
+              : undefined,
+          });
+        }
+      });
+      continue;
+    }
+
     const assignments = driverVarAssignments(source);
     for (const { envVar, line, travels } of assignments) {
       if (travels && !ranked.has(envVar)) unrankedGateVars.push({ script: name, line, envVar });
@@ -855,7 +1067,12 @@ export function auditWrapperClocks(
     // Q84 inc.153 — say so BEFORE using the parse. Every scan below this line reads `code`, and a
     // swallowed file hands them blanks that look exactly like a clean wrapper.
     if (parsed.unterminated) {
-      unreadable.push({ script: name, line: parsed.unterminated.line, word: parsed.unterminated.word });
+      unreadable.push({
+        script: name,
+        line: parsed.unterminated.line,
+        word: parsed.unterminated.word,
+        kind: "heredoc",
+      });
     }
     const code = parsed.code;
     const invokes = (l: string) => TRIGGER_CALLS.some((needle) => l.includes(needle));
@@ -893,6 +1110,6 @@ export function auditWrapperClocks(
     strandedGateVars,
     silencedComposers,
     unreadable,
-    unjudged,
+    unjudged: unjudgedNames,
   };
 }

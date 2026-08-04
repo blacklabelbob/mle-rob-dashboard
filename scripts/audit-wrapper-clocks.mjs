@@ -60,32 +60,38 @@ const say = (line) => {
 };
 
 /**
- * Expand a directory to its shell scripts, AND name the executables it walked past (inc.155).
+ * Expand a directory to every file that RUNS — not to `*.sh` (Q84 inc.155, inc.156).
  *
- * A sibling counts as unjudged only if it is executable and opens with a shebang — the test for
- * "this file is run", not "this file is not .sh". The two prompt `.txt` files next to the real
- * wrappers are data and stay silent; `judge-cover.py` and `project-tracker.py` are programs on
- * the same timer writing into the same files, and get named. A `.sh.bak` still carrying its
- * exec bit is named too, on purpose: an executable backup is one stray invocation from running.
+ * A file qualifies if it is executable and opens with a shebang, or ends in `.sh`. That is the
+ * test for "this file is run", and it is what inc.155 was missing: `judge-cover.py` and
+ * `project-tracker.py` are programs on the same timers writing into the same files, and
+ * `daily-driver.sh.bak-2026-07-17` is shell that no extension test matches while still carrying
+ * its exec bit — one stray invocation from running. The two prompt `.txt` files next to the real
+ * wrappers are data, have no exec bit, and stay out.
+ *
+ * Which LANGUAGE each one is gets decided in the repo under test, from the shebang, and a file
+ * whose language has no reader comes back named in `unjudged` rather than counted clean.
  */
 async function collect(target) {
   const info = await stat(target);
-  if (!info.isDirectory()) return { files: [target], unjudged: [] };
+  if (!info.isDirectory()) return [target];
   const entries = await readdir(target);
-  const files = entries.filter((e) => e.endsWith(".sh")).map((e) => path.join(target, e));
-  const unjudged = [];
-  for (const entry of entries.filter((e) => !e.endsWith(".sh"))) {
+  const files = [];
+  for (const entry of entries) {
     const full = path.join(target, entry);
+    if (entry.endsWith(".sh")) {
+      files.push(full);
+      continue;
+    }
     try {
       if (!(await stat(full)).isFile()) continue;
       await access(full, constants.X_OK);
-      const head = await readFile(full, "utf8");
-      if (head.startsWith("#!")) unjudged.push(entry);
+      if ((await readFile(full, "utf8")).startsWith("#!")) files.push(full);
     } catch {
-      // Unreadable or not executable — not a wrapper this gate is failing to cover.
+      // Unreadable or not executable — not something this machine runs on a timer.
     }
   }
-  return { files, unjudged };
+  return files;
 }
 
 const scripts = [];
@@ -93,9 +99,7 @@ const unjudged = [];
 for (const target of targets) {
   let files;
   try {
-    const found = await collect(target);
-    files = found.files;
-    unjudged.push(...found.unjudged);
+    files = await collect(target);
   } catch (err) {
     // Even in --brief this speaks: "cannot read" is the one outcome that must never pass as clean.
     console.error(
@@ -157,9 +161,14 @@ say(
 // and for a swallowed file that output is blank lines, which pass every check silently.
 if (audit.unreadable.length > 0) {
   for (const u of audit.unreadable) {
-    console.error(`\n✖ ${u.script}:${u.line}  opens heredoc \`${u.word}\` — no terminator`);
+    const opener = u.kind === "triple-quote" ? "triple-quoted string" : "heredoc";
+    console.error(`\n✖ ${u.script}:${u.line}  opens ${opener} \`${u.word}\` — no terminator`);
     console.error(`  every line below it read as body; NOTHING in this file was judged.`);
-    console.error(`  fix: the delimiter shell is waiting for is \`${u.word}\`, alone on its own line.`);
+    console.error(
+      u.kind === "triple-quote"
+        ? `  fix: close it with \`${u.word}\` — until then this file does not parse as Python either.`
+        : `  fix: the delimiter shell is waiting for is \`${u.word}\`, alone on its own line.`,
+    );
   }
   console.error(
     `\n  ${audit.unreadable.length} wrapper${audit.unreadable.length === 1 ? " was" : "s were"} ` +
@@ -171,7 +180,11 @@ if (audit.unreadable.length > 0) {
 if (findings.length > 0) {
   for (const f of findings) {
     console.error(`\n✖ ${f.script}:${f.line}  writes an unlabeled clock`);
-    console.error(`    format:  '+${f.format}'  — no %Z, so the instant is not recoverable`);
+    console.error(
+      f.note
+        ? `    format:  '${f.format}'  — ${f.note}`
+        : `    format:  '+${f.format}'  — no %Z, so the instant is not recoverable`,
+    );
     console.error(`    reaches: ${f.surfaces.join(", ")}`);
   }
   console.error(
@@ -179,10 +192,22 @@ if (findings.length > 0) {
       `a stamp that does not say whose clock produced it hands him arithmetic at the moment he is ` +
       `being told something is broken (Q84 inc.139).`,
   );
-  console.error(
-    `Fix: ask the repo — REPO_STAMP="$(cd <repo> && node scripts/${REPO_STAMP_CALL})" — and keep ` +
-      `\`date '+%Y-%m-%d %H:%M:%S %Z'\` only as the fallback for when node or the repo is unusable.`,
-  );
+  if (findings.some((f) => f.script.endsWith(".sh") || !f.script.endsWith(".py"))) {
+    console.error(
+      `Fix (shell): ask the repo — REPO_STAMP="$(cd <repo> && node scripts/${REPO_STAMP_CALL})" — ` +
+        `and keep \`date '+%Y-%m-%d %H:%M:%S %Z'\` only as the fallback for when node or the repo ` +
+        `is unusable.`,
+    );
+  }
+  // Q84 inc.156 — a Python author handed the shell fix will not act on it, and the shell fix is
+  // not even correct there: appending %Z to a naive datetime prints nothing at all.
+  if (findings.some((f) => f.script.endsWith(".py"))) {
+    console.error(
+      `Fix (python): make the clock aware first — \`datetime.now().astimezone()\` — THEN add %Z to ` +
+        `the format. %Z on a naive datetime renders the empty string, so the format-only fix looks ` +
+        `applied and changes nothing.`,
+    );
+  }
   process.exit(1);
 }
 

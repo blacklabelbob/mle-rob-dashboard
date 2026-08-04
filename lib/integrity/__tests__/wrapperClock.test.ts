@@ -559,7 +559,9 @@ describe("auditWrapperClocks", () => {
       const audit = auditWrapperClocks(
         script(`${wired}cat <<NOTES_END\n  a note\nDRIVER_NEW_GATE="1"\nexport DRIVER_NEW_GATE`),
       );
-      expect(audit.unreadable).toEqual([{ script: "some-wrapper.sh", line: 3, word: "NOTES_END" }]);
+      expect(audit.unreadable).toEqual([
+        { script: "some-wrapper.sh", line: 3, word: "NOTES_END", kind: "heredoc" },
+      ]);
       // It takes the brief line rather than riding it as a suffix: an unranked-gate ✓ computed
       // from a blanked file is not a smaller finding, it is a wrong one.
       const brief = clockGateBrief(audit);
@@ -646,5 +648,88 @@ describe("auditWrapperClocks", () => {
     it("keeps every ^CLOCK GATE line matchable by the driver's grep", () => {
       expect(clockGateBrief(clean()).line?.startsWith(BRIEF_MARKER)).toBe(true);
     });
+  });
+});
+
+// Q84 inc.156 — the Python reader. inc.155 could only NAME `project-tracker.py`; these pin what it
+// now says about it, and pin the two ways a port of the shell rules would have lied.
+describe("python siblings (Q84 inc.156)", () => {
+  const py = (source: string, name = "tracker.py") => [{ name, source: `#!/usr/bin/env python3\n${source}` }];
+
+  it("flags the live defect: a zoneless strftime reaching PROJECT-TRACKER.md", () => {
+    const { findings } = auditWrapperClocks(
+      py(`TRACKER = MEM / "PROJECT-TRACKER.md"\nnow = datetime.now().strftime("%Y-%m-%d %H:%M")\nTRACKER.write_text(f"synced {now}")`),
+    );
+    expect(findings).toHaveLength(1);
+    expect(findings[0]).toMatchObject({ format: "%Y-%m-%d %H:%M", surfaces: ["PROJECT-TRACKER.md"] });
+  });
+
+  it("resolves the name through an `open(PATH, \"a\")` write, not just write_text", () => {
+    const { findings } = auditWrapperClocks(
+      py(`CHANGELOG = MEM / "PROJECT-CHANGELOG.md"\nnow = datetime.now().strftime("%H:%M")\nwith open(CHANGELOG, "a") as f:\n    f.write(now)`),
+    );
+    expect(findings[0].surfaces).toEqual(["PROJECT-CHANGELOG.md"]);
+  });
+
+  it("does NOT count a read — `open(PATH)` defaults to 'r', and reading proves nothing", () => {
+    const { findings, skipped } = auditWrapperClocks(
+      py(`TRACKER = MEM / "PROJECT-TRACKER.md"\nprint(open(TRACKER).read(), datetime.now().strftime("%H:%M"))`),
+    );
+    expect(findings).toEqual([]);
+    expect(skipped).toEqual(["tracker.py"]);
+  });
+
+  it("still flags %Z when the datetime is NAIVE — python renders it as the empty string", () => {
+    const { findings } = auditWrapperClocks(
+      py(`T = MEM / "PROJECT-TRACKER.md"\nT.write_text(datetime.now().strftime("%Y-%m-%d %H:%M %Z"))`),
+    );
+    expect(findings).toHaveLength(1);
+    expect(findings[0].note).toContain("NAIVE");
+  });
+
+  it("accepts %Z once the clock is made aware", () => {
+    const { findings } = auditWrapperClocks(
+      py(`T = MEM / "PROJECT-TRACKER.md"\nT.write_text(datetime.now().astimezone().strftime("%Y-%m-%d %H:%M %Z"))`),
+    );
+    expect(findings).toEqual([]);
+  });
+
+  it("ignores a stamp inside a `#` comment, and one inside a docstring", () => {
+    const { findings } = auditWrapperClocks(
+      py(`T = MEM / "PROJECT-TRACKER.md"\n"""was: datetime.now().strftime("%H:%M")"""\nT.write_text("x")  # datetime.now().strftime("%H:%M")`),
+    );
+    expect(findings).toEqual([]);
+  });
+
+  it("does not carry an unclosed single quote to the next line the way shell does", () => {
+    // In python that is a syntax error confined to its line; carrying it would blind every line
+    // below, which is the shape of inc.152's bug reintroduced by a careless port.
+    const { findings } = auditWrapperClocks(
+      py(`T = MEM / "PROJECT-TRACKER.md"\nlabel = "Rob's note\nT.write_text(datetime.now().strftime("%H:%M"))`),
+    );
+    expect(findings).toHaveLength(1);
+  });
+
+  it("reports an unterminated docstring as unreadable, worded for python", () => {
+    const { unreadable } = auditWrapperClocks(py(`"""never closed\nT.write_text("x")`));
+    expect(unreadable[0]).toMatchObject({ line: 2, kind: "triple-quote" });
+  });
+
+  it("judges by shebang, so an executable .sh.bak is read as the shell it is", () => {
+    const { findings } = auditWrapperClocks([
+      {
+        name: "daily-driver.sh.bak",
+        source: `#!/bin/bash\nNOW="$(date '+%H:%M')"\necho "$NOW" >> "$MEM/PING-INBOX.md"`,
+      },
+    ]);
+    expect(findings).toHaveLength(1);
+  });
+
+  it("names a language it has no reader for instead of counting it clean", () => {
+    const { unjudged, findings } = auditWrapperClocks([
+      { name: "thing.rb", source: `#!/usr/bin/env ruby\nputs Time.now` },
+    ]);
+    expect(unjudged).toEqual(["thing.rb"]);
+    expect(findings).toEqual([]);
   });
 });
