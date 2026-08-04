@@ -155,7 +155,8 @@ const audit = auditWrapperClocks(scripts, unjudged);
  * worse lie than having no record.
  */
 async function writeCensus() {
-  if (targets.length !== 1 || targets[0] !== DEFAULT_DIR) return { departures: [], corrections: [] };
+  if (targets.length !== 1 || targets[0] !== DEFAULT_DIR)
+    return { departures: [], corrections: [], censusRefusal: null };
   const census = wrapperCensus(audit, scripts);
   // Q84 inc.159 — read the committed record BEFORE overwriting it. inc.158 left the census in git
   // but nothing reading it, so a wrapper could still leave the scanned set with a diff no human is
@@ -187,7 +188,11 @@ async function writeCensus() {
         `silently (Q84 inc.174). Repair the file by hand, or delete it to start a fresh record ` +
         `and accept that the open rows are gone. Repeats every tick until then.`,
     );
-    return { departures: [], corrections: [] };
+    // Q84 inc.175 — the reason travels to `--brief` as well as to stderr. The driver filters this
+    // gate's output with `grep '^CLOCK GATE'`, so on its own this line reaches no prompt and the
+    // only reader that acts is handed a clean verdict from a gate that is knowingly tracking none
+    // of Rob's open rows.
+    return { departures: [], corrections: [], censusRefusal: read.reason };
   }
   const previous = read.census;
   const departures = censusDepartures(previous, census);
@@ -247,7 +252,7 @@ async function writeCensus() {
         `a row it cannot read back (Q84 inc.172/173). Repeats every tick until the census is repaired.`,
     );
   }
-  return { departures, corrections };
+  return { departures, corrections, censusRefusal: null };
 }
 
 /**
@@ -377,12 +382,12 @@ const scanned = scripts.length - skipped.length;
 // Never on a zero-wrapper scan: that outcome is "the rule was not checked", and overwriting the
 // committed record with an empty one would turn a scan that saw nothing into a repo that says
 // there is nothing to see.
-const { departures, corrections } =
-  scripts.length > 0 ? await writeCensus() : { departures: [], corrections: [] };
+const { departures, corrections, censusRefusal } =
+  scripts.length > 0 ? await writeCensus() : { departures: [], corrections: [], censusRefusal: null };
 await fileDepartures(departures, corrections);
 
 if (BRIEF) {
-  const { code, line } = clockGateBrief(audit, departures);
+  const { code, line } = clockGateBrief(audit, departures, censusRefusal);
   if (line) console.error(line);
   process.exit(code);
 }

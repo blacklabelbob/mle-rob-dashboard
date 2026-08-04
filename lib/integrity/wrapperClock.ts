@@ -101,6 +101,12 @@ export function clockGateBrief(
    * audit only knows what it was handed.
    */
   departures: CensusDeparture[] = [],
+  /**
+   * The reason the run REFUSED to write the census this tick, or null when it wrote (Q84 inc.175).
+   * Same argument as `departures` for why it is a parameter and not an audit field: it is a fact
+   * about a file on disk, not about anything the scan measured.
+   */
+  censusRefusal: string | null = null,
 ): ClockGateBrief {
   // Q84 inc.148 — the unranked-gate sentence is a SUFFIX, never a competitor. The driver greps
   // `^CLOCK GATE`, so exactly one line is heard per tick; ranking this finding against the stamp
@@ -126,7 +132,21 @@ export function clockGateBrief(
   // scanned set, which means no other sentence on this line — and no count in the report — can
   // mention it at all. It is also the only one of the five that will never be said twice: the
   // census is rewritten on the same tick, so if this line is dropped the fact is gone for good.
+  // Q84 inc.175 appends the sixth on the same terms, and BEFORE the departure sentence — which is
+  // the whole point of it. On a refused tick `departures` is empty for a reason that has nothing to
+  // do with the tree: the gate could not read what it is supposed to compare against, so the
+  // SILENCE of inc.159's sentence stops meaning "no wrapper left" and starts meaning "not measured".
+  // Said first because it is the sentence that reinterprets the ones after it.
+  //
+  // It RIDES rather than taking the line, and that is a measured decision, not deference to
+  // precedent. inc.153 takes the line because an unterminated heredoc means the scan itself is
+  // incomplete and its ✓ are meaningless. A refused census costs the scan nothing — every wrapper
+  // was still read and judged — so taking the line here would delete a real `IS RED` stamp finding
+  // to announce a bookkeeping failure, which is exactly the vanishing-finding disease inc.147/148
+  // spent two increments killing. What it must NOT do is leave the tick silent, and appending
+  // already fixes that: an otherwise-clean run stops returning `{code: 0, line: null}` and speaks.
   const unranked =
+    censusRefusalSentence(censusRefusal) +
     departureSentence(departures) +
     strandedGateSentence(audit) +
     unrankedGateSentence(audit) +
@@ -1268,6 +1288,30 @@ export function censusDepartures(
  * the losses that change what is enforced from this tick onward rather than merely what is
  * counted.
  */
+/**
+ * Q84 inc.175 — the tick where this gate knowingly tracked nothing, said in the one place the
+ * driver listens.
+ *
+ * inc.174 made a corrupt census refuse to be overwritten, and reported that on a `→ census:` stderr
+ * line. The driver filters this gate's stderr with `grep '^CLOCK GATE'`, so that line is dropped
+ * before it reaches any prompt: the next increment was told the gate was CLEAN on the exact tick
+ * the gate had stopped tracking every departure row it is still correcting on Rob's ledger. The
+ * refusal is the right disposition; being unheard is not part of it.
+ */
+function censusRefusalSentence(reason: string | null): string {
+  if (!reason) return "";
+  return (
+    ` THE WRAPPER CENSUS WAS NOT WRITTEN — it is present and unreadable (${reason}), so ` +
+    `it was left exactly as found rather than overwritten with a record carrying zero open rows ` +
+    `(Q84 inc.174). Two things follow and neither is visible anywhere else: no departure can be ` +
+    `detected this tick, so the absence of a departure line above means NOT MEASURED, not "nothing ` +
+    `left"; and every departure key this gate has filed on Rob's ledger is going uncorrected until ` +
+    `the file is repaired. The stamp findings on this line were still measured normally. Repair ` +
+    `\`docs/integrity/wrapper-census.json\` BEFORE trusting a clean verdict from this gate ` +
+    `(Q84 inc.175).`
+  );
+}
+
 function departureSentence(departures: CensusDeparture[]): string {
   if (departures.length === 0) return "";
   const named = departures

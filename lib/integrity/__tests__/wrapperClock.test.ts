@@ -928,6 +928,58 @@ describe("censusDepartures (Q84 inc.159)", () => {
   });
 });
 
+// Q84 inc.175 — inc.174 made a corrupt census refuse to be overwritten and said so on a `→ census:`
+// stderr line. The driver greps `^CLOCK GATE`, so that line reached no prompt: the next increment
+// was told the gate was CLEAN on the tick it stopped tracking every open row on Rob's ledger.
+describe("a census the gate refused to write (Q84 inc.175)", () => {
+  const entry = (name: string, source: string, executable = true) => ({ name, source, executable });
+  const wired = () =>
+    auditWrapperClocks([entry("driver.sh", `npm run ${TRIGGER_CALLS[1]} -- --brief`)]);
+  const REASON = "`openDepartures` is present and is not an array";
+
+  it("turns the silent clean verdict into a spoken one the driver can hear", () => {
+    expect(clockGateBrief(wired())).toEqual({ code: 0, line: null });
+    const brief = clockGateBrief(wired(), [], REASON);
+    expect(brief.code).toBe(4);
+    expect(brief.line?.startsWith(BRIEF_MARKER)).toBe(true);
+    expect(brief.line).toContain("CENSUS WAS NOT WRITTEN");
+    expect(brief.line).toContain(REASON);
+  });
+
+  // The defect is not that the gate went quiet about the file — it is that an EMPTY departure list
+  // reads as "nothing left" on a tick where nothing could have been detected at all.
+  it("says the missing departure line means NOT MEASURED rather than nothing left", () => {
+    const brief = clockGateBrief(wired(), [], REASON);
+    expect(brief.line).toContain("NOT MEASURED");
+    expect(brief.line).not.toContain("GONE FROM THE SCAN");
+  });
+
+  it("rides a red stamp finding instead of taking the line from it", () => {
+    const audit = auditWrapperClocks([
+      entry("bad.sh", `date '+%F %T' >> "$HOME/.claude/memory/crm-driver.log"`),
+      entry("driver.sh", `npm run ${TRIGGER_CALLS[1]} -- --brief`),
+    ]);
+    const brief = clockGateBrief(audit, [], REASON);
+    expect(brief.code).toBe(1);
+    expect(brief.line).toContain("IS RED");
+    expect(brief.line).toContain("CENSUS WAS NOT WRITTEN");
+  });
+
+  // It is stated FIRST among the appended sentences because it reinterprets the ones after it.
+  it("is stated before the departure sentence when both somehow apply", () => {
+    const brief = clockGateBrief(wired(), [{ name: "gone.sh", wasRole: "judged", wasTrigger: false, wasRepoStamp: false }], REASON);
+    expect(brief.line!.indexOf("CENSUS WAS NOT WRITTEN")).toBeLessThan(
+      brief.line!.indexOf("GONE FROM THE SCAN"),
+    );
+  });
+
+  it("says nothing at all on a tick the census was written", () => {
+    for (const written of [null, undefined]) {
+      expect(clockGateBrief(wired(), [], written as string | null)).toEqual({ code: 0, line: null });
+    }
+  });
+});
+
 describe("departureFindings (Q84 inc.160)", () => {
   const dep = (over: Partial<Parameters<typeof departureFindings>[0][number]> = {}) => ({
     name: "gone.sh",
