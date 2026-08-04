@@ -183,7 +183,7 @@ async function writeCensus() {
   const ledger = previousOpen.length
     ? await resolvedDepartureKeys(previousOpen.map((row) => departureKey(row.name)))
     : null;
-  const { corrections, open, closed, reopened, withheld } = reconcileOpenDepartures(
+  const { corrections, open, closed, reopened, withheld, unreadableClaims } = reconcileOpenDepartures(
     previousOpen,
     departures,
     audit.triggeredBy,
@@ -206,6 +206,18 @@ async function writeCensus() {
       `→ census: ${row.name} enforcement claim changed and was NOT re-filed — ${departureKey(row.name)} ` +
         `cannot be read back by the ledger query, so the gate cannot tell an edit from a re-insert ` +
         `(Q84 inc.170). This line repeats every tick until the claim matches again or you close the row.`,
+    );
+  }
+  // Q84 inc.172 — a census row carrying no readable enforcement claim. Said out loud because the
+  // gate deliberately does NOT repair it: measuring the claim now and writing it back would record
+  // as published a state that was never published. Nothing is corrected on this key until the census
+  // row is fixed by hand or the row is closed on the ledger; this line repeats until then.
+  for (const row of unreadableClaims) {
+    console.error(
+      `→ census: ${row.name} carries no readable enforcement claim (\`orphaned\` is ` +
+        `${JSON.stringify(row.orphaned)}, not a boolean) — the row is kept and tracked, and NO ` +
+        `correction is filed on ${departureKey(row.name)}, because the gate will not publish a claim ` +
+        `it cannot read back (Q84 inc.172). Repeats every tick until the census row is repaired.`,
     );
   }
   return { departures, corrections };

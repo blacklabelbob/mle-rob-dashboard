@@ -1592,6 +1592,7 @@ export function reconcileOpenDepartures(
   closed: OpenDeparture[];
   reopened: OpenDeparture[];
   withheld: OpenDeparture[];
+  unreadableClaims: OpenDeparture[];
 } {
   const orphanedNow = (d: CensusDeparture): boolean =>
     d.wasTrigger && enforcersOtherThan(d.name, stillTriggeredBy).length === 0;
@@ -1604,6 +1605,7 @@ export function reconcileOpenDepartures(
   const closed: OpenDeparture[] = [];
   const reopened: OpenDeparture[] = [];
   const withheld: OpenDeparture[] = [];
+  const unreadableClaims: OpenDeparture[] = [];
 
   for (const row of previousOpen) {
     const refiled = filedThisTick.get(row.name);
@@ -1627,6 +1629,34 @@ export function reconcileOpenDepartures(
     }
     if (wasClosed) reopened.push(row);
 
+    /**
+     * Q84 inc.172 — inc.171 asked whether `writeCensus()` should read its own file back and check the
+     * frozen `orphaned` survived, because a census written without it erases the divergence and the
+     * withhold stops recurring with nothing noticing. READING BACK IS THE WRONG SHAPE, on the facts:
+     * the write is a single `writeFile` that throws on failure, so a read-back can only re-observe a
+     * write that already succeeded — while every loss inc.171 actually named (a hand-edit, a schema
+     * migration, a truncated file from another process) happens BETWEEN ticks, where no write-time
+     * check is looking. It would be the gate auditing its own disk (inc.160's plumbing) and it would
+     * not catch the thing it was proposed for.
+     *
+     * THE LOSS IS REAL; IT IS CAUGHT ON THE WAY IN, at inc.159's seam. And measured before fixing,
+     * the symptom was the opposite of "silently stops recurring": a row whose `orphaned` was lost
+     * reads as `undefined`, `undefined !== false` makes the claim look FLIPPED, and the correction
+     * that fires branches on `row.orphaned` — so the gate posts a sentence to Rob's ledger about
+     * what the row "was filed saying" that it never filed. A published claim invented out of a
+     * missing field is worse than a stale one.
+     *
+     * So a non-boolean claim is not read as `false`. It is unreadable history — the same disposition
+     * inc.159 gives an unparseable census — and it WITHHOLDS: no correction, row kept and unchanged
+     * (so it stays tracked and recurs identically every tick per inc.171), reported on stderr. The
+     * gate does not adopt `orphanedNow()` as the filed claim either: a state it did not publish must
+     * not be recorded as published, which is inc.170's rule and the reason this row exists at all.
+     */
+    if (typeof history.orphaned !== "boolean") {
+      open.push({ ...history });
+      unreadableClaims.push(row);
+      continue;
+    }
     const orphaned = orphanedNow(history);
     if (orphaned === history.orphaned) {
       open.push({ ...history, orphaned });
@@ -1692,5 +1722,6 @@ export function reconcileOpenDepartures(
     closed,
     reopened,
     withheld,
+    unreadableClaims,
   };
 }

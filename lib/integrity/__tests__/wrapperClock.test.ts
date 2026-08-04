@@ -1028,6 +1028,7 @@ describe("reconcileOpenDepartures (Q84 inc.162)", () => {
       closed: [],
       reopened: [],
       withheld: [],
+      unreadableClaims: [],
     });
   });
 
@@ -1081,6 +1082,31 @@ describe("reconcileOpenDepartures (Q84 inc.162)", () => {
       expect(second.withheld).toEqual([]);
       expect(second.corrections).toEqual([]);
       expect(second.open).toEqual([unaskable()]);
+    });
+
+    // Q84 inc.172 — inc.171 asked whether `writeCensus()` should read its own write back. It should
+    // not; the loss it feared arrives BETWEEN ticks, and it is caught on the way in. These pin the
+    // disposition: unreadable claim ⇒ no correction, row kept, recurs, and never repaired in place.
+    it("files no correction when the frozen claim is unreadable — it would invent what the row said", () => {
+      // `undefined !== false` reads as a flip, and the correction's text branches on `row.orphaned`,
+      // so the pre-inc.172 gate posted a claim to Rob's ledger the row was never filed with.
+      const lost = { ...open(), orphaned: undefined } as unknown as OpenDeparture;
+      const { corrections, unreadableClaims, withheld } = reconcileOpenDepartures([lost], [], []);
+      expect(corrections).toEqual([]);
+      expect(withheld).toEqual([]);
+      expect(unreadableClaims.map((r) => r.name)).toEqual([open().name]);
+    });
+
+    it("keeps the row unrepaired and recurring — measuring the claim now would publish it retroactively", () => {
+      const lost = { ...open(), orphaned: undefined } as unknown as OpenDeparture;
+      let rows: OpenDeparture[] = [lost];
+      for (let tick = 1; tick <= 3; tick++) {
+        const r = reconcileOpenDepartures(rows, [], []);
+        expect(r.corrections, `tick ${tick}`).toEqual([]);
+        expect(r.unreadableClaims.map((x) => x.name), `tick ${tick}`).toEqual([open().name]);
+        expect(typeof r.open[0].orphaned, `tick ${tick}`).not.toBe("boolean");
+        rows = r.open;
+      }
     });
 
     it("leaves every readable key correcting exactly as inc.162 wrote it", () => {
