@@ -910,6 +910,38 @@ describe("departureFindings (Q84 inc.160)", () => {
     expect(departureFindings([dep({ wasRole: "unjudged" })])).toEqual([]);
   });
 
+  // Q84 inc.161 — the tick that notices the loss already knows who still runs the gate, so the
+  // row states it. A `high` claiming enforcement may have stopped when it demonstrably has not is
+  // a false alarm on the page Rob reads for money.
+  it("drops a gate-runner's departure to medium when a sibling still runs the gate, and names it", () => {
+    const [f] = departureFindings([dep({ wasTrigger: true })], ["crm-build-driver.sh"]);
+    expect(f.severity).toBe("medium");
+    expect(f.detail).toContain("crm-build-driver.sh still does");
+    expect(f.detail).toContain("the clock rule is still enforced");
+    expect(f.detail).not.toContain("unenforced");
+  });
+
+  it("keeps high when the departing wrapper is the only name in the trigger list", () => {
+    // A caller handing over the PRE-departure list must not let the leaver vouch for itself.
+    const [f] = departureFindings([dep({ name: "only.sh", wasTrigger: true })], ["only.sh"]);
+    expect(f.severity).toBe("high");
+    expect(f.detail).toContain("NO wrapper runs it now");
+  });
+
+  it("leaves a judged (non-trigger) departure at medium regardless of who runs the gate", () => {
+    expect(departureFindings([dep()], ["crm-build-driver.sh"])[0].severity).toBe("medium");
+    expect(departureFindings([dep()], [])[0].severity).toBe("medium");
+  });
+
+  // The gate files; Rob closes. It cannot prove a returning name is the same wrapper, and the
+  // ledger records no actor for a machine's closure — so the row says so rather than going stale.
+  it("tells Rob nothing will close the row for him", () => {
+    for (const f of departureFindings([dep(), dep({ name: "b.sh", wasTrigger: true })], ["x.sh"])) {
+      expect(f.detail).toContain("Nothing will close this row for you");
+      expect(f.detail).toContain("closing it is yours");
+    }
+  });
+
   it("names the lost repo stamp only when there was one", () => {
     expect(departureFindings([dep({ wasRepoStamp: true })])[0].detail).toContain(REPO_STAMP_CALL);
     expect(departureFindings([dep()])[0].detail).not.toContain(REPO_STAMP_CALL);

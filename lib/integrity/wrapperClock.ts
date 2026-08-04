@@ -1317,28 +1317,66 @@ export type DepartureFinding = {
  *
  * PURE per CR-3 — no clock, no network, no `process.env`. The caller does the POST and decides what
  * a failed POST costs.
+ *
+ * Q84 inc.161 answers the two things inc.160 left standing.
+ *
+ * FIRST, THE `high` WAS SPECULATION THIS GATE DID NOT HAVE TO MAKE. inc.160 filed every trigger
+ * departure as `high` on the words *"if it was the last wrapper that did"* — but the same tick that
+ * notices the loss already re-derived `triggeredBy` from the current tree, so whether ANOTHER
+ * wrapper still runs this gate is a measured fact, not a conditional. `stillTriggeredBy` is that
+ * fact. If a sibling remains, the clock rule is still enforced, the row says which wrapper enforces
+ * it, and the severity is `medium` — coverage shrank, enforcement did not stop. Only a departure
+ * that leaves NOBODY running the gate is `high`, and then the row states it flatly instead of
+ * hedging. A `high` row on Rob's page that says enforcement may have stopped when it demonstrably
+ * has not is the same defect as a stale line in the PRD.
+ *
+ * SECOND, NOTHING HERE WILL EVER CLOSE THE ROW, AND THE ROW NOW SAYS SO. The tempting fix was to
+ * PATCH the dedupeKey to resolved when a name comes back, and it loses on three counts. (1) The
+ * gate cannot verify sameness: inc.159 established that deleted, renamed and un-exec'd are
+ * indistinguishable from here, so a file reappearing under this name is not proven to be the wrapper
+ * that left — auto-closing on a name match would close a real loss on the strength of a coincidence.
+ * (2) The ledger has no verified actor (`unverifiedActorRefusal`, inc.96 — Q73's roles are Postgres
+ * read grants behind the service key), so a machine closure and Rob's closure are the same row
+ * afterwards; the page would stop being a record of what HE decided. (3) `notion-crm-check.mjs`
+ * already refuses to close what it files, and inc.93 already ruled that a row Rob closed is not the
+ * endpoint's to undo — the symmetric case needs the symmetric answer. So the row is his, and the
+ * detail spends one sentence telling him that rather than leaving him to infer it.
  */
-export function departureFindings(departures: CensusDeparture[]): DepartureFinding[] {
+export function departureFindings(
+  departures: CensusDeparture[],
+  stillTriggeredBy: string[] = [],
+): DepartureFinding[] {
   return departures
     .filter((d) => d.wasRole === "judged" || d.wasTrigger)
-    .map((d) => ({
-      entityName: "Wrapper clock gate",
-      title: `${d.name} left the audited set — ${d.wasTrigger ? "it ran the clock gate" : "it was judged by the clock gate"}`,
-      detail:
-        `The last committed wrapper census held \`${d.name}\` (role: ${d.wasRole}` +
-        `${d.wasTrigger ? ", ran the clock gate" : ""}` +
-        `${d.wasRepoStamp ? `, asked the repo for its stamp via \`${REPO_STAMP_CALL}\`` : ""}) and ` +
-        `the scan no longer sees it. Deleted, renamed, or stripped of the exec bit that got it ` +
-        `collected — the gate cannot tell which and does not guess. ` +
-        (d.wasTrigger
-          ? `It RAN this gate: if it was the last wrapper that did, the clock rule is unenforced ` +
-            `from now on and no green ✓ will say so. `
-          : `It was held to the clock rule until this tick; that coverage is now smaller and no ` +
-            `count in the report says so. `) +
-        `Confirm the removal was meant, or find where it went. Filed because the census is ` +
-        `rewritten in the same run that noticed, so the gate itself will never say this again ` +
-        `(Q84 inc.160).`,
-      severity: d.wasTrigger ? "high" : "medium",
-      dedupeKey: `wrapper-census-departure:${d.name}`,
-    }));
+    .map((d) => {
+      // The departing wrapper cannot count as its own replacement, even if a stale caller passed
+      // the pre-departure list.
+      const remaining = stillTriggeredBy.filter((n) => n !== d.name);
+      const orphaned = d.wasTrigger && remaining.length === 0;
+      return {
+        entityName: "Wrapper clock gate",
+        title: `${d.name} left the audited set — ${d.wasTrigger ? "it ran the clock gate" : "it was judged by the clock gate"}`,
+        detail:
+          `The last committed wrapper census held \`${d.name}\` (role: ${d.wasRole}` +
+          `${d.wasTrigger ? ", ran the clock gate" : ""}` +
+          `${d.wasRepoStamp ? `, asked the repo for its stamp via \`${REPO_STAMP_CALL}\`` : ""}) and ` +
+          `the scan no longer sees it. Deleted, renamed, or stripped of the exec bit that got it ` +
+          `collected — the gate cannot tell which and does not guess. ` +
+          (d.wasTrigger
+            ? orphaned
+              ? `It RAN this gate and NO wrapper runs it now — the clock rule is unenforced from ` +
+                `this tick and no green ✓ will say so. `
+              : `It RAN this gate, but ${remaining.join(", ")} still ${remaining.length === 1 ? "does" : "do"} — ` +
+                `the clock rule is still enforced; only this caller is gone. `
+            : `It was held to the clock rule until this tick; that coverage is now smaller and no ` +
+              `count in the report says so. `) +
+          `Confirm the removal was meant, or find where it went. Filed because the census is ` +
+          `rewritten in the same run that noticed, so the gate itself will never say this again ` +
+          `(Q84 inc.160). Nothing will close this row for you: if this name comes back the gate ` +
+          `cannot prove it is the same wrapper, and the ledger records no actor for a machine's ` +
+          `closure — closing it is yours (Q84 inc.161).`,
+        severity: orphaned ? ("high" as const) : ("medium" as const),
+        dedupeKey: `wrapper-census-departure:${d.name}`,
+      };
+    });
 }

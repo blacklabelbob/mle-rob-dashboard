@@ -187,7 +187,9 @@ async function writeCensus() {
  * unset on every tick that matters, which is exactly how inc.158's census sat unread.
  */
 async function fileDepartures(list) {
-  const findings = departureFindings(list);
+  // Q84 inc.161: the same tick already knows who still runs this gate, so the row states it
+  // instead of guessing "if it was the last one".
+  const findings = departureFindings(list, audit.triggeredBy);
   if (findings.length === 0) return;
   const base = (process.env.FLAGS_BASE_URL || "https://mle-rob-dashboard.vercel.app").replace(/\/$/, "");
   for (const finding of findings) {
