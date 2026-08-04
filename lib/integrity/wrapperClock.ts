@@ -2215,3 +2215,81 @@ export function reconcileOpenDepartures(
     unreadableClaims,
   };
 }
+
+/**
+ * Q84 inc.182 — the batch that is actually POSTed carries no repeated `dedupeKey`, and that is
+ * checked ON THE ARRAY rather than trusted to every builder that contributes to it.
+ *
+ * inc.181 closed one instance of this hazard by merging the one pair whose arms were both reachable
+ * on a tick: they shared a key, `/api/admin/flags` corrects in place, and `fileDepartures` POSTs in
+ * array order — so emitting both did not add a row, it overwrote the true claim with its opposite.
+ * That fix is real and it is local. The array those findings land in is still assembled by hand
+ * (`[...corrections, ...recovery, ...rowsRow]`, then `[...departureFindings(...), ...corrections]`)
+ * and nothing anywhere asserted the ASSEMBLED result carries each key once. One duplicate anywhere
+ * in it is silently last-write-wins on Rob's page — the exact harm inc.181 closed, one level up.
+ *
+ * THIS IS NOT A HYPOTHETICAL ABOUT FUTURE EDITS, WHICH IS WHY IT IS WORTH CODE. `censusDepartures`
+ * maps `previous.wrappers` straight through, and `departureKey` keys on the name alone — so a
+ * carried census holding one name TWICE produces two findings under one key with no code change at
+ * all. inc.172/173 already established that the census is a file that can come back in a shape this
+ * gate did not write; duplicated rows are that same class of damage.
+ *
+ * THE DISPOSITION SPLITS ON WHETHER THE COLLIDING ROWS DISAGREE, because the two cases are not the
+ * same event:
+ *
+ * IDENTICAL rows are collapsed to the first, and nothing is lost — the route would have stored one
+ * row for that key regardless, and every copy makes the same claim, so keeping one publishes
+ * exactly what keeping all of them would have published.
+ *
+ * DIFFERING rows are WITHHELD ENTIRELY — none of them is sent. This is the hard call and it is
+ * deliberate. POSTing them publishes whichever happens to be last in the array, and this gate has no
+ * basis for preferring one contradictory claim over another; picking one would put a coin flip on
+ * the page Rob reads for money and it would look exactly like a measured finding. That is the rule
+ * inc.172/173 already set for the census — the gate does not publish a row it cannot stand behind —
+ * and the honest alternative to a coin flip is a named, loud absence. The withheld rows are
+ * RETURNED, never swallowed, so the caller says on stderr what was not filed and why.
+ *
+ * ORDER IS PRESERVED. The first occurrence of each key keeps its position, so on every tree where
+ * no key repeats — every tree today — `send` is byte-identical to the input and this function is
+ * invisible.
+ *
+ * PURE per CR-3 — no clock, no network, no `process.env`, no POST. The caller does the I/O and
+ * decides what a withheld row costs.
+ */
+export function collapseCollidingFindings(findings: DepartureFinding[]): {
+  send: DepartureFinding[];
+  collapsed: DepartureFinding[];
+  conflicts: { key: string; rows: DepartureFinding[] }[];
+} {
+  const byKey = new Map<string, DepartureFinding[]>();
+  for (const finding of findings) {
+    const group = byKey.get(finding.dedupeKey);
+    if (group) group.push(finding);
+    else byKey.set(finding.dedupeKey, [finding]);
+  }
+
+  const send: DepartureFinding[] = [];
+  const collapsed: DepartureFinding[] = [];
+  const conflicts: { key: string; rows: DepartureFinding[] }[] = [];
+
+  for (const [key, group] of byKey) {
+    if (group.length === 1) {
+      send.push(group[0]);
+      continue;
+    }
+    const first = JSON.stringify(sameClaim(group[0]));
+    if (group.every((row) => JSON.stringify(sameClaim(row)) === first)) {
+      send.push(group[0]);
+      collapsed.push(...group.slice(1));
+      continue;
+    }
+    conflicts.push({ key, rows: group });
+  }
+
+  return { send, collapsed, conflicts };
+}
+
+/** The fields that decide whether two rows under one key are the SAME claim (Q84 inc.182). */
+function sameClaim(finding: DepartureFinding): [string, string, string, string] {
+  return [finding.entityName, finding.title, finding.detail, finding.severity];
+}

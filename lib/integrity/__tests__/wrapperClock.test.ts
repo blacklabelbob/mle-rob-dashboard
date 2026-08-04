@@ -13,11 +13,13 @@ import {
   CENSUS_UNREADABLE_ROWS_KEY,
   classifyCensusRead,
   clockGateBrief,
+  collapseCollidingFindings,
   departureFindings,
   departureKey,
   reconcileOpenDepartures,
   unreadableCarriedField,
   unaskableKeyNote,
+  type DepartureFinding,
   type OpenDeparture,
   BRIEF_MARKER,
   ROB_FACING_SURFACES,
@@ -1624,5 +1626,87 @@ describe("the withheld-because-unreadable rows reach Rob's page (Q84 inc.180)", 
         expect(new Set(findings.map((f) => f.dedupeKey)).size).toBe(findings.length);
       }
     }
+  });
+});
+
+// Q84 inc.182 — the guarantee is on the ASSEMBLED array, not on each builder that feeds it.
+describe("collapseCollidingFindings", () => {
+  const row = (dedupeKey: string, over: Partial<DepartureFinding> = {}): DepartureFinding => ({
+    entityName: "Wrapper clock gate",
+    title: "a wrapper left the census",
+    detail: "some detail",
+    severity: "medium",
+    dedupeKey,
+    ...over,
+  });
+
+  it("is invisible when no key repeats — the live shape today", () => {
+    const findings = [row("a"), row("b"), row("c")];
+    const { send, collapsed, conflicts } = collapseCollidingFindings(findings);
+    expect(send).toEqual(findings);
+    expect(collapsed).toEqual([]);
+    expect(conflicts).toEqual([]);
+  });
+
+  it("collapses identical copies of one key — the route stores one row either way", () => {
+    const { send, collapsed, conflicts } = collapseCollidingFindings([row("a"), row("a"), row("b")]);
+    expect(send.map((f) => f.dedupeKey)).toEqual(["a", "b"]);
+    expect(collapsed).toHaveLength(1);
+    expect(conflicts).toEqual([]);
+  });
+
+  it("WITHHOLDS disagreeing rows rather than publishing whichever landed last", () => {
+    const alarm = row("a", { severity: "high", detail: "enforcement stopped" });
+    const opposite = row("a", { severity: "low", detail: "enforcement is fine" });
+    const { send, conflicts } = collapseCollidingFindings([alarm, opposite, row("b")]);
+    // Neither claim reaches Rob's page: the gate has no basis for preferring one over the other.
+    expect(send.map((f) => f.dedupeKey)).toEqual(["b"]);
+    expect(conflicts).toEqual([{ key: "a", rows: [alarm, opposite] }]);
+  });
+
+  it("returns what it withheld — a silent gate is the failure mode, not the fix", () => {
+    const { conflicts } = collapseCollidingFindings([
+      row("a", { title: "one" }),
+      row("a", { title: "two" }),
+    ]);
+    expect(conflicts[0].rows.map((r) => r.title)).toEqual(["one", "two"]);
+  });
+
+  it("never emits two rows under one key, whatever it is handed", () => {
+    const inputs: DepartureFinding[][] = [
+      [],
+      [row("a")],
+      [row("a"), row("a")],
+      [row("a"), row("a", { severity: "high" })],
+      [row("a"), row("b"), row("a"), row("b", { detail: "different" })],
+    ];
+    for (const findings of inputs) {
+      const { send } = collapseCollidingFindings(findings);
+      expect(new Set(send.map((f) => f.dedupeKey)).size).toBe(send.length);
+    }
+  });
+
+  it("preserves first-seen order so the array is not silently reshuffled", () => {
+    const { send } = collapseCollidingFindings([row("c"), row("a"), row("c"), row("b")]);
+    expect(send.map((f) => f.dedupeKey)).toEqual(["c", "a", "b"]);
+  });
+
+  // The reachable path today: a carried census holding one name twice, with no code change.
+  it("catches the duplicate a repeated census name produces", () => {
+    const departures = censusDepartures(
+      {
+        generatedAt: "2026-08-04T00:00:00Z",
+        wrappers: [
+          { name: "run.sh", role: "judged", triggersGate: true, repoStamp: true },
+          { name: "run.sh", role: "judged", triggersGate: false, repoStamp: true },
+        ],
+      } as never,
+      { generatedAt: "2026-08-04T00:00:00Z", wrappers: [] } as never,
+    );
+    const findings = departureFindings(departures, []);
+    expect(findings).toHaveLength(2);
+    expect(findings[0].dedupeKey).toBe(findings[1].dedupeKey);
+    const { send, conflicts } = collapseCollidingFindings(findings);
+    expect(send.length + conflicts.length).toBe(1);
   });
 });

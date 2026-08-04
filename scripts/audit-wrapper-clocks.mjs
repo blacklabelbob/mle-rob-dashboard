@@ -52,6 +52,7 @@ import {
   departureFindings,
   departureKey,
   reconcileOpenDepartures,
+  collapseCollidingFindings,
   unreadableCarriedField,
   wrapperCensus,
   BRIEF_MARKER,
@@ -402,7 +403,28 @@ async function fileDepartures(list, corrections = []) {
   // instead of guessing "if it was the last one".
   // Q84 inc.162: corrections ride the same path deliberately — a correction is worth exactly what a
   // departure is worth, costs the exit code exactly as little, and says so on stderr the same way.
-  const findings = [...departureFindings(list, audit.triggeredBy), ...corrections];
+  const assembled = [...departureFindings(list, audit.triggeredBy), ...corrections];
+  // Q84 inc.182 — the ASSEMBLED array is checked for a repeated `dedupeKey` before anything is
+  // POSTed. inc.181 made one pair exclusive; this covers the array those findings land in, which is
+  // still built by hand from three sources. The route corrects in place and this loop POSTs in
+  // order, so two rows under one key are silently last-write-wins on Rob's page. Identical copies
+  // collapse losslessly; DISAGREEING copies are withheld and named, because publishing whichever
+  // one happened to be last is a coin flip that would look like a measured finding.
+  const { send: findings, collapsed, conflicts } = collapseCollidingFindings(assembled);
+  for (const row of collapsed) {
+    console.error(
+      `→ ledger: duplicate of ${row.dedupeKey} collapsed — same claim, and the route stores one row ` +
+        `per key, so nothing is lost (Q84 inc.182).`,
+    );
+  }
+  for (const { key, rows } of conflicts) {
+    console.error(
+      `✖ ledger: ${rows.length} DISAGREEING rows share ${key} — none was filed. The route keeps one ` +
+        `row per key, so POSTing them would publish whichever landed last and this gate cannot say ` +
+        `which is true. Withheld titles: ${rows.map((r) => JSON.stringify(r.title)).join(", ")} ` +
+        `(Q84 inc.182).`,
+    );
+  }
   if (findings.length === 0) return;
   const base = (process.env.FLAGS_BASE_URL || "https://mle-rob-dashboard.vercel.app").replace(/\/$/, "");
   for (const finding of findings) {
