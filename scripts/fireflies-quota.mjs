@@ -141,11 +141,19 @@ export const ROB_TZ = "America/New_York";
  * An epoch instant as Rob reads it: `YYYY-MM-DD HH:MM ZZZ` in Eastern time, zone included so the
  * string stays unambiguous without a second UTC copy beside it.
  *
+ * `seconds` is a DISPLAY option on the one formatter, not a second formatter (Q84 inc.140). The
+ * intake wrapper's log prefix has always carried seconds and there was no reason to take that
+ * away from it; there was every reason not to let it keep its own zone rule, its own DST
+ * handling and its own midnight-rollover bug in a file outside the repo that nothing diffs.
+ * One ladder, one `Intl` call, one decision about h23 — the toggle only picks the shape.
+ *
  * @param {number|null|undefined} ms
  * @param {string} [unknown] - what to say when there is no instant to show.
+ * @param {{seconds?: boolean}} [opts] - `seconds: true` renders `HH:MM:SS`. Default off, because
+ *   a notice Rob reads in prose does not want them and the ledger row it sits beside has none.
  * @returns {string}
  */
-export function robStamp(ms, unknown = "an unknown time") {
+export function robStamp(ms, unknown = "an unknown time", { seconds = false } = {}) {
   if (!Number.isFinite(ms) || ms <= 0) return unknown;
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: ROB_TZ,
@@ -154,13 +162,15 @@ export function robStamp(ms, unknown = "an unknown time") {
     day: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
+    ...(seconds ? { second: "2-digit" } : {}),
     // h23 explicitly: `hour12: false` renders midnight as "24:00" under some ICU builds, and a
     // notice that says a pull last landed at 24:00 on the wrong day is worse than the Z stamp.
     hourCycle: "h23",
     timeZoneName: "short",
   }).formatToParts(new Date(ms));
   const v = (t) => parts.find((p) => p.type === t)?.value ?? "";
-  return `${v("year")}-${v("month")}-${v("day")} ${v("hour")}:${v("minute")} ${v("timeZoneName")}`;
+  const clock = seconds ? `${v("hour")}:${v("minute")}:${v("second")}` : `${v("hour")}:${v("minute")}`;
+  return `${v("year")}-${v("month")}-${v("day")} ${clock} ${v("timeZoneName")}`;
 }
 
 /**

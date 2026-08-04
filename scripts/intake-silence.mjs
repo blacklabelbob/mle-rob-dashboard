@@ -12,7 +12,7 @@
 
 import { readFileSync, writeFileSync, existsSync, rmSync } from "node:fs";
 import { join } from "node:path";
-import { silenceState, silenceNotice, silenceFlag, mergeSilenceQueue } from "./fireflies-quota.mjs";
+import { silenceState, silenceNotice, silenceFlag, mergeSilenceQueue, robStamp } from "./fireflies-quota.mjs";
 
 const DIR = join(process.cwd(), "MLE Internal Meetings");
 const SUCCESS = join(DIR, ".intake-last-success");
@@ -112,6 +112,27 @@ const mode = process.argv[2];
 const outcome = (process.argv[3] ?? "DOWNGRADED").toUpperCase();
 const now = Date.now();
 
+// The stamp the wrapper prefixes onto every line it writes — the log entries and the red
+// PING-INBOX line (Q84 inc.140).
+//
+// WHY THE WRAPPER ASKS THIS SCRIPT FOR A TIME instead of calling `date`: one intake outage
+// produces two sentences for Rob, and until now they were written by two different clocks with
+// no way to tell. The ledger row said "since 2026-08-03 13:40 EDT" (robStamp) while the ping line
+// said "MEETING INTAKE FAILED 2026-08-03 22:10:04" (bare `date`, no zone) — and a log line could
+// carry BOTH, the unlabeled prefix sitting directly in front of the labeled one. Same disease as
+// inc.139, one seam further out: the reader is handed a number and left to guess whose clock it
+// is. Now both come from robStamp, so agreeing means agreeing and disagreeing would be visible.
+//
+// It also puts the zone rule where a test can pin it. The wrapper is outside the repo, where
+// nobody diffs it — exactly the kind of file inc.4/inc.5 were spent emptying of hand-copied rules.
+//
+// Reads the clock, so it is here in the I/O shell and NOT in fireflies-quota.mjs, which stays
+// pure per CR-3 and only formats an instant it is handed.
+if (mode === "stamp") {
+  process.stdout.write(`${robStamp(now, "an unknown time", { seconds: true })}\n`);
+  process.exit(0);
+}
+
 if (mode === "record-success") {
   // A run that actually pulled ends the silence outright: both the observation mark and the
   // escalation mark are cleared by being superseded, so the next quiet stretch starts from zero.
@@ -123,7 +144,7 @@ if (mode === "record-success") {
 }
 
 if (mode !== "check") {
-  console.error("usage: intake-silence.mjs <record-success|check> [OFFLINE|QUOTA]");
+  console.error("usage: intake-silence.mjs <record-success|check|stamp> [OFFLINE|QUOTA]");
   process.exit(64); // EX_USAGE
 }
 

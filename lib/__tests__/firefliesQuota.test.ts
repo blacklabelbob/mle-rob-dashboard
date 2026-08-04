@@ -114,6 +114,32 @@ describe("robStamp", () => {
     expect(robStamp(0)).toBe("an unknown time");
     expect(robStamp(undefined, "an unstated time")).toBe("an unstated time");
   });
+
+  // Q84 inc.140 — the intake wrapper's log prefix has always carried seconds. It keeps them, but
+  // it no longer keeps its own zone rule: `seconds` is a shape option on the ONE formatter, so the
+  // prefix and the ledger row describing the same outage cannot drift onto different clocks.
+  it("renders seconds on request, and the zone comes along with them", () => {
+    expect(robStamp(Date.parse("2026-08-03T17:40:07Z"), "an unknown time", { seconds: true })).toBe(
+      "2026-08-03 13:40:07 EDT",
+    );
+  });
+
+  it("keeps DST and the midnight rule when seconds are on — one ladder, not two", () => {
+    expect(robStamp(Date.parse("2026-01-15T18:40:07Z"), "an unknown time", { seconds: true })).toBe(
+      "2026-01-15 13:40:07 EST",
+    );
+    expect(robStamp(Date.parse("2026-08-04T04:00:00Z"), "an unknown time", { seconds: true })).toBe(
+      "2026-08-04 00:00:00 EDT",
+    );
+  });
+
+  it("omits seconds unless asked, so a prose notice is not littered with them", () => {
+    expect(robStamp(Date.parse("2026-08-03T17:40:07Z"))).toBe("2026-08-03 13:40 EDT");
+  });
+
+  it("still refuses to invent an instant when seconds are requested", () => {
+    expect(robStamp(null, "an unknown time", { seconds: true })).toBe("an unknown time");
+  });
 });
 
 describe("cooldownNotice", () => {
