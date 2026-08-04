@@ -210,6 +210,25 @@ describe("auditWrapperClocks", () => {
       expect(line).toContain("NO TRIGGER");
     });
 
+    // Q84 inc.154 — a zero-wrapper scan agrees with a healthy tree on every array in the audit.
+    // What separates them is that one of them looked at nothing, so that fact is recorded and
+    // reported on its own terms rather than being inferred from the emptiness it shares.
+    it("says it scanned nothing rather than blaming a missing trigger, when handed 0 wrappers", () => {
+      const empty = auditWrapperClocks([]);
+      expect(empty.scriptsSeen).toBe(0);
+      const { code, line } = clockGateBrief(empty);
+      expect(code).toBe(2);
+      expect(line).toContain("SCANNED NOTHING");
+      // The wrong sentence is the whole defect: it would send the reader to re-wire a tick that
+      // is already wired, and to edit the wrapper the scan never saw.
+      expect(line).not.toContain("NO TRIGGER");
+    });
+
+    it("still blames the missing trigger when wrappers WERE scanned and none wires the gate", () => {
+      expect(noTrigger.scriptsSeen).toBeGreaterThan(0);
+      expect(clockGateBrief(noTrigger).line).toContain("NO TRIGGER");
+    });
+
     it("ranks a red stamp above a missing trigger — a live defect outranks an unenforced rule", () => {
       const both = auditWrapperClocks(script(`date '+%H:%M' >> crm-driver.log`));
       expect(both.triggeredBy).toEqual([]);

@@ -71,7 +71,7 @@ export const COMPOSER_CALL = "driver-prompt.mjs";
 export const BRIEF_MARKER = "CLOCK GATE";
 
 /** What `--brief` should say and exit with. `line` is null only when there is nothing to act on. */
-export type ClockGateBrief = { code: 0 | 1 | 3 | 4; line: string | null };
+export type ClockGateBrief = { code: 0 | 1 | 2 | 3 | 4; line: string | null };
 
 /**
  * The `--brief` verdict for an audit — the one line that gets prefixed onto the driver's prompt.
@@ -99,6 +99,25 @@ export function clockGateBrief(audit: ClockAudit): ClockGateBrief {
   // that difference written down, not a judgement that it is small.
   const unranked =
     strandedGateSentence(audit) + unrankedGateSentence(audit) + silencedComposerSentence(audit);
+
+  // Q84 inc.154 — outranks even inc.153's, because it is the case where there was nothing to read
+  // AT ALL. inc.153 predicted a false green here (four ✓ over a zero-wrapper scan); measured, that
+  // is not what happens — `triggeredBy` is empty too, so it lands on the HAS NO TRIGGER verdict
+  // below and goes red. The defect is the DIAGNOSIS, not the colour: that sentence sends the next
+  // increment to re-wire a driver tick that is already wired (crm-build-driver.sh:97), and the
+  // wrapper it would be told to edit is precisely the one the scan never saw. "I scanned nothing"
+  // and "I scanned 31 wrappers and none wires me" are different facts with different fixes.
+  if (audit.scriptsSeen === 0) {
+    return {
+      code: 2,
+      line:
+        `${BRIEF_MARKER} SCANNED NOTHING — 0 wrappers were handed to it, so the wrapper-clock rule ` +
+        "was NOT checked this tick. This is not a finding about any wrapper and not a missing " +
+        "trigger: the path it was pointed at holds no `.sh` files. Treat it as unchecked, not as " +
+        "clean — find where the wrappers went BEFORE the queue item. Q84 inc.154." +
+        unranked,
+    };
+  }
 
   // Q84 inc.153 — the ONE finding that takes the line instead of riding it. Every other verdict
   // below reports what the scans SAW; this one says the scans saw a blank file and any ✓ they
@@ -252,6 +271,14 @@ export type SilencedComposerFinding = {
 };
 
 export type ClockAudit = {
+  /**
+   * How many wrappers this audit was handed, before any of them were judged (Q84 inc.154).
+   *
+   * Every other count here is derived from what the scans SAW; this one records whether there was
+   * anything to see. Zero is the one input that makes all of them agree with a healthy tree —
+   * no findings, no unranked gates, nothing unreadable — while having checked nothing at all.
+   */
+  scriptsSeen: number;
   findings: ClockFinding[];
   /**
    * Gates the wrapper sets that nothing ranks (Q84 inc.148).
@@ -808,6 +835,7 @@ export function auditWrapperClocks(scripts: { name: string; source: string }[]):
   }
 
   return {
+    scriptsSeen: scripts.length,
     findings,
     usesRepoStamp,
     skipped,

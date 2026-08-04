@@ -9,7 +9,9 @@
 // EXIT CODES
 //   0  every human-readable stamp reaching Rob names its zone, and something invokes this gate
 //   1  at least one does not — the same defect inc.139/140/141 fixed three times by hand
-//   2  the wrapper directory could not be read (a silent skip would read as "clean")
+//   2  nothing was checked — the wrapper directory could not be read, or it yielded 0 wrappers
+//      (Q84 inc.154). One code for both because the reader's action is the same: find the
+//      wrappers. A silent skip in either shape would read as "clean".
 //   3  clean, but NO wrapper runs this gate — the rule is unenforced (Q84 inc.143)
 //   4  clean and wired, but a wrapper hands the driver a `DRIVER_*` gate that GATE_ORDER does not
 //      rank — it fires and is printed, and nothing decides what it beats (Q84 inc.148)
@@ -95,6 +97,20 @@ if (BRIEF) {
   const { code, line } = clockGateBrief(audit);
   if (line) console.error(line);
   process.exit(code);
+}
+
+// Q84 inc.154 — before any verdict, because a zero-wrapper scan has no verdict to give. It does
+// not currently print four ✓ (`triggeredBy` is empty too, so it falls to exit 3), but exit 3 tells
+// the reader to re-wire a driver tick that is already wired, and the wrapper it names is the one
+// the scan never saw. Same exit code as an unreadable directory, and for the same reason: the
+// outcome is "the rule was not checked this tick", not "a wrapper is wrong".
+if (scripts.length === 0) {
+  console.error(
+    `✖ ${targets.join(", ")}: 0 wrappers. Nothing was judged — this is NOT a clean run and NOT a ` +
+      `missing trigger; the path holds no .sh files. Point the gate at the wrappers, or find out ` +
+      `where they went (Q84 inc.154).`,
+  );
+  process.exit(2);
 }
 
 say(
