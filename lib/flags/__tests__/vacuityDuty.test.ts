@@ -677,7 +677,13 @@ describe("scanTreeWithNotices", () => {
       // fed a different list would make the gate a ceremony: read one thing, be judged on another.
       expect(read).toEqual(expected);
     }
-  });
+    // Q84 inc.134 — EXPLICIT TIMEOUT, because this test went red in the full suite on 2026-08-03
+    // (5333ms against the 5000ms default) and green on its own. Three argument sets × four
+    // real-tree walks each is twelve walks of the repo; the wall-clock is CPU contention from the
+    // other 259 files, not a fact about the code. A guard that goes red for load is a guard people
+    // learn to re-run instead of read, which is this thread's own defect wearing a stopwatch. The
+    // work is not reduced and no walk is skipped — only the clock it is judged against is honest.
+  }, 30_000);
 
   // Q84 inc.133 — THE GATE ITSELF, pinned so it cannot quietly become a property again. Restoring
   // `recognisers` as a field is a small edit that no other test in this file would notice, and the

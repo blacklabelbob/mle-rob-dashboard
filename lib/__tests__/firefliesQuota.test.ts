@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
 // @ts-expect-error — plain .mjs helper, shared with scripts/fireflies-ingest.mjs
-import { EXIT_QUOTA, parseRateLimit, cooldownState, cooldownNotice } from "../../scripts/fireflies-quota.mjs";
+import {
+  EXIT_QUOTA,
+  EXIT_OFFLINE,
+  parseRateLimit,
+  cooldownState,
+  cooldownNotice,
+  transportFailure,
+  unreachableNotice,
+} from "../../scripts/fireflies-quota.mjs";
 
 // The exact payload Fireflies returned at 2026-07-31 12:33:37 and again at 13:03:37, both of
 // which reached Rob's ping inbox as "🔴 recorded calls are NOT reaching the CRM".
@@ -101,5 +109,83 @@ describe("cooldownNotice", () => {
 describe("EXIT_QUOTA", () => {
   it("is EX_TEMPFAIL — distinct from 0 (nothing was fetched) and from 1 (nothing is broken)", () => {
     expect(EXIT_QUOTA).toBe(75);
+  });
+});
+
+// The error `fetch` actually threw at 2026-08-03 22:10:04 and 22:40:04, both of which reached
+// Rob's ping inbox as "🔴 recorded calls are NOT reaching the CRM" while his laptop had no DNS.
+// Reproduced with the real shape: the reason is one level down in `cause`, not in the message.
+const LIVE_OFFLINE = Object.assign(new TypeError("fetch failed"), {
+  cause: Object.assign(new Error("getaddrinfo ENOTFOUND api.fireflies.ai"), {
+    errno: -3008,
+    code: "ENOTFOUND",
+    syscall: "getaddrinfo",
+    hostname: "api.fireflies.ai",
+  }),
+});
+
+describe("transportFailure", () => {
+  it("recognises the error that fired both 2026-08-03 alarms, reading the cause not the message", () => {
+    expect(transportFailure(LIVE_OFFLINE)).toEqual({ unreachable: true, code: "ENOTFOUND" });
+  });
+
+  it("reads a code buried deeper than one level", () => {
+    const wrapped = Object.assign(new Error("outer"), { cause: LIVE_OFFLINE });
+    expect(transportFailure(wrapped)).toEqual({ unreachable: true, code: "ENOTFOUND" });
+  });
+
+  it("covers the rest of the off-the-network family", () => {
+    for (const code of ["EAI_AGAIN", "ECONNREFUSED", "ETIMEDOUT", "ENETDOWN", "ENETUNREACH", "EHOSTUNREACH"]) {
+      expect(transportFailure(Object.assign(new Error(code), { code }))).toEqual({
+        unreachable: true,
+        code,
+      });
+    }
+  });
+
+  it("leaves a real break LOUD — this is the case that must never be downgraded", () => {
+    // A GraphQL/schema break, an auth failure, and a `fetch failed` with no cause at all: none of
+    // these are classifiable as "the network was absent", so all three keep exiting 1.
+    expect(transportFailure(new Error("Fireflies GraphQL: Cannot query field 'sentances'"))).toEqual({
+      unreachable: false,
+      code: null,
+    });
+    expect(transportFailure(new Error("Fireflies HTTP 401: unauthorized"))).toEqual({
+      unreachable: false,
+      code: null,
+    });
+    expect(transportFailure(new TypeError("fetch failed"))).toEqual({ unreachable: false, code: null });
+    // A connection that opened and was then reset REACHED the host — deliberately not our family.
+    expect(transportFailure(Object.assign(new Error("reset"), { code: "ECONNRESET" }))).toEqual({
+      unreachable: false,
+      code: null,
+    });
+  });
+
+  it("survives a self-referential cause chain instead of hanging the intake job", () => {
+    const loop: Error & { cause?: unknown } = new Error("a");
+    loop.cause = loop;
+    expect(transportFailure(loop)).toEqual({ unreachable: false, code: null });
+    expect(transportFailure(null)).toEqual({ unreachable: false, code: null });
+    expect(transportFailure(undefined)).toEqual({ unreachable: false, code: null });
+  });
+});
+
+describe("unreachableNotice", () => {
+  it("says nothing was asked, nothing was banked, and what is still missing", () => {
+    const msg = unreachableNotice({ code: "ENOTFOUND", onDisk: 17 });
+    expect(msg).toContain("ENOTFOUND");
+    expect(msg).toContain("nothing was asked");
+    expect(msg).toContain("No cooldown was banked");
+    expect(msg).toContain("17 transcript(s) remain in the repo");
+    // Same half that cooldownNotice() must never drop: the gap is stated, not papered over.
+    expect(msg).toContain("NOT in the CRM yet");
+  });
+});
+
+describe("EXIT_OFFLINE", () => {
+  it("is EX_UNAVAILABLE and NOT EXIT_QUOTA — the two demand opposite next moves", () => {
+    expect(EXIT_OFFLINE).toBe(69);
+    expect(EXIT_OFFLINE).not.toBe(EXIT_QUOTA);
   });
 });

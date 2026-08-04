@@ -37,7 +37,15 @@ import { fileURLToPath } from "node:url";
 import { homedir } from "node:os";
 import { redactAttendees } from "./manifest-privacy.mjs";
 import { indexPreviousManifest, resolveFailedRow } from "./manifest-carryforward.mjs";
-import { EXIT_QUOTA, parseRateLimit, cooldownState, cooldownNotice } from "./fireflies-quota.mjs";
+import {
+  EXIT_QUOTA,
+  EXIT_OFFLINE,
+  parseRateLimit,
+  cooldownState,
+  cooldownNotice,
+  transportFailure,
+  unreachableNotice,
+} from "./fireflies-quota.mjs";
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), "..");
 const OUT_DIR = join(REPO, "MLE Internal Meetings");
@@ -109,6 +117,17 @@ function stopForQuota(retryAfterMs) {
   process.exit(EXIT_QUOTA);
 }
 
+/**
+ * Stop the run because the machine could not reach Fireflies. Writes NOTHING — in particular no
+ * cooldown stamp, which is the whole difference from stopForQuota(): an unreachable host must be
+ * retried on the ordinary beat, and banking an expiry for it would park intake for a window
+ * nobody chose. Exits EX_UNAVAILABLE so the wrapper can say "offline" instead of "FAILED".
+ */
+function stopForUnreachable(code) {
+  console.error(unreachableNotice({ code, onDisk: bodiesOnDisk() }));
+  process.exit(EXIT_OFFLINE);
+}
+
 const LIST = `
   query Transcripts($limit: Int) {
     transcripts(limit: $limit) {
@@ -158,6 +177,9 @@ try {
   ({ transcripts } = await gql(key, LIST, { limit: LIMIT }));
 } catch (err) {
   if (err.rateLimited) stopForQuota(err.retryAfterMs);
+  // The 2026-08-03 22:10/22:40 case: no DNS, so this threw before Fireflies heard anything.
+  const transport = transportFailure(err);
+  if (transport.unreachable) stopForUnreachable(transport.code);
   throw err;
 }
 console.log(`Fireflies returned ${transcripts.length} meeting(s).`);
@@ -176,6 +198,12 @@ for (const t of transcripts) {
     // the file on disk stays exactly as the last good run left it, which is the carry-forward
     // rule taken to its conclusion rather than an exception to it.
     if (err.rateLimited) stopForQuota(err.retryAfterMs);
+    // The network dropping mid-loop is the same kind of event as a quota and not the same kind
+    // as one unreadable meeting: every remaining fetch will fail identically, so the rows after
+    // this one would be marked failed for a reason that has nothing to do with them. Stop, and
+    // leave the manifest exactly as the last good run wrote it.
+    const midRunTransport = transportFailure(err);
+    if (midRunTransport.unreachable) stopForUnreachable(midRunTransport.code);
     // One unreadable meeting must not abandon the other twelve — record it and continue.
     // It must also not DELETE the twelve: this row is carried forward, never downgraded.
     failed += 1;
