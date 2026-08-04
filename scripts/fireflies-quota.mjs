@@ -263,3 +263,35 @@ export function silenceNotice({ hoursQuiet, since, outcome, everSucceeded }) {
     `collectively the exact failure the intake alarm exists to catch. A human must check this one.`
   );
 }
+
+/**
+ * The same escalation, shaped as a Things-to-Address finding (Q84 inc.136).
+ *
+ * WHY THIS EXISTS: inc.135 put the silence alarm in PING-INBOX — the same channel the two FALSE
+ * alarms of 22:10 and 22:40 on 08-03 used, and a file Rob reads at session start. A six-hour-old
+ * silence that waits for the next session to be noticed has already cost the thing it was
+ * measuring. Rob's standing findings rule (2026-07-22) says a discovery needing his attention
+ * belongs on the ledger, never only in the ping inbox. Both doors now, not one.
+ *
+ * The `dedupeKey` is STABLE and carries no duration: a pipeline that has been quiet for 6h and
+ * then 12h and then 18h is ONE fact getting worse, and the route CORRECTS its own row from a
+ * repeat post. A key that included the hour count would stack a new row on Rob's page every
+ * window — which is the alarm fatigue this whole thread has been unwinding, rebuilt on his ledger.
+ *
+ * `entityName` is the pipeline rather than a company: no org is at fault, and filing this on one
+ * would put a machine's failure on a customer's record page.
+ *
+ * @param {object} args - as silenceNotice, plus nothing: the notice IS the detail.
+ * @returns {{entityName: string, title: string, detail: string, severity: string, dedupeKey: string}}
+ */
+export function silenceFlag({ hoursQuiet, since, outcome, everSucceeded }) {
+  return {
+    entityName: "Meeting intake",
+    title: `Meeting intake silent ~${hoursQuiet}h — no recorded call has reached the CRM`,
+    detail: silenceNotice({ hoursQuiet, since, outcome, everSucceeded }),
+    // high: the CRM is missing calls that happened. Rob's own words for this pipeline's failure
+    // are "recorded calls are NOT reaching the CRM" — that is not a medium.
+    severity: "high",
+    dedupeKey: "meeting-intake-silence",
+  };
+}

@@ -69,3 +69,4 @@ MLE Internal Meetings/.intake-last-escalation
 # Marker written by ~/.claude/scripts/meeting-intake.sh (launchd com.aivoicetech.meeting-intake)
 # so the next agent run knows an ingest landed. Run-local state, not repo state.
 MLE Internal Meetings/.new-since-last-agent-run
+MLE Internal Meetings/.intake-flag-pending

@@ -10,6 +10,7 @@ import {
   unreachableNotice,
   silenceState,
   silenceNotice,
+  silenceFlag,
   SILENCE_THRESHOLD_MS,
 } from "../../scripts/fireflies-quota.mjs";
 
@@ -262,5 +263,33 @@ describe("silenceNotice", () => {
   it("says outright when nothing has ever succeeded, instead of implying a pull once worked", () => {
     const msg = silenceNotice({ hoursQuiet: 9, since: T0, outcome: "QUOTA", everSucceeded: false });
     expect(msg).toContain("no pull has EVER succeeded");
+  });
+});
+
+// Q84 inc.136 — the escalation as a ledger finding. PING-INBOX is a file Rob reads at session
+// start; a six-hour-old silence needs the door that is already open on his page.
+describe("silenceFlag", () => {
+  const flag = (over = {}) =>
+    silenceFlag({ hoursQuiet: 8, since: T0, outcome: "OFFLINE", everSucceeded: true, ...over });
+
+  it("carries the notice verbatim as the detail, so both doors say the same thing", () => {
+    expect(flag().detail).toBe(
+      silenceNotice({ hoursQuiet: 8, since: T0, outcome: "OFFLINE", everSucceeded: true }),
+    );
+  });
+
+  it("dedupes on a key that does NOT move with the hour count", () => {
+    // 6h → 12h → 18h is one fact getting worse. A key carrying the duration would stack a fresh
+    // row on Rob's page every window, which is the alarm fatigue this thread exists to undo.
+    expect(flag({ hoursQuiet: 6 }).dedupeKey).toBe(flag({ hoursQuiet: 18 }).dedupeKey);
+  });
+
+  it("still names the duration where a human reads it", () => {
+    expect(flag({ hoursQuiet: 18 }).title).toContain("~18h");
+  });
+
+  it("is filed on the pipeline and at high severity, never on a company", () => {
+    expect(flag().entityName).toBe("Meeting intake");
+    expect(flag().severity).toBe("high");
   });
 });
