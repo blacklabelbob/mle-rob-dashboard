@@ -1656,6 +1656,68 @@ export function censusRefusalFinding(reason: string | null): DepartureFinding[] 
 }
 
 /**
+ * Q84 inc.177 — the refusal row survives the thing it reports, and this is what the gate is allowed
+ * to do about that. It CORRECTS it. It does not close it.
+ *
+ * inc.176 files `wrapper-census-unreadable` while the file cannot be parsed, and simply stops
+ * re-filing once it can. Stopping is not removing: a `high` row saying "every open departure row on
+ * this page is going unchecked" stays on Rob's page after the census is repaired, still claiming a
+ * blindness that ended, and nothing on the page marks the difference. A row that was true when
+ * written and is false a week later is exactly the defect inc.162 exists to kill — the only new
+ * thing here is that the stale row is one this gate filed about ITSELF.
+ *
+ * WHY THIS IS NOT THE ACTOR-LESS CLOSURE inc.161 REFUSED. That refusal rested on two legs, and only
+ * one of them reaches this row.
+ *
+ *   Identity — inc.161 could not prove a returning wrapper NAME is the same wrapper, so closing on
+ *   its return would erase a decision on a guess. Absent here: there is one census file and one key,
+ *   `CENSUS_REFUSAL_KEY`, a literal in this source. The row's truth condition is "this gate cannot
+ *   read that file", which the gate observes directly on every tick with nothing inferred. This is
+ *   the only row in the family that is a statement about the GATE rather than about the tree.
+ *
+ *   Actor — a machine's closure lands on Rob's ledger with nobody's name on it. That leg stands, and
+ *   it is joined by a second: a file that breaks and is repaired between two ticks would have its
+ *   row appear and vanish with no human having read either event. Auto-closing would make the most
+ *   alarming row this gate can write the one most likely to be never seen.
+ *
+ * So the disposition is inc.162's, unchanged: correct in place, on the same `dedupeKey`, and leave
+ * the closing to Rob. He learns the blindness ended; the record that it happened stays until he
+ * disposes of it.
+ *
+ * ONLY ON A LEDGER THAT SAID "OPEN". `censusKeyOpen` is `true` only when the narrowed read named
+ * this key as open on this tick. `false` (he resolved it) files nothing — re-filing a resolved key
+ * makes `planFlagWrite` INSERT rather than correct, which is inc.169's harm verbatim: a row he
+ * closed is back on his page. `null` (ledger unreachable, or a short response that never mentioned
+ * the key) files nothing either, per inc.163/165 — absence moves nothing in either direction.
+ *
+ * `low`, and the drop is the correction. inc.176's `high` was earned by "no enforcement claim here
+ * is verified"; once the file parses that sentence is false, and leaving `high` would keep the row
+ * shouting a thing it no longer means. It is not `medium`: nothing on the page is wrong now, there
+ * is only a past gap Rob has not yet acknowledged.
+ */
+export function censusRecoveryFinding(censusKeyOpen: boolean | null): DepartureFinding[] {
+  if (censusKeyOpen !== true) return [];
+  return [
+    {
+      entityName: "Wrapper clock gate",
+      title: "The wrapper census is readable again — the blind period above has ended",
+      detail:
+        `\`docs/integrity/wrapper-census.json\` parsed cleanly on this tick, so departure detection ` +
+        `has resumed and every wrapper-census row on this page is being re-checked again from here ` +
+        `forward. Read the warning this row carried before as history: it was true for the ticks ` +
+        `between the file breaking and this one, and this gate cannot tell you how many ticks that ` +
+        `was or what left the audited set during them — nothing recorded it, which is what being ` +
+        `blind means. The gate corrects this row rather than closing it, deliberately: closing it ` +
+        `would put a decision on your ledger with no one's name against it, and a census that broke ` +
+        `and was repaired between two ticks would have raised and cleared a \`high\` row you never ` +
+        `saw (Q84 inc.161/177). Closing it is yours.`,
+      severity: "low",
+      dedupeKey: CENSUS_REFUSAL_KEY,
+    },
+  ];
+}
+
+/**
  * Q84 inc.169 — inc.168's drop is safe and it is INVISIBLE to Rob. This makes the affected row say so.
  *
  * inc.168 stopped sending a key the read query cannot carry back unchanged, and said it on stderr,

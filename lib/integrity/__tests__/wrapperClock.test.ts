@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   auditWrapperClocks,
   censusDepartures,
+  censusRecoveryFinding,
   censusRefusalFinding,
   CENSUS_REFUSAL_KEY,
   classifyCensusRead,
@@ -1441,6 +1442,49 @@ describe("what a refused census tells Rob's ledger (Q84 inc.176)", () => {
       Object.keys(
         departureFindings([{ name: "gone.sh", wasRole: "judged", wasTrigger: true, wasRepoStamp: false }], [])[0],
       ).sort(),
+    );
+  });
+});
+
+describe("what a RECOVERED census tells Rob's ledger (Q84 inc.177)", () => {
+  it("files nothing when the ledger was never read — absence moves nothing (inc.163/165)", () => {
+    expect(censusRecoveryFinding(null)).toEqual([]);
+  });
+
+  it("files nothing when Rob already resolved the row — re-filing a closed key INSERTS (inc.169)", () => {
+    // `planFlagWrite` treats a POST on a resolved key as "recurred after being resolved" and
+    // inserts. A correction aimed at a row he has closed puts that row back on his page.
+    expect(censusRecoveryFinding(false)).toEqual([]);
+  });
+
+  it("corrects the SAME key, so it edits inc.176's row instead of stacking a second one", () => {
+    const findings = censusRecoveryFinding(true);
+    expect(findings).toHaveLength(1);
+    expect(findings[0].dedupeKey).toBe(CENSUS_REFUSAL_KEY);
+    expect(findings[0].dedupeKey).toBe(censusRefusalFinding("some parse reason")[0].dedupeKey);
+  });
+
+  it("drops the severity, because the sentence that earned `high` is no longer true", () => {
+    expect(censusRefusalFinding("r")[0].severity).toBe("high");
+    expect(censusRecoveryFinding(true)[0].severity).toBe("low");
+  });
+
+  it("does NOT claim to close the row, and says whose job that is", () => {
+    // inc.161's actor leg still stands: a machine's closure lands with nobody's name on it.
+    const { detail } = censusRecoveryFinding(true)[0];
+    expect(detail).toMatch(/Closing it is yours/);
+    expect(detail).toMatch(/rather than closing it/);
+  });
+
+  it("admits it cannot say what left the audited set during the blind period", () => {
+    // The whole harm of the blindness is that nothing recorded it. A recovery row that only said
+    // "all clear" would imply the gap cost nothing.
+    expect(censusRecoveryFinding(true)[0].detail).toMatch(/cannot tell you how many ticks/);
+  });
+
+  it("is shaped like every other finding this gate files", () => {
+    expect(Object.keys(censusRecoveryFinding(true)[0]).sort()).toEqual(
+      Object.keys(censusRefusalFinding("r")[0]).sort(),
     );
   });
 });

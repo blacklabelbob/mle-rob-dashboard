@@ -44,6 +44,7 @@ import { fileURLToPath } from "node:url";
 import {
   auditWrapperClocks,
   censusDepartures,
+  censusRecoveryFinding,
   censusRefusalFinding,
   classifyCensusRead,
   clockGateBrief,
@@ -53,6 +54,7 @@ import {
   unreadableCarriedField,
   wrapperCensus,
   BRIEF_MARKER,
+  CENSUS_REFUSAL_KEY,
   REPO_STAMP_CALL,
   TRIGGER_CALLS,
 } from "../lib/integrity/wrapperClock.ts";
@@ -218,9 +220,17 @@ async function writeCensus() {
   // reopen the same key — which is why a closed row keeps this list non-empty and keeps being read.
   // inc.165 — both sides of the read travel: closing needs the key SEEN resolved, reopening needs it
   // SEEN open. A key the read never mentioned (a short or filtered response) moves nothing.
-  const ledger = previousOpen.length
-    ? await resolvedDepartureKeys(previousOpen.map((row) => departureKey(row.name)))
-    : null;
+  // Q84 inc.177 — this gate's OWN row is asked about on every clean tick, not only when departure
+  // rows happen to be open. inc.176's refusal row is filed on ticks where `previousOpen` is
+  // unreadable and therefore empty, so gating the ask on `previousOpen.length` would mean the one
+  // situation that files this key is the one situation that never asks about it. The key is a
+  // literal in the repo (`CENSUS_REFUSAL_KEY`), so asking costs nothing and needs nothing from the
+  // file that may have just been broken — which is exactly why this row is correctable when the
+  // per-row departures are not (inc.176).
+  const ledger = await resolvedDepartureKeys([
+    ...previousOpen.map((row) => departureKey(row.name)),
+    CENSUS_REFUSAL_KEY,
+  ]);
   const { corrections, open, closed, reopened, withheld, unreadableClaims } = reconcileOpenDepartures(
     previousOpen,
     departures,
@@ -262,7 +272,20 @@ async function writeCensus() {
         `a row it cannot read back (Q84 inc.172/173). Repeats every tick until the census is repaired.`,
     );
   }
-  return { departures, corrections, censusRefusal: null };
+  // Q84 inc.177 — the census parsed, so inc.176's refusal row (if Rob still has it open) is now
+  // making a claim that stopped being true on this tick. It is CORRECTED in place and left open:
+  // the gate may say the blindness ended, it may not decide the row is dealt with. `null` from an
+  // unread ledger, and `false` from a row he already resolved, both file nothing.
+  const censusKeyOpen = ledger ? ledger.open.includes(CENSUS_REFUSAL_KEY) : null;
+  const recovery = censusRecoveryFinding(censusKeyOpen);
+  if (recovery.length) {
+    console.error(
+      `→ census: readable again — ${CENSUS_REFUSAL_KEY} is still open on your ledger and is being ` +
+        `corrected down to low, not closed. A machine closing its own row leaves no actor, and a ` +
+        `census repaired between two ticks would raise and clear a high row nobody saw (Q84 inc.177).`,
+    );
+  }
+  return { departures, corrections: [...corrections, ...recovery], censusRefusal: null };
 }
 
 /**
