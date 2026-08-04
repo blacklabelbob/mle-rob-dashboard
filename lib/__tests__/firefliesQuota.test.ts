@@ -1,3 +1,7 @@
+import { execFileSync } from "node:child_process";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 // @ts-expect-error — plain .mjs helper, shared with scripts/fireflies-ingest.mjs
 import {
@@ -445,5 +449,62 @@ describe("mergeSilenceQueue", () => {
     const again = mergeSilenceQueue(state, args({ since: T0 + 8 * 1000, hoursQuiet: 20 }));
     expect(again.escalations).toBe(2);
     expect(again.priorWindowsDropped).toBe(3);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Q84 inc.141 — the `stamp` CLI mode is a CONTRACT, not an internal detail.
+//
+// Two files outside this repo now read it as their only clock: ~/.claude/scripts/
+// meeting-intake.sh (inc.140) and ~/.claude/scripts/crm-build-driver.sh (this increment).
+// Neither is diffed by anything here, so if this mode changed shape, drifted zone, or started
+// writing a file, the failure would surface as a wrong timestamp in Rob's PING-INBOX and nowhere
+// else. robStamp's own tests pin the FORMATTER; these pin the thing the wrappers actually invoke.
+// ---------------------------------------------------------------------------
+describe("intake-silence.mjs stamp (the contract the out-of-repo wrappers read)", () => {
+  // fileURLToPath, not .pathname: this repo's directory name contains spaces, which a URL
+  // pathname hands back percent-encoded — the exact class of path bug that makes a guard "pass".
+  const repoRoot = fileURLToPath(new URL("../..", import.meta.url));
+  // process.execPath, not bare "node": the test runner's PATH need not carry it. The wrappers run
+  // under launchd with a login PATH and call `node`; what is pinned here is the SCRIPT's contract.
+  const run = () =>
+    execFileSync(process.execPath, ["scripts/intake-silence.mjs", "stamp"], {
+      cwd: repoRoot,
+      encoding: "utf8",
+    });
+
+  it("prints one seconds-precision stamp that names its own zone", () => {
+    // Year included: the STALLED ping used to say "(08-03 19:28)" — no year, no zone — while the
+    // intake line beside it in the same file said "2026-08-04 01:13:20 EDT".
+    expect(run().trimEnd()).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} [A-Z]{2,5}$/);
+  });
+
+  it("puts NOTHING on stdout but the stamp — a wrapper substitutes it into a log prefix whole", () => {
+    // The WHOLE buffer, not the non-empty lines: `$(...)` strips trailing newlines, so a lenient
+    // line-count assertion tolerates exactly the mutation that matters — a warning, a banner or a
+    // blank printed AROUND the stamp, which lands inside "[...]" in crm-driver.log. (This test
+    // survived that mutation in its first form; the strict shape is the fix.)
+    expect(run()).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} [A-Z]{2,5}\n$/);
+  });
+
+  it("is read-only — asking for the time must never move a stamp on disk", () => {
+    // The other two modes write MLE Internal Meetings/ marks. A driver tick asks for the time
+    // every 10 minutes; if that call recorded anything, it would silence the alarm it stamps —
+    // an intake outage would look freshly-successful because the watchdog said what time it was.
+    //
+    // CONTENTS, not just names: every one of these marks ALREADY EXISTS on a live machine, so a
+    // listing comparison is satisfied by a stamp that was overwritten in place, which is exactly
+    // the mutation that matters. (Caught while mutation-testing this very test.)
+    const dir = join(repoRoot, "MLE Internal Meetings");
+    const snapshot = () =>
+      existsSync(dir)
+        ? readdirSync(dir)
+            .filter((f) => f.startsWith(".intake-"))
+            .sort()
+            .map((f) => `${f}=${readFileSync(join(dir, f), "utf8")}`)
+        : null;
+    const before = snapshot();
+    run();
+    expect(snapshot()).toEqual(before);
   });
 });
