@@ -13,6 +13,7 @@ import {
   silenceFlag,
   mergeSilenceQueue,
   SILENCE_THRESHOLD_MS,
+  robStamp,
 } from "../../scripts/fireflies-quota.mjs";
 
 // The exact payload Fireflies returned at 2026-07-31 12:33:37 and again at 13:03:37, both of
@@ -92,11 +93,35 @@ describe("cooldownState", () => {
   });
 });
 
+// Q84 inc.139 — every notice in this file is read by exactly one human, in Eastern time. A bare
+// UTC stamp is true and costs him an arithmetic step at the worst possible moment; an ET stamp
+// carrying its zone is just as unambiguous, so nothing machine-readable is traded for that.
+describe("robStamp", () => {
+  it("renders an instant in Rob's timezone WITH the zone, so the instant is still recoverable", () => {
+    expect(robStamp(Date.parse("2026-08-03T17:40:00Z"))).toBe("2026-08-03 13:40 EDT");
+  });
+
+  it("follows DST instead of a hand-rolled offset that would be wrong for four months", () => {
+    expect(robStamp(Date.parse("2026-01-15T18:40:00Z"))).toBe("2026-01-15 13:40 EST");
+  });
+
+  it("renders midnight as 00:00 on the right day, never 24:00 on the wrong one", () => {
+    expect(robStamp(Date.parse("2026-08-04T04:00:00Z"))).toBe("2026-08-04 00:00 EDT");
+  });
+
+  it("says it does not know rather than inventing an instant from a missing stamp", () => {
+    expect(robStamp(null)).toBe("an unknown time");
+    expect(robStamp(0)).toBe("an unknown time");
+    expect(robStamp(undefined, "an unstated time")).toBe("an unstated time");
+  });
+});
+
 describe("cooldownNotice", () => {
   it("says nothing was lost AND says what is not in the CRM yet — both, in that order", () => {
     const msg = cooldownNotice({ untilMs: 1785542400794, minutesLeft: 42, onDisk: 40 });
     expect(msg).toContain("it is not broken");
-    expect(msg).toContain("2026-08-01T00:00:00");
+    // Q84 inc.139 — the same instant, in the timezone the one reader of this line lives in.
+    expect(msg).toContain("2026-07-31 20:00 EDT");
     expect(msg).toContain("~42 min");
     expect(msg).toContain("40 transcript(s) remain in the repo");
     // The half that must never be dropped for being inconvenient: during a cooldown a meeting
@@ -256,7 +281,7 @@ describe("silenceNotice", () => {
   it("names the duration and the downgraded word that was hiding it", () => {
     const msg = silenceNotice({ hoursQuiet: 8, since: T0, outcome: "OFFLINE", everSucceeded: true });
     expect(msg).toContain("~8h");
-    expect(msg).toContain("2026-08-03T17:40:00Z");
+    expect(msg).toContain("2026-08-03 13:40 EDT");
     expect(msg).toContain("OFFLINE");
     expect(msg).toContain("A human must check this one.");
   });

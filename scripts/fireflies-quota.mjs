@@ -112,6 +112,57 @@ export function unreachableNotice({ code, onDisk }) {
   );
 }
 
+// ─────────────────────────────────────────────────────────────────────────────────────────────
+// HOW AN INSTANT IS SHOWN TO THE ONE PERSON WHO READS THESE SENTENCES (Q84 inc.139).
+//
+// Every notice in this file ended up on a surface with exactly one reader — Rob, in Eastern
+// time — and every one of them printed a bare UTC ISO stamp. "no recorded call has reached the
+// CRM since 2026-08-03T17:40:00Z" is a true sentence that costs its reader an arithmetic step
+// before it means anything, at the moment he is being told something is wrong. That is the
+// MS-DOS answer to a UI question.
+//
+// UTC is not the safer contract here, which is the part worth writing down: an ET stamp that
+// CARRIES ITS ZONE ("2026-08-03 13:40 EDT") is exactly as unambiguous as the Z form — the same
+// instant is recoverable from it — so nothing machine-readable is traded away for the reader.
+// What was unsafe was a stamp whose zone the reader had to convert in his head.
+//
+// It is also the clock the rest of the ledger already uses: `todayInET` judges an overdue task
+// on Rob's calendar day and `isBusinessHoursET` gates sends, so a page where one row says
+// "due 2026-08-04" and the next says "since 2026-08-04T05:40:00Z" is two clocks on one page.
+//
+// DST is why this delegates to Intl rather than subtracting four hours: EDT and EST differ, and
+// a hand-rolled offset is right for eight months of the year. Pure per CR-3 — it formats an
+// epoch it is handed and never reads the clock.
+
+/** Rob's timezone. The audience for every stamp in this file. */
+export const ROB_TZ = "America/New_York";
+
+/**
+ * An epoch instant as Rob reads it: `YYYY-MM-DD HH:MM ZZZ` in Eastern time, zone included so the
+ * string stays unambiguous without a second UTC copy beside it.
+ *
+ * @param {number|null|undefined} ms
+ * @param {string} [unknown] - what to say when there is no instant to show.
+ * @returns {string}
+ */
+export function robStamp(ms, unknown = "an unknown time") {
+  if (!Number.isFinite(ms) || ms <= 0) return unknown;
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: ROB_TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    // h23 explicitly: `hour12: false` renders midnight as "24:00" under some ICU builds, and a
+    // notice that says a pull last landed at 24:00 on the wrong day is worse than the Z stamp.
+    hourCycle: "h23",
+    timeZoneName: "short",
+  }).formatToParts(new Date(ms));
+  const v = (t) => parts.find((p) => p.type === t)?.value ?? "";
+  return `${v("year")}-${v("month")}-${v("day")} ${v("hour")}:${v("minute")} ${v("timeZoneName")}`;
+}
+
 /**
  * Read a Fireflies GraphQL `errors` array for a rate limit and the instant it lifts.
  *
@@ -167,7 +218,7 @@ export function cooldownState({ stamp, now }) {
  * @returns {string}
  */
 export function cooldownNotice({ untilMs, minutesLeft, onDisk }) {
-  const when = untilMs ? new Date(untilMs).toISOString().replace(".000Z", "Z") : "an unstated time";
+  const when = robStamp(untilMs, "an unstated time");
   const left = minutesLeft == null ? "" : ` (~${minutesLeft} min)`;
   return (
     `Fireflies daily quota exhausted — the API declined this run, it is not broken. ` +
@@ -255,7 +306,7 @@ export function silenceState({ lastSuccess, lastEscalated, firstObserved, now, t
  * @returns {string}
  */
 export function silenceNotice({ hoursQuiet, since, outcome, everSucceeded }) {
-  const when = since ? new Date(since).toISOString().replace(".000Z", "Z") : "an unknown time";
+  const when = robStamp(since);
   const anchor = everSucceeded ? `the last successful pull at ${when}` : `${when}, and no pull has EVER succeeded on this machine`;
   return (
     `MEETING INTAKE HAS BEEN SILENT FOR ~${hoursQuiet}h — no recorded call has reached the CRM since ` +
@@ -314,7 +365,7 @@ export function silenceFlag({ hoursQuiet, since, outcome, everSucceeded }, histo
   }
   if (priorWindows.length + dropped > 0) {
     const listed = priorWindows
-      .map((w) => `~${w.hoursQuiet}h since ${w.since ? new Date(w.since).toISOString().replace(".000Z", "Z") : "an unknown time"}`)
+      .map((w) => `~${w.hoursQuiet}h since ${robStamp(w.since)}`)
       .join("; ");
     // The count is the TOTAL, never the length of what happens to still fit. The parenthetical is
     // what survives; the truncation is stated so a short list cannot read as a short outage record.
