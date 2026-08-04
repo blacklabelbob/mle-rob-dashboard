@@ -84,7 +84,7 @@ for (const target of targets) {
 }
 
 const audit = auditWrapperClocks(scripts);
-const { findings, usesRepoStamp, skipped, triggeredBy, unrankedGateVars } = audit;
+const { findings, usesRepoStamp, skipped, triggeredBy, unrankedGateVars, strandedGateVars } = audit;
 const scanned = scripts.length - skipped.length;
 
 // --brief has exactly one job: hand the driver the sentence the next increment will read. The
@@ -138,6 +138,29 @@ if (triggeredBy.length === 0) {
   process.exit(3);
 }
 
+// Q84 inc.149 — the worse sibling, so it prints first: a gate this repo HAS ranked, that the
+// wrapper computes and then drops on the floor. Reported alongside the unranked ones and not
+// instead of them; both exit 4, because the caller's only action for either is the same trip into
+// the wrapper, and a second exit code would imply a distinction nothing acts on.
+if (strandedGateVars.length > 0) {
+  for (const v of strandedGateVars) {
+    console.error(
+      `\n✖ ${v.script}:${v.line}  sets \`${v.envVar}\` as a plain local — it is ranked, it fires, ` +
+        `and no child process ever receives it`,
+    );
+  }
+  console.error(
+    `\n${strandedGateVars.length} ranked gate${strandedGateVars.length === 1 ? "" : "s"} never ` +
+      `reach${strandedGateVars.length === 1 ? "es" : ""} the driver. This is quieter than an ` +
+      `unranked gate, not louder: \`gatesFromEnv\` reads the environment it was handed, so a var ` +
+      `that was never put there looks exactly like a gate that did not fire.`,
+  );
+  console.error(
+    `Fix: \`export\` it, or write it as a prefix on the invocation line next to the gates that do ` +
+      `travel (\`DRIVER_X="$X" node scripts/driver-prompt.mjs\`).`,
+  );
+}
+
 // Q84 inc.148 — the stamps are clean and the gate is wired, but a gate nobody ranked is still a
 // decision nobody made. Reported after the clock verdict, never instead of it.
 if (unrankedGateVars.length > 0) {
@@ -154,9 +177,15 @@ if (unrankedGateVars.length > 0) {
       `why it sits where it sits. The env var name is derived from the key (\`clockGate\` → ` +
       `\`DRIVER_CLOCK_GATE\`), so ranking it is the whole change.`,
   );
-  process.exit(4);
 }
+
+// One exit for both gate defects, after both have had their say. The unranked block used to own
+// `process.exit(4)` inline, which would have made a stranded-only run exit 0 while printing its
+// own failure — a report that contradicts its exit code is the exact shape of defect this file
+// exists to catch (Q84 inc.149).
+if (strandedGateVars.length > 0 || unrankedGateVars.length > 0) process.exit(4);
 
 say("✓ every human-readable stamp reaching Rob names its zone");
 say(`✓ every DRIVER_* gate the wrappers hand the driver has a rank in GATE_ORDER`);
+say(`✓ every ranked gate a wrapper sets actually travels to the driver`);
 process.exit(0);

@@ -311,4 +311,90 @@ describe("auditWrapperClocks", () => {
       expect(clockGateBrief(clean)).toEqual({ code: 0, line: null });
     });
   });
+
+  // Q84 inc.149 — the sibling inc.148 deliberately did not chase: a gate that is RANKED and never
+  // travels. It is not unranked, it is absent, and absence is the one state `gatesFromEnv` cannot
+  // tell from "did not fire".
+  describe("ranked gates that never leave the wrapper", () => {
+    const wired = "npm run audit:clocks -- --brief\ndate '+%T %Z' >> crm-driver.log\n";
+
+    it("flags a ranked gate set as a plain local", () => {
+      const { strandedGateVars, unrankedGateVars } = auditWrapperClocks(
+        script(`${wired}DRIVER_CLOCK_GATE="$CLOCK_GATE"\nnode scripts/driver-prompt.mjs "$BASE"`),
+      );
+      expect(strandedGateVars).toEqual([
+        { script: "some-wrapper.sh", line: 3, envVar: "DRIVER_CLOCK_GATE" },
+      ]);
+      // Ranked, so it is never ALSO reported as unranked — one defect, one sentence.
+      expect(unrankedGateVars).toEqual([]);
+    });
+
+    it("says nothing when the value is computed on its own line and handed over later", () => {
+      // The shape the real crm-build-driver.sh uses. Judged per name, not per assignment.
+      const { strandedGateVars } = auditWrapperClocks(
+        script(
+          `${wired}CLOCK_GATE="$(npm run --silent audit:clocks -- --brief)"\n` +
+            `DRIVER_CLOCK_GATE="$CLOCK_GATE" node scripts/driver-prompt.mjs "$BASE"`,
+        ),
+      );
+      expect(strandedGateVars).toEqual([]);
+    });
+
+    it("says nothing when a later bare `export` makes the local travel after all", () => {
+      const { strandedGateVars } = auditWrapperClocks(
+        script(`${wired}DRIVER_WATCHDOG="$W"\nexport DRIVER_WATCHDOG\nnode driver-prompt.mjs`),
+      );
+      expect(strandedGateVars).toEqual([]);
+    });
+
+    // The asymmetry with unrankedGateVars, pinned: daily-driver.sh and daily-email.sh each hold a
+    // local DRIVER_LOG that is a log path, not a gate. Flagging it would be a permanent false red.
+    it("says nothing about an UNRANKED local — a log path is not a forgotten gate", () => {
+      const { strandedGateVars, unrankedGateVars } = auditWrapperClocks(
+        script(`${wired}DRIVER_LOG="$MEM/daily-driver.log"\necho hi >> "$DRIVER_LOG"`),
+      );
+      expect(strandedGateVars).toEqual([]);
+      expect(unrankedGateVars).toEqual([]);
+    });
+
+    it("reports the line the assignment is written on, not the line the command starts at", () => {
+      const { strandedGateVars } = auditWrapperClocks(
+        script(`${wired}echo one \\\n  DRIVER_UNFOLDED="$U"\nnode driver-prompt.mjs`),
+      );
+      expect(strandedGateVars).toEqual([{ script: "some-wrapper.sh", line: 4, envVar: "DRIVER_UNFOLDED" }]);
+    });
+
+    it("names it in --brief and exits 4 when the stamps are clean", () => {
+      const { code, line } = clockGateBrief(
+        auditWrapperClocks(script(`${wired}DRIVER_CLOCK_GATE="$C"\nnode driver-prompt.mjs`)),
+      );
+      expect(code).toBe(4);
+      expect(line).toContain("NEVER REACHES THE DRIVER");
+      expect(line).toContain("DRIVER_CLOCK_GATE");
+    });
+
+    it("rides along with a red stamp rather than being shadowed by it", () => {
+      const { code, line } = clockGateBrief(
+        auditWrapperClocks(
+          script(`${wired}date '+%H:%M' >> crm-driver.log\nDRIVER_CLOCK_GATE="$C"\nnode driver-prompt.mjs`),
+        ),
+      );
+      expect(code).toBe(1);
+      expect(line).toContain("IS RED");
+      expect(line).toContain("NEVER REACHES THE DRIVER");
+    });
+
+    it("states the stranded gate before the unranked one when both fired", () => {
+      const { line } = clockGateBrief(
+        auditWrapperClocks(
+          script(
+            `${wired}DRIVER_CLOCK_GATE="$C"\nDRIVER_NEW_GATE="$N" node scripts/driver-prompt.mjs`,
+          ),
+        ),
+      );
+      expect(line).toContain("NEVER REACHES THE DRIVER");
+      expect(line).toContain("NO RANK in GATE_ORDER");
+      expect(line!.indexOf("NEVER REACHES")).toBeLessThan(line!.indexOf("NO RANK"));
+    });
+  });
 });

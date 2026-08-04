@@ -78,7 +78,12 @@ export function clockGateBrief(audit: ClockAudit): ClockGateBrief {
   // findings would mean the loser vanishes, which is the precise disease inc.147 spent an
   // increment killing (a gate that fired must not disappear between shell and prompt). So it
   // rides whichever verdict wins, and only decides the exit code when nothing else is wrong.
-  const unranked = unrankedGateSentence(audit);
+  //
+  // Q84 inc.149 adds the second gate sentence on the same terms and for the same reason: it is
+  // appended, never ranked against the first. Stranded is stated BEFORE unranked because a gate
+  // that never arrives outranks a gate that arrives unplaced — but that is ordering inside one
+  // line, which costs nobody anything, not a contest for the line.
+  const unranked = strandedGateSentence(audit) + unrankedGateSentence(audit);
 
   if (audit.findings.length > 0) {
     const worst = audit.findings[0];
@@ -124,6 +129,30 @@ function unrankedGateSentence(audit: ClockAudit): string {
   );
 }
 
+/**
+ * The suffix sentence for ranked gates the wrapper computes but never hands over (Q84 inc.149).
+ *
+ * The sibling of the unranked gate and the worse of the two: an unranked gate at least ARRIVES.
+ * This one is ranked, sits in `GATE_ORDER` with a sentence explaining what it beats, fires in the
+ * shell — and the composer never sees it, because the assignment is a plain local. Nothing
+ * anywhere reports a gate that is silently absent: `gatesFromEnv` reads the environment it was
+ * given, and an env var that was never put there is indistinguishable from a gate that did not
+ * fire. So the only place this is visible is the wrapper's own text, which is exactly what this
+ * audit already reads.
+ */
+function strandedGateSentence(audit: ClockAudit): string {
+  const vars = audit.strandedGateVars;
+  if (vars.length === 0) return "";
+  const named = vars.map((v) => `${v.envVar} (${v.script}:${v.line})`).join(", ");
+  return (
+    ` ${vars.length} RANKED gate${vars.length === 1 ? "" : "s"} NEVER REACH${vars.length === 1 ? "ES" : ""} ` +
+    `THE DRIVER — ${named}. The value is computed and then dropped: a plain local assignment is ` +
+    `not in the child's environment, so the composer cannot read it and the gate is silently ` +
+    `absent, not merely unranked. \`export\` it, or put it on the invocation line as a prefix ` +
+    `(Q84 inc.149).`
+  );
+}
+
 export type ClockFinding = {
   /** Script name as given (a bare basename is enough — the caller knows the directory). */
   script: string;
@@ -156,6 +185,17 @@ export type ClockAudit = {
    * so it is the one place the assertion can live without inventing a second scanner.
    */
   unrankedGateVars: GateRankFinding[];
+  /**
+   * Ranked gates a wrapper sets but never hands to any child (Q84 inc.149).
+   *
+   * Only RANKED names qualify, and the asymmetry with `unrankedGateVars` is deliberate rather
+   * than an oversight: a local `DRIVER_*` that nothing ranks is unjudgeable — `daily-driver.sh`
+   * and `daily-email.sh` each hold a local `DRIVER_LOG` that is a log path, not a gate, and no
+   * parse can tell those apart from a gate somebody forgot to export. A name that IS in
+   * `GATE_ORDER` has already been declared a gate by this repo, so a local assignment of it is a
+   * fact, not a guess.
+   */
+  strandedGateVars: GateRankFinding[];
   /** Scripts that write to a surface AND ask the repo for their stamp — the compliant shape. */
   usesRepoStamp: string[];
   /** Scripts scanned but skipped because they touch none of Rob's surfaces. */
@@ -252,9 +292,21 @@ function surfacesWritten(source: string): string[] {
  * first unquoted `&&`, `||`, `;`, `|` or `&` — after one of those a NEW command begins and the
  * assignment does not travel to it. That is shell's own rule, not an approximation of it.
  */
-function travellingDriverVars(source: string): { envVar: string; line: number }[] {
-  const out: { envVar: string; line: number }[] = [];
+function driverVarAssignments(source: string): { envVar: string; line: number; travels: boolean }[] {
+  const out: { envVar: string; line: number; travels: boolean }[] = [];
   const physical = source.split("\n");
+  // Q84 inc.149 — a bare `export DRIVER_X` (no `=`) on any later line makes an earlier local
+  // assignment travel after all. It is ordinary shell and omitting it would put a permanent false
+  // red in front of a wrapper that is correct, which is the one failure this gate cannot afford.
+  const bareExported = new Set<string>();
+  for (const line of physical) {
+    if (/^\s*#/.test(line)) continue;
+    const m = /^\s*export\s+([A-Za-z_][A-Za-z0-9_ ]*)$/.exec(line.replace(/\s+$/, ""));
+    if (!m) continue;
+    for (const name of m[1].split(/\s+/)) {
+      if (name.startsWith(DRIVER_ENV_PREFIX)) bareExported.add(name);
+    }
+  }
 
   // Join backslash continuations: the wrapper spreads one logical command over two lines and the
   // command word (`node …`) sits on the second, so an assignment on the first only looks like a
@@ -282,10 +334,9 @@ function travellingDriverVars(source: string): { envVar: string; line: number }[
 
     const assign = new RegExp(`(export\\s+)?(${DRIVER_ENV_PREFIX}[A-Za-z0-9_]+)=`, "g");
     for (const m of logical.matchAll(assign)) {
-      const exported = Boolean(m[1]);
-      if (exported || isCommandPrefix(logical, m.index + m[0].length)) {
-        out.push({ envVar: m[2], line: lineOf(m.index) });
-      }
+      const exported = Boolean(m[1]) || bareExported.has(m[2]);
+      const travels = exported || isCommandPrefix(logical, m.index + m[0].length);
+      out.push({ envVar: m[2], line: lineOf(m.index), travels });
     }
     i += offsets.length - 1;
   }
@@ -341,13 +392,27 @@ export function auditWrapperClocks(scripts: { name: string; source: string }[]):
   const skipped: string[] = [];
   const triggeredBy: string[] = [];
   const unrankedGateVars: GateRankFinding[] = [];
+  const strandedGateVars: GateRankFinding[] = [];
   // Derived from GATE_ORDER through the same `gateEnvVar` the composer uses — a second hand-kept
   // list of names here would be the very drift inc.147 closed, reintroduced by its own check.
   const ranked = new Set(GATE_ORDER.map((g) => gateEnvVar(g.key)));
 
   for (const { name, source } of scripts) {
-    for (const { envVar, line } of travellingDriverVars(source)) {
-      if (!ranked.has(envVar)) unrankedGateVars.push({ script: name, line, envVar });
+    const assignments = driverVarAssignments(source);
+    for (const { envVar, line, travels } of assignments) {
+      if (travels && !ranked.has(envVar)) unrankedGateVars.push({ script: name, line, envVar });
+    }
+    // Q84 inc.149 — judged per NAME, not per assignment. A wrapper that computes the value on its
+    // own line (`DRIVER_CLOCK_GATE="$(…)"`) and then hands it over on the invocation line is the
+    // shape the real driver uses, and it is correct; only a name with NO travelling assignment
+    // anywhere in the file is actually stranded. The line reported is the first place it is set,
+    // because that is where the author goes to add the export.
+    const seen = new Set<string>();
+    for (const { envVar, line } of assignments) {
+      if (seen.has(envVar) || !ranked.has(envVar)) continue;
+      seen.add(envVar);
+      if (assignments.some((a) => a.envVar === envVar && a.travels)) continue;
+      strandedGateVars.push({ script: name, line, envVar });
     }
 
     // A commented-out invocation is not a trigger — it is a note about one, and the whole point
@@ -378,5 +443,5 @@ export function auditWrapperClocks(scripts: { name: string; source: string }[]):
     });
   }
 
-  return { findings, usesRepoStamp, skipped, triggeredBy, unrankedGateVars };
+  return { findings, usesRepoStamp, skipped, triggeredBy, unrankedGateVars, strandedGateVars };
 }
