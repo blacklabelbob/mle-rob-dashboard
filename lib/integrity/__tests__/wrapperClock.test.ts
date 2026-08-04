@@ -1059,6 +1059,30 @@ describe("reconcileOpenDepartures (Q84 inc.162)", () => {
       expect(reconcileOpenDepartures([unaskable()], [], []).withheld).toEqual([]);
     });
 
+    // Q84 inc.171 — inc.170 asked whether a withheld correction needs a durable `withheldClaim` on
+    // the census row. These two pin the answer NO: it is re-derived every tick, and when it stops
+    // being true there is nothing left to remember.
+    it("recurs every tick — the census fed back in withholds again, so nothing needs storing", () => {
+      let rows: OpenDeparture[] = [unaskable()];
+      for (let tick = 1; tick <= 3; tick++) {
+        const r = reconcileOpenDepartures(rows, [], ["new-driver.sh"]);
+        expect(r.corrections, `tick ${tick}`).toEqual([]);
+        expect(r.withheld.map((x) => x.name), `tick ${tick}`).toEqual(["run,thing.sh"]);
+        expect(r.open, `tick ${tick}`).toEqual([unaskable()]);
+        rows = r.open;
+      }
+    });
+
+    it("stops when the claim flips back — the row is correct again and nothing was ever published wrong", () => {
+      const first = reconcileOpenDepartures([unaskable()], [], ["new-driver.sh"]);
+      expect(first.withheld).toHaveLength(1);
+      // The replacement leaves too, so the tree matches the frozen claim once more.
+      const second = reconcileOpenDepartures(first.open, [], []);
+      expect(second.withheld).toEqual([]);
+      expect(second.corrections).toEqual([]);
+      expect(second.open).toEqual([unaskable()]);
+    });
+
     it("leaves every readable key correcting exactly as inc.162 wrote it", () => {
       const { corrections, withheld } = reconcileOpenDepartures([open()], [], ["new-driver.sh"]);
       expect(withheld).toEqual([]);

@@ -1635,6 +1635,20 @@ export function reconcileOpenDepartures(
     // Q84 inc.170 — the claim flipped and this key cannot be read. WITHHOLD the correction, and
     // freeze `orphaned` with it: a state the gate did not publish must not be recorded as published,
     // or the gap the correction fires off is closed silently and the row is stale forever.
+    //
+    // Q84 inc.171 — inc.170 asked whether the census row should also carry a durable `withheldClaim`,
+    // so a later tick (or Rob) can see this row was measured wrong at least once. The answer is NO,
+    // and not on inc.164's "second ledger" grounds alone: WITHHOLDING IS NOT AN EVENT THAT CAN BE
+    // LOST. It is a standing condition, re-derived from scratch on every tick out of two things the
+    // census and the tree already hold — the frozen `orphaned` above, and `orphanedNow()` measured
+    // now. The freeze is exactly what keeps the divergence alive, so the next tick withholds again,
+    // and the one after that, for as long as the claim is wrong. A stored flag would be a SECOND
+    // COPY of a fact this function recomputes anyway — the two-copies disease inc.164 collapsed and
+    // inc.167 refused to re-introduce one file over — and it could disagree with the tree the moment
+    // the claim flips back, at which point there is genuinely nothing to remember: the row is correct
+    // again, was never published wrong, and a lingering "measured wrong once" flag would be the only
+    // untrue thing on it. Durability for this already exists in the right place: the ROW on Rob's
+    // ledger says the claim is not re-checked (inc.169), and that row is his, not the gate's.
     if (!keySurvivesTransport(key)) {
       open.push({ ...history });
       withheld.push(row);

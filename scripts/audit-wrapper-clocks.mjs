@@ -199,10 +199,13 @@ async function writeCensus() {
   }
   // Q84 inc.170 — a withheld correction is never silent here. The row on Rob's page says the claim
   // is not being re-checked; this says which claim, on which tick, so the withholding is auditable.
+  // inc.171 — and it says that it will keep saying it: withholding is re-derived every tick from the
+  // frozen claim and the current tree, not recorded once, so a missed tick loses nothing.
   for (const row of withheld) {
     console.error(
       `→ census: ${row.name} enforcement claim changed and was NOT re-filed — ${departureKey(row.name)} ` +
-        `cannot be read back by the ledger query, so the gate cannot tell an edit from a re-insert (Q84 inc.170)`,
+        `cannot be read back by the ledger query, so the gate cannot tell an edit from a re-insert ` +
+        `(Q84 inc.170). This line repeats every tick until the claim matches again or you close the row.`,
     );
   }
   return { departures, corrections };
