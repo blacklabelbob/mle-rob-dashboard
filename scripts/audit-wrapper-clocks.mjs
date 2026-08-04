@@ -48,6 +48,7 @@ import {
   departureFindings,
   departureKey,
   reconcileOpenDepartures,
+  unreadableCarriedField,
   wrapperCensus,
   BRIEF_MARKER,
   REPO_STAMP_CALL,
@@ -212,12 +213,16 @@ async function writeCensus() {
   // gate deliberately does NOT repair it: measuring the claim now and writing it back would record
   // as published a state that was never published. Nothing is corrected on this key until the census
   // row is fixed by hand or the row is closed on the ledger; this line repeats until then.
+  // inc.173 — the field is NAMED, and it is no longer only `orphaned`: `closed` corrupts silently
+  // (a truthy non-boolean freezes a row Rob never closed) and `name` becomes the ledger key itself.
+  // A reader who is told "unreadable" without being told which field cannot repair the census.
   for (const row of unreadableClaims) {
+    const field = unreadableCarriedField(row);
     console.error(
-      `→ census: ${row.name} carries no readable enforcement claim (\`orphaned\` is ` +
-        `${JSON.stringify(row.orphaned)}, not a boolean) — the row is kept and tracked, and NO ` +
-        `correction is filed on ${departureKey(row.name)}, because the gate will not publish a claim ` +
-        `it cannot read back (Q84 inc.172). Repeats every tick until the census row is repaired.`,
+      `→ census: row ${JSON.stringify(row.name)} is unreadable history — \`${field}\` is ` +
+        `${JSON.stringify(row[field])}, not the shape it was written in. The row is kept exactly as ` +
+        `found and NOT repaired, and NO correction is filed on it, because the gate will not publish ` +
+        `a row it cannot read back (Q84 inc.172/173). Repeats every tick until the census is repaired.`,
     );
   }
   return { departures, corrections };

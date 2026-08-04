@@ -1434,6 +1434,49 @@ export type OpenDeparture = CensusDeparture & {
 };
 
 /**
+ * Q84 inc.173 — inc.172 validated ONE field and asked whether to widen to the whole row. The answer
+ * is NEITHER, and the boundary is measured rather than argued: a carried row is unreadable when a
+ * field that **decides what the gate does, or appears in what it publishes to Rob**, is not the
+ * shape it was written in.
+ *
+ * WHY NOT PER-FIELD-AS-NEEDED. inc.172 caught `orphaned`; the field one over is worse. `closed` is
+ * read with `= false` defaulting, which only fires on `undefined` — a corrupted `closed: "yes"` is
+ * TRUTHY, so the row is treated as one Rob resolved: frozen, no correction, and **no stderr line at
+ * all**. A row he never closed goes quiet on his page and nothing anywhere says so. Fixing that one
+ * field and stopping would leave the same hole in `name`, which is worse again: it becomes the
+ * ledger `dedupeKey` and the subject of the sentence, so a corrupt name POSTs a correction at a
+ * garbage key on the page he reads for money.
+ *
+ * WHY NOT THE WHOLE ROW EITHER — REJECTING COSTS SOMETHING. The disposition is withholding, and a
+ * withheld correction means a stale enforcement claim stays on Rob's page (the defect inc.162
+ * exists to kill). Paying that price over a field the gate never reads would be strictly worse than
+ * ignoring it. So the set was measured against this function rather than assumed:
+ *
+ *   `closed`       → decides freeze-vs-correct, and freezing is silent. IN.
+ *   `orphaned`     → the claim the correction compares and quotes back (inc.172). IN.
+ *   `name`         → becomes `departureKey()` — the ledger key — and the row's subject. IN.
+ *   `wasTrigger`   → feeds `orphanedNow()`, so it decides the claim, the severity and the title. IN.
+ *   `wasRole`      → published verbatim in the correction sentence Rob reads. IN (published, not
+ *                    decisive — a garbage role is still garbage on his page).
+ *   `wasRepoStamp` → read NOWHERE in `reconcileOpenDepartures`; carried through untouched. OUT, and
+ *                    deliberately: rejecting a row over it would suppress a true correction to
+ *                    protect a field that changes nothing.
+ *
+ * It NEVER repairs. A row it rejects is kept exactly as found (inc.163: dropping a key is the harm),
+ * unrepaired (inc.170: a state the gate did not publish must not be recorded as published), and
+ * reported on stderr. PURE per CR-3.
+ */
+export function unreadableCarriedField(row: OpenDeparture): string | null {
+  if (typeof row.name !== "string" || row.name === "") return "name";
+  if (row.wasRole !== "judged" && row.wasRole !== "skipped" && row.wasRole !== "unjudged")
+    return "wasRole";
+  if (typeof row.wasTrigger !== "boolean") return "wasTrigger";
+  if (typeof row.orphaned !== "boolean") return "orphaned";
+  if (row.closed !== undefined && typeof row.closed !== "boolean") return "closed";
+  return null;
+}
+
+/**
  * The ledger key a departure row is filed under. One definition, because Q84 inc.163 now matches
  * these keys against what Rob has RESOLVED — a second spelling of this string would silently mean
  * "he has closed nothing" forever.
@@ -1611,6 +1654,18 @@ export function reconcileOpenDepartures(
     const refiled = filedThisTick.get(row.name);
     if (refiled) continue; // departureFindings() owns this key this tick.
 
+    // Q84 inc.173 — a carried row whose decisive or published fields are not the shape they were
+    // written in is unreadable history, and is kept EXACTLY as found: not repaired, not dropped,
+    // no correction, reported on stderr. Checked before `closed` is read, because `closed` is one of
+    // the fields that can be corrupt and reading it is what goes silently wrong. See
+    // `unreadableCarriedField()` for the measured field set and why `wasRepoStamp` is not in it.
+    const unreadable = unreadableCarriedField(row);
+    if (unreadable !== null) {
+      open.push({ ...row });
+      unreadableClaims.push(row);
+      continue;
+    }
+
     const { closed: wasClosed = false, ...history } = row;
     const key = departureKey(row.name);
     // An unread ledger changes nothing in either direction: it neither closes a row nor reopens one.
@@ -1652,11 +1707,8 @@ export function reconcileOpenDepartures(
      * gate does not adopt `orphanedNow()` as the filed claim either: a state it did not publish must
      * not be recorded as published, which is inc.170's rule and the reason this row exists at all.
      */
-    if (typeof history.orphaned !== "boolean") {
-      open.push({ ...history });
-      unreadableClaims.push(row);
-      continue;
-    }
+    // (The `orphaned` shape check inc.172 wrote inline lives in `unreadableCarriedField()` as of
+    // inc.173, run above — before `closed` is read rather than after, since `closed` corrupts silently.)
     const orphaned = orphanedNow(history);
     if (orphaned === history.orphaned) {
       open.push({ ...history, orphaned });

@@ -6,6 +6,7 @@ import {
   departureFindings,
   departureKey,
   reconcileOpenDepartures,
+  unreadableCarriedField,
   unaskableKeyNote,
   type OpenDeparture,
   BRIEF_MARKER,
@@ -1107,6 +1108,49 @@ describe("reconcileOpenDepartures (Q84 inc.162)", () => {
         expect(typeof r.open[0].orphaned, `tick ${tick}`).not.toBe("boolean");
         rows = r.open;
       }
+    });
+
+    // Q84 inc.173 — inc.172 validated `orphaned` and asked whether to widen. The field one over is
+    // WORSE than the one it fixed: `closed` is read with `= false` defaulting, so only `undefined`
+    // is caught and a truthy corruption freezes a row Rob never closed — silently, with no stderr
+    // line at all. These pin the measured boundary: decisive-or-published fields in, `wasRepoStamp`
+    // (read nowhere here) deliberately out, because rejecting a row suppresses a TRUE correction.
+    it("does not freeze a row Rob never closed because `closed` corrupted to a truthy non-boolean", () => {
+      const bad = { ...open(), closed: "yes" } as unknown as OpenDeparture;
+      const r = reconcileOpenDepartures([bad], [], ["new-driver.sh"]);
+      expect(r.closed).toEqual([]); // pre-inc.173 this froze the row and said nothing.
+      expect(r.corrections).toEqual([]); // and it is not corrected either — the row is unreadable.
+      expect(r.unreadableClaims.map((x) => x.name)).toEqual([open().name]);
+      expect(r.open).toEqual([bad]); // kept exactly as found: not repaired, not dropped.
+    });
+
+    it("refuses a row whose `name` is corrupt — it would become the ledger key of a real POST", () => {
+      const bad = { ...open(), name: 42 } as unknown as OpenDeparture;
+      const r = reconcileOpenDepartures([bad], [], ["new-driver.sh"]);
+      expect(r.corrections).toEqual([]);
+      expect(r.unreadableClaims).toHaveLength(1);
+    });
+
+    it("refuses a row whose `wasTrigger` is corrupt — it decides the claim, severity and title", () => {
+      const bad = { ...open(), wasTrigger: "true" } as unknown as OpenDeparture;
+      expect(reconcileOpenDepartures([bad], [], []).corrections).toEqual([]);
+      expect(reconcileOpenDepartures([bad], [], []).unreadableClaims).toHaveLength(1);
+    });
+
+    it("still corrects when only `wasRepoStamp` is corrupt — this gate never reads it", () => {
+      const odd = { ...open(), wasRepoStamp: "no" } as unknown as OpenDeparture;
+      const r = reconcileOpenDepartures([odd], [], ["new-driver.sh"]);
+      expect(r.unreadableClaims).toEqual([]);
+      expect(r.corrections).toHaveLength(1);
+    });
+
+    it("names the offending field, so a reader can repair the census", () => {
+      expect(unreadableCarriedField(open())).toBeNull();
+      expect(unreadableCarriedField({ ...open(), closed: true })).toBeNull();
+      expect(unreadableCarriedField({ ...open(), closed: 1 } as unknown as OpenDeparture)).toBe("closed");
+      expect(unreadableCarriedField({ ...open(), wasRole: "boss" } as unknown as OpenDeparture)).toBe(
+        "wasRole",
+      );
     });
 
     it("leaves every readable key correcting exactly as inc.162 wrote it", () => {
