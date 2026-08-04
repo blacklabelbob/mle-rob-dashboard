@@ -37,18 +37,27 @@
 // alongside the six sibling `audit:*` scripts, none of which are in `.github/workflows/ci.yml`
 // either. If a future run "fixes" CI by adding it, that is the mistake this paragraph exists for.
 
-import { access, constants, readdir, readFile, stat } from "node:fs/promises";
+import { access, constants, readdir, readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
+import { fileURLToPath } from "node:url";
 import {
   auditWrapperClocks,
   clockGateBrief,
+  wrapperCensus,
   BRIEF_MARKER,
   REPO_STAMP_CALL,
   TRIGGER_CALLS,
 } from "../lib/integrity/wrapperClock.ts";
 
 const DEFAULT_DIR = path.join(os.homedir(), ".claude", "scripts");
+const CENSUS_FILE = path.join(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "..",
+  "docs",
+  "integrity",
+  "wrapper-census.json",
+);
 const args = process.argv.slice(2);
 const BRIEF = args.includes("--brief");
 const targets = args.filter((a) => !a.startsWith("--"));
@@ -111,11 +120,38 @@ for (const target of targets) {
     process.exit(2);
   }
   for (const file of files) {
-    scripts.push({ name: path.basename(file), source: await readFile(file, "utf8") });
+    // The exec bit is carried for the census, not for the verdict: a `*.sh` is collected either
+    // way, but for every other language it is the whole reason the file is here at all, so losing
+    // it is a silent end to that wrapper's coverage (Q84 inc.158).
+    let executable = true;
+    try {
+      await access(file, constants.X_OK);
+    } catch {
+      executable = false;
+    }
+    scripts.push({ name: path.basename(file), source: await readFile(file, "utf8"), executable });
   }
 }
 
 const audit = auditWrapperClocks(scripts, unjudged);
+
+/**
+ * Q84 inc.158 — write the census BEFORE any verdict block, because every one of them exits.
+ *
+ * Written on every default-directory run rather than behind a flag: the driver's tick is the only
+ * thing that runs this gate, it runs `--brief`, and it commits its increment — so the census lands
+ * in a diff at the cadence the wrappers actually change. Behind a flag it would be as unenforced
+ * as the two shell comments inc.142 deleted.
+ *
+ * Only for the default directory. A human pointing this at one file or a scratch copy would
+ * otherwise overwrite the committed record of the real machine with a partial one, which is a
+ * worse lie than having no record.
+ */
+async function writeCensus() {
+  if (targets.length !== 1 || targets[0] !== DEFAULT_DIR) return;
+  const census = wrapperCensus(audit, scripts);
+  await writeFile(CENSUS_FILE, `${JSON.stringify(census, null, 2)}\n`);
+}
 const { findings, usesRepoStamp, skipped, triggeredBy, unrankedGateVars, strandedGateVars } = audit;
 const { silencedComposers } = audit;
 const scanned = scripts.length - skipped.length;
@@ -123,6 +159,11 @@ const scanned = scripts.length - skipped.length;
 // --brief has exactly one job: hand the driver the sentence the next increment will read. The
 // sentence and its exit code are decided in the repo under test (Q84 inc.144), so this file does
 // not get to reword the enforcement it is delivering.
+// Never on a zero-wrapper scan: that outcome is "the rule was not checked", and overwriting the
+// committed record with an empty one would turn a scan that saw nothing into a repo that says
+// there is nothing to see.
+if (scripts.length > 0) await writeCensus();
+
 if (BRIEF) {
   const { code, line } = clockGateBrief(audit);
   if (line) console.error(line);

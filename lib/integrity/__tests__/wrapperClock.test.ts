@@ -6,6 +6,7 @@ import {
   ROB_FACING_SURFACES,
   REPO_STAMP_CALL,
   TRIGGER_CALLS,
+  wrapperCensus,
 } from "../wrapperClock";
 
 const script = (source: string, name = "some-wrapper.sh") => [{ name, source }];
@@ -731,5 +732,54 @@ describe("python siblings (Q84 inc.156)", () => {
     ]);
     expect(unjudged).toEqual(["thing.rb"]);
     expect(findings).toEqual([]);
+  });
+});
+
+describe("wrapperCensus", () => {
+  const entry = (name: string, source: string, executable = true) => ({ name, source, executable });
+
+  it("records the role of each wrapper the gate saw", () => {
+    const entries = [
+      entry("b-writes.sh", `date '+%F %T %Z' >> "$HOME/.claude/memory/crm-driver.log"`),
+      entry("a-quiet.sh", `echo hello`),
+    ];
+    const census = wrapperCensus(auditWrapperClocks(entries), entries);
+    // Sorted by name, so a census diff shows the change and not a reordering of the directory.
+    expect(census.wrappers.map((w) => w.name)).toEqual(["a-quiet.sh", "b-writes.sh"]);
+    expect(census.wrappers[0]).toMatchObject({ role: "skipped", language: "shell" });
+    expect(census.wrappers[1]).toMatchObject({ role: "judged", language: "shell" });
+  });
+
+  it("marks a language it has no reader for as unjudged, never as skipped", () => {
+    const entries = [entry("thing.rb", `#!/usr/bin/env ruby\nputs Time.now`)];
+    const census = wrapperCensus(auditWrapperClocks(entries), entries);
+    expect(census.wrappers[0]).toMatchObject({ role: "unjudged", language: "unknown" });
+  });
+
+  it("carries the exec bit, which is the only reason a non-.sh wrapper is collected at all", () => {
+    const entries = [entry("tracker.py", `#!/usr/bin/env python3\nT.write_text("x")`, false)];
+    const census = wrapperCensus(auditWrapperClocks(entries), entries);
+    expect(census.wrappers[0]).toMatchObject({ name: "tracker.py", executable: false });
+  });
+
+  it("records who asks the repo for its stamp and who runs this gate", () => {
+    const entries = [
+      entry(
+        "driver.sh",
+        `STAMP="$(node scripts/${REPO_STAMP_CALL})"\n` +
+          `npm run ${TRIGGER_CALLS[1]} -- --brief\n` +
+          `echo "$STAMP" >> "$HOME/.claude/memory/crm-driver.log"`,
+      ),
+    ];
+    const census = wrapperCensus(auditWrapperClocks(entries), entries);
+    expect(census.wrappers[0]).toMatchObject({ repoStamp: true, triggersGate: true });
+  });
+
+  it("emits no timestamp, so an unchanged directory produces an unchanged file", () => {
+    const entries = [entry("a.sh", `echo hi`)];
+    const first = wrapperCensus(auditWrapperClocks(entries), entries);
+    const second = wrapperCensus(auditWrapperClocks(entries), entries);
+    expect(JSON.stringify(first)).toEqual(JSON.stringify(second));
+    expect(JSON.stringify(first)).not.toMatch(/\d{4}-\d{2}-\d{2}/);
   });
 });

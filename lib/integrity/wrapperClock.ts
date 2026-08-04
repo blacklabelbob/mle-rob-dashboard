@@ -1113,3 +1113,71 @@ export function auditWrapperClocks(
     unjudged: unjudgedNames,
   };
 }
+
+/**
+ * What this gate saw, in a shape that can be committed (Q84 inc.158).
+ *
+ * WHY THIS IS AN INVENTORY AND NOT A FINGERPRINT OF THE STAMPS. The obvious version of "commit
+ * what the gate passed" is the stamp lines themselves. That version is worth nothing and costs
+ * noise: the gate RE-READS and RE-JUDGES every wrapper on every driver tick, so a stamp that
+ * regresses is already caught live and loudly — while a recorded copy of those lines would churn
+ * on every unrelated edit near them until the diff is muted as routine.
+ *
+ * What the live gate genuinely cannot notice is a wrapper that stops being SEEN. Every count it
+ * prints is derived from what `collect()` found, so a wrapper that is deleted, renamed, or loses
+ * the exec bit that got it collected simply drops out of the total and the run still prints four
+ * ✓. `project-tracker.py` is the live example: it is not `*.sh`, so its exec bit is the entire
+ * reason it is judged at all — `chmod -x` on it silently ends both its clock coverage and Rob's
+ * daily-brief refresh, and nothing in this repo or that directory would say a word. Those
+ * wrappers are machine-local and untracked, so git cannot see the change either.
+ *
+ * So the census records ROLE, not content: who exists, what language they are read as, whether
+ * they are executable, and what this gate does with each. It changes when the SET of wrappers or
+ * one wrapper's relationship to Rob's surfaces changes — which is exactly the event that has no
+ * other witness.
+ *
+ * DELIBERATELY NO TIMESTAMP. A generated-at line would make every tick a diff, which would defeat
+ * the one property that makes this readable: a diff here means something actually changed.
+ */
+export type WrapperCensusRow = {
+  name: string;
+  /** As `languageOf` read it — `unknown` is why a row can be `unjudged`. */
+  language: ScriptLanguage;
+  executable: boolean;
+  /**
+   * What the gate did with it. `judged` = read and held to the clock rule; `skipped` = read, but
+   * writes to none of Rob's surfaces; `unjudged` = never read (no reader for its language).
+   */
+  role: "judged" | "skipped" | "unjudged";
+  /** Asks the repo for its stamp — the compliant shape, and a thing worth noticing the loss of. */
+  repoStamp: boolean;
+  /** Runs this gate. If every `true` here disappears, the rule is unenforced (inc.143). */
+  triggersGate: boolean;
+};
+
+export type WrapperCensus = { wrappers: WrapperCensusRow[] };
+
+export function wrapperCensus(
+  audit: ClockAudit,
+  entries: { name: string; source: string; executable: boolean }[],
+): WrapperCensus {
+  const skipped = new Set(audit.skipped);
+  const unjudged = new Set(audit.unjudged);
+  const repoStamp = new Set(audit.usesRepoStamp);
+  const triggers = new Set(audit.triggeredBy);
+
+  const wrappers = entries
+    .map(({ name, source, executable }) => ({
+      name,
+      language: languageOf(name, source),
+      executable,
+      // Order matters: a file with no reader is never "skipped" — skipping is a judgement that it
+      // touches none of Rob's surfaces, and that judgement was never made for an unread file.
+      role: unjudged.has(name) ? "unjudged" : skipped.has(name) ? "skipped" : "judged",
+      repoStamp: repoStamp.has(name),
+      triggersGate: triggers.has(name),
+    }))
+    .sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+
+  return { wrappers } as WrapperCensus;
+}

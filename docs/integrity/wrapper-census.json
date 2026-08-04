@@ -1,0 +1,268 @@
+{
+  "wrappers": [
+    {
+      "name": "agent-spawn-guard.sh",
+      "language": "shell",
+      "executable": true,
+      "role": "skipped",
+      "repoStamp": false,
+      "triggersGate": false
+    },
+    {
+      "name": "bash-destructive-guard.sh",
+      "language": "shell",
+      "executable": true,
+      "role": "skipped",
+      "repoStamp": false,
+      "triggersGate": false
+    },
+    {
+      "name": "changelog-guard.sh",
+      "language": "shell",
+      "executable": true,
+      "role": "skipped",
+      "repoStamp": false,
+      "triggersGate": false
+    },
+    {
+      "name": "crm-build-driver.sh",
+      "language": "shell",
+      "executable": true,
+      "role": "judged",
+      "repoStamp": true,
+      "triggersGate": true
+    },
+    {
+      "name": "daily-driver.sh",
+      "language": "shell",
+      "executable": true,
+      "role": "judged",
+      "repoStamp": false,
+      "triggersGate": false
+    },
+    {
+      "name": "daily-email.sh",
+      "language": "shell",
+      "executable": true,
+      "role": "skipped",
+      "repoStamp": false,
+      "triggersGate": false
+    },
+    {
+      "name": "driver-lock.sh",
+      "language": "shell",
+      "executable": true,
+      "role": "skipped",
+      "repoStamp": false,
+      "triggersGate": false
+    },
+    {
+      "name": "driver-lock.test.sh",
+      "language": "shell",
+      "executable": true,
+      "role": "skipped",
+      "repoStamp": false,
+      "triggersGate": false
+    },
+    {
+      "name": "existing-tools-check.sh",
+      "language": "shell",
+      "executable": true,
+      "role": "skipped",
+      "repoStamp": false,
+      "triggersGate": false
+    },
+    {
+      "name": "gamma-transcript-gate.sh",
+      "language": "shell",
+      "executable": true,
+      "role": "skipped",
+      "repoStamp": false,
+      "triggersGate": false
+    },
+    {
+      "name": "hold-signal.sh",
+      "language": "shell",
+      "executable": true,
+      "role": "skipped",
+      "repoStamp": false,
+      "triggersGate": false
+    },
+    {
+      "name": "judge-cover.py",
+      "language": "python",
+      "executable": true,
+      "role": "skipped",
+      "repoStamp": false,
+      "triggersGate": false
+    },
+    {
+      "name": "judge-gate.sh",
+      "language": "shell",
+      "executable": true,
+      "role": "skipped",
+      "repoStamp": false,
+      "triggersGate": false
+    },
+    {
+      "name": "judge-rule.sh",
+      "language": "shell",
+      "executable": true,
+      "role": "skipped",
+      "repoStamp": false,
+      "triggersGate": false
+    },
+    {
+      "name": "judge-tier.sh",
+      "language": "shell",
+      "executable": true,
+      "role": "skipped",
+      "repoStamp": false,
+      "triggersGate": false
+    },
+    {
+      "name": "ledger-check.sh",
+      "language": "shell",
+      "executable": true,
+      "role": "judged",
+      "repoStamp": false,
+      "triggersGate": false
+    },
+    {
+      "name": "mark-transcript-failed.sh",
+      "language": "shell",
+      "executable": true,
+      "role": "skipped",
+      "repoStamp": false,
+      "triggersGate": false
+    },
+    {
+      "name": "mark-transcript-ready.sh",
+      "language": "shell",
+      "executable": true,
+      "role": "skipped",
+      "repoStamp": false,
+      "triggersGate": false
+    },
+    {
+      "name": "meeting-intake.sh",
+      "language": "shell",
+      "executable": false,
+      "role": "judged",
+      "repoStamp": true,
+      "triggersGate": false
+    },
+    {
+      "name": "mission-control-reporter.sh",
+      "language": "shell",
+      "executable": true,
+      "role": "skipped",
+      "repoStamp": false,
+      "triggersGate": false
+    },
+    {
+      "name": "n8n-api-key-check.sh",
+      "language": "shell",
+      "executable": true,
+      "role": "skipped",
+      "repoStamp": false,
+      "triggersGate": false
+    },
+    {
+      "name": "n8n-import-stage3.sh",
+      "language": "shell",
+      "executable": true,
+      "role": "skipped",
+      "repoStamp": false,
+      "triggersGate": false
+    },
+    {
+      "name": "prd-autosave.sh",
+      "language": "shell",
+      "executable": true,
+      "role": "skipped",
+      "repoStamp": false,
+      "triggersGate": false
+    },
+    {
+      "name": "prd-realtime.sh",
+      "language": "shell",
+      "executable": true,
+      "role": "skipped",
+      "repoStamp": false,
+      "triggersGate": false
+    },
+    {
+      "name": "prd-snapshot.sh",
+      "language": "shell",
+      "executable": true,
+      "role": "skipped",
+      "repoStamp": false,
+      "triggersGate": false
+    },
+    {
+      "name": "pre-compact-snapshot.sh",
+      "language": "shell",
+      "executable": true,
+      "role": "skipped",
+      "repoStamp": false,
+      "triggersGate": false
+    },
+    {
+      "name": "project-tracker.py",
+      "language": "python",
+      "executable": true,
+      "role": "judged",
+      "repoStamp": false,
+      "triggersGate": false
+    },
+    {
+      "name": "repo-backup-check.sh",
+      "language": "shell",
+      "executable": true,
+      "role": "skipped",
+      "repoStamp": false,
+      "triggersGate": false
+    },
+    {
+      "name": "session-start-briefing.sh",
+      "language": "shell",
+      "executable": true,
+      "role": "skipped",
+      "repoStamp": false,
+      "triggersGate": false
+    },
+    {
+      "name": "skill-activation-prompt.sh",
+      "language": "shell",
+      "executable": true,
+      "role": "skipped",
+      "repoStamp": false,
+      "triggersGate": false
+    },
+    {
+      "name": "sync-system-map.sh",
+      "language": "shell",
+      "executable": true,
+      "role": "skipped",
+      "repoStamp": false,
+      "triggersGate": false
+    },
+    {
+      "name": "update-progress.sh",
+      "language": "shell",
+      "executable": true,
+      "role": "skipped",
+      "repoStamp": false,
+      "triggersGate": false
+    },
+    {
+      "name": "voice-law-update-driver.sh",
+      "language": "shell",
+      "executable": true,
+      "role": "skipped",
+      "repoStamp": false,
+      "triggersGate": false
+    }
+  ]
+}
