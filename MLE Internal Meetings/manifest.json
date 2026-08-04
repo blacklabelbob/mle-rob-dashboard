@@ -1,8 +1,31 @@
 {
   "generatedBy": "scripts/fireflies-ingest.mjs",
   "source": "fireflies",
-  "count": 15,
+  "count": 16,
   "meetings": [
+    {
+      "id": "01KZ5077XC5JW5P57VHK0HNRJJ",
+      "title": "Rob & Austin | MArtin Fierro",
+      "date": "2026-08-03T23:45:00.000Z",
+      "durationMinutes": 63,
+      "organizerDomain": "aivoicetech.io",
+      "participantCount": 2,
+      "participantDomains": [
+        "aivoicetech.io",
+        "gmail.com"
+      ],
+      "keywords": [
+        "Cloudflare",
+        "automations",
+        "SEO",
+        "Martin Fiero",
+        "client meeting",
+        "AI agents"
+      ],
+      "sentences": 762,
+      "fireflies": "https://app.fireflies.ai/view/01KZ5077XC5JW5P57VHK0HNRJJ",
+      "bodyOnDisk": true
+    },
     {
       "id": "01KYQH9MJZ87R45TRHFCDG7AMD",
       "title": "Rob & Dix | MLE & Skin Cancer Detection AI Model",
