@@ -97,8 +97,15 @@ export function clockGateBrief(audit: ClockAudit): ClockGateBrief {
   // proven defects in what the wrapper DOES; this one is a defect in what the wrapper can TELL
   // you, and it only costs anything on the tick something else breaks. Stating it after them is
   // that difference written down, not a judgement that it is small.
+  // Q84 inc.155 appends the fourth on the same terms, and after the other three. Those are
+  // defects in wrappers this gate READ; this one says the ✓ line does not cover the whole
+  // directory. It rides rather than competes for the same reason as its three siblings — the
+  // driver hears exactly one `^CLOCK GATE` line per tick, so a ranked loser vanishes.
   const unranked =
-    strandedGateSentence(audit) + unrankedGateSentence(audit) + silencedComposerSentence(audit);
+    strandedGateSentence(audit) +
+    unrankedGateSentence(audit) +
+    silencedComposerSentence(audit) +
+    unjudgedSiblingSentence(audit);
 
   // Q84 inc.154 — outranks even inc.153's, because it is the case where there was nothing to read
   // AT ALL. inc.153 predicted a false green here (four ✓ over a zero-wrapper scan); measured, that
@@ -164,6 +171,26 @@ export function clockGateBrief(audit: ClockAudit): ClockGateBrief {
     return { code: 4, line: `${BRIEF_MARKER} IS CLEAN, BUT${unranked.replace(/^ /, " ")}` };
   }
   return { code: 0, line: null };
+}
+
+/**
+ * The suffix sentence for executable siblings the gate never opened (Q84 inc.155).
+ *
+ * Says "not judged", never "wrong": the detector below reads `date '+FMT'`, so it has no opinion
+ * about a Python or Ruby stamp and must not imply one. What it does state is that the ✓ lines are
+ * scoped to `*.sh` — which, measured on the live tree, is the difference between a clean report
+ * and an unlabeled `%Y-%m-%d %H:%M` reaching PROJECT-TRACKER.md every day.
+ */
+function unjudgedSiblingSentence(audit: ClockAudit): string {
+  const files = audit.unjudged;
+  if (files.length === 0) return "";
+  return (
+    ` ${files.length} executable sibling${files.length === 1 ? "" : "s"} in the scanned directory ` +
+    `${files.length === 1 ? "was" : "were"} NOT JUDGED — ${files.join(", ")}. This gate reads ` +
+    "`*.sh` only, so the ✓ above covers the shell wrappers and nothing else; these run on the " +
+    "same machine, at the same cadence, into the same files Rob reads. Not a claim that they are " +
+    "wrong — a statement that nobody looked (Q84 inc.155)."
+  );
 }
 
 /** The suffix sentence for unranked `DRIVER_*` gates — empty when there are none, so callers can
@@ -318,6 +345,22 @@ export type ClockAudit = {
    * the clean verdict rather than riding it as a suffix.
    */
   unreadable: UnreadableScriptFinding[];
+  /**
+   * Executable siblings in the scanned directory that this gate cannot judge (Q84 inc.155).
+   *
+   * `unreadable` is a file this parse STARTED and could not finish. This is the file it never
+   * opened: `collect()` takes `*.sh`, and every ✓ below is then printed over a directory that
+   * also holds executables in other languages. Measured on the live tree, that silence is not
+   * theoretical — `project-tracker.py:88` mints `datetime.now().strftime("%Y-%m-%d %H:%M")`,
+   * no zone, and writes it into `PROJECT-TRACKER.md` and `PROJECT-CHANGELOG.md`, both files the
+   * daily brief points Rob at. That is the exact defect inc.139/140/141 fixed by hand and inc.142
+   * built this gate to stop, sitting one filename extension outside its reach.
+   *
+   * Named rather than judged, deliberately: the finding detector reads `date '+FMT'`, which is
+   * shell. Reporting a Python stamp as compliant because no `date` call appears in it would be a
+   * worse lie than the current silence. So the honest output is the file name and "not judged".
+   */
+  unjudged: string[];
   /** Scripts that write to a surface AND ask the repo for their stamp — the compliant shape. */
   usesRepoStamp: string[];
   /** Scripts scanned but skipped because they touch none of Rob's surfaces. */
@@ -756,8 +799,14 @@ function formatsOn(line: string): string[] {
  * Audit shell wrappers for stamps that reach Rob without naming their clock.
  *
  * @param scripts each `{ name, source }`; sources are read by the caller so this stays pure.
+ * @param unjudged names of executable siblings this gate cannot read (Q84 inc.155). Carried
+ *   through rather than computed here for the same reason `scripts` is: deciding which files
+ *   exist is I/O, and this function is the part that must stay testable without a filesystem.
  */
-export function auditWrapperClocks(scripts: { name: string; source: string }[]): ClockAudit {
+export function auditWrapperClocks(
+  scripts: { name: string; source: string }[],
+  unjudged: string[] = [],
+): ClockAudit {
   const findings: ClockFinding[] = [];
   const usesRepoStamp: string[] = [];
   const skipped: string[] = [];
@@ -844,5 +893,6 @@ export function auditWrapperClocks(scripts: { name: string; source: string }[]):
     strandedGateVars,
     silencedComposers,
     unreadable,
+    unjudged,
   };
 }

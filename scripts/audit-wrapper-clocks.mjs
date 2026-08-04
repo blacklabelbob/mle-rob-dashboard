@@ -13,8 +13,10 @@
 //      (Q84 inc.154). One code for both because the reader's action is the same: find the
 //      wrappers. A silent skip in either shape would read as "clean".
 //   3  clean, but NO wrapper runs this gate — the rule is unenforced (Q84 inc.143)
-//   4  clean and wired, but a wrapper hands the driver a `DRIVER_*` gate that GATE_ORDER does not
-//      rank — it fires and is printed, and nothing decides what it beats (Q84 inc.148)
+//   4  clean and wired, but something the report cannot let pass as ✓: an unranked or stranded
+//      `DRIVER_*` gate (inc.148/149), a composer whose stderr is discarded (inc.150), or an
+//      executable sibling this gate never opened (inc.155). One code for all four because the
+//      driver acts on the SENTENCE and never reads the number.
 //
 // WHERE THE TRIGGER LIVES, AND WHY NOT A GIT HOOK (Q84 inc.143). The files judged here are not in
 // this repo, so a repo commit is not the event that introduces the defect — a new wrapper appears
@@ -35,7 +37,7 @@
 // alongside the six sibling `audit:*` scripts, none of which are in `.github/workflows/ci.yml`
 // either. If a future run "fixes" CI by adding it, that is the mistake this paragraph exists for.
 
-import { readdir, readFile, stat } from "node:fs/promises";
+import { access, constants, readdir, readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
 import {
@@ -57,19 +59,43 @@ const say = (line) => {
   if (!BRIEF) console.log(line);
 };
 
-/** Expand a directory to its shell scripts; a file is taken as given. */
+/**
+ * Expand a directory to its shell scripts, AND name the executables it walked past (inc.155).
+ *
+ * A sibling counts as unjudged only if it is executable and opens with a shebang — the test for
+ * "this file is run", not "this file is not .sh". The two prompt `.txt` files next to the real
+ * wrappers are data and stay silent; `judge-cover.py` and `project-tracker.py` are programs on
+ * the same timer writing into the same files, and get named. A `.sh.bak` still carrying its
+ * exec bit is named too, on purpose: an executable backup is one stray invocation from running.
+ */
 async function collect(target) {
   const info = await stat(target);
-  if (!info.isDirectory()) return [target];
+  if (!info.isDirectory()) return { files: [target], unjudged: [] };
   const entries = await readdir(target);
-  return entries.filter((e) => e.endsWith(".sh")).map((e) => path.join(target, e));
+  const files = entries.filter((e) => e.endsWith(".sh")).map((e) => path.join(target, e));
+  const unjudged = [];
+  for (const entry of entries.filter((e) => !e.endsWith(".sh"))) {
+    const full = path.join(target, entry);
+    try {
+      if (!(await stat(full)).isFile()) continue;
+      await access(full, constants.X_OK);
+      const head = await readFile(full, "utf8");
+      if (head.startsWith("#!")) unjudged.push(entry);
+    } catch {
+      // Unreadable or not executable — not a wrapper this gate is failing to cover.
+    }
+  }
+  return { files, unjudged };
 }
 
 const scripts = [];
+const unjudged = [];
 for (const target of targets) {
   let files;
   try {
-    files = await collect(target);
+    const found = await collect(target);
+    files = found.files;
+    unjudged.push(...found.unjudged);
   } catch (err) {
     // Even in --brief this speaks: "cannot read" is the one outcome that must never pass as clean.
     console.error(
@@ -85,7 +111,7 @@ for (const target of targets) {
   }
 }
 
-const audit = auditWrapperClocks(scripts);
+const audit = auditWrapperClocks(scripts, unjudged);
 const { findings, usesRepoStamp, skipped, triggeredBy, unrankedGateVars, strandedGateVars } = audit;
 const { silencedComposers } = audit;
 const scanned = scripts.length - skipped.length;
@@ -238,7 +264,32 @@ if (silencedComposers.length > 0) {
   );
 }
 
-if (strandedGateVars.length > 0 || unrankedGateVars.length > 0 || silencedComposers.length > 0) {
+// Q84 inc.155 — last, and about the report itself rather than any wrapper in it: the four ✓ below
+// are scoped to `*.sh`, and this names what that scope left out. Same exit 4 as its three
+// siblings — the action is one trip into the same directory — because a fifth code would imply a
+// distinction the driver acts on, and it acts only on the sentence (inc.154's own reasoning).
+if (audit.unjudged.length > 0) {
+  for (const f of audit.unjudged) {
+    console.error(`\n✖ ${f}  executable, shebanged, and never opened — this gate reads *.sh only`);
+  }
+  console.error(
+    `\n${audit.unjudged.length} sibling${audit.unjudged.length === 1 ? "" : "s"} not judged. They ` +
+      `run on the same machine, on the same timers, into the same files Rob reads — the ✓ lines ` +
+      `below do not cover them, and until now nothing said so.`,
+  );
+  console.error(
+    `Fix: teach this audit that language (the finding detector reads \`date '+FMT'\`, which is ` +
+      `shell), or confirm the file is not a wrapper. Measured 2026-08-04: project-tracker.py:88 ` +
+      `mints \`%Y-%m-%d %H:%M\` with no zone into PROJECT-TRACKER.md and PROJECT-CHANGELOG.md.`,
+  );
+}
+
+if (
+  strandedGateVars.length > 0 ||
+  unrankedGateVars.length > 0 ||
+  silencedComposers.length > 0 ||
+  audit.unjudged.length > 0
+) {
   process.exit(4);
 }
 

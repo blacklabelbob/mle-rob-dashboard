@@ -611,4 +611,40 @@ describe("auditWrapperClocks", () => {
       expect(audit.triggeredBy).toEqual(["some-wrapper.sh"]);
     });
   });
+
+  // Q84 inc.155 — the sibling this gate never opened. Measured, not hypothesised: the live
+  // wrapper directory holds `project-tracker.py`, executable, which mints an unlabeled
+  // `%Y-%m-%d %H:%M` into PROJECT-TRACKER.md and PROJECT-CHANGELOG.md while the report said ✓.
+  describe("executables the gate reads past", () => {
+    const wired = "npm run audit:clocks -- --brief\ndate '+%T %Z' >> crm-driver.log\n";
+    const clean = () => auditWrapperClocks(script(wired), ["project-tracker.py"]);
+
+    it("does not let a clean *.sh scan report ✓ over an unjudged executable", () => {
+      const { code, line } = clockGateBrief(clean());
+      expect(code).toBe(4);
+      expect(line).toContain("NOT JUDGED");
+      expect(line).toContain("project-tracker.py");
+    });
+
+    it("stays silent — and exits 0 — when there are no unjudged siblings", () => {
+      expect(clockGateBrief(auditWrapperClocks(script(wired)))).toEqual({ code: 0, line: null });
+    });
+
+    it("rides the verdict instead of replacing it, so a red stamp is still the headline", () => {
+      const { code, line } = clockGateBrief(
+        auditWrapperClocks(script(`${wired}date '+%H:%M' >> crm-driver.log`), ["project-tracker.py"]),
+      );
+      expect(code).toBe(1);
+      expect(line?.startsWith(`${BRIEF_MARKER} IS RED`)).toBe(true);
+      expect(line).toContain("project-tracker.py");
+    });
+
+    it("says NOT JUDGED, never that the sibling is wrong — nothing read it", () => {
+      expect(clockGateBrief(clean()).line).not.toContain("unlabeled");
+    });
+
+    it("keeps every ^CLOCK GATE line matchable by the driver's grep", () => {
+      expect(clockGateBrief(clean()).line?.startsWith(BRIEF_MARKER)).toBe(true);
+    });
+  });
 });
