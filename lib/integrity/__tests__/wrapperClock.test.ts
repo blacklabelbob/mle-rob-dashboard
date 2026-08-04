@@ -443,6 +443,20 @@ describe("auditWrapperClocks", () => {
       expect(line).toContain("some-wrapper.sh:3");
     });
 
+    it("does not flag a redirect that only survives in a trailing note (Q84 inc.151)", () => {
+      const { silencedComposers } = auditWrapperClocks(
+        script(`${wired}node scripts/driver-prompt.mjs "$B" 2>"$ERR"  # was 2>/dev/null until 08-04`),
+      );
+      expect(silencedComposers).toEqual([]);
+    });
+
+    it("still flags the real redirect when a note follows it on the same line", () => {
+      const { silencedComposers } = auditWrapperClocks(
+        script(`${wired}node scripts/driver-prompt.mjs "$B" 2>/dev/null  # quiet on purpose`),
+      );
+      expect(silencedComposers).toEqual([{ script: "some-wrapper.sh", line: 3 }]);
+    });
+
     it("is stated after both gate findings, never instead of them", () => {
       const { line } = clockGateBrief(
         auditWrapperClocks(
@@ -453,6 +467,52 @@ describe("auditWrapperClocks", () => {
       );
       expect(line!.indexOf("NEVER REACHES")).toBeLessThan(line!.indexOf("NO RANK"));
       expect(line!.indexOf("NO RANK")).toBeLessThan(line!.indexOf("diagnostics are DISCARDED"));
+    });
+  });
+
+  // Q84 inc.151 — every scan above looks for a needle in wrapper text, and until now "comment"
+  // meant a comment on its OWN line. A note at the end of a live line was read as the thing it is
+  // a note about — in one direction a permanent false red, in the other a false GREEN on the gate
+  // that enforces the rest.
+  describe("a note at the end of a live line", () => {
+    const wired = "npm run audit:clocks -- --brief\ndate '+%T %Z' >> crm-driver.log\n";
+
+    it("does not make an UNWIRED gate report itself as wired — the false-green direction", () => {
+      const audit = auditWrapperClocks(
+        script(`date '+%T %Z' >> crm-driver.log  # check by hand: npm run audit:clocks`),
+      );
+      expect(audit.triggeredBy).toEqual([]);
+      expect(clockGateBrief(audit).code).toBe(3);
+    });
+
+    it("does not demand a zone for a stamp that only appears in a note", () => {
+      const { findings } = auditWrapperClocks(
+        script(`${wired}printf '%s\\n' "$STAMP" >> crm-driver.log  # was date '+%H:%M'`),
+      );
+      expect(findings).toEqual([]);
+    });
+
+    it("does not read a gate name out of a note", () => {
+      const { unrankedGateVars } = auditWrapperClocks(
+        script(`${wired}node scripts/driver-prompt.mjs "$B"  # add DRIVER_NEW_GATE="$N" here later`),
+      );
+      expect(unrankedGateVars).toEqual([]);
+    });
+
+    it("leaves a mid-word `#` alone — `${VAR#pre}` is code, not a comment", () => {
+      const { unrankedGateVars } = auditWrapperClocks(
+        script(`${wired}DRIVER_NEW_GATE="\${RAW#prefix}" node scripts/driver-prompt.mjs "$B"`),
+      );
+      expect(unrankedGateVars).toEqual([
+        { script: "some-wrapper.sh", line: 3, envVar: "DRIVER_NEW_GATE" },
+      ]);
+    });
+
+    it("leaves a `#` inside quotes alone — an echoed sentence is prose, not a comment", () => {
+      const audit = auditWrapperClocks(
+        script(`echo "see # below and run npm run audit:clocks"\ndate '+%T %Z' >> crm-driver.log`),
+      );
+      expect(audit.triggeredBy).toEqual(["some-wrapper.sh"]);
     });
   });
 });

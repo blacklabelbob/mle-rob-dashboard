@@ -316,7 +316,7 @@ function redirectTargets(line: string): string[] {
  * `cat "$PING_INBOX"` — proves nothing about whose clock the script keeps.
  */
 function surfacesWritten(source: string): string[] {
-  const lines = source.split("\n").filter((l) => !/^\s*#/.test(l));
+  const lines = codeLines(source);
   return ROB_FACING_SURFACES.filter((surface) => {
     // The path is almost always held in a variable — `PING_INBOX="$MEM/PING-INBOX.md"` — and the
     // redirect that uses it sits fifty lines away, so the literal name alone would miss every
@@ -348,13 +348,12 @@ function surfacesWritten(source: string): string[] {
  */
 function driverVarAssignments(source: string): { envVar: string; line: number; travels: boolean }[] {
   const out: { envVar: string; line: number; travels: boolean }[] = [];
-  const physical = source.split("\n");
+  const physical = codeLines(source);
   // Q84 inc.149 — a bare `export DRIVER_X` (no `=`) on any later line makes an earlier local
   // assignment travel after all. It is ordinary shell and omitting it would put a permanent false
   // red in front of a wrapper that is correct, which is the one failure this gate cannot afford.
   const bareExported = new Set<string>();
   for (const line of physical) {
-    if (/^\s*#/.test(line)) continue;
     const m = /^\s*export\s+([A-Za-z_][A-Za-z0-9_ ]*)$/.exec(line.replace(/\s+$/, ""));
     if (!m) continue;
     for (const name of m[1].split(/\s+/)) {
@@ -388,10 +387,10 @@ function driverVarAssignments(source: string): { envVar: string; line: number; t
  * would come back on their own schedule.
  */
 function logicalLines(source: string): { text: string; lineOf: (index: number) => number }[] {
-  const physical = source.split("\n");
+  const physical = codeLines(source);
   const out: { text: string; lineOf: (index: number) => number }[] = [];
   for (let i = 0; i < physical.length; i++) {
-    if (/^\s*#/.test(physical[i])) continue;
+    if (physical[i].trim() === "") continue;
     // `offsets[n]` = index in the joined string at which physical line i+n begins.
     const offsets = [0];
     let text = physical[i];
@@ -412,6 +411,104 @@ function logicalLines(source: string): { text: string; lineOf: (index: number) =
     i += offsets.length - 1;
   }
   return out;
+}
+
+/**
+ * A wrapper's lines with every comment removed — leading AND trailing (Q84 inc.151).
+ *
+ * Position is preserved (one entry per physical line, a whole-line comment becomes ""), because
+ * every finding this file emits is reported at the line it is written on and an index shift would
+ * point Rob at the wrong line of a file he then has to edit by hand.
+ *
+ * WHY THIS EXISTS AT ALL. Up to inc.150 each scan here filtered `/^\s*#/` — a comment on its OWN
+ * line — and read everything else as code. Six scans then looked for six needles (`DRIVER_*=`,
+ * `driver-prompt.mjs`, `2>/dev/null`, `audit:clocks`, `date`, `>>` at a Rob-facing surface), and a
+ * trailing `# …` note carrying any of them is read as the thing it is a note ABOUT. Both directions
+ * are live defects: `node … driver-prompt.mjs "$B"  # was 2>/dev/null` is a permanent false red in
+ * front of every increment, and `# see: npm run audit:clocks` on a live line makes the UNWIRED gate
+ * (exit 3) report itself as wired — a false green on the rule that enforces all the others.
+ *
+ * MEASURED BEFORE BUILT, and the honest number is stated: all 31 wrappers in `~/.claude/scripts`
+ * were scanned for this shape and NONE has it today. So this hardens against a defect that has not
+ * fired yet — bought because a comment is the one edit a human makes without thinking, the failure
+ * is silent in both directions, and the fix is a strip the six scans already need to share.
+ *
+ * `#` ONLY OPENS A COMMENT AT A WORD START, which is shell's rule and not a nicety: `${VAR#pre}`,
+ * `$#`, `${#ARR[@]}` and `file#1` all carry a `#` mid-word, and a naive cut at the first one would
+ * silently truncate real code — turning this guard into the source of the false readings it exists
+ * to prevent. Quote state is tracked for the same reason `redirectTargets` tracks it: a `#` inside
+ * an echoed sentence is prose.
+ *
+ * NOT A SHELL PARSER: a `#` inside a heredoc body is stripped as if it were code. That is inert
+ * here — every needle above is a command, and no wrapper in the tree heredocs one — and a real
+ * parser would be a far larger surface than the six greps it serves.
+ */
+function codeLines(source: string): string[] {
+  // Quote state RUNS from line to line, because the wrapper's own composer call opens `PROMPT="`
+  // on one line and closes it three lines later: judging line 171 alone counts three quotes, calls
+  // the note that follows them "quoted", and leaves it in the code. That is not a hypothetical —
+  // it is what the first live run of this strip did to the real `crm-build-driver.sh`.
+  //
+  // Carrying state is safe in the one way that matters: a comment is only ever recognised while
+  // UNQUOTED, and its text is dropped before the scan continues, so the apostrophe in
+  // `# the council's rules` can never leak into the next line's state.
+  const out: string[] = [];
+  let state = FRESH;
+  for (const line of source.split("\n")) {
+    const { code, next } = stripComment(line, state);
+    out.push(code);
+    state = next;
+  }
+  return out;
+}
+
+/** Quote/substitution state carried between physical lines. `stack` is the `$( … )` nesting. */
+type ShellState = { quote: string | null; stack: (string | null)[] };
+const FRESH: ShellState = { quote: null, stack: [] };
+
+/**
+ * One line with its comment removed, respecting quotes, `$( … )` nesting and shell's word-start
+ * rule — returning the state the NEXT line starts in.
+ *
+ * `$( … )` is a nested context with its OWN quote state, which is shell's actual rule and is
+ * load-bearing here rather than pedantry: the composer call is a command substitution written
+ * inside a double-quoted assignment, and every quote in it belongs to the inner context. Without
+ * the stack the outer `"` never closes and nothing after it is ever seen as code again.
+ */
+function stripComment(line: string, from: ShellState): { code: string; next: ShellState } {
+  let { quote } = from;
+  const stack = [...from.stack];
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    // A backslash escapes the next character anywhere except inside single quotes.
+    if (ch === "\\" && quote !== "'") {
+      i++;
+      continue;
+    }
+    if (quote !== "'" && ch === "$" && line[i + 1] === "(") {
+      stack.push(quote);
+      quote = null;
+      i++;
+      continue;
+    }
+    if (quote === null && ch === ")" && stack.length > 0) {
+      quote = stack.pop() ?? null;
+      continue;
+    }
+    if (quote) {
+      if (ch === quote) quote = null;
+      continue;
+    }
+    if (ch === '"' || ch === "'") {
+      quote = ch;
+      continue;
+    }
+    // A word start: the beginning of the line, or preceded by unquoted whitespace.
+    if (ch === "#" && (i === 0 || /\s/.test(line[i - 1]))) {
+      return { code: line.slice(0, i), next: { quote, stack } };
+    }
+  }
+  return { code: line, next: { quote, stack } };
 }
 
 /**
@@ -511,9 +608,12 @@ export function auditWrapperClocks(scripts: { name: string; source: string }[]):
     }
 
     // A commented-out invocation is not a trigger — it is a note about one, and the whole point
-    // of inc.142 was that a rule living in a comment lives nowhere.
+    // of inc.142 was that a rule living in a comment lives nowhere. Since inc.151 that holds for a
+    // note at the END of a live line too: this is the one scan whose false reading is a false
+    // GREEN — a `# run npm run audit:clocks by hand` would report the unwired gate as wired.
+    const code = codeLines(source);
     const invokes = (l: string) => TRIGGER_CALLS.some((needle) => l.includes(needle));
-    if (source.split("\n").some((l) => !/^\s*#/.test(l) && invokes(l))) {
+    if (code.some(invokes)) {
       triggeredBy.push(name);
     }
 
@@ -522,12 +622,11 @@ export function auditWrapperClocks(scripts: { name: string; source: string }[]):
       skipped.push(name);
       continue;
     }
-    if (source.includes(REPO_STAMP_CALL)) usesRepoStamp.push(name);
+    if (code.some((l) => l.includes(REPO_STAMP_CALL))) usesRepoStamp.push(name);
 
-    source.split("\n").forEach((line, i) => {
+    code.forEach((line, i) => {
       // A commented-out `date` is documentation of the old defect — inc.140 and inc.141 both left
       // one in place on purpose. Flagging it would punish the comment that explains the fix.
-      if (/^\s*#/.test(line)) return;
       if (!/\bdate\b/.test(line)) return;
       if (isParseInvocation(line)) return;
 
