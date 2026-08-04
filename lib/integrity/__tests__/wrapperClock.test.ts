@@ -6,6 +6,7 @@ import {
   departureFindings,
   departureKey,
   reconcileOpenDepartures,
+  unaskableKeyNote,
   type OpenDeparture,
   BRIEF_MARKER,
   ROB_FACING_SURFACES,
@@ -895,6 +896,40 @@ describe("departureFindings (Q84 inc.160)", () => {
     expect(f.severity).toBe("medium");
     expect(f.title).toContain("gone.sh");
     expect(f.detail).toContain("does not guess");
+  });
+
+  // Q84 inc.169 — the row whose key inc.168 refuses to send says so, and no other row changes.
+  it("says nothing extra on an ordinary key — the note is empty, not merely short", () => {
+    expect(unaskableKeyNote(departureKey("gone.sh"))).toBe("");
+    const [f] = departureFindings([dep()]);
+    expect(f.detail).not.toContain("inc.169");
+    expect(f.detail.endsWith("(Q84 inc.161).")).toBe(true);
+  });
+
+  it("tells Rob, in the row itself, when the gate cannot ask his ledger about it", () => {
+    const [f] = departureFindings([dep({ name: "run,thing.sh" })]);
+    expect(f.dedupeKey).toBe("wrapper-census-departure:run,thing.sh");
+    expect(f.detail).toContain("will not see you resolve it");
+    expect(f.detail).toContain("a row you closed reappears");
+    expect(f.detail).toContain("inc.169");
+  });
+
+  it("puts the same sentence on a CORRECTION of an unaskable row, not only on the filing", () => {
+    const prev: OpenDeparture[] = [
+      { name: "run,thing.sh", wasRole: "judged", wasTrigger: true, wasRepoStamp: false, orphaned: true },
+    ];
+    const { corrections } = reconcileOpenDepartures(prev, [], ["other.sh"]);
+    expect(corrections).toHaveLength(1);
+    expect(corrections[0].detail).toContain("will not see you resolve it");
+  });
+
+  it("the note is decided by the route's own parser, not by a character blacklist", () => {
+    // A trailing space does not survive `parseLedgerKeys`' trim either — no comma involved.
+    expect(unaskableKeyNote("wrapper-census-departure:gone.sh ")).not.toBe("");
+    // Characters that merely look dangerous survive untouched and must stay silent.
+    for (const n of ["a&b.sh", "a#b.sh", "a+b.sh", "a=b.sh", "a?b.sh", "a b.sh", "café.sh"]) {
+      expect(unaskableKeyNote(departureKey(n))).toBe("");
+    }
   });
 
   it("raises a gate-runner's departure to high — it is enforcement, not coverage", () => {

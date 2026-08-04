@@ -30,6 +30,7 @@
 // Pure per CR-3: it is handed sources and returns findings. It reads no file and no clock.
 
 import { GATE_ORDER, gateEnvVar, DRIVER_ENV_PREFIX } from "./driverPrefixes";
+import { keySurvivesTransport } from "../flags/ledgerRead";
 
 /** The files Rob actually opens and reads sentences out of. A stamp that lands in one of these is
  *  a stamp a human has to interpret. */
@@ -1376,6 +1377,7 @@ export function departureFindings(
     .map((d) => {
       const remaining = enforcersOtherThan(d.name, stillTriggeredBy);
       const orphaned = d.wasTrigger && remaining.length === 0;
+      const key = departureKey(d.name);
       return {
         entityName: "Wrapper clock gate",
         title: `${d.name} left the audited set — ${d.wasTrigger ? "it ran the clock gate" : "it was judged by the clock gate"}`,
@@ -1397,9 +1399,10 @@ export function departureFindings(
           `rewritten in the same run that noticed, so the gate itself will never say this again ` +
           `(Q84 inc.160). Nothing will close this row for you: if this name comes back the gate ` +
           `cannot prove it is the same wrapper, and the ledger records no actor for a machine's ` +
-          `closure — closing it is yours (Q84 inc.161).`,
+          `closure — closing it is yours (Q84 inc.161).` +
+          unaskableKeyNote(key),
         severity: orphaned ? ("high" as const) : ("medium" as const),
-        dedupeKey: departureKey(d.name),
+        dedupeKey: key,
       };
     });
 }
@@ -1437,6 +1440,42 @@ export type OpenDeparture = CensusDeparture & {
  */
 export function departureKey(name: string): string {
   return `wrapper-census-departure:${name}`;
+}
+
+/**
+ * Q84 inc.169 — inc.168's drop is safe and it is INVISIBLE to Rob. This makes the affected row say so.
+ *
+ * inc.168 stopped sending a key the read query cannot carry back unchanged, and said it on stderr,
+ * on a tick nobody reads. The row that key belongs to sits on the page Rob reads for money with no
+ * hint that the gate has gone deaf about it.
+ *
+ * THE OBJECTION inc.160 RAISED IS THE RIGHT ONE, AND THIS SURVIVES IT. "Putting the gate's plumbing
+ * on Rob's money page is how a ledger becomes a log nobody reads" — true, and this is not plumbing.
+ * The row ALREADY ends by telling him closing it is his (inc.161). For an unaskable key that sentence
+ * is incomplete in a way that costs him something concrete: the gate never sees the closure, so
+ * `closed` never latches, and the FIRST time this row's enforcement claim changes, the correction is
+ * POSTed on a key whose only row is resolved — `planFlagWrite` inserts rather than corrects
+ * ("recurred after being resolved"), and a row he closed is back on his page. That is a statement
+ * about what THIS ROW will do to him, not about how the gate is wired.
+ *
+ * NARROW BY CONSTRUCTION. An askable key adds not one word — the note is the empty string, so the
+ * ordinary row (every row today: no wrapper name in the live census carries such a character) is
+ * byte-identical to what inc.161/162 wrote. It is also deliberately silent about a remedy: the
+ * wrapper is gone, the key is history, and inventing "just rename it" would be advice about a file
+ * that no longer exists.
+ *
+ * PURE per CR-3 — it asks `keySurvivesTransport`, which asks the route's own parser.
+ */
+export function unaskableKeyNote(key: string): string {
+  if (keySurvivesTransport(key)) return "";
+  return (
+    ` One thing about THIS row in particular: its ledger key \`${key}\` holds a character the ` +
+    `read query cannot hand back unchanged, so this gate never asks your ledger about it (Q84 ` +
+    `inc.168) and will not see you resolve it. Resolving works and holds here. What does not ` +
+    `happen is the gate noticing — so if what this row claims about enforcement later changes, ` +
+    `the correction lands as a NEW row instead of an edit, and a row you closed reappears. That ` +
+    `is the gate being deaf, not the removal recurring (Q84 inc.169).`
+  );
 }
 
 /**
@@ -1582,7 +1621,8 @@ export function reconcileOpenDepartures(
         `Re-filed on the same key because that claim is re-measured from the current tree every ` +
         `tick, so leaving it stale would be the defect it was written to prevent. The gate still ` +
         `will not close this for you — it cannot prove a returning name is the same wrapper, and ` +
-        `the ledger records no actor for a machine's closure (Q84 inc.161/162).`,
+        `the ledger records no actor for a machine's closure (Q84 inc.161/162).` +
+        unaskableKeyNote(key),
       severity: orphaned ? "high" : "medium",
       dedupeKey: key,
     });
