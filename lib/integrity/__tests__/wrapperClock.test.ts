@@ -7,6 +7,7 @@ import {
   censusDepartures,
   censusRecoveryFinding,
   censusRefusalFinding,
+  CENSUS_BLINDNESS_CLAIM,
   CENSUS_REFUSAL_KEY,
   classifyCensusRead,
   clockGateBrief,
@@ -1498,10 +1499,36 @@ describe("what a RECOVERED census tells Rob's ledger (Q84 inc.177)", () => {
     // the alarm. So the two facts that earned `high` are restated here in this row's own words.
     const { detail } = censusRecoveryFinding(true)[0];
     expect(detail).not.toMatch(/warning this row carried before/);
-    expect(detail).toMatch(/no wrapper departure could be detected/);
+    expect(detail).toContain(CENSUS_BLINDNESS_CLAIM);
     expect(detail).toMatch(/NOT "nothing left the audited set"/);
-    // And it says WHY it is restating them, so the sentence does not read as padding.
+    // And it says WHY it is carrying them, so the sentence does not read as padding.
     expect(detail).toMatch(/you may never have seen it/);
+  });
+
+  it("QUOTES the refusal row's claim from one source instead of restating it (inc.179)", () => {
+    // inc.178 left the same claim in two hand-maintained strings, and the recovery row introduces
+    // its copy as what this row SAID — so a lone edit to the refusal text would not make this row
+    // stale, it would make it a false quotation. Both rows now read the same constant, byte for
+    // byte, which is the only shape in which "here is the warning itself" can stay true.
+    expect(censusRefusalFinding("r")[0].detail).toContain(CENSUS_BLINDNESS_CLAIM);
+    expect(censusRecoveryFinding(true)[0].detail).toContain(CENSUS_BLINDNESS_CLAIM);
+  });
+
+  it("carries the shared claim exactly once per row — quoted, not duplicated alongside a paraphrase", () => {
+    // A second copy inside either row would reintroduce the drift the constant exists to remove,
+    // and on the recovery row would put a paraphrase next to the quotation it contradicts.
+    for (const detail of [censusRefusalFinding("r")[0].detail, censusRecoveryFinding(true)[0].detail]) {
+      expect(detail.split(CENSUS_BLINDNESS_CLAIM)).toHaveLength(2);
+    }
+  });
+
+  it("keeps the refusal row's tense-bound and parameterised text OUT of the quote", () => {
+    // The remedy and the "updates in place every tick until then" promise are false once the file
+    // parses, and the parse reason has no meaning on a recovered tick. Quoting the refusal row
+    // whole would ship instructions that no longer apply — only the claim is shared.
+    expect(CENSUS_BLINDNESS_CLAIM).not.toMatch(/Repair the file/);
+    expect(CENSUS_BLINDNESS_CLAIM).not.toMatch(/updates in place/);
+    expect(censusRecoveryFinding(true)[0].detail).not.toMatch(/Repair the file/);
   });
 
   it("never carries the superseded grammar, so this correction can never grow a Reopen control", () => {

@@ -1629,6 +1629,40 @@ export function departureKey(name: string): string {
  */
 export const CENSUS_REFUSAL_KEY = "wrapper-census-unreadable";
 
+/**
+ * Q84 inc.179 — the one sentence the refusal row and the recovery row are REQUIRED to agree on,
+ * written once because inc.178 left it written twice.
+ *
+ * inc.178 made the recovery row self-contained: rather than pointing at a `high` warning the
+ * correction had just overwritten, it restates that warning. But it restated it in its OWN prose,
+ * so `censusRefusalFinding` and `censusRecoveryFinding` each held a hand-maintained copy of the
+ * same claim, in different tenses. That is the two-ladders shape inc.5 and inc.164 were both spent
+ * killing, and here it is worse than a drifted duplicate: the recovery row introduces its copy as
+ * what this row SAID. An edit to the refusal text alone would not make the recovery row merely
+ * stale — it would make it a false quotation, and a false quotation is more authoritative-looking
+ * than the dangling reference inc.178 removed.
+ *
+ * inc.178 ASKED WHETHER QUOTING A SIBLING FINDING COUPLES TWO ROWS THAT MUST STAY INDEPENDENTLY
+ * EDITABLE. Measured against what is actually shared, it does not, because only the CLAIM is
+ * shared. Everything that distinguishes the two rows stays local to each: the parse `reason` (the
+ * recovery row has none), the remedy and the "updates in place every tick until then" promise
+ * (both FALSE once the file parses — quoting the refusal row whole would ship instructions that no
+ * longer apply), the correct-don't-close paragraph, the severity. What is left is the pair of facts
+ * that earned `high`, and a quotation that is allowed to differ from its source is not an
+ * independently editable row — it is a false quote with extra steps.
+ *
+ * PRESENT TENSE, DELIBERATELY. The recovery row quotes it rather than paraphrasing it into the
+ * past, which is what inc.178 did while calling the result "in full". A quotation preserves the
+ * tense of the original; the recovery row supplies the pastness in its own framing around the
+ * quote. That also makes the constant droppable into the refusal row verbatim, so there is exactly
+ * one string and no per-site adaptation for an editor to get wrong.
+ */
+export const CENSUS_BLINDNESS_CLAIM =
+  `No wrapper departure can be detected while the census stays unreadable, so a green clock-gate ` +
+  `verdict means "the stamp rules were checked", NOT "nothing left the audited set"; and every ` +
+  `other wrapper-census row on this page is frozen as of the last tick that could read the file — ` +
+  `read each one as true on the day it was filed and not re-checked since.`;
+
 export function censusRefusalFinding(reason: string | null): DepartureFinding[] {
   if (!reason) return [];
   return [
@@ -1640,11 +1674,9 @@ export function censusRefusalFinding(reason: string | null): DepartureFinding[] 
         `It was left exactly as found rather than overwritten with a record carrying zero open rows, ` +
         `which would have dropped every departure key still being corrected here, silently and ` +
         `permanently (Q84 inc.174). Two consequences, and this row is the only place either is ` +
-        `visible on your page. First: no wrapper departure can be detected while the file stays ` +
-        `unreadable, so a green clock-gate verdict means "the stamp rules were checked", NOT "nothing ` +
-        `left the audited set". Second: every OTHER wrapper-census row on this page is frozen as of ` +
-        `the last tick that could read the file — read each one as true on the day it was filed and ` +
-        `not re-checked since. This row cannot name those rows, because their keys live inside the ` +
+        `visible on your page. ` +
+        CENSUS_BLINDNESS_CLAIM +
+        ` This row cannot name those rows, because their keys live inside the ` +
         `file it cannot parse, and it will not recover them by scanning your ledger for its own key ` +
         `prefix: that would make your page the record of what this gate published, which is backwards ` +
         `(Q84 inc.176). Repair the file — or delete it to start a fresh record and accept that the ` +
@@ -1722,10 +1754,15 @@ export function censusRefusalFinding(reason: string | null): DepartureFinding[] 
  * a line, and inc.12 already established what a row that grows on a timer becomes. One row, one
  * current claim, still.
  *
- * So the fix is neither mechanism: the row is made SELF-CONTAINED. It states the claim it replaced
- * in its own words instead of pointing at text the reader may never have seen — one clause, bounded,
- * and it does not grow. This costs nothing on the tick Rob DID see the `high` row (he reads the
- * summary of a thing he remembers) and is the whole content of the row for the Rob who did not.
+ * So the fix is neither mechanism: the row is made SELF-CONTAINED. It carries the claim it replaced
+ * instead of pointing at text the reader may never have seen — one clause, bounded, and it does not
+ * grow. This costs nothing on the tick Rob DID see the `high` row (he re-reads a thing he remembers)
+ * and is the whole content of the row for the Rob who did not.
+ *
+ * Q84 inc.179 — and it carries that claim by QUOTING `CENSUS_BLINDNESS_CLAIM`, not by restating it.
+ * inc.178 wrote the restatement in this row's own prose, which left the same claim living in two
+ * hand-maintained strings; the reasoning for collapsing them to one, and for why that does not
+ * couple two rows that must stay independently editable, is on the constant itself.
  */
 export function censusRecoveryFinding(censusKeyOpen: boolean | null): DepartureFinding[] {
   if (censusKeyOpen !== true) return [];
@@ -1736,11 +1773,12 @@ export function censusRecoveryFinding(censusKeyOpen: boolean | null): DepartureF
       detail:
         `\`docs/integrity/wrapper-census.json\` parsed cleanly on this tick, so departure detection ` +
         `has resumed and every wrapper-census row on this page is being re-checked again from here ` +
-        `forward. What this row said before, in full, because correcting it overwrote that text and ` +
-        `you may never have seen it (Q84 inc.178): the census file was present and unreadable, so no ` +
-        `wrapper departure could be detected at all, and every other wrapper-census row on this page ` +
-        `was frozen as of the last tick that could read the file — a green clock-gate verdict meant ` +
-        `"the stamp rules were checked", NOT "nothing left the audited set". That was true for the ` +
+        `forward. This row carried a \`high\` warning until this tick, and correcting it overwrote ` +
+        `that text, so here is the warning itself rather than a summary of it — quoted from the one ` +
+        `place it is written, so it cannot drift out of step with what the row actually said (Q84 ` +
+        `inc.178/179), and you may never have seen it: "` +
+        CENSUS_BLINDNESS_CLAIM +
+        `" That was true for the ` +
         `ticks between the file breaking and this one, and this gate cannot tell you how many ticks ` +
         `that was or what left the audited set during them — nothing recorded it, which is what being ` +
         `blind means. The gate corrects this row rather than closing it, deliberately: closing it ` +
