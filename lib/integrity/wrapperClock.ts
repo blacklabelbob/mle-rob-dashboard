@@ -37,6 +37,16 @@ export const ROB_FACING_SURFACES = ["PING-INBOX.md", "crm-driver.log", "meeting-
  *  (`node scripts/intake-silence.mjs stamp`, Q84 inc.140/141). */
 export const REPO_STAMP_CALL = "intake-silence.mjs stamp";
 
+/**
+ * How a wrapper invokes this gate (Q84 inc.143).
+ *
+ * BOTH spellings are needed and the first live run is why: the draft carried only the file name,
+ * and the driver line I had just written — `npm run audit:clocks -- --brief` — went undetected,
+ * so the gate reported itself untriggered while its trigger sat three lines above. A needle that
+ * only matches the spelling the author happened to use is not a check.
+ */
+export const TRIGGER_CALLS = ["audit-wrapper-clocks", "audit:clocks"] as const;
+
 export type ClockFinding = {
   /** Script name as given (a bare basename is enough — the caller knows the directory). */
   script: string;
@@ -54,6 +64,14 @@ export type ClockAudit = {
   usesRepoStamp: string[];
   /** Scripts scanned but skipped because they touch none of Rob's surfaces. */
   skipped: string[];
+  /**
+   * Wrappers that actually RUN this gate. Empty means the rule is unenforced (Q84 inc.143).
+   *
+   * The trigger has to live in a machine-local shell file that no diff ever sees — the same
+   * undiffed place the original defect grew. So the repo does not trust that the wiring is
+   * still there: it looks, every run, and says so when it is gone.
+   */
+  triggeredBy: string[];
 };
 
 /** `date '+%F %T'`, `date "+%s"`, `date +%s` — quoted and bare, one line may hold several. */
@@ -139,8 +157,16 @@ export function auditWrapperClocks(scripts: { name: string; source: string }[]):
   const findings: ClockFinding[] = [];
   const usesRepoStamp: string[] = [];
   const skipped: string[] = [];
+  const triggeredBy: string[] = [];
 
   for (const { name, source } of scripts) {
+    // A commented-out invocation is not a trigger — it is a note about one, and the whole point
+    // of inc.142 was that a rule living in a comment lives nowhere.
+    const invokes = (l: string) => TRIGGER_CALLS.some((needle) => l.includes(needle));
+    if (source.split("\n").some((l) => !/^\s*#/.test(l) && invokes(l))) {
+      triggeredBy.push(name);
+    }
+
     const surfaces = surfacesWritten(source);
     if (surfaces.length === 0) {
       skipped.push(name);
@@ -162,5 +188,5 @@ export function auditWrapperClocks(scripts: { name: string; source: string }[]):
     });
   }
 
-  return { findings, usesRepoStamp, skipped };
+  return { findings, usesRepoStamp, skipped, triggeredBy };
 }

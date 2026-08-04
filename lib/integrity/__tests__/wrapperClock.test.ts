@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { auditWrapperClocks, ROB_FACING_SURFACES, REPO_STAMP_CALL } from "../wrapperClock";
+import {
+  auditWrapperClocks,
+  ROB_FACING_SURFACES,
+  REPO_STAMP_CALL,
+  TRIGGER_CALLS,
+} from "../wrapperClock";
 
 const script = (source: string, name = "some-wrapper.sh") => [{ name, source }];
 
@@ -128,5 +133,45 @@ describe("auditWrapperClocks", () => {
   it("keeps the surface list and the repo-stamp call as the single declared contract", () => {
     expect(ROB_FACING_SURFACES).toContain("PING-INBOX.md");
     expect(REPO_STAMP_CALL).toBe("intake-silence.mjs stamp");
+  });
+
+  // Q84 inc.143 — the trigger lives in a shell file outside this repo, where no diff sees it.
+  // The only way the repo can know the wiring survives is to look for it every run.
+  describe("its own trigger", () => {
+    it("sees the driver's npm invocation — the spelling the first live run missed", () => {
+      const { triggeredBy } = auditWrapperClocks(
+        script(`npm run audit:clocks -- --brief`, "crm-build-driver.sh"),
+      );
+      expect(triggeredBy).toEqual(["crm-build-driver.sh"]);
+    });
+
+    it("sees a direct call to the script by path", () => {
+      const { triggeredBy } = auditWrapperClocks(
+        script(`node --import ./scripts/ts-loader.mjs scripts/audit-wrapper-clocks.mjs --brief`),
+      );
+      expect(triggeredBy).toEqual(["some-wrapper.sh"]);
+    });
+
+    it("does not count a commented-out invocation — that was inc.142's whole disease", () => {
+      const { triggeredBy } = auditWrapperClocks(
+        script(`# npm run audit:clocks -- --brief   (disabled while noisy)`),
+      );
+      expect(triggeredBy).toEqual([]);
+    });
+
+    it("reports empty when nothing in the tree runs the gate", () => {
+      const { triggeredBy } = auditWrapperClocks(script(`echo hi >> crm-driver.log`));
+      expect(triggeredBy).toEqual([]);
+    });
+
+    it("counts a wrapper that runs the gate even though it writes to none of Rob's surfaces", () => {
+      // A dedicated cron wrapper is the likeliest future trigger and it has no reason to write
+      // anywhere Rob reads — skipping it for clock findings must not skip it for the trigger.
+      const { triggeredBy, skipped } = auditWrapperClocks(
+        script(`node scripts/${TRIGGER_CALLS[0]}.mjs --brief`, "clock-cron.sh"),
+      );
+      expect(triggeredBy).toEqual(["clock-cron.sh"]);
+      expect(skipped).toEqual(["clock-cron.sh"]);
+    });
   });
 });
