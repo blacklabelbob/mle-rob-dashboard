@@ -34,7 +34,13 @@
 import { readdir, readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
-import { auditWrapperClocks, REPO_STAMP_CALL, TRIGGER_CALLS } from "../lib/integrity/wrapperClock.ts";
+import {
+  auditWrapperClocks,
+  clockGateBrief,
+  BRIEF_MARKER,
+  REPO_STAMP_CALL,
+  TRIGGER_CALLS,
+} from "../lib/integrity/wrapperClock.ts";
 
 const DEFAULT_DIR = path.join(os.homedir(), ".claude", "scripts");
 const args = process.argv.slice(2);
@@ -64,7 +70,7 @@ for (const target of targets) {
     // Even in --brief this speaks: "cannot read" is the one outcome that must never pass as clean.
     console.error(
       BRIEF
-        ? `CLOCK GATE COULD NOT RUN — ${target} unreadable (${err.code ?? err.message}); the ` +
+        ? `${BRIEF_MARKER} COULD NOT RUN — ${target} unreadable (${err.code ?? err.message}); the ` +
             `wrapper-clock rule was NOT checked this tick. Say so rather than assuming clean.`
         : `✖ ${target}: cannot read (${err.code ?? err.message})`,
     );
@@ -75,8 +81,18 @@ for (const target of targets) {
   }
 }
 
-const { findings, usesRepoStamp, skipped, triggeredBy } = auditWrapperClocks(scripts);
+const audit = auditWrapperClocks(scripts);
+const { findings, usesRepoStamp, skipped, triggeredBy } = audit;
 const scanned = scripts.length - skipped.length;
+
+// --brief has exactly one job: hand the driver the sentence the next increment will read. The
+// sentence and its exit code are decided in the repo under test (Q84 inc.144), so this file does
+// not get to reword the enforcement it is delivering.
+if (BRIEF) {
+  const { code, line } = clockGateBrief(audit);
+  if (line) console.error(line);
+  process.exit(code);
+}
 
 say(
   `scanned ${scripts.length} wrapper${scripts.length === 1 ? "" : "s"}: ` +
@@ -92,16 +108,6 @@ say(
 );
 
 if (findings.length > 0) {
-  if (BRIEF) {
-    const worst = findings[0];
-    console.error(
-      `CLOCK GATE IS RED — ${findings.length} unlabeled stamp` +
-        `${findings.length === 1 ? " reaches" : "s reach"} a file Rob reads (first: ${worst.script}:` +
-        `${worst.line}, '+${worst.format}' → ${worst.surfaces.join(", ")}). Fix this BEFORE the ` +
-        `queue item: run \`npm run audit:clocks\` for the full report. Q84 inc.142.`,
-    );
-    process.exit(1);
-  }
   for (const f of findings) {
     console.error(`\n✖ ${f.script}:${f.line}  writes an unlabeled clock`);
     console.error(`    format:  '+${f.format}'  — no %Z, so the instant is not recoverable`);
@@ -123,13 +129,9 @@ if (findings.length > 0) {
 // lives in a shell file outside this repo, so its absence can only be noticed by looking.
 if (triggeredBy.length === 0) {
   console.error(
-    BRIEF
-      ? `CLOCK GATE HAS NO TRIGGER — no wrapper in the scanned set invokes ` +
-          `\`${TRIGGER_CALLS[0]}\`, so the rule is only enforced when a human remembers to type it. ` +
-          `Re-wire the driver tick (Q84 inc.143) before the queue item.`
-      : `\n✖ no wrapper invokes \`${TRIGGER_CALLS[0]}\` — the rule is unenforced. The driver tick is ` +
-          `where it belongs: it runs on the machine that has these wrappers, at the cadence they ` +
-          `change. Add \`npm run audit:clocks -- --brief\` to the prompt it builds (Q84 inc.143).`,
+    `\n✖ no wrapper invokes \`${TRIGGER_CALLS[0]}\` — the rule is unenforced. The driver tick is ` +
+      `where it belongs: it runs on the machine that has these wrappers, at the cadence they ` +
+      `change. Add \`npm run audit:clocks -- --brief\` to the prompt it builds (Q84 inc.143).`,
   );
   process.exit(3);
 }

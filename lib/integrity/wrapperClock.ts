@@ -47,6 +47,54 @@ export const REPO_STAMP_CALL = "intake-silence.mjs stamp";
  */
 export const TRIGGER_CALLS = ["audit-wrapper-clocks", "audit:clocks"] as const;
 
+/**
+ * The prefix every `--brief` sentence carries, and the ONLY thing the caller may match on
+ * (Q84 inc.144).
+ *
+ * The driver filters this gate's stderr with `grep '^CLOCK GATE'` because node prints an unrelated
+ * MODULE_TYPELESS warning down the same pipe. That filter is a contract between a shell file no
+ * diff sees and three string literals in a script — reword any one of them and the driver goes
+ * quietly blind while both halves still look correct in isolation. So the marker is declared once,
+ * here, every brief line is built from it, and a test asserts it.
+ */
+export const BRIEF_MARKER = "CLOCK GATE";
+
+/** What `--brief` should say and exit with. `line` is null only when there is nothing to act on. */
+export type ClockGateBrief = { code: 0 | 1 | 3; line: string | null };
+
+/**
+ * The `--brief` verdict for an audit — the one line that gets prefixed onto the driver's prompt.
+ *
+ * Pure and tested rather than inlined at the print site, because this text IS the enforcement:
+ * it is the whole of what the next increment is told, and inc.143's own first live run proved a
+ * gate's wording can be wrong in a way nothing catches (the trigger needle matched one spelling
+ * of two). What the shell may still decide on its own is only whether this ran at all.
+ */
+export function clockGateBrief(audit: ClockAudit): ClockGateBrief {
+  if (audit.findings.length > 0) {
+    const worst = audit.findings[0];
+    const n = audit.findings.length;
+    return {
+      code: 1,
+      line:
+        `${BRIEF_MARKER} IS RED — ${n} unlabeled stamp${n === 1 ? " reaches" : "s reach"} a file ` +
+        `Rob reads (first: ${worst.script}:${worst.line}, '+${worst.format}' → ` +
+        `${worst.surfaces.join(", ")}). Fix this BEFORE the queue item: run ` +
+        "`npm run audit:clocks` for the full report. Q84 inc.142.",
+    };
+  }
+  if (audit.triggeredBy.length === 0) {
+    return {
+      code: 3,
+      line:
+        `${BRIEF_MARKER} HAS NO TRIGGER — no wrapper in the scanned set invokes ` +
+        `\`${TRIGGER_CALLS[0]}\`, so the rule is only enforced when a human remembers to type it. ` +
+        `Re-wire the driver tick (Q84 inc.143) before the queue item.`,
+    };
+  }
+  return { code: 0, line: null };
+}
+
 export type ClockFinding = {
   /** Script name as given (a bare basename is enough — the caller knows the directory). */
   script: string;

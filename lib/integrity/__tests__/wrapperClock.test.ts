@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
 import {
   auditWrapperClocks,
+  clockGateBrief,
+  BRIEF_MARKER,
   ROB_FACING_SURFACES,
   REPO_STAMP_CALL,
   TRIGGER_CALLS,
@@ -172,6 +174,46 @@ describe("auditWrapperClocks", () => {
       );
       expect(triggeredBy).toEqual(["clock-cron.sh"]);
       expect(skipped).toEqual(["clock-cron.sh"]);
+    });
+  });
+
+  // Q84 inc.144 — the driver reads this gate through `grep '^CLOCK GATE'`, so the marker is the
+  // whole contract. A reworded sentence would not fail anything; it would just stop being heard.
+  describe("the --brief line the driver reads", () => {
+    const red = auditWrapperClocks(script(`date '+%H:%M' >> crm-driver.log`));
+    const noTrigger = auditWrapperClocks(script(`echo hi >> crm-driver.log`));
+    const clean = auditWrapperClocks(
+      script(`npm run audit:clocks -- --brief\ndate '+%T %Z' >> crm-driver.log`),
+    );
+
+    it("prefixes every sentence it emits with the marker the driver greps for", () => {
+      for (const audit of [red, noTrigger]) {
+        expect(clockGateBrief(audit).line?.startsWith(BRIEF_MARKER)).toBe(true);
+      }
+    });
+
+    it("says nothing and exits 0 when the tree is clean and the gate is wired", () => {
+      expect(clockGateBrief(clean)).toEqual({ code: 0, line: null });
+    });
+
+    it("reports a finding as code 1, naming the script, line, format and surface", () => {
+      const { code, line } = clockGateBrief(red);
+      expect(code).toBe(1);
+      expect(line).toContain("some-wrapper.sh:1");
+      expect(line).toContain("'+%H:%M'");
+      expect(line).toContain("crm-driver.log");
+    });
+
+    it("reports an unwired gate as code 3 even though nothing is wrong with the stamps", () => {
+      const { code, line } = clockGateBrief(noTrigger);
+      expect(code).toBe(3);
+      expect(line).toContain("NO TRIGGER");
+    });
+
+    it("ranks a red stamp above a missing trigger — a live defect outranks an unenforced rule", () => {
+      const both = auditWrapperClocks(script(`date '+%H:%M' >> crm-driver.log`));
+      expect(both.triggeredBy).toEqual([]);
+      expect(clockGateBrief(both).code).toBe(1);
     });
   });
 });
