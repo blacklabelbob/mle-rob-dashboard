@@ -5,6 +5,10 @@ import {
   rankTag,
   GATE_ORDER,
   PRECEDENCE_MARKER,
+  unrankedTag,
+  gatesFromEnv,
+  gateEnvVar,
+  UNRANKED_WHY,
 } from "../driverPrefixes";
 
 const BASE = "PRIORITY 1 — Rob dev-chat: ...";
@@ -139,5 +143,74 @@ describe("GATE_ORDER", () => {
       expect(gate.why.length).toBeGreaterThan(20);
       expect(gate.label.length).toBeGreaterThan(0);
     }
+  });
+});
+
+// Q84 inc.147 — a gate the ladder never heard of must be loud, not absent.
+describe("unranked gates", () => {
+  it("carries a gate that is not in GATE_ORDER instead of dropping it", () => {
+    const out = composeDriverPrompt({ DRIVER_NEW_GATE: "NEW GATE: do the thing." }, BASE);
+    expect(out).toContain("NEW GATE: do the thing.");
+  });
+
+  it("tags an unranked gate even when it is the only gate that fired", () => {
+    const out = composeDriverPrompt({ DRIVER_NEW_GATE: "NG." }, BASE);
+    expect(out).toContain(unrankedTag(1, 1, "DRIVER_NEW_GATE"));
+    expect(out).toContain("nothing ranks it");
+    expect(out).toContain("GATE_ORDER");
+  });
+
+  it("places unranked gates after every ranked one and counts them in the total", () => {
+    const out = composeDriverPrompt({ DRIVER_NEW_GATE: "NG.", orphaned: "OW." }, BASE);
+    expect(out).toBe(
+      `${precedenceLine({ DRIVER_NEW_GATE: "NG.", orphaned: "OW." })}` +
+        `${rankTag(1, 2, "ORPHANED WORK")}OW. ${unrankedTag(2, 2, "DRIVER_NEW_GATE")}NG. ${BASE}`,
+    );
+  });
+
+  it("orders multiple unranked gates by key so the same environment composes the same prompt", () => {
+    const out = composeDriverPrompt({ DRIVER_ZULU: "Z.", DRIVER_ALPHA: "A." }, BASE);
+    expect(out.indexOf("A.")).toBeLessThan(out.indexOf("Z."));
+  });
+
+  it("names the unranked gate in the precedence line with the reason it is last", () => {
+    const line = precedenceLine({ orphaned: "OW.", DRIVER_NEW_GATE: "NG." });
+    expect(line).toContain("2) DRIVER_NEW_GATE");
+    expect(line).toContain(UNRANKED_WHY);
+  });
+
+  it("never applies the ranked verdict to an unranked gate", () => {
+    const out = composeDriverPrompt({ orphaned: "OW.", DRIVER_NEW_GATE: "NG." }, BASE);
+    expect(out).not.toContain(rankTag(2, 2, "DRIVER_NEW_GATE"));
+  });
+});
+
+describe("gatesFromEnv", () => {
+  it("derives each gate's env var from its key rather than a hand-kept list", () => {
+    expect(GATE_ORDER.map((g) => gateEnvVar(g.key))).toEqual([
+      "DRIVER_ORPHANED",
+      "DRIVER_UNFOLDED",
+      "DRIVER_WATCHDOG",
+      "DRIVER_CLOCK_GATE",
+    ]);
+  });
+
+  it("maps the wrapper's four variables onto the four ladder keys", () => {
+    expect(
+      gatesFromEnv({
+        DRIVER_ORPHANED: "OW.",
+        DRIVER_UNFOLDED: "UD.",
+        DRIVER_WATCHDOG: "WD.",
+        DRIVER_CLOCK_GATE: "CG.",
+      }),
+    ).toEqual({ orphaned: "OW.", unfolded: "UD.", watchdog: "WD.", clockGate: "CG." });
+  });
+
+  it("reads a DRIVER_* variable nobody added to the ladder, keyed by its own name", () => {
+    expect(gatesFromEnv({ DRIVER_NEW_GATE: "NG." })).toEqual({ DRIVER_NEW_GATE: "NG." });
+  });
+
+  it("ignores unrelated environment and empty gates", () => {
+    expect(gatesFromEnv({ PATH: "/usr/bin", HOME: "/x", DRIVER_ORPHANED: "  " })).toEqual({});
   });
 });

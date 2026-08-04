@@ -52,8 +52,29 @@
 // still byte-for-byte the wrapper's. With one gate no tag is emitted (nothing outranks it), and
 // with zero the prompt is the base, unchanged.
 //
-// Pure per CR-3: handed the gate texts, returns the composed prompt. Reads no file, no env, no
-// clock. The shell keeps only the gathering.
+// Q84 inc.147 — a gate nobody ranked must be LOUD, not absent.
+//
+// THE HOLE inc.146 LEFT. The composer was correct about order and about each gate's standing, but
+// nothing connected the four gate texts the wrapper gathers to the four keys ranked here. A fifth
+// gate added to `crm-build-driver.sh` was dropped TWICE and silently both times: `driver-prompt.mjs`
+// built its gates object from a fixed four-key literal, so a new `DRIVER_*` var was never read at
+// all; and `fired()` walks GATE_ORDER, so an unknown key could not have survived even if it were.
+// The author would see their gate fire in the shell and never fire in the run.
+//
+// WHY THE FIX IS NOT AN EXIT CODE. The obvious "fail loudly" is to abort. It is wrong here: the
+// wrapper's fallback on failure is `PROMPT="${ORPHANED}${CLOCK_GATE}${UNFOLDED}${WATCHDOG_PREFIX}..."`
+// — itself a fixed four-literal — so aborting drops the fifth gate too, and drops inc.145's ladder
+// with it. The one place an unknown gate can survive is the composed prompt. So it is PRINTED.
+//
+// WHAT CHANGED. `gatesFromEnv` reads every `DRIVER_*` variable in the environment instead of four
+// named ones, mapping each to its gate key by a DERIVED name (`clockGate` → `DRIVER_CLOCK_GATE`),
+// so the wrapper and the ladder cannot drift apart by hand. Anything that does not map to a
+// GATE_ORDER key is still carried — placed last, counted in the total, and tagged with the fact
+// that nothing ranks it and where to rank it. An unranked gate ALWAYS gets its tag, even when it
+// is the only gate that fired, because "this fired and no one ranked it" is the whole message.
+//
+// Pure per CR-3: handed the gate texts, returns the composed prompt. Reads no file, no clock, and
+// no env of its own — `gatesFromEnv` is handed an environment object by the caller.
 
 /** The gates, in the order they are to be worked. The ladder is the contract. */
 export const GATE_ORDER = [
@@ -81,18 +102,72 @@ export const GATE_ORDER = [
 
 export type DriverGateKey = (typeof GATE_ORDER)[number]["key"];
 
-export type DriverGates = Partial<Record<DriverGateKey, string | null | undefined>>;
+/** Keys outside GATE_ORDER are deliberately allowed: that is how an unranked gate reaches the
+ *  prompt instead of being dropped by a type that could not represent it. */
+export type DriverGates = Record<string, string | null | undefined>;
+
+/** Every gate travels in an env var named after its key. Prefix pinned so the wrapper and the
+ *  ladder share one convention rather than two hand-kept lists. */
+export const DRIVER_ENV_PREFIX = "DRIVER_";
+
+/** `clockGate` → `DRIVER_CLOCK_GATE`. Derived, never hand-listed — a hand-kept map is exactly the
+ *  drift this increment exists to close. */
+export function gateEnvVar(key: string): string {
+  return DRIVER_ENV_PREFIX + key.replace(/([a-z0-9])([A-Z])/g, "$1_$2").toUpperCase();
+}
+
+/**
+ * Gather gates out of an environment.
+ *
+ * Reads EVERY `DRIVER_*` variable, not a fixed list, so adding one to the wrapper is enough to
+ * make it reach the run. Known names become their gate key; anything else is kept under its own
+ * env-var name, which is what the unranked tag then prints back at the author.
+ */
+export function gatesFromEnv(env: Record<string, string | undefined>): DriverGates {
+  const known = new Map(GATE_ORDER.map((g) => [gateEnvVar(g.key), g.key as string]));
+  const out: DriverGates = {};
+  for (const [name, value] of Object.entries(env)) {
+    if (!name.startsWith(DRIVER_ENV_PREFIX)) continue;
+    if (!(value ?? "").trim()) continue;
+    out[known.get(name) ?? name] = value;
+  }
+  return out;
+}
 
 /** Opening words of the line that resolves the collision. Pinned so a reword is a test failure,
  *  not a silent change of meaning in a prompt nobody re-reads. */
 export const PRECEDENCE_MARKER = "GATE PRECEDENCE";
 
+/** Why an unranked gate sits where it sits. Stated as the gate's own `why` so the precedence line
+ *  reads the same for it as for every other gate. */
+export const UNRANKED_WHY = "NOT IN GATE_ORDER — nothing ranks it, so it is placed last by default";
+
 /** A gate counts as fired only if it carries text. An empty string is the shell's way of saying
- *  "did not fire", and whitespace is the same thing with a typo. */
+ *  "did not fire", and whitespace is the same thing with a typo.
+ *
+ *  Ranked gates come out in ladder order; anything the ladder does not know about follows them,
+ *  sorted by key so two runs with the same environment compose the same prompt. It is carried
+ *  rather than dropped — a gate that fired and vanished is the defect this closes. */
 function fired(gates: DriverGates) {
-  return GATE_ORDER.map((g) => ({ ...g, text: (gates[g.key] ?? "").trim() })).filter(
-    (g) => g.text.length > 0,
-  );
+  const ranked = GATE_ORDER.map((g) => ({
+    ...g,
+    text: (gates[g.key] ?? "").trim(),
+    ranked: true,
+  })).filter((g) => g.text.length > 0);
+
+  const knownKeys = new Set<string>(GATE_ORDER.map((g) => g.key));
+  const unranked = Object.keys(gates)
+    .filter((k) => !knownKeys.has(k) && (gates[k] ?? "").trim().length > 0)
+    .sort()
+    .map((k) => ({
+      key: k,
+      label: k,
+      why: UNRANKED_WHY,
+      text: (gates[k] ?? "").trim(),
+      ranked: false,
+    }));
+
+  return [...ranked, ...unranked];
 }
 
 /**
@@ -125,6 +200,19 @@ export function rankTag(position: number, total: number, label: string): string 
   return `[${position} of ${total} — ${label}: ranked here; ${verdict}] `;
 }
 
+/** The loud version, for a gate the ladder has never heard of.
+ *
+ *  It names the env var so the author sees the thing they added, says plainly that nothing ranked
+ *  it, and says where to rank it. This tag is emitted even when the unranked gate is the ONLY gate
+ *  that fired — with one ranked gate there is nothing to arbitrate, but with one UNRANKED gate the
+ *  message is not about order at all, it is "you added this and no one has decided what it beats". */
+export function unrankedTag(position: number, total: number, envName: string): string {
+  return (
+    `[${position} of ${total} — UNRANKED GATE ${envName}: it fired and is printed here so it ` +
+    `cannot vanish, but nothing ranks it. Rank it in GATE_ORDER (lib/integrity/driverPrefixes.ts).] `
+  );
+}
+
 /**
  * Compose the driver's prompt from whichever gates fired plus the standing prompt.
  *
@@ -137,9 +225,10 @@ export function composeDriverPrompt(gates: DriverGates, base: string): string {
   const active = fired(gates);
   if (active.length === 0) return base;
   const body = active
-    .map((g, i) =>
-      active.length > 1 ? `${rankTag(i + 1, active.length, g.label)}${g.text}` : g.text,
-    )
+    .map((g, i) => {
+      if (!g.ranked) return `${unrankedTag(i + 1, active.length, g.label)}${g.text}`;
+      return active.length > 1 ? `${rankTag(i + 1, active.length, g.label)}${g.text}` : g.text;
+    })
     .join(" ");
   return `${precedenceLine(gates)}${body} ${base}`;
 }

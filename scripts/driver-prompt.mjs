@@ -19,7 +19,7 @@
 // this file reads bytes and prints, so nothing the tests pin is re-decided here (CR-3).
 
 import { readFile } from "node:fs/promises";
-import { composeDriverPrompt } from "../lib/integrity/driverPrefixes.ts";
+import { composeDriverPrompt, gatesFromEnv } from "../lib/integrity/driverPrefixes.ts";
 
 const basePath = process.argv[2];
 if (!basePath) {
@@ -35,14 +35,8 @@ try {
   process.exit(1);
 }
 
-process.stdout.write(
-  composeDriverPrompt(
-    {
-      orphaned: process.env.DRIVER_ORPHANED,
-      unfolded: process.env.DRIVER_UNFOLDED,
-      watchdog: process.env.DRIVER_WATCHDOG,
-      clockGate: process.env.DRIVER_CLOCK_GATE,
-    },
-    base,
-  ),
-);
+// Q84 inc.147 — every DRIVER_* var, not four named ones. This file used to name the four keys by
+// hand, so a fifth gate added to the wrapper was never read here and vanished without a trace.
+// `gatesFromEnv` maps known names to their gate key and carries the rest through to be printed
+// with a loud unranked tag: a gate that fired must never disappear between shell and prompt.
+process.stdout.write(composeDriverPrompt(gatesFromEnv(process.env), base));
