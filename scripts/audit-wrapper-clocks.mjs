@@ -110,6 +110,22 @@ say(
     : `⚠ nothing runs this gate — it only fires when a human types it`,
 );
 
+// Q84 inc.153 — printed FIRST and exits, because it is the only finding that says the report you
+// are reading is wrong rather than that a wrapper is. Everything below judges `codeLines` output,
+// and for a swallowed file that output is blank lines, which pass every check silently.
+if (audit.unreadable.length > 0) {
+  for (const u of audit.unreadable) {
+    console.error(`\n✖ ${u.script}:${u.line}  opens heredoc \`${u.word}\` — no terminator`);
+    console.error(`  every line below it read as body; NOTHING in this file was judged.`);
+    console.error(`  fix: the delimiter shell is waiting for is \`${u.word}\`, alone on its own line.`);
+  }
+  console.error(
+    `\n  ${audit.unreadable.length} wrapper${audit.unreadable.length === 1 ? " was" : "s were"} ` +
+      `not read. No ✓ below applies to ${audit.unreadable.length === 1 ? "it" : "them"}.`,
+  );
+  process.exit(1);
+}
+
 if (findings.length > 0) {
   for (const f of findings) {
     console.error(`\n✖ ${f.script}:${f.line}  writes an unlabeled clock`);

@@ -533,6 +533,31 @@ describe("auditWrapperClocks", () => {
       expect(audit.findings).toEqual([]);
     });
 
+    it("refuses to go green on a heredoc whose terminator never arrives (Q84 inc.153)", () => {
+      // Proven on a copy of the real crm-build-driver.sh: one `cat <<NOTES_END` inserted at line
+      // 12 took a live unranked-gate finding from 1 to 0 and flipped usesRepoStamp false, at
+      // exit 0. A delimiter typo is the everyday cause, and it always fails in this direction.
+      const audit = auditWrapperClocks(
+        script(`${wired}cat <<NOTES_END\n  a note\nDRIVER_NEW_GATE="1"\nexport DRIVER_NEW_GATE`),
+      );
+      expect(audit.unreadable).toEqual([{ script: "some-wrapper.sh", line: 3, word: "NOTES_END" }]);
+      // It takes the brief line rather than riding it as a suffix: an unranked-gate ✓ computed
+      // from a blanked file is not a smaller finding, it is a wrong one.
+      const brief = clockGateBrief(audit);
+      expect(brief.code).toBe(1);
+      expect(brief.line).toContain("COULD NOT READ");
+      expect(brief.line).toContain("some-wrapper.sh:3");
+      expect(brief.line).toContain("NOTES_END");
+    });
+
+    it("says nothing when every heredoc closes — the honest green stays green", () => {
+      const audit = auditWrapperClocks(
+        script(`${wired}cat <<'EOF'\n  a note\nEOF\ncat <<-\tTAIL\n\tmore\n\tTAIL`),
+      );
+      expect(audit.unreadable).toEqual([]);
+      expect(clockGateBrief(audit).code).toBe(0);
+    });
+
     it("still judges a stamp the body actually writes — bodies are data, not invisible", () => {
       // `mission-control-reporter.sh` writes `"$(date …)"` from inside an UNQUOTED heredoc, so the
       // stamp reaches disk. Skipping bodies wholesale would be the easy change and a false green.

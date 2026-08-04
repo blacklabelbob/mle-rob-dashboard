@@ -100,6 +100,24 @@ export function clockGateBrief(audit: ClockAudit): ClockGateBrief {
   const unranked =
     strandedGateSentence(audit) + unrankedGateSentence(audit) + silencedComposerSentence(audit);
 
+  // Q84 inc.153 — the ONE finding that takes the line instead of riding it. Every other verdict
+  // below reports what the scans SAW; this one says the scans saw a blank file and any ✓ they
+  // produced for it is meaningless. Reporting "clean" first and appending this as a suffix would
+  // be the false green the increment exists to remove.
+  if (audit.unreadable.length > 0) {
+    const first = audit.unreadable[0];
+    const n = audit.unreadable.length;
+    return {
+      code: 1,
+      line:
+        `${BRIEF_MARKER} COULD NOT READ ${n} wrapper${n === 1 ? "" : "s"} — ` +
+        `${first.script}:${first.line} opens a heredoc \`${first.word}\` that never terminates, so ` +
+        "every line below it was read as body and NOTHING in that file was judged. Any ✓ for it is " +
+        "meaningless. Fix the delimiter, then re-run `npm run audit:clocks`. Q84 inc.153." +
+        unranked,
+    };
+  }
+
   if (audit.findings.length > 0) {
     const worst = audit.findings[0];
     const n = audit.findings.length;
@@ -211,6 +229,21 @@ export type GateRankFinding = {
   envVar: string;
 };
 
+/**
+ * A wrapper this parse could not finish reading (Q84 inc.153).
+ *
+ * The heredoc opened on `line` with delimiter `word` never terminates, so every line below it was
+ * read as body. This is the ONE finding that invalidates the other scans for that file rather than
+ * adding to them: they were handed blanks, and blanks look exactly like a compliant wrapper.
+ */
+export type UnreadableScriptFinding = {
+  script: string;
+  /** 1-indexed PHYSICAL line the unterminated heredoc was opened on. */
+  line: number;
+  /** The delimiter shell is still waiting for — usually one character off from the one written. */
+  word: string;
+};
+
 /** A wrapper that runs the prompt composer with its diagnostics thrown away (Q84 inc.150). */
 export type SilencedComposerFinding = {
   script: string;
@@ -250,6 +283,14 @@ export type ClockAudit = {
    * discarding the reason is what makes the failure unobservable.
    */
   silencedComposers: SilencedComposerFinding[];
+  /**
+   * Wrappers this parse could not finish reading (Q84 inc.153).
+   *
+   * Unlike every other array here, a non-empty `unreadable` does not mean "these wrappers are
+   * wrong" — it means the rest of THIS REPORT is not trustworthy for those files. So it outranks
+   * the clean verdict rather than riding it as a suffix.
+   */
+  unreadable: UnreadableScriptFinding[];
   /** Scripts that write to a surface AND ask the repo for their stamp — the compliant shape. */
   usesRepoStamp: string[];
   /** Scripts scanned but skipped because they touch none of Rob's surfaces. */
@@ -316,7 +357,7 @@ function redirectTargets(line: string): string[] {
  * `cat "$PING_INBOX"` — proves nothing about whose clock the script keeps.
  */
 function surfacesWritten(source: string): string[] {
-  const lines = codeLines(source);
+  const lines = codeLines(source).code;
   return ROB_FACING_SURFACES.filter((surface) => {
     // The path is almost always held in a variable — `PING_INBOX="$MEM/PING-INBOX.md"` — and the
     // redirect that uses it sits fifty lines away, so the literal name alone would miss every
@@ -348,7 +389,7 @@ function surfacesWritten(source: string): string[] {
  */
 function driverVarAssignments(source: string): { envVar: string; line: number; travels: boolean }[] {
   const out: { envVar: string; line: number; travels: boolean }[] = [];
-  const physical = codeLines(source);
+  const physical = codeLines(source).code;
   // Q84 inc.149 — a bare `export DRIVER_X` (no `=`) on any later line makes an earlier local
   // assignment travel after all. It is ordinary shell and omitting it would put a permanent false
   // red in front of a wrapper that is correct, which is the one failure this gate cannot afford.
@@ -387,7 +428,7 @@ function driverVarAssignments(source: string): { envVar: string; line: number; t
  * would come back on their own schedule.
  */
 function logicalLines(source: string): { text: string; lineOf: (index: number) => number }[] {
-  const physical = codeLines(source);
+  const physical = codeLines(source).code;
   const out: { text: string; lineOf: (index: number) => number }[] = [];
   for (let i = 0; i < physical.length; i++) {
     if (physical[i].trim() === "") continue;
@@ -458,9 +499,17 @@ function logicalLines(source: string): { text: string; lineOf: (index: number) =
  *
  * STILL NOT A SHELL PARSER: `<<` inside a body-that-is-itself-data, or a delimiter built by
  * expansion (`<<$X`), is not modelled. Neither shape exists in the tree, and both would fail
- * toward the pre-inc.152 behaviour rather than toward a new blind spot.
+ * toward the pre-inc.152 behaviour rather than toward a new blind spot — and as of inc.153 they no
+ * longer fail SILENTLY: an opener whose terminator never arrives is reported, not swallowed.
+ *
+ * MEASURED, inc.152's named next answered: a line that opens a heredoc AND opens a multi-line
+ * quote would be missed by the `state.quote === null` guard below. Across all 31 wrappers there
+ * are 7 heredoc openers and ZERO write that shape — `daily-driver.sh:178` is the near miss, and it
+ * CLOSES a carried quote before its `<<'APPLESCRIPT'` rather than opening one. So the guard stays
+ * as written (misreading a quoted `<<` swallows a file, which is the worse direction), and the
+ * increment went to the swallow that IS reachable today.
  */
-function codeLines(source: string): string[] {
+function codeLines(source: string): { code: string[]; unterminated: { word: string; line: number } | null } {
   // Quote state RUNS from line to line, because the wrapper's own composer call opens `PROMPT="`
   // on one line and closes it three lines later: judging line 171 alone counts three quotes, calls
   // the note that follows them "quoted", and leaves it in the code. That is not a hypothetical —
@@ -474,8 +523,11 @@ function codeLines(source: string): string[] {
   // Delimiters still awaiting their terminator, in the order shell will close them: one command
   // may open several (`cmd <<A <<B`), and each body ends at its own word.
   let pending: HeredocOpener[] = [];
+  let openedAt = 0; // 1-indexed line the still-open heredoc was opened on
   let depth = 0; // `$( … )` nesting carried across the body lines of one heredoc
-  for (const line of source.split("\n")) {
+  const lines = source.split("\n");
+  for (let n = 0; n < lines.length; n++) {
+    const line = lines[n];
     if (pending.length > 0) {
       const [open, ...rest] = pending;
       const candidate = open.stripTabs ? line.replace(/^\t+/, "") : line;
@@ -499,8 +551,17 @@ function codeLines(source: string): string[] {
     // string, and treating it as an opener would swallow the rest of the file as a body — the
     // worst failure available here, since a swallowed line is never judged at all.
     pending = state.quote === null && state.stack.length === 0 ? heredocOpeners(code) : [];
+    if (pending.length > 0) openedAt = n + 1;
   }
-  return out;
+  // A heredoc whose terminator never arrives means every line below it was read as body and
+  // blanked — so the scans below judge NOTHING from here down and report a clean ✓ (Q84 inc.153).
+  // PROVEN on a copy of the real `crm-build-driver.sh`: insert one `cat <<NOTES_END` at line 12
+  // and a live unranked-gate finding goes 1 → 0 while `usesRepoStamp` flips true → false, all at
+  // exit 0. The cause is ordinary — a delimiter typo, or a shape this file does not model
+  // (`<<END-OF-TEXT` matches only `END`, `<<$X` not at all) — and both fail in this same direction.
+  // It is NOT re-scanned as code: that would resurrect the false reds inc.151/inc.152 removed. The
+  // parse says what it could not read and lets the caller refuse to go green on it.
+  return { code: out, unterminated: pending.length > 0 ? { word: pending[0].word, line: openedAt } : null };
 }
 
 /**
@@ -677,6 +738,7 @@ export function auditWrapperClocks(scripts: { name: string; source: string }[]):
   const unrankedGateVars: GateRankFinding[] = [];
   const strandedGateVars: GateRankFinding[] = [];
   const silencedComposers: SilencedComposerFinding[] = [];
+  const unreadable: UnreadableScriptFinding[] = [];
   // Derived from GATE_ORDER through the same `gateEnvVar` the composer uses — a second hand-kept
   // list of names here would be the very drift inc.147 closed, reintroduced by its own check.
   const ranked = new Set(GATE_ORDER.map((g) => gateEnvVar(g.key)));
@@ -713,7 +775,13 @@ export function auditWrapperClocks(scripts: { name: string; source: string }[]):
     // of inc.142 was that a rule living in a comment lives nowhere. Since inc.151 that holds for a
     // note at the END of a live line too: this is the one scan whose false reading is a false
     // GREEN — a `# run npm run audit:clocks by hand` would report the unwired gate as wired.
-    const code = codeLines(source);
+    const parsed = codeLines(source);
+    // Q84 inc.153 — say so BEFORE using the parse. Every scan below this line reads `code`, and a
+    // swallowed file hands them blanks that look exactly like a clean wrapper.
+    if (parsed.unterminated) {
+      unreadable.push({ script: name, line: parsed.unterminated.line, word: parsed.unterminated.word });
+    }
+    const code = parsed.code;
     const invokes = (l: string) => TRIGGER_CALLS.some((needle) => l.includes(needle));
     if (code.some(invokes)) {
       triggeredBy.push(name);
@@ -747,5 +815,6 @@ export function auditWrapperClocks(scripts: { name: string; source: string }[]):
     unrankedGateVars,
     strandedGateVars,
     silencedComposers,
+    unreadable,
   };
 }
