@@ -172,19 +172,24 @@ async function writeCensus() {
   // inc.162 has no such list, which reads as "none recorded": nothing is corrected until a
   // departure files a key the gate can vouch for having written.
   const previousOpen = Array.isArray(previous?.openDepartures) ? previous.openDepartures : [];
-  // Q84 inc.163 — the ONE piece of evidence on which a recorded key may be dropped is Rob closing
-  // the row himself, read from the ledger. Best effort, and it fails toward KEEPING: an unreachable
-  // ledger returns null, which prunes nothing. Never a timer, never a cap, never a name returning.
+  // Q84 inc.163/164 — the ONE piece of evidence on which a recorded key stops being corrected is Rob
+  // closing the row himself, read from the ledger. Best effort, and it fails toward CHANGING
+  // NOTHING: an unreachable ledger returns null, which neither closes a row nor reopens one. Never a
+  // timer, never a cap, never a name returning. The read now also catches the inverse — he can
+  // reopen the same key — which is why a closed row keeps this list non-empty and keeps being read.
   const resolvedKeys = previousOpen.length ? await resolvedDepartureKeys() : null;
-  const { corrections, open, dropped } = reconcileOpenDepartures(
+  const { corrections, open, closed, reopened } = reconcileOpenDepartures(
     previousOpen,
     departures,
     audit.triggeredBy,
     resolvedKeys,
   );
   await writeFile(CENSUS_FILE, `${JSON.stringify({ ...census, openDepartures: open }, null, 2)}\n`);
-  for (const row of dropped) {
-    console.error(`→ census: dropped ${row.name} — you resolved ${departureKey(row.name)} in the ledger`);
+  for (const row of closed) {
+    console.error(`→ census: ${row.name} no longer corrected — you resolved ${departureKey(row.name)} in the ledger`);
+  }
+  for (const row of reopened) {
+    console.error(`→ census: ${row.name} corrected again — you reopened ${departureKey(row.name)} in the ledger`);
   }
   return { departures, corrections };
 }

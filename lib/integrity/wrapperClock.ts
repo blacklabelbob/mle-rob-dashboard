@@ -1413,7 +1413,22 @@ export function departureFindings(
  * filed. The row itself — what left, that it left, that Rob has to confirm it — is history and
  * never changes.
  */
-export type OpenDeparture = CensusDeparture & { orphaned: boolean };
+export type OpenDeparture = CensusDeparture & {
+  orphaned: boolean;
+  /**
+   * Rob's ledger row for this key is resolved, as read on the last tick that could read it
+   * (Q84 inc.164). Absent on a census written before inc.164 and on every row the ledger has not
+   * closed — absent reads as "not closed", which is the pre-inc.164 behaviour and the safe one.
+   *
+   * NOT A RECORD OF WHAT ROB DECIDED. It is a mirror of a state his ledger owns, re-read from that
+   * ledger every tick exactly like `orphaned` is re-measured from the tree, and it is authoritative
+   * for nothing: the row it points at carries the actor, the date and the note. Keeping it here buys
+   * one thing only — the gate still knows the key exists, so it can resume correcting the row if
+   * Rob REOPENS it (`action: "reopen"` on `/api/admin/flags`, which restores the same `dedupe_key`
+   * to `open`). inc.163 dropped the key outright, which forgot a state that is reversible.
+   */
+  closed?: boolean;
+};
 
 /**
  * The ledger key a departure row is filed under. One definition, because Q84 inc.163 now matches
@@ -1459,6 +1474,25 @@ export function departureKey(name: string): string {
  * with today's facts; a second body on the same key in the same run would be the gate arguing with
  * itself.
  *
+ * Q84 inc.164 — A CLOSED ROW IS REMEMBERED, NOT FORGOTTEN, AND STILL NEVER RE-POSTED. inc.163 was
+ * right that a resolved key must stop being corrected, and wrong to drop it: `resolve` has an
+ * inverse. `/api/admin/flags` takes `action: "reopen"`, which puts the SAME `dedupe_key` back to
+ * `open` carrying the enforcement claim it was filed with. Dropped, the gate no longer knows the key
+ * exists, so a reopened row is never corrected again — it sits on Rob's page asserting "no wrapper
+ * runs this gate now" while a replacement runs it, permanently. That is precisely the staleness
+ * inc.162 exists to kill, reachable one resolve-then-reopen later.
+ *
+ * SO THE ROW IS KEPT AND FLAGGED `closed`, WHICH IS NOT A SECOND LEDGER. A `closedDepartures`
+ * tombstone would be one: a durable claim about what Rob decided, written once by a machine and
+ * never re-checked, competing with the row that actually holds the actor and the note. `closed` is
+ * the opposite shape — re-read from his ledger on every tick, believed for exactly one tick, and
+ * authoritative for nothing. It answers only "does this gate still owe this key a correction".
+ *
+ * WHILE CLOSED, `orphaned` IS FROZEN ON PURPOSE. It records what the FILED ROW claims, not what the
+ * tree is; corrections fire off the gap between the two. Re-measuring it while the row is closed
+ * would quietly close that gap, and the reopened row would then be judged already-correct and left
+ * stale — the same bug wearing the fix's clothes.
+ *
  * PURE per CR-3 — no clock, no network, no `process.env`. The caller POSTs and persists.
  */
 export function reconcileOpenDepartures(
@@ -1466,29 +1500,43 @@ export function reconcileOpenDepartures(
   departures: CensusDeparture[],
   stillTriggeredBy: string[] = [],
   resolvedKeys: string[] | null = null,
-): { corrections: DepartureFinding[]; open: OpenDeparture[]; dropped: OpenDeparture[] } {
+): {
+  corrections: DepartureFinding[];
+  open: OpenDeparture[];
+  closed: OpenDeparture[];
+  reopened: OpenDeparture[];
+} {
   const orphanedNow = (d: CensusDeparture): boolean =>
     d.wasTrigger && enforcersOtherThan(d.name, stillTriggeredBy).length === 0;
 
-  const closed = resolvedKeys === null ? null : new Set(resolvedKeys);
+  const resolved = resolvedKeys === null ? null : new Set(resolvedKeys);
   const filedThisTick = new Map(departures.filter(isFiled).map((d) => [d.name, d]));
   const corrections: DepartureFinding[] = [];
   const open: OpenDeparture[] = [];
-  const dropped: OpenDeparture[] = [];
+  const closed: OpenDeparture[] = [];
+  const reopened: OpenDeparture[] = [];
 
   for (const row of previousOpen) {
     const refiled = filedThisTick.get(row.name);
     if (refiled) continue; // departureFindings() owns this key this tick.
-    if (closed?.has(departureKey(row.name))) {
-      // Rob closed this row. Q84 inc.163 — stop tracking it, and above all do not "correct" it:
-      // a POST on a key with no open row INSERTS a new one (`planFlagWrite`, "recurred after
-      // being resolved"), so a correction here would put a row he closed back on his page.
-      dropped.push(row);
+
+    const { closed: wasClosed = false, ...history } = row;
+    // An unread ledger changes nothing in either direction: it neither closes a row nor reopens one.
+    const closedNow = resolved === null ? wasClosed : resolved.has(departureKey(row.name));
+
+    if (closedNow) {
+      // Rob closed this row. Emit NO correction: a POST on a key with no open row INSERTS a new one
+      // (`planFlagWrite`, "recurred after being resolved"), which would put a row he closed back on
+      // his page (inc.163). Keep it, frozen, so a reopen can be seen (inc.164).
+      open.push({ ...history, closed: true });
+      if (!wasClosed) closed.push(row);
       continue;
     }
-    const orphaned = orphanedNow(row);
-    open.push({ ...row, orphaned });
-    if (orphaned === row.orphaned) continue;
+    if (wasClosed) reopened.push(row);
+
+    const orphaned = orphanedNow(history);
+    open.push({ ...history, orphaned });
+    if (orphaned === history.orphaned) continue;
     const remaining = enforcersOtherThan(row.name, stillTriggeredBy);
     corrections.push({
       entityName: "Wrapper clock gate",
@@ -1519,6 +1567,7 @@ export function reconcileOpenDepartures(
   return {
     corrections,
     open: open.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0)),
-    dropped,
+    closed,
+    reopened,
   };
 }

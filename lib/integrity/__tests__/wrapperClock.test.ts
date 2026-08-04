@@ -996,7 +996,12 @@ describe("reconcileOpenDepartures (Q84 inc.162)", () => {
   });
 
   it("cannot invent a row: with no recorded departure it corrects nothing", () => {
-    expect(reconcileOpenDepartures([], [], ["b.sh"])).toEqual({ corrections: [], open: [], dropped: [] });
+    expect(reconcileOpenDepartures([], [], ["b.sh"])).toEqual({
+      corrections: [],
+      open: [],
+      closed: [],
+      reopened: [],
+    });
   });
 
   it("a name coming back never vouches for its own row (inc.161 sameness)", () => {
@@ -1018,39 +1023,84 @@ describe("reconcileOpenDepartures (Q84 inc.162)", () => {
     expect(next.map((r) => r.name)).toEqual(["a.sh"]);
   });
 
-  // Q84 inc.163 — the list may shrink on exactly one piece of evidence: Rob closed the row.
-  describe("dropping a key (inc.163)", () => {
+  // Q84 inc.163 — correction stops on exactly one piece of evidence: Rob closed the row.
+  // Q84 inc.164 — and it RESUMES on its inverse, so the key is kept, not dropped.
+  describe("closing and reopening a key (inc.163/164)", () => {
     const KEY = departureKey("gone.sh");
+    const closedRow = (over: Partial<OpenDeparture> = {}) => open({ closed: true, ...over });
 
-    it("drops a key Rob resolved, and files NO correction for it", () => {
+    it("stops correcting a key Rob resolved, and files NO correction for it", () => {
       // Without this, the correction POSTs a key with no open row, and `planFlagWrite` INSERTS —
       // putting a row he closed back on his page.
-      const { corrections, open: next, dropped } = reconcileOpenDepartures([open()], [], ["new-driver.sh"], [KEY]);
+      const { corrections, open: next, closed } = reconcileOpenDepartures([open()], [], ["new-driver.sh"], [KEY]);
       expect(corrections).toEqual([]);
-      expect(next).toEqual([]);
-      expect(dropped.map((r) => r.name)).toEqual(["gone.sh"]);
+      expect(closed.map((r) => r.name)).toEqual(["gone.sh"]);
+      // Kept, flagged, and with the filed claim untouched — see the reopen case for why.
+      expect(next).toEqual([closedRow({ orphaned: true })]);
     });
 
-    it("an unread ledger (null) prunes nothing — absence of evidence is not a closure", () => {
+    it("keeps saying nothing while it stays closed, and reports the transition only once", () => {
+      const { corrections, open: next, closed } = reconcileOpenDepartures(
+        [closedRow()],
+        [],
+        ["new-driver.sh"],
+        [KEY],
+      );
+      expect(corrections).toEqual([]);
+      expect(closed).toEqual([]);
+      expect(next).toEqual([closedRow()]);
+    });
+
+    it("corrects a REOPENED row — the defect inc.163's drop created", () => {
+      // He resolved it, then reopened it. The row on his page still claims no wrapper runs this
+      // gate; `new-driver.sh` does. Dropped, the gate would never know the key existed.
+      const { corrections, open: next, reopened } = reconcileOpenDepartures(
+        [closedRow({ orphaned: true })],
+        [],
+        ["new-driver.sh"],
+        [],
+      );
+      expect(reopened.map((r) => r.name)).toEqual(["gone.sh"]);
+      expect(corrections).toHaveLength(1);
+      expect(corrections[0].dedupeKey).toBe(KEY);
+      expect(corrections[0].severity).toBe("medium");
+      expect(corrections[0].detail).toContain("new-driver.sh");
+      expect(next).toEqual([open({ orphaned: false })]);
+    });
+
+    it("freezes the filed claim while closed, so the reopen is still judged against what the row says", () => {
+      // The replacement is wired WHILE the row is closed. If `orphaned` were re-measured then, the
+      // gap the correction fires on would close silently and the reopened row would stay stale.
+      const afterClosedTick = reconcileOpenDepartures([open()], [], ["new-driver.sh"], [KEY]).open;
+      expect(afterClosedTick).toEqual([closedRow({ orphaned: true })]);
+      const { corrections } = reconcileOpenDepartures(afterClosedTick, [], ["new-driver.sh"], []);
+      expect(corrections).toHaveLength(1);
+    });
+
+    it("an unread ledger (null) changes nothing in either direction", () => {
       expect(reconcileOpenDepartures([open()], [], [], null).open).toEqual([open()]);
+      // And it does not reopen a closed row on silence, which would re-POST a row Rob closed.
+      const { open: next, corrections } = reconcileOpenDepartures([closedRow()], [], ["b.sh"], null);
+      expect(next).toEqual([closedRow()]);
+      expect(corrections).toEqual([]);
     });
 
-    it("a read ledger holding no resolution keeps the row", () => {
+    it("a read ledger holding no resolution keeps the row open", () => {
       expect(reconcileOpenDepartures([open()], [], [], []).open).toEqual([open()]);
     });
 
-    it("never drops on some other finding's key", () => {
+    it("never closes on some other finding's key", () => {
       const { open: next } = reconcileOpenDepartures([open()], [], [], ["wrapper-census-departure:other.sh"]);
       expect(next).toEqual([open()]);
     });
 
-    it("a departure filed THIS tick is recorded even if an older row on that key was resolved", () => {
+    it("a departure filed THIS tick is tracked afresh even if an older row on that key was resolved", () => {
       // It left again. That is a new event, `departureFindings()` files it, and the ledger opens a
-      // fresh row — so the census must track it rather than drop it on last month's resolution.
+      // fresh row — so the census must track it as open rather than carry last month's closure.
       const dep = { name: "gone.sh", wasRole: "judged" as const, wasTrigger: true, wasRepoStamp: false };
-      const { open: next, dropped } = reconcileOpenDepartures([open()], [dep], [], [KEY]);
-      expect(next.map((r) => r.name)).toEqual(["gone.sh"]);
-      expect(dropped).toEqual([]);
+      const { open: next, closed } = reconcileOpenDepartures([closedRow()], [dep], [], [KEY]);
+      expect(next).toEqual([open({ orphaned: true })]);
+      expect(closed).toEqual([]);
     });
   });
 });
