@@ -46,6 +46,8 @@ import {
   censusDepartures,
   censusRecoveryFinding,
   censusRefusalFinding,
+  censusRowsRecoveryFinding,
+  censusUnreadableRowsFinding,
   classifyCensusRead,
   clockGateBrief,
   departureFindings,
@@ -55,6 +57,7 @@ import {
   wrapperCensus,
   BRIEF_MARKER,
   CENSUS_REFUSAL_KEY,
+  CENSUS_UNREADABLE_ROWS_KEY,
   REPO_STAMP_CALL,
   TRIGGER_CALLS,
 } from "../lib/integrity/wrapperClock.ts";
@@ -227,9 +230,13 @@ async function writeCensus() {
   // literal in the repo (`CENSUS_REFUSAL_KEY`), so asking costs nothing and needs nothing from the
   // file that may have just been broken — which is exactly why this row is correctable when the
   // per-row departures are not (inc.176).
+  // Q84 inc.180 — the unreadable-rows key rides the same narrowed ask for inc.177's reason: it is a
+  // literal in this repo, so asking about it needs nothing from the census, and the tick that must
+  // CORRECT it (zero unreadable rows) is by definition a tick where nothing else would have asked.
   const ledger = await resolvedDepartureKeys([
     ...previousOpen.map((row) => departureKey(row.name)),
     CENSUS_REFUSAL_KEY,
+    CENSUS_UNREADABLE_ROWS_KEY,
   ]);
   const { corrections, open, closed, reopened, withheld, unreadableClaims } = reconcileOpenDepartures(
     previousOpen,
@@ -285,7 +292,22 @@ async function writeCensus() {
         `census repaired between two ticks would raise and clear a high row nobody saw (Q84 inc.177).`,
     );
   }
-  return { departures, corrections: [...corrections, ...recovery], censusRefusal: null };
+  // Q84 inc.180 — the withheld-because-unreadable rows reach Rob's page, not only this stderr loop.
+  // One file-level row (no per-row PATCH — that would republish a claim inc.172/173 forbid
+  // republishing), and its retraction on the tick the census comes back clean.
+  const rowsRecovery = censusUnreadableRowsFinding(unreadableClaims).length
+    ? []
+    : censusRowsRecoveryFinding(ledger ? ledger.open.includes(CENSUS_UNREADABLE_ROWS_KEY) : null);
+  return {
+    departures,
+    corrections: [
+      ...corrections,
+      ...recovery,
+      ...censusUnreadableRowsFinding(unreadableClaims),
+      ...rowsRecovery,
+    ],
+    censusRefusal: null,
+  };
 }
 
 /**

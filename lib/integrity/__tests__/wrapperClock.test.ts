@@ -6,9 +6,12 @@ import {
   auditWrapperClocks,
   censusDepartures,
   censusRecoveryFinding,
+  censusRowsRecoveryFinding,
+  censusUnreadableRowsFinding,
   censusRefusalFinding,
   CENSUS_BLINDNESS_CLAIM,
   CENSUS_REFUSAL_KEY,
+  CENSUS_UNREADABLE_ROWS_KEY,
   classifyCensusRead,
   clockGateBrief,
   departureFindings,
@@ -1546,5 +1549,59 @@ describe("what a RECOVERED census tells Rob's ledger (Q84 inc.177)", () => {
     // changelog inc.177 named as the failure mode of the other answer. Same input, same bytes.
     expect(censusRecoveryFinding(true)[0].detail).toBe(censusRecoveryFinding(true)[0].detail);
     expect(censusRecoveryFinding(true)).toHaveLength(1);
+  });
+});
+
+describe("the withheld-because-unreadable rows reach Rob's page (Q84 inc.180)", () => {
+  const readable = { name: "gone.sh", wasRole: "judged", wasTrigger: true, orphaned: false } as never;
+  const badClosed = { ...(readable as object), closed: "yes" } as never;
+  const badName = { name: "", wasRole: "judged", wasTrigger: true, orphaned: false } as never;
+
+  it("says nothing when every carried claim is readable", () => {
+    expect(censusUnreadableRowsFinding([])).toEqual([]);
+  });
+
+  it("files ONE file-level row, never one PATCH per affected row (inc.172/173)", () => {
+    // Per-row would mean PATCHing title+detail+severity together — republishing the very claim the
+    // gate has just declared unreadable, which inc.172/173 refuse outright.
+    const findings = censusUnreadableRowsFinding([badClosed, badName]);
+    expect(findings).toHaveLength(1);
+    expect(findings[0].dedupeKey).toBe(CENSUS_UNREADABLE_ROWS_KEY);
+    expect(findings[0].severity).toBe("medium");
+  });
+
+  it("names the affected rows and the field, so the census can actually be repaired", () => {
+    const detail = censusUnreadableRowsFinding([badClosed])[0].detail;
+    expect(detail).toContain(departureKey("gone.sh"));
+    expect(detail).toContain("`closed`");
+  });
+
+  it("a row whose own `name` is unreadable is described, not quoted as a key", () => {
+    const detail = censusUnreadableRowsFinding([badName])[0].detail;
+    expect(detail).toContain("no key to quote");
+    expect(detail).not.toContain(departureKey(""));
+  });
+
+  it("does NOT reuse CENSUS_REFUSAL_KEY — a bounded frozen subset is not a blind file", () => {
+    expect(CENSUS_UNREADABLE_ROWS_KEY).not.toBe(CENSUS_REFUSAL_KEY);
+  });
+
+  it("the retraction obeys the same ledger evidence rule as inc.177's", () => {
+    expect(censusRowsRecoveryFinding(null)).toEqual([]);
+    expect(censusRowsRecoveryFinding(false)).toEqual([]);
+    const recovery = censusRowsRecoveryFinding(true);
+    expect(recovery).toHaveLength(1);
+    expect(recovery[0].dedupeKey).toBe(CENSUS_UNREADABLE_ROWS_KEY);
+    expect(recovery[0].severity).toBe("low");
+  });
+
+  it("does not claim to know how long the rows were frozen — nothing recorded it", () => {
+    expect(censusRowsRecoveryFinding(true)[0].detail).toContain("cannot tell you how many ticks");
+  });
+
+  it("is shaped like every other finding this gate files", () => {
+    expect(Object.keys(censusUnreadableRowsFinding([badClosed])[0]).sort()).toEqual(
+      Object.keys(censusRefusalFinding("some reason")[0]).sort(),
+    );
   });
 });

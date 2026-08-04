@@ -1792,6 +1792,105 @@ export function censusRecoveryFinding(censusKeyOpen: boolean | null): DepartureF
 }
 
 /**
+ * Q84 inc.180 — the THIRD withholding path, and the only one that was silent on Rob's page.
+ *
+ * inc.179 handed forward the question of whether `unreadableCarriedField`/`classifyCensusRead`
+ * restate `CENSUS_BLINDNESS_CLAIM` a third time. MEASURED, AND THE ANSWER IS NO — neither is a
+ * Rob-facing surface for that claim. `unreadableCarriedField` is printed to stderr only
+ * (`audit-wrapper-clocks.mjs`, the `unreadableClaims` loop) and `classifyCensusRead` contributes a
+ * parse `reason` that the refusal row interpolates as its CAUSE, not as its claim. The one other
+ * Rob-facing surface that reads like the claim is `unaskableKeyNote`, and it stays separate under
+ * inc.179's own test: it shares a reading INSTRUCTION for a different cause (one key that cannot be
+ * read back) at a different scope (one row, not the whole file), and a divergence between the two
+ * makes neither of them false. Extract what is required to agree; that is not this.
+ *
+ * WHAT THE MEASUREMENT FOUND INSTEAD. The gate withholds a correction on three paths, and two of
+ * them tell Rob so on the page he reads: an unaskable key says it in `unaskableKeyNote` (inc.169),
+ * a withheld claim-change says it in the same note (inc.170). The third — a census row whose
+ * carried claim cannot be read at all (inc.172/173) — says it ONLY on stderr, on a tick nobody
+ * reads. Its row is already on Rob's page under `departureKey(name)`, it silently stops being
+ * re-checked, and nothing on the page marks the difference. That is inc.169's defect verbatim,
+ * one mechanism over.
+ *
+ * WHY THIS IS A FILE-LEVEL ROW AND NOT A NOTE ON EACH AFFECTED ROW. Marking each one means PATCHing
+ * its key, and `/api/admin/flags` PATCHes `title`, `detail` and `severity` together — so the gate
+ * would have to republish the enforcement claim it just declared unreadable. inc.172/173 refuse
+ * exactly that ("the gate will not publish a row it cannot read back"), and that ruling is not
+ * negotiable here. What survives it is inc.176's shape: one fact that needs no per-row write, filed
+ * under one fixed key, naming which rows are affected so the census can actually be repaired.
+ *
+ * `medium`, not `high`. inc.176's `high` was earned by "no enforcement claim on this page is
+ * verified" — the whole file was blind. Here departure detection ran, every other row was
+ * re-checked this tick, and the frozen set is bounded and named. Nothing on the page is wrong; a
+ * named subset of it is not being kept right.
+ */
+export const CENSUS_UNREADABLE_ROWS_KEY = "wrapper-census-unreadable-rows";
+
+/** How a row is named when its own `name` field is the unreadable one — it has no key to quote. */
+const unreadableRowLabel = (row: OpenDeparture): string =>
+  typeof row.name === "string" && row.name !== ""
+    ? `\`${departureKey(row.name)}\``
+    : "one row whose own `name` field is unreadable, so it has no key to quote";
+
+export function censusUnreadableRowsFinding(rows: OpenDeparture[]): DepartureFinding[] {
+  if (rows.length === 0) return [];
+  const listed = rows
+    .map((row) => `${unreadableRowLabel(row)} (\`${unreadableCarriedField(row)}\`)`)
+    .join("; ");
+  return [
+    {
+      entityName: "Wrapper clock gate",
+      title: `${rows.length} wrapper-census row${rows.length === 1 ? "" : "s"} stopped being re-checked — the claim inside the census cannot be read`,
+      detail:
+        `The census parsed, so departure detection ran and every other wrapper-census row on this ` +
+        `page was re-checked this tick. ${rows.length === 1 ? "This one was" : "These were"} not: ` +
+        `${listed}. The named field is not the shape it was written in, so this gate cannot read ` +
+        `back what it published there. It will not repair the row (measuring the claim now and ` +
+        `writing it back would record as published a state that was never published) and it will ` +
+        `not re-file a correction on it (that would mean republishing an enforcement claim it ` +
+        `cannot read) — Q84 inc.172/173. The consequence for you is on this row because it is ` +
+        `invisible everywhere else: read ${rows.length === 1 ? "that row" : "those rows"} as true ` +
+        `on the day ${rows.length === 1 ? "it was" : "they were"} filed and not re-checked since. ` +
+        `Repair \`docs/integrity/wrapper-census.json\` by hand, or close the affected ` +
+        `row${rows.length === 1 ? "" : "s"} on this page. This row updates in place every tick ` +
+        `until then.`,
+      severity: "medium",
+      dedupeKey: CENSUS_UNREADABLE_ROWS_KEY,
+    },
+  ];
+}
+
+/**
+ * Q84 inc.180 — and the alarm ships with its retraction, because inc.177 already ruled that an
+ * alarm without one is inc.162's defect. `censusUnreadableRowsFinding` stops re-filing when the
+ * rows are repaired, and stopping is not removing: a `medium` row naming rows that ARE being
+ * re-checked again would sit on Rob's page indefinitely. Corrected in place to `low`, on the same
+ * key, left OPEN — closing it is his, for inc.161/177's reasons (a machine's closure carries no
+ * actor, and a census broken and repaired between two ticks would raise and clear a row nobody
+ * saw). Filed only when the narrowed ledger read named this key OPEN on this tick: `false` would
+ * make `planFlagWrite` INSERT a row he already resolved (inc.169's harm) and `null` moves nothing
+ * in either direction (inc.163/165).
+ */
+export function censusRowsRecoveryFinding(keyOpen: boolean | null): DepartureFinding[] {
+  if (keyOpen !== true) return [];
+  return [
+    {
+      entityName: "Wrapper clock gate",
+      title: "Every wrapper-census row is readable again — the frozen rows above are being re-checked",
+      detail:
+        `No census row carries an unreadable claim on this tick, so the rows this row named are ` +
+        `being re-checked again from here forward. This gate cannot tell you how many ticks they ` +
+        `were frozen or whether their enforcement claims changed during that time — it withheld ` +
+        `corrections on them precisely because it could not read them, so nothing recorded it. It ` +
+        `corrects this row rather than closing it (Q84 inc.161/177): closing it would put a ` +
+        `decision on your ledger with no one's name against it. Closing it is yours.`,
+      severity: "low",
+      dedupeKey: CENSUS_UNREADABLE_ROWS_KEY,
+    },
+  ];
+}
+
+/**
  * Q84 inc.169 — inc.168's drop is safe and it is INVISIBLE to Rob. This makes the affected row say so.
  *
  * inc.168 stopped sending a key the read query cannot carry back unchanged, and said it on stderr,
