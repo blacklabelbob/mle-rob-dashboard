@@ -1601,6 +1601,61 @@ export function departureKey(name: string): string {
 }
 
 /**
+ * Q84 inc.176 — the one row a refused census CAN file, and the reason it is one row and not many.
+ *
+ * inc.175 asked whether a refused tick should mark the departure rows it has already filed as "not
+ * re-checked this tick" on Rob's ledger. It cannot, and the ground is stronger than "that write
+ * would be unsafe": ON A REFUSED TICK THIS GATE CANNOT NAME A SINGLE ROW IT FILED. The open keys
+ * live in `openDepartures` inside the census — the file it just refused to parse — so `previousOpen`
+ * is not a short list or a stale list, it is no list at all. There is nothing to iterate.
+ *
+ * The one way to recover the keys is to ask Rob's ledger which `wrapper-census-departure:*` rows it
+ * is holding and mark those. That is refused, and not for tidiness: it would let the CONSUMER of
+ * this gate's findings define what the gate published, which is inc.164's two-copies disease with
+ * the copies swapped — the ledger would become the record of the gate's own state. inc.167 already
+ * refuses an un-narrowed whole-ledger read outright for the same reason, and a prefix scan is that
+ * read wearing a filter.
+ *
+ * What survives that argument is a statement that needs no key: the census is unreadable, therefore
+ * EVERY open departure correction on the page is stale for as long as it stays unreadable. That is
+ * one file-level fact, filed under one fixed dedupe key, and it is honest about its own blind spot —
+ * it cannot say WHICH rows, because it does not know, and it says so rather than implying the set is
+ * empty. Re-filing on every tick costs nothing: the route dedupes on the key, so the row updates in
+ * place and disappears the moment the file is repaired and Rob resolves it.
+ *
+ * `high`, unconditionally. The severity ladder for departures turns on whether the clock rule is
+ * still enforced; this row is about the gate's own bookkeeping being blind, which makes every
+ * enforcement claim on the page unverified — there is no lower-severity version of that.
+ */
+export const CENSUS_REFUSAL_KEY = "wrapper-census-unreadable";
+
+export function censusRefusalFinding(reason: string | null): DepartureFinding[] {
+  if (!reason) return [];
+  return [
+    {
+      entityName: "Wrapper clock gate",
+      title: "The wrapper census is unreadable — every open departure row on this page is going unchecked",
+      detail:
+        `\`docs/integrity/wrapper-census.json\` is present and this gate cannot read it (${reason}). ` +
+        `It was left exactly as found rather than overwritten with a record carrying zero open rows, ` +
+        `which would have dropped every departure key still being corrected here, silently and ` +
+        `permanently (Q84 inc.174). Two consequences, and this row is the only place either is ` +
+        `visible on your page. First: no wrapper departure can be detected while the file stays ` +
+        `unreadable, so a green clock-gate verdict means "the stamp rules were checked", NOT "nothing ` +
+        `left the audited set". Second: every OTHER wrapper-census row on this page is frozen as of ` +
+        `the last tick that could read the file — read each one as true on the day it was filed and ` +
+        `not re-checked since. This row cannot name those rows, because their keys live inside the ` +
+        `file it cannot parse, and it will not recover them by scanning your ledger for its own key ` +
+        `prefix: that would make your page the record of what this gate published, which is backwards ` +
+        `(Q84 inc.176). Repair the file — or delete it to start a fresh record and accept that the ` +
+        `open rows are gone. This row updates in place every tick until then.`,
+      severity: "high",
+      dedupeKey: CENSUS_REFUSAL_KEY,
+    },
+  ];
+}
+
+/**
  * Q84 inc.169 — inc.168's drop is safe and it is INVISIBLE to Rob. This makes the affected row say so.
  *
  * inc.168 stopped sending a key the read query cannot carry back unchanged, and said it on stderr,

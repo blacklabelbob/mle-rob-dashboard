@@ -2,6 +2,8 @@ import { describe, it, expect } from "vitest";
 import {
   auditWrapperClocks,
   censusDepartures,
+  censusRefusalFinding,
+  CENSUS_REFUSAL_KEY,
   classifyCensusRead,
   clockGateBrief,
   departureFindings,
@@ -1385,5 +1387,60 @@ describe("reconcileOpenDepartures (Q84 inc.162)", () => {
       expect(next).toEqual([open({ orphaned: true })]);
       expect(closed).toEqual([]);
     });
+  });
+});
+
+// Q84 inc.176 — inc.175 got the refusal to the driver; this gets it to Rob. The tick where the gate
+// stops tracking his open rows must not leave his page looking current.
+describe("what a refused census tells Rob's ledger (Q84 inc.176)", () => {
+  const REASON = "it is not valid JSON (Unexpected end of JSON input)";
+
+  it("files exactly ONE row, not one per open departure", () => {
+    // The point of the increment: the gate cannot name the rows it has filed on a refused tick —
+    // their keys live in `openDepartures`, inside the file that failed to parse. One file-level
+    // row is the whole honest output.
+    const findings = censusRefusalFinding(REASON);
+    expect(findings).toHaveLength(1);
+    expect(findings[0].dedupeKey).toBe(CENSUS_REFUSAL_KEY);
+    expect(findings[0].dedupeKey).not.toContain("departure:"); // never impersonates a per-wrapper row
+  });
+
+  it("says nothing at all when the census read fine", () => {
+    expect(censusRefusalFinding(null)).toEqual([]);
+    expect(censusRefusalFinding("")).toEqual([]);
+  });
+
+  it("carries the parse reason, so the row is repairable without re-running the gate", () => {
+    expect(censusRefusalFinding(REASON)[0].detail).toContain(REASON);
+    expect(censusRefusalFinding(REASON)[0].detail).toContain("docs/integrity/wrapper-census.json");
+  });
+
+  it("is high severity unconditionally — a blind gate has no medium version", () => {
+    expect(censusRefusalFinding(REASON)[0].severity).toBe("high");
+  });
+
+  it("tells Rob the OTHER rows on his page are frozen, and admits it cannot name them", () => {
+    // Without both halves the row is a lie by omission: either his open departure rows read as
+    // current, or the silence about which ones implies the set is empty.
+    const { detail } = censusRefusalFinding(REASON)[0];
+    expect(detail).toMatch(/not re-checked since/);
+    expect(detail).toMatch(/cannot name those rows/);
+  });
+
+  it("states that a green verdict from this gate no longer covers departures", () => {
+    expect(censusRefusalFinding(REASON)[0].detail).toMatch(/NOT "nothing\s+left the audited set"/);
+  });
+
+  it("keeps the same key every tick, so it updates in place instead of stacking up", () => {
+    expect(censusRefusalFinding("reason A")[0].dedupeKey).toBe(censusRefusalFinding("reason B")[0].dedupeKey);
+  });
+
+  it("is shaped like every other finding this gate files", () => {
+    // It rides `fileDepartures` unchanged — same POST body contract as `departureFindings`.
+    expect(Object.keys(censusRefusalFinding(REASON)[0]).sort()).toEqual(
+      Object.keys(
+        departureFindings([{ name: "gone.sh", wasRole: "judged", wasTrigger: true, wasRepoStamp: false }], [])[0],
+      ).sort(),
+    );
   });
 });

@@ -44,6 +44,7 @@ import { fileURLToPath } from "node:url";
 import {
   auditWrapperClocks,
   censusDepartures,
+  censusRefusalFinding,
   classifyCensusRead,
   clockGateBrief,
   departureFindings,
@@ -183,16 +184,25 @@ async function writeCensus() {
   if (read.disposition === "corrupt") {
     console.error(
       `→ census: REFUSING TO WRITE — ${CENSUS_FILE} is present but unreadable: ${read.reason}. It is ` +
-        `left exactly as found and NOTHING is filed this tick, because overwriting it would drop ` +
-        `every departure row this gate is still correcting on Rob's ledger, permanently and ` +
-        `silently (Q84 inc.174). Repair the file by hand, or delete it to start a fresh record ` +
-        `and accept that the open rows are gone. Repeats every tick until then.`,
+        `left exactly as found and NO DEPARTURE is filed this tick, because overwriting it would ` +
+        `drop every departure row this gate is still correcting on Rob's ledger, permanently and ` +
+        `silently (Q84 inc.174). One row IS filed: the file-level notice that those rows are now ` +
+        `going unchecked, which is the only thing this gate can say without keys it can no longer ` +
+        `read (Q84 inc.176). Repair the file by hand, or delete it to start a fresh record and ` +
+        `accept that the open rows are gone. Repeats every tick until then.`,
     );
     // Q84 inc.175 — the reason travels to `--brief` as well as to stderr. The driver filters this
     // gate's output with `grep '^CLOCK GATE'`, so on its own this line reaches no prompt and the
     // only reader that acts is handed a clean verdict from a gate that is knowingly tracking none
     // of Rob's open rows.
-    return { departures: [], corrections: [], censusRefusal: read.reason };
+    //
+    // Q84 inc.176 — and it travels to Rob's ledger, as ONE row rather than a mark on each row this
+    // gate has filed. The per-row version is not merely unsafe, it is unavailable: the open keys
+    // live in `openDepartures` inside the file that just failed to parse, so there is no list to
+    // walk. Recovering them by asking the ledger for its own key prefix is refused on purpose
+    // (`censusRefusalFinding`). The file-level fact needs no key and is filed on the same
+    // best-effort path as every other finding.
+    return { departures: [], corrections: censusRefusalFinding(read.reason), censusRefusal: read.reason };
   }
   const previous = read.census;
   const departures = censusDepartures(previous, census);
