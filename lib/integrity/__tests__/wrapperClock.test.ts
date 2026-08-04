@@ -6,8 +6,7 @@ import {
   auditWrapperClocks,
   censusDepartures,
   censusRecoveryFinding,
-  censusRowsRecoveryFinding,
-  censusUnreadableRowsFinding,
+  censusUnreadableRowsRow,
   censusRefusalFinding,
   CENSUS_BLINDNESS_CLAIM,
   CENSUS_REFUSAL_KEY,
@@ -1557,27 +1556,27 @@ describe("the withheld-because-unreadable rows reach Rob's page (Q84 inc.180)", 
   const badClosed = { ...(readable as object), closed: "yes" } as never;
   const badName = { name: "", wasRole: "judged", wasTrigger: true, orphaned: false } as never;
 
-  it("says nothing when every carried claim is readable", () => {
-    expect(censusUnreadableRowsFinding([])).toEqual([]);
+  it("says nothing when every carried claim is readable and the key is not open", () => {
+    expect(censusUnreadableRowsRow([], null)).toEqual([]);
   });
 
   it("files ONE file-level row, never one PATCH per affected row (inc.172/173)", () => {
     // Per-row would mean PATCHing title+detail+severity together — republishing the very claim the
     // gate has just declared unreadable, which inc.172/173 refuse outright.
-    const findings = censusUnreadableRowsFinding([badClosed, badName]);
+    const findings = censusUnreadableRowsRow([badClosed, badName], null);
     expect(findings).toHaveLength(1);
     expect(findings[0].dedupeKey).toBe(CENSUS_UNREADABLE_ROWS_KEY);
     expect(findings[0].severity).toBe("medium");
   });
 
   it("names the affected rows and the field, so the census can actually be repaired", () => {
-    const detail = censusUnreadableRowsFinding([badClosed])[0].detail;
+    const detail = censusUnreadableRowsRow([badClosed], null)[0].detail;
     expect(detail).toContain(departureKey("gone.sh"));
     expect(detail).toContain("`closed`");
   });
 
   it("a row whose own `name` is unreadable is described, not quoted as a key", () => {
-    const detail = censusUnreadableRowsFinding([badName])[0].detail;
+    const detail = censusUnreadableRowsRow([badName], null)[0].detail;
     expect(detail).toContain("no key to quote");
     expect(detail).not.toContain(departureKey(""));
   });
@@ -1587,21 +1586,43 @@ describe("the withheld-because-unreadable rows reach Rob's page (Q84 inc.180)", 
   });
 
   it("the retraction obeys the same ledger evidence rule as inc.177's", () => {
-    expect(censusRowsRecoveryFinding(null)).toEqual([]);
-    expect(censusRowsRecoveryFinding(false)).toEqual([]);
-    const recovery = censusRowsRecoveryFinding(true);
+    expect(censusUnreadableRowsRow([], null)).toEqual([]);
+    expect(censusUnreadableRowsRow([], false)).toEqual([]);
+    const recovery = censusUnreadableRowsRow([], true);
     expect(recovery).toHaveLength(1);
     expect(recovery[0].dedupeKey).toBe(CENSUS_UNREADABLE_ROWS_KEY);
     expect(recovery[0].severity).toBe("low");
   });
 
   it("does not claim to know how long the rows were frozen — nothing recorded it", () => {
-    expect(censusRowsRecoveryFinding(true)[0].detail).toContain("cannot tell you how many ticks");
+    expect(censusUnreadableRowsRow([], true)[0].detail).toContain("cannot tell you how many ticks");
   });
 
   it("is shaped like every other finding this gate files", () => {
-    expect(Object.keys(censusUnreadableRowsFinding([badClosed])[0]).sort()).toEqual(
+    expect(Object.keys(censusUnreadableRowsRow([badClosed], null)[0]).sort()).toEqual(
       Object.keys(censusRefusalFinding("some reason")[0]).sort(),
     );
+  });
+
+  // Q84 inc.181 — the exclusivity is IN the pair, not in a caller that remembers to check.
+  it("an open key NEVER retracts an alarm that is still true (inc.181)", () => {
+    // The dangerous tick: rows unreadable AND the key open from a previous tick's alarm. Both
+    // builders stamp the same dedupeKey, and `fileDepartures` POSTs in array order against a route
+    // that corrects in place — so emitting both would overwrite the alarm with its own retraction
+    // and tell Rob every row is readable on the tick they are not.
+    const findings = censusUnreadableRowsRow([badClosed], true);
+    expect(findings).toHaveLength(1);
+    expect(findings[0].severity).toBe("medium");
+    expect(findings[0].detail).not.toContain("readable again");
+  });
+
+  it("never returns two rows for one key, on any combination of inputs (inc.181)", () => {
+    for (const rows of [[], [badClosed], [badClosed, badName]] as OpenDeparture[][]) {
+      for (const keyOpen of [true, false, null]) {
+        const findings = censusUnreadableRowsRow(rows, keyOpen);
+        expect(findings.length).toBeLessThanOrEqual(1);
+        expect(new Set(findings.map((f) => f.dedupeKey)).size).toBe(findings.length);
+      }
+    }
   });
 });

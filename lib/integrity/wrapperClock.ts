@@ -1832,7 +1832,7 @@ const unreadableRowLabel = (row: OpenDeparture): string =>
     ? `\`${departureKey(row.name)}\``
     : "one row whose own `name` field is unreadable, so it has no key to quote";
 
-export function censusUnreadableRowsFinding(rows: OpenDeparture[]): DepartureFinding[] {
+function censusUnreadableRowsFinding(rows: OpenDeparture[]): DepartureFinding[] {
   if (rows.length === 0) return [];
   const listed = rows
     .map((row) => `${unreadableRowLabel(row)} (\`${unreadableCarriedField(row)}\`)`)
@@ -1871,7 +1871,7 @@ export function censusUnreadableRowsFinding(rows: OpenDeparture[]): DepartureFin
  * make `planFlagWrite` INSERT a row he already resolved (inc.169's harm) and `null` moves nothing
  * in either direction (inc.163/165).
  */
-export function censusRowsRecoveryFinding(keyOpen: boolean | null): DepartureFinding[] {
+function censusRowsRecoveryFinding(keyOpen: boolean | null): DepartureFinding[] {
   if (keyOpen !== true) return [];
   return [
     {
@@ -1888,6 +1888,39 @@ export function censusRowsRecoveryFinding(keyOpen: boolean | null): DepartureFin
       dedupeKey: CENSUS_UNREADABLE_ROWS_KEY,
     },
   ];
+}
+
+/**
+ * Q84 inc.181 — the alarm and its retraction share ONE key, so only one of them may exist on a
+ * tick. inc.180 kept them apart with a ternary at the call site in `audit-wrapper-clocks.mjs`;
+ * this makes it unreachable instead of remembered.
+ *
+ * MEASURED FIRST, AND THE FAILURE MODE IS NOT A DUPLICATE ROW. `fileDepartures` POSTs findings in
+ * array order against `/api/admin/flags`, which corrects in place on `dedupeKey`. Both builders
+ * stamp `CENSUS_UNREADABLE_ROWS_KEY`, so emitting both on one tick does not file two rows — the
+ * second overwrites the first, and inc.180's order puts the retraction second. A caller that
+ * dropped the ternary would therefore publish, on Rob's page, `low` / "every wrapper-census row is
+ * readable again" on the exact tick rows are unreadable. That is not a redundant row; it is the
+ * gate stating the opposite of what it just measured, with the true row deleted by its own POST.
+ *
+ * WHY THIS PAIR AND NOT inc.177'S. `censusRefusalFinding`/`censusRecoveryFinding` are already
+ * exclusive by control flow — the refusal is returned from the `corrupt` branch, which returns
+ * before the recovery is ever computed, so no `if` remembers anything and there is nothing to
+ * merge. This pair is the only one whose two arms are both reachable on the same tick, so the
+ * narrow fix belongs here and the inc.177 pair is left alone (inc.146's lesson: a rule living in
+ * the arrangement of a caller lives nowhere).
+ *
+ * The two builders are module-private for that reason: an exported alarm is an alarm a future
+ * caller can file without its retraction, which is the state this function exists to make
+ * impossible. `keyOpen` is inc.180's ledger evidence unchanged — `true` only, because `false`
+ * would INSERT a row Rob resolved (inc.169) and `null` moves nothing (inc.163/165).
+ */
+export function censusUnreadableRowsRow(
+  rows: OpenDeparture[],
+  keyOpen: boolean | null,
+): DepartureFinding[] {
+  const alarm = censusUnreadableRowsFinding(rows);
+  return alarm.length > 0 ? alarm : censusRowsRecoveryFinding(keyOpen);
 }
 
 /**

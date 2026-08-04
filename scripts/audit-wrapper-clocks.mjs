@@ -46,8 +46,7 @@ import {
   censusDepartures,
   censusRecoveryFinding,
   censusRefusalFinding,
-  censusRowsRecoveryFinding,
-  censusUnreadableRowsFinding,
+  censusUnreadableRowsRow,
   classifyCensusRead,
   clockGateBrief,
   departureFindings,
@@ -295,17 +294,19 @@ async function writeCensus() {
   // Q84 inc.180 — the withheld-because-unreadable rows reach Rob's page, not only this stderr loop.
   // One file-level row (no per-row PATCH — that would republish a claim inc.172/173 forbid
   // republishing), and its retraction on the tick the census comes back clean.
-  const rowsRecovery = censusUnreadableRowsFinding(unreadableClaims).length
-    ? []
-    : censusRowsRecoveryFinding(ledger ? ledger.open.includes(CENSUS_UNREADABLE_ROWS_KEY) : null);
+  //
+  // Q84 inc.181 — and WHICH of those two is filed is decided in `censusUnreadableRowsRow`, not
+  // here. They share one `dedupeKey`, so the ledger corrects in place: emitting both would not add
+  // a row, it would overwrite the alarm with its own retraction and tell Rob every row is readable
+  // on the tick they are not. That exclusivity is not a thing a caller should be trusted to
+  // remember (inc.146), so this line can no longer get it wrong.
+  const rowsRow = censusUnreadableRowsRow(
+    unreadableClaims,
+    ledger ? ledger.open.includes(CENSUS_UNREADABLE_ROWS_KEY) : null,
+  );
   return {
     departures,
-    corrections: [
-      ...corrections,
-      ...recovery,
-      ...censusUnreadableRowsFinding(unreadableClaims),
-      ...rowsRecovery,
-    ],
+    corrections: [...corrections, ...recovery, ...rowsRow],
     censusRefusal: null,
   };
 }
