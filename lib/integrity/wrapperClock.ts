@@ -439,9 +439,26 @@ function logicalLines(source: string): { text: string; lineOf: (index: number) =
  * to prevent. Quote state is tracked for the same reason `redirectTargets` tracks it: a `#` inside
  * an echoed sentence is prose.
  *
- * NOT A SHELL PARSER: a `#` inside a heredoc body is stripped as if it were code. That is inert
- * here — every needle above is a command, and no wrapper in the tree heredocs one — and a real
- * parser would be a far larger surface than the six greps it serves.
+ * HEREDOC BODIES ARE DATA, AND THE STATE IS BOUNDED AT THE TERMINATOR (Q84 inc.152). inc.151 wrote
+ * that a `#` in a heredoc body is stripped as if it were code and called the case inert because
+ * "no wrapper in the tree heredocs one." MEASURED: 7 of the 31 wrappers heredoc — and the leak is
+ * live, not hypothetical. `hold-signal.sh` heredocs the hold text, whose line 48 reads
+ * `(Rob rule #2: listen in pieces …)` — cut at `#2` as a comment — and whose line 49 says
+ * `Rob's next message`, an apostrophe that opens a single quote **the rest of the file never
+ * closes**. Every line after that terminator is then read as quoted, so no comment is stripped
+ * again: inc.151's fix silently stops applying halfway down a real wrapper.
+ *
+ * SO A BODY NEITHER CUTS NOR CARRIES. Its `#` is not a comment and its `'` is not a quote, and the
+ * state resumes at the terminator exactly as it entered — which is shell's rule.
+ *
+ * THE BODY TEXT IS STILL RETURNED, DELIBERATELY. Skipping bodies would be the easier change and it
+ * would be a FALSE GREEN: `mission-control-reporter.sh` writes `"$(date -u …)"` from inside an
+ * UNQUOTED heredoc into a file, so that stamp genuinely reaches disk and must stay judged. Bodies
+ * are data for the purpose of comments and quotes, not for the purpose of what they write.
+ *
+ * STILL NOT A SHELL PARSER: `<<` inside a body-that-is-itself-data, or a delimiter built by
+ * expansion (`<<$X`), is not modelled. Neither shape exists in the tree, and both would fail
+ * toward the pre-inc.152 behaviour rather than toward a new blind spot.
  */
 function codeLines(source: string): string[] {
   // Quote state RUNS from line to line, because the wrapper's own composer call opens `PROMPT="`
@@ -454,12 +471,97 @@ function codeLines(source: string): string[] {
   // `# the council's rules` can never leak into the next line's state.
   const out: string[] = [];
   let state = FRESH;
+  // Delimiters still awaiting their terminator, in the order shell will close them: one command
+  // may open several (`cmd <<A <<B`), and each body ends at its own word.
+  let pending: HeredocOpener[] = [];
+  let depth = 0; // `$( … )` nesting carried across the body lines of one heredoc
   for (const line of source.split("\n")) {
+    if (pending.length > 0) {
+      const [open, ...rest] = pending;
+      const candidate = open.stripTabs ? line.replace(/^\t+/, "") : line;
+      if (candidate === open.word) {
+        pending = rest;
+        depth = 0;
+        out.push(line);
+        continue;
+      }
+      // The body neither cuts nor carries state. What survives is exactly what shell EXECUTES:
+      // the command substitutions in an unquoted body, and nothing at all in a quoted one.
+      const kept = open.expands ? substitutionsOnly(line, depth) : { code: "", depth: 0 };
+      out.push(kept.code);
+      depth = kept.depth;
+      continue;
+    }
     const { code, next } = stripComment(line, state);
     out.push(code);
     state = next;
+    // Only a line that ENDS outside every quote can have opened a heredoc: `echo "a << b"` is a
+    // string, and treating it as an opener would swallow the rest of the file as a body — the
+    // worst failure available here, since a swallowed line is never judged at all.
+    pending = state.quote === null && state.stack.length === 0 ? heredocOpeners(code) : [];
   }
   return out;
+}
+
+/**
+ * The heredocs a code line opens, in the order shell closes them (Q84 inc.152).
+ *
+ * `<<<` IS NOT ONE — it is a here-STRING, entirely on its own line, and two wrappers use it
+ * (`prd-autosave.sh`, `prd-realtime.sh` both end a loop with `done <<< "$MATCHED"`). Reading one
+ * as a heredoc would leave a body open with no terminator and blind the scans to every line below
+ * it, so the `<` that follows is rejected rather than tolerated.
+ *
+ * `<<-WORD` strips LEADING TABS from the terminator (not spaces — shell's rule, and the
+ * difference is why the flag is carried rather than assumed). A quoted delimiter (`<<'EOF'`) only
+ * changes whether the BODY expands, which this file does not model, so both forms end the same way.
+ */
+function heredocOpeners(code: string): HeredocOpener[] {
+  const out: HeredocOpener[] = [];
+  const opener = /<<(-?)\s*(?:'([^']+)'|"([^"]+)"|(\\?)([A-Za-z_][A-Za-z0-9_]*))/g;
+  for (const m of code.matchAll(opener)) {
+    // `<<<` is a here-STRING, and it must be rejected from BOTH sides: the scan also finds the
+    // second and third `<` as a pair, which is how `done <<< "$MATCHED"` read as a heredoc named
+    // `$MATCHED` — an opener with no terminator, blinding every line below it.
+    if (code[m.index + 2] === "<" || code[m.index - 1] === "<") continue;
+    const word = m[2] ?? m[3] ?? m[5];
+    if (!word) continue;
+    // ANY quoting of the delimiter — `'EOF'`, `"EOF"` or `\EOF` — turns the body into literal
+    // text shell never expands. That is the whole difference between `hold-signal.sh`'s prose and
+    // `mission-control-reporter.sh`'s `$(date …)`, so it is read off the delimiter, not guessed.
+    out.push({ word, stripTabs: m[1] === "-", expands: m[2] === undefined && m[3] === undefined && m[4] !== "\\" });
+  }
+  return out;
+}
+
+type HeredocOpener = { word: string; stripTabs: boolean; expands: boolean };
+
+/**
+ * A heredoc body line reduced to the command substitutions inside it, position preserved.
+ *
+ * An unquoted body is data with holes: `{ "at": "$(date '+%F')" }` writes prose AND runs `date`.
+ * Blanking the whole line would be a false green on a stamp that genuinely reaches disk; keeping
+ * the whole line reads the prose as commands. Only what runs is kept, and non-substitution text
+ * becomes spaces so every column — and therefore every reported line — still lines up.
+ */
+function substitutionsOnly(line: string, from: number): { code: string; depth: number } {
+  let depth = from;
+  let code = "";
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === "$" && line[i + 1] === "(") {
+      depth++;
+      code += "  ";
+      i++;
+      continue;
+    }
+    if (ch === ")" && depth > 0) {
+      depth--;
+      code += " ";
+      continue;
+    }
+    code += depth > 0 ? ch : " ";
+  }
+  return { code, depth };
 }
 
 /** Quote/substitution state carried between physical lines. `stack` is the `$( … )` nesting. */

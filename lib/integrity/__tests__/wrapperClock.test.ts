@@ -515,4 +515,56 @@ describe("auditWrapperClocks", () => {
       expect(audit.triggeredBy).toEqual(["some-wrapper.sh"]);
     });
   });
+
+  describe("a heredoc body (Q84 inc.152)", () => {
+    const wired = "npm run audit:clocks -- --brief\ndate '+%T %Z' >> crm-driver.log\n";
+
+    it("does not leak an apostrophe past its terminator — hold-signal.sh's live shape", () => {
+      // The body is `hold-signal.sh` almost verbatim: a `#` shell would never read as a comment,
+      // and `Rob's` — one unmatched quote. Before inc.152 that quote stayed open for the rest of
+      // the file, so the trailing note below was never stripped and read as a real gate.
+      const audit = auditWrapperClocks(
+        script(
+          `${wired}cat <<'EOF'\n🛑 HOLD (Rob rule #2: listen in pieces).\nBLOCKED until Rob's next message.\nEOF\n` +
+            `node scripts/driver-prompt.mjs "$B"  # add DRIVER_NEW_GATE="$N" here later`,
+        ),
+      );
+      expect(audit.unrankedGateVars).toEqual([]);
+      expect(audit.findings).toEqual([]);
+    });
+
+    it("still judges a stamp the body actually writes — bodies are data, not invisible", () => {
+      // `mission-control-reporter.sh` writes `"$(date …)"` from inside an UNQUOTED heredoc, so the
+      // stamp reaches disk. Skipping bodies wholesale would be the easy change and a false green.
+      const { findings } = auditWrapperClocks(
+        script(`cat > "$HOME/.claude/memory/PING-INBOX.md" <<EOF\n{ "at": "$(date '+%Y-%m-%d %H:%M')" }\nEOF`),
+      );
+      expect(findings).toHaveLength(1);
+      expect(findings[0]).toMatchObject({ line: 2, format: "%Y-%m-%d %H:%M" });
+    });
+
+    it("does not read a needle out of a body as if it were a command", () => {
+      const audit = auditWrapperClocks(
+        script(`date '+%T %Z' >> crm-driver.log\ncat <<'EOF'\nnpm run audit:clocks\nEOF`),
+      );
+      expect(audit.triggeredBy).toEqual([]);
+      expect(clockGateBrief(audit).code).toBe(3);
+    });
+
+    it("ends a `<<-` body at a tab-indented terminator", () => {
+      const audit = auditWrapperClocks(
+        script(`${wired}cat <<-EOF\n\tRob's text\n\tEOF\nDRIVER_NEW_GATE="$N" node scripts/driver-prompt.mjs "$B"`),
+      );
+      expect(audit.unrankedGateVars).toEqual([
+        { script: "some-wrapper.sh", line: 6, envVar: "DRIVER_NEW_GATE" },
+      ]);
+    });
+
+    it("treats `<<<` as a here-string, not an opener that swallows the rest of the file", () => {
+      const audit = auditWrapperClocks(
+        script(`while read -r l; do :; done <<< "$MATCHED"\n${wired}`),
+      );
+      expect(audit.triggeredBy).toEqual(["some-wrapper.sh"]);
+    });
+  });
 });
