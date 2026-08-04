@@ -44,6 +44,7 @@ import { fileURLToPath } from "node:url";
 import {
   auditWrapperClocks,
   censusDepartures,
+  classifyCensusRead,
   clockGateBrief,
   departureFindings,
   departureKey,
@@ -161,13 +162,34 @@ async function writeCensus() {
   // required to notice, and every count here would stay green because every count is derived from
   // what was found. An unreadable or malformed file is treated as "no previous record" rather than
   // as a mass departure: the failure mode of a bad parse must not be 33 false findings.
-  let previous = null;
+  //
+  // Q84 inc.174 — and "could not read it" no longer means "there was nothing there". The three
+  // outcomes are separated (`classifyCensusRead`, tested in the repo under test) because a PRESENT
+  // file this gate cannot parse is the only record of what it has published to Rob's ledger, and
+  // the write below would replace it with a census carrying zero `openDepartures` — dropping every
+  // key it is still correcting, in the same tick, with nothing said. So a corrupt census is not
+  // overwritten: the run reports it and leaves the bytes exactly as found, which is inc.170/173's
+  // disposition for an unreadable row applied to an unreadable file.
+  let read;
   try {
-    previous = JSON.parse(await readFile(CENSUS_FILE, "utf8"));
-    if (!Array.isArray(previous?.wrappers)) previous = null;
-  } catch {
-    previous = null;
+    read = classifyCensusRead({ missing: false, text: await readFile(CENSUS_FILE, "utf8") });
+  } catch (err) {
+    read =
+      err.code === "ENOENT"
+        ? classifyCensusRead({ missing: true, text: null })
+        : { disposition: "corrupt", census: null, reason: `it could not be opened (${err.code ?? err.message})` };
   }
+  if (read.disposition === "corrupt") {
+    console.error(
+      `→ census: REFUSING TO WRITE — ${CENSUS_FILE} is present but unreadable: ${read.reason}. It is ` +
+        `left exactly as found and NOTHING is filed this tick, because overwriting it would drop ` +
+        `every departure row this gate is still correcting on Rob's ledger, permanently and ` +
+        `silently (Q84 inc.174). Repair the file by hand, or delete it to start a fresh record ` +
+        `and accept that the open rows are gone. Repeats every tick until then.`,
+    );
+    return { departures: [], corrections: [] };
+  }
+  const previous = read.census;
   const departures = censusDepartures(previous, census);
   // Q84 inc.162 — carry the rows this gate has already filed, and re-measure the one claim in them
   // that can go stale (who runs this gate now) against today's tree. A census written before

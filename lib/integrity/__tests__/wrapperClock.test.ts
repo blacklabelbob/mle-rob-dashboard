@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   auditWrapperClocks,
   censusDepartures,
+  classifyCensusRead,
   clockGateBrief,
   departureFindings,
   departureKey,
@@ -788,6 +789,52 @@ describe("wrapperCensus", () => {
     const second = wrapperCensus(auditWrapperClocks(entries), entries);
     expect(JSON.stringify(first)).toEqual(JSON.stringify(second));
     expect(JSON.stringify(first)).not.toMatch(/\d{4}-\d{2}-\d{2}/);
+  });
+});
+
+describe("classifyCensusRead (Q84 inc.174)", () => {
+  const row = { name: "a.sh", language: "shell", executable: true, role: "judged", repoStamp: true, triggersGate: false };
+
+  it("calls an absent file a first run — nothing was there, so nothing can be lost", () => {
+    expect(classifyCensusRead({ missing: true, text: null })).toEqual({ disposition: "first-run", census: null });
+  });
+
+  it("reads a well-formed census back, openDepartures and all", () => {
+    const text = JSON.stringify({ wrappers: [row], openDepartures: [{ name: "gone.sh" }] });
+    const read = classifyCensusRead({ missing: false, text });
+    expect(read.disposition).toBe("readable");
+    expect(read.census?.openDepartures).toEqual([{ name: "gone.sh" }]);
+  });
+
+  it("accepts a pre-inc.162 census with NO openDepartures key — absence is legitimate", () => {
+    const read = classifyCensusRead({ missing: false, text: JSON.stringify({ wrappers: [row] }) });
+    expect(read.disposition).toBe("readable");
+  });
+
+  it("calls a present-but-empty file corrupt, not a first run — that is a truncated write", () => {
+    const read = classifyCensusRead({ missing: false, text: "   \n" });
+    expect(read.disposition).toBe("corrupt");
+    expect(read.reason).toMatch(/empty/);
+  });
+
+  it("calls unparseable bytes corrupt rather than 'no previous record'", () => {
+    const read = classifyCensusRead({ missing: false, text: "{ wrappers: [" });
+    expect(read.disposition).toBe("corrupt");
+    expect(read.reason).toMatch(/not JSON/);
+  });
+
+  it("calls a wrong-shaped `wrappers` corrupt and names what it found", () => {
+    const read = classifyCensusRead({ missing: false, text: JSON.stringify({ wrappers: "all of them" }) });
+    expect(read.disposition).toBe("corrupt");
+    expect(read.reason).toContain("`wrappers`");
+    expect(read.reason).toContain('"all of them"');
+  });
+
+  it("calls a PRESENT non-array `openDepartures` corrupt — that field is every row still corrected", () => {
+    const text = JSON.stringify({ wrappers: [row], openDepartures: { "gone.sh": true } });
+    const read = classifyCensusRead({ missing: false, text });
+    expect(read.disposition).toBe("corrupt");
+    expect(read.reason).toContain("`openDepartures`");
   });
 });
 

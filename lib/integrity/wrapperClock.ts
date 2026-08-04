@@ -1289,6 +1289,77 @@ function departureSentence(departures: CensusDeparture[]): string {
 }
 
 /**
+ * What a read of the committed census MEANS, before anything is written back (Q84 inc.174).
+ *
+ * WHY THIS IS A DISPOSITION AND NOT A BOOLEAN. inc.159's seam collapses three different facts into
+ * one `previous = null`: the file has never existed, the file exists and cannot be parsed, and the
+ * file parses into a shape this gate does not recognise. That collapse is defensible for the
+ * DEPARTURE count — the comment there is right that a bad parse must not become 33 false findings —
+ * and it is exactly wrong for what happens next: the run then OVERWRITES the file it could not
+ * read. Every row in `openDepartures` is a key this gate filed to Rob's ledger and is still
+ * correcting, and a null previous means the rewrite carries none of them. That is inc.163's harm —
+ * dropping a key is the harm — applied to the whole file at once, and silently.
+ *
+ * SO THE FIRST RUN IS SEPARATED FROM THE CORRUPT ONE, because they are opposite. An absent file
+ * has nothing to lose and writing it is the first record. A PRESENT file that cannot be read is
+ * the only evidence of what the gate has published, and overwriting it destroys that evidence for
+ * good — the census is rewritten on the same tick that reads it, so there is no second chance.
+ *
+ * WHICH FIELDS DECIDE THIS, MEASURED THE SAME WAY inc.173 MEASURED ITS OWN (can it change what the
+ * gate does or publishes?):
+ *   • `wrappers` not an array — every departure is computed from it, so a wrong shape here silently
+ *     reports no departures at all.
+ *   • `openDepartures` PRESENT and not an array — read downstream with an `Array.isArray` guard
+ *     that falls back to `[]`, i.e. every tracked row is forgotten and the rewrite makes that
+ *     permanent. Its ABSENCE is legitimate and stays legitimate: a census written before inc.162
+ *     has no such key, and treating that as corruption would freeze this gate on a real tree.
+ *   • Anything else in the file is not read here and does not get a vote.
+ *
+ * Pure per CR-3: it is handed bytes and returns a verdict. The caller does the I/O and owns the
+ * refusal.
+ */
+export type CensusRead =
+  | { disposition: "first-run"; census: null }
+  | { disposition: "readable"; census: WrapperCensus }
+  | { disposition: "corrupt"; census: null; reason: string };
+
+export function classifyCensusRead(file: { missing: boolean; text: string | null }): CensusRead {
+  if (file.missing) return { disposition: "first-run", census: null };
+  const text = file.text ?? "";
+  // A zero-byte file is the signature of a truncated write, which is the loss this exists for —
+  // it is present, so it is not a first run, and it says nothing, so it cannot be trusted.
+  if (text.trim() === "") {
+    return { disposition: "corrupt", census: null, reason: "the file is present but empty (0 bytes of JSON)" };
+  }
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text);
+  } catch (err) {
+    return {
+      disposition: "corrupt",
+      census: null,
+      reason: `it is not JSON (${err instanceof Error ? err.message : String(err)})`,
+    };
+  }
+  const record = parsed as { wrappers?: unknown; openDepartures?: unknown } | null;
+  if (!Array.isArray(record?.wrappers)) {
+    return {
+      disposition: "corrupt",
+      census: null,
+      reason: `\`wrappers\` is ${JSON.stringify(record?.wrappers)}, not an array`,
+    };
+  }
+  if (record.openDepartures !== undefined && !Array.isArray(record.openDepartures)) {
+    return {
+      disposition: "corrupt",
+      census: null,
+      reason: `\`openDepartures\` is ${JSON.stringify(record.openDepartures)}, not an array — every row this gate is still correcting lives there`,
+    };
+  }
+  return { disposition: "readable", census: record as WrapperCensus };
+}
+
+/**
  * The two departures that change what is ENFORCED rather than what is counted (Q84 inc.160), and
  * therefore the only two that reach Rob's ledger. Shared so a correction can never be filed for a
  * key the departure pass would not have filed in the first place.
