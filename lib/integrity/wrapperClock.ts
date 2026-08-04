@@ -1493,6 +1493,28 @@ export function departureKey(name: string): string {
  * would quietly close that gap, and the reopened row would then be judged already-correct and left
  * stale — the same bug wearing the fix's clothes.
  *
+ * Q84 inc.165 — A REOPEN NEEDS THE SAME POSITIVE EVIDENCE A CLOSURE NEEDS. inc.165 was handed the
+ * question "can Rob DELETE a row instead of resolving it, and would the gate then re-INSERT it?".
+ * Measured first: he cannot. `app/api/admin/flags/route.ts` exposes GET/PATCH/POST and no DELETE;
+ * PATCH takes `resolve|reopen|read|unread`; the file's own header states the design — *"resolve with
+ * optional note, never deleted, archive keeps both dates"* (Rob 2026-07-22). Nothing in the app
+ * deletes a flag, so DELETION IS OUTSIDE WHAT THIS GATE MAY INFER — reading an absence as Rob's
+ * decision would be a machine deciding what he decided, which inc.161 already ruled out.
+ *
+ * BUT ABSENCE HAS A SECOND CAUSE inc.164 DID NOT NAME, AND IT IS REACHABLE TODAY: a PARTIAL read.
+ * `resolvedDepartureKeys()` returns a non-null list — "believe this ledger" — for any 200 carrying an
+ * array, including an array that is missing rows (PostgREST's max-rows cap as the ledger grows, an
+ * entity-filtered base URL, a truncated page). Before this increment a `closed` row that was merely
+ * ABSENT from that array was read as reopened: the gate un-froze `orphaned`, told Rob's console
+ * *"you reopened …"* when he had done nothing, and could emit a correction re-POSTing a row he
+ * closed — the exact inc.163 harm, arriving through a short read instead of a deletion.
+ *
+ * SO CLOSURE AND REOPEN ARE NOW SYMMETRIC: a row closes only when the ledger is SEEN to hold it
+ * resolved, and reopens only when the ledger is SEEN to hold it open (`ledgerOpenKeys`). Absence is
+ * evidence of nothing in either direction, at key granularity — the same rule `null` already applies
+ * to the whole read. A closed row missing from a short read simply stays closed and silent; it is
+ * still on Rob's page, where he can see it, and the gate re-POSTs nothing on a guess.
+ *
  * PURE per CR-3 — no clock, no network, no `process.env`. The caller POSTs and persists.
  */
 export function reconcileOpenDepartures(
@@ -1500,6 +1522,7 @@ export function reconcileOpenDepartures(
   departures: CensusDeparture[],
   stillTriggeredBy: string[] = [],
   resolvedKeys: string[] | null = null,
+  ledgerOpenKeys: string[] | null = null,
 ): {
   corrections: DepartureFinding[];
   open: OpenDeparture[];
@@ -1510,6 +1533,7 @@ export function reconcileOpenDepartures(
     d.wasTrigger && enforcersOtherThan(d.name, stillTriggeredBy).length === 0;
 
   const resolved = resolvedKeys === null ? null : new Set(resolvedKeys);
+  const ledgerOpen = ledgerOpenKeys === null ? null : new Set(ledgerOpenKeys);
   const filedThisTick = new Map(departures.filter(isFiled).map((d) => [d.name, d]));
   const corrections: DepartureFinding[] = [];
   const open: OpenDeparture[] = [];
@@ -1521,8 +1545,12 @@ export function reconcileOpenDepartures(
     if (refiled) continue; // departureFindings() owns this key this tick.
 
     const { closed: wasClosed = false, ...history } = row;
+    const key = departureKey(row.name);
     // An unread ledger changes nothing in either direction: it neither closes a row nor reopens one.
-    const closedNow = resolved === null ? wasClosed : resolved.has(departureKey(row.name));
+    // Nor does a read that simply does not mention this key (inc.165): closing needs to SEE it
+    // resolved, reopening needs to SEE it open, and a short read is evidence of neither.
+    const closedNow =
+      resolved === null ? wasClosed : wasClosed ? !(ledgerOpen?.has(key) ?? false) : resolved.has(key);
 
     if (closedNow) {
       // Rob closed this row. Emit NO correction: a POST on a key with no open row INSERTS a new one
@@ -1556,7 +1584,7 @@ export function reconcileOpenDepartures(
         `will not close this for you — it cannot prove a returning name is the same wrapper, and ` +
         `the ledger records no actor for a machine's closure (Q84 inc.161/162).`,
       severity: orphaned ? "high" : "medium",
-      dedupeKey: departureKey(row.name),
+      dedupeKey: key,
     });
   }
 

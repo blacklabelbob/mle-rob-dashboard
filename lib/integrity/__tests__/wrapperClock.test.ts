@@ -1059,6 +1059,7 @@ describe("reconcileOpenDepartures (Q84 inc.162)", () => {
         [],
         ["new-driver.sh"],
         [],
+        [KEY], // inc.165 — SEEN open on the ledger, not merely absent from it.
       );
       expect(reopened.map((r) => r.name)).toEqual(["gone.sh"]);
       expect(corrections).toHaveLength(1);
@@ -1073,7 +1074,33 @@ describe("reconcileOpenDepartures (Q84 inc.162)", () => {
       // gap the correction fires on would close silently and the reopened row would stay stale.
       const afterClosedTick = reconcileOpenDepartures([open()], [], ["new-driver.sh"], [KEY]).open;
       expect(afterClosedTick).toEqual([closedRow({ orphaned: true })]);
-      const { corrections } = reconcileOpenDepartures(afterClosedTick, [], ["new-driver.sh"], []);
+      const { corrections } = reconcileOpenDepartures(afterClosedTick, [], ["new-driver.sh"], [], [KEY]);
+      expect(corrections).toHaveLength(1);
+    });
+
+    // Q84 inc.165 — a reopen needs the same positive evidence a closure needs.
+    it("does NOT reopen a closed row that the read simply never mentioned", () => {
+      // The reachable cause is a SHORT read, not a deletion: `/api/admin/flags` has no DELETE and
+      // never deletes (route header, Rob 2026-07-22), but the GET can come back missing rows
+      // (max-rows cap, filtered base URL). Read as a reopen, that un-freezes `orphaned`, prints
+      // "you reopened …" to Rob's console for something he never did, and re-POSTs a row he closed.
+      const { corrections, open: next, reopened } = reconcileOpenDepartures(
+        [closedRow({ orphaned: true })],
+        [],
+        ["new-driver.sh"],
+        [], // read the ledger; this key appears in neither list
+        [],
+      );
+      expect(reopened).toEqual([]);
+      expect(corrections).toEqual([]);
+      expect(next).toEqual([closedRow({ orphaned: true })]); // still frozen, still closed, still silent
+    });
+
+    it("a key seen open that was never closed is untouched by the open list", () => {
+      // The new evidence only decides REOPENS. An already-open row is governed by `resolvedKeys`
+      // exactly as before, so seeing it open changes nothing about it.
+      const { open: next, corrections } = reconcileOpenDepartures([open()], [], ["b.sh"], [], [KEY]);
+      expect(next).toEqual([open({ orphaned: false })]);
       expect(corrections).toHaveLength(1);
     });
 

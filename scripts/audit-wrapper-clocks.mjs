@@ -177,12 +177,15 @@ async function writeCensus() {
   // NOTHING: an unreachable ledger returns null, which neither closes a row nor reopens one. Never a
   // timer, never a cap, never a name returning. The read now also catches the inverse — he can
   // reopen the same key — which is why a closed row keeps this list non-empty and keeps being read.
-  const resolvedKeys = previousOpen.length ? await resolvedDepartureKeys() : null;
+  // inc.165 — both sides of the read travel: closing needs the key SEEN resolved, reopening needs it
+  // SEEN open. A key the read never mentioned (a short or filtered response) moves nothing.
+  const ledger = previousOpen.length ? await resolvedDepartureKeys() : null;
   const { corrections, open, closed, reopened } = reconcileOpenDepartures(
     previousOpen,
     departures,
     audit.triggeredBy,
-    resolvedKeys,
+    ledger?.resolved ?? null,
+    ledger?.open ?? null,
   );
   await writeFile(CENSUS_FILE, `${JSON.stringify({ ...census, openDepartures: open }, null, 2)}\n`);
   for (const row of closed) {
@@ -199,6 +202,11 @@ async function writeCensus() {
  * not be read, and the difference matters: `[]` means "read it, he has closed none", `null` means
  * "did not read it", and only the first may drop anything. A key the ledger has never heard of is
  * NOT resolved — absent is not closed, so it is simply not returned here and stays tracked.
+ *
+ * Q84 inc.165 — and the OPEN keys travel with them, because absence is not a reopen either. This
+ * read can come back short (PostgREST's max-rows cap as the ledger grows, a filtered base URL) and a
+ * missing row is indistinguishable from a row that was never filed. Reporting only `resolved` made
+ * the reconciler read that silence as "Rob reopened it" and re-POST a row he closed.
  */
 async function resolvedDepartureKeys() {
   const base = (process.env.FLAGS_BASE_URL || "https://mle-rob-dashboard.vercel.app").replace(/\/$/, "");
@@ -210,14 +218,19 @@ async function resolvedDepartureKeys() {
     // A key is closed only when the ledger holds a resolved row for it AND no open one. A
     // superseded twin sits resolved next to a live row on the same key (`supersededNote`), and
     // reading that as "closed" would drop a row still sitting on Rob's page.
-    const open = new Set(flags.filter((f) => f?.status === "open").map((f) => f?.dedupe_key));
-    return [
-      ...new Set(
-        flags
-          .filter((f) => f?.status === "resolved" && typeof f?.dedupe_key === "string" && !open.has(f.dedupe_key))
-          .map((f) => f.dedupe_key),
-      ),
-    ];
+    const open = new Set(
+      flags.filter((f) => f?.status === "open" && typeof f?.dedupe_key === "string").map((f) => f.dedupe_key),
+    );
+    return {
+      resolved: [
+        ...new Set(
+          flags
+            .filter((f) => f?.status === "resolved" && typeof f?.dedupe_key === "string" && !open.has(f.dedupe_key))
+            .map((f) => f.dedupe_key),
+        ),
+      ],
+      open: [...open],
+    };
   } catch {
     return null;
   }
