@@ -9,6 +9,7 @@ import {
   inModuleProxies,
   walkOutputTypes,
   contentsFieldNames,
+  illiterateScanNotice,
 } from "../vacuityDuty";
 import { SCANNED_ROOTS, SOURCE_FILE, type SourceFile } from "../scanPerimeter";
 
@@ -445,5 +446,56 @@ describe("the live guard family", () => {
   it("has no recogniser that could go vacuous unnoticed", () => {
     const undischarged = undischargedRecognisers(recognisers, tests, modules);
     expect(undischargedVacuityNotice(undischarged)).toBeNull();
+  });
+
+  // Q84 inc.129 — the clean-tree pin lives HERE, next to the count it is worthless without. Nineteen
+  // recognisers and zero undischarged is the same pair of numbers a blind scan reports, so the
+  // green above only means something once this null says the scan could read.
+  it("says the scan was literate when it reports the tree clean", () => {
+    expect(illiterateScanNotice(modules, producers)).toBeNull();
+  });
+});
+
+// Q84 inc.129 — the scan's own vacuity. `treeScanRecognisers` returns `[]` for a repo with no
+// tree-scanning guards AND for a scan that never read a file, and `undischargedRecognisers` cannot
+// tell those apart: it passes the empty list through and the whole duty reports discharged.
+describe("illiterateScanNotice", () => {
+  const producers = [...modules, ...tests];
+
+  // The exact instrument failure a previous run of this queue shipped into `__tests__` and read as
+  // a finding: the derived `string[]` handed to the `SourceFile[]` parameter. Every element has an
+  // undefined `.path`, so nothing matches, and the scan answers `[]` having opened nothing.
+  const derived = walkOutputTypes(modules, contentsFieldNames(producers));
+  const asFiles = derived as unknown as SourceFile[];
+
+  it("fires on the empty list a blind scan returns, which is otherwise a clean bill of health", () => {
+    expect(treeScanRecognisers(asFiles, asFiles)).toEqual([]);
+    expect(undischargedVacuityNotice(undischargedRecognisers([], tests, modules))).toBeNull();
+    expect(illiterateScanNotice(asFiles, asFiles)).not.toBeNull();
+  });
+
+  it("names the producers when no disk read was found, and says what to pass instead", () => {
+    const said = illiterateScanNotice(modules, []) ?? "";
+    expect(said).toContain("0 producer(s)");
+    expect(said).toContain("SourceFile");
+    // The fix is the argument, not the tree — and the tests are half of what belongs in it.
+    expect(said).toContain("TESTS");
+  });
+
+  it("names the vocabulary it DID learn when the files hold no walk type, because the fix differs", () => {
+    const said = illiterateScanNotice([{ path: "lib/x.ts", text: "export const a = 1;" }], producers);
+    expect(said).toContain("bytes-field vocabulary (");
+    expect(said).toContain("text");
+    expect(said).toContain("1 file(s)");
+    // Two silences, two sentences: an empty producer set and an empty walk-type set are not the
+    // same defect, and a notice that said one thing for both would send the reader to the wrong end.
+    expect(said).not.toBe(illiterateScanNotice(modules, []));
+  });
+
+  it("stays null wherever a walk type was actually derived, including inc.125's near-silence", () => {
+    // Modules as their own producers collapses the vocabulary to one field — a THIN scan, not a
+    // blind one. This notice must not claim that case, or it stops meaning "I never looked".
+    expect(treeScanRecognisers(modules, modules).length).toBeGreaterThan(0);
+    expect(illiterateScanNotice(modules, modules)).toBeNull();
   });
 });

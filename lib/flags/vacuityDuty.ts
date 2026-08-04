@@ -514,3 +514,66 @@ export function undischargedVacuityNotice(recognisers: readonly Recogniser[]): s
     `assertion ran against what was walked.`
   );
 }
+
+// Q84 inc.129 — THE SCAN CAN GO BLIND AND ANSWER `[]`, WHICH IS THE ONE VACUITY IT NEVER CHECKED
+// ON ITSELF. A previous driver run left an untracked probe in `__tests__` that called
+// `treeScanRecognisers(all, walkOutputTypes(all, contentsFieldNames(all)))` — passing the derived
+// `string[]` where the `producers: SourceFile[]` overload wanted the FILES. Every element then had
+// an undefined `.path`, `contentsFieldNames` matched nothing, `walkOutputTypes` returned `[]`,
+// `WALK_INPUT` came back null, and the scan returned `[]` at the top of its body without ever
+// looking at a file. The probe printed `recognisers: 0` and a `LOST []` measurement, and both read
+// as findings about the tree. They were findings about a broken instrument.
+//
+// THAT IS NOT A HYPOTHETICAL AND IT IS NOT inc.125's CASE. inc.125 pinned the near-silence: hand
+// the scan modules as their own producers and the vocabulary collapses to `content`, leaving ONE
+// recogniser where the tree has nineteen — a plausible number, believed because it is not zero.
+// This is the other end of the same axis, and it is worse precisely because it IS zero: nineteen
+// recognisers exist, the caller swept the whole tree, and the answer was the empty array that
+// `undischargedRecognisers` then passes through and `undischargedVacuityNotice` renders as null.
+// The entire duty reports discharged. Green, on a tree the scan never read.
+//
+// WHY A NOTICE RATHER THAN A THROW. Every other blindness in this family is REPORTED, not raised
+// (`unscannedNotice`, `unpopulatedRootNotice`, `vacuousGuardNotice`) — because the caller is a
+// guard's test and its job is to print what it cannot see, not to die. Throwing would also make
+// the legitimate empty case unavailable: a caller may hand this scan a genuinely typeless subtree
+// and be entitled to `[]`. What it is not entitled to is `[]` WITHOUT BEING TOLD which `[]` it got.
+//
+// AND THE CHECK IS THE SCAN'S OWN DERIVATION, RE-ASKED — not a second copy of it (inc.4, inc.5,
+// inc.115: a hand-copied ladder is the defect this queue has deleted three times). Both halves are
+// named, because they fail for different reasons and the fix differs: an empty BYTES-FIELD set
+// means the producers never read a file (wrong argument, or modules-only), while an empty WALK-TYPE
+// set means the files hold no type shaped like walk output (wrong tree, or the grammar drifted).
+
+/**
+ * The sentence the scan prints when it could not learn a vocabulary — so its `[]` means "I never
+ * looked", not "this tree is clean".
+ *
+ * Arguments are exactly `treeScanRecognisers`' own, and must be the SAME values, or this answers
+ * about a derivation the scan did not run. A caller pinning a clean tree pins this null alongside
+ * the recogniser count, because the two silences are otherwise the same silence.
+ *
+ * Refuses the `Nothing below is wrong` opening for the reason `vacuousGuardNotice` does: this names
+ * a claim that has stopped being about anything, not code that is merely unwatched.
+ */
+export function illiterateScanNotice(
+  files: readonly SourceFile[],
+  producers: readonly SourceFile[] = files,
+): string | null {
+  const fields = contentsFieldNames(producers);
+  const types = walkOutputTypes(files, fields);
+  if (types.length) return null;
+  const cause = fields.length
+    ? `it learned the bytes-field vocabulary (${fields.join(", ")}) but found no type on the ` +
+      `${files.length} file(s) it was given carrying one of those fields alongside a path`
+    : `not one of the ${producers.length} producer(s) it was given reads a file into a field ` +
+      `beside a path, so the bytes-field vocabulary is empty and no walk type could be derived`;
+  return (
+    `treeScanRecognisers returned an empty list because ${cause}. That empty list is the SAME ` +
+    `value it returns for a repo with no tree-scanning guards at all, so undischargedRecognisers ` +
+    `passes it through and the whole vacuity duty reports discharged without a single file having ` +
+    `been examined. Do not read the zero as a measurement of the tree — it is a measurement of the ` +
+    `arguments. Check that producers are SourceFile objects (a derived string[] passed here has an ` +
+    `undefined .path and matches nothing) and that they include the TESTS, where this repo's walks ` +
+    `live by design.`
+  );
+}
