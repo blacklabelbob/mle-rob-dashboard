@@ -1694,6 +1694,38 @@ export function censusRefusalFinding(reason: string | null): DepartureFinding[] 
  * is verified"; once the file parses that sentence is false, and leaving `high` would keep the row
  * shouting a thing it no longer means. It is not `medium`: nothing on the page is wrong now, there
  * is only a past gap Rob has not yet acknowledged.
+ *
+ * Q84 inc.178 — THE DOWNGRADE POINTED AT A WARNING IT HAD JUST DESTROYED.
+ *
+ * inc.177 asked whether a correction that DROPS a severity should preserve the superseded claim,
+ * using the `supersededNote` machinery inc.132 deployed, or whether that turns every row into a
+ * changelog nobody reads. Measured against the code, the answer is NEITHER — and the premise of
+ * both options was wrong, because there was a live defect underneath them.
+ *
+ * The defect: this row's own sentence read *"Read the warning this row carried before as history."*
+ * `planFlagWrite` returns `update` on this key and `/api/admin/flags` PATCHes `title`, `detail` and
+ * `severity` in place — so the correction OVERWRITES the very text it tells Rob to read. A Rob who
+ * arrives after the tick that repaired the census sees a `low` row referring him to a warning that
+ * exists nowhere on the page, in the ledger, or in any archive row. That is a dangling reference,
+ * and it is worse than silence: it tells him something alarming was said and gives him no way to
+ * learn what.
+ *
+ * WHY NOT `supersededNote`. It is not merely a poor fit, it is structurally unavailable. That
+ * grammar is written into `resolution_note` on rows the pass RESOLVES (the stale-twin loop in the
+ * route), never onto the survivor — and `supersededBy` is anchored at `^` and is the exact
+ * predicate that renders the superseded marker AND draws the Reopen control (inc.10). Carrying it
+ * on this row would leave an OPEN row describing itself as superseded and offering to be reopened,
+ * which is inc.92's defect verbatim. The severity drop is one row being corrected, not two rows
+ * being collapsed; the machinery for the second does not answer the first.
+ *
+ * WHY NOT A CHANGELOG. Stacking each superseded claim would make every 30-minute correction append
+ * a line, and inc.12 already established what a row that grows on a timer becomes. One row, one
+ * current claim, still.
+ *
+ * So the fix is neither mechanism: the row is made SELF-CONTAINED. It states the claim it replaced
+ * in its own words instead of pointing at text the reader may never have seen — one clause, bounded,
+ * and it does not grow. This costs nothing on the tick Rob DID see the `high` row (he reads the
+ * summary of a thing he remembers) and is the whole content of the row for the Rob who did not.
  */
 export function censusRecoveryFinding(censusKeyOpen: boolean | null): DepartureFinding[] {
   if (censusKeyOpen !== true) return [];
@@ -1704,9 +1736,13 @@ export function censusRecoveryFinding(censusKeyOpen: boolean | null): DepartureF
       detail:
         `\`docs/integrity/wrapper-census.json\` parsed cleanly on this tick, so departure detection ` +
         `has resumed and every wrapper-census row on this page is being re-checked again from here ` +
-        `forward. Read the warning this row carried before as history: it was true for the ticks ` +
-        `between the file breaking and this one, and this gate cannot tell you how many ticks that ` +
-        `was or what left the audited set during them — nothing recorded it, which is what being ` +
+        `forward. What this row said before, in full, because correcting it overwrote that text and ` +
+        `you may never have seen it (Q84 inc.178): the census file was present and unreadable, so no ` +
+        `wrapper departure could be detected at all, and every other wrapper-census row on this page ` +
+        `was frozen as of the last tick that could read the file — a green clock-gate verdict meant ` +
+        `"the stamp rules were checked", NOT "nothing left the audited set". That was true for the ` +
+        `ticks between the file breaking and this one, and this gate cannot tell you how many ticks ` +
+        `that was or what left the audited set during them — nothing recorded it, which is what being ` +
         `blind means. The gate corrects this row rather than closing it, deliberately: closing it ` +
         `would put a decision on your ledger with no one's name against it, and a census that broke ` +
         `and was repaired between two ticks would have raised and cleared a \`high\` row you never ` +

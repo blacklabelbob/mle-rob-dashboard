@@ -1,4 +1,7 @@
 import { describe, it, expect } from "vitest";
+// Q84 inc.178 — the recovery row is asserted against the REAL superseded-row predicate, not a
+// regex copied into this file. A second copy is how the two would drift (inc.4/inc.5).
+import { supersededBy } from "@/lib/flags/supersede";
 import {
   auditWrapperClocks,
   censusDepartures,
@@ -1486,5 +1489,35 @@ describe("what a RECOVERED census tells Rob's ledger (Q84 inc.177)", () => {
     expect(Object.keys(censusRecoveryFinding(true)[0]).sort()).toEqual(
       Object.keys(censusRefusalFinding("r")[0]).sort(),
     );
+  });
+
+  it("STATES the claim it replaced instead of pointing at text the correction destroyed (inc.178)", () => {
+    // The correction is an in-place UPDATE on the same key, so the `high` sentence is gone the
+    // moment this row lands. "Read the warning this row carried before" was a reference to text
+    // that exists nowhere — for a Rob who arrives after the repairing tick, the whole content of
+    // the alarm. So the two facts that earned `high` are restated here in this row's own words.
+    const { detail } = censusRecoveryFinding(true)[0];
+    expect(detail).not.toMatch(/warning this row carried before/);
+    expect(detail).toMatch(/no wrapper departure could be detected/);
+    expect(detail).toMatch(/NOT "nothing left the audited set"/);
+    // And it says WHY it is restating them, so the sentence does not read as padding.
+    expect(detail).toMatch(/you may never have seen it/);
+  });
+
+  it("never carries the superseded grammar, so this correction can never grow a Reopen control", () => {
+    // `supersededNote`/`supersededBy` is the machinery inc.177 asked about, and it is structurally
+    // wrong here: it is written into `resolution_note` on rows the pass RESOLVES, and `supersededBy`
+    // is the same anchored predicate that draws Reopen (inc.10). On an OPEN row it would describe
+    // itself as superseded and offer to be reopened — inc.92's defect verbatim.
+    const finding = censusRecoveryFinding(true)[0];
+    expect(supersededBy(finding.detail)).toBeNull();
+    expect(supersededBy(finding.title)).toBeNull();
+  });
+
+  it("does not grow: the correction is one bounded clause, not an appended history", () => {
+    // A row re-asserted on a 30-minute timer that appends each superseded claim becomes the
+    // changelog inc.177 named as the failure mode of the other answer. Same input, same bytes.
+    expect(censusRecoveryFinding(true)[0].detail).toBe(censusRecoveryFinding(true)[0].detail);
+    expect(censusRecoveryFinding(true)).toHaveLength(1);
   });
 });
