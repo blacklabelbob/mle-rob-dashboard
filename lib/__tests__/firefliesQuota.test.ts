@@ -11,6 +11,7 @@ import {
   silenceState,
   silenceNotice,
   silenceFlag,
+  mergeSilenceQueue,
   SILENCE_THRESHOLD_MS,
 } from "../../scripts/fireflies-quota.mjs";
 
@@ -291,5 +292,67 @@ describe("silenceFlag", () => {
   it("is filed on the pipeline and at high severity, never on a company", () => {
     expect(flag().entityName).toBe("Meeting intake");
     expect(flag().severity).toBe("high");
+  });
+
+  // Q84 inc.137 — the corrected row is the ONLY row, so anything the detail omits is gone.
+  it("says nothing about a count on a first escalation", () => {
+    expect(flag().detail).not.toContain("escalation");
+  });
+
+  it("names the repeat count, which the single corrected row cannot otherwise carry", () => {
+    expect(silenceFlag(
+      { hoursQuiet: 18, since: T0, outcome: "OFFLINE", everSucceeded: true },
+      { escalations: 3 },
+    ).detail).toContain("escalation 3");
+  });
+
+  it("names undelivered earlier windows as SEPARATE outages, not as this one worsening", () => {
+    const detail = silenceFlag(
+      { hoursQuiet: 7, since: T0, outcome: "OFFLINE", everSucceeded: true },
+      { priorWindows: [{ hoursQuiet: 9, since: T0 - 86_400_000 }] },
+    ).detail;
+    expect(detail).toContain("NEVER DELIVERED");
+    expect(detail).toContain("~9h");
+    expect(detail).toContain("separate outages");
+  });
+});
+
+describe("mergeSilenceQueue", () => {
+  const args = (over = {}) => ({ hoursQuiet: 6, since: T0, outcome: "OFFLINE", everSucceeded: true, ...over });
+
+  it("starts at one escalation and no history when the queue is empty", () => {
+    expect(mergeSilenceQueue(null, args())).toEqual({ v: 2, args: args(), escalations: 1, priorWindows: [] });
+  });
+
+  it("counts up and keeps the NEWEST notice when the window is the same fact getting worse", () => {
+    const first = mergeSilenceQueue(null, args());
+    const second = mergeSilenceQueue(first, args({ hoursQuiet: 12 }));
+    expect(second.escalations).toBe(2);
+    expect(second.args.hoursQuiet).toBe(12);
+    expect(second.priorWindows).toEqual([]);
+  });
+
+  it("preserves an undelivered escalation from a DIFFERENT window instead of dropping it", () => {
+    // The queued one described an outage that ended (a success reset the clock) and never reached
+    // the ledger. Overwriting it would delete the only record that stretch ever existed.
+    const stale = mergeSilenceQueue(null, args({ hoursQuiet: 9, since: T0 - 86_400_000 }));
+    const merged = mergeSilenceQueue(stale, args());
+    expect(merged.escalations).toBe(1);
+    expect(merged.priorWindows).toEqual([{ hoursQuiet: 9, since: T0 - 86_400_000 }]);
+  });
+
+  it("never asserts two unknown windows are the same window", () => {
+    const stale = mergeSilenceQueue(null, args({ since: null, everSucceeded: false }));
+    const merged = mergeSilenceQueue(stale, args({ since: null, everSucceeded: false }));
+    expect(merged.escalations).toBe(1);
+    expect(merged.priorWindows).toHaveLength(1);
+  });
+
+  it("caps carried windows so an unreachable ledger cannot grow the detail without bound", () => {
+    let state = null;
+    for (let i = 0; i < 9; i += 1) state = mergeSilenceQueue(state, args({ since: T0 + i * 1000 }));
+    expect(state.priorWindows).toHaveLength(5);
+    // The cap keeps the NEWEST losers, so the sentence describes the recent past, not the ancient.
+    expect(state.priorWindows.at(-1).since).toBe(T0 + 7 * 1000);
   });
 });

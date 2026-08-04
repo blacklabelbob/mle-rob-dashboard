@@ -12,7 +12,7 @@
 
 import { readFileSync, writeFileSync, existsSync, rmSync } from "node:fs";
 import { join } from "node:path";
-import { silenceState, silenceNotice, silenceFlag } from "./fireflies-quota.mjs";
+import { silenceState, silenceNotice, silenceFlag, mergeSilenceQueue } from "./fireflies-quota.mjs";
 
 const DIR = join(process.cwd(), "MLE Internal Meetings");
 const SUCCESS = join(DIR, ".intake-last-success");
@@ -55,11 +55,30 @@ const writeStamp = (p, v) => writeFileSync(p, `${v}\n`);
  * Never fatal, never changes an exit code: a ledger that is down must not turn the silence alarm
  * into a second failure, and the queue file surviving means the next beat retries.
  */
+/** Read the queue as its merged state, or null. A v1 file (a bare finding, written before Q84
+ *  inc.137) is NOT parsed as state — it is delivered as-is by flushFlag and never merged into,
+ *  because its args were never stored and inventing them would fabricate a window. */
+function readQueue() {
+  if (!existsSync(PENDING)) return null;
+  try {
+    const parsed = JSON.parse(readFileSync(PENDING, "utf8"));
+    return parsed && typeof parsed === "object" && parsed.args ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
 async function flushFlag() {
   if (!existsSync(PENDING)) return;
   let finding;
   try {
-    finding = JSON.parse(readFileSync(PENDING, "utf8"));
+    const parsed = JSON.parse(readFileSync(PENDING, "utf8"));
+    // v2 stores the ARGS and derives the finding here, so there is one derivation path and the
+    // detail can never disagree with the history it is supposed to carry. A v1 file holds the
+    // finding itself; post it unchanged rather than guess at what produced it.
+    finding = parsed?.args
+      ? silenceFlag(parsed.args, { escalations: parsed.escalations, priorWindows: parsed.priorWindows })
+      : parsed;
   } catch {
     // A garbled queue file can never become a ledger row; drop it rather than retry forever.
     rmSync(PENDING, { force: true });
@@ -129,7 +148,11 @@ const args = { hoursQuiet: verdict.hoursQuiet, since: verdict.since, outcome, ev
 // Queued BEFORE the delivery attempt, not after it: the point of failure this guards against is
 // the process dying or the network being down mid-post, and a finding that exists only in a
 // variable at that moment is a finding nobody ever sees.
-writeFileSync(PENDING, `${JSON.stringify(silenceFlag(args))}\n`);
+//
+// MERGED, not overwritten (Q84 inc.137): a second escalation for the SAME window supersedes and
+// bumps the count, but one for a DIFFERENT window would otherwise delete the only record of an
+// earlier dark stretch that never reached the ledger.
+writeFileSync(PENDING, `${JSON.stringify(mergeSilenceQueue(readQueue(), args))}\n`);
 await flushFlag();
 console.log(silenceNotice(args));
 process.exit(EXIT_ESCALATE);

@@ -281,17 +281,86 @@ export function silenceNotice({ hoursQuiet, since, outcome, everSucceeded }) {
  * `entityName` is the pipeline rather than a company: no org is at fault, and filing this on one
  * would put a machine's failure on a customer's record page.
  *
+ * The `history` half is Q84 inc.137 and exists because the corrected row is the ONLY row: a
+ * repeat post rewrites it, so anything the detail does not say is gone. Two facts the bare notice
+ * could not carry, and both are things a human needs when deciding how bad this is:
+ *   - how many times the pipeline escalated inside THIS window (a 12h notice implies a 6h one,
+ *     but "escalated 3 times" is a different sentence from "has been quiet 18h");
+ *   - windows that escalated and NEVER REACHED THE LEDGER before a later window overwrote the
+ *     single queue slot. That is a distinct outage, not the same fact worse, and losing it means
+ *     an entire dark stretch Rob is never told about.
+ *
  * @param {object} args - as silenceNotice, plus nothing: the notice IS the detail.
+ * @param {{escalations?: number, priorWindows?: Array<{hoursQuiet: number, since: number|null}>}} [history]
  * @returns {{entityName: string, title: string, detail: string, severity: string, dedupeKey: string}}
  */
-export function silenceFlag({ hoursQuiet, since, outcome, everSucceeded }) {
+export function silenceFlag({ hoursQuiet, since, outcome, everSucceeded }, history = {}) {
+  const escalations = Number.isFinite(history.escalations) ? history.escalations : 1;
+  const priorWindows = Array.isArray(history.priorWindows) ? history.priorWindows : [];
+  let detail = silenceNotice({ hoursQuiet, since, outcome, everSucceeded });
+  // Said only when it adds something. "escalated 1 time" is noise on a first escalation.
+  if (escalations > 1) {
+    detail += ` This is escalation ${escalations} for this same silent window — the alarm has fired and gone unanswered before.`;
+  }
+  if (priorWindows.length > 0) {
+    const listed = priorWindows
+      .map((w) => `~${w.hoursQuiet}h since ${w.since ? new Date(w.since).toISOString().replace(".000Z", "Z") : "an unknown time"}`)
+      .join("; ");
+    detail +=
+      ` ALSO NEVER DELIVERED: ${priorWindows.length} earlier silent window(s) escalated and could not reach this ledger before the pipeline went quiet again (${listed}).` +
+      ` Those are separate outages, not this one.`;
+  }
   return {
     entityName: "Meeting intake",
     title: `Meeting intake silent ~${hoursQuiet}h — no recorded call has reached the CRM`,
-    detail: silenceNotice({ hoursQuiet, since, outcome, everSucceeded }),
+    detail,
     // high: the CRM is missing calls that happened. Rob's own words for this pipeline's failure
     // are "recorded calls are NOT reaching the CRM" — that is not a medium.
     severity: "high",
     dedupeKey: "meeting-intake-silence",
+  };
+}
+
+/**
+ * Fold a new escalation into whatever is already sitting undelivered in the queue (Q84 inc.137).
+ *
+ * THE QUESTION THIS ANSWERS, from inc.136's own handover: the queue holds ONE finding and a second
+ * escalation overwrites it. Is that right? Half right, and the halves are opposite:
+ *
+ *   SAME window (identical `since`) → 6h then 12h then 18h is ONE fact getting worse. The newest
+ *   notice IS the truest one and must win; the only thing worth carrying forward is the COUNT,
+ *   which the single corrected row otherwise cannot express.
+ *
+ *   DIFFERENT window → the queued escalation described an outage that ENDED (a success cleared the
+ *   clock) and it never reached the ledger. Overwriting it deletes the only record of a dark
+ *   stretch. It cannot get its own row — the dedupe key is stable on purpose, and a second row per
+ *   outage is the alarm fatigue inc.136 refused to rebuild — so it survives INSIDE the surviving
+ *   notice instead.
+ *
+ * An UNKNOWN window (`since == null`) is never asserted to be the same as anything, including
+ * another unknown: identity is what makes overwriting safe, so absent identity takes the branch
+ * that preserves rather than the branch that discards.
+ *
+ * Pure: no clock, no disk, no network (CR-3). The caller owns the file.
+ *
+ * @param {null|{args: object, escalations?: number, priorWindows?: Array<object>}} queued
+ * @param {object} args - the escalation being queued now.
+ * @returns {{v: 2, args: object, escalations: number, priorWindows: Array<{hoursQuiet: number, since: number|null}>}}
+ */
+export function mergeSilenceQueue(queued, args) {
+  const fresh = { v: 2, args, escalations: 1, priorWindows: [] };
+  if (!queued || typeof queued !== "object" || !queued.args) return fresh;
+  const prev = queued.args;
+  const carried = Array.isArray(queued.priorWindows) ? queued.priorWindows : [];
+  const sameWindow = prev.since != null && args.since != null && prev.since === args.since;
+  if (sameWindow) {
+    const before = Number.isFinite(queued.escalations) ? queued.escalations : 1;
+    return { ...fresh, escalations: before + 1, priorWindows: carried };
+  }
+  return {
+    ...fresh,
+    // Cap the carried list rather than letting an unreachable ledger grow the detail without
+    // bound; the count in the sentence stays honest because length is read from this array.
+    priorWindows: [...carried, { hoursQuiet: prev.hoursQuiet, since: prev.since ?? null }].slice(-5),
   };
 }
