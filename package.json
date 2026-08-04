@@ -30,7 +30,8 @@
     "audit:flagkeys": "node --import ./scripts/ts-loader.mjs scripts/flag-key-drift.mjs",
     "migrations:evidence": "node --import ./scripts/ts-loader.mjs scripts/migration-evidence.mjs",
     "check:archive": "node --import ./scripts/ts-loader.mjs scripts/notion-crm-check.mjs",
-    "sync:meetings": "node --import ./scripts/ts-loader.mjs scripts/notion-meetings-sync.mjs"
+    "sync:meetings": "node --import ./scripts/ts-loader.mjs scripts/notion-meetings-sync.mjs",
+    "audit:clocks": "node --import ./scripts/ts-loader.mjs scripts/audit-wrapper-clocks.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.110.0",
