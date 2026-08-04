@@ -4,6 +4,7 @@ import { planFlagWrite, planFlagReopen, reopenNote, flagReopenRefusal, resolvedF
 import { canonicalHostConfirmPayload } from "@/lib/flags/hostConfirm";
 import { payloadScopeNote, scopeHostConfirmPayload } from "@/lib/flags/payloadScope";
 import { isMissingColumn, payloadNote, type DbError } from "@/lib/flags/payloadColumn";
+import { LEDGER_KEYS_PARAM, parseLedgerKeys } from "@/lib/flags/ledgerRead";
 import { unverifiedActorRefusal } from "@/lib/flags/resolveActor";
 import { filedClauseRefusal, routeClauseRefusal } from "@/lib/flags/reviewerClause";
 import {
@@ -43,9 +44,17 @@ export async function GET(req: NextRequest) {
   // The `or` arm is only the coarse pull; `selectRecordFlags` decides, on ids the CRM
   // minted and the flag itself printed — never on a name. See lib/flags/recordLinks.ts.
   const entityFilter = ids ? await withLegacySlugs(ids) : null;
+  // Q84 inc.166 — a machine reader that tracks a handful of `dedupe_key`s may ask for those and
+  // nothing else. Prod holds 144 flag rows today and this route returns all 144, so nothing is
+  // truncated now; the cap that would truncate it later is a server setting nobody here can read.
+  // A read bounded by the caller's own key list cannot reach that cap at any ledger size. Absent
+  // param ⇒ the whole ledger, exactly as before, so every existing caller (and Rob's page) is
+  // untouched. See lib/flags/ledgerRead.ts.
+  const keys = parseLedgerKeys(req.nextUrl.searchParams.get(LEDGER_KEYS_PARAM));
   let q = db()
     .from("flags")
     .select("*");
+  if (keys) q = q.in("dedupe_key", keys);
   if (entityFilter) q = q.or(entityOrFilter(entityFilter));
   const { data, error } = await q
     .order("status", { ascending: false }) // open first

@@ -53,6 +53,7 @@ import {
   REPO_STAMP_CALL,
   TRIGGER_CALLS,
 } from "../lib/integrity/wrapperClock.ts";
+import { ledgerReadUrl } from "../lib/flags/ledgerRead.ts";
 
 const DEFAULT_DIR = path.join(os.homedir(), ".claude", "scripts");
 const CENSUS_FILE = path.join(
@@ -179,7 +180,9 @@ async function writeCensus() {
   // reopen the same key — which is why a closed row keeps this list non-empty and keeps being read.
   // inc.165 — both sides of the read travel: closing needs the key SEEN resolved, reopening needs it
   // SEEN open. A key the read never mentioned (a short or filtered response) moves nothing.
-  const ledger = previousOpen.length ? await resolvedDepartureKeys() : null;
+  const ledger = previousOpen.length
+    ? await resolvedDepartureKeys(previousOpen.map((row) => departureKey(row.name)))
+    : null;
   const { corrections, open, closed, reopened } = reconcileOpenDepartures(
     previousOpen,
     departures,
@@ -207,11 +210,19 @@ async function writeCensus() {
  * read can come back short (PostgREST's max-rows cap as the ledger grows, a filtered base URL) and a
  * missing row is indistinguishable from a row that was never filed. Reporting only `resolved` made
  * the reconciler read that silence as "Rob reopened it" and re-POST a row he closed.
+ *
+ * Q84 inc.166 — and it now asks for ONLY the keys it tracks, which is what removes the growth
+ * cliff rather than tolerating it. Measured first: prod holds 144 flag rows and this route
+ * returned all 144, so nothing truncates today; the cap that would truncate it later is a server
+ * setting unreadable from here. A read bounded by this gate's own key list cannot reach it at any
+ * ledger size. A deployment predating the `keys` param ignores it and answers with the whole
+ * ledger — a superset, handled identically. inc.165's rule is untouched: absence still moves
+ * nothing in either direction.
  */
-async function resolvedDepartureKeys() {
+async function resolvedDepartureKeys(keys = []) {
   const base = (process.env.FLAGS_BASE_URL || "https://mle-rob-dashboard.vercel.app").replace(/\/$/, "");
   try {
-    const res = await fetch(`${base}/api/admin/flags`, { signal: AbortSignal.timeout(8000) });
+    const res = await fetch(ledgerReadUrl(base, keys), { signal: AbortSignal.timeout(8000) });
     if (!res.ok) return null;
     const { flags } = await res.json();
     if (!Array.isArray(flags)) return null;
