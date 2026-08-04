@@ -11,6 +11,8 @@
 //   1  at least one does not — the same defect inc.139/140/141 fixed three times by hand
 //   2  the wrapper directory could not be read (a silent skip would read as "clean")
 //   3  clean, but NO wrapper runs this gate — the rule is unenforced (Q84 inc.143)
+//   4  clean and wired, but a wrapper hands the driver a `DRIVER_*` gate that GATE_ORDER does not
+//      rank — it fires and is printed, and nothing decides what it beats (Q84 inc.148)
 //
 // WHERE THE TRIGGER LIVES, AND WHY NOT A GIT HOOK (Q84 inc.143). The files judged here are not in
 // this repo, so a repo commit is not the event that introduces the defect — a new wrapper appears
@@ -82,7 +84,7 @@ for (const target of targets) {
 }
 
 const audit = auditWrapperClocks(scripts);
-const { findings, usesRepoStamp, skipped, triggeredBy } = audit;
+const { findings, usesRepoStamp, skipped, triggeredBy, unrankedGateVars } = audit;
 const scanned = scripts.length - skipped.length;
 
 // --brief has exactly one job: hand the driver the sentence the next increment will read. The
@@ -136,5 +138,25 @@ if (triggeredBy.length === 0) {
   process.exit(3);
 }
 
+// Q84 inc.148 — the stamps are clean and the gate is wired, but a gate nobody ranked is still a
+// decision nobody made. Reported after the clock verdict, never instead of it.
+if (unrankedGateVars.length > 0) {
+  for (const v of unrankedGateVars) {
+    console.error(`\n✖ ${v.script}:${v.line}  hands the driver \`${v.envVar}\`, which nothing ranks`);
+  }
+  console.error(
+    `\n${unrankedGateVars.length} unranked gate${unrankedGateVars.length === 1 ? "" : "s"}. It ` +
+      `fires and reaches the prompt (inc.147 made sure of that), but it is placed last by default ` +
+      `and the precedence line says so — nobody decided what it beats.`,
+  );
+  console.error(
+    `Fix: add it to \`GATE_ORDER\` in lib/integrity/driverPrefixes.ts with the ONE sentence saying ` +
+      `why it sits where it sits. The env var name is derived from the key (\`clockGate\` → ` +
+      `\`DRIVER_CLOCK_GATE\`), so ranking it is the whole change.`,
+  );
+  process.exit(4);
+}
+
 say("✓ every human-readable stamp reaching Rob names its zone");
+say(`✓ every DRIVER_* gate the wrappers hand the driver has a rank in GATE_ORDER`);
 process.exit(0);

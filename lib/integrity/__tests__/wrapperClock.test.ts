@@ -216,4 +216,99 @@ describe("auditWrapperClocks", () => {
       expect(clockGateBrief(both).code).toBe(1);
     });
   });
+
+  // Q84 inc.148 — inc.147 made an unranked gate loud in the PROMPT; nothing told a human. The
+  // wrapper still spells its `DRIVER_*` assignments by hand, so this is where that hand is read.
+  describe("DRIVER_* gates the wrapper hands the driver", () => {
+    const wired = "npm run audit:clocks -- --brief\ndate '+%T %Z' >> crm-driver.log\n";
+
+    it("flags a gate the wrapper passes that GATE_ORDER does not rank", () => {
+      const { unrankedGateVars } = auditWrapperClocks(
+        script(`${wired}DRIVER_NEW_GATE="$NEW" node scripts/driver-prompt.mjs "$BASE"`),
+      );
+      expect(unrankedGateVars).toEqual([{ script: "some-wrapper.sh", line: 3, envVar: "DRIVER_NEW_GATE" }]);
+    });
+
+    it("says nothing about the four gates that ARE ranked, spelled as the live wrapper spells them", () => {
+      const { unrankedGateVars } = auditWrapperClocks(
+        script(
+          `${wired}PROMPT="$(cd "$REPO" && DRIVER_ORPHANED="$ORPHANED" DRIVER_UNFOLDED="$UNFOLDED" \\\n` +
+            `  DRIVER_WATCHDOG="$WATCHDOG_PREFIX" DRIVER_CLOCK_GATE="$CLOCK_GATE" \\\n` +
+            `  node --import ./scripts/ts-loader.mjs scripts/driver-prompt.mjs "$BASE" 2>/dev/null)"`,
+        ),
+      );
+      expect(unrankedGateVars).toEqual([]);
+    });
+
+    // The false positive that would put a permanent red in front of every increment: daily-driver.sh
+    // and daily-email.sh both hold `DRIVER_LOG=`, a local variable that never reaches a child.
+    it("ignores a local DRIVER_* variable that is never exported and prefixes no command", () => {
+      const { unrankedGateVars } = auditWrapperClocks(
+        script(`${wired}DRIVER_LOG="$MEM/daily-driver.log"\necho hi >> "$DRIVER_LOG"`),
+      );
+      expect(unrankedGateVars).toEqual([]);
+    });
+
+    it("does flag it once it is exported — an export reaches every child", () => {
+      const { unrankedGateVars } = auditWrapperClocks(script(`${wired}export DRIVER_LOG="$MEM/x.log"`));
+      expect(unrankedGateVars).toHaveLength(1);
+      expect(unrankedGateVars[0].envVar).toBe("DRIVER_LOG");
+    });
+
+    it("does not treat a command after && as inheriting the assignment", () => {
+      const { unrankedGateVars } = auditWrapperClocks(script(`${wired}DRIVER_LOG="x" && echo started`));
+      expect(unrankedGateVars).toEqual([]);
+    });
+
+    // Found by this gate's own first live run against the real crm-build-driver.sh: one added gate
+    // was reported as "2 unranked gates", because the continuation line was scanned twice — once
+    // joined onto the line above and once as a logical line of its own.
+    it("reports a gate on a continuation line ONCE, at the line it is written on", () => {
+      const { unrankedGateVars } = auditWrapperClocks(
+        script(
+          `${wired}PROMPT="$(DRIVER_ORPHANED="$O" \\\n` +
+            `  DRIVER_NEW_GATE="$NEW" \\\n` +
+            `  node scripts/driver-prompt.mjs "$BASE")"`,
+        ),
+      );
+      expect(unrankedGateVars).toEqual([{ script: "some-wrapper.sh", line: 4, envVar: "DRIVER_NEW_GATE" }]);
+    });
+
+    it("reports an unranked gate as code 4 when nothing else is wrong, naming var and line", () => {
+      const { code, line } = clockGateBrief(
+        auditWrapperClocks(script(`${wired}DRIVER_NEW_GATE="$NEW" node driver-prompt.mjs`)),
+      );
+      expect(code).toBe(4);
+      expect(line?.startsWith(BRIEF_MARKER)).toBe(true);
+      expect(line).toContain("DRIVER_NEW_GATE (some-wrapper.sh:3)");
+      expect(line).toContain("GATE_ORDER");
+    });
+
+    // The whole reason this rides as a suffix: the driver hears ONE `^CLOCK GATE` line per tick,
+    // so ranking these against each other would make the loser vanish — inc.147's exact disease.
+    it("rides along with a red stamp instead of being shadowed by it", () => {
+      const { code, line } = clockGateBrief(
+        auditWrapperClocks(
+          script(`${wired}date '+%H:%M' >> crm-driver.log\nDRIVER_NEW_GATE="$NEW" node driver-prompt.mjs`),
+        ),
+      );
+      expect(code).toBe(1);
+      expect(line).toContain("IS RED");
+      expect(line).toContain("DRIVER_NEW_GATE");
+    });
+
+    it("rides along with a missing trigger too", () => {
+      const { code, line } = clockGateBrief(
+        auditWrapperClocks(script(`echo hi >> crm-driver.log\nexport DRIVER_NEW_GATE="$NEW"`)),
+      );
+      expect(code).toBe(3);
+      expect(line).toContain("NO TRIGGER");
+      expect(line).toContain("DRIVER_NEW_GATE");
+    });
+
+    it("stays silent — and code 0 — when every handed gate is ranked", () => {
+      const clean = auditWrapperClocks(script(`${wired}DRIVER_WATCHDOG="$W" node driver-prompt.mjs`));
+      expect(clockGateBrief(clean)).toEqual({ code: 0, line: null });
+    });
+  });
 });

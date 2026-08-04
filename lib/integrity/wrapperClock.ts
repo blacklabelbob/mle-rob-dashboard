@@ -29,6 +29,8 @@
 //
 // Pure per CR-3: it is handed sources and returns findings. It reads no file and no clock.
 
+import { GATE_ORDER, gateEnvVar, DRIVER_ENV_PREFIX } from "./driverPrefixes";
+
 /** The files Rob actually opens and reads sentences out of. A stamp that lands in one of these is
  *  a stamp a human has to interpret. */
 export const ROB_FACING_SURFACES = ["PING-INBOX.md", "crm-driver.log", "meeting-intake.log"] as const;
@@ -60,7 +62,7 @@ export const TRIGGER_CALLS = ["audit-wrapper-clocks", "audit:clocks"] as const;
 export const BRIEF_MARKER = "CLOCK GATE";
 
 /** What `--brief` should say and exit with. `line` is null only when there is nothing to act on. */
-export type ClockGateBrief = { code: 0 | 1 | 3; line: string | null };
+export type ClockGateBrief = { code: 0 | 1 | 3 | 4; line: string | null };
 
 /**
  * The `--brief` verdict for an audit — the one line that gets prefixed onto the driver's prompt.
@@ -71,6 +73,13 @@ export type ClockGateBrief = { code: 0 | 1 | 3; line: string | null };
  * of two). What the shell may still decide on its own is only whether this ran at all.
  */
 export function clockGateBrief(audit: ClockAudit): ClockGateBrief {
+  // Q84 inc.148 — the unranked-gate sentence is a SUFFIX, never a competitor. The driver greps
+  // `^CLOCK GATE`, so exactly one line is heard per tick; ranking this finding against the stamp
+  // findings would mean the loser vanishes, which is the precise disease inc.147 spent an
+  // increment killing (a gate that fired must not disappear between shell and prompt). So it
+  // rides whichever verdict wins, and only decides the exit code when nothing else is wrong.
+  const unranked = unrankedGateSentence(audit);
+
   if (audit.findings.length > 0) {
     const worst = audit.findings[0];
     const n = audit.findings.length;
@@ -80,7 +89,8 @@ export function clockGateBrief(audit: ClockAudit): ClockGateBrief {
         `${BRIEF_MARKER} IS RED — ${n} unlabeled stamp${n === 1 ? " reaches" : "s reach"} a file ` +
         `Rob reads (first: ${worst.script}:${worst.line}, '+${worst.format}' → ` +
         `${worst.surfaces.join(", ")}). Fix this BEFORE the queue item: run ` +
-        "`npm run audit:clocks` for the full report. Q84 inc.142.",
+        "`npm run audit:clocks` for the full report. Q84 inc.142." +
+        unranked,
     };
   }
   if (audit.triggeredBy.length === 0) {
@@ -89,10 +99,29 @@ export function clockGateBrief(audit: ClockAudit): ClockGateBrief {
       line:
         `${BRIEF_MARKER} HAS NO TRIGGER — no wrapper in the scanned set invokes ` +
         `\`${TRIGGER_CALLS[0]}\`, so the rule is only enforced when a human remembers to type it. ` +
-        `Re-wire the driver tick (Q84 inc.143) before the queue item.`,
+        `Re-wire the driver tick (Q84 inc.143) before the queue item.` +
+        unranked,
     };
   }
+  if (unranked) {
+    return { code: 4, line: `${BRIEF_MARKER} IS CLEAN, BUT${unranked.replace(/^ /, " ")}` };
+  }
   return { code: 0, line: null };
+}
+
+/** The suffix sentence for unranked `DRIVER_*` gates — empty when there are none, so callers can
+ *  concatenate it unconditionally. Named once here because it is the same words in both the brief
+ *  and the full report, and a second copy is how the two would drift. */
+function unrankedGateSentence(audit: ClockAudit): string {
+  const vars = audit.unrankedGateVars;
+  if (vars.length === 0) return "";
+  const named = vars.map((v) => `${v.envVar} (${v.script}:${v.line})`).join(", ");
+  return (
+    ` ${vars.length} gate${vars.length === 1 ? "" : "s"} the wrapper hands the driver ` +
+    `${vars.length === 1 ? "has" : "have"} NO RANK in GATE_ORDER — ${named}. It fires and is ` +
+    `printed, but nothing decides what it beats: rank it in \`lib/integrity/driverPrefixes.ts\` ` +
+    `(Q84 inc.148).`
+  );
 }
 
 export type ClockFinding = {
@@ -106,8 +135,27 @@ export type ClockFinding = {
   surfaces: string[];
 };
 
+/** A `DRIVER_*` gate a wrapper actually hands to the driver that `GATE_ORDER` does not rank. */
+export type GateRankFinding = {
+  script: string;
+  /** 1-indexed line of the assignment, counting the wrapper's PHYSICAL lines. */
+  line: number;
+  /** The env var exactly as the wrapper spells it — what the author greps for. */
+  envVar: string;
+};
+
 export type ClockAudit = {
   findings: ClockFinding[];
+  /**
+   * Gates the wrapper sets that nothing ranks (Q84 inc.148).
+   *
+   * inc.147 made an unranked gate loud IN THE PROMPT — but only the model reading that prompt
+   * ever learns of it. The human who added the gate sees nothing, because the wrapper still
+   * spells its `DRIVER_*` assignments by hand and this repo never looked at them. This audit
+   * already parses these wrappers and already owns an exit code for "the rule is unenforced",
+   * so it is the one place the assertion can live without inventing a second scanner.
+   */
+  unrankedGateVars: GateRankFinding[];
   /** Scripts that write to a surface AND ask the repo for their stamp — the compliant shape. */
   usesRepoStamp: string[];
   /** Scripts scanned but skipped because they touch none of Rob's surfaces. */
@@ -189,6 +237,92 @@ function surfacesWritten(source: string): string[] {
   });
 }
 
+/**
+ * The `DRIVER_*` assignments in a wrapper that actually TRAVEL into a child process — and only
+ * those (Q84 inc.148).
+ *
+ * WHY THE DISTINCTION IS LOAD-BEARING AND NOT A CONVENIENCE. `daily-driver.sh` and
+ * `daily-email.sh` both hold `DRIVER_LOG="$MEM/daily-driver.log"` — a plain local variable that
+ * is not exported and is not a gate. `gatesFromEnv` reads the composer's OWN environment, so a
+ * local assignment never reaches it and flagging one would put a permanent false red in front of
+ * every increment. What reaches the composer is exactly what shell puts in a child's environment:
+ * an `export`, or an assignment sitting as a PREFIX on a command word.
+ *
+ * So the remainder after each assignment is scanned for a command word, and the scan stops at the
+ * first unquoted `&&`, `||`, `;`, `|` or `&` — after one of those a NEW command begins and the
+ * assignment does not travel to it. That is shell's own rule, not an approximation of it.
+ */
+function travellingDriverVars(source: string): { envVar: string; line: number }[] {
+  const out: { envVar: string; line: number }[] = [];
+  const physical = source.split("\n");
+
+  // Join backslash continuations: the wrapper spreads one logical command over two lines and the
+  // command word (`node …`) sits on the second, so an assignment on the first only looks like a
+  // prefix once they are one string. Two things this got wrong on its first live run against the
+  // real `crm-build-driver.sh`, and both are why the physical line is tracked rather than assumed:
+  //   • the consumed lines must be SKIPPED, or the continuation is scanned a second time as its
+  //     own logical line and one gate is reported twice ("2 unranked gates" when there is one);
+  //   • the reported line must be the line the assignment is actually WRITTEN on — the author is
+  //     going there to fix it — not the line the joined command happens to start at.
+  for (let i = 0; i < physical.length; i++) {
+    if (/^\s*#/.test(physical[i])) continue;
+    // `offsets[n]` = index in `logical` at which physical line i+n begins.
+    const offsets = [0];
+    let logical = physical[i];
+    while (/\\\s*$/.test(logical) && i + offsets.length < physical.length) {
+      logical = logical.replace(/\\\s*$/, " ");
+      offsets.push(logical.length);
+      logical += physical[i + offsets.length - 1];
+    }
+    const lineOf = (index: number) => {
+      let n = 0;
+      while (n + 1 < offsets.length && offsets[n + 1] <= index) n++;
+      return i + n + 1;
+    };
+
+    const assign = new RegExp(`(export\\s+)?(${DRIVER_ENV_PREFIX}[A-Za-z0-9_]+)=`, "g");
+    for (const m of logical.matchAll(assign)) {
+      const exported = Boolean(m[1]);
+      if (exported || isCommandPrefix(logical, m.index + m[0].length)) {
+        out.push({ envVar: m[2], line: lineOf(m.index) });
+      }
+    }
+    i += offsets.length - 1;
+  }
+  return out;
+}
+
+/** Does a command word follow this assignment's value, before the next command separator? */
+function isCommandPrefix(logical: string, from: number): boolean {
+  let quote: string | null = null;
+  let token = "";
+  const tokens: string[] = [];
+  for (let i = from; i < logical.length; i++) {
+    const ch = logical[i];
+    if (quote) {
+      token += ch;
+      if (ch === quote) quote = null;
+      continue;
+    }
+    if (ch === '"' || ch === "'") {
+      quote = ch;
+      token += ch;
+      continue;
+    }
+    // A new command starts here, so nothing after it inherits this assignment.
+    if (ch === ";" || ch === "&" || ch === "|") break;
+    if (/\s/.test(ch)) {
+      if (token) tokens.push(token);
+      token = "";
+      continue;
+    }
+    token += ch;
+  }
+  if (token) tokens.push(token);
+  // The value itself is tokens[0]; anything after it that is not another assignment is the command.
+  return tokens.slice(1).some((t) => t && !/^[A-Za-z_][A-Za-z0-9_]*=/.test(t));
+}
+
 function formatsOn(line: string): string[] {
   const out: string[] = [];
   for (const m of line.matchAll(QUOTED_FORMAT)) out.push(m[1]);
@@ -206,8 +340,16 @@ export function auditWrapperClocks(scripts: { name: string; source: string }[]):
   const usesRepoStamp: string[] = [];
   const skipped: string[] = [];
   const triggeredBy: string[] = [];
+  const unrankedGateVars: GateRankFinding[] = [];
+  // Derived from GATE_ORDER through the same `gateEnvVar` the composer uses — a second hand-kept
+  // list of names here would be the very drift inc.147 closed, reintroduced by its own check.
+  const ranked = new Set(GATE_ORDER.map((g) => gateEnvVar(g.key)));
 
   for (const { name, source } of scripts) {
+    for (const { envVar, line } of travellingDriverVars(source)) {
+      if (!ranked.has(envVar)) unrankedGateVars.push({ script: name, line, envVar });
+    }
+
     // A commented-out invocation is not a trigger — it is a note about one, and the whole point
     // of inc.142 was that a rule living in a comment lives nowhere.
     const invokes = (l: string) => TRIGGER_CALLS.some((needle) => l.includes(needle));
@@ -236,5 +378,5 @@ export function auditWrapperClocks(scripts: { name: string; source: string }[]):
     });
   }
 
-  return { findings, usesRepoStamp, skipped, triggeredBy };
+  return { findings, usesRepoStamp, skipped, triggeredBy, unrankedGateVars };
 }
