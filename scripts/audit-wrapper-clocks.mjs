@@ -183,7 +183,7 @@ async function writeCensus() {
   const ledger = previousOpen.length
     ? await resolvedDepartureKeys(previousOpen.map((row) => departureKey(row.name)))
     : null;
-  const { corrections, open, closed, reopened } = reconcileOpenDepartures(
+  const { corrections, open, closed, reopened, withheld } = reconcileOpenDepartures(
     previousOpen,
     departures,
     audit.triggeredBy,
@@ -196,6 +196,14 @@ async function writeCensus() {
   }
   for (const row of reopened) {
     console.error(`→ census: ${row.name} corrected again — you reopened ${departureKey(row.name)} in the ledger`);
+  }
+  // Q84 inc.170 — a withheld correction is never silent here. The row on Rob's page says the claim
+  // is not being re-checked; this says which claim, on which tick, so the withholding is auditable.
+  for (const row of withheld) {
+    console.error(
+      `→ census: ${row.name} enforcement claim changed and was NOT re-filed — ${departureKey(row.name)} ` +
+        `cannot be read back by the ledger query, so the gate cannot tell an edit from a re-insert (Q84 inc.170)`,
+    );
   }
   return { departures, corrections };
 }

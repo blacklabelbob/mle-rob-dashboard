@@ -902,7 +902,7 @@ describe("departureFindings (Q84 inc.160)", () => {
   it("says nothing extra on an ordinary key — the note is empty, not merely short", () => {
     expect(unaskableKeyNote(departureKey("gone.sh"))).toBe("");
     const [f] = departureFindings([dep()]);
-    expect(f.detail).not.toContain("inc.169");
+    expect(f.detail).not.toContain("inc.170");
     expect(f.detail.endsWith("(Q84 inc.161).")).toBe(true);
   });
 
@@ -910,17 +910,8 @@ describe("departureFindings (Q84 inc.160)", () => {
     const [f] = departureFindings([dep({ name: "run,thing.sh" })]);
     expect(f.dedupeKey).toBe("wrapper-census-departure:run,thing.sh");
     expect(f.detail).toContain("will not see you resolve it");
-    expect(f.detail).toContain("a row you closed reappears");
-    expect(f.detail).toContain("inc.169");
-  });
-
-  it("puts the same sentence on a CORRECTION of an unaskable row, not only on the filing", () => {
-    const prev: OpenDeparture[] = [
-      { name: "run,thing.sh", wasRole: "judged", wasTrigger: true, wasRepoStamp: false, orphaned: true },
-    ];
-    const { corrections } = reconcileOpenDepartures(prev, [], ["other.sh"]);
-    expect(corrections).toHaveLength(1);
-    expect(corrections[0].detail).toContain("will not see you resolve it");
+    expect(f.detail).toContain("will not re-file this row");
+    expect(f.detail).toContain("inc.170");
   });
 
   it("the note is decided by the route's own parser, not by a character blacklist", () => {
@@ -1036,6 +1027,43 @@ describe("reconcileOpenDepartures (Q84 inc.162)", () => {
       open: [],
       closed: [],
       reopened: [],
+      withheld: [],
+    });
+  });
+
+  // Q84 inc.170 — the correction the gate cannot aim is withheld, not emitted and explained.
+  describe("a claim that flips on a key the ledger query cannot read back (inc.170)", () => {
+    const unaskable = (over: Partial<OpenDeparture> = {}) => open({ name: "run,thing.sh", ...over });
+
+    it("withholds the correction — it cannot tell an edit from a re-insert over Rob's decision", () => {
+      const { corrections, withheld } = reconcileOpenDepartures([unaskable()], [], ["new-driver.sh"]);
+      expect(corrections).toEqual([]);
+      expect(withheld.map((r) => r.name)).toEqual(["run,thing.sh"]);
+    });
+
+    it("freezes `orphaned` with it — an unpublished state is never recorded as published", () => {
+      // Were it updated, the gap the correction fires off would close silently and the row on Rob's
+      // page would assert the wrong enforcer forever, with nothing left to notice it.
+      const { open: next } = reconcileOpenDepartures([unaskable()], [], ["new-driver.sh"]);
+      expect(next).toEqual([unaskable()]);
+      expect(next[0].orphaned).toBe(true);
+    });
+
+    it("withholds in the other direction too — the last enforcer leaving is not special", () => {
+      const { corrections, withheld } = reconcileOpenDepartures([unaskable({ orphaned: false })], [], []);
+      expect(corrections).toEqual([]);
+      expect(withheld).toHaveLength(1);
+    });
+
+    it("withholds nothing when the claim did not change — a quiet tick stays quiet", () => {
+      expect(reconcileOpenDepartures([unaskable()], [], []).withheld).toEqual([]);
+    });
+
+    it("leaves every readable key correcting exactly as inc.162 wrote it", () => {
+      const { corrections, withheld } = reconcileOpenDepartures([open()], [], ["new-driver.sh"]);
+      expect(withheld).toEqual([]);
+      expect(corrections).toHaveLength(1);
+      expect(corrections[0].detail.endsWith("(Q84 inc.161/162).")).toBe(true);
     });
   });
 

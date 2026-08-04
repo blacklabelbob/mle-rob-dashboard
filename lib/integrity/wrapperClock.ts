@@ -1472,9 +1472,10 @@ export function unaskableKeyNote(key: string): string {
     ` One thing about THIS row in particular: its ledger key \`${key}\` holds a character the ` +
     `read query cannot hand back unchanged, so this gate never asks your ledger about it (Q84 ` +
     `inc.168) and will not see you resolve it. Resolving works and holds here. What does not ` +
-    `happen is the gate noticing — so if what this row claims about enforcement later changes, ` +
-    `the correction lands as a NEW row instead of an edit, and a row you closed reappears. That ` +
-    `is the gate being deaf, not the removal recurring (Q84 inc.169).`
+    `happen is the gate noticing — so it will not re-file this row either: it cannot tell whether ` +
+    `an edit would land on your open row or insert a new one on top of a decision you already ` +
+    `made, and it will not guess with your page (Q84 inc.170). Read the enforcement claim above ` +
+    `as true on the day it was filed and not re-checked since. Closing it is still yours.`
   );
 }
 
@@ -1554,6 +1555,29 @@ export function unaskableKeyNote(key: string): string {
  * to the whole read. A closed row missing from a short read simply stays closed and silent; it is
  * still on Rob's page, where he can see it, and the gate re-POSTs nothing on a guess.
  *
+ * Q84 inc.170 — A CORRECTION THE GATE CANNOT AIM IS NOT EMITTED. inc.169 put a sentence on the row
+ * whose key inc.168 refuses to send, and left the gate doing the thing that sentence warned about.
+ * The question it handed on: emit the correction and explain it, or withhold it?
+ *
+ * WITHHOLD, because the gate cannot tell the two outcomes apart and one of them overturns Rob. On an
+ * unaskable key `resolved` and `ledgerOpen` never mention it, so `closed` never latches. If his row
+ * is still open, a correction edits it — right. If he resolved it, `planFlagWrite` INSERTS
+ * ("recurred after being resolved") and a row he closed is back on his money page. The gate has no
+ * evidence which case it is in, and that is the exact shape inc.165 already ruled on: closure and
+ * reopen each need the state SEEN, absence is evidence of nothing, and the gate re-POSTs nothing on
+ * a guess. A correction here would be that guess, made against a decision Rob owns.
+ *
+ * THE COST IS REAL AND IT IS THE SMALLER ONE. Withheld, a claim about which wrapper enforces the
+ * clock rule can go stale on the page — the defect inc.162 exists to kill. It is smaller because it
+ * is DISCLOSED where it happens: `unaskableKeyNote()` now tells Rob, in that row, that its
+ * enforcement claim was true the day it was filed and is not being re-checked. A resurrected row
+ * discloses nothing until after it has already contradicted him.
+ *
+ * NARROW AND LATENT, LIKE THE NOTE. The predicate is `keySurvivesTransport()` — the route's own
+ * parser, never a character list — so every key on the live tree corrects exactly as inc.162 wrote.
+ * Withheld rows are RETURNED, not swallowed: the caller prints them, so a silent gate is not the
+ * failure mode.
+ *
  * PURE per CR-3 — no clock, no network, no `process.env`. The caller POSTs and persists.
  */
 export function reconcileOpenDepartures(
@@ -1567,6 +1591,7 @@ export function reconcileOpenDepartures(
   open: OpenDeparture[];
   closed: OpenDeparture[];
   reopened: OpenDeparture[];
+  withheld: OpenDeparture[];
 } {
   const orphanedNow = (d: CensusDeparture): boolean =>
     d.wasTrigger && enforcersOtherThan(d.name, stillTriggeredBy).length === 0;
@@ -1578,6 +1603,7 @@ export function reconcileOpenDepartures(
   const open: OpenDeparture[] = [];
   const closed: OpenDeparture[] = [];
   const reopened: OpenDeparture[] = [];
+  const withheld: OpenDeparture[] = [];
 
   for (const row of previousOpen) {
     const refiled = filedThisTick.get(row.name);
@@ -1602,8 +1628,19 @@ export function reconcileOpenDepartures(
     if (wasClosed) reopened.push(row);
 
     const orphaned = orphanedNow(history);
+    if (orphaned === history.orphaned) {
+      open.push({ ...history, orphaned });
+      continue;
+    }
+    // Q84 inc.170 — the claim flipped and this key cannot be read. WITHHOLD the correction, and
+    // freeze `orphaned` with it: a state the gate did not publish must not be recorded as published,
+    // or the gap the correction fires off is closed silently and the row is stale forever.
+    if (!keySurvivesTransport(key)) {
+      open.push({ ...history });
+      withheld.push(row);
+      continue;
+    }
     open.push({ ...history, orphaned });
-    if (orphaned === history.orphaned) continue;
     const remaining = enforcersOtherThan(row.name, stillTriggeredBy);
     corrections.push({
       entityName: "Wrapper clock gate",
@@ -1621,8 +1658,11 @@ export function reconcileOpenDepartures(
         `Re-filed on the same key because that claim is re-measured from the current tree every ` +
         `tick, so leaving it stale would be the defect it was written to prevent. The gate still ` +
         `will not close this for you — it cannot prove a returning name is the same wrapper, and ` +
-        `the ledger records no actor for a machine's closure (Q84 inc.161/162).` +
-        unaskableKeyNote(key),
+        `the ledger records no actor for a machine's closure (Q84 inc.161/162).`,
+      // No `unaskableKeyNote` here, and that is not an omission: inc.170 withholds the correction
+      // outright on an unaskable key, so every correction that reaches this line has a readable key
+      // and the note would be the empty string. The note rides the FILING (`departureFindings`),
+      // which is the row that has to carry it.
       severity: orphaned ? "high" : "medium",
       dedupeKey: key,
     });
@@ -1637,5 +1677,6 @@ export function reconcileOpenDepartures(
     open: open.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0)),
     closed,
     reopened,
+    withheld,
   };
 }
