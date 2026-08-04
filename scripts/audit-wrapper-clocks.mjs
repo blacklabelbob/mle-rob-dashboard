@@ -45,6 +45,7 @@ import {
   auditWrapperClocks,
   censusDepartures,
   clockGateBrief,
+  departureFindings,
   wrapperCensus,
   BRIEF_MARKER,
   REPO_STAMP_CALL,
@@ -167,6 +168,51 @@ async function writeCensus() {
   await writeFile(CENSUS_FILE, `${JSON.stringify(census, null, 2)}\n`);
   return departures;
 }
+
+/**
+ * Q84 inc.160 — the departure that was `judged` or ran this gate gets a durable row, per the
+ * FINDINGS PROTOCOL. `departureFindings()` decides WHICH and WHAT; this decides what it costs.
+ *
+ * Runs on BOTH paths and before the `--brief` exit, because `--brief` is the only path the driver
+ * takes — filing after that branch would be filing for nobody.
+ *
+ * BEST EFFORT, AND NEVER THE GATE'S EXIT CODE. The stderr sentence is the enforcement and it has
+ * already been decided; the ledger row is durability on top of it. This gate runs on a laptop, in
+ * a CI runner with no network, and on a tick where Vercel is down, and in all three the honest
+ * outcome is "the loss was reported, the row was not written" — not a green run turned red by an
+ * unrelated outage, and not a departure swallowed because a POST failed. A failed write says so on
+ * stderr, next to the finding it belongs to.
+ *
+ * NOT SKIPPED WHEN `SKIP_FLAGS` IS SET — there is no such switch, on purpose. An opt-in would be
+ * unset on every tick that matters, which is exactly how inc.158's census sat unread.
+ */
+async function fileDepartures(list) {
+  const findings = departureFindings(list);
+  if (findings.length === 0) return;
+  const base = (process.env.FLAGS_BASE_URL || "https://mle-rob-dashboard.vercel.app").replace(/\/$/, "");
+  for (const finding of findings) {
+    try {
+      const res = await fetch(`${base}/api/admin/flags`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(finding),
+        signal: AbortSignal.timeout(8000),
+      });
+      const body = await res.text();
+      if (!res.ok) {
+        console.error(`✖ ledger write FAILED ${res.status} for ${finding.dedupeKey}: ${body.slice(0, 200)}`);
+        continue;
+      }
+      const json = JSON.parse(body);
+      console.error(`→ ledger ${json.action} [${finding.dedupeKey}] — ${json.reason ?? "filed"}`);
+    } catch (err) {
+      console.error(
+        `✖ ledger write UNREACHABLE for ${finding.dedupeKey}: ${err.message}. The departure is ` +
+          `reported below and this run is the only one that can report it — copy it somewhere.`,
+      );
+    }
+  }
+}
 const { findings, usesRepoStamp, skipped, triggeredBy, unrankedGateVars, strandedGateVars } = audit;
 const { silencedComposers } = audit;
 const scanned = scripts.length - skipped.length;
@@ -178,6 +224,7 @@ const scanned = scripts.length - skipped.length;
 // committed record with an empty one would turn a scan that saw nothing into a repo that says
 // there is nothing to see.
 const departures = scripts.length > 0 ? await writeCensus() : [];
+await fileDepartures(departures);
 
 if (BRIEF) {
   const { code, line } = clockGateBrief(audit, departures);

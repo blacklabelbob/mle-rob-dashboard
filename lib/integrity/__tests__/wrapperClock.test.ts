@@ -3,6 +3,7 @@ import {
   auditWrapperClocks,
   censusDepartures,
   clockGateBrief,
+  departureFindings,
   BRIEF_MARKER,
   ROB_FACING_SURFACES,
   REPO_STAMP_CALL,
@@ -872,5 +873,57 @@ describe("censusDepartures (Q84 inc.159)", () => {
       { name: "gone.sh", wasRole: "skipped", wasTrigger: false, wasRepoStamp: false },
     ]);
     expect(quiet.line).not.toContain("covered by the ✓ lines");
+  });
+});
+
+describe("departureFindings (Q84 inc.160)", () => {
+  const dep = (over: Partial<Parameters<typeof departureFindings>[0][number]> = {}) => ({
+    name: "gone.sh",
+    wasRole: "judged" as const,
+    wasTrigger: false,
+    wasRepoStamp: false,
+    ...over,
+  });
+
+  it("files a judged departure as one deduped row", () => {
+    const [f] = departureFindings([dep()]);
+    expect(f.entityName).toBe("Wrapper clock gate");
+    expect(f.dedupeKey).toBe("wrapper-census-departure:gone.sh");
+    expect(f.severity).toBe("medium");
+    expect(f.title).toContain("gone.sh");
+    expect(f.detail).toContain("does not guess");
+  });
+
+  it("raises a gate-runner's departure to high — it is enforcement, not coverage", () => {
+    const [f] = departureFindings([dep({ wasTrigger: true })]);
+    expect(f.severity).toBe("high");
+    expect(f.title).toContain("it ran the clock gate");
+    expect(f.detail).toContain("the clock rule is unenforced");
+  });
+
+  it("files a gate-runner even when it was never judged", () => {
+    expect(departureFindings([dep({ wasRole: "skipped", wasTrigger: true })])).toHaveLength(1);
+  });
+
+  it("stays out of Rob's ledger for a skipped or unjudged departure", () => {
+    expect(departureFindings([dep({ wasRole: "skipped" })])).toEqual([]);
+    expect(departureFindings([dep({ wasRole: "unjudged" })])).toEqual([]);
+  });
+
+  it("names the lost repo stamp only when there was one", () => {
+    expect(departureFindings([dep({ wasRepoStamp: true })])[0].detail).toContain(REPO_STAMP_CALL);
+    expect(departureFindings([dep()])[0].detail).not.toContain(REPO_STAMP_CALL);
+  });
+
+  it("gives two wrappers two rows and never merges them into one", () => {
+    const rows = departureFindings([dep(), dep({ name: "other.sh", wasTrigger: true })]);
+    expect(rows.map((r) => r.dedupeKey)).toEqual([
+      "wrapper-census-departure:gone.sh",
+      "wrapper-census-departure:other.sh",
+    ]);
+  });
+
+  it("has nothing to file on a clean tick", () => {
+    expect(departureFindings([])).toEqual([]);
   });
 });

@@ -1278,3 +1278,67 @@ function departureSentence(departures: CensusDeparture[]): string {
     `is the only tick that will say it (Q84 inc.159).`
   );
 }
+
+/** The shape `POST /api/admin/flags` takes. `dedupeKey` makes a re-file CORRECT its row, not stack. */
+export type DepartureFinding = {
+  entityName: string;
+  title: string;
+  detail: string;
+  severity: "high" | "medium" | "low";
+  dedupeKey: string;
+};
+
+/**
+ * Q84 inc.160 — the departures that get a durable row on Rob's page, and the ones that stay in
+ * stderr.
+ *
+ * inc.159 named the open question and it is answered YES, narrowly. The objection was real —
+ * `/api/admin/flags` is Rob's CRM ledger and an exec bit on a shell script is machine-local
+ * bookkeeping — but it does not survive the one property that makes this finding different from
+ * every other line this gate prints. Every other finding is RE-DERIVED from the current tree on
+ * every tick: unfix it and it comes back, so stderr is a sufficient home for it. The departure is
+ * the opposite. `writeCensus()` rewrites the census in the same run that reports the loss, so the
+ * next tick has nothing to compare against and exits 0 — the finding is structurally unrepeatable,
+ * and a finding that is said once and nowhere else is a finding that depends on a human happening
+ * to read one tick's stderr. That is the exact failure inc.157 demonstrated in this very file: the
+ * increment that stripped a wrapper's exec bit was the party best placed to notice, and did not.
+ *
+ * NARROWLY, because the objection is right about everything else. Only a departure that was
+ * `judged` or that RAN this gate is filed: those two change what is ENFORCED from this tick onward.
+ * A `skipped` or `unjudged` wrapper leaving changes a count and nothing else, and putting that on
+ * the page Rob reads for money and meeting conflicts is how a ledger becomes a log nobody reads.
+ *
+ * ONE ROW PER WRAPPER, keyed by name. Two wrappers leaving in one tick are two separate things to
+ * confirm; the same wrapper leaving, being restored, and leaving again is ONE row corrected twice.
+ *
+ * SEVERITY IS NOT A GUESS. A wrapper that ran this gate is `high` — if it was the last one, the
+ * clock rule is unenforced from this tick and nothing else will say so. Anything else judged is
+ * `medium`: coverage shrank, enforcement did not stop.
+ *
+ * PURE per CR-3 — no clock, no network, no `process.env`. The caller does the POST and decides what
+ * a failed POST costs.
+ */
+export function departureFindings(departures: CensusDeparture[]): DepartureFinding[] {
+  return departures
+    .filter((d) => d.wasRole === "judged" || d.wasTrigger)
+    .map((d) => ({
+      entityName: "Wrapper clock gate",
+      title: `${d.name} left the audited set — ${d.wasTrigger ? "it ran the clock gate" : "it was judged by the clock gate"}`,
+      detail:
+        `The last committed wrapper census held \`${d.name}\` (role: ${d.wasRole}` +
+        `${d.wasTrigger ? ", ran the clock gate" : ""}` +
+        `${d.wasRepoStamp ? `, asked the repo for its stamp via \`${REPO_STAMP_CALL}\`` : ""}) and ` +
+        `the scan no longer sees it. Deleted, renamed, or stripped of the exec bit that got it ` +
+        `collected — the gate cannot tell which and does not guess. ` +
+        (d.wasTrigger
+          ? `It RAN this gate: if it was the last wrapper that did, the clock rule is unenforced ` +
+            `from now on and no green ✓ will say so. `
+          : `It was held to the clock rule until this tick; that coverage is now smaller and no ` +
+            `count in the report says so. `) +
+        `Confirm the removal was meant, or find where it went. Filed because the census is ` +
+        `rewritten in the same run that noticed, so the gate itself will never say this again ` +
+        `(Q84 inc.160).`,
+      severity: d.wasTrigger ? "high" : "medium",
+      dedupeKey: `wrapper-census-departure:${d.name}`,
+    }));
+}
