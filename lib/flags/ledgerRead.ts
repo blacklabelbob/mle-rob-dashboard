@@ -37,9 +37,49 @@ export const LEDGER_KEYS_PARAM = "keys";
  * PURE per CR-3, and it decides nothing about POLICY: whether an un-narrowed read is acceptable is
  * the caller's call. This only reports which one it is about to do.
  */
-export function ledgerReadPlan(keys: readonly string[] = []): { keys: string[]; narrowed: boolean } {
+export function ledgerReadPlan(keys: readonly string[] = []): {
+  keys: string[];
+  narrowed: boolean;
+  unaskable: string[];
+} {
   const wanted = [...new Set(keys.filter((k) => typeof k === "string" && k.length > 0))];
-  return { keys: wanted, narrowed: wanted.length > 0 };
+  const askable = wanted.filter(keySurvivesTransport);
+  return {
+    keys: askable,
+    narrowed: askable.length > 0,
+    unaskable: wanted.filter((k) => !keySurvivesTransport(k)),
+  };
+}
+
+/**
+ * Q84 inc.168 — does the key this gate FILED come back as the key the ledger was ASKED about?
+ *
+ * inc.167 asked whether a filed row and a read key are provably the same string. They are not, and
+ * the counter-example is transport, not spelling. `departureKey()` is one definition and every call
+ * site uses it, so the two strings START identical — but the comma is both this param's separator
+ * and a legal character in a wrapper's filename. `encodeURIComponent` escapes it to `%2C` and buys
+ * nothing: `searchParams.get()` decodes it back BEFORE `parseLedgerKeys` splits, so a row filed
+ * under `wrapper-census-departure:run,thing.sh` is asked about as two keys that were never filed —
+ * and the real key, mentioned by nobody, reads as absent. Absence moves nothing (inc.165), so the
+ * failure is silent: that row is never seen resolved and never seen reopened, forever.
+ *
+ * THE CHECK IS A PROOF, NOT A BLACKLIST. Guessing which characters are dangerous is how the next
+ * one gets missed. A key is askable iff the parser hands it back alone and unchanged — the parser
+ * that the route actually runs, on this exact string. Percent-encoding is lossless by construction
+ * (`encodeURIComponent` → `URLSearchParams.get` is identity), so `parseLedgerKeys` is the only lossy
+ * step and the only one worth asking. Trimming and empty-collapse are covered by the same check
+ * without naming them.
+ *
+ * AN UNASKABLE KEY IS DROPPED AND SAID OUT LOUD, NEVER MANGLED. Dropping it means the ledger is
+ * never asked about it, which is exactly `null`'s behaviour for that key: it closes nothing and
+ * reopens nothing, and the row stays on Rob's page where he can see it. Sending it anyway is the
+ * only option that could act on an answer about the wrong key.
+ *
+ * PURE per CR-3.
+ */
+export function keySurvivesTransport(key: string): boolean {
+  const parsed = parseLedgerKeys(key);
+  return parsed !== null && parsed.length === 1 && parsed[0] === key;
 }
 
 /**

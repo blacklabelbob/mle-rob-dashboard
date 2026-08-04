@@ -229,6 +229,15 @@ async function resolvedDepartureKeys(keys = []) {
   // answer that moves nothing in either direction (inc.163/165). The sentence is the point: a
   // future caller that loses its keys says so on stderr instead of quietly reading 144 rows.
   const plan = ledgerReadPlan(keys);
+  // Q84 inc.168 — a key the transport would not hand back unchanged is never sent. The comma is
+  // both this param's separator and a legal character in a filename, and percent-encoding does not
+  // save it: the route decodes before it splits. Sent anyway, the gate would be answered about two
+  // keys it never filed while the real one reads as absent — and absence is silent by design
+  // (inc.165), so the row would go uncorrected forever with no line saying why. Dropped, it behaves
+  // exactly like an unread ledger for that key alone, and this sentence is the record.
+  for (const key of plan.unaskable) {
+    console.error(`→ ledger: NOT asked about ${key} — this key cannot survive the query the route parses back`);
+  }
   if (!plan.narrowed) {
     console.error("→ ledger: not read — this gate asked about no keys, and a whole-ledger read is never implicit");
     return null;
