@@ -176,3 +176,90 @@ export function cooldownNotice({ untilMs, minutesLeft, onDisk }) {
     `NOT in the CRM yet and will be picked up on the first run after the quota lifts.`
   );
 }
+
+// ─────────────────────────────────────────────────────────────────────────────────────────────
+// ELAPSED SILENCE — the converse of everything above.
+//
+// Everything above this line makes the alarm QUIETER: a quota is not a break, an unreachable
+// host is not a break, and neither should fire the red sentence. Which opens the failure this
+// section closes. Three days of politely-worded OFFLINE lines produce exactly the outcome the
+// red sentence exists to prevent — recorded calls not reaching the CRM — while nobody is told,
+// because no SINGLE run failed. A downgrade that never expires is just a mute button.
+//
+// So silence is measured on its own, and it is measured in TIME, not in beats. Counting beats
+// is the obvious implementation and it is wrong here: a closed laptop fires no launchd beat at
+// all, so a ten-hour lid-closed night reports "0 quiet beats" — the exact stretch during which
+// a recorded meeting would sit unfetched. Wall-clock elapsed since the last run that actually
+// landed is the only measure that answers the question a human is asking.
+//
+// Two rules keep this from becoming the noise it is meant to detect:
+//
+//   1. SILENCE ALONE NEVER ALARMS. This is only ever consulted on a run that is failing right
+//      now (QUOTA or OFFLINE). A successful pull rewrites the stamp, so an overnight gap on a
+//      sleeping machine resolves itself on the first good beat and Rob is never told about it.
+//   2. ONE ESCALATION PER THRESHOLD WINDOW. A genuinely dead pipeline must keep shouting — at
+//      6h, 12h, 18h — but must not put a red line in the ping inbox every 30 minutes, which is
+//      how the last three increments' alarm fatigue started.
+
+/** How long nothing may land before a downgraded run is escalated anyway. Six hours = twelve
+ *  missed 30-minute beats: long enough that an ordinary offline stretch or a single quota
+ *  window clears on its own, short enough that a working day never passes unnoticed. */
+export const SILENCE_THRESHOLD_MS = 6 * 60 * 60 * 1000;
+
+/**
+ * Has intake been quiet long enough that a downgraded outcome should be escalated anyway?
+ *
+ * @param {object} args
+ * @param {number|null} args.lastSuccess   - epoch ms of the last run that actually pulled, or null.
+ * @param {number|null} args.firstObserved - epoch ms this silence was first noticed, or null.
+ * @param {number|null} args.lastEscalated - epoch ms of the last escalation, or null.
+ * @param {number} args.now
+ * @param {number} [args.thresholdMs]
+ * @returns {{escalate: boolean, elapsedMs: number|null, hoursQuiet: number|null, since: number|null, reason: string}}
+ */
+export function silenceState({ lastSuccess, lastEscalated, firstObserved, now, thresholdMs = SILENCE_THRESHOLD_MS }) {
+  const num = (v) => (typeof v === "number" && Number.isFinite(v) && v > 0 ? v : null);
+  const success = num(lastSuccess);
+  const observed = num(firstObserved);
+  const escalated = num(lastEscalated);
+
+  // No success has EVER been recorded (fresh clone, or a machine that has never reached the API).
+  // The clock is started from when this was first noticed rather than from an invented success —
+  // claiming a pull that never happened is the one thing this whole file is against — and until
+  // that mark is itself old enough, the honest verdict is "not known yet".
+  const since = success ?? observed;
+  if (since == null) return { escalate: false, elapsedMs: null, hoursQuiet: null, since: null, reason: "clock-started" };
+
+  // A stamp from the future (clock change, restored backup) must not read as infinite silence.
+  const elapsedMs = Math.max(0, now - since);
+  const hoursQuiet = Math.floor(elapsedMs / 3_600_000);
+  if (elapsedMs < thresholdMs) return { escalate: false, elapsedMs, hoursQuiet, since, reason: "within-threshold" };
+
+  // Still silent, but already shouted about recently: hold until another full window has passed.
+  if (escalated != null && now - escalated < thresholdMs) {
+    return { escalate: false, elapsedMs, hoursQuiet, since, reason: "already-escalated" };
+  }
+  return { escalate: true, elapsedMs, hoursQuiet, since, reason: "silent-too-long" };
+}
+
+/**
+ * The red line for a silence escalation. It names the DURATION and the downgraded outcome that
+ * was hiding it, because "intake failed" was never the useful part — "nothing has landed since
+ * 17:40 and the runs are calling it OFFLINE" is what tells a human what to go look at.
+ *
+ * @param {object} args
+ * @param {number} args.hoursQuiet
+ * @param {number|null} args.since - epoch ms nothing has landed since.
+ * @param {string} args.outcome    - the per-run word being escalated past ("OFFLINE" | "QUOTA").
+ * @param {boolean} args.everSucceeded
+ * @returns {string}
+ */
+export function silenceNotice({ hoursQuiet, since, outcome, everSucceeded }) {
+  const when = since ? new Date(since).toISOString().replace(".000Z", "Z") : "an unknown time";
+  const anchor = everSucceeded ? `the last successful pull at ${when}` : `${when}, and no pull has EVER succeeded on this machine`;
+  return (
+    `MEETING INTAKE HAS BEEN SILENT FOR ~${hoursQuiet}h — no recorded call has reached the CRM since ` +
+    `${anchor}. Every run in that window ended ${outcome}, which is individually harmless and ` +
+    `collectively the exact failure the intake alarm exists to catch. A human must check this one.`
+  );
+}

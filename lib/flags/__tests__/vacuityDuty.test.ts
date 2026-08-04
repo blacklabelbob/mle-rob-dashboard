@@ -727,5 +727,10 @@ describe("scanTreeWithNotices", () => {
     // raw scan produced this list with nobody to say so, which is why the compiler now refuses it.
     expect(omitted.notices).toContain(testlessProducerNotice(modules, modules));
     expect(listOnly(omitted).length).toBe(1);
-  });
+    // Q84 inc.135 — EXPLICIT TIMEOUT, for the same reason and from the same load as inc.134's, one
+    // test below it: this one went red in the PRE-PUSH suite on 2026-08-03 at 5830ms against the
+    // 5000ms default and green on its own. It walks the real tree four times (three scans, one of
+    // them twice) while 259 other files compete for the CPU. Fixed the way its sibling was rather
+    // than by trimming the walks — the clock is what was dishonest, not the work.
+  }, 30_000);
 });

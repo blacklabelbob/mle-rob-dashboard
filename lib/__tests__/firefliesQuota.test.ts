@@ -8,6 +8,9 @@ import {
   cooldownNotice,
   transportFailure,
   unreachableNotice,
+  silenceState,
+  silenceNotice,
+  SILENCE_THRESHOLD_MS,
 } from "../../scripts/fireflies-quota.mjs";
 
 // The exact payload Fireflies returned at 2026-07-31 12:33:37 and again at 13:03:37, both of
@@ -187,5 +190,77 @@ describe("EXIT_OFFLINE", () => {
   it("is EX_UNAVAILABLE and NOT EXIT_QUOTA — the two demand opposite next moves", () => {
     expect(EXIT_OFFLINE).toBe(69);
     expect(EXIT_OFFLINE).not.toBe(EXIT_QUOTA);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────────────────────
+// Elapsed silence. Everything above makes the alarm quieter; these pin the converse — that the
+// quiet cannot go on forever without somebody being told.
+
+const HOUR = 3_600_000;
+const T0 = Date.parse("2026-08-03T17:40:00Z"); // the last good pull in the live 08-03 sequence
+
+describe("silenceState", () => {
+  it("holds while the gap is shorter than the threshold — one offline hour is not an alarm", () => {
+    const v = silenceState({ lastSuccess: T0, lastEscalated: null, firstObserved: null, now: T0 + HOUR });
+    expect(v).toMatchObject({ escalate: false, reason: "within-threshold", hoursQuiet: 1 });
+  });
+
+  it("escalates once the gap crosses the threshold, even though no single run failed", () => {
+    const v = silenceState({ lastSuccess: T0, lastEscalated: null, firstObserved: null, now: T0 + 7 * HOUR });
+    expect(v).toMatchObject({ escalate: true, reason: "silent-too-long", hoursQuiet: 7, since: T0 });
+  });
+
+  it("does not re-shout every beat — one escalation per threshold window, then again after it", () => {
+    const at7 = T0 + 7 * HOUR;
+    expect(silenceState({ lastSuccess: T0, lastEscalated: at7, firstObserved: null, now: at7 + HOUR }))
+      .toMatchObject({ escalate: false, reason: "already-escalated" });
+    // ...but a pipeline that is still dead six hours later is told about again.
+    expect(silenceState({ lastSuccess: T0, lastEscalated: at7, firstObserved: null, now: at7 + 7 * HOUR }))
+      .toMatchObject({ escalate: true, reason: "silent-too-long" });
+  });
+
+  it("measures from a first-observation mark when no pull has ever succeeded, and never invents one", () => {
+    const cold = silenceState({ lastSuccess: null, lastEscalated: null, firstObserved: null, now: T0 });
+    expect(cold).toMatchObject({ escalate: false, reason: "clock-started", elapsedMs: null, since: null });
+    // Once the mark exists it is the anchor, and it ages like any other.
+    expect(silenceState({ lastSuccess: null, lastEscalated: null, firstObserved: T0, now: T0 + 7 * HOUR }))
+      .toMatchObject({ escalate: true, since: T0 });
+  });
+
+  it("prefers a real success over the observation mark — the mark is only a fallback", () => {
+    const v = silenceState({ lastSuccess: T0 + 6 * HOUR, lastEscalated: null, firstObserved: T0, now: T0 + 7 * HOUR });
+    expect(v).toMatchObject({ escalate: false, since: T0 + 6 * HOUR, hoursQuiet: 1 });
+  });
+
+  it("treats a stamp from the future as zero elapsed, not as infinite silence", () => {
+    const v = silenceState({ lastSuccess: T0 + 99 * HOUR, lastEscalated: null, firstObserved: null, now: T0 });
+    expect(v).toMatchObject({ escalate: false, elapsedMs: 0, hoursQuiet: 0 });
+  });
+
+  it("ignores corrupt or non-positive stamps rather than deriving a silence from them", () => {
+    for (const junk of [0, -1, Number.NaN, Number.POSITIVE_INFINITY, "17:40" as unknown as number]) {
+      expect(silenceState({ lastSuccess: junk, lastEscalated: null, firstObserved: null, now: T0 }))
+        .toMatchObject({ escalate: false, reason: "clock-started" });
+    }
+  });
+
+  it("uses a six-hour default — twelve missed 30-minute beats", () => {
+    expect(SILENCE_THRESHOLD_MS).toBe(6 * HOUR);
+  });
+});
+
+describe("silenceNotice", () => {
+  it("names the duration and the downgraded word that was hiding it", () => {
+    const msg = silenceNotice({ hoursQuiet: 8, since: T0, outcome: "OFFLINE", everSucceeded: true });
+    expect(msg).toContain("~8h");
+    expect(msg).toContain("2026-08-03T17:40:00Z");
+    expect(msg).toContain("OFFLINE");
+    expect(msg).toContain("A human must check this one.");
+  });
+
+  it("says outright when nothing has ever succeeded, instead of implying a pull once worked", () => {
+    const msg = silenceNotice({ hoursQuiet: 9, since: T0, outcome: "QUOTA", everSucceeded: false });
+    expect(msg).toContain("no pull has EVER succeeded");
   });
 });

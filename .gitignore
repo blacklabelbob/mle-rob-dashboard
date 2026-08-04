@@ -61,6 +61,11 @@ data/network.local.json
 data/crm.local.json
 MLE Internal Meetings/.notion-archive-pending
 MLE Internal Meetings/.fireflies-quota-until
+# Elapsed-silence stamps (Q84 inc.135) — they describe THIS machine's run history, so a clone
+# that inherited them would compute a silence it never lived through.
+MLE Internal Meetings/.intake-last-success
+MLE Internal Meetings/.intake-silent-since
+MLE Internal Meetings/.intake-last-escalation
 # Marker written by ~/.claude/scripts/meeting-intake.sh (launchd com.aivoicetech.meeting-intake)
 # so the next agent run knows an ingest landed. Run-local state, not repo state.
 MLE Internal Meetings/.new-since-last-agent-run
