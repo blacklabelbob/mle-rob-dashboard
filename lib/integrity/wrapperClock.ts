@@ -91,7 +91,16 @@ export type ClockGateBrief = { code: 0 | 1 | 2 | 3 | 4; line: string | null };
  * gate's wording can be wrong in a way nothing catches (the trigger needle matched one spelling
  * of two). What the shell may still decide on its own is only whether this ran at all.
  */
-export function clockGateBrief(audit: ClockAudit): ClockGateBrief {
+export function clockGateBrief(
+  audit: ClockAudit,
+  /**
+   * Wrappers the last committed census held that this scan did not see (Q84 inc.159). Defaults to
+   * none so every existing caller keeps its exact behaviour; it is a parameter rather than a field
+   * on `ClockAudit` because it is not something the audit measured — it comes from disk, and the
+   * audit only knows what it was handed.
+   */
+  departures: CensusDeparture[] = [],
+): ClockGateBrief {
   // Q84 inc.148 — the unranked-gate sentence is a SUFFIX, never a competitor. The driver greps
   // `^CLOCK GATE`, so exactly one line is heard per tick; ranking this finding against the stamp
   // findings would mean the loser vanishes, which is the precise disease inc.147 spent an
@@ -111,7 +120,13 @@ export function clockGateBrief(audit: ClockAudit): ClockGateBrief {
   // defects in wrappers this gate READ; this one says the ✓ line does not cover the whole
   // directory. It rides rather than competes for the same reason as its three siblings — the
   // driver hears exactly one `^CLOCK GATE` line per tick, so a ranked loser vanishes.
+  // Q84 inc.159 appends the fifth on the same terms, and FIRST among the appended five. Its
+  // siblings all describe the scanned set; this one describes a wrapper that is no longer IN the
+  // scanned set, which means no other sentence on this line — and no count in the report — can
+  // mention it at all. It is also the only one of the five that will never be said twice: the
+  // census is rewritten on the same tick, so if this line is dropped the fact is gone for good.
   const unranked =
+    departureSentence(departures) +
     strandedGateSentence(audit) +
     unrankedGateSentence(audit) +
     silencedComposerSentence(audit) +
@@ -1180,4 +1195,86 @@ export function wrapperCensus(
     .sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
 
   return { wrappers } as WrapperCensus;
+}
+
+/**
+ * A wrapper the last committed census held that this scan never saw (Q84 inc.159).
+ *
+ * The role it USED to have, not a role it has now — there is nothing to measure any more. That is
+ * the whole point: every number this gate prints is derived from what `collect()` found, so a
+ * wrapper that stops being collected leaves the totals silently smaller and the run still prints
+ * four ✓. inc.157 did exactly that to `daily-driver.sh.bak-2026-07-17` with a `chmod -x` and
+ * nothing said a word; inc.158 wrote the census so the change would at least be IN a diff.
+ */
+export type CensusDeparture = {
+  name: string;
+  wasRole: WrapperCensusRow["role"];
+  /** It ran this gate. If it was the last one, the rule is unenforced from this tick onward. */
+  wasTrigger: boolean;
+  /** It asked the repo for its stamp — the compliant shape, and the loss is worth naming. */
+  wasRepoStamp: boolean;
+};
+
+/**
+ * Q84 inc.159 — what the last census holds that this scan does not.
+ *
+ * DEPARTURES ONLY, DELIBERATELY. A wrapper whose role CHANGED is still in the set: this gate
+ * re-reads and re-judges it on every tick, so a regression in what it does is already caught live
+ * (inc.158's reasoning for not storing stamp text). A wrapper that is GONE is the case no live
+ * judgement can reach, because there is nothing left to judge.
+ *
+ * ARRIVALS ARE NOT REPORTED. A new wrapper is judged by this gate on the very tick it appears —
+ * it lands in `scanned`, `skipped` or `unjudged` and every existing sentence already covers it.
+ * Saying "new file" on top of that would be noise on the one event that is already loud.
+ *
+ * `previous` is null on the first run after the census exists — no record is not a departure, and
+ * inventing one would make this gate's own arrival look like a loss.
+ */
+export function censusDepartures(
+  previous: WrapperCensus | null,
+  current: WrapperCensus,
+): CensusDeparture[] {
+  if (!previous) return [];
+  const present = new Set(current.wrappers.map((w) => w.name));
+  return previous.wrappers
+    .filter((w) => !present.has(w.name))
+    .map((w) => ({
+      name: w.name,
+      wasRole: w.role,
+      wasTrigger: w.triggersGate,
+      wasRepoStamp: w.repoStamp,
+    }));
+}
+
+/**
+ * The suffix sentence for departed wrappers (Q84 inc.159).
+ *
+ * It states the loss and REFUSES to state a cause. A wrapper leaves the scanned set by being
+ * deleted, renamed, or stripped of the exec bit that got it collected, and from here those three
+ * are indistinguishable — the file this gate would have to stat is, by definition, not there under
+ * that name. Naming one of the three would be a guess, and the queue's own rule is to report what
+ * cannot be explained rather than guess it.
+ *
+ * A departure that was `judged` or that ran this gate is called out by name, because those two are
+ * the losses that change what is enforced from this tick onward rather than merely what is
+ * counted.
+ */
+function departureSentence(departures: CensusDeparture[]): string {
+  if (departures.length === 0) return "";
+  const named = departures
+    .map((d) => `${d.name} (was ${d.wasRole}${d.wasTrigger ? ", ran this gate" : ""})`)
+    .join(", ");
+  const n = departures.length;
+  const lost = departures.filter((d) => d.wasRole === "judged" || d.wasTrigger);
+  return (
+    ` ${n} wrapper${n === 1 ? "" : "s"} the last census held ${n === 1 ? "is" : "are"} GONE FROM ` +
+    `THE SCAN — ${named}. Deleted, renamed, or stripped of the exec bit that got it collected: ` +
+    `this gate cannot tell which, and does not guess. ` +
+    (lost.length > 0
+      ? `${lost.length} of them ${lost.length === 1 ? "was" : "were"} covered by the ✓ lines ` +
+        `until this tick, so that coverage is now smaller and no other number here says so. `
+      : "") +
+    `Confirm it was meant, or find where it went — the census is rewritten this same run, so this ` +
+    `is the only tick that will say it (Q84 inc.159).`
+  );
 }

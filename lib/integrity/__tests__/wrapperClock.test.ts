@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   auditWrapperClocks,
+  censusDepartures,
   clockGateBrief,
   BRIEF_MARKER,
   ROB_FACING_SURFACES,
@@ -781,5 +782,95 @@ describe("wrapperCensus", () => {
     const second = wrapperCensus(auditWrapperClocks(entries), entries);
     expect(JSON.stringify(first)).toEqual(JSON.stringify(second));
     expect(JSON.stringify(first)).not.toMatch(/\d{4}-\d{2}-\d{2}/);
+  });
+});
+
+describe("censusDepartures (Q84 inc.159)", () => {
+  const entry = (name: string, source: string, executable = true) => ({ name, source, executable });
+  const censusOf = (entries: { name: string; source: string; executable: boolean }[]) =>
+    wrapperCensus(auditWrapperClocks(entries), entries);
+
+  const writer = (name: string) =>
+    entry(name, `date '+%F %T %Z' >> "$HOME/.claude/memory/crm-driver.log"`);
+
+  it("names a wrapper the last census held that this scan never saw", () => {
+    const before = censusOf([writer("a.sh"), entry("gone.sh", `echo hi`)]);
+    const after = censusOf([writer("a.sh")]);
+    expect(censusDepartures(before, after)).toEqual([
+      { name: "gone.sh", wasRole: "skipped", wasTrigger: false, wasRepoStamp: false },
+    ]);
+  });
+
+  it("carries the role it used to have, because there is nothing left to measure", () => {
+    const before = censusOf([
+      entry(
+        "driver.sh",
+        `STAMP="$(node scripts/${REPO_STAMP_CALL})"\n` +
+          `npm run ${TRIGGER_CALLS[1]} -- --brief\n` +
+          `echo "$STAMP" >> "$HOME/.claude/memory/crm-driver.log"`,
+      ),
+    ]);
+    const after = censusOf([writer("other.sh")]);
+    expect(censusDepartures(before, after)).toEqual([
+      { name: "driver.sh", wasRole: "judged", wasTrigger: true, wasRepoStamp: true },
+    ]);
+  });
+
+  it("reports nothing for an arrival — a new wrapper is judged on the tick it appears", () => {
+    const before = censusOf([writer("a.sh")]);
+    const after = censusOf([writer("a.sh"), entry("new.sh", `echo hi`)]);
+    expect(censusDepartures(before, after)).toEqual([]);
+  });
+
+  it("reports nothing when there is no previous record — no record is not a loss", () => {
+    expect(censusDepartures(null, censusOf([writer("a.sh")]))).toEqual([]);
+  });
+
+  it("catches the exact silent shrink inc.157 caused: a wrapper stripped of its exec bit", () => {
+    // `daily-driver.sh.bak-2026-07-17` matches neither `*.sh` nor exec-bit+shebang once chmod -x
+    // lands, so it simply stops being collected — 34 → 33 with four ✓ still printed.
+    const bak = "daily-driver.sh.bak-2026-07-17";
+    const before = censusOf([writer("a.sh"), entry(bak, `#!/bin/bash\necho hi`)]);
+    const after = censusOf([writer("a.sh")]);
+    const departures = censusDepartures(before, after);
+    expect(departures.map((d) => d.name)).toEqual([bak]);
+  });
+
+  it("rides the brief line and turns a clean run into exit 4", () => {
+    const audit = auditWrapperClocks([
+      entry("driver.sh", `npm run ${TRIGGER_CALLS[1]} -- --brief`),
+    ]);
+    expect(clockGateBrief(audit).code).toBe(0);
+    const brief = clockGateBrief(audit, [
+      { name: "gone.sh", wasRole: "judged", wasTrigger: false, wasRepoStamp: false },
+    ]);
+    expect(brief.code).toBe(4);
+    expect(brief.line).toContain(BRIEF_MARKER);
+    expect(brief.line).toContain("gone.sh");
+    expect(brief.line).toContain("GONE FROM THE SCAN");
+  });
+
+  it("rides a red verdict rather than competing with it — a departure must never be the loser", () => {
+    const audit = auditWrapperClocks([
+      entry("bad.sh", `date '+%F %T' >> "$HOME/.claude/memory/crm-driver.log"`),
+      entry("driver.sh", `npm run ${TRIGGER_CALLS[1]} -- --brief`),
+    ]);
+    const brief = clockGateBrief(audit, [
+      { name: "gone.sh", wasRole: "judged", wasTrigger: true, wasRepoStamp: false },
+    ]);
+    expect(brief.code).toBe(1);
+    expect(brief.line).toContain("IS RED");
+    expect(brief.line).toContain("gone.sh");
+  });
+
+  it("says the coverage shrank only when what left was actually covered", () => {
+    const covered = clockGateBrief(auditWrapperClocks([]), [
+      { name: "gone.sh", wasRole: "judged", wasTrigger: false, wasRepoStamp: false },
+    ]);
+    expect(covered.line).toContain("covered by the ✓ lines");
+    const quiet = clockGateBrief(auditWrapperClocks([]), [
+      { name: "gone.sh", wasRole: "skipped", wasTrigger: false, wasRepoStamp: false },
+    ]);
+    expect(quiet.line).not.toContain("covered by the ✓ lines");
   });
 });

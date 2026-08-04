@@ -43,6 +43,7 @@ import os from "node:os";
 import { fileURLToPath } from "node:url";
 import {
   auditWrapperClocks,
+  censusDepartures,
   clockGateBrief,
   wrapperCensus,
   BRIEF_MARKER,
@@ -148,9 +149,23 @@ const audit = auditWrapperClocks(scripts, unjudged);
  * worse lie than having no record.
  */
 async function writeCensus() {
-  if (targets.length !== 1 || targets[0] !== DEFAULT_DIR) return;
+  if (targets.length !== 1 || targets[0] !== DEFAULT_DIR) return [];
   const census = wrapperCensus(audit, scripts);
+  // Q84 inc.159 — read the committed record BEFORE overwriting it. inc.158 left the census in git
+  // but nothing reading it, so a wrapper could still leave the scanned set with a diff no human is
+  // required to notice, and every count here would stay green because every count is derived from
+  // what was found. An unreadable or malformed file is treated as "no previous record" rather than
+  // as a mass departure: the failure mode of a bad parse must not be 33 false findings.
+  let previous = null;
+  try {
+    previous = JSON.parse(await readFile(CENSUS_FILE, "utf8"));
+    if (!Array.isArray(previous?.wrappers)) previous = null;
+  } catch {
+    previous = null;
+  }
+  const departures = censusDepartures(previous, census);
   await writeFile(CENSUS_FILE, `${JSON.stringify(census, null, 2)}\n`);
+  return departures;
 }
 const { findings, usesRepoStamp, skipped, triggeredBy, unrankedGateVars, strandedGateVars } = audit;
 const { silencedComposers } = audit;
@@ -162,10 +177,10 @@ const scanned = scripts.length - skipped.length;
 // Never on a zero-wrapper scan: that outcome is "the rule was not checked", and overwriting the
 // committed record with an empty one would turn a scan that saw nothing into a repo that says
 // there is nothing to see.
-if (scripts.length > 0) await writeCensus();
+const departures = scripts.length > 0 ? await writeCensus() : [];
 
 if (BRIEF) {
-  const { code, line } = clockGateBrief(audit);
+  const { code, line } = clockGateBrief(audit, departures);
   if (line) console.error(line);
   process.exit(code);
 }
@@ -350,11 +365,36 @@ if (audit.unjudged.length > 0) {
   );
 }
 
+// Q84 inc.159 — the only finding here about a wrapper that is NOT in the scan. Printed last and
+// exiting 4 with its siblings, but it is the one that cannot be re-derived by looking harder at
+// this run: the census has already been rewritten, so the next tick's comparison is against a set
+// that no longer contains it, and this is the single run in which it is knowable.
+if (departures.length > 0) {
+  for (const d of departures) {
+    console.error(
+      `\n✖ ${d.name}  in the last census, absent from this scan — was ${d.wasRole}` +
+        `${d.wasTrigger ? ", and it ran this gate" : ""}` +
+        `${d.wasRepoStamp ? ", and it asked the repo for its stamp" : ""}`,
+    );
+  }
+  console.error(
+    `\n${departures.length} wrapper${departures.length === 1 ? "" : "s"} left the scanned set. ` +
+      `Deleted, renamed, or stripped of the exec bit that got ${departures.length === 1 ? "it" : "them"} ` +
+      `collected — from here those are indistinguishable, so this gate names the loss and not a ` +
+      `cause. Every count above is derived from what was found, which is why nothing else moved.`,
+  );
+  console.error(
+    `Fix: confirm it was intended (and this line is the record of it), or restore the file. ` +
+      `\`git diff docs/integrity/wrapper-census.json\` shows the row that left.`,
+  );
+}
+
 if (
   strandedGateVars.length > 0 ||
   unrankedGateVars.length > 0 ||
   silencedComposers.length > 0 ||
-  audit.unjudged.length > 0
+  audit.unjudged.length > 0 ||
+  departures.length > 0
 ) {
   process.exit(4);
 }
