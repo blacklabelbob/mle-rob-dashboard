@@ -206,7 +206,7 @@
 // file that reads the real tree; it does not prove the assertion ran against what was read. That is
 // what a name-matching rule can honestly claim, so the notice now says so instead of implying more.
 
-import { SOURCE_FILE, type SourceFile } from "./scanPerimeter";
+import { SOURCE_FILE, descendableDir, type SourceFile } from "./scanPerimeter";
 
 /**
  * An exported object type that is a FILE AS THE WALK HANDS IT OVER: a repo-relative `path` plus the
@@ -575,5 +575,75 @@ export function illiterateScanNotice(
     `arguments. Check that producers are SourceFile objects (a derived string[] passed here has an ` +
     `undefined .path and matches nothing) and that they include the TESTS, where this repo's walks ` +
     `live by design.`
+  );
+}
+
+// Q84 inc.130 — A ONE-FIELD VOCABULARY IS STILL REPORTED LITERATE, AND A FLOOR IS NOT THE FIX.
+// inc.129 closed the zero (`illiterateScanNotice`): a scan that learned nothing now says so instead
+// of returning the same `[]` a clean tree returns. inc.125 measured the other end and left it open —
+// hand the scan modules as their own producers and the vocabulary collapses to `content`, one field,
+// which yields ONE recogniser where the tree has nineteen. `illiterateScanNotice` returns null for
+// that, correctly: a vocabulary was learned. It is just the wrong one, and 1 is believed where 0
+// would be questioned.
+//
+// THE OBVIOUS FIX IS A FLOOR, AND IT IS NOT DEFENSIBLE. "Fewer than N fields is too thin" requires
+// an N nobody can derive. This tree happens to have five walk-output types and two bytes-field
+// spellings today; any constant written down here is a hand-written question one level down from a
+// derived answer — the exact defect inc.115, inc.125 and inc.127 each deleted. A floor of 2 passes
+// this tree by luck and starts lying the moment a producer set legitimately has one spelling.
+//
+// SO GATE THE CAUSE, NOT THE SIZE. The collapse has one mechanism, and it is a fact about the
+// ARGUMENTS rather than a judgement about the count: the producer set contained no test file. This
+// repo's walks live in tests by design (CR-3 — the module stays pure and the caller owns the
+// filesystem), so producers drawn only from the walk's own perimeter can only ever see the handful
+// of disk reads that leaked into modules. That question has an exact, derived answer already in the
+// grammar: `descendableDir` is what the walk itself asks before entering a directory, and a file the
+// walk refuses to descend to is precisely what a `__tests__` file is. No number is invented, and if
+// `EXCLUDED_DIRS` ever changes this check follows it instead of drifting away from it.
+//
+// WHY IT IS NOT FOLDED INTO illiterateScanNotice. Those are different failures with different fixes
+// and, more to the point, different truth values: illiteracy is "I never looked", thinness is "I
+// looked in a place that could not hold the answer". A caller may also be entitled to a testless
+// producer set — a subtree genuinely without tests — so this reports rather than throws, exactly as
+// the rest of this family does.
+
+/** A path the walk would never hand a guard because it refuses to enter the directory it sits in. */
+function beyondTheWalk(filePath: string): boolean {
+  return filePath
+    .split("/")
+    .slice(0, -1)
+    .some((segment) => !descendableDir(segment));
+}
+
+/**
+ * The sentence the scan prints when it learned a vocabulary, but learned it from producers that
+ * could not have held the whole one — so its answer is thin rather than wrong, and thin reads as
+ * true.
+ *
+ * Null when the scan is blind outright: that is `illiterateScanNotice`'s sentence, and printing both
+ * for one cause would make the reader treat the pair as noise. Null too when the producer set does
+ * include files from beyond the walk's perimeter, which on this tree means the tests.
+ *
+ * Arguments are `treeScanRecognisers`' own and must be the SAME values, for the reason
+ * `illiterateScanNotice` names: anything else answers about a derivation the scan did not run.
+ */
+export function testlessProducerNotice(
+  files: readonly SourceFile[],
+  producers: readonly SourceFile[] = files,
+): string | null {
+  const fields = contentsFieldNames(producers);
+  if (!fields.length || !walkOutputTypes(files, fields).length) return null;
+  const sources = producers.filter((p) => SOURCE_FILE.test(p.path));
+  if (!sources.length || sources.some((p) => beyondTheWalk(p.path))) return null;
+  return (
+    `treeScanRecognisers learned its bytes-field vocabulary (${fields.join(", ")}) from ` +
+    `${sources.length} producer(s) of which NOT ONE sits beyond the walk's own perimeter — no test ` +
+    `file is among them. This repo's walks live in tests by design, so a producer set drawn only ` +
+    `from scanned roots sees just the disk reads that leaked into modules, and the vocabulary comes ` +
+    `back thin rather than empty. The recogniser count that follows is therefore a plausible ` +
+    `number, not a measurement: a believable 1 gets accepted where a 0 would have been questioned. ` +
+    `Pass the tests as producers — treeScanRecognisers(modules, [...modules, ...tests]) — and ` +
+    `compare the counts before trusting either. This is deliberately NOT a floor on how many fields ` +
+    `count as enough: no such number can be derived from the tree, so none is written here.`
   );
 }

@@ -10,8 +10,9 @@ import {
   walkOutputTypes,
   contentsFieldNames,
   illiterateScanNotice,
+  testlessProducerNotice,
 } from "../vacuityDuty";
-import { SCANNED_ROOTS, SOURCE_FILE, type SourceFile } from "../scanPerimeter";
+import { SCANNED_ROOTS, SOURCE_FILE, descendableDir, type SourceFile } from "../scanPerimeter";
 
 // Q84 inc.122 — the rule under test is about THIS repo's guards, so the test reads them off disk.
 // Reading bytes is the caller's job (CR-3, inc.114/inc.115): the module is pure, the walk is here.
@@ -497,5 +498,91 @@ describe("illiterateScanNotice", () => {
     // blind one. This notice must not claim that case, or it stops meaning "I never looked".
     expect(treeScanRecognisers(modules, modules).length).toBeGreaterThan(0);
     expect(illiterateScanNotice(modules, modules)).toBeNull();
+  });
+});
+
+// Q84 inc.130 — THE CASE THE LINE ABOVE DELIBERATELY LEAVES OPEN. inc.129 gave the zero a sentence;
+// the near-silence still had none, and a plausible 1 is the more dangerous of the two because it
+// never prompts the question. Pinned against the LIVE tree in both directions, because the whole
+// claim is about which producer set was passed and a fixture cannot exhibit that.
+describe("testlessProducerNotice", () => {
+  const producers = [...modules, ...tests];
+
+  it("fires on exactly inc.125's collapse, where the illiteracy notice is correctly silent", () => {
+    // The same arguments, the same derivation, two different verdicts — that is the point.
+    expect(illiterateScanNotice(modules, modules)).toBeNull();
+    const said = testlessProducerNotice(modules, modules) ?? "";
+    expect(said).not.toBe("");
+    // It names the thin vocabulary it actually learned, so the reader can see it is the wrong one.
+    expect(contentsFieldNames(modules)).toEqual(["content"]);
+    expect(said).toContain("vocabulary (content)");
+    // And it says what to pass instead, in the form that fixes it.
+    expect(said).toContain("[...modules, ...tests]");
+  });
+
+  it("stays silent on the live producer set, which is the one call that is not thin", () => {
+    expect(testlessProducerNotice(modules, producers)).toBeNull();
+    // Not silent by accident: the live set is strictly richer, and that gap is the defect's size.
+    expect(contentsFieldNames(producers).length).toBeGreaterThan(contentsFieldNames(modules).length);
+    expect(treeScanRecognisers(modules, producers).length).toBe(19);
+    expect(treeScanRecognisers(modules, modules).length).toBe(1);
+  });
+
+  it("defers to illiterateScanNotice rather than doubling it when the scan learned nothing", () => {
+    // No disk read at all: blind, not thin. One cause must not print two sentences.
+    expect(illiterateScanNotice(modules, [])).not.toBeNull();
+    expect(testlessProducerNotice(modules, [])).toBeNull();
+    // Fields learned but no walk type on the files given — still illiteracy, still not this. The
+    // producers here must be TESTLESS, or the perimeter check alone would return null and this
+    // would pass without the deferral ever running: mutation-checked, and the first draft of this
+    // test passed `producers` and stayed green with the deferral deleted.
+    const barren = [{ path: "lib/x.ts", text: "export const a = 1;" }];
+    expect(illiterateScanNotice(barren, modules)).not.toBeNull();
+    expect(testlessProducerNotice(barren, modules)).toBeNull();
+    // And the same pair with tests in the producer set, which the perimeter check answers instead.
+    expect(illiterateScanNotice(barren, producers)).not.toBeNull();
+    expect(testlessProducerNotice(barren, producers)).toBeNull();
+  });
+
+  // THE TEST THAT ACTUALLY DECIDES THE DESIGN, and it exists because the mutation run demanded it:
+  // substituting `fields.length >= 2` for the perimeter check left all of the above GREEN. A floor
+  // passes this tree by luck — the live producer set happens to have two spellings — so nothing
+  // written so far distinguished the rule that is derived from the constant that is invented. This
+  // fixture separates them: ONE bytes-field spelling, learned from a producer set that DOES include
+  // the tests, is a complete vocabulary and must stay silent. A floor calls it thin and is wrong.
+  it("stays silent on a one-field vocabulary that a test producer supplied — size is not the question", () => {
+    const declaring = {
+      path: "lib/a.ts",
+      text: "export type Blob = { path: string; body: string };",
+    };
+    const testProducer = {
+      path: "lib/__tests__/a.test.ts",
+      text: 'const f = { path: rel, body: readFileSync(abs, "utf8") };',
+    };
+    const withTests = [declaring, testProducer];
+    // One spelling only — the exact input any floor of 2 would reject.
+    expect(contentsFieldNames(withTests)).toEqual(["body"]);
+    // And a walk type was genuinely derived from it, so this is not illiteracy either.
+    expect(walkOutputTypes([declaring], contentsFieldNames(withTests))).toEqual(["Blob"]);
+    expect(testlessProducerNotice([declaring], withTests)).toBeNull();
+    // Same vocabulary, same size, tests removed: now it IS thin, and the notice fires. The count did
+    // not change between these two calls — only where the producers came from. That is the claim.
+    expect(contentsFieldNames([declaring, { ...testProducer, path: "lib/a.probe.ts" }])).toEqual([
+      "body",
+    ]);
+    expect(
+      testlessProducerNotice([declaring], [declaring, { ...testProducer, path: "lib/a.probe.ts" }]),
+    ).not.toBeNull();
+  });
+
+  it("asks descendableDir rather than matching a directory name typed in here", () => {
+    // The predicate is the walk's own. A producer beyond the perimeter silences the notice, and it
+    // is EXCLUDED_DIRS that decides which those are — rename the concept and this follows.
+    const one = modules.slice(0, 1);
+    expect(one).toHaveLength(1);
+    const withTest = [...one, tests[0]];
+    expect(tests[0].path).toContain("__tests__");
+    expect(descendableDir("__tests__")).toBe(false);
+    expect(testlessProducerNotice(modules, withTest)).toBeNull();
   });
 });
