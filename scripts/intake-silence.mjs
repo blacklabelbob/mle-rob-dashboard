@@ -77,7 +77,13 @@ async function flushFlag() {
     // detail can never disagree with the history it is supposed to carry. A v1 file holds the
     // finding itself; post it unchanged rather than guess at what produced it.
     finding = parsed?.args
-      ? silenceFlag(parsed.args, { escalations: parsed.escalations, priorWindows: parsed.priorWindows })
+      ? silenceFlag(parsed.args, {
+          escalations: parsed.escalations,
+          priorWindows: parsed.priorWindows,
+          // Q84 inc.138: windows the cap dropped survive as a count, so the row cannot report
+          // fewer outages than actually went undelivered.
+          priorWindowsDropped: parsed.priorWindowsDropped,
+        })
       : parsed;
   } catch {
     // A garbled queue file can never become a ledger row; drop it rather than retry forever.

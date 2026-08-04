@@ -265,6 +265,13 @@ export function silenceNotice({ hoursQuiet, since, outcome, everSucceeded }) {
 }
 
 /**
+ * How many undelivered earlier windows the notice DESCRIBES before it starts merely counting them
+ * (Q84 inc.138). One place, because the renderer names this number in the sentence it prints and
+ * the merger enforces it — two copies would let the notice promise a cap the queue does not keep.
+ */
+export const PRIOR_WINDOW_CAP = 5;
+
+/**
  * The same escalation, shaped as a Things-to-Address finding (Q84 inc.136).
  *
  * WHY THIS EXISTS: inc.135 put the silence alarm in PING-INBOX — the same channel the two FALSE
@@ -297,18 +304,26 @@ export function silenceNotice({ hoursQuiet, since, outcome, everSucceeded }) {
 export function silenceFlag({ hoursQuiet, since, outcome, everSucceeded }, history = {}) {
   const escalations = Number.isFinite(history.escalations) ? history.escalations : 1;
   const priorWindows = Array.isArray(history.priorWindows) ? history.priorWindows : [];
+  // Q84 inc.138: windows the cap discarded. They are gone as detail and must not be gone as a
+  // NUMBER — "3 earlier outages" when there were 8 is the understatement this thread keeps deleting.
+  const dropped = Number.isFinite(history.priorWindowsDropped) ? history.priorWindowsDropped : 0;
   let detail = silenceNotice({ hoursQuiet, since, outcome, everSucceeded });
   // Said only when it adds something. "escalated 1 time" is noise on a first escalation.
   if (escalations > 1) {
     detail += ` This is escalation ${escalations} for this same silent window — the alarm has fired and gone unanswered before.`;
   }
-  if (priorWindows.length > 0) {
+  if (priorWindows.length + dropped > 0) {
     const listed = priorWindows
       .map((w) => `~${w.hoursQuiet}h since ${w.since ? new Date(w.since).toISOString().replace(".000Z", "Z") : "an unknown time"}`)
       .join("; ");
+    // The count is the TOTAL, never the length of what happens to still fit. The parenthetical is
+    // what survives; the truncation is stated so a short list cannot read as a short outage record.
     detail +=
-      ` ALSO NEVER DELIVERED: ${priorWindows.length} earlier silent window(s) escalated and could not reach this ledger before the pipeline went quiet again (${listed}).` +
-      ` Those are separate outages, not this one.`;
+      ` ALSO NEVER DELIVERED: ${priorWindows.length + dropped} earlier silent window(s) escalated and could not reach this ledger before the pipeline went quiet again (${listed}).`;
+    if (dropped > 0) {
+      detail += ` ${dropped} older window(s) are counted here but no longer described — this notice keeps only the newest ${PRIOR_WINDOW_CAP}.`;
+    }
+    detail += ` Those are separate outages, not this one.`;
   }
   return {
     entityName: "Meeting intake",
@@ -348,19 +363,24 @@ export function silenceFlag({ hoursQuiet, since, outcome, everSucceeded }, histo
  * @returns {{v: 2, args: object, escalations: number, priorWindows: Array<{hoursQuiet: number, since: number|null}>}}
  */
 export function mergeSilenceQueue(queued, args) {
-  const fresh = { v: 2, args, escalations: 1, priorWindows: [] };
+  const fresh = { v: 2, args, escalations: 1, priorWindows: [], priorWindowsDropped: 0 };
   if (!queued || typeof queued !== "object" || !queued.args) return fresh;
   const prev = queued.args;
   const carried = Array.isArray(queued.priorWindows) ? queued.priorWindows : [];
+  const droppedBefore = Number.isFinite(queued.priorWindowsDropped) ? queued.priorWindowsDropped : 0;
   const sameWindow = prev.since != null && args.since != null && prev.since === args.since;
   if (sameWindow) {
     const before = Number.isFinite(queued.escalations) ? queued.escalations : 1;
-    return { ...fresh, escalations: before + 1, priorWindows: carried };
+    return { ...fresh, escalations: before + 1, priorWindows: carried, priorWindowsDropped: droppedBefore };
   }
+  const all = [...carried, { hoursQuiet: prev.hoursQuiet, since: prev.since ?? null }];
   return {
     ...fresh,
-    // Cap the carried list rather than letting an unreachable ledger grow the detail without
-    // bound; the count in the sentence stays honest because length is read from this array.
-    priorWindows: [...carried, { hoursQuiet: prev.hoursQuiet, since: prev.since ?? null }].slice(-5),
+    // Cap the DESCRIPTION rather than letting an unreachable ledger grow the detail without bound —
+    // but never the COUNT. Q84 inc.138: dropping the 6th-oldest and still reporting "5 earlier
+    // windows" is silent truncation, the exact shape this thread has been removing elsewhere, so
+    // what falls off the list is carried as a number the notice is obliged to say out loud.
+    priorWindows: all.slice(-PRIOR_WINDOW_CAP),
+    priorWindowsDropped: droppedBefore + Math.max(0, all.length - PRIOR_WINDOW_CAP),
   };
 }

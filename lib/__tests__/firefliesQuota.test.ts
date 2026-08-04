@@ -315,13 +315,42 @@ describe("silenceFlag", () => {
     expect(detail).toContain("~9h");
     expect(detail).toContain("separate outages");
   });
+
+  // Q84 inc.138 — the cap discards DESCRIPTIONS; discarding the count as well would under-report
+  // how many outages went undelivered, in the one row that is allowed to say so.
+  it("counts the windows the cap dropped instead of reporting only what still fits", () => {
+    const detail = silenceFlag(
+      { hoursQuiet: 7, since: T0, outcome: "OFFLINE", everSucceeded: true },
+      {
+        priorWindows: [{ hoursQuiet: 9, since: T0 - 86_400_000 }],
+        priorWindowsDropped: 3,
+      },
+    ).detail;
+    expect(detail).toContain("4 earlier silent window(s)");
+    expect(detail).toContain("3 older window(s) are counted here but no longer described");
+  });
+
+  it("says nothing about truncation when nothing was truncated", () => {
+    const detail = silenceFlag(
+      { hoursQuiet: 7, since: T0, outcome: "OFFLINE", everSucceeded: true },
+      { priorWindows: [{ hoursQuiet: 9, since: T0 - 86_400_000 }] },
+    ).detail;
+    expect(detail).toContain("1 earlier silent window(s)");
+    expect(detail).not.toContain("no longer described");
+  });
 });
 
 describe("mergeSilenceQueue", () => {
   const args = (over = {}) => ({ hoursQuiet: 6, since: T0, outcome: "OFFLINE", everSucceeded: true, ...over });
 
   it("starts at one escalation and no history when the queue is empty", () => {
-    expect(mergeSilenceQueue(null, args())).toEqual({ v: 2, args: args(), escalations: 1, priorWindows: [] });
+    expect(mergeSilenceQueue(null, args())).toEqual({
+      v: 2,
+      args: args(),
+      escalations: 1,
+      priorWindows: [],
+      priorWindowsDropped: 0,
+    });
   });
 
   it("counts up and keeps the NEWEST notice when the window is the same fact getting worse", () => {
@@ -354,5 +383,16 @@ describe("mergeSilenceQueue", () => {
     expect(state.priorWindows).toHaveLength(5);
     // The cap keeps the NEWEST losers, so the sentence describes the recent past, not the ancient.
     expect(state.priorWindows.at(-1).since).toBe(T0 + 7 * 1000);
+    // Q84 inc.138: 8 windows lost their slot, 5 are still described — the other 3 are still COUNTED.
+    expect(state.priorWindowsDropped).toBe(3);
+    expect(silenceFlag(state.args, state).detail).toContain("8 earlier silent window(s)");
+  });
+
+  it("carries the dropped count across a same-window escalation, which only bumps the counter", () => {
+    let state = null;
+    for (let i = 0; i < 9; i += 1) state = mergeSilenceQueue(state, args({ since: T0 + i * 1000 }));
+    const again = mergeSilenceQueue(state, args({ since: T0 + 8 * 1000, hoursQuiet: 20 }));
+    expect(again.escalations).toBe(2);
+    expect(again.priorWindowsDropped).toBe(3);
   });
 });
