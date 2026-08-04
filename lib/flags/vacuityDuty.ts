@@ -131,8 +131,9 @@
 // (inc.123): the discriminator is the PAIR, never either half.
 //
 // THE PRODUCERS LIVE MOSTLY IN TESTS, WHICH BOTH DOORS EXCLUDE — so the caller must hand them in
-// separately, and `treeScanRecognisers` defaults `producers` to `files` only so a single-set caller
-// keeps working. THE DEFAULT IS A TRAP IF THE REAL CALLER TAKES IT, AND THE TRAP IS WORSE THAN THE
+// separately. `treeScanRecognisers` USED TO DEFAULT `producers` TO `files` so a single-set caller
+// kept working; inc.132 removed that default, and the paragraph below is why it had to go.
+// THE DEFAULT IS A TRAP IF THE REAL CALLER TAKES IT, AND THE TRAP IS WORSE THAN THE
 // FIRST DRAFT OF THIS PARAGRAPH CLAIMED — corrected here from a run, because the draft asserted the
 // shape of the failure from intention and got it wrong, which is the exact defect inc.124 was about.
 // Hand this scan modules alone and the vocabulary collapses to `["content"]` — what
@@ -319,7 +320,7 @@ export type Recogniser = {
  */
 export function treeScanRecognisers(
   files: readonly SourceFile[],
-  producers: readonly SourceFile[] = files,
+  producers: readonly SourceFile[],
 ): Recogniser[] {
   // The vocabulary comes from the same files the recognisers do: hand the scan a wider tree and it
   // learns that tree's walk types, rather than staying fluent only in `lib/flags/`. And which field
@@ -672,6 +673,27 @@ export function testlessProducerNotice(
 // already returns null wherever the scan is blind outright, so a blind scan yields exactly one
 // sentence; this returns whatever the pair returns, in the order a reader should act on them
 // (blind before thin), and never suppresses one on the other's behalf.
+
+// Q84 inc.132 — inc.131's handover asked whether `treeScanRecognisers` should stop being callable
+// bare. ANSWERED BOTH WAYS, BECAUSE THE QUESTION CONFLATED TWO THINGS.
+//
+// A RAW SCAN IS A LEGITIMATE CALL AND IS NOT BEING TAKEN AWAY. The pin that proves inc.125's
+// collapse has to be able to run the thin scan — a guard that cannot reproduce the failure it warns
+// about is prose. Routing every caller through `scanTreeWithNotices` would delete that pin's only
+// instrument, and a reporter is not owed the power to remove the experiment.
+//
+// WHAT WENT IS THE `producers = files` DEFAULT, WHICH IS A DIFFERENT THING FROM THE BARE CALL. With
+// it, the thin scan was reachable BY OMISSION: forget the second argument on the real tree and you
+// get 1 recogniser, 0 undischarged, literate — the believable near-silence inc.125 measured, with no
+// keystroke anywhere recording that a choice was made. Without it, the same thin scan is still
+// available and must be WRITTEN — `treeScanRecognisers(modules, modules)` — which is the exact
+// sentence `testlessProducerNotice` already knows how to say back. The compiler now refuses the
+// silent path (CR-3: the guarantee is in code, not in the paragraph above it).
+//
+// THE COMPOSITE KEEPS ITS DEFAULT, AND THE ASYMMETRY IS THE POINT RATHER THAN AN OVERSIGHT.
+// Omitting `producers` HERE is safe in a way omitting it there is not: `scanTreeWithNotices` hands
+// the same single-set binding to `testlessProducerNotice`, which fires, so the caller is told. One
+// door may default because it reports its own thinness; the other may not because it cannot.
 
 /** The scan, plus whatever it has to say about its own ability to see — asked with ONE argument set. */
 export function scanTreeWithNotices(

@@ -114,8 +114,26 @@ describe("walkOutputTypes", () => {
 });
 
 describe("treeScanRecognisers", () => {
+  // Q84 inc.132 — `producers` is REQUIRED now, so these fixtures say out loud what the removed
+  // default used to say for them: this set is its own producer set, which is true of a fixture that
+  // carries both the disk read and the declaration. The real tree cannot honestly say that, and
+  // that is the whole reason the default had to go — it let the real caller take this shape by
+  // forgetting rather than by deciding. Named, so a reader sees a claim instead of an absence.
+  const scanOwnProducers = (files: SourceFile[]) => treeScanRecognisers(files, files);
+
+  // Q84 inc.132 — AND THE REMOVAL ITSELF IS PINNED, not merely done. `Function.length` counts
+  // parameters before the first defaulted one, so re-adding `producers = files` drops this to 1 and
+  // turns this red. Without it the only thing standing behind "the silent path is gone" is `tsc`,
+  // which runs in the build and not in the suite — and a guarantee this thread argued for across
+  // four increments should not be restorable by a one-token edit no test notices.
+  it("cannot be handed one set by omission — the producers default is gone", () => {
+    expect(treeScanRecognisers.length).toBe(2);
+    // The composite is the deliberate exception, and it reads as one: 1 defaulted parameter.
+    expect(scanTreeWithNotices.length).toBe(1);
+  });
+
   it("recognises a function that consumes the walk and answers with a list", () => {
-    const found = treeScanRecognisers([
+    const found = scanOwnProducers([
       {
         path: "lib/x.ts",
         text: `${DECLARES}export function subjects(files: readonly SourceFile[]): string[] {`,
@@ -127,7 +145,7 @@ describe("treeScanRecognisers", () => {
   it("recognises one over a walk type it has never heard of, declared anywhere in the set", () => {
     // The half the widened walk alone would not have fixed: a guard elsewhere brings its own noun.
     expect(
-      treeScanRecognisers([
+      scanOwnProducers([
         {
           path: "lib/a.ts",
           text:
@@ -143,7 +161,7 @@ describe("treeScanRecognisers", () => {
     // Q84 inc.124 — which keyword the author reached for must not decide whether their guard is
     // asked whether it owes a vacuity pin.
     expect(
-      treeScanRecognisers([
+      scanOwnProducers([
         {
           path: "lib/a.ts",
           text:
@@ -157,7 +175,7 @@ describe("treeScanRecognisers", () => {
 
   it("ignores an interface carrying a path and no bytes — the negative survives the wider grammar", () => {
     expect(
-      treeScanRecognisers([
+      scanOwnProducers([
         { path: "lib/a.ts", text: "export interface Readiness { path: string; ready: boolean }" },
         { path: "lib/b.ts", text: "export function worst(all: readonly Readiness[]): string[] {" },
       ]),
@@ -166,7 +184,7 @@ describe("treeScanRecognisers", () => {
 
   it("ignores a list of findings ABOUT files — a reducer is not a guard", () => {
     expect(
-      treeScanRecognisers([
+      scanOwnProducers([
         {
           path: "lib/x.ts",
           text:
@@ -180,7 +198,7 @@ describe("treeScanRecognisers", () => {
   it("ignores a transform whose caller consumes the value", () => {
     // The class inc.121 refused: blinding this stops the expected output arriving, so it self-catches.
     expect(
-      treeScanRecognisers([
+      scanOwnProducers([
         { path: "lib/x.ts", text: `${DECLARES}export function linkify(detail: string): Segment[] {` },
       ]),
     ).toEqual([]);
@@ -188,7 +206,7 @@ describe("treeScanRecognisers", () => {
 
   it("ignores a walk consumer that answers with a single value, not a list", () => {
     expect(
-      treeScanRecognisers([
+      scanOwnProducers([
         {
           path: "lib/x.ts",
           text: `${DECLARES}export function refusal(f: readonly SourceFile[]): string | null {`,
@@ -199,7 +217,7 @@ describe("treeScanRecognisers", () => {
 
   it("ignores a file that is not source at all", () => {
     expect(
-      treeScanRecognisers([
+      scanOwnProducers([
         {
           path: "docs/x.md",
           text: `${DECLARES}export function subjects(f: readonly SourceFile[]): string[] {`,
@@ -380,7 +398,11 @@ describe("the live guard family", () => {
   it("collapses to a believable near-silence — not to zero — when handed modules as their own producers", () => {
     expect(contentsFieldNames(modules)).toEqual(["content"]);
     expect(walkOutputTypes(modules, contentsFieldNames(modules))).toEqual(["AssetSource", "FleetDoc"]);
-    expect(treeScanRecognisers(modules)).toEqual([
+    // Q84 inc.132 — WRITTEN OUT, because the default that used to write it is gone. This pin is the
+    // reason a raw scan stays callable at all: a guard that cannot reproduce the failure it warns
+    // about is prose, so `scanTreeWithNotices` does not get to be the only door. What changed is
+    // that the thin scan is now a sentence someone typed, not an argument someone forgot.
+    expect(treeScanRecognisers(modules, modules)).toEqual([
       { path: "lib/flags/fleetResolveDoc.ts", name: "resolveInstructionSubjects" },
     ]);
     // ...against a real tree that has nineteen. The gap IS the defect.
@@ -640,7 +662,15 @@ describe("scanTreeWithNotices", () => {
     }
   });
 
-  it("defaults producers to files exactly as the scan does", () => {
-    expect(scanTreeWithNotices(modules)).toEqual(scanTreeWithNotices(modules, modules));
+  // Q84 inc.132 — the scan's default is GONE and this one stays, and the difference is not taste.
+  // Retitled rather than deleted: the fact it recorded ("exactly as the scan does") was true when
+  // written and is false now, and inverting a pin is how this thread has handled that since inc.127.
+  it("may default producers to files — because omitting them here is reported, not silent", () => {
+    const omitted = scanTreeWithNotices(modules);
+    expect(omitted).toEqual(scanTreeWithNotices(modules, modules));
+    // THE REASON THE DEFAULT SURVIVES HERE: a caller who omits is TOLD. The same omission on the
+    // raw scan produced this list with nobody to say so, which is why the compiler now refuses it.
+    expect(omitted.notices).toContain(testlessProducerNotice(modules, modules));
+    expect(omitted.recognisers.length).toBe(1);
   });
 });
