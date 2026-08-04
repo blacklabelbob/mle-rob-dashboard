@@ -479,11 +479,16 @@ describe("the live guard family", () => {
   // Q84 inc.131 — and it is now asked through the one entry point that cannot be given a different
   // argument set than the scan got. `illiterateScanNotice` alone was half the question: a THIN scan
   // is literate, reports 1 recogniser and 0 undischarged, and would have passed every pin above.
+  //
+  // Q84 inc.133 — and the live guard now PROVES it read them rather than merely asserting they are
+  // empty next to a list it took anyway. `read` is what the scan handed over; the assertion that it
+  // is empty is a fact about what this guard was shown, not about a property it could have skipped.
   it("says the scan could see AND was not handed a thin producer set when it reports the tree clean", () => {
     const scanned = scanTreeWithNotices(modules, producers);
-    expect(scanned.notices).toEqual([]);
+    let read: readonly string[] | null = null;
     // Same arguments, same answer as the raw scan — the composite reports, it does not re-scan.
-    expect(scanned.recognisers).toEqual(recognisers);
+    expect(scanned.recognisersHavingRead((n) => (read = n))).toEqual(recognisers);
+    expect(read).toEqual([]);
   });
 });
 
@@ -627,10 +632,14 @@ describe("testlessProducerNotice", () => {
 describe("scanTreeWithNotices", () => {
   const producers = [...modules, ...tests];
 
+  /** Q84 inc.133 — the written no-op: what a caller who wants only the list must now say out loud. */
+  const listOnly = (scanned: ReturnType<typeof scanTreeWithNotices>) =>
+    scanned.recognisersHavingRead(() => {});
+
   it("carries inc.130's sentence on inc.125's collapse, which the live guard never asked for", () => {
     const thin = scanTreeWithNotices(modules, modules);
     // Literate, plausible, and wrong — the shape that used to pass.
-    expect(thin.recognisers.length).toBe(1);
+    expect(listOnly(thin).length).toBe(1);
     expect(illiterateScanNotice(modules, modules)).toBeNull();
     expect(thin.notices).toHaveLength(1);
     expect(thin.notices[0]).toContain("NOT ONE sits beyond the walk's own perimeter");
@@ -640,7 +649,7 @@ describe("scanTreeWithNotices", () => {
     const derived = walkOutputTypes(modules, contentsFieldNames(producers));
     const asFiles = derived as unknown as SourceFile[];
     const blind = scanTreeWithNotices(asFiles, asFiles);
-    expect(blind.recognisers).toEqual([]);
+    expect(listOnly(blind)).toEqual([]);
     // Exactly one cause, exactly one sentence: the thinness notice defers, so nothing here has to
     // suppress it. Two sentences for one defect would read as noise.
     expect(blind.notices).toHaveLength(1);
@@ -655,22 +664,62 @@ describe("scanTreeWithNotices", () => {
       [modules, []],
     ] as const) {
       const scanned = scanTreeWithNotices(files, given);
-      expect(scanned.recognisers).toEqual(treeScanRecognisers(files, given));
-      expect(scanned.notices).toEqual(
-        [illiterateScanNotice(files, given), testlessProducerNotice(files, given)].filter(Boolean),
+      const expected = [
+        illiterateScanNotice(files, given),
+        testlessProducerNotice(files, given),
+      ].filter(Boolean);
+      let read: readonly string[] | null = null;
+      expect(scanned.recognisersHavingRead((n) => (read = n))).toEqual(
+        treeScanRecognisers(files, given),
       );
+      expect(scanned.notices).toEqual(expected);
+      // Q84 inc.133 — and what the caller is HANDED is the same set the property shows. A handler
+      // fed a different list would make the gate a ceremony: read one thing, be judged on another.
+      expect(read).toEqual(expected);
     }
+  });
+
+  // Q84 inc.133 — THE GATE ITSELF, pinned so it cannot quietly become a property again. Restoring
+  // `recognisers` as a field is a small edit that no other test in this file would notice, and the
+  // hole it reopens is the one this increment closed: a caller destructuring past both sentences
+  // with nothing on the record. `Function.length` reads the arity, so a handler defaulted to a
+  // no-op — the same silent-by-omission trick inc.132 deleted downstairs — turns this red too.
+  it("hands the recogniser list over only through a stated notice decision", () => {
+    const scanned = scanTreeWithNotices(modules, producers);
+    expect(scanned).not.toHaveProperty("recognisers");
+    expect(typeof scanned.recognisersHavingRead).toBe("function");
+    expect(scanned.recognisersHavingRead.length).toBe(1);
+  });
+
+  // Q84 inc.133 — and the clean case is a decision too. If `handle` were skipped when there is
+  // nothing to say, every caller would be trained on a gate that only fires when something is
+  // wrong, and the empty list — the one that means "asked, and the answer was nothing" — would be
+  // indistinguishable from never having asked. That is this whole thread's defect in miniature.
+  it("invokes the handler even when there is nothing to report", () => {
+    let calls = 0;
+    const scanned = scanTreeWithNotices(modules, producers);
+    scanned.recognisersHavingRead((n) => {
+      calls += 1;
+      expect(n).toEqual([]);
+    });
+    expect(calls).toBe(1);
   });
 
   // Q84 inc.132 — the scan's default is GONE and this one stays, and the difference is not taste.
   // Retitled rather than deleted: the fact it recorded ("exactly as the scan does") was true when
   // written and is false now, and inverting a pin is how this thread has handled that since inc.127.
+  //
+  // Q84 inc.133 — compared field-by-field rather than whole. The return value now carries a closure,
+  // and two closures are never `toEqual`, so the old whole-object comparison would have gone red for
+  // a reason that has nothing to do with the claim. The claim is unchanged: same list, same
+  // sentences, and it is now stated in the two parts a reader can check.
   it("may default producers to files — because omitting them here is reported, not silent", () => {
     const omitted = scanTreeWithNotices(modules);
-    expect(omitted).toEqual(scanTreeWithNotices(modules, modules));
+    expect(omitted.notices).toEqual(scanTreeWithNotices(modules, modules).notices);
+    expect(listOnly(omitted)).toEqual(listOnly(scanTreeWithNotices(modules, modules)));
     // THE REASON THE DEFAULT SURVIVES HERE: a caller who omits is TOLD. The same omission on the
     // raw scan produced this list with nobody to say so, which is why the compiler now refuses it.
     expect(omitted.notices).toContain(testlessProducerNotice(modules, modules));
-    expect(omitted.recognisers.length).toBe(1);
+    expect(listOnly(omitted).length).toBe(1);
   });
 });

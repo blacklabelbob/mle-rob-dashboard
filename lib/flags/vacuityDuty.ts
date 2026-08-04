@@ -695,15 +695,53 @@ export function testlessProducerNotice(
 // the same single-set binding to `testlessProducerNotice`, which fires, so the caller is told. One
 // door may default because it reports its own thinness; the other may not because it cannot.
 
+// Q84 inc.133 — inc.131 made the notices UNAVOIDABLE TO PRODUCE and left them AVOIDABLE TO READ.
+// `const { recognisers } = scanTreeWithNotices(modules, producers)` compiles, runs, and drops both
+// sentences on the floor with no keystroke anywhere recording the drop — inc.132's silent-by-
+// omission defect surviving one level out, in the return value instead of the parameter list.
+//
+// CAN THE TYPE MAKE IGNORING THEM IMPOSSIBLE? NO, AND THE HONEST ANSWER IS WORTH WRITING DOWN
+// RATHER THAN ATTEMPTING. Any type that demands the notices be handled can be satisfied by a
+// handler that does nothing, and a handler that does nothing is one token. Push the demand up a
+// level and the same regress waits there: whatever consumes the handler's result can ignore that
+// too. No signature can carry "and actually think about it".
+//
+// WHAT THE TYPE CAN DO IS EXACTLY WHAT inc.132 DID ONE LEVEL DOWN, AND THAT DISTINCTION IS THE
+// WHOLE INCREMENT: it can make ignoring them impossible BY OMISSION. The recogniser list — the
+// thing every caller actually came for — is no longer a property to destructure past. It is handed
+// over only by a call that names, in the caller's own source, what happens to the sentences. A
+// caller may still write `s.recognisersHavingRead(() => {})`, and that is a decision on the record
+// in the file that made it, reviewable and greppable. Forgetting is what stops being possible.
+//
+// `notices` STAYS A PLAIN READABLE PROPERTY, DELIBERATELY. The notices are the report; gating the
+// report behind a ceremony would make reading them harder, which is backwards. What is gated is the
+// REWARD — the list a caller skips the sentences to get to.
+
+/** The scan's answer, with the recogniser list reachable only through a stated notice decision. */
+export type ScannedTree = {
+  /** Everything the scan has to say about its own ability to see, blind before thin. */
+  readonly notices: readonly string[];
+  /**
+   * The recognisers — handed over only to a caller that has written what it does with the notices.
+   * `handle` is always invoked, including with an empty list, so the clean case is a decision too.
+   */
+  recognisersHavingRead(handle: (notices: readonly string[]) => void): Recogniser[];
+};
+
 /** The scan, plus whatever it has to say about its own ability to see — asked with ONE argument set. */
 export function scanTreeWithNotices(
   files: readonly SourceFile[],
   producers: readonly SourceFile[] = files,
-): { recognisers: Recogniser[]; notices: string[] } {
+): ScannedTree {
+  const notices = [
+    illiterateScanNotice(files, producers),
+    testlessProducerNotice(files, producers),
+  ].filter((n): n is string => n !== null);
   return {
-    recognisers: treeScanRecognisers(files, producers),
-    notices: [illiterateScanNotice(files, producers), testlessProducerNotice(files, producers)].filter(
-      (n): n is string => n !== null,
-    ),
+    notices,
+    recognisersHavingRead(handle) {
+      handle(notices);
+      return treeScanRecognisers(files, producers);
+    },
   };
 }
