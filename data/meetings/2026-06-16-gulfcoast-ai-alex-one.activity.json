@@ -1,0 +1,203 @@
+{
+  "_readme": [
+    "Q89 inc.11 — the 2026-06-16 pre-meeting discovery call with Alex of Gulf Coast RE Group, as an",
+    "Activity row the CRM can read. Fourth meeting through the same publisher, same gate, same two",
+    "surfaces, no new code.",
+    "",
+    "WHY THIS ROW MATTERS MORE THAN ITS SIZE SUGGESTS: C-2018 already carries the 2026-07-22 Phase 1",
+    "KICKOFF (inc.7). This is the call five weeks EARLIER that produced it — the discovery. The",
+    "kickoff record shows what we agreed to build; this one shows why he agreed, in his own numbers",
+    "and his own words. A company record that holds the second meeting and not the first tells Rob",
+    "what was decided while hiding what was said.",
+    "",
+    "PROVENANCE — read before trusting a line of it. Every item below was read out of the Notion",
+    "Master Meetings Database page `Gulf Coast Realty, AI Alex meeting one`",
+    "(3811de57-0199-8099-9137-ef10c8fd0efe), 281 blocks / 44,547 chars, on 2026-08-05 via",
+    "`find_meeting.py --page … --deep`, output archived in-repo at",
+    "`MLE Internal Meetings/archive-reads/2026-06-16-gulfcoast-ai-alex-one.deepread.txt` (47,171",
+    "bytes) and logged in `docs/research/Q84-READ-LOG-2026-08-05.md`. Nothing here was written from",
+    "memory, from a summary of a summary, or from another agent's prose.",
+    "",
+    "THE SAME FOUR FIELDS LIE ON THIS ROW TOO — the sixth row in a row. Call Recording, Meeting",
+    "Summary, Google Doc Link and Export Status are all empty while the body holds 44,547 chars.",
+    "Field-emptiness is not evidence of absence anywhere in this system, and six consecutive",
+    "confirmations mean it is no longer a surprise to be re-flagged — it is a property of this",
+    "database.",
+    "",
+    "`sourceRef` addresses the LINE, not the meeting. `body ¶NNN` is the 1-based index of the block",
+    "among ALL `[paragraph]` blocks of the deep export in file order (228 of them; 223 non-empty) —",
+    "the same convention as the Omega and Gulf Coast kickoff files. `body to_do N` and",
+    "`body bullet «heading»` address the summary blocks. No `url` is set on any item ON PURPOSE: the",
+    "Notion page URL opens a 44k-char MEETING, and a link that opens the meeting when the reader",
+    "expected the sentence is the lie `intelSource.ts` refuses to tell.",
+    "",
+    "PAIN POINTS ARE THE CLIENT'S OWN WORDS. All four `text` values are literal substrings of their",
+    "`excerpt`, and all four excerpts are transcript paragraphs spoken by the Gulf Coast side about",
+    "their own operation — each is an ANSWER to a question Rob asked in the paragraph before it,",
+    "which is how the speaker is established on an unattributed Notion-AI transcript. Two further",
+    "candidates were REFUSED for exactly that reason: ¶202 ('with AI, you could spend six months",
+    "putting your heart and soul into something' and then a billionaire copies it) and ¶224 ('it gets",
+    "very frustrating', about dev shops reshuffling priorities) sit inside a two-way riff where the",
+    "speaker cannot be established from the text. Both are real concerns. Neither is provably the",
+    "CUSTOMER's, so neither is promoted into 'what the customer said'.",
+    "",
+    "ACTION-ITEM STATUS IS NOT INFERRED. All four are written `open` because the page says nothing",
+    "about completion. Three of them are seven weeks old and the 2026-06-17 in-person meeting and the",
+    "2026-07-22 kickoff both happened, so some are very likely done — 'very likely' is not a status.",
+    "Marking them closed from a calendar inference is exactly the invented-field class this pipeline",
+    "exists to stop. A human closing them on the record is the correct way for them to close.",
+    "",
+    "NOT WRITTEN HERE, DELIBERATELY. (a) The MLS scraping exchange (¶142–146: 'What if you're",
+    "grabbing all the data off of other websites that are using MLS?' … 'that's probably a little bit",
+    "of a gray area') is a hypothetical about working around a contract Gulf Coast has signed. It is",
+    "not an action item, nobody committed to it, and a company record Rob shows people is not where a",
+    "gray-area idea gets minuted. (b) No equity, split or money field is touched by this row — the",
+    "HomeCloneVault 35/65 that Rob corrected on 2026-07-27 is nowhere in this payload, and this",
+    "meeting predates it. (c) Origin Vault, Origin Stamp, Field Pulse, Boomtown, Bold Trail, Upwork",
+    "and Zillow are all named on the page and NONE of them became an org record: a vendor named in",
+    "passing is not a CRM org (inc.8/inc.10 precedent). Origin Vault is the one arguable case — it",
+    "has proposed a revenue-share partnership to Alex, not to Rob — so it is written as a talking",
+    "point about HIS deal, not as a company of ours."
+  ],
+  "activity": {
+    "id": "A-MTG-2026-06-16-GULFCOAST-AIALEX",
+    "orgId": "C-2018",
+    "type": "meeting",
+    "source": "manual",
+    "createdBy": "driver:Q89-inc.11",
+    "occurredAt": "2026-06-16T16:07:00.000Z",
+    "createdAt": "2026-08-05T00:00:00.000Z",
+    "bookProtected": false,
+    "summary": "Pre-meeting discovery call with Alex ahead of the 2026-06-17 in-person — his current stack and unit economics (Boomtown, ~60 agents, $1,500/day PPC, ~$1,100 CAC), a live SEO teardown of gulfcoastregroup.com, and the four products he is building to diversify off PPC: the HyperLocal website factory, HomeCloneVault, a solopreneur home-services utility, and an internal company app.",
+    "sourceContext": {
+      "system": "notion",
+      "database": "Master Meetings Database",
+      "pageId": "3811de57-0199-8099-9137-ef10c8fd0efe",
+      "readOn": "2026-08-05",
+      "readWith": "find_meeting.py --page 3811de57-0199-8099-9137-ef10c8fd0efe --deep",
+      "bodyBlocks": 281,
+      "bodyChars": 44547,
+      "attendeesMle": ["Rob Acheson"],
+      "fieldsThatClaimAbsence": [
+        "Call Recording",
+        "Meeting Summary",
+        "Google Doc Link",
+        "Export Status"
+      ],
+      "intel": [
+        {
+          "kind": "action-items",
+          "text": "Fix SEO issues on gulfcoastregroup.com before tomorrow's meeting (meta tags, headers, image alt text, broken links, schema)",
+          "sourceRef": "body to_do 1",
+          "excerpt": "Fix SEO issues on gulfcoastregroup.com before tomorrow's meeting (meta tags, headers, image alt text, broken links, schema)",
+          "status": "open"
+        },
+        {
+          "kind": "action-items",
+          "text": "Confirm meeting details tonight",
+          "sourceRef": "body to_do 2",
+          "excerpt": "Confirm meeting details tonight",
+          "status": "open"
+        },
+        {
+          "kind": "action-items",
+          "text": "Research Origin Vault and their hashing technology (Origin Stamp) for HomeCloneVault integration",
+          "sourceRef": "body to_do 3",
+          "excerpt": "Research Origin Vault and their hashing technology (Origin Stamp) for HomeCloneVault integration",
+          "status": "open"
+        },
+        {
+          "kind": "action-items",
+          "text": "Look into Bold Trail pricing for comparison",
+          "sourceRef": "body to_do 4",
+          "excerpt": "Look into Bold Trail pricing for comparison",
+          "status": "open"
+        },
+        {
+          "kind": "pain-points",
+          "text": "Google is moving towards zero-click listings, meaning when people search, you know, people's homes for sale, it comes up right in the Google AI overview so they don't go to our site anymore",
+          "sourceRef": "body ¶12",
+          "excerpt": "I mean, that is right now... 85% of our revenue. But I'm diversifying. My whole goal is to diversify because Google is moving towards zero-click listings, meaning when people search, you know, people's homes for sale, it comes up right in the Google AI overview so they don't go to our site anymore. So I'm diversifying like a motherfucker."
+        },
+        {
+          "kind": "pain-points",
+          "text": "that is where we're weak, right? 'Cause we became so headstrong on PPC and developing the agents to learn how to convert PPC into clients. That's been our main pain point that we try to consistently solve is how to take these internet lookers and turn them into clients.",
+          "sourceRef": "body ¶110",
+          "excerpt": "- Well, that is where we're weak, right? 'Cause we became so headstrong on PPC and developing the agents to learn how to convert PPC into clients. That's been our main pain point that we try to consistently solve is how to take these internet lookers and turn them into clients. So we're always"
+        },
+        {
+          "kind": "pain-points",
+          "text": "The worst part about Boomtown is they're very... with their API. Native API. They don't play well with others. So I'm having to do all these workarounds to improve the technology of it.",
+          "sourceRef": "body ¶67",
+          "excerpt": "Horrible. That's the worst part about it. The worst part about Boomtown is they're very... with their API. Native API. They don't play well with others. So I'm having to do all these workarounds to improve the technology of it."
+        },
+        {
+          "kind": "pain-points",
+          "text": "I know it's just like hard to quantify organic for 60 agents. You know what I mean? Like, how do I, I don't know how to present that to them.",
+          "sourceRef": "body ¶35",
+          "excerpt": "I know it's just like hard to quantify organic for 60 agents. You know what I mean? Like, how do I, I don't know how to present that to them. Like, yes, you're going to get way less leads, but they're better quality."
+        },
+        {
+          "kind": "talking-points",
+          "text": "He is not shopping for a website — he is diversifying off PPC and building four products at once: the HyperLocal website factory, HomeCloneVault, a solopreneur home-services utility, and an internal app for his 60 remote agents. Anything we propose should attach to one of those four, not sit beside them.",
+          "sourceRef": "body bullet «Diversification Strategy: New Platforms Being Built»",
+          "excerpt": "Website Factory (HyperLocal) … HomeCloneVault (homeclonevault.com) … Solopreneur Home Services App … Internal Company App"
+        },
+        {
+          "kind": "talking-points",
+          "text": "HyperLocal has a date and a price he has already thought about: go-to-market October/November, and roughly $699–899/month as a pure licence — he explicitly prefers a higher fixed fee over a revenue share because he does not want to rely on other people's talent to get paid.",
+          "sourceRef": "body ¶120",
+          "excerpt": "Yeah, I mean not 100%, but I was toying with a few different, it's either pure license, monthly license, 699, 899, whatever it is, or it's a lower monthly license and we take a rip of 10, 20% off whatever sale they get. I'd rather go with a higher monthly fee because I don't want to rely on ta"
+        },
+        {
+          "kind": "talking-points",
+          "text": "The Boomtown decision is already made and it is a two-year one: stay on legacy Boomtown for the ad-buying power, migrate nothing (agents rejected Bold Trail, and moving 60 of them is impractical), and build the replacement he owns outright. Pitching a migration is pitching against a decision.",
+          "sourceRef": "body bullet «Boomtown CRM: Pros, Cons & Migration Plans»",
+          "excerpt": "Boomtown launched Bold Trail as a successor, but agents who tested it returned negative feedback; migration of 60 agents is impractical — Plan: remain on legacy Boomtown for now, but build a proprietary replacement over the next ~2 years to fully own the platform"
+        },
+        {
+          "kind": "talking-points",
+          "text": "On HomeCloneVault he already has money out the door and a partner circling: development funding is wired, the stack is Origin Vault + Origin Stamp + Field Pulse, and Origin Vault has asked him about a revenue-share partnership. That proposal is on HIS deal, not ours — worth knowing before anyone proposes terms near it.",
+          "sourceRef": "body ¶181",
+          "excerpt": "Origin Vault. has asked me if I'll do some sort of a revenue share partnership. They see a lot of potential."
+        },
+        {
+          "kind": "talking-points",
+          "text": "His own read on why the site converts is conversion science, not design taste — Boomtown gets him ~10% visitor-to-lead where he says some sites run 5%. Any site we hand him will be judged against that number.",
+          "sourceRef": "body ¶72",
+          "excerpt": "Purchasing power and the conversion rate, right? So meaning how many visitors does it take to get one full piece of data? Because the site is only as good as it converts. So with Boomtown, it's about 10% conversion."
+        },
+        {
+          "kind": "benefits-us",
+          "text": "The leak is quantified in his own numbers, not ours: ~$1,500/day on PPC, ~2 sales per 100 leads, ~$1,100 customer acquisition cost, and 85% of revenue depending on the one channel he says Google is closing. That is the whole leaky-bucket argument stated by the buyer.",
+          "sourceRef": "body bullet «Current Business: gulfcoastregroup.com»",
+          "excerpt": "Spending ~$1,500/day on PPC; agents are toggled on/off for lead days based on region — PPC conversion: ~2 sales per 100 leads; customer acquisition cost ~$1,100 per sale — Main site is gulfcoastregroup.com, generating ~85% of revenue"
+        },
+        {
+          "kind": "benefits-us",
+          "text": "He named the gap we close and admitted he cannot close it himself — he does not know how to present organic to 60 agents. Attribution reporting for organic is a deliverable, not a favour, and it is the one he will feel every week.",
+          "sourceRef": "body ¶35",
+          "excerpt": "I know it's just like hard to quantify organic for 60 agents. You know what I mean? Like, how do I, I don't know how to present that to them. Like, yes, you're going to get way less leads, but they're better quality."
+        },
+        {
+          "kind": "benefits-us",
+          "text": "He is already sold on the thesis — 'I just feel like we have in our grasp institutional grade software that always kept companies ahead of us.' The work is not convincing him AI matters; it is being the one who ships it before his October window.",
+          "sourceRef": "body ¶187",
+          "excerpt": "I just feel like we have in our grasp institutional grade software that always kept companies ahead of us. 100%. Now it's in our hands. It's awesome."
+        },
+        {
+          "kind": "benefits-us",
+          "text": "The SEO teardown was run live, on his own site, before any paperwork — meta tags over 160 characters, missing alt text, broken links and a schema problem he cannot fix because the CMS is a hard-coded template. That is the PVP motion working, and the template constraint is precisely what a site we build removes.",
+          "sourceRef": "body bullet «SEO Audit Findings»",
+          "excerpt": "Meta tag too long (over 160 characters) — Header issues identified — Missing image alt text on several images — Multiple broken links flagged — Schema markup needs correction — complicated by the fact that the site is on a hard-coded CMS template"
+        },
+        {
+          "kind": "benefits-us",
+          "text": "He is paying an Upwork team on milestones for the internal app and calls it his first dev adventure. Four products, one first-time dev relationship and a hard October date is a delivery-capacity problem we are built for.",
+          "sourceRef": "body bullet «Internal Company App»",
+          "excerpt": "Built via Upwork dev team (milestone-based payments); first dev project undertaken"
+        }
+      ]
+    }
+  }
+}

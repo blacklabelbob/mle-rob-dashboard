@@ -1,0 +1,325 @@
+==============================================================================
+TITLE (do not trust): Gulf Coast Realty, AI Alex meeting one
+URL: https://app.notion.com/p/Gulf-Coast-Realty-AI-Alex-meeting-one-3811de57019980999137ef10c8fd0efe
+id : 3811de57-0199-8099-9137-ef10c8fd0efe
+------------------------------------------------------------------------------
+PROPERTIES — in full; this is where the identity the title omits lives:
+  ∅ Google Doc Link [url]: None  ← claims absence
+  ∅ Show/No Show [multi_select]: None
+  ∅ Next Steps/Action Items [rich_text]: None
+  · Company URL [rich_text]: Gulf Coast Realty
+  ∅ Parent Account [multi_select]: None
+  ∅ MLE [select]: None
+  · Last Edited [last_edited_time]: 2026-07-22T12:29:00.000Z
+  ∅ Child Account [multi_select]: None
+  ∅ Other Combined/Possible referral [rich_text]: None
+  ∅ Customer Pain Points [rich_text]: None
+  ∅ Meeting Summary [rich_text]: None  ← claims absence
+  ∅ MLE Attendees [multi_select]: None
+  ∅ Follow Up Date set [date]: None
+  ∅ Company Meeting with [rich_text]: None
+  ∅ Export Status [select]: None  ← claims absence
+  ∅ Sales Rep [people]: None
+  ∅ Notion Meeting Page [url]: None
+  · Call Date [date]: 2026-06-16
+  ∅ Tags [multi_select]: None
+  ∅ Call Recording [url]: None  ← claims absence
+  · Contact Name [rich_text]: Alex
+  ∅ Non MLE Attendees [rich_text]: None
+  ∅ TAM # [number]: None
+  · Created [created_time]: 2026-06-16T16:07:00.000Z
+  ∅ In Person/Virtual [multi_select]: None
+  ∅ Urgent TO DO [rich_text]: None
+  ∅ Meeting Type [multi_select]: None
+  ∅ Primary Target ICP [multi_select]: None
+  · Meeting Title [title]: Gulf Coast Realty, AI Alex meeting one
+------------------------------------------------------------------------------
+BODY: 281 blocks, 44547 chars — paragraph×228, bulleted_list_item×41, heading_3×7, to_do×4, transcription×1
+  ⚠ 4 field(s) imply 'no record'. CONTRADICTED — the body below HAS the content. Trust the body, not the field.
+      · Google Doc Link [url] = None
+      · Meeting Summary [rich_text] = None
+      · Export Status [select] = None
+      · Call Recording [url] = None
+------------------------------------------------------------------------------
+FULL BODY (summary + transcript) — read it, do not skim:
+[transcription] 
+  [paragraph] 
+    [heading_3] Action Items
+    [to_do] Fix SEO issues on gulfcoastregroup.com before tomorrow's meeting (meta tags, headers, image alt text, broken links, schema) 
+    [to_do] Confirm meeting details tonight 
+    [to_do] Research Origin Vault and their hashing technology (Origin Stamp) for HomeCloneVault integration 
+    [to_do] Look into Bold Trail pricing for comparison 
+    [heading_3] Meeting Overview
+    [bulleted_list_item] Pre-meeting discovery call ahead of an in-person meeting scheduled for the next day 
+    [bulleted_list_item] Covered Alex current real estate tech stack, business metrics, diversification strategy, and several new software ventures in development 
+    [heading_3] Current Business: gulfcoastregroup.com
+    [bulleted_list_item] Main site is gulfcoastregroup.com, generating ~85% of revenue  
+    [bulleted_list_item] Running ~60 agents across multiple markets; leads distributed via geo-based routing rules and performance metrics  
+    [bulleted_list_item] Spending ~$1,500/day on PPC; agents are toggled on/off for lead days based on region 
+    [bulleted_list_item] PPC conversion: ~2 sales per 100 leads; customer acquisition cost ~$1,100 per sale   
+    [bulleted_list_item] Current platform (Boomtown) achieves ~10% visitor-to-lead conversion rate 
+    [bulleted_list_item] Social media has had no measurable impact; team has been too narrowly focused on PPC lead conversion  
+    [heading_3] SEO Audit Findings
+    [bulleted_list_item] Meta tag too long (over 160 characters) 
+    [bulleted_list_item] Header issues identified 
+    [bulleted_list_item] Missing image alt text on several images 
+    [bulleted_list_item] Multiple broken links flagged (cause unclear — possibly a schema/template issue)  
+    [bulleted_list_item] Schema markup needs correction — complicated by the fact that the site is on a hard-coded CMS template  
+    [heading_3] Boomtown CRM: Pros, Cons & Migration Plans
+    [bulleted_list_item] Boomtown has been used for its purchasing power with Google (reducing PPC cost from ~$40/lead to ~$22) and strong conversion rate optimization  
+    [bulleted_list_item] Enterprise tier costs $2,500/month including ad management; per-seat licensing scales reasonably  
+    [bulleted_list_item] Major downsides: restrictive native API, poor integration with third-party tools, requires manual workarounds 
+    [bulleted_list_item] Boomtown launched Bold Trail as a successor, but agents who tested it returned negative feedback; migration of 60 agents is impractical  
+    [bulleted_list_item] Plan: remain on legacy Boomtown for now, but build a proprietary replacement over the next ~2 years to fully own the platform  
+    [heading_3] Diversification Strategy: New Platforms Being Built
+    [paragraph] Website Factory (HyperLocal)
+    [bulleted_list_item] Beta market: Cape Coral; built as a "site factory" using JSON configs and templates for scalable, low-cost market rollouts 
+    [bulleted_list_item] Domain: localhomes.com (lost homesbylocals.com after spending $500 on it) 
+    [bulleted_list_item] Key insight: hand-built pages are outperforming templated pages in rankings 
+    [bulleted_list_item] Content creation machine: agents input local knowledge → AI reformats into SEO-optimized content → auto-published to site; designed to scale hyper-local knowledge where Zillow cannot  
+    [bulleted_list_item] MLS integration planned; exploring AI summary layer on top of listings to generate indexable original content below the required MLS display format   
+    [bulleted_list_item] Target go-to-market: October/November 
+    [bulleted_list_item] Potential future licensing model: ~$699–899/month, preferred over revenue-share to ensure consistent recurring revenue  
+    [paragraph] HomeCloneVault (homeclonevault.com)
+    [bulleted_list_item] Blockchain-based digital twin of properties and valuables; primary use case is immutable insurance claim evidence after events like hurricanes 
+    [bulleted_list_item] Process: drone aerial thermal roof inspection + on-site photo documentation → hashed on-site → AI verifies hash integrity on upload  
+    [bulleted_list_item] Backed by Origin Vault (Switzerland-based, military-grade infrastructure) using Origin Stamp for hashing  
+    [bulleted_list_item] Development funding has been wired; tech stack being connected: Origin Vault + Origin Stamp + Field Pulse for field technician management  
+    [bulleted_list_item] Origin Vault has proposed a revenue-share partnership 
+    [bulleted_list_item] Long-term vision: expand beyond high-net-worth to general consumers for document storage 
+    [paragraph] Solopreneur Home Services App
+    [bulleted_list_item] Simple, affordable tool targeted at solo licensed tradespeople (electricians, plumbers, handymen) aged 40–60 
+    [bulleted_list_item] Gap identified: existing software targets multi-truck operations; nothing purpose-built and affordable for solo operators 
+    [bulleted_list_item] Pricing concept: ~$29/month base, low friction, minimal features 
+    [paragraph] Internal Company App
+    [bulleted_list_item] Centralized app for remote team of ~60 agents: policy search, AI-assisted scripting ("client said X, how do we reply?"), resource downloads, events, notifications  
+    [bulleted_list_item] Replaces reliance on Facebook posts for internal comms 
+    [bulleted_list_item] Built via Upwork dev team (milestone-based payments); first dev project undertaken  
+    [heading_3] Partnership & Technology Discussion
+    [bulleted_list_item] The other party's partner, Will, described as a top AI systems architect; their platform has 44,000 automations, 17,000 customers, and has helped generate ~$11B in revenue  
+    [bulleted_list_item] Shared concern: AI lowers the moat — a well-resourced competitor could replicate a product quickly; speed to market is critical  
+    [bulleted_list_item] Both parties aligned on the opportunity to bring institutional-grade AI tooling to smaller operators and solopreneurs  
+    [bulleted_list_item] More detail on the platform to be shared at tomorrow's in-person meeting  
+  [paragraph] 
+    [paragraph] 
+  [paragraph] 
+    [paragraph] 
+    [paragraph] Notion AI is transcribing this meeting.
+    [paragraph] I just want to make sure, just so I can come in with some assets prepared, that I have everything right. So the main website is gulfcoastregroup.com, right? Right now, yes. Okay. Now, what are the other kind of either websites or verticals or...
+    [paragraph] I mean, that is right now... 85% of our revenue. But I'm diversifying. My whole goal is to diversify because Google is moving towards zero-click listings, meaning when people search, you know, people's homes for sale, it comes up right in the Google AI overview so they don't go to our site anymore. So I'm diversifying like a motherfucker.
+    [paragraph] We have that perfected. We rolled up a site last week. In fact, we might want to talk about this if it's something you're interested in. We made a site last week just for the hell of it. It's to get people with Airbnb to rent their listings. And we had played around with the algorithm a little bit. And it's 100 across the board. We got 60,000 views in five days.
+    [paragraph] Jesus Christ.
+    [paragraph] Yeah, and we're pulling in. So you're absolutely right. This is a once-in-a-generation thing, right? Just like when Google Search came out.
+    [paragraph] Yeah, if we could pivot and pivot right, it's a great opportunity.
+    [paragraph] And do it early and get ahead of the market. 100%, man.
+    [paragraph] That's why I want to go through what you guys are doing because... Right now I'm revamping every department in the company to leverage AI. For a while it wasn't there, but now it is.
+    [paragraph] So this is your performance right now. Shit. Yeah, and so we got a lot of issues. The meta tag is too long, it's only going to grab the first 160 characters. But we do all of this automatically. So we'll have this fixed for you by the time we even come in tomorrow. Headers, a couple things there. Images, you just have a couple missing, the alt text. Links, a couple of, yeah, I got a bunch broken.
+    [paragraph] What the fuck are all the broken links?
+    [paragraph] What is that? I don't know, man. Broken links?
+    [paragraph] What?
+    [paragraph] Hmm. That's interesting. Why would that be registering as broken?
+    [paragraph] Well, we'll go through it. Maybe...
+    [paragraph] Because it's not in the link description, maybe? Yeah.
+    [paragraph] I'm not seeing it right. I'm not seeing it in there.
+    [paragraph] Yeah.
+    [paragraph] Yeah. Like, it's just assuming it must be a broken link. And then this is huge. Right? We've got to get this, the schema right.
+    [paragraph] I just don't know how flexible it is since it's like a fucking template, you know? Yeah.
+    [paragraph] Hard-coded template. So this is one of the reasons I want to ask you because I know that... You're on a... Like, this is a platform you use, right?
+    [paragraph] Yes, that's the problem. And what I'm building on now is we'll have pure ownership of.
+    [paragraph] Okay. So you are going to get off the platform? Yeah, it's going to... For the purposes of the website?
+    [paragraph] Yeah, it is going to take time, yeah. But over the next two years, we'll... The goal is to get off the titty of PPC. You know what I mean? Yeah. Yeah, dude, we don't do...
+    [paragraph] I mean, we don't recommend any paper, but we did do.
+    [paragraph] I know it's just like hard to quantify organic for 60 agents. You know what I mean? Like, how do I, I don't know how to present that to them. Like, yes, you're going to get way less leads, but they're better quality.
+    [paragraph] Oh, no, you're going to get way more leads.
+    [paragraph] More leads? Yeah.
+    [paragraph] Oh. So, so here, here's, here's the thing, right? How right now, So that's 85%, right? Right through the website. And then you divvy them up to the agents based on kind of like how they've been performing?
+    [paragraph] Yeah, geo-based and performance, yes.
+    [paragraph] Okay. So what do you have, like a maker, an NAN set up for that? Like how's it distributed?
+    [paragraph] There's routing rules set up, yeah. It looks like this here. Come on, fucker. So basically the lead comes in, and if it matches a rule, it distributes to whoever's on. Oh, I see.
+    [paragraph] So it's like regionally...
+    [paragraph] Yeah, so if the lead matches these areas, it gets... She's the only one on today, so it'll go there. If it doesn't, it keeps falling until it matches, and then it distributes. Okay. But only to who we have turned on. Right. So like... - You get into one of our, some of our bigger markets. - Yep. - You can see, like, only these two are getting leads that match this rule. Everyone else is off for that day.
+    [paragraph] - Yeah. - So it's like basically, we spend $1,500 a month a day on PPC, so everyone shut off except for those that are on lead day, so they get the search volume for that day. - Yep. - That kind of thing.
+    [paragraph] - Yep, yep, yep. And so what, what percent would you attribute of you know, things that convert to PPC.
+    [paragraph] As far as converting them into data?
+    [paragraph] Well, to convert into clothes. At the end of the day, we want the sale.
+    [paragraph] The sale, yeah. So for PPC, it's what we hover. Like if I take the amount of leads I buy or the amount of sales I make and do the math per leads that we have, it comes out to about two sales per hundred leads.
+    [paragraph] Okay, okay.
+    [paragraph] So I'm paying probably... Rounded, because there's so many different markets and different pricing, but rounded probably $22 a week.
+    [paragraph] Okay.
+    [paragraph] So $2,200 gets me two sales, roughly.
+    [paragraph] $2,200?
+    [paragraph] Yeah.
+    [paragraph] Okay. So would you say that all in, that's what you use for your customer acquisition costs, about $2,200? Yeah. Okay.
+    [paragraph] Okay. Well, that's for two, so about $1,000. I'm sorry. Yeah, yeah. $1,100. $1,100. Yeah, yeah, yeah.
+    [paragraph] Okay. Got it. Now, Let me ask you this just for my own knowledge. I know obviously a ton of real estate brokerage agencies use Boomtown. What is so great about them?
+    [paragraph] For me, Boomtown the company was formed in '06. So for me it's like buying a Tahoe, tried and true. You know, it's been around fucking forever. That's like ancient for a tech firm. So they've got it down pat. They were the first to do a lot of things. But then it's kind of a dinosaur at this point. But the biggest advantage with them is, one, it still has all the features I need for my age to stay organized, although it is more manual than it needs to be.
+    [paragraph] But the biggest thing is, like, they're... Because this platform is so big, because Boomtown is so big, they have dialed in ad management. My competitors easily pay $40 a week and they've got me down to like $22. They've been doing it so long and they have such a good relationship with Google. They're on that level.
+    [paragraph] Okay. Got you. So mostly you're kind of using them because of their purchasing power.
+    [paragraph] Purchasing power and the conversion rate, right? So meaning how many visitors does it take to get one full piece of data? Because the site is only as good as it converts. So with Boomtown, it's about 10% conversion. So for every... 110 people will give us their information. Okay. Some sites you go to, they're like 5% of shit. Sure. They've got a good conversion rate, and there's some science that goes behind that.
+    [paragraph] Yeah, of course. To get people to give information. So they did a good job at that. So that was one of the big reasons because of the conversion rate.
+    [paragraph] Let's go to your main website real quick.
+    [paragraph] Okay, and so most people are going right to the most people most people Like what happens is they don't even know no one ever sees our page most people Okay, people all for sale and it lands right by I see I see you want to land right? Yep, so they really actually never and then they're stuck. They just stay here searching. You know what I mean? Mm-hmm. So my home page really doesn't get that much action.
+    [paragraph] I Which is fine, whatever.
+    [paragraph] Okay, let me ask you this. How great is Boomtown if you want to build something on top of it?
+    [paragraph] Horrible. That's the worst part about it. The worst part about Boomtown is they're very... with their API. Native API. They don't play well with others. So I'm having to do all these workarounds to improve the technology of it.
+    [paragraph] You know what I mean? Yeah.
+    [paragraph] But I'm also at the same time building out our own boomtown, you know, so that we own it. I just didn't have the skillset before, but with AI, I'm actually figuring it out, you know.
+    [paragraph] Now, with that, like, do you have a longer-term vision to have that be a product you bring to market? Mm-hmm.
+    [paragraph] Okay. So the way I built it is... Well, let me show you. Let me show you. Yeah. It wasn't like, so I'm building Cake Corolla as my first beta market. And it wasn't, like the goal wasn't to pump out the website. The goal was to structure it as a website factory.
+    [paragraph] Okay.
+    [paragraph] Right, like so every move we made, we made sure it was a move that equates to... Getting to our 50th market at a much more efficient rate, even though we're going real slow to the first one. So we created kind of like a site factory in a way with JSON and templates. Let me show you.
+    [paragraph] Are you doing everything right within Chatter using cloud code at all? I'm using cloud code, yeah. Do you use that with like an IDE, like a VS code or terminal?
+    [paragraph] VS code is what I use, yeah. So I got Versal, GitHub, VS code all ready to go. I start working on it. An executive summary without. So that I had, I put localhomes.com, it's pretty good. - It is. - But I had, I had homesbylocals.com and that I thought was cool. It was a premium domain, I spent $500 and then a week later, so I start building all this around and then a week later they took it back and they're like, oh no, apparently the guy didn't wanna sell it or something.
+    [paragraph] I don't know.
+    [paragraph] - We just scrubbed my local everything. Which I think is pretty cool.
+    [paragraph] Oh my god, dude, I get up at 4 every day, just so I can get two hours. And I learn so much.
+    [paragraph] Dude, please tell me you used Fable while it was out.
+    [paragraph] Yeah, I did, but not much, right? I couldn't barely get much done because then it was taken away.
+    [paragraph] That was unbelievable, though.
+    [paragraph] Okay, so we'll go out of time. That's the first person. That's the right person. That's the right person. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep.
+    [paragraph] Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep.
+    [paragraph] Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Yep. Because Google is going to dominate the whole system in Naples.
+    [paragraph] Our site is going to be going after the, you know, if I buy in Cape Coral, how long does it take to get out to open water from this - Yeah, totally. - Very detailed shit that Zillow doesn't, can't.
+    [paragraph] - No, no, totally. And like, you know, I've long thought, like, 'cause real estate, there's so much to disrupt in real estate. Like, I've long thought of like, like I'm a big, big, big, like voice AI guy and I do a proactive chat bot with an avatar. uh that's not like annoying but like to be to be able to talk to it and be like and and like you know understand where they're at in terms of like you know and like what we can do is like we can scrape all of the we can figure out enough about the person or if they give us a little information about the person or for somebody coming back to like scrape their socials and and be like
+    [paragraph] You know, yeah, and like here's the GM this far away from you and like, you know, and like, you know, all stuff like that.
+    [paragraph] Yeah, yeah, yeah, go deep on them, yeah.
+    [paragraph] Hell yeah.
+    [paragraph] You'll appreciate this. The original plan was a factory, one template swap, JSON configuration, market infinite variations cheaply, that works beautifully for high volume, near identical pages, and per listing pages. With the best content so far, the pages that actually rank turned out to be the hand-built ones. Okay, let's...
+    [paragraph] Yeah, I mean that's, you know, yeah, no it is. Do you know what you're going to do for, so it's going to be its own CRM, it's only going to be its own software? Or it's going to be its own...
+    [paragraph] It's just going to be the website and then I'll have API for whatever CRM people want to use. Because I don't want to pigeonhole into one CRM. So we're going to dominate our market, but it's being built so that we can scale if we decide we want to license out markets. So it's like built for us, but with the option of retail.
+    [paragraph] Let me ask you a question. Boomtown. I always hear about Boomtown. Boomtown has what percentage of real estate agents and brokerages on the market?
+    [paragraph] The thing is, probably not much because Boontown came out with Bold Trail and they're trying to get everyone from the legacy Boontown over to Bold Trail. But Bold Trail sucks dick. Okay. So no one's moving.
+    [paragraph] So they're like, it was... Could you spell that out? Bold Trail?
+    [paragraph] It's B-O... Bold, like bold. Bold Trail. Well, one word.
+    [paragraph] Okay, so like...
+    [paragraph] But that's one of the ones where they like built in AI and shit. Okay, got it. One, it's too hard to migrate 60 people over. It just sucks. Yeah. Train them in training software and all that? Sure. Plus, I had people go there and come back to me and say, "Don't do it.
+    [paragraph] Don't do it." Interesting.
+    [paragraph] Interesting.
+    [paragraph] So I was like, "Okay, I'll stick with the old and tried and true." And then what is Boomtown? I'm sure there's various kind of tiers of it based on what you want to use. Yes. But for the software itself, what does that typically run a month?
+    [paragraph] I don't know what the non-Enterprise tiers are, but the Enterprise tier is $2,500 a month just for the software.
+    [paragraph] Okay. Do you know what the other one is?
+    [paragraph] The Bold Trail? I don't. Okay. I don't. I don't. But I know it's like $2,500 a month, but they also do your ad management for free. Yeah. Obviously, it's not free. Right. Right. They don't tack an extra fee on top like most companies do. Right, right, right. So it's not cheap, but the per seat license is cheap so we can scale with many seats inside of Boomtown for not too bad a price. Where Bull Trail's like another 30% per license as far as cost and everything.
+    [paragraph] And as far as your customer... Customer segmentation. You're obviously doing mostly residential. Do you do any commercial?
+    [paragraph] I have a commercial agent that I give everything. Yeah, okay. I got you.
+    [paragraph] I got you. I got you. And what are they doing to spread their own names?
+    [paragraph] - Of them meaning?
+    [paragraph] - Meaning the agents themselves.
+    [paragraph] - Well, that is where we're weak, right? 'Cause we became so headstrong on PPC and developing the agents to learn how to convert PPC into clients. That's been our main pain point that we try to consistently solve is how to take these internet lookers and turn them into clients. So we're always, like, focused on efficiency and productivity in that way. You know what I mean? But not, you know, not having them understand how to actually make an impact on social media or YouTube or, you know, nothing else.
+    [paragraph] Like, we are pretty, we are too narrow.
+    [paragraph] Okay. Okay. And then as far as what you do from a corporate perspective, have anything you've done on social had any impact, played around with anything? No, not at all.
+    [paragraph] Yeah. I mean, I just, I'm a big, I'm always in the lead acquisition space where I feel social media is probably way more valuable for brand awareness. You know what I mean? That's how I feel. So yes, it's important. When you get to a certain size.
+    [paragraph] Yeah, but at the end of the day, it's important because, like, you know, it's important to the, it's just like any type of marketing. It's like, it's important to the degree that it gets you customers, right?
+    [paragraph] Right, right, right. So it was, it's, you know, and I know, like, I'm clearly on stats like conversion rates. And I know, like, Google PPC, you know, like I said, on average, if the agent's not great, they're probably going to be doing two out of 100. With social media, it's 0.5%, so you need 200 leads to get one sale. So it's just more work, even though the leads are cheaper. So that was always in my head, but I know there's other ways to use social media that aren't PPC, you know?
+    [paragraph] So I was just like pigeonholed.
+    [paragraph] And so, you know, looking down the road, when you do... When you do come out with your solution, like, for extra revenue because that sounds like something that the market would be interested in, right? If you give them everything that they want and they have the autonomy and you've got the extra API so they can set up their own stacks and all those things like that. Do you have rough price points or go-to-market strategies yet with that?
+    [paragraph] - As far as competition or cost structure?
+    [paragraph] - Yeah, well, how much do you plan? Do you have a price point that you're thinking about bringing it to market for?
+    [paragraph] Yeah, I mean not 100%, but I was toying with a few different, it's either pure license, monthly license, 699, 899, whatever it is, or it's a lower monthly license and we take a rip of 10, 20% off whatever sale they get. I'd rather go with a higher monthly fee because I don't want to rely on talent.
+    [paragraph] Yeah, you want the recurring.
+    [paragraph] I don't want to rely on talent. to get paid, you know what I mean?
+    [paragraph] - Totally, totally. And like, you know, the market has its ups and downs.
+    [paragraph] - Yes, where this is just consistent, yeah, exactly. So there's still a lot of questions for me, but I'm super excited, man.
+    [paragraph] - Yeah, man.
+    [paragraph] - And so what we also built, me and AI, is a content creating machine. So it's separate, like this is the website factory, and then there's the content creation machine. That's the only way it works, because to scale, But for hyper local knowledge, we need an agent in each territory. But no agent's going to know how to technically put it into the website and make it SEO formatted and SEO rich. So we built this content creation platform where they dump the information into whatever slot that we are talking about.
+    [paragraph] They dump it here. AI reframes it into SEO ratio and then places it on the site. So that's how we can scale hyper-local knowledge where Zillow can't do that.
+    [paragraph] Right. No, for sure. And Zillow is really trying to screw over agents.
+    [paragraph] Oh, yeah.
+    [paragraph] So people want to get the fuck away from Zillow. Yeah, totally. So what's your rough like... What would your pipeline look like with that? When ideally would you like to be able to realistically go to market with the HyperLocal?
+    [paragraph] With this, the HyperLocal? My goal is October, November.
+    [paragraph] Okay.
+    [paragraph] Yeah, that's my goal. I've been working on it for like four months. That's cool. Yeah. Like four months, like every morning, non-stop. Yeah. So I'm hoping within another few months I should be able to go live. With our markets.
+    [paragraph] Yeah, of course, of course.
+    [paragraph] And then we're literally going to build out a page for every single gated community. Because that is very SEO authoritative because it's so granular. But there's so much information about a gated community. For sure. And it's not like Zillow categorizes and then explains every community. They don't. And so that's one upper hand. And then the other thing I was thinking about - You know, I think actually after I researched it, it killed it.
+    [paragraph] But what I was thinking is I get the MLS because I'm going to have to attach the MLS feed. And then I was thinking about putting an AI intelligence layer on top of the feed to where when it delivers it to the site, it delivers it in a way where yes, because MLS has a contract, we have to display their way. But then right below the display, I was thinking like, Instead of them having to read every little detail and how it's displayed in like a grid, you know, these listings.
+    [paragraph] Yeah. They could write below, it's just like little drop downs, like what are the H-O-A-T things in this community? What do they include? Click, and then the AI just does a summary, but it's all coming from the listing data, but it's original content.
+    [paragraph] Right. So, yeah, talk to me about that.
+    [paragraph] So it can actually be indexed. Right. Instead of just, because listings don't get indexed, obviously.
+    [paragraph] And so MLS has restraints on how you can actually.
+    [paragraph] Yeah, you have to display it like. You agree when you sign that you will display it in a certain format and only in a certain format. So I have to leave it that way? So the only thing I could think of is like right below it, reformat it so they can't come after me.
+    [paragraph] Let me ask you a question. Hypothetical. What if you're scraping them off of other websites using your mobs?
+    [paragraph] Scraping them off?
+    [paragraph] What if you're grabbing all the data off of other websites that are using MLS? If you could hypothetically get the same information loaded You don't have the agreement list.
+    [paragraph] True, true, true. Yeah, that's probably a little bit of a gray area, but one that might be worth shooting for.
+    [paragraph] Exactly, exactly.
+    [paragraph] I grew up, they didn't teach code in school. Right. Right when I graduated, they started teaching it. Right. I'm like, fuck, I wish I would've learned how to do it. I know. Like, this is what I should've learned. I know. Because look at all these people crushing it with, like, knowing how to do code. Yeah. Now I'm learning it and I have so many fucking ideas. I know, bro.
+    [paragraph] I'm like, ugh. I get it. It's hard to not get, like, distracted with, because, like, I have more ideas than, like, you know.
+    [paragraph] I gotta be careful not to get to the point where I'm not executing all of them, you know? Yeah, exactly. But this is, uh, Basically, it's just a utility. I don't even want to call it a software. The target audience is 40 to 60-year-old solopreneurs, the guy that's a licensed handyman, the guy that's a licensed electrician, a licensed plumber, but they're solo. They don't want to work for a big piece of shit.
+    [paragraph] But no software is dedicated to solopreneurs. All these type of softwares are dedicated to companies with trucks on the road, and you have to add licenses, and they're all This is like for the solo guy, it's cheap. Yes. 29 bucks if you want to add another license for it. It's just very basic. The idea is the 40 to 60 year old that's doing this, that's crushing it right now with this, they don't want to learn new software.
+    [paragraph] They just want a tool. And this is more like a tool. But it keeps them at least with the basics of running a business.
+    [paragraph] You know what I mean? A hundred percent. And then on top of that, you have this phenomenon that's going to go on for the first time really in any technological revolution. It's going to be the white collar jobs that yeah it's you're gonna have all the right knowledge workers they're gonna be looking for side games that are going to be entering collar you know because you know the last thing that's going to go away is unstructured right you know it's unstructured you know physical labor work right yeah well that's exactly it yeah and the other side of it is what I'm thinking in my head is that like overall
+    [paragraph] ...towards corporations or big companies to work for is probably the lowest it's ever been in history. Meaning people want to do that but they're kind of forced to. So more and more are jumping and doing solo shit.
+    [paragraph] Well yeah, and the other part of it is that people are sick of... See, one of the things about the social media is people are sick of the nameless faceless corporations.
+    [paragraph] You know what I mean?
+    [paragraph] Yes.
+    [paragraph] Something goes wrong and they're like, fuck you. You're on your own. Fuck you.
+    [paragraph] Yeah, man. Not everybody sees what's happened with consolidation over the last several years, right? So I am totally with you on stuff like this. I've been making stuff mostly for roofing.
+    [paragraph] Yeah, so simple but too small for big guys to care about.
+    [paragraph] You know what I mean? Totally, man. Totally. I just spun something up the other day that will look for weather patterns, right? And then within two minutes, it will identify which houses in a particular area got hit by a piece of hail over 1.5 inches. And so and so and then I'm using different joins. To say like, okay, and this is what they have right now based on their permit, and this is the probability based on the fact that it's 10 years old, that there's actually going to be damage there.
+    [paragraph] Now that you're talking like that, look at this one. This is the one I've been working on the most. Well, the longest, actually. This one will probably, I mean, I think you'll see the audience is like ginormous groups. But, um, Okay, I'll explain it. That's the logo I'm thinking about going with. But anyways, it's called homeclonevault.com. And the whole idea behind it is we're going to go after high net worth individuals at first.
+    [paragraph] And what we do is we use the blockchain to store a digital twin of their property and valuable belongings So that if a hurricane hits, the number one denial cause is you have no evidence or the plausible deniability of, oh, that could have happened before. You don't know that. So they always get declined because of lack of evidence. I'm going to say to all the high net worth, start with the high net worth.
+    [paragraph] Yeah, of course. We can literally take measurements off of the ship. We're going to do a drone aerial thermal shot of the roof so we can tell exactly the condition the roof is in. And we're going to do, there'll be a physical guy on the ground taking photos and doing it like a site inspection. And then it gets hashed on site by the technician as a group master hash. And then when they get to home, when they have better internet, then they upload everything, AI,
+    [paragraph] compares the hash to make sure nothing was edited. So basically where the chain of custody is locked in so that if it ever comes down to court and they're like, well, show us your evidence that. Yeah, totally. And now these guys with digital twins with a $5 million house can say, no, you owe me $500,000. This is how it fucking looked. Yeah, exactly. Immutable evidence. Exactly. Yeah. And then I just think if we can get the cost down,
+    [paragraph] As we grow, the use case is huge. Like, let this be the home vault that can be burned down or wiped away, that you keep all your important documentation in. Sure. Right? Like, throw it into the blockchain so you know it's safe. Yeah, yeah, yeah. And then, of course, so we get, like, the one-time fee to get the package, the vault package put together. And then, obviously, there's a monthly to maintain the server because the vault that we use is on, like, military-grade internet.
+    [paragraph] Yep.
+    [paragraph] unhackable like craziness like uh banks insurance companies all that's who they this is who they use is it like a shaw 256 i don't really know that much man but uh it's called origin vault okay okay you want to look into them they're switzerland other they were done in switzerland it's just a badass product so um that i'm excited about that because as digital i'm sorry as ai rises More and more questions are going to be, was this tampered with?
+    [paragraph] Was this evidence tampered with?
+    [paragraph] Oh, absolutely.
+    [paragraph] And this resolves that. So if we can get this into the hands of everybody, the app, and they have a situation where they have to prove that nothing was added or whatever has to be saved and truly never be gotten to by anyone, we can get that to their hands at some point. And their use case for it is just going to keep growing because of AI.
+    [paragraph] Yeah, that's really interesting. That's really interesting. That's a good idea, man.
+    [paragraph] I just wired the money to kick off the development team for this one. Nice, Dan. I have one, I'm excited about it, but I have an internal app for the company to keep us all together even though we're all remote. I created a central app that they can just click and see all of our policies, search, hey, what's the policy on this? Or All the scripting, like, hey, AI is built in. It can be like, hey, this is a client just said this to me.
+    [paragraph] How would you see our reply? Yes. It's because it's got a knowledge bank. Exactly. And then it can go to like resource links, resource and everything. We would ask them to go to drive to download. Yeah. Right there. They just download it on their phone and send it off. And all this, like, and then events and notifications. Like, I can actually talk to everybody and know that they're reading it because it's centralized.
+    [paragraph] Absolutely.
+    [paragraph] Instead of hoping they go on Facebook and look at the post that I made.
+    [paragraph] I heard a crazy...
+    [paragraph] So I'm excited about that, too.
+    [paragraph] I love it, dude. And, like, dude, let's talk about this stuff, too, because, like, you know, I don't know how much you're...
+    [paragraph] I think this one has a lot of potential.
+    [paragraph] Yeah.
+    [paragraph] Origin Vault. has asked me if I'll do some sort of a revenue share partnership. They see a lot of potential.
+    [paragraph] That's cool. Where are your devs at?
+    [paragraph] Well, I don't even have... Right now, where we're at is we've got the interface, the customer portal. We have... Origin ball, origin stamp. Stamp is the hashing and to make sure nothing is embedded in it. We have field pulse, which is going to manage all the technicians that are in the field and everything. And we're currently connecting them to this interface. I see. And then we'll have LNBP.
+    [paragraph] I see. I see. I see. I see.
+    [paragraph] But it took us like three months to get the right tech that could talk to each other. Yeah. It just took that long. But now we're finally past that. Now we're locking in.
+    [paragraph] Dude, we're gonna fuckin' dive in tomorrow.
+    [paragraph] I just feel like we have in our grasp institutional grade software that always kept companies ahead of us. 100%. Now it's in our hands. It's awesome.
+    [paragraph] Well, you know, so here's the thing. My partner, Will, is like... No bullshit. One of the top 10, 20 AI systems architects in the world.
+    [paragraph] Does he work? Is he freelance? Is he a freelancer? Does he work for a big corporation? No, we work together. Oh, cool. Yeah.
+    [paragraph] So we just spun up this company. And so we're going to show you some stuff, man. And it's just like... I get excited. Like you said, there's so much... opportunity out there you know and and the thing is dude like I'm like you I've got I'm not a technologist by trade I've got awesome ideas and I understand the architecture you know but I don't know necessarily all of the parts yet although you know all the the missing pieces right exactly yeah but but he does and like
+    [paragraph] You know, this, the one platform that we have is 44,000 automations on it, dude. It's like, it's wild. It's bigger than N8N or M8.
+    [paragraph] What is running? What is the program?
+    [paragraph] Is it out yet or not even out? Oh no, it's out. Oh, okay. Yeah, we'll show you tomorrow. He's worked with 17,000 customers, added about $11 billion in revenue. So, like, you know, the thing is when I started an AI company a couple years ago, my big thing was, okay, like, I got to learn the tech. I got to sell it. I got to learn the, you know, the marketing. I got to, like, figure out how, you know, what these terms mean that I've never used before.
+    [paragraph] And Will can do it like that. It's wild.
+    [paragraph] That's what I thought just like you. Like, okay, now I've got... You know, when you look at something on the surface, you dig down, it's way more layered, right? Of course. And you're like, okay, I can't do that layer, that layer, that layer. But I've realized now, it's like, I'll leverage out the people that have the knowledge because I'll stay in my lane because I know if I stay in my lane, we'll have some great things go happen as long as I have some people that can execute technical science.
+    [paragraph] And dude, that's why I'm so excited about the partnership with him is because, like, he's done and... I've seen everything. I mean, he's, he built out this platform. I mean, like the, and then the bespoke stuff that he's done, like, we'll talk about it tomorrow, you know, but, but, you know, there's, there's just, there's just so much opportunity with, you know, real estate in general is one of those things that,
+    [paragraph] That alone is just so ripe for disruption. There's so much stuff that's just so antiquated. Big time. And then on top of that, you've got guys like you and I and plenty of other smart guys that have these great visions that can spin up these companies But he can take the delivery time, and time is everything, right? This shit. And one of the problems is that one of the things that we're doing by talking to these big models is we're turning the fucking ideas over to them.
+    [paragraph] So the deliverability matters, right? And then also...
+    [paragraph] Oh yes, I see what you're saying.
+    [paragraph] Yes, yes, yes. And then another big problem is that even when you come out and you spin up a cool company, if you don't have the moat, right? I heard Mark Andreessen say that the biggest moat is distribution. Now, I don't know if I necessarily agree with that, but it's directionally correct in a lot of ways.
+    [paragraph] That's one moat, for sure, as long as it's executed.
+    [paragraph] But with AI, here's a concern. With AI, you could spend six months putting your heart and soul into something, or I... And then, you know, fucking some Microsoft or some billionaires just watching to see what the cool shit is.
+    [paragraph] And they throw $100 million at it.
+    [paragraph] And so the time is the biggest factor, man, you know.
+    [paragraph] Oh, for sure.
+    [paragraph] And as long as you can keep the cost where they need to be and get it out to market and get some penetration, man.
+    [paragraph] Do you have a development team that you like or not? No. Oh, just him. Yeah, you have him now.
+    [paragraph] Yeah, I've worked with dev teams in the past, certainly.
+    [paragraph] I'm working with my first one. That's why I'm asking.
+    [paragraph] I'm just curious. Yeah, yeah, yeah, yeah, yeah.
+    [paragraph] I just went to Upwork. Yeah. We just researched who I thought was best.
+    [paragraph] Dude.
+    [paragraph] But they're doing a good job so far. And I'm actually meeting them at one.
+    [paragraph] Where are they based on? Uh. Ukraine, India It's not Europe, that's all I know.
+    [paragraph] That's all I know is it's not Europe and it's not India.
+    [paragraph] Okay.
+    [paragraph] But I don't know exactly what India is. But, you know, they're very... So far, they're very communicative. It's milestones before they get paid, which I like. No, for sure, dude. You actually completed it before I released the funds. No, no, no, for sure, bro. Yeah, so it's going good. I mean, I'm excited, but it's just the internal app to make the business more efficient. Nothing to make a bunch more money or anything.
+    [paragraph] Yeah, man.
+    [paragraph] I'm excited because it was my first, like, actual dev adventure, you know?
+    [paragraph] Yeah, man, and dev adventures can get pretty wild, I'll tell you. Oh, I'm sure.
+    [paragraph] I'm sure. This is a pretty simple app that I'm doing, and they're, like, you know, they're getting on the phone with me every week, like, you know, having to run through scenarios and making sure it's buttoned up so I can imagine a more complex app.
+    [paragraph] Well, and not only that, man, it's just like, you know, they... They... They tend to also like, you know, all of a sudden your project's getting reshuffled in the priority list because they've already got you this far in and then like they've got these big projects that come in.
+    [paragraph] Right.
+    [paragraph] And like it's just like it gets very frustrating.
+    [paragraph] Right. And then they favor the guy that they know is going to keep pumping projects and yours goes to shit.
+    [paragraph] Exactly.
+    [paragraph] Which is why I kind of like the milestones. Like you don't get paid unless you reach this milestone and then I release it, which I kind of. I'm going to take a shit, man.
+    [paragraph] Oh, yeah, yeah. And so, like, yeah, man, we have all the tech shit we need. But we'll have a lot of fun tomorrow. Yeah, let me confirm tonight.
