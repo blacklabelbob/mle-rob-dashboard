@@ -58,7 +58,47 @@ export type BodyCoherenceVerdict =
   /** Some asserted terms appear, some do not. A human decides; code will not. */
   | "partial"
   /** Nothing to check against — no asserted identity, or no body. Never a pass. */
-  | "unverifiable";
+  | "unverifiable"
+  /**
+   * A human read the row and ruled that this meeting HAS no counterparty — an internal
+   * training session, a webinar, a team stand-up. Distinct from `unverifiable`, and the
+   * distinction is the point: see `CounterpartyReview`.
+   */
+  | "internal-no-counterparty";
+
+/**
+ * Q89 inc.10 — the third state, on the inc.29 (Q73) precedent.
+ *
+ * Found by reading the archive row `GHL AI Agent Knowledge Base Webinar 2025-12-18`
+ * (Notion `2cd1de57-0199-8029-8c87-ea7fdf6c9c53`, 300 blocks / 65,104 chars). It is a
+ * real, single, internally-consistent meeting — a coaching call Rob himself facilitated
+ * on knowledge bases for AI agents in HighLevel, its own to-do reading
+ * "@Robert Acheson to create feedback survey for coaching calls". The participants are
+ * unnamed ("Participant asked about…"). There is no company on the other side of it,
+ * because there is no other side.
+ *
+ * Before this type, that row returned `unverifiable` — the same verdict as a row nobody
+ * has examined yet. Two states read as opposites when they are not:
+ *
+ *   · nobody has ruled on whether this row has a counterparty  → owed a read
+ *   · somebody read it and there is no counterparty to find    → owed nothing, ever
+ *
+ * Collapsing them costs in the direction this queue keeps paying: an internal webinar
+ * sits in the re-read worklist forever, indistinguishable from genuinely unread work, so
+ * the outstanding-reads count never converges and nobody can tell which rows are real
+ * work. That is the same shape as Q73 inc.29's classifier, where "reviewed and cleared"
+ * and "nobody ever looked" produced identical silence and every count read them as safe.
+ *
+ * The module still never infers this (rule 1 stands). A caller supplies the ruling with
+ * the reason and the line it came from, and both are printed back so the verdict is
+ * checkable. `safeToPublish` stays FALSE either way — this is a reason a row is finished,
+ * never a licence to publish a company record for a meeting that had no company in it.
+ */
+export type CounterpartyReview =
+  /** Default. Nobody has ruled. Silence about a counterparty means nothing has been checked. */
+  | { examined: false }
+  /** A human read the row and found no counterparty. Must say why, and where they read it. */
+  | { examined: true; counterparty: "none"; reason: string; sourceRef: string };
 
 export type BodyCoherenceResult = {
   verdict: BodyCoherenceVerdict;
@@ -109,18 +149,40 @@ export function checkBodyCoherence(input: {
   asserted: AssertedIdentity[];
   /** The transcript/body text as read. */
   body: string;
+  /**
+   * Optional human ruling on whether this meeting has a counterparty at all. Omitted
+   * means unexamined — never "none". Only consulted when no terms are asserted; a row
+   * that names a counterparty is checked against the body regardless of any ruling,
+   * because the body is the harder evidence.
+   */
+  counterpartyReview?: CounterpartyReview;
 }): BodyCoherenceResult {
   const asserted = input.asserted.filter((a) => normalize(a.term).length > 0);
   const body = input.body ?? "";
+  const review = input.counterpartyReview ?? { examined: false };
 
   if (asserted.length === 0) {
+    if (review.examined) {
+      return {
+        verdict: "internal-no-counterparty",
+        found: [],
+        missing: [],
+        reason:
+          "A human read this row and ruled it has no counterparty: " +
+          `${review.reason} (${review.sourceRef}). ` +
+          "It is an internal meeting, so it is not owed another read and it may not be " +
+          "published onto a company record — there is no company it belongs to.",
+        safeToPublish: false,
+      };
+    }
     return {
       verdict: "unverifiable",
       found: [],
       missing: [],
       reason:
         "The summary asserts no counterparty, so there is nothing to look for in the body. " +
-        "This is not a pass — an unchecked row may not be published from.",
+        "Nobody has ruled on whether that is because this row is internal or because it has " +
+        "not been read — this is not a pass, and the row is still owed a read.",
       safeToPublish: false,
     };
   }

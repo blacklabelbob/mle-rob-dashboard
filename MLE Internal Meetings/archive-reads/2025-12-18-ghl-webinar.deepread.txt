@@ -1,0 +1,344 @@
+==============================================================================
+TITLE (do not trust): GHL AI Agent Knowledge Base Webinar 2025-12-18T15:00:00.000-05:00
+URL: https://app.notion.com/p/GHL-AI-Agent-Knowledge-Base-Webinar-2cd1de57019980298c87ea7fdf6c9c53
+id : 2cd1de57-0199-8029-8c87-ea7fdf6c9c53
+------------------------------------------------------------------------------
+PROPERTIES — in full; this is where the identity the title omits lives:
+  ∅ Google Doc Link [url]: None  ← claims absence
+  ∅ Show/No Show [multi_select]: None
+  ∅ Next Steps/Action Items [rich_text]: None
+  ∅ Company URL [rich_text]: None
+  ∅ Parent Account [multi_select]: None
+  ∅ MLE [select]: None
+  · Last Edited [last_edited_time]: 2026-07-22T12:06:00.000Z
+  ∅ Child Account [multi_select]: None
+  ∅ Other Combined/Possible referral [rich_text]: None
+  ∅ Customer Pain Points [rich_text]: None
+  ∅ Meeting Summary [rich_text]: None  ← claims absence
+  ∅ MLE Attendees [multi_select]: None
+  ∅ Follow Up Date set [date]: None
+  ∅ Company Meeting with [rich_text]: None
+  ∅ Export Status [select]: None  ← claims absence
+  ∅ Sales Rep [people]: None
+  ∅ Notion Meeting Page [url]: None
+  · Call Date [date]: 2025-12-18T20:00:00.000+00:00
+  · Tags [multi_select]: ["AI Agent Training", "Knowledge Base Training", "GHL"]
+  ∅ Call Recording [url]: None  ← claims absence
+  ∅ Contact Name [rich_text]: None
+  ∅ Non MLE Attendees [rich_text]: None
+  ∅ TAM # [number]: None
+  · Created [created_time]: 2025-12-18T20:07:00.000Z
+  ∅ In Person/Virtual [multi_select]: None
+  ∅ Urgent TO DO [rich_text]: None
+  ∅ Meeting Type [multi_select]: None
+  ∅ Primary Target ICP [multi_select]: None
+  · Meeting Title [title]: GHL AI Agent Knowledge Base Webinar 2025-12-18T15:00:00.000-05:00
+------------------------------------------------------------------------------
+BODY: 300 blocks, 65104 chars — paragraph×267, bulleted_list_item×20, heading_3×8, to_do×3, image×1, transcription×1
+  ⚠ 4 field(s) imply 'no record'. CONTRADICTED — the body below HAS the content. Trust the body, not the field.
+      · Google Doc Link [url] = None
+      · Meeting Summary [rich_text] = None
+      · Export Status [select] = None
+      · Call Recording [url] = None
+------------------------------------------------------------------------------
+FULL BODY (summary + transcript) — read it, do not skim:
+[image] https://prod-files-secure.s3.us-west-2.amazonaws.com/31c1de57-0199-81c4-bc20-000380afe053/ca812584-6bef-4791-8b60-d956c47d2283/image.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466XP5LIDQP%2F20260805%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260805T121006Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEFwaCXVzLXdlc3QtMiJHMEUCIErlwzxKuLdJHq0%2Fq3EmX4cO5XUORyy7ZvHTms4M9NNbAiEA4%2FqfW%2Bxj5xMaHtnLGucJSIHkFuz3tFr75TDBJ2Bt6nwq%2FwMIJRAAGgw2Mzc0MjMxODM4MDUiDCoOxai6dbdhjaBU2SrcA7%2FSQs98WMe1QDkWcJKOrMUB2n3hWur57Eu%2Bw%2B0RQRFjmR3TIZwspQ7Gz53DJkvZJky1U6YTRG2u2n2gTZjAvdSywRPwFKdCOuQaXhAQbw3YKi8lf3JaEct5%2FINSM65OPwL6NdYNZoqVE60iucDS0T5B7Aa%2BOF%2BLh0N29MYBK5%2FpHSRYVAvuzomj6MMM7fN5uZD6AY%2BUsztI9hyBRcGjV6jafN1DdOapcWs8GcDK%2BQj9F89XVYoNNDxZ22buvtG43UZR0DCFss%2BDnIchshRCt7HENP7dPZrtcNPsZL1ju%2BLAm9FnQbguTzwrrIh4q0sLQeMTqgZYWCaW3Lt1GDWvbtzddti62OdJjZ4un8egbGkrEAplcslECXnmBtjWyY%2FlpQGdAph35cktT4V1Uaj7LpTkRWaL8chmJnvIakXI7u%2BqsIYhdCSGTnW4D5tJF7KBuvr90lXSu4O4deWPsA%2BBKg0jsWQko9whSgKRy6m3l6vfkYC7C%2F8mVtupSj%2BwHIqqYoKdP852pTmGJeEKsPQsAeLNSiiaZL36b0IG%2B9NIq2FHkCllHPDiqA8Vdx40bZC5g8IsUKViKhUG%2Fd6BoRMjAa8q7Vo1oxTEBUgh3WlWn8pMXVTGZbvrP0C5QncFMOLFzNMGOqUBGwYGlb3%2BS33t97DanMlKMhLcFt3cKsSStpw2k2vQ5%2Brc49cMDY9WPlXgC9YWS7GgOa3L6FXtb5%2BP%2BIVFxKDNu%2FQtnLBDXaAu6OOVrTPVcR6a4F9m8JSAy%2BC2FY5a9oV2DplxB6736AxG3Sr2x3c%2B%2BZndUBjrL%2BftQW1LBLgHk73f08G9c5aR8wcxdB03mdBZgkJY238QQsypQBUEvUHUCY1yofpT&X-Amz-Signature=5718bec06c4885841f0c50e27910695f5316bd0bb8c7cec28b41253672e327e2&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject
+[transcription] 
+  [paragraph] 
+    [heading_3] Overview
+    [paragraph] Robert facilitated a coaching call focused on knowledge bases for AI agents in High Level. This is the fourth session in a series of coaching calls covering AI agent fundamentals.  The team will take a holiday break from today until January 8th, skipping two Thursdays that fall on Christmas Day and New Year's Day.   The next session will cover Prompting 101 on January 8th. 
+    [heading_3] What is a Knowledge Base
+    [paragraph] The knowledge base is the central resource that fuels AI agents - everything you want the agent to know, including training resources and information, lives in the knowledge base.  Before building a knowledge base, consider the type of agent (voice vs. conversation), the agent's specific purpose or goal, and whether you have adequate training resources available.   It's important to keep knowledge bases specific to each agent's function rather than creating one knowledge base for multiple different agent types. 
+    [heading_3] Knowledge Base Features
+    [paragraph] Web Crawler
+    [bulleted_list_item] Crawls web pages and stores information inside High Level 
+    [bulleted_list_item] Can crawl any website, funnel, or document with a URL, including Google Docs and spreadsheets 
+    [bulleted_list_item] Auto-refresh feature allows daily, weekly, or monthly recrawling of resources 
+    [bulleted_list_item] Particularly useful for ever-changing documents or training resources 
+    [paragraph] FAQs
+    [bulleted_list_item] FAQs are prioritized by the bot when searching for information - they represent the "golden standard" for responses  
+    [bulleted_list_item] Can be created manually or automatically through conversation optimization 
+    [bulleted_list_item] When you use thumbs down on a bot response in Conversation AI, you can modify the answer and save it as an FAQ 
+    [bulleted_list_item] If both a file upload and an FAQ address the same topic, the FAQ will generally take priority 
+    [paragraph] Tables
+    [bulleted_list_item] Tables hosted natively in the platform allow faster information extraction than external spreadsheets 
+    [bulleted_list_item] Useful for structured data like exhibitor information, speaker lists, or navigation details  
+    [bulleted_list_item] Import tables as CSV files, similar to importing contacts 
+    [paragraph] Rich Text
+    [bulleted_list_item] Allows building documents directly in High Level rather than linking to Google Docs 
+    [bulleted_list_item] Provides standard rich text formatting options (links, fonts, bold, italics, etc.) 
+    [bulleted_list_item] Native hosting enables faster bot information retrieval 
+    [paragraph] File Uploads
+    [bulleted_list_item] Currently supports PDFs, docs, and doc X files 
+    [bulleted_list_item] Some file types not commonly requested by customers may not be supported 
+    [heading_3] Adding Knowledge Bases to Agents
+    [paragraph] Agents can have up to seven knowledge bases attached.  Access this in AI Agents > Knowledge Base > Bot Training. The recommendation is to create individual knowledge bases for different services or topics rather than one large knowledge base, as this prevents the bot from getting confused or crossing threads.   Multiple knowledge bases appear as tabs in the interface for easy viewing. 
+    [heading_3] Testing & Optimization
+    [paragraph] Knowledge Chunks Feature
+    [paragraph] The knowledge chunks feature is critical for optimization - click the star button next to any bot response to see where the information came from, what prompt and intent were used, and the chat history.    This allows you to identify which specific resource provided the answer and make targeted adjustments. 
+    [paragraph] Editing Crawled Content
+    [paragraph] You can directly edit stored crawled information by clicking the edit button on any crawled page.  Note that if auto-refresh is enabled, manual edits will eventually be overwritten.  For permanent changes, update the source document before the next crawl cycle. 
+    [paragraph] Testing Recommendations
+    [bulleted_list_item] For Conversation AI, test by having text conversations directly in the interface 
+    [bulleted_list_item] For Voice AI, use the web call function in the test agent box 
+    [bulleted_list_item] Focus testing on specific use cases and questions rather than general conversation 
+    [bulleted_list_item] Testing sessions may be limited to 10 minutes per day 
+    [heading_3] Q&A Session Highlights
+    [paragraph] Gatekeeper and Transfer Control
+    [paragraph] Participant asked about preventing voice AI from transferring calls before properly qualifying leads. Robert recommended using the flow builder in Conversation AI for more control over multi-step processes and branching logic, while voice AI would require extensive prompt engineering through ChatGPT or Gemini.   
+    [paragraph] Multiple Knowledge Base Selection
+    [paragraph] For scenarios where different knowledge bases should be used based on conversation context (e.g., investor vs. homebuyer), use prompting to instruct the bot which knowledge base to reference in specific situations.  
+    [paragraph] Image Support
+    [paragraph] Currently, Conversation AI can receive and interpret images but cannot send images directly back to clients.  It can send links to images.  The AI router node coming in Agent Studio may enable image generation and sharing in the future.  Consider submitting feature requests for native image repository access from knowledge bases.  
+    [paragraph] Course Content Integration
+    [paragraph] Request made to allow course videos, transcripts, and lesson materials to be automatically accessible to knowledge bases without duplicate uploads.   Recommendation is to submit this in the AI ideas board with comprehensive naming conventions for better searchability. 
+    [heading_3] Action Items
+    [to_do] @Robert Acheson to create feedback survey for coaching calls  
+    [to_do] Participants to submit feature requests to ideas board for image support in knowledge bases  
+    [to_do] Participants to email Robert for specific use case assistance that requires deeper investigation
+    [heading_3] Important Reminders
+    [paragraph] The KISS (Keep It Simple) method is recommended - start simple, iterate, and optimize rather than trying to do too much at once.  High Level's approach to customer feedback and feature development is notably open and responsive, with leadership actively participating in community discussions and implementing user suggestions.   
+  [paragraph] 
+    [paragraph] 
+  [paragraph] 
+    [paragraph] in this set of calls and then we're gonna keep adding more and doing like monthly calls, maybe niche specific or industry specific calls, use case specific calls, things like that. So we're gonna get really creative with this The next three calls we have prompting, AI actions, and optimization. So I'm looking forward to those. We are taking a break for the holidays. So from today until January 8th, I believe.
+    [paragraph] So essentially we're skipping two Thursdays.
+    [paragraph] Unfortunately, Christmas Day and New Year's Day both land on a Thursday. So we're just going to skip those. It's going to give me some time to catch up on things as well as answer a lot of your questions in emails and things like that. For the new year, we're going to start with prompting 101. Okay. Let's talk about what the, like the, oh, I didn't change the date there. Look at that. Let's talk about the criteria for today's class.
+    [paragraph] So we're gonna talk about what is a knowledge base? Like what is the function of it? Some of you might already know, some of you might be scratching your heads. Like what the heck are we talking about?
+    [paragraph] We're gonna talk about the features, the functions of the knowledge base, the different ways that you can add resources to your knowledge base for your agents. And I'm gonna talk about adding the knowledge base to the agents. And I'm just gonna talk about testing and optimizing. So it's gonna be pretty short and simple class today. And then I do want to do a lot of things in QA, so. Some things to consider before we get started.
+    [paragraph] Last week, I mentioned this, and I think I'm going to keep mentioning this pretty much every single week.
+    [paragraph] The kiss method is very...
+    [paragraph] reliable, right? Just keeping it simple. So don't try to do too much. Do what you can. Iterate, optimize, right? Start something new. And if it's simple, it'll get you started and then you can always build from there.
+    [paragraph] Before you go into building an database, like what type of agent are you trying to train?
+    [paragraph] Voice AI agent and conversation AI agent are going to speak differently, right? Like in a conversation, on a call you can tell if there's different pronunciations, tone, speed of the way they're talking, all these things play into it, right? So while prompting is generally where that's handled, the information in the knowledge base and how you train it is going to affect that, okay? You want to understand the purpose or at least have a purpose or a goal for your agent.
+    [paragraph] So if it is a new lead agent, if it's a general Q&A agent, appointment booking agent, whatever the goal is for the agent, you want to train, use the knowledge base to fuel the training for that agent. So you don't want to just give this one knowledge base everything under the sun for five different agents. It just won't be optimal. You want to try to keep it specific to whatever that agent is going to be handling, It's Q&A or appointment booking or something of that sort, right?
+    [paragraph] It could be something else as well.
+    [paragraph] And then another thing that you should consider is do you have training resources?
+    [paragraph] Like how many training resources do you have? Do you have PDFs and SOPs and a website and a blog and all these different resources to train the agent? If you don't, getting some of those before you start building a knowledge base is going to be crucial. So with that being said, let's jump into the app. Let me pause my share. and You can start looking at the knowledge base. Okay. Let me back up a page here, I should guess where to go to get here.
+    [paragraph] We get to the knowledge base, we're going to go to AI agents and then you'll see a tab here on the top. Click on knowledge base. If you don't already have knowledge created, you're going to click on this button to create a knowledge base. But I'm going to jump in a couple of these that we're going to talk about today. So I'll jump in this one here. Before we start talking about the features, And I've already kind of inferred this with the beginning of this call, but the knowledge base is essentially what fuels the agent.
+    [paragraph] Okay. So everything you want the agent to know, the resources, the training, the information, it's all going to live here. Okay. So you have things like Web Crawler. FAQs, rich text, file uploads, tables. Don't mind the web search. That's something I didn't know this until today. That's actually something that we're testing internally. So essentially it's like the bot going out and searching the internet for information.
+    [paragraph] So it's not something that we're giving away to customers yet, but it is in our account. So it's visible right now. So don't worry about that one. But let's talk about these individually. So what is Web Crawler? WebCrawler is crawling web pages on the internet. So what it does is it goes out, grabs information from these web pages, and it stores it. inside of high level, like inside of this knowledge base.
+    [paragraph] It can pretty much to my knowledge, crawl any type of website, funnel, document, as long as it has a URL, it can go crawl that information, right? Google Docs, spreadsheets, all that.
+    [paragraph] We do have a really cool functionality on the web crawler. And this I think was released at level up in October. It is the automation for recrawling.
+    [paragraph] Okay, so one of the issues that existed for a while was in this, even when I was a customer, we had some of this stuff, like knowledge base, it was still very new, but an issue I had was I would train it.
+    [paragraph] And then I have to go in manually and click all these little buttons for each thing, you know, each one of these, if I updated a website or updated a document or something like that.
+    [paragraph] So this automation is really cool. You can set it up to auto refresh and recrawl that resource. And you can set it up daily, weekly, or monthly.
+    [paragraph] Generally, we're not changing things too much.
+    [paragraph] But if you do have a document that is kind of like an ever-changing document, you know, resource, then you can set this up maybe like a daily refresh. So every time you change it, it refreshes. Maybe it's like a sales training or some sort of, um, Training resources. Okay.
+    [paragraph] So, FAQs. We're going to get into FAQs a lot today, just because these are...
+    [paragraph] a resource that you can use while you're actively optimizing the bot, like you're watching it have conversations with people, and you're specifically in conversation AI, when you can see like the text responses, you can use thumbs up and thumbs down on the responses to let the AI know whether it's done a good job with its response. If you, use the thumbs down response, you're gonna have the ability to just change the question, change the answer, and it saves it as an FAQ.
+    [paragraph] Now I could come in here and just start listing FAQs. I could just put my question, put my answer, okay?
+    [paragraph] Generally, I would...
+    [paragraph] like fall back on more of like a document. If I wanted a full list of FAQs or something, I can just put all those resources in a document. I did learn that from the engineering teams, FAQs are generally prioritized when the bot is going to look for its information. So, because they're directly related to the way the bot's responding, meaning you're training the bot, it goes out, it has a conversation, you're in here kind of training it, optimizing it, and it saves that as an FAQ.
+    [paragraph] we're interpreting that as this is the golden standard or like the main way you want the bot to respond. Okay, so like this is the closest to the truth. that exists, right? So keep that in mind. I actually had somebody email me today or yesterday and asked that very same question. If I upload a file And I have an FAQ that answers essentially the same things that the file is addressing, the same topics, same related questions, which one's going to be prioritized when the bot answers.
+    [paragraph] And, um, The answer is the FAQs generally get that prioritization. Okay. But you can see, let's just say I put in, you know, what is high level?
+    [paragraph] The best software in the world. So I put that in an FAQ, it's going to show up right here. I can drop it down, show the QA, make edits to it, everything I need to do.
+    [paragraph] and give you some insights into, sorry, I got some Zoom stuff here, into what that would look like if I'm training a bot. And this is a different bot that I'm... Kind of mess around with I'll show you guys this today. I'll be like Let's see Um, How do I purchase... a swimming pool. Oops, capitalized the P. So I'm asked about a question and I'm gonna show you what I mean by when I Give feedback on a response how it can save to the FAQs.
+    [paragraph] Okay As soon as it wants to answer here.
+    [paragraph] By the way, I saw some hands raised. If you guys have questions, throw them in the chat, but we are going to get to Q&A. So please raise your hand if you have a question. Go ahead, raise your hand. I'm not going to get to anybody until we get to Q&A. But you know, we are going to have like a line, I guess Zoom does it like first person that raises their hands can be first and so on.
+    [paragraph] Okay, let's see. AI bot says, "Start with a consultation, discuss options and site needs. We'll advise, then provide an itemized quote.
+    [paragraph] You can finance through Lightstream or any lender you prefer." Now, if I didn't like that answer, I can click the thumbs down and I can change it to whatever I want it to be, right? Maybe I can just get rid of the finance parts. and make sure I choose the knowledge base I'm saving it to. So if you have multiple knowledge bases in your account, or if you have multiple knowledge bases attached to this agent, you wanna make sure you're saving it to the right knowledge base, okay?
+    [paragraph] And I would click train bot and now that would show up.
+    [paragraph] If I refresh... Oh, it's actually already there. Look at that. That would show up right here.
+    [paragraph] And again, those are gonna get priority over the other resources, okay?
+    [paragraph] Okay, so let's move on. Again, web search, don't mind that right now. Tables. Tables in the knowledge base itself are gonna be slightly different than let's say a Google spreadsheet.
+    [paragraph] The reason is 'cause we're hosting these tables natively in the platform. You can put a Google spreadsheet link into your knowledge base and you can have your bot go search that spreadsheet. The speed to which the bot's gonna get the information and extract the information and be able to answer the question I'm unsure of whether one or the other is going to be faster. But I do know that it's my assumption, like just as if I was a customer, I would assume that having that information natively in the platform is going to give the bot the functionality or the capability of getting that information faster.
+    [paragraph] It doesn't have to go out and search for it in a spreadsheet. There's no delay or lag in maybe that search function and then going on the internet to find something. functionality with it being hosted here. You can see, I think I talked about this in the voice AI class that I built this bot for high level, I'm sorry, level up, excuse me.
+    [paragraph] So the level up event in October was just, you know, our big event every year.
+    [paragraph] And I had this really cool bot that I built that told people about the event, all the speakers, the hotel and the amenities at the hotel, like navigation, all these really cool things.
+    [paragraph] We never ended up showing anyone.
+    [paragraph] We just, it was just too short of time notice and everything. We just didn't feel comfortable kind of promoting it in any way. But you can see, for example, I have a table, It says navigation, right?
+    [paragraph] This table, I have the--I wanted to, but I gotta run through the door. Can we set it up? Thank you, sir. So this one is about navigation. I'd like the booth number.
+    [paragraph] So we had a bunch of exhibitors. We had, I have the name of the exhibitors. I have the zone in which the exhibitors booth was. I have like where that booth was near. For example, this booth was near the main ballroom or the center of the Chantilly foyer. Right. And then I had like a notes thing for anyone else. So you could break this information down really, really well for the bot and structure it in a way that when you prompting is referring to certain pieces of information, for example, the navigation table, it can go extract that information really quick, right?
+    [paragraph] It can say, oh, well, yeah, I know this is booth number four, it's lead post and they're near the main ballroom doors, okay? So that's how I built this bot and it worked really, really well. And if you guys have a lot of information that can be put into a table like this, I would recommend breaking it down like that. You can add IDs. For example, I have a speaker list and we have like speaker IDs and we have all kinds of information per speaker, what day they're talking on, like what the topic is, the speaker description, things like that.
+    [paragraph] So. To me, this was a lot more functional than just putting it in a Google Doc. If I'm putting it here, it's going to search specifically for the spread or like the table. It's going to search specifically for the name or the ID of the individual. And it's going to have that information immediately instead of having to scan an entire Google Doc of information.
+    [paragraph] Awesome. So that's tables.
+    [paragraph] Again, you would create the table, just create the table outside of high level, like a CSV file, and then you'd import it in. You would do that here. So that's like add source, go to tables, and you'd go through that whole process. Very, very similar to adding contacts, importing contacts. You want to match the fields. So you have the fields in your table, Excel spreadsheet or something like that. You want to make sure that they're matched here so that all the information gets imported and then you're good to go.
+    [paragraph] RichText, this one's cool. I haven't used this one personally yet, but I know Chase used this one recently for, I don't know, a bot that he built, it was like an Instagram DM bot.
+    [paragraph] And you build it for this event, online event. It was a virtual event.
+    [paragraph] And I think this is, in my opinion, in my perspective, this is very similar to the tables, right?
+    [paragraph] You can have a Google Doc link in your knowledge base, or you can build essentially that Google Doc right here, right? And so we're giving you that resource to host that information here natively.
+    [paragraph] And from what I know about high-level software, all this stuff in general, it's going to be a lot easier for that bot to go extract that information.
+    [paragraph] It's going to be faster than having to go to like Google or something, Okay.
+    [paragraph] Again, this is pretty much straightforward rich text editor. You have all the cool rich text functionality. You can add links and change the fonts, change the structure.
+    [paragraph] Font size, bold, italics, all that fun stuff. Then every new documents, rich text document that you would create would show up here on the left-hand side, like the tables have individual tables here. You can create individual rich text documents here. And then file upload is very simple, right? You're just uploading files. I believe we allow, let's see, I know we have a list of files.
+    [paragraph] So right now we support PDFs, docs, and doc X, okay?
+    [paragraph] There are some file types that I tried to upload at one point that maybe customers just weren't asking for this functionality that I think I wasn't able to do it. I can't remember the exact doc type, like the file type, but the engineering team essentially just said, Never really got questions or, I'm sorry, requests for that document type to be uploaded to a knowledge base. We just never built it.
+    [paragraph] But generally, everything can be broken down to a PDF or a doc or something like that, right? If it's a spreadsheet and you want to exist here, again, you could just use the tables. You don't have to upload it here.
+    [paragraph] All right, so now that we talked about all of the functionality, Let's talk about adding the knowledge base to a BOTS So when I go into a bot, whether it's voice AI, and actually I am gonna open up a voice AI real quick to show you 'cause it might be slightly different. But right now we're in conversation AI, okay? You can see here that when I go to Bot Training, So bot settings is the default page when you go into an agent.
+    [paragraph] If I go to bot training, I'm going to have a dropdown. This dropdown is gonna give me the ability to select up to seven knowledge bases.
+    [paragraph] So if I have, a knowledge base specifically on sales, if I have a knowledge base specifically on support, specifically on like a particular service that I provide, I can break all that information down into individual knowledge bases and still train the bot without overloading a knowledge base with all of that information. Because something that maybe, I don't know if you, how many people here are experienced with AI, how many people are brand new to AI, but if you've been using AI for a little bit, you have seen that the more you, kind of like less is more, right?
+    [paragraph] The more you do with Bob, whether it's training, prompting, trying to get too technical or complex, it sometimes has a problem with that.
+    [paragraph] So what we've found isYou know, keeping it simple again, the KISS method is the best way. If you have seven different services, create an individual knowledge basis for those services, and you can add them all to one bot. That way when it's searching for the information, It's going directly to one central hub of information for that thing specifically, that service, right? And it's only going to see information about that service.
+    [paragraph] It's not going to cross threads. It's not going to get confused because sometimes there's a lot of very similar lingo terminology references in information that it may cross thread, right? It may... get confused on. So that would be my suggestion is trying to kind of silo the information, segment the information in different knowledge bases. Again, you will have to kind of figure out how to do it in seven knowledge bases.
+    [paragraph] If you have a whole bunch of different things that you're trying to train one bot on, you might have to consolidate a few things into one, right?
+    [paragraph] And so that you can at least figure fit the criteria or not go over this limit. But if you have multiple, you can select multiple here. You can see that I've selected all four of these. But we're not doing that today. So that is very, very straightforward. That's how you add knowledge base to the bot. You'll be able to kind of see what's included in the knowledge base here. If I add multiple, let me show you this.
+    [paragraph] We also have like tabs. So you can kind of switch back and forth. You can say, oh, I got this amount of web brawl links or this many tables in this one. It's just a visual representation. If I were to click one of these, it just opens up the knowledge base itself. So it's not an actual editing. Area for the knowledge base. It's just kind of like a visual of what exists there.
+    [paragraph] Okay Let me delete these cool And we talked a little bit about testing and optimization. But there is one functionality here, one feature that I do want to address.
+    [paragraph] And then I promise we'll get the Q&A. And how am I doing on time? Oh, look at that. Record time so far for the presentation. 30 minutes.
+    [paragraph] Okay. This button here. So I showed you the thumbs up, thumbs down.
+    [paragraph] This button right here is going to open up the information slide out, information hub. What we're going to have here is we're going to have the response. We're going to have the prompt and the intent that was used in that response.
+    [paragraph] We're going to have the knowledge chunks. in that response.
+    [paragraph] So the knowledge chunks essentially are like when it went to look for the information, what information did it extract and how did it chunk that information to provide the best response possible?
+    [paragraph] Then we also have the chat history. So the one I want to talk about is the knowledge chunks. So this is what's going to give you the ability to optimize the knowledge base.
+    [paragraph] It's going to show you where this answer was provided from, like what resource provided the information or at least what the bot thought was the best information to give the best answer. So if I go to the first one, I'm like, OK, this is the website.
+    [paragraph] I look through here. I'm like, OK, cool. Oh, well, look at that. That's where the Lightstream, the mention of financing with Lightstream was in. So I can go there, I can either figure out how to get rid of this. This was a web crawl, so I could probably just go in here.
+    [paragraph] Let's see Let's see, Dan Pools. It's probably not going to filter very well. Let's see.
+    [paragraph] Let's see if I had a space there if it works. No. Okay, so there's a lot of links I crawled in here. You could see there's a thousand links.
+    [paragraph] What I would like to do is go to the website and remove that. from the extracted information, but I'll show you how to do that essentially. So if you click on this button, what I showed you guys earlier, where the crawled information lives, if you click on this button and I delete, let's say I delete this right here.
+    [paragraph] and I save it.
+    [paragraph] Now that information is what exists for the AI. to crawl. The crawling has already happened. The AI needs to go extract that. That's why we store it here. I can effectively change what's stored by just editing this. little document and that's by using this button here. Now, again, if you do have auto refresh on, If I edit this, it will eventually get overwritten, whatever that auto refresh cycle is set to, daily, weekly, monthly, okay?
+    [paragraph] So keep that in mind if If you do update your documents frequently and you're like, oh, well, there's something there. I don't want to be in there. I would probably change on the website or whatever resources being crawled, like go change it there. Then when the AI crawls it, it won't effectively be in the knowledge base. But if you want a quick fix, right, you can change it here, click save and it'll be removed.
+    [paragraph] But the only way I knew that was where it got the information was by looking into the knowledge chunks. I've never known, oh, it was that specific page. I could have had 10 pages that talk about that specific type of financing, and I would have never known that it crawled that one to get the information. So this little section here, this knowledge chunk, and again, let me show you how to get here. You click on this little star button.
+    [paragraph] It opens up the slide out, then you got the dropdown, and then you can search where it got that information. is incredibly important and useful when you're optimizing the knowledge base. Other than that, I would say just running your bot through tests. If it's conversation AI, you obviously just sit here and type and have a conversation with it. If it's voice AI, what you can do is use the little test box, tester agent box here, right?
+    [paragraph] You don't need to have a phone number set up or anything. You just use the web call function and we give you 10 minutes. I'm not sure if that's going away, to be honest with you. I had some feedback for the team on that and I can't remember what their response was specifically, but yeah. I'm not sure if any of you see that, if maybe it's just my account and my account didn't get updated, this sub account was not updated.
+    [paragraph] But if you do have only 10 minutes a day, test it for 10 minutes a day, optimize your knowledge base and your agent, The next day, come back, utilize that 10 minutes. If that's the case, just from a pure optimization and testing standpoint, I would focus on not having a conversation, but getting right to the question. Like if you know, hey, I want to know if the AI is extracting this information properly, or I have a specific use case in a question that I know my customers are going to ask, just get right to that and don't waste all those 10 minutes, right?
+    [paragraph] Make the test maybe 20 to 30 seconds so you can test and optimize frequently. Okay.
+    [paragraph] But yeah, I mean, that's about it.
+    [paragraph] So there's not much to the knowledge base other than just making sure you have all of the information that you want and need in a knowledge base and then making sure you're optimizing it. So making sure you're checking the answers and responses that the AI is giving. You're on top of it. So, you know, you're because essentially it's just going to talk about what you train it on. Right. It's not going to go off the rails and start, you know, getting a little like hallucinating like the chat GPT bots do right so That is pretty much it.
+    [paragraph] I mean, we're going to get to Q&A here because I think That's going to be the meat and potatoes of this call.
+    [paragraph] With that being said, I'm sure there's a ton of questions in the chats.
+    [paragraph] And I see we got some hands raised.
+    [paragraph] I hope everyone enjoyed that presentation. Actually, you know what? If you enjoyed the presentation, go and throw a two in the chat for me. Really appreciate some feedback there, everyone. And if you didn't enjoy it, if you think it was too quick or too basic, throw a three in the chat. because I really need that feedback. All right. I appreciate the honesty, guys. Remember, honesty is key. I will not take offense if you guys want me to adjust things.
+    [paragraph] And we will have a feedback survey as well, just so everyone knows.
+    [paragraph] So I'm building that now.
+    [paragraph] I would love feedback on this. This is kind of like the beta run for these coaching calls. And your feedback is fantastic. critical for making these calls as good as they possibly can be. So.
+    [paragraph] Cool, cool, cool. All right.
+    [paragraph] Lots of twos, lots more twos and threes, but I do appreciate the threes, everyone. I do. All right. Let's get to Q&A.
+    [paragraph] Looks like the first one on my list is Darren.
+    [paragraph] How you doing, Darren?
+    [paragraph] Great. How are you doing?
+    [paragraph] I'm doing well, man. Thanks for being here.
+    [paragraph] Awesome. So I have a couple quick questions and it mostly revolves around training the bot. But in the FAQs, Can you make the FAQs more of a statement than a question in trying to also train the bot how do you want that to answer questions or even how to prioritize things in the prompt itself. Yeah, that's a great question. Can you give me like a use, just give me like a situation or use case? Because I think I understand what you're saying where maybe a specific question doesn't get asked, but you still want it.
+    [paragraph] Here's my use case. Here's my use case. I have a prompt.
+    [paragraph] And I have a very strict gatekeeper prompt for LSA ads. And the AI is designed to qualify the lead before it does a live transfer. And when somebody just asks for a live person, It's not supposed to transfer unless it's a qualified lead. They have to be either buyers or sellers of real estate. But every now and then it'll go ahead and just transfer without qualifying the lead. And so I need some way to be able to prioritize that either in the knowledge base, the FAQs or in the prompt itself, even though it's in the prompt not to do it, it still does it.
+    [paragraph] And so I don't know how to make that happen. You know, and not just even the chats, but also the voice. The voice is the one I'm having the main problem with. Gotcha. Yeah, so... What I was going to say, if voice is the main problem, this won't really solve it.
+    [paragraph] But what I was going to say was conversation AI, the flow builder might be really good for this situation, this use case, because the flow builder was essentially created for that multi-step control while it's still using AI, but you have more control and functionality in terms of branching and conditional logic and things like that. Generally, we want to just leave that up to AI, which is fine for most situations.
+    [paragraph] 80 to 85% of situations, right? But then you have use cases like this where you don't want that AI to transfer it. So if that were to come up and you have this specific branch, it would still respond like AI would, but you can branch it down. Like you don't have to type a response specifically. It's still AI. You could branch it and say like, do not transfer and ask this follow-up question or go in this direction with the conversation.
+    [paragraph] With voice AI, That's getting into the weeds, into testing and stuff like that. So what I would recommend is use ChatGPT or Gemini 3.0 to try to build some really hard and fast rules. Just use it for prompt engineering and try to get it to... Obviously, you have to test this. This is what I did, essentially, just back and forth for hours with ChatGPT and testing what it built for me to try to make sure it wouldn't...
+    [paragraph] and do the things I didn't want to do.
+    [paragraph] Yeah, I've done all that. I've been up and down Chat TPT, I've done it probably 100 times different ways. And for some reason, I just can't get it to do exactly what I want it to do. But that's all right. I'll keep working with that. The other one is that so on the conversation AI, when you train the bot and you go through training, did you say something about that it remembers those and puts those in an FAQ file or updates the knowledge base or how does that work?
+    [paragraph] Yeah, let me show that again here. Okay.
+    [paragraph] I wish there was a way to train the voice AI bot. You know what I mean? I do. They're...
+    [paragraph] Either there are and I'm just not aware of them or there will be. There are ways to...
+    [paragraph] Yeah, there's conversations about that. I don't know how much I can say, but this is really easy because it's text-based.
+    [paragraph] Essentially what we need to do there is just use the transcript and essentially control it that way. But I believe that's the direction that they're going is they want to give you that same freedom and functionality as the conversation AI bought. But what we had talked about with the FAQs, specifically when we're having a test conversation with the AI is, let's do this.
+    [paragraph] Actually, I'm just going to copy this.
+    [paragraph] Okay, so what we did here was we thumbs down this response and when we thumbs down that response, it gave us a pop-up that said, how do you want to change that? When I changed it, it updated the FAQs. So anything I, for example, this was actually the response that I changed it to or similar. That's actually perfect. Yeah, so it's word for word verbatim, right? So I thumbs down this, it opened up a pop-up.
+    [paragraph] When that happened, It saved it to my FAQs. So essentially what you could do is go through an entire conversation or dozens of conversations, read the conversations.
+    [paragraph] And as if AI is answering every single response, we'll have a thumbs up, thumbs down button. And then you could just kind of control it that way. Right. And you could see, I removed the light stream financing from it and it perfectly responded this time with the, basically the exact same thing, just without that light stream area or section. response.
+    [paragraph] So you could put the same question in there. Can I speak to a live person? And then based on the response, I could change that response.
+    [paragraph] Correct. Correct. Correct. Yes. Yeah. And again, I would mess around with the flow builder for that.
+    [paragraph] But if that, 'cause what I'm concerned about is if there, do you have any automation like human handover, the actions for your AI bot? Oh yeah. Okay.
+    [paragraph] So what I'm concerned of there is even if it responds, like you create an FAQ and there's a response, that that action would still take place. So what I would probably do is set up, and if you want to shoot me an email on this, I can kind of. mull it over and maybe I can kind of create a little test environment that would help you get started at least on this. But the flow builder is probably going to be the best place to go.
+    [paragraph] You can get the information from the person, use the AI splitter, branch it off and not create an action until you want it to perform an action. So if someone says, can I speak to a live agent and they're not qualified, They would just go down this branch and there would be no human rollover, even if But like, you know, in the current situation, it's trained to just do that action when that question is asked, right?
+    [paragraph] So we wanna make sure we control that environment. essentially. Let me put my email in the chat, actually, except for I didn't do that. Um... So for anyone When we're doing this Q&A and things kind of get into the more specific stuff that we can't address on the call, I'd love for you to shoot me an email and hopefully I can get back to them and we can kind of go over things via email or jump on a Zoom or something like that.
+    [paragraph] Cool. Thanks for the questions, Darren. I hope I was able to answer them you know, well for you. Yeah. Thank you. Cool. Next I got Dimitri. Yep. So I saw somebody asked the question I would have, and that is, you brought up having multiple knowledge bases is how would I tell the bot, hey, on this situation, and I'm doing really well too. So let's just say I had a knowledge base for five. people buying a house versus selling a house versus being an investor versus, you know, so how would I tell the bot Okay, this person is asking, you know, they're an investor, you've asked them what they are, are they an investor, and they say investor.
+    [paragraph] Now I want you to use the investor knowledge base for the rest of the answer, you know, rest of the answers. There are specific questions. prompt to do for that or Yeah, so you-I mean, yeah, I would definitely use prompting for that. Let me pull up voice AI because this is, I believe this functionality exists here. Oh, it's just the selecting knowledge base. Okay. So yeah, I would just use prompting.
+    [paragraph] Essentially breaking it down, not personality. It would be like additional information. Breaking it down and explaining to the bot like, hey, if this is a situation, use this knowledge base. And just use the same naming convention that you used for the knowledge base. It'll know which knowledge base that it's referencing. But again, test it, right? I mean, everything comes with a grain of salt. So you never know, it might slip up from time to time and you have to make that prompt stronger.
+    [paragraph] But I would just use prompting for that, you know?
+    [paragraph] Okay. You were talking or you showed tables. I've been using FAQs. I don't really like the crawling because... like you demonstrated, you're not necessarily sure what you're going to get. Right. So you test it, right? So I like certainty on things. In using tables as opposed to just using FAQs, what's the additional granularity that I get out of using a table in the knowledge base? Yeah, that's a fantastic question.
+    [paragraph] I mean...
+    [paragraph] Essentially breaking the information down into more extractable components, right? So that's my perspective. When I built these tables in this knowledge base.
+    [paragraph] Well, I guess let me refine that question a little bit.
+    [paragraph] Sorry, we got it.
+    [paragraph] I can create templates for sunrooms.
+    [paragraph] That wouldn't be that many. I can create templates for sunrooms.
+    [paragraph] As long as these templates are created and there's a generic general... There we go. All right, okay. Okay, so yeah, I wanna refine that question. So you had that knowledge base for level up that you had created. For instance, let's just say navigation and you were looking for booth such and such. How would the bot know if I said, hey, I wanna know how to get to the ABC booth. How would it know to look in that table to go to that table if you had multiples.
+    [paragraph] Yeah, that's a fantastic question. So where is this tape? All right, that is there. Oh, I'm not sharing my screen. I thought I was sharing my screen this whole time. Give me one second. Sorry. I'm going to pull up the agent and show you some of the prompting that I used.
+    [paragraph] Because essentially it's built into the prompting.
+    [paragraph] The prompting for this agent is... You're not sharing it. Yeah, yeah. I'm just pulling.
+    [paragraph] Oh, you're working it up.
+    [paragraph] Okay. Yeah. I just want to get to... There he is. Okay. All right, cool.
+    [paragraph] Here we go. So, when I went into the rabbit hole of prompting for this agent. There was a lot.
+    [paragraph] And one of the things that I did, or at least, you know, I worked it out with ChatGPT, obviously, like I'm not that smart. I have a section here, it's called data table keys. So, you know, it's aware of all the different types of IDs or like headers in the tables. Okay. But then another one, another section is called, maybe it's this one. No.
+    [paragraph] There's a navigation section in here. Somewhere.
+    [paragraph] But essentially I had to kind of, oh, this is a lot longer than I thought. Okay, here we go.
+    [paragraph] Amen.
+    [paragraph] Yeah, I don't see it off the top of my head. Let me see. Okay. I don't see it right now, but somewhere in here is navigation, essentially using the data table keys and the names.
+    [paragraph] It's right at the bottom here. navigation, right?
+    [paragraph] We have speakers, schedule, exhibitors, navigation. So we're telling it, hey, when you're asked a question about navigation, like reference these tables.
+    [paragraph] I'm in. Yeah. Okay.
+    [paragraph] All right. Cool. A MacBook Pro.
+    [paragraph] Something that I will throw out.
+    [paragraph] I was on my desktop. The bot. And I was trying to make it do a particular thing. I wanted it to... say a letter by letter in confirming an email address and it kept just saying the email address and As I was talking to the bot, I said, listen, I know in my prompting I told you to do this. And he looks back and he says, oh, yeah, I saw it. I did. You're right. I was supposed to do that. I'll do better next time.
+    [paragraph] The AI humility. Right.
+    [paragraph] So I said, okay, well, great. I'll call you right back. I'm going to give you another chance. So I did that and he still didn't do it. So then I started talking to it and going, listen, I'm giving you a prompt. You're telling me the prompt is there. You know you're supposed to do it, but you're not doing it. You don't have to put in for you to follow the instruction that I'm telling you to do. I want to know exactly letter by letter what's the prompt I'm supposed to put in.
+    [paragraph] It took three tries of asking that question. It actually gave me a prompt.
+    [paragraph] I actually typed that prompt in and it worked. Yep. I do the same thing.
+    [paragraph] I try to be patient with the AI, but it's frustrating sometimes, right?
+    [paragraph] You know, and it's not human, so it's like, just do it. But the thing is, is like sometimes, A, it will look over things.
+    [paragraph] So there are structures and formats of prompting that will probably work better. But again, none of us are experts there. I mean, I feel like sometimes even the engineers aren't experts there. I'm very close with some engineers that work on AI here and they lean on AI just as much when they're building AI, at least like prompting, right? Right. So it's just really trial and error, right? It's just something that you kind of gotta go through.
+    [paragraph] It's like a discovery phase.
+    [paragraph] We all kind of go through this, whether it's school or business or whatever, and you're like, oh, well, that's the thing.
+    [paragraph] I just did the thing and it gave me the results and now I get to move forward. So yeah, I've experienced that exact same scenario where I've, spend an hour trying to get AI to build a prompt for AI and it just won't work. Right. You know, it's like a cycle. So.
+    [paragraph] So my last question is this. So in a lot of my prompting and instructions, I have told it and I've used the code. So like, I want you to go look at this custom field has a value in it or not.
+    [paragraph] And if it does, you don't need to confirm, you know, you don't need to ask for it, but you can confirm it later.
+    [paragraph] I want to move into...
+    [paragraph] Sometimes I want to overwrite that information and I put in an action to do that and it doesn't happen. Is there prompting that I should have done as well?
+    [paragraph] What's the fastest way to do it? You can't just cut them.
+    [paragraph] I mean, that's where I would start for sure.
+    [paragraph] So the scenario, correct me if I'm wrong, is probably like the AI is talking to a customer.
+    [paragraph] You have data in the database in a custom field or something like that. And in the conversation, the customer can like... rejects that and says, hey, this changed. Then the AI needs to change that, right? Yeah, needs to update it.
+    [paragraph] So from real estate, I would say, hey, I'm calling.
+    [paragraph] I just want to confirm I got the right address, 123 Main Street. And they say, no, it's 567 Blue Street. Oh, okay, let me update that. And then make sure that it overwrites it.
+    [paragraph] I've had it where it's not overwriting it. Okay. Yeah, I think that's... I would just try to do it in prompting, obviously, right? Like I would say if at any point in time, there's a rejection of information by the caller, by the person person that AI is having a conversation with, confirm something with them. So essentially you're saying like there's a rejection. Now the AI needs to go, well, is there something I need to do?
+    [paragraph] Right. Is there something I need to change? And so with that, you're adding a step in between that maybe it'll help increase the success rate of changing the information. Because a lot of the times when you're asking questions, it's like question answer. It knows, hey, the answer is exactly where I'm going to change. Like that information needs to be updated in the contact field. So maybe it'll give you a little bit more rigidity to that flow and a little bit more like the AI will have more confidence when it comes to changing.
+    [paragraph] Okay. All right. All right. Very good. All right. Thank you. Yeah, of course, man. Roger. How you doing?
+    [paragraph] Mr. D. Roger Maves, you're up next, sir. All right, going once. Going twice. Sold to the next hand. All right, but keep your hand up, Roger, if you can hear me. I don't know if you're on the phone or something, but we'll get to you afterwards. Nico, you're up next. What? Hello?
+    [paragraph] Nico, can you hear us?
+    [paragraph] All right, we're gonna go on to the next one. We'll get back to you guys when you're back. Dean, you're up next on my list.
+    [paragraph] I'm trying the command option V. and it's not working.
+    [paragraph] Can you check the chat?
+    [paragraph] Check the chat. Yeah, I think your team may have to unmute each one of us. I don't have that because I think you muted everyone earlier and just unmuted Dimitri.
+    [paragraph] But anyway, you may have to go back to Roger and Nico. OK, let's see. I'll make mine quick because I know this is getting long. The first thing I would say is to everyone, learn prompting because that's the key. If you can master the prompting, you can master AI because that's really what it's all about.
+    [paragraph] One of the high-level team members told me, If you will ask ChatGPT to give you the prompt to give back to ChatGPT, Then chat GPT will give you the prompt first, and you can give it back to them, and it'll be more accurate. So that's an important skill to learn in any AI is prompting. I agree. My question is pretty straightforward. For services industry, so I sell window coverings, but in the services industry, HVAC, plumbing, and all this other stuff, sometimes consumers, you could close a deal, the AI can close a deal or get a calendar appointment better if they have a picture.
+    [paragraph] So if they're in the conversation AI or even if it's a voice AI, and I think there's a way that the voice AI can send a text message while on the phone, If there's a way that images can be either because I didn't see images in the knowledge base. I didn't see that in there. I'll look one more time in mine. Yeah, it's just the dollar FAQ tables. Right. Correct. I think it would be crazy for a high level to host all the images.
+    [paragraph] It may be faster for the AI, but is there a way for AI to... to go through to the source. So if you have a web crawler that would go to one of your knowledge-based websites, grab a particular image, Specific to the question, so if it's a plumbing company and the homeowner says, "Well, I don't know how big, where the pipes come out of a, you know, hot water heater, where would that pipe go in my wall?" Because it may be mine set up different, maybe they can say, "Well, here's an ideal picture of what it looks like for an install." And I'm not a homeowner, so, you know.
+    [paragraph] No, that's a good point.
+    [paragraph] Yeah.
+    [paragraph] I don't know if that functionality exists.
+    [paragraph] From what we can see, yeah, from what we can see in like the knowledge base, web crawl, things like that, there are no stored images. But what I can do, if you email me, I will look, you know, check with the product teams and see what they got cooking because they might have that coming down the pipeline. Okay.
+    [paragraph] I do know that it can interpret images. Oh, go ahead.
+    [paragraph] I'll play after you, go ahead.
+    [paragraph] So I know that AI can send a link to a calendar appointment. It can send stuff like that through. The question becomes, can it send the actual image or would it send a link where you, the person on the other end can just click the link and go through to the image. If you don't mind, Andrew, I don't mind. Yeah, of course. Currently, it would be able to send the link through, but it doesn't have that functionality to actually send an image directly through Conversation AI.
+    [paragraph] It can receive images and understand what those images are as long as you have the features turned on and everything like that. But as far as regurgitating an image back to the client, it is not currently within the functionality of Conversation AI. Okay, and the only other question I would have to support that before we move to the next person in the chat is bandwidth and volume and pricing. Obviously, videos are larger than images, images are larger than text.
+    [paragraph] If this is something that is added to the back end and stored in the database, I think it could get rather large pretty quick. I'm sure, yeah. Okay. Is that probably the holdup? Because I know AI can, chat GPD can spit out an image to you.
+    [paragraph] So not quite.
+    [paragraph] And there's something in the pipeline that's coming for the agent studio that should be able to accommodate exactly what you're looking for as well. It should be the AI router node. In that sense, once that AI router node is released for the agent studio, I believe what we would be able to do then is to essentially link the bot into the agent studio and then have aThe generative AI. Yeah, actually be able to translate, send out those images back to the client through the actual conversation that's happening.
+    [paragraph] Okay. Right. For me personally, I don't want AI generating an image and sending it to my...
+    [paragraph] Or, yeah, there's a lot of functionality, right? Like API connections and things like that.
+    [paragraph] Or 14 fingers and three arms.
+    [paragraph] I would rather just grab an image that I... Because in my industry for window coverings, I have a particular window covering that answers that question. And I want to go to that image and pull that specific image and display it. Because this is what I do on a mobile phone. They say, can you do this? Yes. As opposed to them generating it, I'm just looking for if we had a repository, a source, that if they could pull the image and submit it.
+    [paragraph] If not, then just the link would be fine.
+    [paragraph] What I would love, Dean, is do you have something up in the ideas board about this?
+    [paragraph] Don't but I could put it there.
+    [paragraph] Yeah, I would put it up there and then shoot me an email and I don't know where the team's going.
+    [paragraph] This is obviously, we don't talk about a lot of like feature releases, maybe sometimes in these calls. But that's where my brain goes. Like I love features.
+    [paragraph] I get excited for feature releases, things like that.
+    [paragraph] So what I would assume if there is something in the pipeline, what I would build is we already have a media storage.
+    [paragraph] Give the AI the same way as a knowledge base, the functionality to pull from media storage.
+    [paragraph] You're already uploading into high level. You're doing that hard work. You're storing it already. So I don't know where that's at. I have no idea what we're doing. I'll go find out and see what's on the pipeline or on the roadmap. But I could only assume that if there are other people asking about this already, that we're already looking into it. That's how the team works. And if there aren't, if you all know, you amazing, people start asking about it, then I'm sure it'll get their attention and we will start figuring it out and working on something.
+    [paragraph] Yeah.
+    [paragraph] Very good. Thank you. Yeah, thank you for the questions. Roger. Yeah, I think you called my name and I stepped away for a second. Oh, perfect. Okay.
+    [paragraph] Good to see you, man. Good to have you here.
+    [paragraph] Yeah, yeah. Yeah, along the same lines is really what I was going to recommend is, because we had talked about this the last session about doing courses online.
+    [paragraph] That kind of thing.
+    [paragraph] And the same kind of issue comes up there. If I want to build bots for my course, I should be able to use the content from that course as my knowledge base. So if I'm going to upload a let's say we have a lesson, we have a video. So I upload a video. I upload the audio track for that. I upload a PDF of the transcription of the call. So those would be typical. And I might have an FAQ for that lesson as well in that lesson.
+    [paragraph] So all that is valuable data that could be used for the chat bot.
+    [paragraph] I totally agree.
+    [paragraph] And I know we're not I know we're not automatically. Yeah. transcribing videos, but that would be a nice thing to have because there, if I was able to add the video or the all three things. In that case, they would all be the same. So maybe even just the transcript, which we can do now, but I'd have to upload it twice as it is now, right? Yeah. And so then if that gets updated or changed, then I have to remember to go to two places to do that rather than just have the one upload.
+    [paragraph] So that was kind of where... My same kind of question is, and I know because of the other town hall calls and stuff, you know, there's a lot of talk of this sharing the media library, sharing them, you know, to have that one central place. So we're not duplicating storage space and all that stuff. So anyway.
+    [paragraph] Yeah. It just seems like the logical direction.
+    [paragraph] And for anyone that's new to high level, like I said, in the beginning, I've been around pretty much since the beginning, like early, I think it was like May, April, March or April of 2019. So, Very soon after they started promoting to marketing agencies, I was a customer. I think that's the best thing about this company, which is why I came to work for this company after I sold mine is we tend to do things the right way in terms of like how we approach customers, like how we listen to customers, the feedback, the building, the iterations, those types of things.
+    [paragraph] So if it doesn't exist today, The only thing stopping it from existing is, is customers asking for it. That's really how it works. Right. Which is really cool. And so, um, personally, I think that's kind of the, the direction that all of this is going anyways, is like, we really want to have the functionality, the capability to pull information from anywhere in the system. So whether it's a membership course, right.
+    [paragraph] Uh, uh, the library, the media storage, reporting, like any of those areas, like you can extract that information. The AI can use it for valuable purposes. So that would be my opinion in terms of like the direction and how I would like to see it go. So how it's actually on the roadmap, I'm not quite sure.
+    [paragraph] Yeah, that's what I was just going to ask is if I were to go put out suggestions, do I put it in courses or do I put it in AI or put it in both?
+    [paragraph] Put it in both. I mean, it's hard to say because then one might get a vote and the other one might not get seen.
+    [paragraph] What I would probably do is put it in AI, but make sure the naming conventions, like when you make that idea, include everything you're talking about. So even if it's just a bunch of like blocks of things or commas or separators and right, because when somebody goes to search. they're essentially text searching. So the searching is pulling up the text response for what they're looking for.
+    [paragraph] Yeah, okay. And I totally agree. And everybody, I think, feels the way you do, Andrew, about high level. I mean, I've been developing software since 1980. So, I mean, I go back a long ways, but no company was ever as open about development as high level. No one. It's all been closed book kind of stuff. You didn't know what was going on. And I mean, kudos to high level for how they're doing it.
+    [paragraph] Yeah, not to get in the weeds here, but like my old business partner, so I ran a company called Chat HQ with my partner, Sergio, and he was a very experienced engineer. And I remember in the early days when the developer console calls just started, I mean, you know, Varun and Karan, And everyone over there, they love Sergio, but Sergio was, he's very straightforward. He was like, listen, guys, we need this.
+    [paragraph] Cause he was a very off, like organized engineer, very talented engineer. And they never flinched. I mean, they were so accommodating and just right there. Like, yeah, you're right. Like that seems like something we need to build, or that seems like something we need to do for security measures or whatever it is. And just allowing people to come in early like that and be this close group of engineers that were using the platform.
+    [paragraph] different way that could essentially help them see blind spots, right? Like this community-based building. And they never, yeah, like I said, they never flinched. They never like shut things behind closed doors, at least in terms of data, obviously certain things were not accessible, but.
+    [paragraph] just the custom JavaScript and custom CSS addition or whatever it is where you could just completely change everything in high level. It was wild. The early days were fun.
+    [paragraph] Even this morning on the town hall meeting I was on, Sean jumped in. And he participated. And during the course of the conversation, there was a couple, yes, we need that. Let's do that. It needs to be this way. Yeah, that's right. I mean... it's, you know, hardly ever get the CEO of the company, you know, sitting in on ever, if ever. Yeah. Yeah. Yeah. It's a, like a TV or like a broadcast or like, you know what I mean? Like a controlled environment. Yeah. He was in the weeds and, uh, it was, it was great. I'll tell you what, you won't get that from HubSpot CEO. No, no, no. So we'll jab in the side. Um,

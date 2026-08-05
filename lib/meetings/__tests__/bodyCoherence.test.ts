@@ -122,4 +122,82 @@ describe("checkBodyCoherence — the verdicts that are not mismatch", () => {
     });
     expect(result.verdict).toBe("coherent");
   });
+
+  // Q89 inc.10 — "nobody ruled" and "ruled internal" must never be the same verdict.
+  describe("the third state: an internal meeting with no counterparty", () => {
+    const internal = {
+      examined: true as const,
+      counterparty: "none" as const,
+      reason:
+        "a coaching call Rob facilitated on HighLevel knowledge bases; participants are unnamed",
+      sourceRef: "body ¶1 + to-do ‘@Robert Acheson to create feedback survey’",
+    };
+
+    it("rules an examined counterparty-less row internal, NOT unverifiable", () => {
+      const result = checkBodyCoherence({
+        asserted: [],
+        body: "Robert facilitated a coaching call focused on knowledge bases for AI agents.",
+        counterpartyReview: internal,
+      });
+      expect(result.verdict).toBe("internal-no-counterparty");
+      expect(result.verdict).not.toBe("unverifiable");
+    });
+
+    it("still refuses to publish an internal row — a reason to stop, not a licence", () => {
+      const result = checkBodyCoherence({
+        asserted: [],
+        body: "internal training session",
+        counterpartyReview: internal,
+      });
+      expect(result.safeToPublish).toBe(false);
+    });
+
+    it("prints the human's reason and the line it came from, so the ruling is checkable", () => {
+      const result = checkBodyCoherence({
+        asserted: [],
+        body: "internal training session",
+        counterpartyReview: internal,
+      });
+      expect(result.reason).toContain("coaching call Rob facilitated");
+      expect(result.reason).toContain("@Robert Acheson");
+    });
+
+    it("says an internal row is owed no further read, unlike an unexamined one", () => {
+      const ruled = checkBodyCoherence({
+        asserted: [],
+        body: "internal training session",
+        counterpartyReview: internal,
+      });
+      const unruled = checkBodyCoherence({ asserted: [], body: "internal training session" });
+      expect(ruled.reason).toContain("not owed another read");
+      expect(unruled.reason).toContain("still owed a read");
+    });
+
+    it("treats an omitted review as unexamined — silence is never a ruling of 'none'", () => {
+      const result = checkBodyCoherence({ asserted: [], body: "some body text" });
+      expect(result.verdict).toBe("unverifiable");
+      expect(result.safeToPublish).toBe(false);
+    });
+
+    it("treats an explicit examined:false the same as an omitted review", () => {
+      const result = checkBodyCoherence({
+        asserted: [],
+        body: "some body text",
+        counterpartyReview: { examined: false },
+      });
+      expect(result.verdict).toBe("unverifiable");
+    });
+
+    it("lets the BODY overrule the ruling when a counterparty IS asserted", () => {
+      // A ruling of "internal" cannot excuse a row whose summary names a company the
+      // body never mentions — that is inc.9's welded-rows defect, and it still wins.
+      const result = checkBodyCoherence({
+        asserted: [{ term: "BBX Moving Company", sourceRef: "summary" }],
+        body: "an automation walkthrough that names no counterparty at all",
+        counterpartyReview: internal,
+      });
+      expect(result.verdict).toBe("mismatch");
+      expect(result.safeToPublish).toBe(false);
+    });
+  });
 });
