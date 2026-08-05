@@ -120,8 +120,8 @@ export function candidatesFromActivity(a: Activity): {
  * "source order" on an unranked block means something stable a reader can follow. Rows
  * with no `occurredAt` sort last rather than being dropped.
  */
-export function intelSourceFromActivities(activities: Activity[]): IntelSource {
-  const meetings = activities.filter(isMeeting).slice().sort((x, y) => {
+export function sortMeetingsByOccurrence(activities: Activity[]): Activity[] {
+  return activities.filter(isMeeting).slice().sort((x, y) => {
     const a = x.occurredAt || "";
     const b = y.occurredAt || "";
     if (a === b) return 0;
@@ -129,6 +129,10 @@ export function intelSourceFromActivities(activities: Activity[]): IntelSource {
     if (!b) return -1;
     return a < b ? -1 : 1;
   });
+}
+
+export function intelSourceFromActivities(activities: Activity[]): IntelSource {
+  const meetings = sortMeetingsByOccurrence(activities);
 
   const candidates: IntelCandidate[] = [];
   const unusable: { activityId: string; reason: string }[] = [];

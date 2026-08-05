@@ -80,9 +80,16 @@ function Block({ block }: { block: IntelBlock }) {
 export default function MeetingIntelSection({
   intel,
   meetingCount,
+  // Q89 inc.4 — the Overview shows the same four blocks across every company, so it needs
+  // its own heading and its own denominator ("3 meetings · 2 companies"). Both are plain
+  // labels supplied by the caller; this component still computes nothing.
+  title = "What the meetings taught us",
+  countLabel,
 }: {
   intel: MeetingIntel;
   meetingCount: number;
+  title?: string;
+  countLabel?: string;
 }) {
   // No meetings and nothing rejected: there is no gap to report. Four empty boxes on a
   // company we have never spoken to would make "no calls yet" and "call went uncaptured"
@@ -92,9 +99,9 @@ export default function MeetingIntelSection({
   return (
     <section className="rounded-xl border border-white/10 bg-white/5 p-5">
       <div className="flex items-baseline justify-between gap-2">
-        <h2 className="font-semibold text-white">What the meetings taught us</h2>
+        <h2 className="font-semibold text-white">{title}</h2>
         <span className="text-[11px] uppercase tracking-wide text-slate-500">
-          {meetingCount} meeting{meetingCount === 1 ? "" : "s"}
+          {countLabel ?? `${meetingCount} meeting${meetingCount === 1 ? "" : "s"}`}
         </span>
       </div>
 

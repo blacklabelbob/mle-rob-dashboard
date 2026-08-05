@@ -5,6 +5,9 @@ import GenericDomainBlocklist from "@/components/GenericDomainBlocklist";
 import DedupQueue from "@/components/DedupQueue";
 import NeedsActionPanel from "@/components/NeedsActionPanel";
 import EquitySplits from "@/components/EquitySplits";
+import MeetingIntelSection from "@/components/meetings/MeetingIntelSection";
+import { networkIntelFromActivities } from "@/lib/meetings/networkIntel";
+import { buildMeetingIntel } from "@/lib/meetings/meetingIntel";
 import { dealCandidate } from "@/lib/equity";
 import { computeStats, contribution, isDemo, money } from "@/lib/stats";
 import { isOriginId } from "@/lib/records/origin";
@@ -37,6 +40,20 @@ export default async function Overview() {
   // to be here dropped `equity` — a split corrected on a deal saved fine and then
   // rendered as the stale prose number.
   const equityCandidates = [...data.people, ...deals.map(dealCandidate)];
+
+  // Q89 inc.4 — the Overview half of "what the meetings taught us". Guarded for the same
+  // reason the company record is: an activity-store outage must not 500 the master
+  // surface, and it must not degrade into four empty blocks, which would convert OUR
+  // failure into a claim that nothing was said on Rob's calls.
+  let networkSource = networkIntelFromActivities([], {});
+  let meetingIntelUnavailable = false;
+  try {
+    const orgNameById = Object.fromEntries(data.people.map((p) => [p.id, p.name]));
+    networkSource = networkIntelFromActivities(await store.listActivities(), orgNameById);
+  } catch {
+    meetingIntelUnavailable = true;
+  }
+  const networkIntel = buildMeetingIntel(networkSource.candidates);
 
   const willItems: { project: Project; item: WillItem }[] = data.projects.flatMap(
     (project) => (project.willItems ?? []).filter((i) => !i.done).map((item) => ({ project, item }))
@@ -132,6 +149,31 @@ export default async function Overview() {
         </section>
 
         <ThingsToAddress mode="overview" />
+
+        {/* Q89 inc.4 (Rob, 2026-08-05): *"make sure all of this stuff is brought front and
+            center when you look at the overview in the CRM"* — the same four blocks that
+            sit on a company record, across every company, from the same gate. Sits under
+            Things to Address because that panel is where the CRM says what is wrong; this
+            is where it says what the calls actually taught us. */}
+        {meetingIntelUnavailable ? (
+          <section className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 text-[12px] text-amber-300/90">
+            What the meetings taught us could not be read — the activity store did not answer. That is
+            our outage, not a statement that nothing was said on your calls.
+          </section>
+        ) : (
+          <MeetingIntelSection
+            intel={networkIntel}
+            meetingCount={networkSource.meetingCount}
+            title="What the meetings taught us — across the network"
+            countLabel={`${networkSource.meetingCount} meeting${
+              networkSource.meetingCount === 1 ? "" : "s"
+            } · ${networkSource.companyCount} compan${networkSource.companyCount === 1 ? "y" : "ies"}${
+              networkSource.unattributedMeetings > 0
+                ? ` · ${networkSource.unattributedMeetings} unattached`
+                : ""
+            }`}
+          />
+        )}
 
         {/* Q41 inc.1 (Rob dev-chat #53): equity splits sit high on the master
             surface because Rob had to ask whether we had any — and then correct

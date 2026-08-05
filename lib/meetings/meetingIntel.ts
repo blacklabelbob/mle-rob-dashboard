@@ -75,6 +75,14 @@ export type Provenance = {
   excerpt?: string;
   /** Deep link a human can click. Optional — its absence never fabricates one. */
   url?: string;
+  /**
+   * Q89 inc.4 — WHOSE record this came from, set only where one surface shows more than
+   * one company (the Overview). It is part of the ADDRESS, never part of the claim: it
+   * is stamped onto provenance rather than prefixed onto `text`, because the moment a
+   * company name is glued into a pain point the sentence stops being the customer's
+   * words. Absent on a single-company surface, where it would be noise.
+   */
+  context?: string;
 };
 
 export type IntelCandidate = {
@@ -151,7 +159,11 @@ export function isVerbatim(text: string, excerpt: string): boolean {
  * Returned as text so a caller with no deep link still shows something checkable.
  */
 export function sourceLabel(p: Provenance): string {
-  return `${p.meetingId} · ${p.sourceRef}`;
+  const address = `${p.meetingId} · ${p.sourceRef}`;
+  // One label function, so a cross-company surface cannot grow a second way of writing
+  // an address that drifts from this one. Context leads because that is the order a
+  // human checks in: whose call, then which call, then which line.
+  return p.context ? `${p.context} · ${address}` : address;
 }
 
 function validate(candidate: IntelCandidate): RejectedCandidate | IntelItem {
