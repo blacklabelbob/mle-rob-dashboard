@@ -24,9 +24,11 @@ import {
   findKeylessStacks,
   findTitleNearMisses,
 } from "../lib/flags/dedupeKeyIdentity.ts";
-import { LEDGER_FILERS, measureNamespace } from "../lib/flags/keyNamespace.ts";
+import { DEPARTURE_FAMILY, LEDGER_FILERS, measureNamespace } from "../lib/flags/keyNamespace.ts";
 import { censusFilers, censusLines, scanTree } from "../lib/flags/filerCensus.ts";
 import { auditDeclaredKeys, declarationLines } from "../lib/flags/keyDeclaration.ts";
+import { familyEscapes, familyShapeLines } from "../lib/flags/familyShape.ts";
+import { departureKey } from "../lib/integrity/wrapperClock.ts";
 import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -107,6 +109,22 @@ const census = censusFilers(emissionSites, LEDGER_FILERS);
 // the patterns its filer declares — and prints, rather than hides, the ones it cannot resolve.
 const declaration = auditDeclaredKeys(LEDGER_FILERS, emissionSites, treeReader.read);
 
+// Q84 inc.187 — the half of the family the derivation above does not reach. inc.186 proved the
+// PREFIX `wrapper-census-departure:*` comes from its producer; nothing constrains what follows it,
+// and `/`, a trailing `*` or a `,` in a wrapper's name each break a different reader (see
+// lib/flags/familyShape.ts). The live scan cannot mint those — `path.basename` — but the CARRIED
+// names come out of this JSON, where only "non-empty string" is checked. So the file is measured,
+// not assumed.
+const censusDoc = JSON.parse(treeReader.read("docs/integrity/wrapper-census.json"));
+const censusNames = [
+  ...censusDoc.wrappers.map((w) => w.name),
+  ...(censusDoc.openDepartures ?? []).map((d) => d.name),
+];
+const shape = {
+  checked: censusNames.length,
+  escapes: familyEscapes(departureKey, censusNames, DEPARTURE_FAMILY),
+};
+
 if (JSON_OUT) {
   console.log(
     JSON.stringify(
@@ -121,6 +139,7 @@ if (JSON_OUT) {
         namespace,
         census,
         declaration,
+        shape,
       },
       null,
       2,
@@ -190,6 +209,13 @@ if (JSON_OUT) {
     console.log(
       `  ${declaration.checked} of those emissions resolve to a fixed key and every one is declared by ` +
         `its filer — the shape above is measured against the keys prod actually files.`,
+    );
+  }
+  for (const line of familyShapeLines(shape.escapes)) console.log(`  ${line}`);
+  if (!shape.escapes.length) {
+    console.log(
+      `  ${shape.checked} of ${shape.checked} census names mint a key inside ${DEPARTURE_FAMILY} — the ` +
+        `pattern's suffix is unconstrained by its producer, so it is measured here rather than assumed.`,
     );
   }
 
