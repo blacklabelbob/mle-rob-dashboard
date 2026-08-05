@@ -9,8 +9,23 @@
 -- read what in prod; it is committed so that go costs one `supabase db push`, not a
 -- design session.
 --
--- RLS is not the instrument. Row-level security filters rows; the DoD asks that a
--- booker be unable to read `quoted_amount` on a row it may otherwise see. That is a
+-- THE TWO ROLES READ IDENTICALLY. Rob, 2026-08-05: "Theres nothing an appt booker
+-- shouldnt be able to see that a Sales Rep is able to see. At least nothing I can think
+-- of at the moment." Every grant below is the same column list for mle_rep_read and
+-- mle_booker_read, and every withheld column is withheld from BOTH. If you are reading
+-- this file to find out what a booker may see that a rep may not, the answer is
+-- nothing, in either direction. The roles stay two names because the line may move
+-- again; a per-role split is a breach in lib/security/roleGrants.ts until it does.
+--
+-- WHAT IS STILL WITHHELD, from both: `equity` on people/orgs/deals (owners only — Rob
+-- 2026-07-29, "I dont want to show any equity to anyone but Will and I"), the owners'
+-- invoice ledger (amount, client_legal_name, payment_plan_note, status_text and the
+-- `pdf` path that spells them out), the countersign record on documents, and the e-sign
+-- audit trail on signature_requests. Parity raised the booker to the rep; it did not
+-- open the owners' data to either.
+--
+-- RLS is not the instrument. Row-level security filters rows; this model asks that
+-- neither role be able to read `equity` on a row it may otherwise see. That is a
 -- column privilege, and a table-level GRANT cannot be narrowed by a column-level
 -- REVOKE — hence revoke-then-grant-a-list below.
 
@@ -27,22 +42,24 @@ end $$;
 -- service_role is deliberately untouched: every server route reads through it.
 
 -- activities — 16 columns on disk
---   withheld: transcript_url from mle_booker_read — a booker books; other people's call recordings are not part of it — the same refusal as people.transcript_url and orgs.transcript_url, on the table those links actually hang off
---   withheld: recording_url from mle_booker_read — the audio the transcript beside it is OF. Withheld with `transcript_url` rather than after it: the previous pass refused the transcript link on the words 'other people's call recordings are not part of it' and granted this one in the same statement, because the name classifier matched /transcript/ and had no /recording/. The refusal was real and the leak was total — the booker lost the text and kept the recording
+--   NO column is withheld on this table, deliberately — the call/meeting timeline. Both refusals it carried (`transcript_url`, `recording_url`) were booker-only and were released 2026-08-05; the table stays covered so the revoke-then-grant statement still names its columns, and so a sensitive column added here tomorrow is still a breach rather than a silence
 --   kept, deliberately: created_by — which MLE person logged the activity — attribution on a shared timeline, and a timeline that cannot say who did the thing is not an audit of anything
+--   kept, deliberately: transcript_url — the transcript link on the table those links actually hang off. Same release as people/orgs.transcript_url; the rep already had it and the booker now does
+--   kept, deliberately: recording_url — the AUDIO the transcript is of — granted with `transcript_url`, never one increment apart. inc.28's leak was refusing the transcript while granting this; the mirror mistake would be granting the transcript while refusing this, and both are the half-refusal the pair rule exists to stop
 revoke select on public.activities from mle_rep_read;
 grant select (action_items, book_protected, buying_signals, created_at, created_by, deal_id, id, occurred_at, org_id, person_id, recording_url, source, source_context, summary, transcript_url, type) on public.activities to mle_rep_read;
 revoke select on public.activities from mle_booker_read;
-grant select (action_items, book_protected, buying_signals, created_at, created_by, deal_id, id, occurred_at, org_id, person_id, source, source_context, summary, type) on public.activities to mle_booker_read;
+grant select (action_items, book_protected, buying_signals, created_at, created_by, deal_id, id, occurred_at, org_id, person_id, recording_url, source, source_context, summary, transcript_url, type) on public.activities to mle_booker_read;
 
 -- call_transcript_segments — 9 columns on disk
---   withheld: text from mle_booker_read — the verbatim words of a call. Kept for the rep — reviewing calls IS the rep's job (and the /rep cockpit reads them); withheld from the booker on the same rule as people.transcript_url. Whether a rep should reach only their OWN calls is a ROW question a column privilege cannot answer, and it is Rob's org-chart call, flagged not guessed
---   withheld: speaker from mle_booker_read — who said the words that `text` beside it is withheld for. A speaker label on a per-segment row is the customer's or the rep's identity attached to a specific moment of a call, so keeping it while refusing the text hands over who was on the call and what it was about — the same half-refusal shape as the transcript/recording pair
+--   NO column is withheld on this table, deliberately — the verbatim call record. `text` and `speaker` were its only refusals and both were booker-only; reviewing calls is the job of both roles now, and the coverage is what keeps the next column on this table from arriving unruled
 --   kept, deliberately: transcript_id — the foreign key to call_transcripts, classified PII only because /transcript/ matches the name. A join key carries no words; `text` beside it is the content and that is what the booker is refused
+--   kept, deliberately: text — the verbatim words of a call. Booker-denied on 'the same rule as people.transcript_url' — that rule is gone. Whether a rep or booker should reach only their OWN calls is a ROW question a column privilege cannot answer, and it is still Rob's org-chart call: flagged, not guessed, and unchanged by 8/5
+--   kept, deliberately: speaker — who said the words `text` beside it carries. Granted with the text for the same reason it was withheld with the text: a speaker label without the words, or words without the speaker, is half a record
 revoke select on public.call_transcript_segments from mle_rep_read;
 grant select (confidence, created_at, end_ms, id, idx, speaker, start_ms, text, transcript_id) on public.call_transcript_segments to mle_rep_read;
 revoke select on public.call_transcript_segments from mle_booker_read;
-grant select (confidence, created_at, end_ms, id, idx, start_ms, transcript_id) on public.call_transcript_segments to mle_booker_read;
+grant select (confidence, created_at, end_ms, id, idx, speaker, start_ms, text, transcript_id) on public.call_transcript_segments to mle_booker_read;
 
 -- deals — 18 columns on disk
 --   withheld: equity from mle_rep_read, mle_booker_read — spin-off equity is OWNERS-ONLY (Q41) — same line Rob drew on people.equity 2026-07-29
@@ -66,21 +83,20 @@ grant select (countersigned_at, countersigned_path, created_at, created_by, deal
 
 -- invoice_ledger — 18 columns on disk
 --   withheld: amount from mle_rep_read, mle_booker_read — invoiced money is the owners' ledger
---   withheld: payment_state from mle_booker_read — whether an invoice is paid is the owners' ledger — this column is the `paid` the DoD names (there is no `paid` column; it is a state value). BOOKER-ONLY AS OF Q81 — the rep grant is released deliberately, and this is the sentence that says so. Rob (ROB-ANSWERS §4): 'We just show it at the rep level so they see it when they open up and see the alerts and then also within the deal itself.' An overdue-receivable alert IS this column: without it a rep screen cannot tell a settled invoice from a late one, and the alternative is the thing Q81 abolished — Rob relaying it by hand every morning. Q78's note routed this grant here on purpose ('that grant belongs to Q81 where it is user-visible and testable'). The rest of the row does NOT follow it: `amount`, `client_legal_name`, `payment_plan_note` and now `status_text` stay denied to the rep, and `lib/rep/receivableAlerts.ts` — the only consumer — has no dollar field on its alert type at all. The booker keeps the refusal: a booker books appointments and never chases a receivable, so nothing in that job breaks
---   withheld: client_legal_name from mle_rep_read, mle_booker_read — a customer's LEGAL name on the owners' money ledger — the amount and the payment state on this row are already withheld from both roles, and the party to the invoice is the third piece of the same record
+--   withheld: client_legal_name from mle_rep_read, mle_booker_read — a customer's LEGAL name on the owners' money ledger — the amount and the prose columns on this row are already withheld from both roles, and the party to the invoice is the third piece of the same record
 --   withheld: payment_plan_note from mle_rep_read, mle_booker_read — free text carrying the money it describes ('2 x $5,000') — withheld WITH `amount` and `payment_state`, because a prose column on a money row that the classifier reads as a note is exactly the gap a name-based rule cannot see
---   withheld: status_text from mle_rep_read, mle_booker_read — FOUND WHILE WIRING Q81's rep grant, and it was the hole the last three refusals on this table were aimed at: `status_text` is the RAW status cell, and on the real ledger it reads 'issued — split-payment plan approved 2026-07-16 (2 x $5,000, first due by 2026-07-24…)'. `amount` was withheld, then `payment_plan_note` was withheld for carrying that same prose — while the column both are DERIVED FROM stayed granted to both roles by silence. The money classifier never matched it because the name says 'status'. The rep gets `payment_state` (the classified state) and `due_date`; neither carries a dollar figure
+--   withheld: status_text from mle_rep_read, mle_booker_read — FOUND WHILE WIRING Q81's rep grant, and it was the hole the last three refusals on this table were aimed at: `status_text` is the RAW status cell, and on the real ledger it reads 'issued — split-payment plan approved 2026-07-16 (2 x $5,000, first due by 2026-07-24…)'. `amount` was withheld, then `payment_plan_note` was withheld for carrying that same prose — while the column both are DERIVED FROM stayed granted to both roles by silence. The money classifier never matched it because the name says 'status'. Both roles get `payment_state` (the classified state) and `due_date`; neither carries a dollar figure
+--   withheld: pdf from mle_rep_read, mle_booker_read — A FILENAME THAT CARRIES A WITHHELD COLUMN IS THE SAME LEAK AS THE COLUMN. The live value is 'invoices/paid/Phase 1 Invoice - Gulf Coast RE Group - MLE-2026-100123 (PAID).pdf' — the path spells out `client_legal_name`, which is withheld from both roles one column to the left, and the directory plus the '(PAID)' suffix restate the payment state. Classified BENIGN by /^pdf$/, which is true of the type and false of the content: the name classifier reads column names, and this column's VALUE is a sentence. Withholding `client_legal_name` while granting a string that contains it is a refusal that refuses nothing — the same shape as inc.28's transcript-refused/recording-granted pair, moved from a URL to a storage path. `invoice_number` and `client_slug` stay granted: an id and a slug ('gulf_coast') identify the row without reproducing the legal name
 --   kept, deliberately: invoice_number — the ledger's primary key, an identifier and not an amount — classified money only because /invoice/ matches the name. `amount` and `payment_state` are the money on this table and both are withheld
 --   kept, deliberately: owner — which MLE owner owns the client — kept so a rep can tell whose account they are looking at, while every amount on the row stays withheld. Carried in IDENTIFIED_UNDECIDED too, because the real question it raises (should a rep see the whole roster?) is a row rule Rob decides
+--   kept, deliberately: payment_state — whether an invoice is paid — the `paid` the DoD names (there is no `paid` column; it is a state value). Q81 released it to the REP only, on Rob: 'We just show it at the rep level so they see it when they open up and see the alerts.' 8/5 extends that to the booker, and Rob's own sentence supplies the motive — he is inclined to pay a booker more for 'pushing to get the deal closed AND PAID', which is a job you cannot do without knowing whether it was paid. The rest of the row does NOT follow: `amount`, `client_legal_name`, `payment_plan_note`, `status_text` and now `pdf` stay denied to both, and `lib/rep/receivableAlerts.ts` — the only consumer — has no dollar field on its alert type at all
 revoke select on public.invoice_ledger from mle_rep_read;
-grant select (client_slug, created_at, currency, due_date, invoice_number, issue_date, owner, payment_state, pdf, source_commit, source_sha256, synced_at, updated_at, withdrawn_at) on public.invoice_ledger to mle_rep_read;
+grant select (client_slug, created_at, currency, due_date, invoice_number, issue_date, owner, payment_state, source_commit, source_sha256, synced_at, updated_at, withdrawn_at) on public.invoice_ledger to mle_rep_read;
 revoke select on public.invoice_ledger from mle_booker_read;
-grant select (client_slug, created_at, currency, due_date, invoice_number, issue_date, owner, pdf, source_commit, source_sha256, synced_at, updated_at, withdrawn_at) on public.invoice_ledger to mle_booker_read;
+grant select (client_slug, created_at, currency, due_date, invoice_number, issue_date, owner, payment_state, source_commit, source_sha256, synced_at, updated_at, withdrawn_at) on public.invoice_ledger to mle_booker_read;
 
 -- orgs — 31 columns on disk
 --   withheld: equity from mle_rep_read, mle_booker_read — spin-off equity is OWNERS-ONLY (Q41) — same line Rob drew on people.equity 2026-07-29
---   withheld: transcript_url from mle_booker_read — a booker books; other people's call recordings are not part of it
---   withheld: meeting_video_url from mle_booker_read — same pair as people.meeting_video_url — the recorded meeting, withheld alongside the transcript link rather than one increment later
 --   kept, deliberately: name — the company name is the working unit of every rep screen
 --   kept, deliberately: phone — same as people.phone
 --   kept, deliberately: email — same as people.email
@@ -89,15 +105,15 @@ grant select (client_slug, created_at, currency, due_date, invoice_number, issue
 --   kept, deliberately: quoted_amount — same as people.quoted_amount — Rob's instruction names the column by name
 --   kept, deliberately: estimate — same as people.estimate
 --   kept, deliberately: phase2_estimate — same as people.phase2_estimate
+--   kept, deliberately: transcript_url — same as people.transcript_url, on the org row
+--   kept, deliberately: meeting_video_url — same pair as people.meeting_video_url — transcript and video move together, granted or withheld
 revoke select on public.orgs from mle_rep_read;
 grant select (assigned_rep, business, created_at, description, domain, email, est_time_to_payment_days, estimate, id, key_dates, legacy_slug, meeting_video_url, name, node_type, notes, phase2_estimate, phase_one, phone, quoted_amount, referred_by_id, referred_by_org_id, relationship, role, search_tsv, signed, status, transcript_url, updated_at, vertical_id, website) on public.orgs to mle_rep_read;
 revoke select on public.orgs from mle_booker_read;
-grant select (assigned_rep, business, created_at, description, domain, email, est_time_to_payment_days, estimate, id, key_dates, legacy_slug, name, node_type, notes, phase2_estimate, phase_one, phone, quoted_amount, referred_by_id, referred_by_org_id, relationship, role, search_tsv, signed, status, updated_at, vertical_id, website) on public.orgs to mle_booker_read;
+grant select (assigned_rep, business, created_at, description, domain, email, est_time_to_payment_days, estimate, id, key_dates, legacy_slug, meeting_video_url, name, node_type, notes, phase2_estimate, phase_one, phone, quoted_amount, referred_by_id, referred_by_org_id, relationship, role, search_tsv, signed, status, transcript_url, updated_at, vertical_id, website) on public.orgs to mle_booker_read;
 
 -- people — 33 columns on disk
 --   withheld: equity from mle_rep_read, mle_booker_read — spin-off equity is OWNERS-ONLY (Q41) — and per Rob 2026-07-29 this is THE line: 'I dont want to show any equity to anyone but Will and I.' Equity is ownership, not compensation; every other money column on this table is now granted
---   withheld: transcript_url from mle_booker_read — a booker books; other people's call recordings are not part of it
---   withheld: meeting_video_url from mle_booker_read — the VIDEO of the meeting the transcript beside it is of. Withheld with `transcript_url`, not after it: inc.28 closed exactly this pair on `activities` by adding /recording/ to the classifier, and this column slipped the fix because it says 'video' — the booker was refused the transcript link and handed the recorded meeting. Kept for the rep, whose job is reviewing calls
 --   kept, deliberately: name — a CRM whose reps cannot see who they are calling is not a CRM
 --   kept, deliberately: phone — phoning people IS the rep's and the booker's job — withholding it breaks the role instead of protecting it. Whether SOME bookers should be scoped to their own accounts is Rob's org-chart call, flagged not guessed
 --   kept, deliberately: email — same as phone — outreach is the job
@@ -106,20 +122,23 @@ grant select (assigned_rep, business, created_at, description, domain, email, es
 --   kept, deliberately: quoted_amount — what a customer was quoted — GRANTED to rep and booker on Rob's direct instruction. A booker who cannot see deal size cannot see the point of the call they are booking
 --   kept, deliberately: estimate — a job's estimated dollars. It followed `quoted_amount` into DENIALS and it follows it back out — same column class, same instruction
 --   kept, deliberately: phase2_estimate — the Phase-2 ROI projection — the clearest 'how money can be made' number in the schema, which is the sentence Rob used. Granted; the measured `phase2_returns` figures stay booker-withheld because those are a customer's actual revenue and cost basis, not MLE's upside
+--   kept, deliberately: transcript_url — the call-recording link on a contact. Booker-denied on 'a booker books; other people's call recordings are not part of it' — Rob 8/5 overrules that reading directly, and his reasoning is the compensation: a booker paid on show-rate and promoted for 'giving sales support and pushing to get the deal closed' needs the record of the call they set
+--   kept, deliberately: meeting_video_url — the video of the meeting `transcript_url` beside it is of. Released as the same pair it was withheld as (inc.28/29 fought three times over splitting this pair; parity keeps them together on the grant side)
 revoke select on public.people from mle_rep_read;
 grant select (assigned_rep, business, comms_consent, created_at, description, email, entity_kind, est_time_to_payment_days, estimate, id, key_dates, legacy_slug, meeting_video_url, name, node_type, notes, org_id, phase2_estimate, phase_one, phone, quoted_amount, referred_by_id, referred_by_org_id, relationship, role, search_tsv, signed, status, transcript_url, updated_at, vertical_id, website) on public.people to mle_rep_read;
 revoke select on public.people from mle_booker_read;
-grant select (assigned_rep, business, comms_consent, created_at, description, email, entity_kind, est_time_to_payment_days, estimate, id, key_dates, legacy_slug, name, node_type, notes, org_id, phase2_estimate, phase_one, phone, quoted_amount, referred_by_id, referred_by_org_id, relationship, role, search_tsv, signed, status, updated_at, vertical_id, website) on public.people to mle_booker_read;
+grant select (assigned_rep, business, comms_consent, created_at, description, email, entity_kind, est_time_to_payment_days, estimate, id, key_dates, legacy_slug, meeting_video_url, name, node_type, notes, org_id, phase2_estimate, phase_one, phone, quoted_amount, referred_by_id, referred_by_org_id, relationship, role, search_tsv, signed, status, transcript_url, updated_at, vertical_id, website) on public.people to mle_booker_read;
 
 -- phase2_returns — 13 columns on disk
---   withheld: labor_cost_per_hour from mle_booker_read — a customer's cost basis is not a booker's
---   withheld: revenue_since_phase2_start from mle_booker_read — a customer's revenue is not a booker's
+--   NO column is withheld on this table, deliberately — the measured Phase-2 result. `labor_cost_per_hour` and `revenue_since_phase2_start` were its only refusals and both were booker-only. Covered with zero denials: every money column on it is now a stated grant, which is a decision, not an omission
 --   kept, deliberately: revenue_basis — not an amount — it names WHICH basis a figure came from ('invoiced' vs 'collected'), so it is classified money by name only
 --   kept, deliberately: measured_by — who took the measurement — provenance on a number the booker cannot see anyway, and the rep reviewing a Phase-2 result needs to know whose reading it is
+--   kept, deliberately: labor_cost_per_hour — a customer's cost basis. Booker-denied on 'a customer's cost basis is not a booker's' — under 8/5 the test is not whose it is but whether the rep sees it, and the rep does. It is also the input to the Phase-2 ROI a booker is booking meetings about
+--   kept, deliberately: revenue_since_phase2_start — a customer's measured revenue, the other half of the same ROI figure. Same release, same reason
 revoke select on public.phase2_returns from mle_rep_read;
 grant select (created_at, customer_id, id, labor_cost_per_hour, labor_hours_saved, measured_at, measured_by, note, revenue_basis, revenue_since_phase2_start, source, superseded_at, updated_at) on public.phase2_returns to mle_rep_read;
 revoke select on public.phase2_returns from mle_booker_read;
-grant select (created_at, customer_id, id, labor_hours_saved, measured_at, measured_by, note, revenue_basis, source, superseded_at, updated_at) on public.phase2_returns to mle_booker_read;
+grant select (created_at, customer_id, id, labor_cost_per_hour, labor_hours_saved, measured_at, measured_by, note, revenue_basis, revenue_since_phase2_start, source, superseded_at, updated_at) on public.phase2_returns to mle_booker_read;
 
 -- signature_requests — 20 columns on disk
 --   withheld: signer_name from mle_rep_read, mle_booker_read — who personally signed is the same evidence as the email/IP beside it — a rep needs to know a doc came back, which `signer_type` gives, not who held the pen

@@ -21,8 +21,10 @@ import {
   ALLOWANCES,
   COVERED_TABLES,
   DENIALS,
+  FULLY_GRANTED_TABLES,
   READ_ROLES,
   grantBreaches,
+  partialRoleDenials,
   permittedColumns,
   renderRoleGrantSql,
   uncoveredSensitive,
@@ -134,6 +136,123 @@ describe("grantBreaches fails in both directions", () => {
   });
 });
 
+describe("booker == rep — Rob 2026-08-05", () => {
+  // *"The appt Bookers get paid on the clients actually showing up for their meetings and if I
+  // see that their giving sales support and pushing to get the deal closed and paid, I'm
+  // inclined to pay them more or promote them. Theres nothing an appt booker shouldnt be able
+  // to see that a Sales Rep is able to see. At least nothing I can think of at the moment."*
+  //
+  // The individual column assertions below would each pass while the policy was broken
+  // somewhere they do not name — that is how eleven booker-only denials accumulated one
+  // increment at a time. These three tests assert the RULE instead of its instances, so a
+  // twelfth cannot be added quietly.
+
+  it("grants the two roles the identical column list on EVERY covered table", () => {
+    expect(COVERED_TABLES.length).toBeGreaterThan(0);
+    for (const table of COVERED_TABLES) {
+      expect(
+        grantedInSql(table, "mle_booker_read"),
+        `${table}: the booker must see exactly what the rep sees`,
+      ).toEqual(grantedInSql(table, "mle_rep_read"));
+    }
+  });
+
+  it("covers the same TABLES for both roles — a missing grant is a refusal too", () => {
+    // The failure this catches is the one the 8/5 change nearly caused by itself: releasing a
+    // table's only denials empties its DENIALS entry, and a table absent from the migration is
+    // a table NEITHER role can select from. Parity raised the booker to the rep; it must not
+    // have lowered the rep to nothing.
+    for (const table of COVERED_TABLES) {
+      for (const role of READ_ROLES) {
+        expect(sql, `${table} must be granted to ${role}`).toContain(`on public.${table} to ${role};`);
+      }
+    }
+    // The three tables whose ONLY refusals were booker-only, and which therefore had to be
+    // declared explicitly to survive 8/5. Named from the declaration rather than hard-coded, so
+    // the list and its guard cannot drift apart.
+    expect(FULLY_GRANTED_TABLES.map((g) => g.table).sort()).toEqual([
+      "activities",
+      "call_transcript_segments",
+      "phase2_returns",
+    ]);
+    for (const g of FULLY_GRANTED_TABLES) {
+      expect(COVERED_TABLES, `${g.table} lost coverage when its booker-only denials were released`).toContain(g.table);
+      expect(DENIALS.some((d) => d.table === g.table), `${g.table} has a denial after all`).toBe(false);
+      expect(g.because.trim(), `${g.table} is covered with no refusal and no reason`).not.toBe("");
+    }
+  });
+
+  it("declares no per-role denial anywhere in the model", () => {
+    for (const d of DENIALS) {
+      expect([...d.roles].sort(), `${d.table}.${d.column}`).toEqual([...READ_ROLES].sort());
+    }
+    expect(partialRoleDenials(DENIALS)).toEqual([]);
+    expect(realBreaches().some((b) => b.kind === "partial-role-denial")).toBe(false);
+  });
+
+  it("goes RED on a per-role denial, so a twelfth one cannot be added quietly", () => {
+    // The gate itself, driven with a deliberately-broken model. Eleven booker-only denials
+    // accumulated one increment at a time under a comment that never forbade them; asserting
+    // only that today's data is clean would leave the NEXT one to the same prose that missed
+    // the last eleven. The generator refuses to write SQL on any breach, so this is a build
+    // failure, not a lint.
+    const bookerOnly = partialRoleDenials([
+      { table: "people", column: "transcript_url", roles: ["mle_booker_read"], because: "x" },
+    ]);
+    expect(bookerOnly).toHaveLength(1);
+    expect(bookerOnly[0].kind).toBe("partial-role-denial");
+    expect(bookerOnly[0].detail).toContain("mle_rep_read");
+    // It fires in BOTH directions — a rep-only refusal is the same policy broken, and a check
+    // that only watched the booker would encode the old asymmetry it was written to remove.
+    expect(
+      partialRoleDenials([
+        { table: "deals", column: "value", roles: ["mle_rep_read"], because: "x" },
+      ]),
+    ).toHaveLength(1);
+    // A denial naming both roles is clean; an empty one is caught as `empty-denial` elsewhere
+    // and must not be double-reported here.
+    expect(
+      partialRoleDenials([
+        { table: "people", column: "equity", roles: ["mle_rep_read", "mle_booker_read"], because: "x" },
+        { table: "people", column: "estimate", roles: [], because: "x" },
+      ]),
+    ).toEqual([]);
+  });
+
+  it("still withholds EQUITY from both — parity raised the floor, not the ceiling", () => {
+    // Rob 2026-07-29: "I dont want to show any equity to anyone but Will and I." The 8/5
+    // sentence is about booker-vs-rep parity, not about owners-only data, and the loudest way
+    // this change could be mis-implemented is by reading "nothing a booker shouldn't see" as
+    // "nothing anyone shouldn't see".
+    for (const table of ["people", "orgs", "deals"]) {
+      for (const role of READ_ROLES) {
+        expect(grantedInSql(table, role), `${role} on ${table}.equity`).not.toContain("equity");
+      }
+      expect(
+        DENIALS.some((d) => d.table === table && d.column === "equity"),
+        `${table}.equity must stay an explicit denial, not vanish into parity`,
+      ).toBe(true);
+    }
+  });
+
+  it("keeps every column that was withheld from BOTH roles withheld from both", () => {
+    // The other half of "raised the floor, not the ceiling", asserted by name so a future pass
+    // cannot release one of them under cover of the parity change.
+    const stillRefused: [string, string[]][] = [
+      ["invoice_ledger", ["amount", "client_legal_name", "payment_plan_note", "status_text", "pdf"]],
+      ["signature_requests", ["signer_name", "signer_email", "signer_ip", "signer_user_agent", "sent_to"]],
+      ["documents", ["countersigner_name", "countersigner_email", "countersigner_title"]],
+    ];
+    for (const [table, cols] of stillRefused) {
+      for (const role of READ_ROLES) {
+        for (const col of cols) {
+          expect(grantedInSql(table, role), `${role} on ${table}.${col}`).not.toContain(col);
+        }
+      }
+    }
+  });
+});
+
 describe("the DoD's own refusals, read out of the generated SQL", () => {
   // REVERSED 2026-07-29 (Rob, ROB-ANSWERS-2026-07-29-night.md §1): *"I WANT the bookers to see
   // quoted amount… I want people to see how money can be made."* This test used to assert the
@@ -166,14 +285,39 @@ describe("the DoD's own refusals, read out of the generated SQL", () => {
     }
   });
 
-  it("releases payment_state to the REP only (Q81) — and keeps it from the booker", () => {
-    // Rob: "We just show it at the rep level so they see it when they open up and see the
-    // alerts." The overdue alert IS this column; a booker never chases a receivable.
-    expect(grantedInSql("invoice_ledger", "mle_rep_read")).toContain("payment_state");
-    expect(grantedInSql("invoice_ledger", "mle_booker_read")).not.toContain("payment_state");
-    // The release is one column wide, not the row: pinned so a later increment cannot widen it
-    // by editing prose.
-    expect(grantedInSql("invoice_ledger", "mle_rep_read")).not.toContain("amount");
+  it("withholds the invoice PDF PATH, because the filename spells out the withheld columns", () => {
+    // 2026-08-05. The live value is
+    //   "invoices/paid/Phase 1 Invoice - Gulf Coast RE Group - MLE-2026-100123 (PAID).pdf"
+    // and `client_legal_name` — refused to both roles one column to the left — is written into
+    // it verbatim. A refusal that the column beside it undoes in plain text is not a refusal.
+    // Note this is NOT the 8/5 parity change: it tightens, on both roles at once. "Booker ==
+    // rep" is not "everyone sees everything", so a leak that used to reach one role now reaches
+    // two, which makes it more worth closing rather than less.
+    for (const role of READ_ROLES) {
+      expect(grantedInSql("invoice_ledger", role), `${role}`).not.toContain("pdf");
+    }
+    // The row is still identifiable without it: an invoice number and a slug name the record
+    // without reproducing the legal name.
+    for (const role of READ_ROLES) {
+      expect(grantedInSql("invoice_ledger", role)).toContain("invoice_number");
+      expect(grantedInSql("invoice_ledger", role)).toContain("client_slug");
+    }
+  });
+
+  it("releases payment_state to BOTH roles (Q81 rep grant, extended 2026-08-05)", () => {
+    // Q81 gave this to the rep alone, on Rob: "We just show it at the rep level so they see it
+    // when they open up and see the alerts." 8/5 extends it to the booker, and Rob's own
+    // sentence is the reason: he pays a booker more for "pushing to get the deal closed AND
+    // PAID", which is not a job you can do without knowing whether it was paid. This assertion
+    // was `not.toContain` for the booker and is inverted rather than deleted, so the change of
+    // policy is visible in the file that enforces it.
+    for (const role of READ_ROLES) {
+      expect(grantedInSql("invoice_ledger", role), `${role}`).toContain("payment_state");
+    }
+    // The release is still columns wide, not the row: the ledger's money stays refused to both.
+    for (const role of READ_ROLES) {
+      expect(grantedInSql("invoice_ledger", role)).not.toContain("amount");
+    }
   });
 
   it("withholds equity from both roles everywhere it exists (Q41 owners-only)", () => {
@@ -193,46 +337,45 @@ describe("the DoD's own refusals, read out of the generated SQL", () => {
     }
   });
 
-  it("withholds a booker from other people's recordings — but NOT from deal size", () => {
-    expect(grantedInSql("people", "mle_booker_read")).not.toContain("transcript_url");
-    // Deal size is deliberately kept, per Rob. Pinned here too because this test previously
-    // asserted the refusal, and an un-inverted line would quietly re-impose it.
+  it("gives a booker the call record, because the rep has it (Rob 2026-08-05)", () => {
+    // INVERTED 2026-08-05, not deleted. Rob: "Theres nothing an appt booker shouldnt be able to
+    // see that a Sales Rep is able to see." This test asserted the refusal for four increments,
+    // and an un-inverted line would quietly re-impose a policy its owner has replaced.
+    expect(grantedInSql("people", "mle_booker_read")).toContain("transcript_url");
     expect(grantedInSql("deals", "mle_booker_read")).toContain("value");
   });
 
-  it("withholds the RECORDING from a booker wherever it withholds the transcript of it", () => {
-    // The bug this pins (inc.28): `activities.transcript_url` was refused to a booker on the
-    // words "other people's call recordings are not part of it" while the SAME grant statement
-    // handed over `activities.recording_url` — the audio itself. The classifier matched
-    // /transcript/ and had no /recording/, so the leak was invisible to every check above.
-    // Asserted as a PAIR, per table, so refusing one and granting the other cannot pass again.
-    //
-    // inc.29 widened it twice over, because the same defect recurred a THIRD time and the
-    // narrow version could not see it: `/video/` joins the pair (`people`/`orgs`.
-    // `meeting_video_url` is the recorded meeting, granted to a booker while the transcript
-    // link on the same row was refused — inc.28's fix missed it because the column says
-    // "video", not "recording"), and the table list is no longer hard-coded to `activities`.
-    // Every COVERED table is swept: hard-coding one table is how a fix lands on the row
-    // somebody happened to read instead of everywhere the shape exists.
+  it("keeps the transcript/recording/video PAIR intact — granted together or refused together", () => {
+    // The rule this pins survives 8/5 unchanged, because it was never about WHICH role. Three
+    // separate increments (28, 29, and the /video/ case) each shipped a HALF refusal: the
+    // transcript link refused and the audio of the same call granted in the same statement, or
+    // the transcript refused and the recorded meeting handed over because the column says
+    // "video". The defect is a pair split down the middle, and it can now break in the other
+    // direction — an increment that re-refuses `text` while leaving `speaker` granted is the
+    // same bug wearing the opposite sign. So the assertion is symmetry, not absence: on every
+    // covered table, each role must reach exactly the same set of these columns.
     for (const table of COVERED_TABLES) {
-      const cols = schema.get(table) ?? new Set<string>();
-      const granted = grantedInSql(table, "mle_booker_read");
-      for (const col of cols) {
-        if (/transcript/.test(col) || /recording/.test(col) || /video/.test(col)) {
-          if (col === "transcript_id") continue; // a join key, decided as an ALLOWANCE
-          expect(granted, `booker must not reach ${table}.${col}`).not.toContain(col);
-        }
+      const cols = [...(schema.get(table) ?? new Set<string>())];
+      const pair = cols.filter(
+        (c) => (/transcript/.test(c) || /recording/.test(c) || /video/.test(c)) && c !== "transcript_id",
+      );
+      if (!pair.length) continue;
+      const rep = grantedInSql(table, "mle_rep_read");
+      const booker = grantedInSql(table, "mle_booker_read");
+      const repHas = pair.filter((c) => rep.includes(c)).sort();
+      const bookerHas = pair.filter((c) => booker.includes(c)).sort();
+      expect(bookerHas, `${table}: booker must reach the same call record as the rep`).toEqual(repHas);
+      // …and the pair is whole rather than half: every one of them, or none.
+      expect(repHas.length === 0 || repHas.length === pair.length, `${table}: half a pair`).toBe(true);
+    }
+    // Named explicitly, because these three columns are where the bug landed each time.
+    for (const role of READ_ROLES) {
+      expect(grantedInSql("activities", role), `${role}`).toContain("recording_url");
+      expect(grantedInSql("activities", role), `${role}`).toContain("transcript_url");
+      for (const table of ["people", "orgs"]) {
+        expect(grantedInSql(table, role), `${role} on ${table}`).toContain("meeting_video_url");
       }
     }
-    // The meeting video is refused with the transcript, not an increment later.
-    for (const table of ["people", "orgs"]) {
-      expect(grantedInSql(table, "mle_booker_read")).not.toContain("meeting_video_url");
-      expect(grantedInSql(table, "mle_rep_read")).toContain("meeting_video_url");
-    }
-    // The rep keeps both: reviewing calls IS the rep's job, and a half-kept pair would be the
-    // mirror of the same defect — the transcript readable, the audio it came from not.
-    expect(grantedInSql("activities", "mle_rep_read")).toContain("recording_url");
-    expect(grantedInSql("activities", "mle_rep_read")).toContain("transcript_url");
   });
 
   it("KEEPS phone and email for both roles — outreach is the job, not a leak", () => {
@@ -281,19 +424,21 @@ describe("the DoD's own refusals, read out of the generated SQL", () => {
 });
 
 describe("permittedColumns", () => {
-  it("subtracts only what the given role is denied", () => {
-    // `equity` is denied to BOTH roles, so it cannot show a per-role difference; after the
-    // 2026-07-29 money reversal the only per-role denials left on a deal-side table are the
-    // recording links. `people` carries both kinds, so the two assertions differ by exactly one.
+  it("subtracts what the table's denials withhold — and the two roles now differ by nothing", () => {
+    // Was: the same call returned a shorter list for the booker, because `transcript_url` was
+    // booker-only. After 2026-08-05 there are no per-role denials left, so the ONLY subtraction
+    // is `equity`, and it applies to both. Rewritten rather than dropped: this is the unit that
+    // proves the per-role machinery still works and simply has nothing left to do.
     const all = ["id", "name", "equity", "transcript_url"];
-    expect(permittedColumns("people", all, "mle_rep_read")).toEqual(["id", "name", "transcript_url"]);
-    expect(permittedColumns("people", all, "mle_booker_read")).toEqual(["id", "name"]);
-    // …and deal money now survives for both, which is the reversal itself.
+    for (const role of READ_ROLES) {
+      expect(permittedColumns("people", all, role), role).toEqual(["id", "name", "transcript_url"]);
+    }
     const deal = ["id", "value", "equity", "stage"];
-    for (const role of ["mle_rep_read", "mle_booker_read"] as const) {
-      expect(permittedColumns("deals", deal, role)).toEqual(["id", "stage", "value"]);
+    for (const role of READ_ROLES) {
+      expect(permittedColumns("deals", deal, role), role).toEqual(["id", "stage", "value"]);
     }
   });
+
 
   it("leaves an uncovered table untouched", () => {
     expect(permittedColumns("verticals", ["id", "name"], "mle_booker_read")).toEqual(["id", "name"]);
