@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   BLOCK_TITLES,
+  contextExcerpt,
   type IntelBlock,
   type IntelItem,
   type MeetingIntel,
@@ -20,6 +21,10 @@ import {
 
 function ItemRow({ item, ranked }: { item: IntelItem; ranked: boolean }) {
   const label = sourceLabel(item.provenance);
+  // The evidence, on the page. See `contextExcerpt` for why this is the honest form of
+  // punch #4: no anchor exists to link to yet, so the source line comes to the reader
+  // instead of the reader being sent to grep a 117KB transcript. Never computed here.
+  const source = contextExcerpt(item);
   return (
     <li className="border-l-2 border-white/10 pl-3">
       <div className="text-sm text-slate-200">
@@ -32,6 +37,11 @@ function ItemRow({ item, ranked }: { item: IntelItem; ranked: boolean }) {
         )}
         {item.text}
       </div>
+      {source && (
+        <blockquote className="mt-1.5 border-l border-white/10 pl-2 text-[12px] italic leading-relaxed text-slate-400">
+          {source}
+        </blockquote>
+      )}
       <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-slate-500">
         {item.owner && <span className="text-slate-400">{item.owner}</span>}
         {item.status && (

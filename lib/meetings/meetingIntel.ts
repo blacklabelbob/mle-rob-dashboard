@@ -157,6 +157,46 @@ export function isVerbatim(text: string, excerpt: string): boolean {
 }
 
 /**
+ * The source line an item was taken from, returned ONLY when reading it tells the reader
+ * something the claim does not already say.
+ *
+ * Q89 inc.16 — critic-rob punch #4: nothing on the surface is clickable, because
+ * `provenance.url` is undefined on every published item and no in-CRM anchor exists to
+ * point at yet (the activity timeline is client-fetched and its rows carry no DOM id, so
+ * stamping `/companies/C-xxxx#A-MTG-…` today would be a link to nothing — a fabricated
+ * link is the failure this whole surface exists to prevent). The DoD's clause is that a
+ * claim "can always be opened and checked". Bringing the checked-against text ONTO the
+ * page satisfies that without any navigation at all, and without inventing a target.
+ *
+ * Suppressed when the excerpt adds nothing: a verbatim pain point whose excerpt is the
+ * same sentence would otherwise print twice, and a duplicated line reads as two sources
+ * when there is one. Comparison is on the verbatim normal form, so punctuation and
+ * whitespace differences alone never resurrect it.
+ */
+export function contextExcerpt(item: IntelItem): string | null {
+  const excerpt = item.provenance.excerpt?.trim();
+  if (!excerpt) return null;
+  if (!sameLine(item.text, excerpt)) return excerpt;
+  return null;
+}
+
+/**
+ * Deliberately LOOSER than `normalizeForVerbatim`, and the difference is the point.
+ *
+ * The verbatim gate treats punctuation as a word ("everything else must match") because a
+ * changed comma can be a changed meaning, and that strictness is what makes a stored pain
+ * point trustworthy. This function answers a different and much smaller question — "would
+ * printing this line twice tell the reader anything?" — where a trailing full stop is
+ * plainly not a second source. Loosening the gate to share one normalizer would trade a
+ * truth rule for a layout rule; keeping them apart costs four lines.
+ */
+function sameLine(a: string, b: string): boolean {
+  const flatten = (s: string) => normalizeForVerbatim(s).replace(/[^a-z0-9 ]/g, "").replace(/\s+/g, " ").trim();
+  const left = flatten(a);
+  return left.length > 0 && left === flatten(b);
+}
+
+/**
  * The address of an item, written the way a human checks it: the meeting, then the line
  * within it. Never a bare meeting id — "somewhere in that call" is what rule 1 rejects.
  * Returned as text so a caller with no deep link still shows something checkable.
