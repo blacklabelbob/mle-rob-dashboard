@@ -497,14 +497,41 @@ const { departures, corrections, censusRefusal } =
 //
 // The departure itself still travels to the brief unfiltered: the loss is real and the driver must
 // hear it. What is withheld is the POST, not the finding.
-const escapedNames = new Set(producedEscapes.map((e) => e.name));
-for (const line of familyShapeLines(producedEscapes)) console.error(`✖ census: ${line}`);
+// Q84 inc.189 — inc.188's WITHHOLDING SET WAS THE WRONG SET, and the wrongness is structural, not
+// a typo. `producedEscapes` is derived from `scripts` — the wrappers this scan SAW — while
+// `departures` is `previous.wrappers ∖ present` (censusDepartures), i.e. names this scan did NOT
+// see. The two sets are disjoint by construction, so `departures.filter(d => !escaped.has(d.name))`
+// could never remove a row: the guard that was supposed to stop an unfilable POST was a no-op on
+// every possible tree, and inc.188's own scratch-dir proof did not catch it because the sentence it
+// printed counts `producedEscapes`, not anything the filter actually dropped.
+//
+// So the two facts are separated and each gets the job it can do:
+//   • `departureEscapes` — computed from the DEPARTING names, which is the only set whose keys are
+//     about to be POSTed. This is the guard, and it can now actually fire.
+//   • `producedEscapes` — present wrappers, a FORECAST, no filing consequence today. It reaches the
+//     driver through `clockGateBrief` (its stderr line is dropped by `grep '^CLOCK GATE'`), and it
+//     is no longer described as "departure row(s) NOT filed", which was never what it counted.
+const departureEscapes = familyEscapes(
+  departureKey,
+  departures.map((d) => d.name),
+  DEPARTURE_FAMILY,
+);
+const escapedNames = new Set(departureEscapes.map((e) => e.name));
+for (const line of familyShapeLines(producedEscapes)) console.error(`✖ scan: ${line}`);
 if (producedEscapes.length > 0) {
   console.error(
-    `✖ census: ${producedEscapes.length} departure row(s) NOT filed — the name is minted here from ` +
-      `\`path.basename\`, so a name outside ${DEPARTURE_FAMILY} means this scanner changed, not that ` +
-      `a wrapper did. Fix it where it is produced; a filed row under one of these keys could never ` +
-      `be read back to be corrected or closed (Q84 inc.188, disposition inc.168).`,
+    `✖ scan: ${producedEscapes.length} PRESENT wrapper(s) carry a name whose departure could never ` +
+      `be filed. Nothing is lost yet — the name is minted here from \`path.basename\`, so fix it ` +
+      `while the file still exists; the tick it leaves is the only tick that can report it ` +
+      `(Q84 inc.188/189).`,
+  );
+}
+for (const line of familyShapeLines(departureEscapes)) console.error(`✖ census: ${line}`);
+if (departureEscapes.length > 0) {
+  console.error(
+    `✖ census: ${departureEscapes.length} departure row(s) NOT filed — a row under one of these ` +
+      `keys could never be read back to be corrected or closed. The departure itself still travels ` +
+      `to the brief; what is withheld is the POST (Q84 inc.188, disposition inc.168).`,
   );
 }
 await fileDepartures(
@@ -513,7 +540,7 @@ await fileDepartures(
 );
 
 if (BRIEF) {
-  const { code, line } = clockGateBrief(audit, departures, censusRefusal);
+  const { code, line } = clockGateBrief(audit, departures, censusRefusal, producedEscapes);
   if (line) console.error(line);
   process.exit(code);
 }

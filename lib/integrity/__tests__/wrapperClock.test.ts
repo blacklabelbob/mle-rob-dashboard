@@ -2,6 +2,9 @@ import { describe, it, expect } from "vitest";
 // Q84 inc.178 — the recovery row is asserted against the REAL superseded-row predicate, not a
 // regex copied into this file. A second copy is how the two would drift (inc.4/inc.5).
 import { supersededBy } from "@/lib/flags/supersede";
+// Q84 inc.189 — the escape fixtures are built by the real producer and judged by the real rule.
+import { familyEscapes } from "@/lib/flags/familyShape";
+import { DEPARTURE_FAMILY } from "@/lib/flags/keyNamespace";
 import {
   auditWrapperClocks,
   censusDepartures,
@@ -1708,5 +1711,98 @@ describe("collapseCollidingFindings", () => {
     expect(findings[0].dedupeKey).toBe(findings[1].dedupeKey);
     const { send, conflicts } = collapseCollidingFindings(findings);
     expect(send.length + conflicts.length).toBe(1);
+  });
+});
+
+// Q84 inc.189 — inc.188 asserted the family's shape where the name is minted and printed the finding
+// to stderr. The driver greps `^CLOCK GATE`, so the run exits 0 and the brief reads clean on the
+// tick a wrapper acquired a name whose departure could never be filed. Same drop inc.175 fixed for
+// the refusal and inc.147/148 for the ranked gates.
+describe("a present wrapper whose name mints an unfilable departure key (Q84 inc.189)", () => {
+  const entry = (name: string, source: string, executable = true) => ({ name, source, executable });
+  const wired = () =>
+    auditWrapperClocks([entry("driver.sh", `npm run ${TRIGGER_CALLS[1]} -- --brief`)]);
+  // Built through the real producer and the real judge, never hand-typed: a fixture that agrees
+  // with a string in this file and not with `familyMemberDefect` would pass while the gate is blind.
+  const escapesFor = (name: string) => familyEscapes(departureKey, [name], DEPARTURE_FAMILY);
+  const COMMA = escapesFor("run,thing.sh");
+  const SLASH = escapesFor("scripts/deep.sh");
+
+  it("is a real escape before anything is asserted about the sentence", () => {
+    expect(COMMA).toHaveLength(1);
+    expect(SLASH).toHaveLength(1);
+    expect(escapesFor("daily-driver.sh")).toEqual([]);
+  });
+
+  it("turns the silent clean verdict into one the driver can hear", () => {
+    expect(clockGateBrief(wired())).toEqual({ code: 0, line: null });
+    const brief = clockGateBrief(wired(), [], null, COMMA);
+    expect(brief.line?.startsWith(BRIEF_MARKER)).toBe(true);
+    expect(brief.line).toContain("run,thing.sh");
+    expect(brief.line).toContain(departureKey("run,thing.sh"));
+  });
+
+  // The whole disposition: the file is still here, so the cost is a future one and the fix is cheap.
+  // Wording it as a loss already taken would send the reader hunting for a row that does not exist.
+  it("states it as a forecast with a fix site, not as a loss already taken", () => {
+    const { line } = clockGateBrief(wired(), [], null, SLASH);
+    expect(line).toContain("Nothing is lost today");
+    expect(line).toContain("Rename the file while it is still here");
+    expect(line).not.toContain("GONE FROM THE SCAN");
+  });
+
+  // It rides, like its six siblings — the driver hears exactly one `^CLOCK GATE` line per tick, so a
+  // ranked loser vanishes (inc.147/148).
+  it("rides a red stamp finding instead of taking the line from it", () => {
+    const audit = auditWrapperClocks([
+      entry("bad.sh", `date '+%F %T' >> "$HOME/.claude/memory/crm-driver.log"`),
+      entry("driver.sh", `npm run ${TRIGGER_CALLS[1]} -- --brief`),
+    ]);
+    const brief = clockGateBrief(audit, [], null, COMMA);
+    expect(brief.code).toBe(1);
+    expect(brief.line).toContain("IS RED");
+    expect(brief.line).toContain("run,thing.sh");
+  });
+
+  // After the departure sentence: this one is recomputed from the live scan every tick, inc.159's is
+  // the only tick that will ever say itself.
+  it("is stated after the departure sentence when both apply", () => {
+    const { line } = clockGateBrief(
+      wired(),
+      [{ name: "gone.sh", wasRole: "judged", wasTrigger: false, wasRepoStamp: false }],
+      null,
+      COMMA,
+    );
+    expect(line!.indexOf("GONE FROM THE SCAN")).toBeLessThan(line!.indexOf("Nothing is lost today"));
+  });
+
+  it("says nothing at all when every scanned name is inside the family", () => {
+    expect(clockGateBrief(wired(), [], null, [])).toEqual({ code: 0, line: null });
+    expect(clockGateBrief(wired(), [], null)).toEqual({ code: 0, line: null });
+  });
+
+  it("names every escape rather than only the first", () => {
+    const { line } = clockGateBrief(wired(), [], null, [...COMMA, ...SLASH]);
+    expect(line).toContain("run,thing.sh");
+    expect(line).toContain("scripts/deep.sh");
+    expect(line).toContain("2 wrappers in THIS scan");
+  });
+
+  // THE DEFECT inc.189 FOUND, pinned so it cannot come back. inc.188 filtered `departures` by names
+  // taken from the SCAN, and `censusDepartures` returns exactly the names the scan did NOT see — the
+  // two sets are disjoint by construction, so that guard could never drop a row on any tree.
+  it("proves the scanned set and the departed set never intersect", () => {
+    const census = (names: string[]) => {
+      const entries = names.map((n) => entry(n, "echo hi"));
+      return wrapperCensus(auditWrapperClocks(entries), entries);
+    };
+    const previous = census(["run,thing.sh", "driver.sh"]);
+    // Present in the scan → not a departure, so a scan-derived filter has nothing to act on.
+    expect(censusDepartures(previous, census(["run,thing.sh", "driver.sh"]))).toEqual([]);
+    // Absent from the scan → a departure, and its name is by definition not among the scanned ones.
+    const gone = censusDepartures(previous, census(["driver.sh"]));
+    expect(gone.map((d) => d.name)).toEqual(["run,thing.sh"]);
+    const scannedNames = new Set(["driver.sh"]);
+    expect(gone.filter((d) => scannedNames.has(d.name))).toEqual([]);
   });
 });

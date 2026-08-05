@@ -31,6 +31,11 @@
 
 import { GATE_ORDER, gateEnvVar, DRIVER_ENV_PREFIX } from "./driverPrefixes";
 import { keySurvivesTransport } from "../flags/ledgerRead";
+// TYPE-ONLY, and the `type` keyword is load-bearing (Q84 inc.189). `familyShape` imports
+// `keyNamespace`, which imports THIS file for `departureKey` — a value import here would close the
+// cycle inc.186 already hit once and fix by layering. A type import emits nothing at runtime, so
+// the shape can be named here without the module being reachable from here.
+import type { FamilyEscape } from "../flags/familyShape";
 
 /** The files Rob actually opens and reads sentences out of. A stamp that lands in one of these is
  *  a stamp a human has to interpret. */
@@ -107,6 +112,12 @@ export function clockGateBrief(
    * about a file on disk, not about anything the scan measured.
    */
   censusRefusal: string | null = null,
+  /**
+   * Wrappers PRESENT in this scan whose name would mint an unfilable departure key (Q84 inc.189).
+   * Same argument as the two above for why it is a parameter: it is a fact about the names the
+   * scanner produced, not a stamp finding the audit measured.
+   */
+  escapes: readonly FamilyEscape[] = [],
 ): ClockGateBrief {
   // Q84 inc.148 — the unranked-gate sentence is a SUFFIX, never a competitor. The driver greps
   // `^CLOCK GATE`, so exactly one line is heard per tick; ranking this finding against the stamp
@@ -145,9 +156,15 @@ export function clockGateBrief(
   // to announce a bookkeeping failure, which is exactly the vanishing-finding disease inc.147/148
   // spent two increments killing. What it must NOT do is leave the tick silent, and appending
   // already fixes that: an otherwise-clean run stops returning `{code: 0, line: null}` and speaks.
+  // Q84 inc.189 appends the seventh on the same terms, and AFTER the departure sentence. Two
+  // reasons, and the second is the one that decided it. It is not about a wrapper that is gone, so
+  // it cannot precede the sentence that names the gone ones; and unlike inc.159's, this finding is
+  // NOT once-only — it is recomputed from the live scan every tick and will say itself again
+  // tomorrow, so it must never be the reason a once-only sentence gets crowded.
   const unranked =
     censusRefusalSentence(censusRefusal) +
     departureSentence(departures) +
+    familyEscapeSentence(escapes) +
     strandedGateSentence(audit) +
     unrankedGateSentence(audit) +
     silencedComposerSentence(audit) +
@@ -1309,6 +1326,40 @@ function censusRefusalSentence(reason: string | null): string {
     `the file is repaired. The stamp findings on this line were still measured normally. Repair ` +
     `\`docs/integrity/wrapper-census.json\` BEFORE trusting a clean verdict from this gate ` +
     `(Q84 inc.175).`
+  );
+}
+
+/**
+ * Q84 inc.189 — the escape said in the ONE place the driver listens.
+ *
+ * inc.188 asserted the family's shape at the producer, which is the only end where a bad name is
+ * still one `path.basename` from being right, and printed the finding to stderr. The driver filters
+ * this gate's stderr with `grep '^CLOCK GATE'` — the same drop inc.175 fixed for the census refusal
+ * and inc.147/148 fixed for the ranked gates. So the run exits 0, the brief reads clean, and the
+ * next increment is told nothing on the tick a wrapper acquired a name whose departure row could
+ * never be filed.
+ *
+ * IT IS A FORECAST, AND IT SAYS SO. The wrapper is PRESENT — nothing is lost yet and no ledger row
+ * is missing today. What is lost is the future: the tick that file is deleted, renamed or chmod'd
+ * is the ONLY tick that can report its departure (inc.159), and that report is exactly the one
+ * this name makes unfilable. Stating it as a loss already taken would be false; stating it as
+ * nothing would waste the only window in which it is cheap.
+ *
+ * It names the fix site rather than the character, for the reason `familyMemberDefect` does: a
+ * shape rule with no consequence attached gets relaxed by the next person it inconveniences.
+ */
+function familyEscapeSentence(escapes: readonly FamilyEscape[]): string {
+  if (escapes.length === 0) return "";
+  const n = escapes.length;
+  const named = escapes.map((e) => `${e.name} → "${e.key}" (${e.defect})`).join("; ");
+  return (
+    ` ${n} wrapper${n === 1 ? "" : "s"} in THIS scan ${n === 1 ? "has a name that mints" : "have names that mint"} ` +
+    `a departure key nothing can read back — ${named}. Nothing is lost today: ${n === 1 ? "it is" : "they are"} ` +
+    `present and judged like any other. The cost is deferred and total — the tick ` +
+    `${n === 1 ? "it leaves" : "they leave"} is the only tick that can ever report the departure ` +
+    `(Q84 inc.159), and that row is withheld rather than filed under a key the narrowed ledger read ` +
+    `could never find again to correct or close (inc.168's disposition, inc.188). Rename the file ` +
+    `while it is still here — after it goes, there is nothing left to fix (Q84 inc.189).`
   );
 }
 
