@@ -28,11 +28,14 @@
  *    because nothing was said" is a different fact from "empty because 3 candidates failed
  *    the provenance check" — the reason distinguishes them, so a silent drop is impossible.
  *
- * WHAT THIS MODULE DELIBERATELY DOES NOT DO: rank. The ranked next-step scoring is being
- * built in parallel as the `meeting-next-steps` skill + `meeting-strategist` agent. This
- * surface RENDERS their output; growing a second ranking here would give Rob two orders that
- * disagree. If a rank is supplied it is honoured; if it is absent the block ships in SOURCE
- * ORDER and says so. A rank is never invented from length, recency, or keyword.
+ * WHAT THIS MODULE DELIBERATELY DOES NOT DO: rank. The ranked next-step scoring lives in the
+ * `meeting-next-steps` skill + `meeting-strategist` agent, both of which now EXIST (built
+ * 2026-08-05; this comment said "being built in parallel" until Q89 inc.12, and that sentence
+ * had gone stale — a blocker written in prose is stale the moment the tooling changes).
+ * `nextStepsAdapter.ts` is the seam that carries their ranks in. This surface RENDERS their
+ * output; growing a second ranking here would give Rob two orders that disagree. If a rank is
+ * supplied it is honoured; if it is absent the block ships in SOURCE ORDER and says so. A rank
+ * is never invented from length, recency, or keyword.
  *
  * PURE (CR-3): no clock, no network, no Supabase, no filesystem.
  */
