@@ -26,6 +26,7 @@ import {
 } from "../lib/flags/dedupeKeyIdentity.ts";
 import { LEDGER_FILERS, measureNamespace } from "../lib/flags/keyNamespace.ts";
 import { censusFilers, censusLines, scanTree } from "../lib/flags/filerCensus.ts";
+import { auditDeclaredKeys, declarationLines } from "../lib/flags/keyDeclaration.ts";
 import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -88,17 +89,23 @@ const namespace = measureNamespace(LEDGER_FILERS);
 // same "no collisions" with a smaller denominator. So the tree is scanned for every place a
 // `dedupeKey` is minted and compared against the sources the registry claims. Same walk the build
 // assertion uses (filerCensus.test.ts), so the reporter and the gate cannot disagree about the tree.
-const census = censusFilers(
-  scanTree({
-    list: (dir) =>
-      readdirSync(join(repoRoot, dir), { withFileTypes: true }).map((e) => ({
-        name: e.name,
-        isDirectory: e.isDirectory(),
-      })),
-    read: (path) => readFileSync(join(repoRoot, path), "utf8"),
-  }),
-  LEDGER_FILERS,
-);
+const treeReader = {
+  list: (dir) =>
+    readdirSync(join(repoRoot, dir), { withFileTypes: true }).map((e) => ({
+      name: e.name,
+      isDirectory: e.isDirectory(),
+    })),
+  read: (path) => readFileSync(join(repoRoot, path), "utf8"),
+};
+const emissionSites = scanTree(treeReader);
+const census = censusFilers(emissionSites, LEDGER_FILERS);
+
+// Q84 inc.185 — what the census is in turn scoped to. It proves every FILE that mints a key is in
+// the table; nothing proved that each entry's `keys` array is the keys that file emits. A filer
+// that starts emitting a second key without listing it leaves `partitioned` true of a smaller key
+// set than prod has. This resolves each emission to a literal where it can and checks it against
+// the patterns its filer declares — and prints, rather than hides, the ones it cannot resolve.
+const declaration = auditDeclaredKeys(LEDGER_FILERS, emissionSites, treeReader.read);
 
 if (JSON_OUT) {
   console.log(
@@ -113,6 +120,7 @@ if (JSON_OUT) {
         crossStatus,
         namespace,
         census,
+        declaration,
       },
       null,
       2,
@@ -175,6 +183,13 @@ if (JSON_OUT) {
     console.log(
       `  every source that mints a key is registered (${census.sites.length} emission sites across ` +
         `${namespace.filers.length} filers) — so the line above is about all of them, not the ones we remembered.`,
+    );
+  }
+  for (const line of declarationLines(declaration)) console.log(`  ${line}`);
+  if (declaration.declared) {
+    console.log(
+      `  ${declaration.checked} of those emissions resolve to a fixed key and every one is declared by ` +
+        `its filer — the shape above is measured against the keys prod actually files.`,
     );
   }
 
