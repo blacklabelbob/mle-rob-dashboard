@@ -1,0 +1,188 @@
+{
+  "_readme": [
+    "Q89 inc.7 — the 2026-07-22 Gulf Coast RE Group Phase 1 kickoff, as an Activity row the CRM can read.",
+    "",
+    "WHY A SECOND MEETING AND NOT A BIGGER FIRST ONE: inc.6 put exactly one row in prod. One row",
+    "proves a write; it does not prove a pipeline. This file goes through the SAME publisher, the",
+    "SAME gate and the SAME two surfaces with no new code, on a different company, from a different",
+    "source read. If it needs a special case, the pipeline was never a pipeline.",
+    "",
+    "PROVENANCE — read before trusting a line of it. Every item below was read out of the Notion",
+    "Master Meetings Database page `Gulf Coast RE KICKOFF 2026-07-22`",
+    "(3a51de57-0199-802b-b9f8-f59fa153a013), 784 blocks / 114,354 chars, on 2026-08-05 via",
+    "`find_meeting.py --page … --deep`, output archived at `/tmp/q84-read-gulfcoast.txt` (117,619",
+    "bytes) and logged in `docs/research/Q84-READ-LOG-2026-08-05.md` §1. Nothing here was written",
+    "from memory, from a summary of a summary, or from another agent's prose.",
+    "",
+    "THE SAME FOUR FIELDS LIE ON THIS ROW TOO. Call Recording, Meeting Summary, Google Doc Link and",
+    "Export Status are all empty while the body holds 114k chars. That is now twice on two different",
+    "rows: field-emptiness is not evidence of absence anywhere in this system.",
+    "",
+    "`sourceRef` addresses the LINE, not the meeting. `body ¶NNN` is the 1-based index of the block",
+    "among ALL `[paragraph]` blocks of the deep export in file order (726 of them; 720 non-empty) —",
+    "the same convention as the Omega file. `body to_do N` and `body bullet «heading»` address the",
+    "summary blocks. No `url` is set on any item ON PURPOSE: the Notion page URL opens a 114k-char",
+    "MEETING, and a link that opens the meeting when the reader expected the sentence is the lie",
+    "`intelSource.ts` refuses to tell.",
+    "",
+    "PAIN POINTS ARE THE CLIENT'S OWN WORDS. Both pain `text` values are literal substrings of their",
+    "`excerpt`, and both excerpts are transcript paragraphs from the Gulf Coast side about their own",
+    "operation. This transcript yields only TWO defensible pains out of 720 paragraphs, and that is",
+    "reported rather than padded: the recording is an unattributed Fireflies run-on, so a sentence",
+    "whose speaker cannot be established is not promoted into 'what the customer said'. A thin",
+    "verbatim block is the honest output of a messy recording; a full one would be invention.",
+    "",
+    "NOT WRITTEN HERE, DELIBERATELY — the Mindy Sylvester dispute. Two of the page's ten action",
+    "items ('Document all provable breaches by Mindy Sylvester for use in legal proceedings',",
+    "'Confirm Exhibit D details with legal counsel before taking action on operating agreement') and",
+    "a long transcript section concern an unresolved legal dispute with a named person, including",
+    "statutory-damages estimates against her. Same ruling as inc.5's Scott allegation: an unresolved",
+    "accusation against a named individual does not go on a company record Rob shows people. It goes",
+    "to the flag ledger for Rob to resolve, and only there. The other EIGHT action items are written."
+  ],
+  "activity": {
+    "id": "A-MTG-2026-07-22-GULFCOAST",
+    "orgId": "C-2018",
+    "type": "meeting",
+    "source": "manual",
+    "createdBy": "driver:Q89-inc.7",
+    "occurredAt": "2026-07-22T17:30:00.000Z",
+    "createdAt": "2026-08-05T00:00:00.000Z",
+    "bookProtected": false,
+    "summary": "Gulf Coast RE Group Phase 1 kickoff — new website walkthrough, competitor SEO teardown (7 competitors profiled with hard numbers), community-site branding, agent social requirements, and the GCRE 2.0 relaunch plan.",
+    "sourceContext": {
+      "system": "notion",
+      "database": "Master Meetings Database",
+      "pageId": "3a51de57-0199-802b-b9f8-f59fa153a013",
+      "readOn": "2026-08-05",
+      "readWith": "find_meeting.py --page 3a51de57-0199-802b-b9f8-f59fa153a013 --deep",
+      "bodyBlocks": 784,
+      "bodyChars": 114354,
+      "attendeesMle": ["Rob Acheson", "Will DeVito"],
+      "fieldsThatClaimAbsence": [
+        "Call Recording",
+        "Meeting Summary",
+        "Google Doc Link",
+        "Export Status"
+      ],
+      "intel": [
+        {
+          "kind": "action-items",
+          "text": "Review the new Gulf Coast website and send feedback and requested edits via email",
+          "sourceRef": "body to_do 1",
+          "excerpt": "Review the new Gulf Coast website and send feedback and requested edits via email",
+          "status": "open"
+        },
+        {
+          "kind": "action-items",
+          "text": "Send legal analysis document to Alex at alex@golf.org",
+          "sourceRef": "body to_do 2",
+          "excerpt": "Send legal analysis document to Alex at alex@golf.org",
+          "status": "open"
+        },
+        {
+          "kind": "action-items",
+          "text": "Investigate recovering the hacked Facebook account — send account details for review",
+          "sourceRef": "body to_do 5",
+          "excerpt": "Investigate recovering hacked Facebook account — send account details for review",
+          "status": "open"
+        },
+        {
+          "kind": "action-items",
+          "text": "Determine final branding approach for community/area sites (e.g. realtyonecoralsprings.com format)",
+          "sourceRef": "body to_do 6",
+          "excerpt": "Determine final branding approach for community/area sites (e.g., realtyonecoralsprings.com format)",
+          "status": "open"
+        },
+        {
+          "kind": "action-items",
+          "text": "Require all agents to have social media profiles; set up new ones where needed",
+          "sourceRef": "body to_do 7",
+          "excerpt": "Require all agents to have social media profiles; set up new ones where needed",
+          "status": "open"
+        },
+        {
+          "kind": "action-items",
+          "text": "Discuss Babcock Ranch and community site strategy with Will, including number of websites",
+          "sourceRef": "body to_do 8",
+          "excerpt": "Discuss Babcock Ranch and community site strategy with Will, including number of websites",
+          "status": "open"
+        },
+        {
+          "kind": "action-items",
+          "text": "Review IDX feed integration and lead capture consent language on the new site",
+          "sourceRef": "body to_do 9",
+          "excerpt": "Review IDX feed integration and lead capture consent language on the new site",
+          "status": "open"
+        },
+        {
+          "kind": "action-items",
+          "text": "Consider setting up a separate email/G Suite outside the company-shared account for sensitive communications",
+          "sourceRef": "body to_do 10",
+          "excerpt": "Consider setting up a separate email/G Suite outside of the company-shared account for sensitive communications",
+          "status": "open"
+        },
+        {
+          "kind": "pain-points",
+          "text": "We're building assets for them and then they might leave. I don't mind that they're getting an asset, but we have to replace that asset every time.",
+          "sourceRef": "body ¶659",
+          "excerpt": "I guess the issue is like, We're building assets for them and then they might leave. I don't mind that they're getting an asset, but we have to replace that asset every time."
+        },
+        {
+          "kind": "pain-points",
+          "text": "I can't send fucking Facebook messages anymore",
+          "sourceRef": "body ¶146",
+          "excerpt": "Send me what it is, and I'll take a look at it. Okay. See what I can do. Okay. Alright, so... Yeah, I can't send fucking Facebook messages anymore. Yeah. It's like, upload your ID and then... Every time?"
+        },
+        {
+          "kind": "talking-points",
+          "text": "Every competitor profiled is beatable on content quality, not budget: Palm Paradise runs 2,832 templated SEO-matrix pages that flatline, Michael Saunders' top relocation asset is a stale 62-page PDF with 2018 blog posts, and Team 239 has shrunk from 6 people to 3 with a dormant YouTube.",
+          "sourceRef": "body bullet «Competitor SEO Analysis»",
+          "excerpt": "Palm Paradise: 161 agents, 2,832 URL SEO matrix pages — described as outdated \"page gaming\" with identical templated pages that flatline in ranking value over time … Michael Saunders: 650+ agents, $2.97B in sales; top relocation asset is a stale 62-page PDF with blog posts dated from 2018 … Team 239: Daily AI blog, ranks for relocation SERPs, no ads; team has shrunk from 6 to 3; YouTube dormant"
+        },
+        {
+          "kind": "talking-points",
+          "text": "The one competitor that earns respect is a single operator: Greater Fort Myers has published custom hyper-local content every ~3 days since October 2004 with zero ads and zero schema — the argument for custom content over templates, in one example they already know.",
+          "sourceRef": "body bullet «Competitor SEO Analysis»",
+          "excerpt": "Greater Fort Myers Team (greaterfortmyers.com): One-person operation, 7,238 scraped pages, zero ads, zero schema, 727 Facebook followers, no Google reviews — blogging consistently since October 2004, publishing every ~3 days on average; all content is custom and hyper-local per community"
+        },
+        {
+          "kind": "talking-points",
+          "text": "The method, in their own shorthand from the call: identify, recreate, improve, and scale — scrape the top competitors' pages, regenerate them as custom content with Gulf Coast's information, and outrank them.",
+          "sourceRef": "body bullet «SEO & Website Strategy»",
+          "excerpt": "Core strategy: Identify top competitors, scrape and analyze their pages, then recreate with custom content to outrank them — summarized as \"identify, recreate, improve, and scale\""
+        },
+        {
+          "kind": "talking-points",
+          "text": "Templated pages devalue as they scale — the first pages rank, then growth flatlines past 100-200 near-identical pages. This is why the deliverable is custom pages, not volume.",
+          "sourceRef": "body bullet «SEO & Website Strategy»",
+          "excerpt": "Templated pages devalue over time: Repeating the same template 100+ times causes ranking to flatline; custom content is required to maintain linear growth"
+        },
+        {
+          "kind": "benefits-us",
+          "text": "MVP Realty went bankrupt in the wake of the NAR commission lawsuit and deleted its social media, leaving ~1,200 agents unserved in this exact market — named on the call as an audience to capture. That is a recruiting and lead-capture opening with a deadline on it.",
+          "sourceRef": "body bullet «Competitor SEO Analysis»",
+          "excerpt": "MVP Realty: Went bankrupt last month in the wake of NAR commission lawsuit; deleted social media, 1,200 agents now unserved — identified as a potential audience to capture"
+        },
+        {
+          "kind": "benefits-us",
+          "text": "GCRE 2.0 is a greenfield rebuild and we are being asked to lay the foundation: SEO, AEO, social, agent onboarding and lead capture, all automated from the start. Scope here is the whole infrastructure, not a website project.",
+          "sourceRef": "body bullet «GCRE 2.0 Plans»",
+          "excerpt": "New foundation: automated, scalable infrastructure covering SEO, AEO, social media, agent onboarding, and lead capture — leveraging AI tools not available even 6 months ago"
+        },
+        {
+          "kind": "benefits-us",
+          "text": "The rebrand costs them almost nothing to accept — the current domain is only ~18 months old, so there is little SEO authority to lose. The usual objection to starting over is already answered.",
+          "sourceRef": "body bullet «GCRE 2.0 Plans»",
+          "excerpt": "Branding to be rebuilt independently; current domain/brand is only ~18 months old so SEO authority loss is manageable"
+        },
+        {
+          "kind": "benefits-us",
+          "text": "Requiring every agent to carry a social profile, plus per-community sites (Babcock Ranch and others), turns one client into a recurring multi-site, multi-profile build — the expansion path is already in their own action items.",
+          "sourceRef": "body to_do 7 + to_do 8",
+          "excerpt": "Require all agents to have social media profiles; set up new ones where needed / Discuss Babcock Ranch and community site strategy with Will, including number of websites"
+        }
+      ]
+    }
+  }
+}
