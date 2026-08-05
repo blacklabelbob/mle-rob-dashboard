@@ -20,6 +20,9 @@ import { loadPhase2Returns } from "@/lib/phases/phase2ReturnsLoad";
 import { provenanceOf } from "@/lib/phases/phase2ReturnsSelect";
 import { splitNotes } from "@/lib/notes";
 import { typeLabel, STAGE_LABELS } from "@/lib/labels";
+import MeetingIntelSection from "@/components/meetings/MeetingIntelSection";
+import { intelSourceFromActivities } from "@/lib/meetings/intelSource";
+import { buildMeetingIntel, type IntelCandidate } from "@/lib/meetings/meetingIntel";
 
 export const dynamic = "force-dynamic";
 
@@ -93,6 +96,18 @@ export default async function CompanyPage({
   // measured yet" — that wording is a claim about the customer, and our outage does
   // not entitle us to make it under a money guarantee.
   const signals = await loadComponentLive(company.id);
+  // Q89 — what the meetings taught us. The read is guarded because an activity-store
+  // outage must not 500 the whole record; `meetingsUnavailable` is carried so the
+  // section can say "we could not read your calls" instead of the far worse
+  // "nothing was said on them", which is a claim we would have no basis for.
+  let meetingIntelSource = { candidates: [] as IntelCandidate[], meetingCount: 0, unusable: [] as { activityId: string; reason: string }[] };
+  let meetingsUnavailable = false;
+  try {
+    meetingIntelSource = intelSourceFromActivities(await store.listActivities({ orgId: company.id }));
+  } catch {
+    meetingsUnavailable = true;
+  }
+  const meetingIntel = buildMeetingIntel(meetingIntelSource.candidates);
   const picks = await loadScanPicks(company.id);
   const returns = await loadPhase2Returns(company.id);
   const blueprint = buildBlueprint({
@@ -300,6 +315,27 @@ export default async function CompanyPage({
             </p>
           )}
           <PhaseBlueprint blueprint={blueprint} customerId={company.id} />
+
+          {/* Q89 — "all of this stuff brought front and center when you look up the
+              associated Companies" (Rob, 2026-08-05). It sits ABOVE the timeline
+              deliberately: the timeline says a call happened, this says what the call
+              taught us, and the second is the thing Rob opens the record for. */}
+          {meetingsUnavailable ? (
+            <section className="rounded-xl border border-amber-400/30 bg-amber-400/5 p-5 text-xs text-amber-200">
+              What the meetings taught us could not be read just now. This is our outage,
+              not a statement about this company — do not read it as &ldquo;nothing was
+              said&rdquo;.
+            </section>
+          ) : (
+            <MeetingIntelSection intel={meetingIntel} meetingCount={meetingIntelSource.meetingCount} />
+          )}
+          {meetingIntelSource.unusable.length > 0 && (
+            <p className="-mt-3 text-[11px] text-amber-400/80">
+              {meetingIntelSource.unusable.length} captured item
+              {meetingIntelSource.unusable.length === 1 ? "" : "s"} could not be filed under any
+              block and {meetingIntelSource.unusable.length === 1 ? "is" : "are"} not shown above.
+            </p>
+          )}
 
           {/* §3.4 — the record spine. Company rows anchor activities the same way
               a person row does (≤1-of-person/org), so this is the same feed the
