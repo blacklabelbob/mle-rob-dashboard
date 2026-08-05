@@ -57,7 +57,9 @@
     "and Zillow are all named on the page and NONE of them became an org record: a vendor named in",
     "passing is not a CRM org (inc.8/inc.10 precedent). Origin Vault is the one arguable case — it",
     "has proposed a revenue-share partnership to Alex, not to Rob — so it is written as a talking",
-    "point about HIS deal, not as a company of ours."
+    "point about HIS deal, not as a company of ours.",
+    "",
+    "Q89 inc.13 — RANKED. The four action items now carry `rank`, produced by `~/.claude/skills/meeting-next-steps/scripts/score_next_steps.py` from `data/meetings/2026-06-16-gulfcoast-ai-alex-one.nextsteps.json` against this same deep read, `--as-of 2026-08-05`. The rank is CARRIED, not computed here and not computed in the app: `meetingIntel` renders a block as ranked only when every item has one, so a partial ranking correctly falls back to source order. Ranks are byte-reproducible — the scorer reads no clock (as-of is a parameter) and ties break on item id. Nothing else on this row changed: no text was edited, no status was inferred, and the pain/talking/benefits blocks stay in source order because the scorer does not rank them."
   ],
   "activity": {
     "id": "A-MTG-2026-06-16-GULFCOAST-AIALEX",
@@ -90,28 +92,32 @@
           "text": "Fix SEO issues on gulfcoastregroup.com before tomorrow's meeting (meta tags, headers, image alt text, broken links, schema)",
           "sourceRef": "body to_do 1",
           "excerpt": "Fix SEO issues on gulfcoastregroup.com before tomorrow's meeting (meta tags, headers, image alt text, broken links, schema)",
-          "status": "open"
+          "status": "open",
+          "rank": 2
         },
         {
           "kind": "action-items",
           "text": "Confirm meeting details tonight",
           "sourceRef": "body to_do 2",
           "excerpt": "Confirm meeting details tonight",
-          "status": "open"
+          "status": "open",
+          "rank": 3
         },
         {
           "kind": "action-items",
           "text": "Research Origin Vault and their hashing technology (Origin Stamp) for HomeCloneVault integration",
           "sourceRef": "body to_do 3",
           "excerpt": "Research Origin Vault and their hashing technology (Origin Stamp) for HomeCloneVault integration",
-          "status": "open"
+          "status": "open",
+          "rank": 1
         },
         {
           "kind": "action-items",
           "text": "Look into Bold Trail pricing for comparison",
           "sourceRef": "body to_do 4",
           "excerpt": "Look into Bold Trail pricing for comparison",
-          "status": "open"
+          "status": "open",
+          "rank": 4
         },
         {
           "kind": "pain-points",

@@ -1,0 +1,272 @@
+{
+  "_readme": [
+    "Q89 inc.13 — the FIRST scorer bundle built from a meeting already published to prod.",
+    "",
+    "WHAT THIS FILE IS. `meeting-next-steps` (~/.claude/skills/meeting-next-steps) ranks next steps;",
+    "`lib/meetings/nextStepsAdapter.ts` (inc.12) carries its ranks into the four-block surface. Until",
+    "now nothing had ever fed the scorer real data, so the adapter was tested only against fixtures",
+    "this repo invented. This bundle is the real input: every field below comes out of the already-",
+    "archived deep read at",
+    "`MLE Internal Meetings/archive-reads/2026-06-16-gulfcoast-ai-alex-one.deepread.txt`,",
+    "the same file that produced `2026-06-16-gulfcoast-ai-alex-one.activity.json` in inc.11.",
+    "",
+    "NOTHING NEW WAS MINED. The four actions are the four `to_do` blocks; the pains, talking points",
+    "and benefits are the same entries already live on C-2018. This increment re-expresses what is",
+    "on the record in the scorer's schema — it does not re-read the meeting, and it must not add a",
+    "fact the published activity does not already carry.",
+    "",
+    "SOURCE LINES ARE LITERAL. The scorer's gate A rejects any `source_line` that is not a substring",
+    "of the --transcript file, so where an activity `excerpt` was elided with `…` (the summary-bullet",
+    "entries) the bundle carries a shorter span that IS literal. All 14 were grep-verified against",
+    "the deep read before this file was written.",
+    "",
+    "OWNERSHIP IS UNRESOLVED ON PURPOSE. The Notion body lists four to_dos and never says who owns",
+    "one. Reading `us` onto them because they sound like our prep is exactly the inference inc.11",
+    "refused when it wrote all four `open` rather than guessing them done. `UNRESOLVED` is the",
+    "record's answer; the scorer surfaces it in its own block (gate F) instead of hiding it.",
+    "",
+    "STATUS IS STILL NOT INFERRED. A1 says 'before tomorrow's meeting' and that meeting happened",
+    "seven weeks ago; A1 will therefore score as badly aged. That is the record talking, not a claim",
+    "the work is outstanding — the page never says it was done, and 'very likely done' is not a",
+    "status.",
+    "",
+    "EVIDENCE IS A QUOTE OR IT IS NULL. The scorer checks every `evidence` value against the",
+    "transcript too — reasoning parked there gets refused as a fabricated source line, and it is",
+    "right to: `evidence` is what the rung rests on, `rationale` is why we read it that way. This",
+    "bundle was refused once for exactly that and rewritten. Most rungs here have NO quote behind",
+    "them, because a to_do list does not say who is waiting or how long a job takes — those are",
+    "null with the reasoning in `rationale`, never a sentence dressed up as a line from the call."
+  ],
+  "meeting": {
+    "company": "Gulf Coast RE Group",
+    "company_url": "gulfcoastregroup.com",
+    "date": "2026-06-16",
+    "type": "discovery call (AI Alex, meeting one)",
+    "our_attendees": [
+      "Rob Acheson"
+    ],
+    "their_attendees": "UNRESOLVED - the Notion row's Non MLE Attendees field is empty; the body names Alex of Gulf Coast RE Group as the counterparty",
+    "source": "Notion Master Meetings Database page 3811de57-0199-8099-9137-ef10c8fd0efe, 281 blocks / 44,547 chars, deep-read 2026-08-05",
+    "recovered_by": "meeting-record-recovery"
+  },
+  "items": [
+    {
+      "id": "A1",
+      "kind": "action",
+      "title": "Fix the SEO defects found on gulfcoastregroup.com and present them",
+      "source_line": "Fix SEO issues on gulfcoastregroup.com before tomorrow's meeting (meta tags, headers, image alt text, broken links, schema)",
+      "owner": "UNRESOLVED",
+      "owner_side": "UNRESOLVED",
+      "promised_on": "2026-06-16",
+      "due_by": "2026-06-17",
+      "due_by_source": "Fix SEO issues on gulfcoastregroup.com before tomorrow's meeting (meta tags, headers, image alt text, broken links, schema)",
+      "date_basis": "'before tomorrow's meeting', spoken at the 2026-06-16 call, resolves to 2026-06-17",
+      "value_usd": null,
+      "on_monetized_path": true,
+      "access_unlocked": "existing_contact",
+      "blocking": "ours_alone",
+      "effort_to_clear": "half_day",
+      "reversibility": "credibility",
+      "evidence": {
+        "deal_value": null,
+        "access_unlocked": null,
+        "time_decay": null,
+        "blocking": null,
+        "effort_to_clear": null,
+        "reversibility": null
+      },
+      "unresolved": "The body never says who owns this to_do. It also never says it was done - and the 2026-06-17 in-person and the 2026-07-22 kickoff both happened since. Ask Rob whether it closed.",
+      "rationale": {
+        "access_unlocked": "The audit goes back to the same contact who was on the call — no new person is unlocked.",
+        "blocking": "Nothing in the record shows anyone on their side waiting on it; the deliverable is the finding, and the defects sit in a site we do not control.",
+        "effort_to_clear": "Meta tags, headers, alt text, broken links and schema across a site — not a one-message task.",
+        "reversibility": "A defect list promised for a specific meeting; late, it stops being the thing that earned the room.",
+        "deal_value": "No figure attached to the teardown itself; it is the PVP asset that opened the paid Phase 1 relationship, so it sits on a monetized path.",
+        "time_decay": "Its own stated date, 2026-06-17, has long passed."
+      }
+    },
+    {
+      "id": "A2",
+      "kind": "action",
+      "title": "Confirm the next day's meeting details",
+      "source_line": "Confirm meeting details tonight",
+      "owner": "UNRESOLVED",
+      "owner_side": "UNRESOLVED",
+      "promised_on": "2026-06-16",
+      "due_by": "2026-06-16",
+      "due_by_source": "Confirm meeting details tonight",
+      "date_basis": "'tonight', spoken at the 2026-06-16 call, resolves to 2026-06-16",
+      "value_usd": null,
+      "on_monetized_path": true,
+      "access_unlocked": "existing_contact",
+      "blocking": "ours_alone",
+      "effort_to_clear": "minutes",
+      "reversibility": "nothing",
+      "evidence": {
+        "deal_value": null,
+        "access_unlocked": null,
+        "time_decay": null,
+        "blocking": null,
+        "effort_to_clear": null,
+        "reversibility": null
+      },
+      "unresolved": "Owner not named. The meeting it confirms demonstrably took place, so this row is almost certainly closed - the page still does not say so.",
+      "rationale": {
+        "access_unlocked": "Same contact — no new person.",
+        "blocking": "A confirmation message is ours to send; nobody is waiting on us for it.",
+        "effort_to_clear": "One message.",
+        "reversibility": "The 2026-06-17 meeting is on the record as having happened, so nothing is lost by this row being stale.",
+        "deal_value": "No figure. It gates the in-person that produced the Phase 1 deal.",
+        "time_decay": "Its own stated date was the night of 2026-06-16."
+      }
+    },
+    {
+      "id": "A3",
+      "kind": "action",
+      "title": "Research Origin Vault + Origin Stamp hashing for the HomeCloneVault stack",
+      "source_line": "Research Origin Vault and their hashing technology (Origin Stamp) for HomeCloneVault integration",
+      "owner": "UNRESOLVED",
+      "owner_side": "UNRESOLVED",
+      "promised_on": "2026-06-16",
+      "value_usd": null,
+      "on_monetized_path": true,
+      "access_unlocked": "gatekeeper",
+      "blocking": "ours_alone",
+      "effort_to_clear": "under_hour",
+      "reversibility": "costly",
+      "evidence": {
+        "deal_value": null,
+        "access_unlocked": "Origin Vault. has asked me if I'll do some sort of a revenue share partnership.",
+        "blocking": null,
+        "effort_to_clear": null,
+        "reversibility": null
+      },
+      "unresolved": "Owner not named, and the record sets no date for it.",
+      "rationale": {
+        "access_unlocked": "Origin Vault is a partner circling HIS venture — a functional gate near the deal, not a budget holder above the contact.",
+        "blocking": "Desk research nobody is waiting on.",
+        "effort_to_clear": "Reading a vendor's technology, not building against it.",
+        "reversibility": "Origin Vault is circling him with its own revenue-share offer — arriving after that lands costs a seat at the table.",
+        "deal_value": "No figure in this record. HomeCloneVault is the venture the 35/65 split attaches to, but that split postdates this call and is deliberately not scored here."
+      }
+    },
+    {
+      "id": "A4",
+      "kind": "action",
+      "title": "Price Bold Trail for the Boomtown comparison",
+      "source_line": "Look into Bold Trail pricing for comparison",
+      "owner": "UNRESOLVED",
+      "owner_side": "UNRESOLVED",
+      "promised_on": "2026-06-16",
+      "value_usd": null,
+      "on_monetized_path": false,
+      "access_unlocked": "none",
+      "blocking": "ours_alone",
+      "effort_to_clear": "minutes",
+      "reversibility": "redoable",
+      "evidence": {
+        "deal_value": null,
+        "access_unlocked": null,
+        "blocking": null,
+        "effort_to_clear": null,
+        "reversibility": null
+      },
+      "unresolved": "Owner not named.",
+      "rationale": {
+        "access_unlocked": "Public pricing lookup — no human on the other side.",
+        "blocking": "Ours, nobody waiting.",
+        "effort_to_clear": "A pricing page.",
+        "reversibility": "Fully redoable at any time.",
+        "deal_value": "No figure, and no monetized path: the record says the Boomtown decision is already made against migration."
+      }
+    }
+  ],
+  "pain_points": [
+    {
+      "quote": "Google is moving towards zero-click listings, meaning when people search, you know, people's homes for sale, it comes up right in the Google AI overview so they don't go to our site anymore",
+      "speaker": "UNRESOLVED (Gulf Coast principal)",
+      "speaker_side": "them",
+      "maps_to": "The organic/attribution gap the SEO teardown (A1) opened",
+      "attribution_unverified": true,
+      "attribution_note": "The deep read is an unattributed transcript. The side is established by the paragraph being the answer to a question Rob asked, not by speaker tagging."
+    },
+    {
+      "quote": "I know it's just like hard to quantify organic for 60 agents. You know what I mean? Like, how do I, I don't know how to present that to them.",
+      "speaker": "UNRESOLVED (Gulf Coast principal)",
+      "speaker_side": "them",
+      "maps_to": "Attribution reporting - the deliverable he says he cannot produce himself",
+      "attribution_unverified": true,
+      "attribution_note": "Same unattributed transcript; established as his by being the answer to Rob's question in the preceding paragraph."
+    },
+    {
+      "quote": "that is where we're weak, right? 'Cause we became so headstrong on PPC and developing the agents to learn how to convert PPC into clients. That's been our main pain point that we try to consistently solve is how to take these internet lookers and turn them into clients.",
+      "speaker": "UNRESOLVED (Gulf Coast principal)",
+      "speaker_side": "them",
+      "maps_to": "Conversion, not traffic - what any site we hand him is judged on",
+      "attribution_unverified": true,
+      "attribution_note": "Same unattributed transcript."
+    },
+    {
+      "quote": "The worst part about Boomtown is they're very... with their API. Native API. They don't play well with others. So I'm having to do all these workarounds to improve the technology of it.",
+      "speaker": "UNRESOLVED (Gulf Coast principal)",
+      "speaker_side": "them",
+      "maps_to": "Why he is building a replacement he owns outright rather than migrating",
+      "attribution_unverified": true,
+      "attribution_note": "Same unattributed transcript."
+    }
+  ],
+  "talking_points": [
+    {
+      "point": "He is not shopping for a website - he is diversifying off PPC and building four products at once (HyperLocal website factory, HomeCloneVault, a solopreneur home-services utility, an internal app for 60 agents). Anything we propose should attach to one of those four, not sit beside them.",
+      "why": "Attaching to a product he has already funded is a different conversation from selling him a fifth thing.",
+      "source_line": "Website Factory (HyperLocal)"
+    },
+    {
+      "point": "HyperLocal has a date and a price he has already thought about: go-to-market October/November at roughly $699-899/month as a pure licence. He explicitly prefers a higher fixed fee over a revenue share because he does not want to rely on other people's talent to get paid.",
+      "why": "His own pricing instinct, in his own numbers - quote against it, not over it.",
+      "source_line": "I'd rather go with a higher monthly fee because I don't want to rely on talent."
+    },
+    {
+      "point": "The Boomtown decision is already made and it is a two-year one: stay on legacy Boomtown for the ad-buying power, migrate nothing, and build the replacement he owns. Pitching a migration is pitching against a decision.",
+      "why": "Agents tested Bold Trail and rejected it; moving 60 of them is impractical.",
+      "source_line": "migration of 60 agents is impractical"
+    },
+    {
+      "point": "On HomeCloneVault he already has money out the door and a partner circling - Origin Vault has asked him about a revenue-share partnership. That proposal is on HIS deal, not ours.",
+      "why": "Worth knowing before anyone proposes terms near it.",
+      "source_line": "Origin Vault. has asked me if I'll do some sort of a revenue share partnership."
+    },
+    {
+      "point": "His own read on why a site converts is conversion science, not design taste - Boomtown gets him ~10% visitor-to-lead where he says some sites run 5%. Any site we hand him is judged against that number.",
+      "why": "It sets the acceptance criterion before we build.",
+      "source_line": "the site is only as good as it converts"
+    }
+  ],
+  "benefits_to_us": [
+    {
+      "benefit": "The leak is quantified in his own numbers, not ours: ~$1,500/day on PPC, ~2 sales per 100 leads, ~$1,100 customer acquisition cost, and 85% of revenue on the one channel he says Google is closing. That is the whole leaky-bucket argument stated by the buyer.",
+      "type": "opening",
+      "source_line": "Spending ~$1,500/day on PPC"
+    },
+    {
+      "benefit": "He named the gap we close and admitted he cannot close it himself. Attribution reporting for organic is a deliverable, not a favour, and it is the one he will feel every week.",
+      "type": "leverage",
+      "source_line": "I don't know how to present that to them"
+    },
+    {
+      "benefit": "He is already sold on the thesis. The work is not convincing him AI matters; it is being the one who ships before his October window.",
+      "type": "opening",
+      "source_line": "I just feel like we have in our grasp institutional grade software"
+    },
+    {
+      "benefit": "The SEO teardown was run live on his own site before any paperwork, and the schema defect is unfixable inside his hard-coded CMS template. That template constraint is precisely what a site we build removes.",
+      "type": "expansion path",
+      "source_line": "Meta tag too long (over 160 characters)"
+    },
+    {
+      "benefit": "He is paying an Upwork team on milestones for the internal app and calls it his first dev adventure. Four products, one first-time dev relationship and a hard October date is a delivery-capacity problem we are built for.",
+      "type": "expansion path",
+      "source_line": "Built via Upwork dev team (milestone-based payments); first dev project undertaken"
+    }
+  ]
+}
