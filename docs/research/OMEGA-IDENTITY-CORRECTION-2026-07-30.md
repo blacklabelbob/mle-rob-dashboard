@@ -53,7 +53,22 @@ Bonita Springs FL. Organizer **[email redacted @gulfregroup.com]** (Alex Greenwo
 | `[email redacted @gmail.com]` | **Unidentified.** Mailbox reads as a SW-Florida handle (the local part is redacted here — the live address is on the 7/28 calendar invite). Needs Rob |
 | `rob@aivoicetech.io` | Rob |
 
-**`[email redacted @fireflies.ai]` was NOT invited.** In-person, no notetaker, no Zoom recording — **no transcript exists.**
+**`[email redacted @fireflies.ai]` was NOT invited.** In-person, no notetaker, no Zoom recording — ~~**no transcript exists.**~~
+
+> ## ⛔ CORRECTED 2026-08-05 — THE SENTENCE ABOVE IS FALSE, AND IT WAS FALSE WHEN WRITTEN
+>
+> **A full transcript exists.** Notion → Master Meetings Database → row titled `Meeting 2026-07-28`
+> (`3ab1de57-0199-80ef-bf9c-c2b98d7578ed`): **531 blocks — a `[transcription]` wrapper, 457 verbatim
+> paragraphs, and a 9-section AI summary with 6 action items.**
+>
+> The reasoning above is sound about **bots** and wrong about **recordings**: a street-address invite
+> with no `@fireflies.ai` attendee proves no bot could dial in. It proves nothing about a phone, a
+> laptop, or Notion AI in the room. Absence of evidence was reported as evidence of absence.
+>
+> The row was missed because its **title is auto-generated and never updated**, and because a
+> `Transcript Available` checkbox read **false** on the page that contained the transcript. Both are
+> now treated as claims, never findings — see skill `meeting-record-recovery`, which enforces this
+> in code, and INCIDENT-LEDGER #22 / #34.
 
 ## Proposed correction (needs Rob's yes — identity swaps are not silent)
 
@@ -73,9 +88,34 @@ Rob: *"the Omega guys started talking about other companies they own that our se
 wouldn't those have been created into their own companies in the company view, then looked up and researched,
 showed the attribution from me all the way to the omega guys."*
 
-**Those company names are not in any system.** The meeting was in person with no recorder, so there is no
+~~**Those company names are not in any system.** The meeting was in person with no recorder, so there is no
 transcript to mine — the names exist only in Rob's memory. Everything above was reconstructed from a calendar
-invite and public records; **the subsidiaries cannot be.**
+invite and public records; **the subsidiaries cannot be.**~~
+
+> ## ⛔ CORRECTED 2026-08-05 — RECOVERED VERBATIM, NOT FROM MEMORY
+>
+> The names were in the transcript the entire time. Quoted from blocks 324–328 of the Notion page:
+>
+> - **Monarch National Insurance** — *"Monarch, they had a net profit of $125 million last year… their
+>   targets are independent agents writing homeowner's insurance."*
+> - **Viceroy** — *"they also own another company called Viceroy, which is a different insurance platform
+>   that they're only doing homes from $1 million and up. And they're up the whole coast. That's another
+>   subsidiary."*
+> - **Stanley Furniture (former)** — *"our partner also owns what used to be Stanley Furniture… now they're
+>   building all the Love Sacs and all that stuff for Wayfair… Manufacturing, e-commerce."*
+> - **"Hummer's insurance"** and **"the reader"** — spoken, mangled by transcription. **UNRESOLVED, ask Rob.**
+>
+> Also recovered: **Byron** (IT lead across the whole portfolio, Tallahassee — the requested Teams call),
+> **Katherine** (Cape office), **Nikita** (home office). And **"Alana"**, carried in Rob's manual notes as an
+> unresolved person, is in the transcript a **software vendor** SoftPro would not approve for cloud access —
+> which is why Omega uses Pythonic. Recording it as a person or a company would have created a junk record.
+>
+> ⚠️ **The AI summary named Monarch ONLY.** Viceroy, Stanley Furniture and Hummer's appear *only* in the
+> verbatim. This is the standing reason to read the transcript and not the summary.
+>
+> ⚠️ **Identity still unresolved.** The Notion row's `Company URL` is `omegatitlegroup.com` and its summary
+> says "Omega Title Group, 15+ locations FL/PA/NJ" — which contradicts this document's finding that the 7/28
+> meeting was with **Omega National Title Agency**. Both cannot be right. **Ask Rob; do not swap the record.**
 
 **The moment Rob names them, the chain completes automatically:** `company-catcher` creates each org,
 `lead-enricher` researches it, `person-resolver` attaches the people, `attribution-keeper` draws
