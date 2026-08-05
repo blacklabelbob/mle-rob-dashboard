@@ -31,7 +31,15 @@ Prod consequence on `/`: **22 action items, 12+ pain points, drawn from three di
 
 Fix: `...(p.context ? { context: p.context } : {})` in the rebuild, **plus** a test that runs `networkIntelFromActivities → buildMeetingIntel → sourceLabel` end to end. `lib/meetings/__tests__/networkIntel.test.ts:33` asserts context on the *candidate* and line 35 asserts `sourceLabel` *directly* — the one boundary between them is the one that eats it. 265 green tests did not see this.
 
-### 3. [Engineering] A second bug stacked behind #2: the name map is built from the wrong ledger. `app/page.tsx:51`
+### 3. [Engineering] ~~A second bug stacked behind #2: the name map is built from the wrong ledger.~~ **WITHDRAWN 2026-08-05 (Q89 inc.15) — this finding is wrong, and the code was correct as written.**
+
+**Correction, left in place rather than deleted so the reasoning is auditable.** The claim below assumes `NetworkData.people` is the people ledger only. It is not: the 0003 orgs split is a **storage** split, not a read split. `lib/storage/supabaseStore.ts:245` returns `people: [...people.map(toPerson), ...orgs.map(toOrgPerson)]`, so company rows come back inside `data.people` and `app/page.tsx:51` resolves `C-####` correctly. The supporting observation — "the Overview emits only `/people/P-…` links" — is about which records the Overview *links to*, and does not bear on the name map at all.
+
+Verified rather than argued: `lib/meetings/__tests__/overviewSourceLabel.test.ts` now walks the page's own path (org-name map → `networkIntelFromActivities` → `buildMeetingIntel` → `sourceLabel`) over the four published meeting rows and asserts every label leads with the **name** the ledger holds, never the id — and, with an empty map, that the fallback really is the id, so the assertion is not vacuous. 5/5 green. **No code change was made here, on purpose:** "fixing" a working lookup against a mistaken premise is how a correct line gets rewritten into a bug.
+
+The original finding follows, unedited:
+
+**~~[ORIGINAL, INCORRECT]~~** `app/page.tsx:51`
 `Object.fromEntries(data.people.map(p => [p.id, p.name]))` — `data.people` is the **people** ledger (`P-1004`…, confirmed: the Overview emits only `/people/P-…` links, zero `/companies/C-…`). Meetings carry `orgId: "C-2018"`. Every lookup misses, so `networkIntel.ts:72` falls back to the raw id. Fix #2 alone and the Overview will print `C-2018 · A-MTG-… · body to_do 1` — an id, not "Gulf Coast Real Estate Group". Build the map from the companies store, and have the test assert a **name**, not any-truthy-string.
 
 ### 4. [Fidelity] Nothing is clickable. The DoD's traceability clause is only half-met. `components/meetings/MeetingIntelSection.tsx:34-40`
