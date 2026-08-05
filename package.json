@@ -39,7 +39,8 @@
     "worklist:q84": "node --import ./scripts/ts-loader.mjs scripts/q84-worklist.mjs",
     "sync:meetings": "node --import ./scripts/ts-loader.mjs scripts/notion-meetings-sync.mjs",
     "audit:clocks": "node --import ./scripts/ts-loader.mjs scripts/audit-wrapper-clocks.mjs",
-    "publish:meeting": "node scripts/publish-meeting-activity.mjs"
+    "publish:meeting": "node scripts/publish-meeting-activity.mjs",
+    "audit:questions": "node --experimental-strip-types scripts/audit-open-questions.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.110.0",
