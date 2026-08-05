@@ -24,6 +24,7 @@ import {
   findKeylessStacks,
   findTitleNearMisses,
 } from "../lib/flags/dedupeKeyIdentity.ts";
+import { LEDGER_FILERS, measureNamespace } from "../lib/flags/keyNamespace.ts";
 
 // Same var as scripts/migration-backlog.mjs and notion-crm-check.mjs — one name for the
 // one destination. Defaults to prod: the ledger Rob reads is the deployed one.
@@ -68,10 +69,27 @@ const crossStatus = findCrossStatusDrift(
   all.map((f) => ({ id: f.id, dedupeKey: f.dedupe_key ?? f.dedupeKey, status: f.status ?? "open" })),
 );
 
+// Q84 inc.183 — the only section here that does not read the ledger, and does not need to.
+// Every check above measures rows that already landed; this one measures whether two DIFFERENT
+// filers can land on each other, which is a property of the source tree. Reported next to the
+// row-level drift because it is the same defect one process boundary out: inc.182 proves a key
+// is unique within one assembled batch, and nothing proved it across the five filers that POST
+// to this ledger on their own ticks.
+const namespace = measureNamespace(LEDGER_FILERS);
+
 if (JSON_OUT) {
   console.log(
     JSON.stringify(
-      { scanned: open.length, ledger: all.length, groups, keyless: keyless.length, stacks, nearMisses, crossStatus },
+      {
+        scanned: open.length,
+        ledger: all.length,
+        groups,
+        keyless: keyless.length,
+        stacks,
+        nearMisses,
+        crossStatus,
+        namespace,
+      },
       null,
       2,
     ),
@@ -102,6 +120,33 @@ if (JSON_OUT) {
     console.log("  none — no resolved row carries a spelling an open row does not.");
   }
 
+  console.log(
+    `\nfilers POSTing to this ledger: ${namespace.filers.length} · key namespace partitioned per filer: ` +
+      `${namespace.partitioned ? "yes" : "NO"}`,
+  );
+  for (const c of namespace.collisions) {
+    console.log(
+      `  COLLISION ${c.filers[0]} and ${c.filers[1]} both emit ${c.keys[0]} / ${c.keys[1]} — ` +
+        `the second POST supersedes the first and neither gate can tell`,
+    );
+  }
+  if (!namespace.collisions.length) {
+    console.log("  no two filers can emit the same key (asserted in keyNamespace.test.ts, so the build holds it).");
+  }
+  for (const s of namespace.sharedNamespaces) {
+    console.log(
+      `  shared namespace "${s.namespace}/" — ${s.filers.join(" and ")}. Distinct keys today; nothing ` +
+        `but the words they picked keeps them apart, and a reader cannot tell which gate owns a row.`,
+    );
+  }
+  if (namespace.unnamespaced.length) {
+    console.log(
+      `  ${namespace.unnamespaced.length} key(s) carry no namespace separator at all — the global space a ` +
+        `hand-typed agent key lands in (prod #144/#145):`,
+    );
+    for (const u of namespace.unnamespaced) console.log(`      ${u.key}   (${u.filer})`);
+  }
+
   if (nearMisses.length) {
     console.log(`\nnear misses NOT paired (${nearMisses.length}) — a title alone is not a key:`);
     for (const m of nearMisses) {
@@ -117,6 +162,11 @@ if (JSON_OUT) {
 // Nor does cross-status drift (inc.105): the remedy the filed row prescribes is "resolve one
 // with a note pointing at the other", and one of those rows is ALREADY resolved. Filing that
 // sentence about a row Rob closed would be advice to undo his own closure.
+// Nor does the namespace measure (inc.183), and for the opposite reason to the others: a
+// cross-filer collision is enforced HARDER than a ledger row — keyNamespace.test.ts asserts zero
+// of them, so one appearing fails the build before the two filers ever run. A row on Rob's page
+// would arrive later and say less. The shared namespace and the bare keys are shapes, not
+// duplicated rows; filing a row about a naming convention is the kind of noise inc.36 cut.
 const findings = groups.length + stacks.length;
 if (!findings || !FLAG) {
   if (findings) console.log("\nplan only — pass --flag to put this on the ledger.");
