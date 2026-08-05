@@ -65,12 +65,20 @@ describe("the live migrations directory", () => {
   // keep this run: adding `0035_flag_payload.sql` failed it before the file was mentioned
   // anywhere else. Growing the list is a decision, not a maintenance chore — every entry
   // added here lengthens the ONE `supabase db push` Rob owes, and that has to be seen.
-  it("the backlog is exactly the three migrations Rob still has to push", () => {
+  // 2026-08-05: grew to FOUR, and the pin did its job again — `0036_client_demos.sql`
+  // failed this test before it was mentioned anywhere else. Recording the decision here
+  // rather than just bumping the number: Rob asked for the mockups we build for prospects
+  // to be captured ("we SHOULD be capturing the mockups we create for them"), and there
+  // was no column for one — a preview URL was sitting in `orgs.website` pretending to be
+  // a company's own site. That is a schema gap, so it costs a migration, so it lengthens
+  // the push Rob owes. Seen and accepted.
+  it("the backlog is exactly the four migrations Rob still has to push", () => {
     const { pending } = migrationBacklog(FILES);
     expect(pending.map((p) => p.name)).toEqual([
       "0032_role_read_grants.sql",
       "0034_dedup_review.sql",
       "0035_flag_payload.sql",
+      "0036_client_demos.sql",
     ]);
     // Nameless work is unassignable work — a pending migration says whose push it is.
     for (const entry of pending) expect(entry.owner).toBe("rob");

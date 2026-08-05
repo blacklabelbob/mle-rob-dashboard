@@ -1,3 +1,18 @@
+> # ⛔ SPLIT 2026-08-05 — this file covered two separate companies
+>
+> **Rob:** *"it make more sense to have on file for him for Dececco and one for miga. They arer separate companies."*
+>
+> One dossier covering **De Cecco USA** and **Miga Food Manufacturing** is the same shape that welded two
+> Omegas into one record. Split into:
+>
+> - [`dececco-usa.md`](./dececco-usa.md) — the company, Gary Waskovich, Giovanni Spazioso
+> - [`miga-food-manufacturing.md`](./miga-food-manufacturing.md) — the company, Daniella, the preview-host question
+>
+> The **Gary → Miga** link remains **publicly UNVERIFIED** and is the reason the split matters. Original kept
+> below for provenance; do not extend it.
+
+---
+
 # Gary Waskovich / De Cecco / Miga — Dossier (2026-07-08)
 **Intake inversion discovered:** Rob had "Gary Waskivich owns Miga, knows a De Cecco exec." Public record: **Gary WASKOVICH IS De Cecco** — Regional Sales Manager (FL), Naples resident, 26+ yrs, Johnson & Wales — and **Giovanni Spazioso is his colleague** (National Account Sales Mgr – East, Foodservice) at the ~20–50-person De Cecco USA (PMI Inc, NYC). Verified: same SignalHire roster; linkedin.com/in/gary-waskovich-390490294, linkedin.com/in/giovannispazioso.
 
