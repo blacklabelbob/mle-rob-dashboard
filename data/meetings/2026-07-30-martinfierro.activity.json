@@ -1,0 +1,201 @@
+{
+  "_readme": [
+    "Q89 inc.8 — the 2026-07-30 Martin Fierro Restaurant meeting (Naples, FL), as an Activity row the CRM can read.",
+    "",
+    "WHY THIS ROW: inc.6 proved a write, inc.7 proved the write was a pipeline on a second company.",
+    "This is the third company through the SAME publisher, gate and surfaces with no new code — and",
+    "the first one where the read had to be EXECUTED first rather than taken from an earlier session.",
+    "It is the read log being drained, which is what inc.7 said inc.8 would be.",
+    "",
+    "PROVENANCE — read before trusting a line of it. Every item below was read out of the Notion",
+    "Master Meetings Database page `Meeting 2026-07-30` (3ad1de57-0199-80dd-b213-d09c387217e7),",
+    "399 blocks / 89,170 chars, on 2026-08-05 via `find_meeting.py --page … --deep`, output archived",
+    "at `/tmp/q84-read-0730page.txt` (93,034 bytes) and logged in",
+    "`docs/research/Q84-READ-LOG-2026-08-05.md`. Nothing here was written from memory, from a summary",
+    "of a summary, or from another agent's prose.",
+    "",
+    "FOUR FIELDS LIE ON THIS ROW TOO — Call Recording, Meeting Summary, Google Doc Link and Export",
+    "Status are all empty over 89k chars of body. That is now THREE rows out of three read (Omega",
+    "7/28, Gulf Coast 7/22, Martin Fierro 7/30). The recovery tool itself prints",
+    "'CONTRADICTED — the body below HAS the content. Trust the body, not the field.'",
+    "Field-emptiness is not evidence of absence anywhere in this system.",
+    "",
+    "THE TITLE IS ALSO USELESS — `Meeting 2026-07-30` names no counterparty. The identity lives in",
+    "the PROPERTIES (`Company Meeting with: Martin Fierro Restaurant`, `Company URL`,",
+    "`Non MLE Attendees: Dani, Michael`), which is exactly the reason `find_meeting.py` prints",
+    "'TITLE (do not trust)'. The org was matched to the EXISTING prod record C-2005 by name; no new",
+    "org was created and none was guessed.",
+    "",
+    "`sourceRef` addresses the LINE, not the meeting. `body ¶NNN` is the 1-based index of the block",
+    "among ALL `[paragraph]` blocks of the deep export in file order (342 of them; 336 non-empty) —",
+    "the same convention as the Omega and Gulf Coast files. `body to_do N` and",
+    "`body bullet «heading»` address the summary blocks. No `url` is set on any item ON PURPOSE: the",
+    "Notion page URL opens an 89k-char MEETING, not the sentence, and a link that lands the reader",
+    "somewhere other than where they were sent is the lie `intelSource.ts` refuses to tell.",
+    "",
+    "PAIN POINTS ARE THE CLIENT'S OWN WORDS. Every pain `text` is a literal substring of its",
+    "`excerpt`, and every excerpt is a transcript paragraph spoken by the RESTAURANT side about their",
+    "own operation — not by Rob, not by Will, not by the AI summary. This transcript is a good one:",
+    "the owners talk about their own problems in plain sentences, so five pains are defensible where",
+    "Gulf Coast's messier recording yielded two. The count follows the evidence, never a target.",
+    "",
+    "NOT WRITTEN, DELIBERATELY: the page's `Other Combined/Possible referral` field names SpotHopper,",
+    "Toast, Owner.com, Footy Coaches and 'Omega guys (Blake, Scott)'. Vendor tools named in passing",
+    "are not CRM orgs, and the Omega line is a REFERRAL thread that belongs to `company-catcher` and",
+    "Q87's gated-referral rules, not to this company's record. Writing them here would be the",
+    "'company invented from a tool mention' failure this queue already killed once.",
+    "",
+    "NOT WRITTEN, DELIBERATELY (2): the '11 Proposed Automations' block and the claimed case-study",
+    "numbers ('50% consecutive monthly increases', 'guarantee a million views a month') are OUR pitch,",
+    "not their intel. A benefits-us item may make our commercial read; it may not launder our own",
+    "sales claims into the customer's record as findings."
+  ],
+  "activity": {
+    "id": "A-MTG-2026-07-30-MARTINFIERRO",
+    "orgId": "C-2005",
+    "type": "meeting",
+    "source": "manual",
+    "createdBy": "driver:Q89-inc.8",
+    "occurredAt": "2026-07-30T14:53:00.000Z",
+    "createdAt": "2026-08-05T00:00:00.000Z",
+    "bookProtected": false,
+    "summary": "Martin Fierro Restaurant (Naples, FL) Phase 1 pitch — 23-year Argentine/Uruguayan steakhouse across two locations, ~384 guests/week off-season. Website teardown, new one-page AEO/SEO site demo, the Everything Agent, and Phase 1/Phase 2 pricing with a full refund guarantee. Owners interested; off-season cash flow named as the constraint.",
+    "sourceContext": {
+      "system": "notion",
+      "database": "Master Meetings Database",
+      "pageId": "3ad1de57-0199-80dd-b213-d09c387217e7",
+      "readOn": "2026-08-05",
+      "readWith": "find_meeting.py --page 3ad1de57-0199-80dd-b213-d09c387217e7 --deep",
+      "bodyBlocks": 399,
+      "bodyChars": 89170,
+      "attendeesMle": ["Rob Acheson", "Will DeVito"],
+      "attendeesOther": ["Dani", "Michael"],
+      "fieldsThatClaimAbsence": [
+        "Call Recording",
+        "Meeting Summary",
+        "Google Doc Link",
+        "Export Status"
+      ],
+      "intel": [
+        {
+          "kind": "action-items",
+          "text": "Dani to continue discussions with the tech team and determine how to move forward with Phase 1 onboarding",
+          "sourceRef": "body to_do 1",
+          "excerpt": "Dani to continue discussions with the tech team and determine how to move forward with Phase 1 onboarding",
+          "status": "open"
+        },
+        {
+          "kind": "action-items",
+          "text": "Follow up with the Omega guys / arrange a call between Blake and Scott",
+          "sourceRef": "body to_do 2",
+          "excerpt": "Follow up with the Omega guys / arrange a call between Blake and Scott",
+          "status": "open"
+        },
+        {
+          "kind": "action-items",
+          "text": "Restaurant team to audit and clean up outdated listings (old phone numbers, outdated menus) across citation platforms",
+          "sourceRef": "body to_do 3",
+          "excerpt": "Restaurant team to audit and clean up outdated listings (old phone numbers, outdated menus) across citation platforms",
+          "status": "open"
+        },
+        {
+          "kind": "action-items",
+          "text": "Review the computer upgrade recommendation link that was shared",
+          "sourceRef": "body to_do 4",
+          "excerpt": "Review computer upgrade recommendation link that was shared",
+          "status": "open"
+        },
+        {
+          "kind": "pain-points",
+          "text": "The biggest problem here is getting people here. In the door.",
+          "sourceRef": "body ¶14",
+          "excerpt": "We're working on reducing costs all the time. Sure. And we definitely got room for it. The biggest problem here is getting people here. In the door. In the door. I think once they get here, we are definitely then working on retaining and making them a lifelong guest. But just getting them here. Yeah. You know, Naples is just saturated with restaurants. Yes. So it's, you know, it's just a big competition everywhere, you know."
+        },
+        {
+          "kind": "pain-points",
+          "text": "Naples is just saturated with restaurants",
+          "sourceRef": "body ¶14",
+          "excerpt": "We're working on reducing costs all the time. Sure. And we definitely got room for it. The biggest problem here is getting people here. In the door. In the door. I think once they get here, we are definitely then working on retaining and making them a lifelong guest. But just getting them here. Yeah. You know, Naples is just saturated with restaurants. Yes. So it's, you know, it's just a big competition everywhere, you know."
+        },
+        {
+          "kind": "pain-points",
+          "text": "I'm pretty sure we're not using it to its full capacity, these systems. Maybe just lack of how to",
+          "sourceRef": "body ¶21",
+          "excerpt": "I don't know or I'm pretty sure we're not using it to its full capacity, these systems. Maybe just lack of how to... - Yeah, they don't. - Use the system properly. - Yeah, they don't come in and show you how to take advantage of every-- - Yeah, but I always tell her, like, man, I feel like, you know, we need to do something else, something more, and, you know, are we reaching out, like, via text or whatever?"
+        },
+        {
+          "kind": "pain-points",
+          "text": "I kinda just, kinda this past month, kinda just winged it through ChatGPT, and here's all my invoices",
+          "sourceRef": "body ¶26",
+          "excerpt": "We did that and right now we're going on like our second round of kind of redoing them again. We did that. - Finally, like six months ago, we put it in the system, it cost everything, and that's something that we just gotta redo again. I kinda just, kinda this past month, kinda just winged it through ChatGPT, and here's all my invoices, here's my thing."
+        },
+        {
+          "kind": "pain-points",
+          "text": "Believe it or not, I'm like the worst when it comes to technology.",
+          "sourceRef": "body ¶90",
+          "excerpt": "Believe it or not, I'm like the worst when it comes to technology. But Dani is the one that handles all of this."
+        },
+        {
+          "kind": "talking-points",
+          "text": "They repriced the menu three to four months ago toward value and volume — smaller shareable plates — deliberately trading margin for foot traffic. Every pitch has to be about heads through the door, not ticket size.",
+          "sourceRef": "body bullet «Restaurant Background & Challenges»",
+          "excerpt": "Recently repriced the menu toward a value/volume model — smaller, shareable plates at affordable price points to increase foot traffic"
+        },
+        {
+          "kind": "talking-points",
+          "text": "Tourists are their stated priority target because they are less price-sensitive; Spanish-speaking guests are a second named segment. Argentine/Uruguayan cuisine plus Spanish-language content is the differentiator they already believe in.",
+          "sourceRef": "body bullet «Restaurant Background & Challenges»",
+          "excerpt": "Customer mix is broad: families, Spanish-speaking guests, Americans, and tourists; tourists are a priority target as they are less price-sensitive"
+        },
+        {
+          "kind": "talking-points",
+          "text": "They already own the tools and know they are underusing them — Toast (POS), SpotHopper (email/SMS), a rewards program and a birthday club. The opening is integration and enablement, not another subscription.",
+          "sourceRef": "body bullet «Restaurant Background & Challenges»",
+          "excerpt": "Current tech stack includes Toast (POS), Spot Hopper (email/SMS marketing, acknowledged as underutilized), a rewards program, and a birthday club"
+        },
+        {
+          "kind": "talking-points",
+          "text": "They track ticket average and know their guest count (~384/week off-season) — unusual for a restaurant this size, and the reason a lifetime-value / acquisition-cost conversation is available here when it is not elsewhere.",
+          "sourceRef": "body bullet «Restaurant Background & Challenges»",
+          "excerpt": "Currently averaging ~384 guests per week (off-season), with the bulk on Friday–Sunday"
+        },
+        {
+          "kind": "talking-points",
+          "text": "On the website itself: no schema markup at all was the single most critical finding, and the meta description is more than double the 160-character limit so Google truncates it entirely. Both are checkable in front of them.",
+          "sourceRef": "body bullet «Website Analysis»",
+          "excerpt": "No schema markup — identified as the most critical missing element for SEO and AI engine visibility"
+        },
+        {
+          "kind": "benefits-us",
+          "text": "The Phase 1 deliverable list is already demoed, not promised — a new one-page AEO/SEO site with one-click call, WhatsApp and ordering was shown live on the call. The shortest path to signature is finishing that site with their real media rather than re-pitching the concept.",
+          "sourceRef": "body bullet «New Website Demo»",
+          "excerpt": "A new one-page site was demoed — AEO/SEO optimized, fast, and mobile-friendly"
+        },
+        {
+          "kind": "benefits-us",
+          "text": "The stated blocker is timing, not belief: the owners are interested and named off-season cash flow as the constraint, while agreeing off-season is the right time to build. A phased or deferred-start structure answers the actual objection.",
+          "sourceRef": "body bullet «Next Steps»",
+          "excerpt": "Restaurant owners expressed interest but noted off-season cash flow as a constraint; acknowledged that off-season is the ideal time to implement"
+        },
+        {
+          "kind": "benefits-us",
+          "text": "Dani is the decision path — the owner says outright that Dani handles the technology, and the one action item that carries the deal is Dani working out how to move forward. Follow-ups go to Dani, not to the owner.",
+          "sourceRef": "body ¶90",
+          "excerpt": "Believe it or not, I'm like the worst when it comes to technology. But Dani is the one that handles all of this."
+        },
+        {
+          "kind": "benefits-us",
+          "text": "Being local is a live advantage here and was used on the call: the team can come in regularly to drive adoption, which is the direct answer to their own complaint that vendors never showed them how to use what they bought.",
+          "sourceRef": "body bullet «Next Steps»",
+          "excerpt": "Tech team noted they are local and can come in regularly to help maximize system usage"
+        },
+        {
+          "kind": "benefits-us",
+          "text": "They run two locations and do catering, including a wedding booked into 2027 — the Phase 1 scope sold here is repeatable across the second location and a catering intake pipeline is already scoped for Phase 2.",
+          "sourceRef": "body bullet «Restaurant Background & Challenges»",
+          "excerpt": "Martin Piero is an Argentine/Uruguayan steakhouse operating since 2003, across two Naples locations"
+        }
+      ]
+    }
+  }
+}
