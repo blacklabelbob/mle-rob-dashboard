@@ -25,6 +25,12 @@ import {
   findTitleNearMisses,
 } from "../lib/flags/dedupeKeyIdentity.ts";
 import { LEDGER_FILERS, measureNamespace } from "../lib/flags/keyNamespace.ts";
+import { censusFilers, censusLines, scanTree } from "../lib/flags/filerCensus.ts";
+import { readFileSync, readdirSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 // Same var as scripts/migration-backlog.mjs and notion-crm-check.mjs — one name for the
 // one destination. Defaults to prod: the ledger Rob reads is the deployed one.
@@ -77,6 +83,23 @@ const crossStatus = findCrossStatusDrift(
 // to this ledger on their own ticks.
 const namespace = measureNamespace(LEDGER_FILERS);
 
+// Q84 inc.184 — what the section above is scoped to. `measureNamespace` walks the table it is
+// handed; it cannot see a filer nobody wrote down, and it does not hedge about one — it prints the
+// same "no collisions" with a smaller denominator. So the tree is scanned for every place a
+// `dedupeKey` is minted and compared against the sources the registry claims. Same walk the build
+// assertion uses (filerCensus.test.ts), so the reporter and the gate cannot disagree about the tree.
+const census = censusFilers(
+  scanTree({
+    list: (dir) =>
+      readdirSync(join(repoRoot, dir), { withFileTypes: true }).map((e) => ({
+        name: e.name,
+        isDirectory: e.isDirectory(),
+      })),
+    read: (path) => readFileSync(join(repoRoot, path), "utf8"),
+  }),
+  LEDGER_FILERS,
+);
+
 if (JSON_OUT) {
   console.log(
     JSON.stringify(
@@ -89,6 +112,7 @@ if (JSON_OUT) {
         nearMisses,
         crossStatus,
         namespace,
+        census,
       },
       null,
       2,
@@ -145,6 +169,13 @@ if (JSON_OUT) {
         `hand-typed agent key lands in (prod #144/#145):`,
     );
     for (const u of namespace.unnamespaced) console.log(`      ${u.key}   (${u.filer})`);
+  }
+  for (const line of censusLines(census)) console.log(`  ${line}`);
+  if (census.complete) {
+    console.log(
+      `  every source that mints a key is registered (${census.sites.length} emission sites across ` +
+        `${namespace.filers.length} filers) — so the line above is about all of them, not the ones we remembered.`,
+    );
   }
 
   if (nearMisses.length) {
