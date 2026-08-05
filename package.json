@@ -33,7 +33,8 @@
     "recount:q84": "node scripts/q84-recount.mjs",
     "worklist:q84": "node --import ./scripts/ts-loader.mjs scripts/q84-worklist.mjs",
     "sync:meetings": "node --import ./scripts/ts-loader.mjs scripts/notion-meetings-sync.mjs",
-    "audit:clocks": "node --import ./scripts/ts-loader.mjs scripts/audit-wrapper-clocks.mjs"
+    "audit:clocks": "node --import ./scripts/ts-loader.mjs scripts/audit-wrapper-clocks.mjs",
+    "publish:meeting": "node scripts/publish-meeting-activity.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.110.0",
