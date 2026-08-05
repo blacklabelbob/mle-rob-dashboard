@@ -152,7 +152,7 @@ export default async function PersonPage({
             </div>
           </section>
 
-          <ActivityTimeline personId={person.id} demoEntries={[]} isDemo={false} />
+          <ActivityTimeline subject={{ kind: "person", id: person.id }} demoEntries={[]} isDemo={false} />
 
           {/* Q47 e-sign: agreements on the record — company rows anchor as org
               (0008 mirrors the activities ≤1-of-person/org rule). */}

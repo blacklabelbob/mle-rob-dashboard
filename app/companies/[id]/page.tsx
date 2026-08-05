@@ -340,7 +340,7 @@ export default async function CompanyPage({
           {/* §3.4 — the record spine. Company rows anchor activities the same way
               a person row does (≤1-of-person/org), so this is the same feed the
               person record shows, not a second copy. */}
-          <ActivityTimeline personId={company.id} demoEntries={[]} isDemo={false} />
+          <ActivityTimeline subject={{ kind: "org", id: company.id }} demoEntries={[]} isDemo={false} />
 
           {/* §3.5 — Notes: Rob's words only, directly under the timeline, and
               prominent. `humanNotes` is what the editor sends back (field

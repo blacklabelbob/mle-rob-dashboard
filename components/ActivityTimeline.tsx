@@ -2,6 +2,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { TIMELINE_TYPE_STYLE, type TimelineEntry, type TimelineEntryType } from "@/lib/repSource";
+import {
+  activityAnchorId,
+  activityFeedQuery,
+  type TimelineSubject,
+} from "@/lib/activities/timelineSubject";
 import { awaitingSummaryLine, callDetail, type CallTimelineDetail } from "@/lib/calls/callTimeline";
 import CallTranscript from "./CallTranscript";
 import CallRecording from "./CallRecording";
@@ -36,7 +41,11 @@ function normalize(row: Record<string, unknown>): Entry | null {
         ? row.when
         : null;
   if (!summary || !when) return null;
-  return { type, summary, when, call };
+  // Q89 inc.17: the row's own id travels with it so the row can be linked to. It is only
+  // ever the stored id — never synthesised from the summary or the date, because a
+  // made-up address is exactly the unfollowable link this surface exists to prevent.
+  const id = typeof row.id === "string" ? row.id : undefined;
+  return { type, summary, when, call, id };
 }
 
 function CallDetail({ detail }: { detail: CallTimelineDetail }) {
@@ -110,19 +119,23 @@ function CallDetail({ detail }: { detail: CallTimelineDetail }) {
 }
 
 export default function ActivityTimeline({
-  personId,
+  subject,
   demoEntries,
   isDemo,
 }: {
-  personId: string;
+  // Q89 inc.17: a person page and a company page ask the same feed different questions.
+  // Passing a bare id let the company page ask for a person that does not exist and
+  // render the empty answer as fact.
+  subject: TimelineSubject;
   demoEntries: TimelineEntry[];
   isDemo: boolean;
 }) {
   const [real, setReal] = useState<Entry[] | null>(null);
+  const query = activityFeedQuery(subject);
 
   useEffect(() => {
     let alive = true;
-    fetch(`/api/admin/activities?person=${personId}`)
+    fetch(`/api/admin/activities?${query}`)
       .then((r) => (r.ok ? r.json() : { activities: [] }))
       .then((j) => {
         if (!alive) return;
@@ -133,7 +146,7 @@ export default function ActivityTimeline({
     return () => {
       alive = false;
     };
-  }, [personId]);
+  }, [query]);
 
   const loading = real === null;
   // Demo history is TimelineEntry only — it carries no call detail and must not: the
@@ -165,8 +178,13 @@ export default function ActivityTimeline({
         </p>
       ) : (
         <ol className="mt-3 space-y-3 border-l border-white/10 pl-4">
-          {entries.map((e, i) => (
-            <li key={i} className="relative">
+          {entries.map((e, i) => {
+            // Q89 inc.17: the row becomes the anchor target. `scroll-mt` keeps a jumped-to
+            // row clear of the sticky header rather than tucked under it. No id → no
+            // anchor stamped, and nothing may publish a url claiming otherwise.
+            const anchor = activityAnchorId(e.id);
+            return (
+            <li key={anchor ?? `i${i}`} id={anchor ?? undefined} className="relative scroll-mt-24">
               <span
                 className={`absolute -left-[21px] top-1.5 h-2 w-2 rounded-full ${TIMELINE_TYPE_STYLE[e.type]}`}
               />
@@ -180,7 +198,8 @@ export default function ActivityTimeline({
               </div>
               {e.call && <CallDetail detail={e.call} />}
             </li>
-          ))}
+            );
+          })}
         </ol>
       )}
     </section>

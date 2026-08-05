@@ -253,7 +253,7 @@ export default async function RepAccountWorkspace({
               else. */}
           <RepEmailDrafts drafts={emailDrafts.views} stageNote={emailStageNote} />
 
-          <ActivityTimeline personId={person.id} demoEntries={demoActivity(person.id)} isDemo={isDemo} />
+          <ActivityTimeline subject={{ kind: "person", id: person.id }} demoEntries={demoActivity(person.id)} isDemo={isDemo} />
 
           <section className="rounded-xl border border-white/10 bg-white/5 p-5">
             <PhaseEightBar />

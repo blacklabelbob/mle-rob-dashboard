@@ -68,6 +68,13 @@ export interface TimelineEntry {
   type: TimelineEntryType;
   summary: string;
   when: string; // ISO date, YYYY-MM-DD
+  /**
+   * The activity row's own id, when the entry came from a real filed activity.
+   * Q89 inc.17: this is what makes a row addressable — inc.16 refused to publish
+   * `/companies/C-2018#A-MTG-…` precisely because no id reached the rendered row.
+   * Hand-written demo history has none, and must not be given one.
+   */
+  id?: string;
 }
 
 export const TIMELINE_TYPE_STYLE: Record<TimelineEntryType, string> = {
