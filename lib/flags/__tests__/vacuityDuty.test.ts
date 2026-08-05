@@ -701,6 +701,12 @@ describe("scanTreeWithNotices", () => {
   // nothing to say, every caller would be trained on a gate that only fires when something is
   // wrong, and the empty list — the one that means "asked, and the answer was nothing" — would be
   // indistinguishable from never having asked. That is this whole thread's defect in miniature.
+  // 2026-08-05: timeout raised from the 5000ms default. `scanTreeWithNotices` walks the
+  // real module tree, and on a machine running the build driver plus parallel agents
+  // (observed load average 250) it loses the race. It passes 54/54 in isolation and the
+  // logic is untouched — so this is a fixture-speed problem, not a code defect. Raising
+  // the budget is the honest fix; the alternative is a suite that reports red for reasons
+  // that have nothing to do with the code, which trains everyone to ignore red.
   it("invokes the handler even when there is nothing to report", () => {
     let calls = 0;
     const scanned = scanTreeWithNotices(modules, producers);
@@ -709,7 +715,7 @@ describe("scanTreeWithNotices", () => {
       expect(n).toEqual([]);
     });
     expect(calls).toBe(1);
-  });
+  }, 30_000);
 
   // Q84 inc.132 — the scan's default is GONE and this one stays, and the difference is not taste.
   // Retitled rather than deleted: the fact it recorded ("exactly as the scan does") was true when
