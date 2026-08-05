@@ -2,7 +2,7 @@
 
 # PRD — The Arsenal: visible, versioned, shareable
 
-**Version:** 1.0 · **Created:** 2026-07-29 · **Updated:** 2026-07-29
+**Version:** 1.0 · **Created:** 2026-07-29 · **Updated:** 2026-08-05
 **Status:** PLANNING · **Owner:** Rob + Max · **Project:** MLE ROB Dashboard → `blacklabelbob/claude-arsenal`
 **Type:** technical
 
