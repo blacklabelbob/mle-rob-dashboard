@@ -246,6 +246,13 @@ export function newOrgToPerson(org: NewOrgRow): Person {
     // de-duplication above had nothing downstream to protect. It travels with the
     // row now; whether the store persists it is `fromPerson`'s call, not ours.
     legacySlug: org.legacySlug,
+    // SECOND instance of the same defect, in the same function, under the comment
+    // written for the FIRST one. `domain` was computed, de-duplicated against, and
+    // then dropped here — so `orgs_domain_unique` (a PARTIAL index, WHERE domain IS
+    // NOT NULL) was guarding exactly one of 23 production rows. Keying a company on
+    // its domain rather than its spoken name is the whole lesson of the Omega
+    // identity chain; that rule was structurally unenforced until this line.
+    domain: org.domain,
     name: org.name,
     entityKind: org.entityKind,
     nodeType: org.nodeType,

@@ -148,7 +148,27 @@ describe("newOrgToPerson", () => {
     expect(person.status).toBe("unlit");
     expect(person.verticalId).toBe("title");
     expect(person.website).toBe("https://the-title-base.com");
+    expect(person.domain).toBe("the-title-base.com");
     expect(person.notes).toContain("the-title-base.com");
+  });
+
+  // THIS TEST EXISTS BECAUSE THE ONE ABOVE PASSED WHILE THE BUG SHIPPED — TWICE.
+  // A hand-listed set of expectations can only catch a dropped field somebody
+  // remembered to list. `legacySlug` was dropped once and `domain` a second time,
+  // in the same function, under the comment written about the first. So this
+  // enumerates the SOURCE ROW instead: every key the plan produced must arrive,
+  // whatever it is called and whenever it is added.
+  it("drops no field the plan row carries — enumerated from the row, not a list", () => {
+    const plan = planOrgFromProposal(reviewed(), index(), [], VERTICALS, "2026-07-26");
+    if (plan.kind !== "create") throw new Error("expected create");
+    const person = newOrgToPerson(plan.org);
+
+    const dropped = Object.entries(plan.org)
+      .filter(([, v]) => v !== undefined && v !== null && v !== "")
+      .filter(([k]) => (person as Record<string, unknown>)[k] === undefined)
+      .map(([k]) => k);
+
+    expect(dropped).toEqual([]);
   });
 
   // HARD LIMIT: one outbound email must never produce a money or commitment
