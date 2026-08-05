@@ -124,6 +124,30 @@ describe("networkIntelFromActivities", () => {
     expect(pains.ordering).toBe("source-order");
   });
 
+  // The boundary the 265 green tests could not see: `networkIntel` stamped `context`
+  // and `sourceLabel` printed it, and each was asserted alone — but `buildMeetingIntel`
+  // sat between them rebuilding provenance without it, so no label on any screen ever
+  // named a company. Asserted end to end, and on the NAME rather than on any truthy
+  // string, because falling back to the raw id is exactly the failure to catch.
+  it("carries the company name all the way to the rendered label", () => {
+    const out = networkIntelFromActivities(
+      [meeting({ id: "A-77", orgId: "C-2018", sourceContext: { intel: [painEntry] } })],
+      { "C-2018": "Gulf Coast RE Group" }
+    );
+    const pains = buildMeetingIntel(out.candidates).blocks.find((b) => b.kind === "pain-points")!;
+    expect(pains.items).toHaveLength(1);
+    expect(sourceLabel(pains.items[0].provenance)).toBe("Gulf Coast RE Group · A-77 · line 44");
+  });
+
+  it("prints the raw id, not a blank, when the network cannot name the company", () => {
+    const out = networkIntelFromActivities(
+      [meeting({ id: "A-77", orgId: "C-9999", sourceContext: { intel: [painEntry] } })],
+      {}
+    );
+    const pains = buildMeetingIntel(out.candidates).blocks.find((b) => b.kind === "pain-points")!;
+    expect(sourceLabel(pains.items[0].provenance)).toBe("C-9999 · A-77 · line 44");
+  });
+
   it("an empty CRM reports zero rather than an empty finding", () => {
     const out = networkIntelFromActivities([], {});
     expect(out).toMatchObject({ meetingCount: 0, companyCount: 0, unattributedMeetings: 0 });

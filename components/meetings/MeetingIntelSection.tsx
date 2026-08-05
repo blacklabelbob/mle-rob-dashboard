@@ -18,11 +18,20 @@ import {
 // empty says so, and says why, because "nothing was said" and "three claims failed the
 // provenance check" are different facts and only one of them means go re-read the call.
 
-function ItemRow({ item }: { item: IntelItem }) {
+function ItemRow({ item, ranked }: { item: IntelItem; ranked: boolean }) {
   const label = sourceLabel(item.provenance);
   return (
     <li className="border-l-2 border-white/10 pl-3">
-      <div className="text-sm text-slate-200">{item.text}</div>
+      <div className="text-sm text-slate-200">
+        {/* A rank that exists only as row position is deniable — and unreadable the
+            moment a reader scrolls. When the block claims `ranked`, the number is on
+            the screen. `ordering` is the module's verdict, so a merged or partial
+            ranking never reaches this branch. critic-rob 2026-08-05, punch list #1. */}
+        {ranked && typeof item.rank === "number" && (
+          <span className="mr-2 font-semibold tabular-nums text-slate-400">{item.rank}.</span>
+        )}
+        {item.text}
+      </div>
       <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-slate-500">
         {item.owner && <span className="text-slate-400">{item.owner}</span>}
         {item.status && (
@@ -61,7 +70,11 @@ function Block({ block }: { block: IntelBlock }) {
       ) : (
         <ul className="mt-3 space-y-3">
           {block.items.map((item, i) => (
-            <ItemRow key={`${item.provenance.meetingId}-${item.provenance.sourceRef}-${i}`} item={item} />
+            <ItemRow
+              key={`${item.provenance.meetingId}-${item.provenance.sourceRef}-${i}`}
+              item={item}
+              ranked={block.ordering === "ranked"}
+            />
           ))}
         </ul>
       )}

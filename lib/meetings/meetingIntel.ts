@@ -218,6 +218,12 @@ function validate(candidate: IntelCandidate): RejectedCandidate | IntelItem {
     provenance: {
       meetingId: p.meetingId,
       sourceRef: p.sourceRef,
+      // `context` (whose call this was) is carried through, not rebuilt away. It is
+      // stamped upstream by `networkIntelFromActivities` and printed by `sourceLabel`,
+      // and dropping it here left the cross-company Overview showing 22 action items
+      // from three companies in one flat list addressed only by meeting id — on the
+      // surface whose entire justification is provenance. Found by critic-rob 2026-08-05.
+      ...(p.context ? { context: p.context } : {}),
       ...(p.excerpt ? { excerpt: p.excerpt } : {}),
       ...(p.url ? { url: p.url } : {}),
     },
