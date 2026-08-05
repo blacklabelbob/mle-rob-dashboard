@@ -62,6 +62,8 @@ import {
   TRIGGER_CALLS,
 } from "../lib/integrity/wrapperClock.ts";
 import { ledgerReadPlan, ledgerReadUrl } from "../lib/flags/ledgerRead.ts";
+import { DEPARTURE_FAMILY } from "../lib/flags/keyNamespace.ts";
+import { familyEscapes, familyShapeLines } from "../lib/flags/familyShape.ts";
 
 const DEFAULT_DIR = path.join(os.homedir(), ".claude", "scripts");
 const CENSUS_FILE = path.join(
@@ -145,6 +147,28 @@ for (const target of targets) {
     scripts.push({ name: path.basename(file), source: await readFile(file, "utf8"), executable });
   }
 }
+
+/**
+ * Q84 inc.188 — the shape is asserted WHERE THE NAME IS MINTED, not only against committed history.
+ *
+ * inc.187 put `familyEscapes` on `flag-key-drift.mjs`, which reads `wrapper-census.json` — so the
+ * check is only ever as true as the last commit, and the scan that PRODUCES those names is the one
+ * thing it cannot see until after they land. That is the wrong end: a name that leaves the family
+ * is one `path.basename` away from being fixed here, and is unfixable by the time it is history.
+ *
+ * MEASURED FIRST, on the live tree, before this line existed: 33 of 33 scanned wrapper names mint a
+ * key inside `wrapper-census-departure:*`, zero escapes. This restricts nothing that was not
+ * already being obeyed — it states the constraint at the only place that can still act on it.
+ *
+ * It runs on the LIVE path only, deliberately. Carried census rows go through
+ * `unreadableCarriedField` and are reported by inc.187's reader; re-judging them here would be the
+ * second copy of a rule that inc.164 named as the disease.
+ */
+const producedEscapes = familyEscapes(
+  departureKey,
+  scripts.map((s) => s.name),
+  DEPARTURE_FAMILY,
+);
 
 const audit = auditWrapperClocks(scripts, unjudged);
 
@@ -462,7 +486,31 @@ const scanned = scripts.length - skipped.length;
 // there is nothing to see.
 const { departures, corrections, censusRefusal } =
   scripts.length > 0 ? await writeCensus() : { departures: [], corrections: [], censusRefusal: null };
-await fileDepartures(departures, corrections);
+// Q84 inc.188 — a departure whose NAME leaves the family is reported and NOT filed.
+//
+// This is inc.168's disposition, reused rather than re-decided: a key the reader cannot read back
+// is never sent, because sending it files a row on Rob's page under a namespace no filer declares
+// (`/`), or a literal that `keysOverlap` reads as a family swallowing its neighbours (`*`), and in
+// both cases the row can never be found again by the narrowed ledger read that would correct or
+// close it. Withheld, it behaves exactly like an unread ledger for that key alone — and this
+// sentence is the record, printed on BOTH paths because `--brief` exits below.
+//
+// The departure itself still travels to the brief unfiltered: the loss is real and the driver must
+// hear it. What is withheld is the POST, not the finding.
+const escapedNames = new Set(producedEscapes.map((e) => e.name));
+for (const line of familyShapeLines(producedEscapes)) console.error(`✖ census: ${line}`);
+if (producedEscapes.length > 0) {
+  console.error(
+    `✖ census: ${producedEscapes.length} departure row(s) NOT filed — the name is minted here from ` +
+      `\`path.basename\`, so a name outside ${DEPARTURE_FAMILY} means this scanner changed, not that ` +
+      `a wrapper did. Fix it where it is produced; a filed row under one of these keys could never ` +
+      `be read back to be corrected or closed (Q84 inc.188, disposition inc.168).`,
+  );
+}
+await fileDepartures(
+  departures.filter((d) => !escapedNames.has(d.name)),
+  corrections,
+);
 
 if (BRIEF) {
   const { code, line } = clockGateBrief(audit, departures, censusRefusal);
