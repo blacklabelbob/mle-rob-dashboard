@@ -1,4 +1,45 @@
-# Omega — the CRM has the WRONG company on Rob's relationship
+> # ⛔ THIS ENTIRE DOCUMENT'S CENTRAL FINDING IS WRONG — OVERRULED BY ROB, 2026-08-05
+>
+> **Rob, verbatim:** *"Its https://omegatitlegroup.com — Scott Dascani was in attendance and the one that brought up
+> all those comments about their other companies. He is the CEO of the entire company… Mike Stiber is President of
+> East Coast Operations. He was also in attendance. He is the one who has a Joint Venture with Alex for all the files
+> sent over by Gulf Coast RE Group. Thats how the nodes break out."*
+>
+> **So there is ONE company, not two.** `omegatitlegroup.com` — Scott Dascani CEO (confirmed on the public leadership
+> page), Mike Stiber President of East Coast Operations, both in the room on 7/28. **The original `C-2019` record was
+> RIGHT.** This document "corrected" a correct record into a false split, and everything below that argues for two
+> unrelated companies is void.
+>
+> **What probably caused it (researched 2026-08-05, and it is genuinely confusing):** Scott's partner is
+> **Steven A. Hale II** (Hale Partnership Capital Management). Hale's **HG Holdings** owns **50% of a separately named
+> "Omega National Title Agency"**, which in Sept 2022 acquired six Florida branch offices from an **"Omega Title of
+> Florida."** So a near-identical name really does exist in the same industry, owned by Scott's own partner —
+> which is exactly the trap this document fell into. **Whether the two are related is NOT confirmed by any public
+> source. Ask Scott. Do not assume, in either direction.**
+>
+> **Rule reinforced:** key a company on its **domain**, never on a spoken name — and never "correct" a record that
+> already carries a doubt without getting the answer from the person who was in the room.
+>
+> ## ✅ ACTED ON 2026-08-05 — THE CRM NOW MATCHES ROB'S RULING (PRD 3.1.582, BUILD-QUEUE Q87)
+>
+> **Nothing below was applied. The opposite was.** `C-2019` stays ONE company; the doubt sentence quoted in
+> "The finding" has been **stripped from its `relationship` field** and replaced with Rob's ruling, and the
+> record now carries, in its own text, the instruction that this split is **OVERRULED** — so a future session
+> reading the CRM cannot re-derive it from the record alone.
+>
+> Also written to prod: seven Omega people (`P-1023`–`P-1029`), four gated referral targets
+> (`C-2020` Hale Partnership · `C-2021` Monarch National · `C-2022` Viceroy Preferred · `C-2023` HG Holdings),
+> fifteen edges including the **Stiber ↔ Alex Greenwood joint venture**, and seven flags carrying every unknown.
+> `buildChain` verified live: **Rob → Alex Greenwood → Scott Dascani → each of the four.**
+>
+> ⚠️ **Two corrections to the ⛔ block above, found while doing the work:**
+> 1. **HG Holdings' domain is `hgholdingsinc.net`, not `.com`** — stated verbatim in its own FY2025 10-K.
+> 2. **HG's registered address in that 10-K is `6265 Old Water Oak Road, Suite 204, Tallahassee`** — the *same*
+>    address this document lists for **Omega National Title Agency**. That corroborates the HG ↔ Omega National
+>    Title link (which was already stated) and says **nothing** about `C-2019`, whose HQ is Naples.
+>    **It is not permission to link the two Omegas.** The question still goes to Scott, unanswered.
+
+# ~~Omega — the CRM has the WRONG company on Rob's relationship~~ (VOID — see above)
 
 **Date:** 2026-07-30 · **Trigger:** Rob, 2026-07-29 — *"the Omega guys started talking about other companies they
 own that our services could work for. YOu CANNOT miss that stuff man."*
