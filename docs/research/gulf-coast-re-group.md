@@ -11,7 +11,7 @@
 | Fact | Value | Source |
 |---|---|---|
 | Brand | Gulf Coast RE Group — Realty ONE Group MVP | https://www.gulfcoastregroup.com/ |
-| Office | 3384 Woods Edge Cir Ste #103, Bonita Springs FL 34134 · 239-448-8458 | https://www.gulfcoastregroup.com/contactus/ |
+| Office | 3384 Woods Edge Cir Ste #103, Bonita Springs FL 34134 · [phone redacted] | https://www.gulfcoastregroup.com/contactus/ |
 | Agents | 50 on their own roster | https://www.gulfcoastregroup.com/agents/ |
 | Markets | Cape Coral, Fort Myers, Bonita/Estero, Naples (20+ FL markets claimed) | https://www.gulfcoastregroup.com/about/ |
 | Brokerage of record | ROG MVP Collier County LLC, 1495 Pine Ridge Rd #1 Naples, doc# L24000291887, mgrs incl. Derek Carlson (CEO), Anthony Bermudez (broker BK3556686) | https://www.bizprofile.net/fl/naples/rog-mvp-collier-county |
@@ -21,7 +21,7 @@
 
 **Alex Greenwood** — Team Leader. FL license SL3227669 (Sales Associate since 11/2009, Bonita Springs, at ROG MVP Collier County LLC — DBPR extract RE_rgn7.csv). Press-documented production: 3,700+ career transactions, $1.5B+ lifetime, **250 sides / $125M+ trailing 12 months**, 800+ five-star reviews ([natlawreview.com press](https://natlawreview.com/press-releases/alex-greenwood-gulf-coast-re-group-tops-cape-coral-real-estate-rankings-2026), [accessnewswire](https://www.accessnewswire.com/newsroom/en/real-estate/best-real-estate-agent-in-fort-myers-fl-alex-greenwood-1156454)).
 
-**Chris (Christopher J.) Acheson** — Realtor on the roster (phone 609-634-4419). FL license SL3400734 ("ACHESON, CHRISTOPHER PA", Estero, since 12/2017, at ROG MVP Collier County LLC — same DBPR extract). Prior brand: Naples239Homes / MVP Realty. Writes the team blog. **Adjacent surname find:** MURRAY J ACHESON, Broker BK3094457, "Murray Acheson Real Estate," Sarasota, active since 2004 — relation unconfirmed, worth one question to Rob.
+**Chris (Christopher J.) Acheson** — Realtor on the roster (phone [phone redacted]). FL license SL3400734 ("ACHESON, CHRISTOPHER PA", Estero, since 12/2017, at ROG MVP Collier County LLC — same DBPR extract). Prior brand: Naples239Homes / MVP Realty. Writes the team blog. **Adjacent surname find:** MURRAY J ACHESON, Broker BK3094457, "Murray Acheson Real Estate," Sarasota, active since 2004 — relation unconfirmed, worth one question to Rob.
 
 ## Adjacency map (referral nodes this team already touches)
 
