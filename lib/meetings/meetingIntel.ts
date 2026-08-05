@@ -244,6 +244,12 @@ function emptyReasonFor(kind: IntelBlockKind, rejected: RejectedCandidate[], saw
  * Order is the caller's order unless EVERY surviving item in a block carries an external
  * rank — a partly-ranked block stays in source order, because half a ranking read as a
  * ranking is worse than none.
+ *
+ * The ranks must also be DISTINCT. Two items sharing a rank is machine-proof that two
+ * independent rankings were merged (one per meeting), and the block would then print one
+ * "ranked" header over two #1s — every number right on its own meeting, the single label
+ * wrong about the list. Duplicates fall back to source order, which is honest, rather than
+ * to a renumbering, which would invent a cross-meeting priority nobody scored.
  */
 export function buildMeetingIntel(candidates: IntelCandidate[]): MeetingIntel {
   const allRejected: RejectedCandidate[] = [];
@@ -260,7 +266,9 @@ export function buildMeetingIntel(candidates: IntelCandidate[]): MeetingIntel {
     }
     allRejected.push(...rejected);
 
-    const everyRanked = items.length > 0 && items.every((i) => typeof i.rank === "number");
+    const ranks = items.map((i) => i.rank).filter((r): r is number => typeof r === "number");
+    const everyRanked =
+      items.length > 0 && ranks.length === items.length && new Set(ranks).size === ranks.length;
     const ordered = everyRanked
       ? [...items].sort((a, b) => (a.rank as number) - (b.rank as number))
       : items;

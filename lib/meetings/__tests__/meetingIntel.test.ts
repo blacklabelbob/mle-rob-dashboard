@@ -181,6 +181,25 @@ describe("this module renders a ranking, it never invents one", () => {
     expect(b.ordering).toBe("source-order");
     expect(b.items.map((i) => i.text)).toEqual(["unranked", "ranked"]);
   });
+
+  it("refuses to call two merged per-meeting rankings one ranking", () => {
+    // The live defect, C-2018, 2026-08-05: two meetings each ranked on their own, both #1s
+    // rendered under a single "ranked" header. Duplicate ranks are the machine-proof of it.
+    const intel = buildMeetingIntel([
+      candidate({ kind: "action-items", text: "june meeting, its #1", rank: 1 }),
+      candidate({ kind: "action-items", text: "july meeting, its #1", rank: 1 }),
+      candidate({ kind: "action-items", text: "june meeting, its #2", rank: 2 }),
+    ]);
+    const b = block(intel, "action-items");
+    expect(b.ordering).toBe("source-order");
+    // Source order, NOT a renumbering — inventing one cross-meeting order here would be
+    // this module ranking, which is the one thing it may never do.
+    expect(b.items.map((i) => i.text)).toEqual([
+      "june meeting, its #1",
+      "july meeting, its #1",
+      "june meeting, its #2",
+    ]);
+  });
 });
 
 describe("sourceLabel", () => {
