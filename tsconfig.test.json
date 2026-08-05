@@ -1,0 +1,9 @@
+{
+  // Q90 (2026-08-05): the test-file typecheck that tsconfig.json deliberately drops.
+  // `npm run typecheck:tests` runs this. It is EXPECTED to be non-zero today (128 errors
+  // at the time of the ruling) — its job is to keep that number visible and shrinking,
+  // not to gate the build. Production typechecking lives in tsconfig.json / `next build`.
+  "extends": "./tsconfig.json",
+  "include": ["next-env.d.ts", "**/__tests__/**/*.ts", "**/*.test.ts", "**/*.test.tsx"],
+  "exclude": ["node_modules"]
+}

@@ -10,6 +10,8 @@
     "build": "next build",
     "start": "next start",
     "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "typecheck:tests": "tsc -p tsconfig.test.json --noEmit",
     "lint": "eslint .",
     "dev:demo": "STORAGE_SOURCE=file next dev",
     "seed:synthetic": "node scripts/seed-synthetic.mjs",

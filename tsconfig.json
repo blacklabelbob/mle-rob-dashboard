@@ -30,5 +30,11 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules"]
+  // Q90 ruling (2026-08-05): `next build` typechecks what SHIPS. Test files are not
+  // shipped, and they legitimately use loose mock shapes (partial fixtures, `as` casts,
+  // ProcessEnv writes) that a production typecheck should not adjudicate. They are NOT
+  // untypechecked — `npm run typecheck:tests` runs them under tsconfig.test.json, so the
+  // debt stays measured instead of hidden. This is deliberately not `ignoreBuildErrors`,
+  // which would delete the gate for production code too.
+  "exclude": ["node_modules", "**/__tests__/**", "**/*.test.ts", "**/*.test.tsx"]
 }
