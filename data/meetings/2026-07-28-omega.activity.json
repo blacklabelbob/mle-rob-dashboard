@@ -1,0 +1,181 @@
+{
+  "_readme": [
+    "Q89 inc.5 — the 2026-07-28 Omega meeting, as an Activity row the CRM can actually read.",
+    "",
+    "This file exists because inc.3 and inc.4 both stopped at the same honest wall: the gate,",
+    "the face and the seam all worked, and there was no meeting to render. There is one now.",
+    "",
+    "PROVENANCE OF THIS FILE — read before trusting a single line of it. Every item below was",
+    "read out of the Notion Master Meetings Database page `Meeting 2026-07-28`",
+    "(3ab1de57-0199-80ef-bf9c-c2b98d7578ed), 531 blocks / 104,683 chars, on 2026-08-05 via",
+    "`find_meeting.py --date 2026-07-28 --deep`. Nothing here was written from memory, from a",
+    "summary of a summary, or from another agent's prose.",
+    "",
+    "THE STANDING CLAIM THAT THIS MEETING HAS NO TRANSCRIPT IS FALSE. The daily brief and the",
+    "PING-INBOX have both been telling Rob that 7/28 was in person with no notetaker and that",
+    "what Omega said 'exists ONLY in your head'. The page's own fields agree with them — Call",
+    "Recording, Meeting Summary, Google Doc Link and Export Status are all empty. The BODY is",
+    "not: it holds a full structured summary and the complete transcript. This is exactly the",
+    "defect Q84's read log already named — field-emptiness is never evidence of absence — and",
+    "it is why Rob has been asked twice for a dump of a meeting that was recorded all along.",
+    "",
+    "`sourceRef` addresses the LINE, not the meeting: `body ¶NNN` is the paragraph index in the",
+    "deep export of that page body, and `body to_do N` / `body bullet «heading»` address the",
+    "summary blocks. No `url` is set on any item ON PURPOSE — the Notion page URL opens the",
+    "MEETING, and a link that opens a 90-minute page when the reader expected the sentence is",
+    "the lie `intelSource.ts` refuses to tell.",
+    "",
+    "PAIN POINTS ARE THE COUNTERPARTY'S OWN WORDS. Every pain `text` is a literal substring of",
+    "its `excerpt` and every excerpt is a transcript paragraph spoken by the Omega side — not a",
+    "bullet a notetaker wrote about them. The summary bullets ARE used for action items and",
+    "talking points, where a paraphrase is honest; they are never used for pain.",
+    "",
+    "NOT WRITTEN HERE, DELIBERATELY: the JV section's allegation that a partner named Scott",
+    "'committed fraud and stole money'. It collides head-on with Rob's 2026-08-05 ruling that",
+    "Scott Dascani is CEO of the whole company, and an unresolved accusation against a named",
+    "person does not belong on a company record that Rob shows people. It goes to the flag",
+    "ledger for Rob to resolve, and only there."
+  ],
+  "activity": {
+    "id": "A-MTG-2026-07-28-OMEGA",
+    "orgId": "C-2019",
+    "type": "meeting",
+    "source": "manual",
+    "createdBy": "driver:Q89-inc.5",
+    "occurredAt": "2026-07-28T13:46:00.000Z",
+    "createdAt": "2026-08-05T00:00:00.000Z",
+    "bookProtected": false,
+    "summary": "Omega Title Group intro — Everything Agent / website / title-processing automation demo, introduced by Alex Greenwood. ~300-350 closings/month across 15+ locations (FL, PA, NJ) with an Alabama acquisition in progress.",
+    "sourceContext": {
+      "system": "notion",
+      "database": "Master Meetings Database",
+      "pageId": "3ab1de57-0199-80ef-bf9c-c2b98d7578ed",
+      "readOn": "2026-08-05",
+      "readWith": "find_meeting.py --date 2026-07-28 --deep",
+      "bodyBlocks": 531,
+      "bodyChars": 104683,
+      "attendeesMle": ["Rob Acheson", "Will DeVito"],
+      "fieldsThatClaimAbsence": [
+        "Call Recording",
+        "Meeting Summary",
+        "Google Doc Link",
+        "Export Status"
+      ],
+      "intel": [
+        {
+          "kind": "action-items",
+          "text": "Arrange a Teams call with Byron (Omega's IT head in Tallahassee) to demo the platform and explore broader company integration",
+          "sourceRef": "body to_do 1",
+          "excerpt": "Arrange a Teams call with Byron (Omega's IT head in Tallahassee) to demo the platform and explore broader company integration",
+          "status": "open"
+        },
+        {
+          "kind": "action-items",
+          "text": "Speak with Katherine at the Cape office — heads up that we will be reaching out to learn about processing workflows and bottlenecks",
+          "sourceRef": "body to_do 2",
+          "excerpt": "Speak with Katherine tomorrow at the Cape office — give her a heads up that the presenter will be reaching out to learn about processing workflows and bottlenecks",
+          "status": "open"
+        },
+        {
+          "kind": "action-items",
+          "text": "Proceed with Phase 1 beta test starting with Mega Title Florida",
+          "sourceRef": "body to_do 3",
+          "excerpt": "Proceed with Phase 1 beta test starting with Mega Title Florida",
+          "status": "open"
+        },
+        {
+          "kind": "action-items",
+          "text": "Collect social media account usernames and passwords across all office locations to begin automation setup",
+          "sourceRef": "body to_do 4",
+          "excerpt": "Collect social media account usernames and passwords across all office locations to begin automation setup",
+          "status": "open"
+        },
+        {
+          "kind": "action-items",
+          "text": "Send Omega the AI clone/avatar examples by email",
+          "sourceRef": "body to_do 5",
+          "excerpt": "Presenter to send over AI clone/avatar examples via email",
+          "status": "open"
+        },
+        {
+          "kind": "pain-points",
+          "text": "ordering the payoffs, if there's a payoff like right now, we're dealing with one that's a foreclosure, the attorneys that are involved, it's a fucking nightmare",
+          "sourceRef": "body ¶361",
+          "excerpt": "On the process side, the free people up? Yes. So, ordering the payoffs, if there's a payoff like right now, we're dealing with one that's a foreclosure, the attorneys that are involved, it's a fucking nightmare. So, payoffs are manual. The lien search, when you order the municipality lien search and that comes back in, it's also notifying if there's open and expired permits to let the agents know because the homeowner is going to have to resolve that if there's any issues."
+        },
+        {
+          "kind": "pain-points",
+          "text": "It's just been a frustration of mine. Our IT sucks.",
+          "sourceRef": "body ¶387",
+          "excerpt": "We did. I'd love to get you a call with Byron and see how we... I feel like our website, I've been looking for something like this, Alex. I appreciate the invite and introduction because, and I'm talking, Nikita in our home office is like, okay, well, let's schedule some time to talk about the website. And I'm like, you know, it's just, it's, they're... It's just been a frustration of mine. Our IT sucks."
+        },
+        {
+          "kind": "pain-points",
+          "text": "someone in the office is calling the 800 number, put in the loan number. Right, right. Totally manual, tedious.",
+          "sourceRef": "body ¶307",
+          "excerpt": "They want fax. It's like, they'll e-fax us the payoff. We'll send a request. You know, there might be, or we'll call the, you got to call the 800 number and order it. Like you type it into the phone, put in the loan number. You got to, someone in the office is calling the 800 number, put in the loan number. Right, right. Totally manual, tedious. Yeah, and then they fax, e-fax over the pay odds. Yeah."
+        },
+        {
+          "kind": "pain-points",
+          "text": "changing production software is a pain in the ass",
+          "sourceRef": "body ¶523",
+          "excerpt": "Because changing production software is a pain in the ass. Sure. It's like heart surgery, right? Because you're using this software to do all your business daily. Now all of a sudden you're changing to a new platform. And, you know, I know Michael will tell you, that's tricking."
+        },
+        {
+          "kind": "pain-points",
+          "text": "Most people that own title businesses, they don't have time to deal with this shit. No. Right. And they have no clue how to implement it.",
+          "sourceRef": "body ¶451",
+          "excerpt": "So the good part is I've been looking at all this shit for six months trying to figure it out. And see, that's the hard part. Most people that own title businesses, they don't have time to deal with this shit. No. Right. And they have no clue how to implement it. Which is a huge advance for you."
+        },
+        {
+          "kind": "talking-points",
+          "text": "The four bottlenecks they named themselves, in their order: payoff ordering, municipality lien searches, NOC releases, and estoppels. Open on these — they are Omega's list, not ours.",
+          "sourceRef": "body bullet «Title Processing Automation»",
+          "excerpt": "Key bottlenecks identified for automation: Payoff ordering — currently staff manually call 800 numbers, enter loan info; can be handled by an outbound AI agent. Municipality lien searches — notifying agents of open/expired permits. NOC (Notice of Commencement) releases — contacting contractors for signed affidavits. Estoppels — HOA management companies each have different payment/request methods"
+        },
+        {
+          "kind": "talking-points",
+          "text": "Their stack is already split three ways — Closer's Choice (Orlando South), Qualia (Panhandle to Tampa, sitting on $80K of vendor credits), SoftPro (Fidelity-aligned). The $80K credit is a real reason they will not rip Qualia out; integrate, do not replace.",
+          "sourceRef": "body bullet «Software & Tools Discussed»",
+          "excerpt": "Omega's current stack: Closer's Choice (Orlando South), Qualia (Panhandle to Tampa — currently has $80K in vendor credits), SoftPro (Fidelity-aligned)"
+        },
+        {
+          "kind": "talking-points",
+          "text": "Vendor lock-in, not law, is what may block the title-software integration — SoftPro, Closer's Choice and Qualia may restrict API access. Byron and Katherine are the two who can answer it.",
+          "sourceRef": "body bullet «Title Processing Automation» (integration caveat)",
+          "excerpt": "Integration caveat: Cloud-based title software (SoftPro, Closer's Choice, Qualia) may restrict API access — this is a vendor lock-in issue, not a legal one — to be explored with Byron and Katherine"
+        },
+        {
+          "kind": "talking-points",
+          "text": "Their social media is uncoordinated — branches post independently with no brand or style guide. That is the cheapest visible win in Phase 1.",
+          "sourceRef": "body bullet «Website Rebuild & SEO/AEO Demo»",
+          "excerpt": "Omega's current social media is uncoordinated — individual branches posting independently without a brand/style guide"
+        },
+        {
+          "kind": "benefits-us",
+          "text": "Scale: ~300–350 closings per month across 15+ locations in FL, PA and NJ, with an Alabama acquisition in progress. Phase 1 alone prices at $6,000 one-time plus ~$700/location across 15 offices plus $50/month/site.",
+          "sourceRef": "body bullet «Meeting Overview» + «Pricing & Phases»",
+          "excerpt": "Omega Title does approximately 300–350 closings per month across 15+ locations in FL, PA, NJ, and is working on an Alabama acquisition. Phase 1 (Foundation — website, SEO/AEO, social media, landing pages, Everything Agent): $6,000 one-time + ~$700/location for 15 offices; $50/month/site for security & analytics (Cloudflare)"
+        },
+        {
+          "kind": "benefits-us",
+          "text": "Byron is the IT lead across the whole portfolio, so one Teams call is the doorway to Monarch National and Viceroy Preferred as well as Omega Title — the referral path Rob already has on the record as C-2021 and C-2022.",
+          "sourceRef": "property «Other Combined/Possible referral»",
+          "excerpt": "Monarch National Insurance Company — Direct relationship / referral rationale: Omega's partner/group also owns Monarch, and Byron is the IT lead across the broader company portfolio. ... Viceroy Preferred Insurance Company — mentioned as another insurance platform/subsidiary owned by the same partner/group."
+        },
+        {
+          "kind": "benefits-us",
+          "text": "No other title company in the area is under contract, and one competing prospect meeting sits on the 5th — first-come exclusivity is real for a short window, not a closing line.",
+          "sourceRef": "body bullet «Pricing & Phases»",
+          "excerpt": "Presenter emphasized: no other title company in the area is currently under contract (one prospect meeting on the 5th) — first-come, first-served exclusivity implied"
+        },
+        {
+          "kind": "benefits-us",
+          "text": "Path to signature: Phase 1 beta on Mega Title Florida → Katherine at the Cape office on workflows → Byron on integration and the sister companies → Phase 3 five-day office shadow before any Phase 3 quote.",
+          "sourceRef": "body to_do 1–3 + bullet «Pricing & Phases»",
+          "excerpt": "Proceed with Phase 1 beta test starting with Mega Title Florida ... Phase 3 (CRM & Dashboard): Presenter wants to shadow offices for 5 days (Mon–Fri) to build an automation blueprint before quoting"
+        }
+      ]
+    }
+  }
+}
