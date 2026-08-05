@@ -70,3 +70,4 @@ MLE Internal Meetings/.intake-last-escalation
 # so the next agent run knows an ingest landed. Run-local state, not repo state.
 MLE Internal Meetings/.new-since-last-agent-run
 MLE Internal Meetings/.intake-flag-pending
+supabase/.temp/
