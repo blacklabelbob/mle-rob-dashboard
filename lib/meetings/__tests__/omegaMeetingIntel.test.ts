@@ -87,9 +87,29 @@ describe("Rob's hard rule holds against the shipped data, not against a fixture"
     }
   });
 
-  it("fabricates no deep link anywhere — the Notion page opens the meeting, not the line", () => {
+  // Q89 inc.18 changed what the honest answer here is, and the rule did not move: the
+  // meeting-level Notion page and recording still may NEVER be an item's link, because
+  // opening the meeting is not opening the line. What items now carry is the row's own
+  // address inside this CRM — derived from ids on the row, verifiable by reading the url.
+  it("no item links to the meeting-level Notion page or recording", () => {
+    // This meeting's only meeting-level pointer is the Notion page it was read out of.
+    const pageId = (activity.sourceContext as Record<string, unknown>).pageId as string;
+    expect(pageId).toBeTruthy(); // or this test proves nothing
     for (const b of intel.blocks) {
-      for (const item of b.items) expect(item.provenance.url).toBeUndefined();
+      for (const item of b.items) {
+        const url = item.provenance.url ?? "";
+        expect(url).not.toContain(pageId);
+        expect(url).not.toContain(pageId.replace(/-/g, ""));
+        expect(url.startsWith("/")).toBe(true); // in-CRM address, never an outside host
+      }
+    }
+  });
+
+  it("every item's link is this row's own address on the company record", () => {
+    for (const b of intel.blocks) {
+      for (const item of b.items) {
+        expect(item.provenance.url).toBe(`/companies/${activity.orgId}#${activity.id}`);
+      }
     }
   });
 

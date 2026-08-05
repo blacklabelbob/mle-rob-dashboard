@@ -54,3 +54,29 @@ export function activityAnchorId(activityId: string | undefined | null): string 
   if (trimmed === "" || !SAFE_ANCHOR.test(trimmed)) return null;
   return trimmed;
 }
+
+/**
+ * Q89 inc.18 — the address of an activity row inside this CRM, or null.
+ *
+ * This is the url inc.16 refused to stamp and inc.17 made stampable. It is DERIVED, not
+ * fabricated, and the distinction is the whole point: every character comes from ids the
+ * row already stores — the record it is filed against, and its own id — so the link either
+ * opens the exact row or is not offered. Nothing is guessed, nothing falls back to a
+ * recording, and an id that cannot safely be a fragment yields null rather than a mangled
+ * anchor that would silently land the reader at the top of the page.
+ *
+ * The subject id is held to the same shape as the anchor because it is a path segment on a
+ * record route: a subject id with a slash or a '#' in it would build a url pointing at some
+ * other page entirely, which is worse than having no link at all.
+ */
+export function activityAnchorUrl(
+  subject: TimelineSubject,
+  activityId: string | undefined | null,
+): string | null {
+  const anchor = activityAnchorId(activityId);
+  if (!anchor) return null;
+  if (subject?.kind !== "person" && subject?.kind !== "org") return null;
+  const id = typeof subject.id === "string" ? subject.id.trim() : "";
+  if (id === "" || !SAFE_ANCHOR.test(id)) return null;
+  return `${subject.kind === "person" ? "/people" : "/companies"}/${id}#${anchor}`;
+}

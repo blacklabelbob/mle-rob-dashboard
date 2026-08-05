@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   activityAnchorId,
+  activityAnchorUrl,
   activityFeedQuery,
   activitySubjectColumn,
+  type TimelineSubject,
 } from "@/lib/activities/timelineSubject";
 
 describe("activityFeedQuery", () => {
@@ -57,5 +59,31 @@ describe("activityAnchorId", () => {
 
   it("does not accept a non-string id from an untyped row", () => {
     expect(activityAnchorId(42 as unknown as string)).toBeNull();
+  });
+});
+
+describe("activityAnchorUrl — Q89 inc.18, the link inc.16 refused and inc.17 made possible", () => {
+  it("builds a record-page url with the row as its fragment", () => {
+    expect(activityAnchorUrl({ kind: "org", id: "C-2019" }, "A-MTG-2026-07-28-OMEGA"))
+      .toBe("/companies/C-2019#A-MTG-2026-07-28-OMEGA");
+    expect(activityAnchorUrl({ kind: "person", id: "P-1001" }, "n8n-email-19fce65a18364b9c"))
+      .toBe("/people/P-1001#n8n-email-19fce65a18364b9c");
+  });
+
+  it("returns null when the row has no safe anchor — no link beats a link to the page top", () => {
+    expect(activityAnchorUrl({ kind: "org", id: "C-2019" }, "row#2")).toBeNull();
+    expect(activityAnchorUrl({ kind: "org", id: "C-2019" }, undefined)).toBeNull();
+    expect(activityAnchorUrl({ kind: "org", id: "C-2019" }, "")).toBeNull();
+  });
+
+  it("refuses a subject id that is not our own id shape — it is a path segment", () => {
+    // "C-2019/../deals" or a bare "" would build a url pointing at another page entirely.
+    expect(activityAnchorUrl({ kind: "org", id: "C-2019/../deals" }, "A-MTG-1")).toBeNull();
+    expect(activityAnchorUrl({ kind: "org", id: "  " }, "A-MTG-1")).toBeNull();
+    expect(activityAnchorUrl({ kind: "org", id: 7 as unknown as string }, "A-MTG-1")).toBeNull();
+  });
+
+  it("refuses a subject kind it does not know rather than guessing a route", () => {
+    expect(activityAnchorUrl({ kind: "deal" } as unknown as TimelineSubject, "A-MTG-1")).toBeNull();
   });
 });

@@ -22,16 +22,24 @@
  *    because a candidate with no block has nowhere to be rejected; those are counted
  *    and reported separately rather than vanishing.
  *
- * 2. NO LINK IS EVER FABRICATED. An item's `url` comes from the entry alone. It is
- *    tempting to fall back to the meeting's `recordingUrl`, and that would be a lie of
- *    exactly the shape Q84 is about: a link that opens the meeting is not a link that
- *    opens the LINE, and a reader who clicks expecting the sentence and gets a 90-minute
- *    recording has been told the claim is checkable when it is not.
+ * 2. NO LINK IS EVER FABRICATED. An item's `url` comes from the entry, or — Q89 inc.18 —
+ *    from the row's OWN address in this CRM, and from nowhere else. It is tempting to fall
+ *    back to the meeting's `recordingUrl`, and that would be a lie of exactly the shape Q84
+ *    is about: a link that opens the meeting is not a link that opens the LINE, and a reader
+ *    who clicks expecting the sentence and gets a 90-minute recording has been told the
+ *    claim is checkable when it is not. That fallback is still refused, and test-pinned.
+ *
+ *    The in-CRM anchor is a different thing and worth naming precisely: it is built only
+ *    from ids the row already stores (`orgId`/`personId` + `a.id`), so it either opens that
+ *    exact row or is not offered at all — `activityAnchorUrl` returns null instead of
+ *    mangling an unsafe id. An entry's own url still wins, because external evidence beats
+ *    an in-page jump.
  *
  * Pure per CR-3: no clock, no network, no Supabase, no filesystem.
  */
 
 import type { Activity } from "@/lib/types";
+import { activityAnchorUrl } from "@/lib/activities/timelineSubject";
 import { INTEL_BLOCK_KINDS, type IntelBlockKind, type IntelCandidate } from "./meetingIntel";
 
 /** What a meeting row yielded. `unusable` is stated, never swallowed. */
@@ -67,6 +75,23 @@ function status(v: unknown): "open" | "done" | undefined {
 }
 
 /**
+ * Where this meeting row can be pointed at, read off the row itself.
+ *
+ * Org first because that is what the data is: counted on prod at inc.17, all four meeting
+ * rows are filed with `org_id` set and `person_id` null. A row carrying both is filed on the
+ * org page too, so org-first still lands on a page that renders it; a row carrying neither
+ * appears on no record page at all and correctly gets no link.
+ */
+function anchorUrlForActivity(a: Activity): string | undefined {
+  const url = a.orgId
+    ? activityAnchorUrl({ kind: "org", id: a.orgId }, a.id)
+    : a.personId
+      ? activityAnchorUrl({ kind: "person", id: a.personId }, a.id)
+      : null;
+  return url ?? undefined;
+}
+
+/**
  * One meeting row → its candidates. The activity id IS the meeting id, so every rendered
  * item addresses a row that exists in this CRM rather than an id from some other system.
  */
@@ -79,6 +104,7 @@ export function candidatesFromActivity(a: Activity): {
 
   const candidates: IntelCandidate[] = [];
   const unusable: { activityId: string; reason: string }[] = [];
+  const rowUrl = anchorUrlForActivity(a);
 
   for (const entry of raw) {
     if (!entry || typeof entry !== "object") {
@@ -104,7 +130,8 @@ export function candidatesFromActivity(a: Activity): {
         meetingId: a.id,
         sourceRef: str(e.sourceRef),
         excerpt: str(e.excerpt),
-        url: str(e.url), // entry only — never a.recordingUrl. See the header.
+        // Entry's own url, else the row's own in-CRM address. Never a.recordingUrl.
+        url: str(e.url) ?? rowUrl,
       },
       owner: str(e.owner),
       status: status(e.status),

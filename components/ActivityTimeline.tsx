@@ -149,6 +149,22 @@ export default function ActivityTimeline({
   }, [query]);
 
   const loading = real === null;
+
+  // Q89 inc.18: this feed is client-fetched, so on a COLD load the browser resolves
+  // `#A-MTG-…` before any row exists and gives up — the reader lands at the top of the page
+  // with no sign the link was aimed at anything. That silent miss is precisely why inc.16
+  // refused to publish these urls at all, so shipping the url means fixing it: once the rows
+  // are on the page, re-resolve the fragment ONCE and scroll to it. It only ever scrolls to
+  // a row that actually rendered — a hash naming nothing is left alone rather than
+  // approximated, and no url is rewritten.
+  useEffect(() => {
+    if (real === null || typeof window === "undefined") return;
+    const hash = window.location.hash.slice(1);
+    if (!hash) return;
+    const target = document.getElementById(decodeURIComponent(hash));
+    if (target) target.scrollIntoView({ block: "start" });
+  }, [real]);
+
   // Demo history is TimelineEntry only — it carries no call detail and must not: the
   // fallback is hand-written prose, and a fabricated recording link is exactly the lie the
   // "demo history" badge exists to prevent.

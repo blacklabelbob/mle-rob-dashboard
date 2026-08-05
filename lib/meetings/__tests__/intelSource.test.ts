@@ -71,6 +71,69 @@ describe("intelSource — the seam between a stored meeting and the gate", () =>
     expect(got.candidates[0].provenance?.url).toBeUndefined();
   });
 
+  describe("Q89 inc.18 — the row's own in-CRM address", () => {
+    const intel = { kind: "talking-points", text: "ask about the LOI", sourceRef: "block 3" };
+
+    it("stamps the company page + row anchor when the meeting is filed on an org", () => {
+      const got = candidatesFromActivity(
+        act({ id: "A-MTG-2026-07-28-OMEGA", orgId: "C-2019", sourceContext: { intel: [intel] } }),
+      );
+      expect(got.candidates[0].provenance?.url).toBe("/companies/C-2019#A-MTG-2026-07-28-OMEGA");
+    });
+
+    it("stamps the person page when the meeting is filed on a person", () => {
+      const got = candidatesFromActivity(
+        act({ id: "A-MTG-1", personId: "P-1001", sourceContext: { intel: [intel] } }),
+      );
+      expect(got.candidates[0].provenance?.url).toBe("/people/P-1001#A-MTG-1");
+    });
+
+    it("prefers the org page when a row is filed on both — it renders there too", () => {
+      const got = candidatesFromActivity(
+        act({ id: "A-MTG-1", orgId: "C-2019", personId: "P-1001", sourceContext: { intel: [intel] } }),
+      );
+      expect(got.candidates[0].provenance?.url).toBe("/companies/C-2019#A-MTG-1");
+    });
+
+    it("the entry's OWN url still wins — external evidence beats an in-page jump", () => {
+      const got = candidatesFromActivity(
+        act({
+          id: "A-MTG-1",
+          orgId: "C-2019",
+          sourceContext: { intel: [{ ...intel, url: "https://example.com/t#412" }] },
+        }),
+      );
+      expect(got.candidates[0].provenance?.url).toBe("https://example.com/t#412");
+    });
+
+    it("still refuses the recording URL even when an anchor is available", () => {
+      // The anchor may be stamped; the recording may never be. Both at once is the case
+      // that would have quietly let the old fallback back in.
+      const got = candidatesFromActivity(
+        act({
+          id: "A-MTG-1",
+          orgId: "C-2019",
+          recordingUrl: "https://fireflies.ai/view/abc",
+          sourceContext: { intel: [intel] },
+        }),
+      );
+      expect(got.candidates[0].provenance?.url).toBe("/companies/C-2019#A-MTG-1");
+    });
+
+    it("stamps NOTHING when the row's id cannot safely be a fragment", () => {
+      // A mangled anchor lands the reader at the top of the page — a link to nothing.
+      const got = candidatesFromActivity(
+        act({ id: "row #2", orgId: "C-2019", sourceContext: { intel: [intel] } }),
+      );
+      expect(got.candidates[0].provenance?.url).toBeUndefined();
+    });
+
+    it("stamps NOTHING when the row is filed against no record at all", () => {
+      const got = candidatesFromActivity(act({ id: "A-MTG-1", sourceContext: { intel: [intel] } }));
+      expect(got.candidates[0].provenance?.url).toBeUndefined();
+    });
+  });
+
   it("passes a malformed entry THROUGH so the gate rejects it visibly", () => {
     // Filtering here would make a bad entry look like a meeting where nothing was said.
     const got = intelSourceFromActivities([
