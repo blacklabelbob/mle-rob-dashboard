@@ -58,7 +58,10 @@
       "readWith": "find_meeting.py --page 3a51de57-0199-802b-b9f8-f59fa153a013 --deep",
       "bodyBlocks": 784,
       "bodyChars": 114354,
-      "attendeesMle": ["Rob Acheson", "Will DeVito"],
+      "attendeesMle": [
+        "Rob Acheson",
+        "Will DeVito"
+      ],
       "fieldsThatClaimAbsence": [
         "Call Recording",
         "Meeting Summary",
@@ -71,56 +74,64 @@
           "text": "Review the new Gulf Coast website and send feedback and requested edits via email",
           "sourceRef": "body to_do 1",
           "excerpt": "Review the new Gulf Coast website and send feedback and requested edits via email",
-          "status": "open"
+          "status": "open",
+          "rank": 5
         },
         {
           "kind": "action-items",
           "text": "Send legal analysis document to Alex at alex@golf.org",
           "sourceRef": "body to_do 2",
           "excerpt": "Send legal analysis document to Alex at alex@golf.org",
-          "status": "open"
+          "status": "open",
+          "rank": 1
         },
         {
           "kind": "action-items",
           "text": "Investigate recovering the hacked Facebook account — send account details for review",
           "sourceRef": "body to_do 5",
           "excerpt": "Investigate recovering hacked Facebook account — send account details for review",
-          "status": "open"
+          "status": "open",
+          "rank": 2
         },
         {
           "kind": "action-items",
           "text": "Determine final branding approach for community/area sites (e.g. realtyonecoralsprings.com format)",
           "sourceRef": "body to_do 6",
           "excerpt": "Determine final branding approach for community/area sites (e.g., realtyonecoralsprings.com format)",
-          "status": "open"
+          "status": "open",
+          "rank": 3
         },
         {
           "kind": "action-items",
           "text": "Require all agents to have social media profiles; set up new ones where needed",
           "sourceRef": "body to_do 7",
           "excerpt": "Require all agents to have social media profiles; set up new ones where needed",
-          "status": "open"
+          "status": "open",
+          "rank": 7
         },
         {
           "kind": "action-items",
           "text": "Discuss Babcock Ranch and community site strategy with Will, including number of websites",
           "sourceRef": "body to_do 8",
           "excerpt": "Discuss Babcock Ranch and community site strategy with Will, including number of websites",
-          "status": "open"
+          "status": "open",
+          "rank": 6
         },
         {
           "kind": "action-items",
           "text": "Review IDX feed integration and lead capture consent language on the new site",
           "sourceRef": "body to_do 9",
           "excerpt": "Review IDX feed integration and lead capture consent language on the new site",
-          "status": "open"
+          "status": "open",
+          "rank": 4
         },
         {
           "kind": "action-items",
           "text": "Consider setting up a separate email/G Suite outside the company-shared account for sensitive communications",
           "sourceRef": "body to_do 10",
           "excerpt": "Consider setting up a separate email/G Suite outside of the company-shared account for sensitive communications",
-          "status": "open"
+          "status": "open",
+          "rank": 8
         },
         {
           "kind": "pain-points",
