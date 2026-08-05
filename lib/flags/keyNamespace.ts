@@ -33,8 +33,11 @@
 // rest of lib/flags: recognition is advisory, nothing here is wired into the POST route's read,
 // and the worst a false positive costs is a line in a plan.
 
-/** One key a filer can emit: a literal, or a fixed prefix ending in `*` for a parameterised key. */
-export type KeyPattern = string;
+// The pattern shape primitives moved down to `keyPattern.ts` in inc.186 so the family derivation
+// can use the same `isPattern` without importing this file back (the registry below calls that
+// derivation at module load, and the cycle threw). Re-exported here: one definition, same imports.
+import { fixedPrefix, isPattern, type KeyPattern } from "./keyPattern";
+export { fixedPrefix, isPattern, type KeyPattern };
 
 export type Filer = {
   /** How the filer identifies itself in a report — the process or module that owns the POST. */
@@ -44,16 +47,6 @@ export type Filer = {
   /** Every key this filer can put on the ledger. `*` at the end means "any suffix". */
   keys: KeyPattern[];
 };
-
-/** True when the pattern stands for a family of keys rather than one string. */
-export function isPattern(key: KeyPattern): boolean {
-  return key.endsWith("*");
-}
-
-/** The fixed part of a pattern — the whole string when it is a literal. */
-export function fixedPrefix(key: KeyPattern): string {
-  return isPattern(key) ? key.slice(0, -1) : key;
-}
 
 /**
  * Two patterns overlap when at least one string satisfies both.
@@ -203,6 +196,15 @@ export function measureNamespace(filers: Filer[]): NamespaceReport {
 import { KEY_CRM_GAP } from "../meetings/crmGapFinding";
 import { KEY_NEEDS_HUMAN_ACCOUNT } from "../meetings/archiveFinding";
 import { CENSUS_REFUSAL_KEY, CENSUS_UNREADABLE_ROWS_KEY, departureKey } from "../integrity/wrapperClock";
+import { familyPattern } from "./producedFamily";
+
+/**
+ * Q84 inc.186 — the departure family, DERIVED from its producer and checked, not probed and
+ * trusted. This was `` `${departureKey("")}*` ``, which quietly assumed the producer appends its
+ * argument verbatim at the end; `familyPattern` states that assumption and refuses to load rather
+ * than advertise a family no row is filed under. See lib/flags/producedFamily.ts.
+ */
+export const DEPARTURE_FAMILY = familyPattern(departureKey, "wrapper-census departure");
 
 /** Mirrored from scripts/migration-backlog.mjs — asserted still current by the test. */
 export const MIRRORED_MIGRATION_BACKLOG_KEY = "unapplied-migrations";
@@ -215,7 +217,7 @@ export const LEDGER_FILERS: Filer[] = [
   {
     name: "audit-wrapper-clocks.mjs",
     source: "lib/integrity/wrapperClock.ts",
-    keys: [CENSUS_REFUSAL_KEY, CENSUS_UNREADABLE_ROWS_KEY, `${departureKey("")}*`],
+    keys: [CENSUS_REFUSAL_KEY, CENSUS_UNREADABLE_ROWS_KEY, DEPARTURE_FAMILY],
   },
   {
     name: "notion-crm-check.mjs",
