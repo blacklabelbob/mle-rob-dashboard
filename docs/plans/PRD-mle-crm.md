@@ -1,5 +1,8 @@
 # PRD: MLE CRM — The Network + Self-Made CRM (Unified)
 
+> ✅ **THIS IS THE LIVING PRD** for the MLE dashboard — the one that gets updated as work ships.
+> Signpost: [`PRD.md`](../../PRD.md) at the repo root. Next up: [`BUILD-QUEUE.md`](../../BUILD-QUEUE.md).
+
 **Version:** 3.1.590 | **Created:** 2026-07-16 | **Updated:** 2026-08-05
 **Status:** ACTIVE
 **Owner:** Rob + Max

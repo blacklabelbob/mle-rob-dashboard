@@ -1,3 +1,5 @@
+> ⚠️ **This is NOT the living PRD.** The living PRD is [`docs/plans/PRD-mle-crm.md`](../../docs/plans/PRD-mle-crm.md) — see [`PRD.md`](../../PRD.md) at the repo root. This file covers one narrow decision only.
+
 # PRD — The Arsenal: visible, versioned, shareable
 
 **Version:** 1.0 · **Created:** 2026-07-29 · **Updated:** 2026-07-29
