@@ -5,6 +5,7 @@ import {
   buildMeetingIntel,
   INTEL_BLOCK_KINDS,
   isVerbatim,
+  sourceLabel,
   type IntelCandidate,
 } from "../meetingIntel";
 
@@ -179,5 +180,15 @@ describe("this module renders a ranking, it never invents one", () => {
     const b = block(intel, "action-items");
     expect(b.ordering).toBe("source-order");
     expect(b.items.map((i) => i.text)).toEqual(["unranked", "ranked"]);
+  });
+});
+
+describe("sourceLabel", () => {
+  it("names the line inside the meeting, not just the meeting", () => {
+    // The rendered address has to be enough to go and check. A bare meeting id sends a
+    // reader to a 114k-char transcript and calls that traceability.
+    expect(sourceLabel({ meetingId: OMEGA, sourceRef: "block-412" })).toBe(
+      "meeting-2026-07-28 · block-412",
+    );
   });
 });

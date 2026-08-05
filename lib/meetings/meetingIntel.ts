@@ -145,6 +145,15 @@ export function isVerbatim(text: string, excerpt: string): boolean {
   return normalizeForVerbatim(excerpt).includes(needle);
 }
 
+/**
+ * The address of an item, written the way a human checks it: the meeting, then the line
+ * within it. Never a bare meeting id — "somewhere in that call" is what rule 1 rejects.
+ * Returned as text so a caller with no deep link still shows something checkable.
+ */
+export function sourceLabel(p: Provenance): string {
+  return `${p.meetingId} · ${p.sourceRef}`;
+}
+
 function validate(candidate: IntelCandidate): RejectedCandidate | IntelItem {
   const text = candidate.text?.trim() ?? "";
   if (!text) {
