@@ -95,6 +95,20 @@ const RANK: Record<Action, number> = {
   "re-measure": 4,
 };
 
+/**
+ * How much text a row is already known to hold, used only to order the reads.
+ *
+ * It is a SIZE, never a verdict: a 101k-char page and a 900-char page are both unread, and
+ * neither number says anything about what the meeting contains. Reading the biggest bodies
+ * first is simply the order that retires the most unread text per read — BUILD-QUEUE's
+ * "largest-body-first" now lives here rather than in a sentence a session has to remember.
+ * `container-only` rows have no chars yet, so they fall back to blocks, which is the only
+ * size a depth-capped walk actually measured.
+ */
+function bodyWeight(row: MeasuredRow): number {
+  return row.body?.chars || row.body?.blocks || 0;
+}
+
 /** A page is addressed by its url when it has one, and by its uuid when it does not. */
 function pageRef(row: MeasuredRow): string {
   return (row.url || "").trim() || row.id;
@@ -154,9 +168,11 @@ function stepFor(row: MeasuredRow): WorklistStep {
 /**
  * Build the ordered work-list from the re-count's `measured` array.
  *
- * Ordering is by action, then newest day first, so the reads that are certain to return
- * something are done before the sweeps that may return nothing. Rows sharing a day keep a
- * stable order by title, so two runs on the same input print the same list.
+ * Ordering is by action, then by how much text the row is already known to hold (largest
+ * first), then newest day first. Action first, so the reads that are certain to return
+ * something are done before the sweeps that may return nothing; size next, so the pages
+ * carrying the most unread text are opened first. Rows tying on both keep a stable order by
+ * title, so two runs on the same input print the same list.
  */
 export function buildRecoveryWorklist(measured: MeasuredRow[]): Worklist {
   const steps = measured
@@ -164,6 +180,7 @@ export function buildRecoveryWorklist(measured: MeasuredRow[]): Worklist {
     .sort(
       (a, b) =>
         RANK[a.action] - RANK[b.action] ||
+        bodyWeight(b.row) - bodyWeight(a.row) ||
         (b.row.day || "").localeCompare(a.row.day || "") ||
         a.row.title.localeCompare(b.row.title),
     );

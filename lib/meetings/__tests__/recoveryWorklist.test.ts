@@ -94,6 +94,25 @@ describe("buildRecoveryWorklist", () => {
     );
   });
 
+  it("reads the biggest bodies first, even when a smaller page is newer", () => {
+    // The older page holds 100x the text. Date order would open the near-empty one first and
+    // leave the 100k-char transcript unread; size order retires the most unread text per read.
+    const { steps } = buildRecoveryWorklist([
+      row({ id: "small-new", verdict: "body-present", day: "2026-08-04", body: { blocks: 3, chars: 900 } }),
+      row({ id: "big-old", verdict: "body-present", day: "2025-12-20", body: { blocks: 784, chars: 101488 } }),
+      row({ id: "mid", verdict: "body-present", day: "2026-07-28", body: { blocks: 531, chars: 95769 } }),
+    ]);
+    expect(steps.map((s) => s.row.id)).toEqual(["big-old", "mid", "small-new"]);
+  });
+
+  it("orders container-only re-reads by blocks, the only size their capped walk measured", () => {
+    const { steps } = buildRecoveryWorklist([
+      row({ id: "few", verdict: "container-only", day: "2026-08-04", body: { blocks: 5, chars: 0 } }),
+      row({ id: "many", verdict: "container-only", day: "2026-01-01", body: { blocks: 60, chars: 0 } }),
+    ]);
+    expect(steps.map((s) => s.row.id)).toEqual(["many", "few"]);
+  });
+
   it("counts the ceiling of unrecoverable rows, not the pile", () => {
     const { counts, atMostUnrecoverable } = buildRecoveryWorklist([
       row({ id: "a", verdict: "body-present", body: { blocks: 1, chars: 10 } }),
