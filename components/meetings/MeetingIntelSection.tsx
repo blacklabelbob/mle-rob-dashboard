@@ -2,6 +2,7 @@ import Link from "next/link";
 import { groupIntelItems, type IntelGroup } from "@/lib/meetings/grouping";
 import {
   BLOCK_TITLES,
+  compactSourceLabel,
   contextExcerpt,
   type IntelBlock,
   type IntelItem,
@@ -20,8 +21,23 @@ import {
 // empty says so, and says why, because "nothing was said" and "three claims failed the
 // provenance check" are different facts and only one of them means go re-read the call.
 
-function ItemRow({ item, ranked }: { item: IntelItem; ranked: boolean }) {
-  const label = sourceLabel(item.provenance);
+function ItemRow({
+  item,
+  ranked,
+  // Q92(b) — the heading above this row, or null when the surface has none. Passed rather
+  // than inferred: the label may only drop the company name when the reader can still see
+  // it, and only this component knows whether the <h4> was actually rendered.
+  groupContext = null,
+}: {
+  item: IntelItem;
+  ranked: boolean;
+  groupContext?: string | null;
+}) {
+  // The full address, always — this is what the reader hovers to get back what was elided,
+  // and it is the string every test that pins an address asserts.
+  const fullLabel = sourceLabel(item.provenance);
+  const omitContext = groupContext !== null && groupContext === item.provenance.context?.trim();
+  const label = compactSourceLabel(item.provenance, { omitContext });
   // The evidence, on the page. See `contextExcerpt` for why this is the honest form of
   // punch #4: no anchor exists to link to yet, so the source line comes to the reader
   // instead of the reader being sent to grep a 117KB transcript. Never computed here.
@@ -52,18 +68,30 @@ function ItemRow({ item, ranked }: { item: IntelItem; ranked: boolean }) {
         )}
         {/* The link is the whole point: a claim on a company page must open. */}
         {item.provenance.url ? (
-          <Link href={item.provenance.url} className="underline decoration-white/20 hover:text-slate-300">
+          <Link
+            href={item.provenance.url}
+            title={fullLabel}
+            className="underline decoration-white/20 hover:text-slate-300"
+          >
             {label}
           </Link>
         ) : (
-          <span>{label}</span>
+          <span title={fullLabel}>{label}</span>
         )}
       </div>
     </li>
   );
 }
 
-function ItemList({ items, ranked }: { items: IntelItem[]; ranked: boolean }) {
+function ItemList({
+  items,
+  ranked,
+  groupContext = null,
+}: {
+  items: IntelItem[];
+  ranked: boolean;
+  groupContext?: string | null;
+}) {
   return (
     <ul className="space-y-3">
       {items.map((item, i) => (
@@ -71,6 +99,7 @@ function ItemList({ items, ranked }: { items: IntelItem[]; ranked: boolean }) {
           key={`${item.provenance.meetingId}-${item.provenance.sourceRef}-${i}`}
           item={item}
           ranked={ranked}
+          groupContext={groupContext}
         />
       ))}
     </ul>
@@ -93,14 +122,14 @@ function ItemGroup({ group, ranked }: { group: IntelGroup; ranked: boolean }) {
           <span className="ml-1.5 font-normal tabular-nums text-slate-600">{group.total}</span>
         </h4>
       )}
-      <ItemList items={group.shown} ranked={ranked} />
+      <ItemList items={group.shown} ranked={ranked} groupContext={group.context} />
       {group.hidden.length > 0 && (
         <details className="mt-2">
           <summary className="cursor-pointer list-none text-[11px] text-slate-400 underline decoration-white/20 hover:text-slate-200">
             Show all {group.total} — {group.hidden.length} more
           </summary>
           <div className="mt-3">
-            <ItemList items={group.hidden} ranked={ranked} />
+            <ItemList items={group.hidden} ranked={ranked} groupContext={group.context} />
           </div>
         </details>
       )}

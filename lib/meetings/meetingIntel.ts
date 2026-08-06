@@ -217,6 +217,60 @@ export function sourceLabel(p: Provenance): string {
   return p.context ? `${p.context} · ${address}` : address;
 }
 
+/**
+ * Q92(b) — the same address, written for a surface that has ALREADY said part of it.
+ *
+ * critic-rob (RESCORE 2026-08-06, punch #3): on the grouped Overview the label reads
+ * `Ravensmoor Merchant Services · A-MTG-… · body bullet «Restaurant Background & Challenges»`
+ * directly under an `<h4>` that already says *Ravensmoor Merchant Services*. The company name
+ * is printed twice within an inch of itself, and the block title inside « » is long enough to
+ * wrap the line — so the part a reader actually needs (which meeting, which kind of line) is
+ * the part that gets pushed off the edge.
+ *
+ * Two compactions, both reversible by the reader, neither one a different address:
+ *
+ *  1. **Drop the context prefix** — only ever when the caller has printed that exact context
+ *     as the group heading. `sourceLabel` stays the single writer of the FULL address; this
+ *     is that string minus a segment the reader is already looking at, not a second format.
+ *  2. **Elide a long quoted block title**, and only the text inside « ». The kind prefix
+ *     (`body bullet`, `body to_do 7`) and the meeting id are never touched, because those
+ *     are what make the address followable; a truncated *id* would be a broken address, while
+ *     a truncated *title* is still an unambiguous pointer to the same block.
+ *
+ * The full string is never destroyed — `MeetingIntelSection` hangs `sourceLabel` on the
+ * element's `title`, so the elision costs a hover and no information.
+ *
+ * The COMPANY RECORD deliberately does not use this: there is no group heading there (a
+ * single-company surface leaves `context` unset), so nothing is redundant and the bare
+ * `meetingId · sourceRef` that `companyRecordRender.test.ts` pins stands unchanged. The two
+ * surfaces are different on purpose.
+ */
+export const COMPACT_REF_TITLE_MAX = 28;
+
+export function compactSourceLabel(p: Provenance, opts?: { omitContext?: boolean }): string {
+  const ref = elideQuotedTitles(p.sourceRef ?? "");
+  const address = `${p.meetingId} · ${ref}`;
+  if (opts?.omitContext) return address;
+  return p.context ? `${p.context} · ${address}` : address;
+}
+
+/**
+ * Shorten the text inside every «…» in a source ref, leaving everything outside it alone.
+ * A title at or under the max is returned byte-identical — this never "tidies" a short one.
+ */
+function elideQuotedTitles(ref: string): string {
+  return ref.replace(/«([^»]*)»/g, (whole, title: string) => {
+    const t = title.trim();
+    if (t.length <= COMPACT_REF_TITLE_MAX) return whole;
+    // Cut on a word boundary where one is near, so the elision reads as a shortened phrase
+    // rather than as a corrupted string. Falls back to a hard cut when no space is close.
+    const cut = t.slice(0, COMPACT_REF_TITLE_MAX);
+    const space = cut.lastIndexOf(" ");
+    const kept = (space > COMPACT_REF_TITLE_MAX - 10 ? cut.slice(0, space) : cut).trimEnd();
+    return `«${kept}…»`;
+  });
+}
+
 function validate(candidate: IntelCandidate): RejectedCandidate | IntelItem {
   const text = candidate.text?.trim() ?? "";
   if (!text) {
