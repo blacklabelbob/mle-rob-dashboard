@@ -75,7 +75,7 @@
           "sourceRef": "body to_do 1",
           "excerpt": "Review the new Gulf Coast website and send feedback and requested edits via email",
           "status": "open",
-          "rank": 5
+          "rank": 8
         },
         {
           "kind": "action-items",
@@ -83,7 +83,7 @@
           "sourceRef": "body to_do 2",
           "excerpt": "Send legal analysis document to Alex at alex@golf.org",
           "status": "open",
-          "rank": 1
+          "rank": 2
         },
         {
           "kind": "action-items",
@@ -91,7 +91,7 @@
           "sourceRef": "body to_do 5",
           "excerpt": "Investigate recovering hacked Facebook account — send account details for review",
           "status": "open",
-          "rank": 2
+          "rank": 5
         },
         {
           "kind": "action-items",
@@ -99,7 +99,7 @@
           "sourceRef": "body to_do 6",
           "excerpt": "Determine final branding approach for community/area sites (e.g., realtyonecoralsprings.com format)",
           "status": "open",
-          "rank": 3
+          "rank": 6
         },
         {
           "kind": "action-items",
@@ -107,7 +107,7 @@
           "sourceRef": "body to_do 7",
           "excerpt": "Require all agents to have social media profiles; set up new ones where needed",
           "status": "open",
-          "rank": 7
+          "rank": 11
         },
         {
           "kind": "action-items",
@@ -115,7 +115,7 @@
           "sourceRef": "body to_do 8",
           "excerpt": "Discuss Babcock Ranch and community site strategy with Will, including number of websites",
           "status": "open",
-          "rank": 6
+          "rank": 9
         },
         {
           "kind": "action-items",
@@ -123,7 +123,7 @@
           "sourceRef": "body to_do 9",
           "excerpt": "Review IDX feed integration and lead capture consent language on the new site",
           "status": "open",
-          "rank": 4
+          "rank": 7
         },
         {
           "kind": "action-items",
@@ -131,7 +131,7 @@
           "sourceRef": "body to_do 10",
           "excerpt": "Consider setting up a separate email/G Suite outside of the company-shared account for sensitive communications",
           "status": "open",
-          "rank": 8
+          "rank": 12
         },
         {
           "kind": "pain-points",

@@ -1,0 +1,1464 @@
+{
+  "meeting": {
+    "company": "Gulf Coast RE Group",
+    "company_url": "gulfcoastregroup.com",
+    "date": "2026-08-05",
+    "type": "ACCOUNT-LEVEL ranking across 2 meeting(s): 2026-06-16-gulfcoast-ai-alex-one, 2026-07-22-gulfcoast",
+    "our_attendees": [
+      "Rob Acheson"
+    ],
+    "their_attendees": "UNRESOLVED - the Notion row's Non MLE Attendees field is empty; the body names Alex of Gulf Coast RE Group as the counterparty",
+    "source": "derived from 2026-06-16-gulfcoast-ai-alex-one.nextsteps.json + 2026-07-22-gulfcoast.nextsteps.json; each item proven against its own transcript in pass 1",
+    "recovered_by": "score-company-next-steps.mjs"
+  },
+  "as_of": "2026-08-05",
+  "weight_table": [
+    {
+      "signal": "deal_value",
+      "weight": 0.28,
+      "rationale": "Money at stake if this step lands. Ranked first because a perfectly timed step on a $0 item still earns $0."
+    },
+    {
+      "signal": "access_unlocked",
+      "weight": 0.22,
+      "rationale": "Who the step puts Rob in front of. A decision-maker ABOVE the current contact compounds into every later deal, so it is worth more than the deal that produced it."
+    },
+    {
+      "signal": "time_decay",
+      "weight": 0.18,
+      "rationale": "How badly the step has aged since it was promised in-room. An in-room commitment is a credibility asset that depreciates daily — this is what lets cheap-and-overdue beat expensive-and-not-yet-due."
+    },
+    {
+      "signal": "blocking",
+      "weight": 0.14,
+      "rationale": "Who owns the next physical move. Nothing downstream moves until the blocker clears, and a step we are the bottleneck on is 100% ours to fix."
+    },
+    {
+      "signal": "effort_to_clear",
+      "weight": 0.1,
+      "rationale": "Cost to finish, inverted. Rob asked what to do FIRST — a five-minute promise clears before a five-hour proposal, so effort is a real priority determinant, not just sequencing."
+    },
+    {
+      "signal": "reversibility",
+      "weight": 0.08,
+      "rationale": "What is permanently lost if this is skipped. Lowest weight because most sales steps are re-doable; it only earns its place on the rare step that cannot be redone."
+    }
+  ],
+  "next_step_1": "2026-06-16-gulfcoast-ai-alex-one::A3",
+  "quick_wins": [
+    "2026-07-22-gulfcoast::A2",
+    "2026-06-16-gulfcoast-ai-alex-one::A2",
+    "2026-06-16-gulfcoast-ai-alex-one::A4"
+  ],
+  "constraints_in_force": [],
+  "ranked": [
+    {
+      "id": "2026-06-16-gulfcoast-ai-alex-one::A3",
+      "kind": "action",
+      "title": "Research Origin Vault + Origin Stamp hashing for the HomeCloneVault stack",
+      "source_line": "Research Origin Vault and their hashing technology (Origin Stamp) for HomeCloneVault integration",
+      "owner": "UNRESOLVED",
+      "owner_side": "UNRESOLVED",
+      "promised_on": "2026-06-16",
+      "value_usd": null,
+      "on_monetized_path": true,
+      "access_unlocked": "gatekeeper",
+      "blocking": "ours_alone",
+      "effort_to_clear": "under_hour",
+      "reversibility": "costly",
+      "evidence": {
+        "deal_value": null,
+        "access_unlocked": "Origin Vault. has asked me if I'll do some sort of a revenue share partnership.",
+        "blocking": null,
+        "effort_to_clear": null,
+        "reversibility": null
+      },
+      "unresolved": "Owner not named, and the record sets no date for it.",
+      "rationale": {
+        "access_unlocked": "Origin Vault is a partner circling HIS venture — a functional gate near the deal, not a budget holder above the contact.",
+        "blocking": "Desk research nobody is waiting on.",
+        "effort_to_clear": "Reading a vendor's technology, not building against it.",
+        "reversibility": "Origin Vault is circling him with its own revenue-share offer — arriving after that lands costs a seat at the table.",
+        "deal_value": "No figure in this record. HomeCloneVault is the venture the 35/65 split attaches to, but that split postdates this call and is deliberately not scored here."
+      },
+      "composite": 53.8,
+      "band": "THIS WEEK",
+      "action": "date it inside 7 days",
+      "breakdown": [
+        {
+          "signal": "deal_value",
+          "raw": 15,
+          "weight": 0.28,
+          "weighted": 4.2,
+          "ladder_rung": "no dollar figure, but on the critical path of a step that has one",
+          "evidence": "INFERRED (not in the record) — No figure in this record. HomeCloneVault is the venture the 35/65 split attaches to, but that split postdates this call and is deliberately not scored here.",
+          "evidence_verified": false
+        },
+        {
+          "signal": "access_unlocked",
+          "raw": 60,
+          "weight": 0.22,
+          "weighted": 13.2,
+          "ladder_rung": "a peer-level functional owner who controls a gate we need",
+          "evidence": "Origin Vault. has asked me if I'll do some sort of a revenue share partnership.",
+          "evidence_verified": true
+        },
+        {
+          "signal": "time_decay",
+          "raw": 70,
+          "weight": 0.18,
+          "weighted": 12.6,
+          "ladder_rung": "promised in-room with no date, 50 days ago",
+          "evidence": "Research Origin Vault and their hashing technology (Origin Stamp) for HomeCloneVault integration",
+          "evidence_verified": false
+        },
+        {
+          "signal": "blocking",
+          "raw": 70,
+          "weight": 0.14,
+          "weighted": 9.8,
+          "ladder_rung": "ours alone — nobody is waiting, but only we can do it",
+          "evidence": "INFERRED (not in the record) — Desk research nobody is waiting on.",
+          "evidence_verified": false
+        },
+        {
+          "signal": "effort_to_clear",
+          "raw": 80,
+          "weight": 0.1,
+          "weighted": 8,
+          "ladder_rung": "under an hour — a call to place, a doc assembled from existing material",
+          "evidence": "INFERRED (not in the record) — Reading a vendor's technology, not building against it.",
+          "evidence_verified": false
+        },
+        {
+          "signal": "reversibility",
+          "raw": 75,
+          "weight": 0.08,
+          "weighted": 6,
+          "ladder_rung": "recoverable only at material cost or a significant delay",
+          "evidence": "INFERRED (not in the record) — Origin Vault is circling him with its own revenue-share offer — arriving after that lands costs a seat at the table.",
+          "evidence_verified": false
+        }
+      ],
+      "rank": 1
+    },
+    {
+      "id": "2026-07-22-gulfcoast::A2",
+      "kind": "action",
+      "title": "Send the legal analysis document to Alex",
+      "source_line": "Send legal analysis document to Alex at alex@golf.org",
+      "owner": "UNRESOLVED",
+      "owner_side": "UNRESOLVED",
+      "promised_on": "2026-07-22",
+      "due_by": null,
+      "value_usd": null,
+      "on_monetized_path": true,
+      "access_unlocked": "existing_contact",
+      "blocking": "they_wait_on_us",
+      "effort_to_clear": "minutes",
+      "reversibility": "credibility",
+      "evidence": {
+        "deal_value": null,
+        "access_unlocked": "Send legal analysis document to Alex at alex@golf.org",
+        "time_decay": null,
+        "blocking": "Send legal analysis document to Alex at alex@golf.org",
+        "effort_to_clear": "Send legal analysis document to Alex at alex@golf.org",
+        "reversibility": null
+      },
+      "unresolved": "The body does not say whether the document was sent. It also does not say which legal analysis — ask Rob before re-sending anything.",
+      "rationale": {
+        "deal_value": "No figure attached; it is a promised deliverable inside the paid Phase 1 relationship.",
+        "access_unlocked": "The line names Alex, the existing contact, and no one above him.",
+        "time_decay": "No date is stated anywhere in the record for this item.",
+        "blocking": "The line addresses a named recipient — a document promised TO someone is that person waiting on us.",
+        "effort_to_clear": "An email with an attachment to a stated address.",
+        "reversibility": "A document promised in the room by name; late, it costs trust rather than the deal."
+      },
+      "composite": 49.2,
+      "band": "THIS WEEK",
+      "action": "date it inside 7 days",
+      "breakdown": [
+        {
+          "signal": "deal_value",
+          "raw": 15,
+          "weight": 0.28,
+          "weighted": 4.2,
+          "ladder_rung": "no dollar figure, but on the critical path of a step that has one",
+          "evidence": "INFERRED (not in the record) — No figure attached; it is a promised deliverable inside the paid Phase 1 relationship.",
+          "evidence_verified": false
+        },
+        {
+          "signal": "access_unlocked",
+          "raw": 20,
+          "weight": 0.22,
+          "weighted": 4.4,
+          "ladder_rung": "the existing contact only — no new access",
+          "evidence": "Send legal analysis document to Alex at alex@golf.org",
+          "evidence_verified": true
+        },
+        {
+          "signal": "time_decay",
+          "raw": 70,
+          "weight": 0.18,
+          "weighted": 12.6,
+          "ladder_rung": "promised in-room with no date, 14 days ago",
+          "evidence": "INFERRED (not in the record) — No date is stated anywhere in the record for this item.",
+          "evidence_verified": false
+        },
+        {
+          "signal": "blocking",
+          "raw": 100,
+          "weight": 0.14,
+          "weighted": 14,
+          "ladder_rung": "THEY are blocked on us — our deliverable is holding up their work",
+          "evidence": "Send legal analysis document to Alex at alex@golf.org",
+          "evidence_verified": true
+        },
+        {
+          "signal": "effort_to_clear",
+          "raw": 100,
+          "weight": 0.1,
+          "weighted": 10,
+          "ladder_rung": "≤15 min — one message with an asset that already exists",
+          "evidence": "Send legal analysis document to Alex at alex@golf.org",
+          "evidence_verified": true
+        },
+        {
+          "signal": "reversibility",
+          "raw": 50,
+          "weight": 0.08,
+          "weighted": 4,
+          "ladder_rung": "recoverable, but a broken in-room promise costs trust",
+          "evidence": "INFERRED (not in the record) — A document promised in the room by name; late, it costs trust rather than the deal.",
+          "evidence_verified": false
+        }
+      ],
+      "rank": 2
+    },
+    {
+      "id": "2026-06-16-gulfcoast-ai-alex-one::A1",
+      "kind": "action",
+      "title": "Fix the SEO defects found on gulfcoastregroup.com and present them",
+      "source_line": "Fix SEO issues on gulfcoastregroup.com before tomorrow's meeting (meta tags, headers, image alt text, broken links, schema)",
+      "owner": "UNRESOLVED",
+      "owner_side": "UNRESOLVED",
+      "promised_on": "2026-06-16",
+      "due_by": "2026-06-17",
+      "due_by_source": "Fix SEO issues on gulfcoastregroup.com before tomorrow's meeting (meta tags, headers, image alt text, broken links, schema)",
+      "date_basis": "'before tomorrow's meeting', spoken at the 2026-06-16 call, resolves to 2026-06-17",
+      "value_usd": null,
+      "on_monetized_path": true,
+      "access_unlocked": "existing_contact",
+      "blocking": "ours_alone",
+      "effort_to_clear": "half_day",
+      "reversibility": "credibility",
+      "evidence": {
+        "deal_value": null,
+        "access_unlocked": null,
+        "time_decay": null,
+        "blocking": null,
+        "effort_to_clear": null,
+        "reversibility": null
+      },
+      "unresolved": "The body never says who owns this to_do. It also never says it was done - and the 2026-06-17 in-person and the 2026-07-22 kickoff both happened since. Ask Rob whether it closed.",
+      "rationale": {
+        "access_unlocked": "The audit goes back to the same contact who was on the call — no new person is unlocked.",
+        "blocking": "Nothing in the record shows anyone on their side waiting on it; the deliverable is the finding, and the defects sit in a site we do not control.",
+        "effort_to_clear": "Meta tags, headers, alt text, broken links and schema across a site — not a one-message task.",
+        "reversibility": "A defect list promised for a specific meeting; late, it stops being the thing that earned the room.",
+        "deal_value": "No figure attached to the teardown itself; it is the PVP asset that opened the paid Phase 1 relationship, so it sits on a monetized path.",
+        "time_decay": "Its own stated date, 2026-06-17, has long passed."
+      },
+      "composite": 46.4,
+      "band": "THIS WEEK",
+      "action": "date it inside 7 days",
+      "breakdown": [
+        {
+          "signal": "deal_value",
+          "raw": 15,
+          "weight": 0.28,
+          "weighted": 4.2,
+          "ladder_rung": "no dollar figure, but on the critical path of a step that has one",
+          "evidence": "INFERRED (not in the record) — No figure attached to the teardown itself; it is the PVP asset that opened the paid Phase 1 relationship, so it sits on a monetized path.",
+          "evidence_verified": false
+        },
+        {
+          "signal": "access_unlocked",
+          "raw": 20,
+          "weight": 0.22,
+          "weighted": 4.4,
+          "ladder_rung": "the existing contact only — no new access",
+          "evidence": "INFERRED (not in the record) — The audit goes back to the same contact who was on the call — no new person is unlocked.",
+          "evidence_verified": false
+        },
+        {
+          "signal": "time_decay",
+          "raw": 100,
+          "weight": 0.18,
+          "weighted": 18,
+          "ladder_rung": "past its stated due date (2026-06-17)",
+          "evidence": "INFERRED (not in the record) — Its own stated date, 2026-06-17, has long passed.",
+          "evidence_verified": false
+        },
+        {
+          "signal": "blocking",
+          "raw": 70,
+          "weight": 0.14,
+          "weighted": 9.8,
+          "ladder_rung": "ours alone — nobody is waiting, but only we can do it",
+          "evidence": "INFERRED (not in the record) — Nothing in the record shows anyone on their side waiting on it; the deliverable is the finding, and the defects sit in a site we do not control.",
+          "evidence_verified": false
+        },
+        {
+          "signal": "effort_to_clear",
+          "raw": 60,
+          "weight": 0.1,
+          "weighted": 6,
+          "ladder_rung": "half a day",
+          "evidence": "INFERRED (not in the record) — Meta tags, headers, alt text, broken links and schema across a site — not a one-message task.",
+          "evidence_verified": false
+        },
+        {
+          "signal": "reversibility",
+          "raw": 50,
+          "weight": 0.08,
+          "weighted": 4,
+          "ladder_rung": "recoverable, but a broken in-room promise costs trust",
+          "evidence": "INFERRED (not in the record) — A defect list promised for a specific meeting; late, it stops being the thing that earned the room.",
+          "evidence_verified": false
+        }
+      ],
+      "rank": 3,
+      "tied_with": [
+        "2026-06-16-gulfcoast-ai-alex-one::A2"
+      ]
+    },
+    {
+      "id": "2026-06-16-gulfcoast-ai-alex-one::A2",
+      "kind": "action",
+      "title": "Confirm the next day's meeting details",
+      "source_line": "Confirm meeting details tonight",
+      "owner": "UNRESOLVED",
+      "owner_side": "UNRESOLVED",
+      "promised_on": "2026-06-16",
+      "due_by": "2026-06-16",
+      "due_by_source": "Confirm meeting details tonight",
+      "date_basis": "'tonight', spoken at the 2026-06-16 call, resolves to 2026-06-16",
+      "value_usd": null,
+      "on_monetized_path": true,
+      "access_unlocked": "existing_contact",
+      "blocking": "ours_alone",
+      "effort_to_clear": "minutes",
+      "reversibility": "nothing",
+      "evidence": {
+        "deal_value": null,
+        "access_unlocked": null,
+        "time_decay": null,
+        "blocking": null,
+        "effort_to_clear": null,
+        "reversibility": null
+      },
+      "unresolved": "Owner not named. The meeting it confirms demonstrably took place, so this row is almost certainly closed - the page still does not say so.",
+      "rationale": {
+        "access_unlocked": "Same contact — no new person.",
+        "blocking": "A confirmation message is ours to send; nobody is waiting on us for it.",
+        "effort_to_clear": "One message.",
+        "reversibility": "The 2026-06-17 meeting is on the record as having happened, so nothing is lost by this row being stale.",
+        "deal_value": "No figure. It gates the in-person that produced the Phase 1 deal.",
+        "time_decay": "Its own stated date was the night of 2026-06-16."
+      },
+      "composite": 46.4,
+      "band": "THIS WEEK",
+      "action": "date it inside 7 days",
+      "breakdown": [
+        {
+          "signal": "deal_value",
+          "raw": 15,
+          "weight": 0.28,
+          "weighted": 4.2,
+          "ladder_rung": "no dollar figure, but on the critical path of a step that has one",
+          "evidence": "INFERRED (not in the record) — No figure. It gates the in-person that produced the Phase 1 deal.",
+          "evidence_verified": false
+        },
+        {
+          "signal": "access_unlocked",
+          "raw": 20,
+          "weight": 0.22,
+          "weighted": 4.4,
+          "ladder_rung": "the existing contact only — no new access",
+          "evidence": "INFERRED (not in the record) — Same contact — no new person.",
+          "evidence_verified": false
+        },
+        {
+          "signal": "time_decay",
+          "raw": 100,
+          "weight": 0.18,
+          "weighted": 18,
+          "ladder_rung": "past its stated due date (2026-06-16)",
+          "evidence": "INFERRED (not in the record) — Its own stated date was the night of 2026-06-16.",
+          "evidence_verified": false
+        },
+        {
+          "signal": "blocking",
+          "raw": 70,
+          "weight": 0.14,
+          "weighted": 9.8,
+          "ladder_rung": "ours alone — nobody is waiting, but only we can do it",
+          "evidence": "INFERRED (not in the record) — A confirmation message is ours to send; nobody is waiting on us for it.",
+          "evidence_verified": false
+        },
+        {
+          "signal": "effort_to_clear",
+          "raw": 100,
+          "weight": 0.1,
+          "weighted": 10,
+          "ladder_rung": "≤15 min — one message with an asset that already exists",
+          "evidence": "INFERRED (not in the record) — One message.",
+          "evidence_verified": false
+        },
+        {
+          "signal": "reversibility",
+          "raw": 0,
+          "weight": 0.08,
+          "weighted": 0,
+          "ladder_rung": "nothing is lost",
+          "evidence": "INFERRED (not in the record) — The 2026-06-17 meeting is on the record as having happened, so nothing is lost by this row being stale.",
+          "evidence_verified": false
+        }
+      ],
+      "rank": 4,
+      "tied_with": [
+        "2026-06-16-gulfcoast-ai-alex-one::A1"
+      ]
+    },
+    {
+      "id": "2026-07-22-gulfcoast::A3",
+      "kind": "action",
+      "title": "Recover the hacked Facebook account",
+      "source_line": "Investigate recovering hacked Facebook account — send account details for review",
+      "owner": "UNRESOLVED",
+      "owner_side": "UNRESOLVED",
+      "promised_on": "2026-07-22",
+      "due_by": null,
+      "value_usd": null,
+      "on_monetized_path": true,
+      "access_unlocked": "existing_contact",
+      "blocking": "they_wait_on_us",
+      "effort_to_clear": "days_1_3",
+      "reversibility": "costly",
+      "evidence": {
+        "deal_value": null,
+        "access_unlocked": null,
+        "time_decay": null,
+        "blocking": "I can't send fucking Facebook messages anymore",
+        "effort_to_clear": null,
+        "reversibility": null
+      },
+      "unresolved": "The record does not say whose account, which credentials exist, or whether recovery was attempted. Ask before touching a Meta account.",
+      "rationale": {
+        "deal_value": "No figure; the account is a channel inside the social scope we were hired for.",
+        "access_unlocked": "Account details come back from the same contact — no new person.",
+        "time_decay": "No date is stated; the pain is stated in the present tense on the call.",
+        "blocking": "The counterparty says on the call that he currently cannot send messages — that is a live block on their side, not a task nobody is waiting on.",
+        "effort_to_clear": "Meta's recovery flow runs on their timeline, not ours; the record gives no basis for calling it a same-day fix.",
+        "reversibility": "An account under someone else's control keeps being used; the longer it stands, the more is lost that no later work recovers."
+      },
+      "composite": 45.2,
+      "band": "THIS WEEK",
+      "action": "date it inside 7 days",
+      "breakdown": [
+        {
+          "signal": "deal_value",
+          "raw": 15,
+          "weight": 0.28,
+          "weighted": 4.2,
+          "ladder_rung": "no dollar figure, but on the critical path of a step that has one",
+          "evidence": "INFERRED (not in the record) — No figure; the account is a channel inside the social scope we were hired for.",
+          "evidence_verified": false
+        },
+        {
+          "signal": "access_unlocked",
+          "raw": 20,
+          "weight": 0.22,
+          "weighted": 4.4,
+          "ladder_rung": "the existing contact only — no new access",
+          "evidence": "INFERRED (not in the record) — Account details come back from the same contact — no new person.",
+          "evidence_verified": false
+        },
+        {
+          "signal": "time_decay",
+          "raw": 70,
+          "weight": 0.18,
+          "weighted": 12.6,
+          "ladder_rung": "promised in-room with no date, 14 days ago",
+          "evidence": "INFERRED (not in the record) — No date is stated; the pain is stated in the present tense on the call.",
+          "evidence_verified": false
+        },
+        {
+          "signal": "blocking",
+          "raw": 100,
+          "weight": 0.14,
+          "weighted": 14,
+          "ladder_rung": "THEY are blocked on us — our deliverable is holding up their work",
+          "evidence": "I can't send fucking Facebook messages anymore",
+          "evidence_verified": true
+        },
+        {
+          "signal": "effort_to_clear",
+          "raw": 40,
+          "weight": 0.1,
+          "weighted": 4,
+          "ladder_rung": "1–3 days of work",
+          "evidence": "INFERRED (not in the record) — Meta's recovery flow runs on their timeline, not ours; the record gives no basis for calling it a same-day fix.",
+          "evidence_verified": false
+        },
+        {
+          "signal": "reversibility",
+          "raw": 75,
+          "weight": 0.08,
+          "weighted": 6,
+          "ladder_rung": "recoverable only at material cost or a significant delay",
+          "evidence": "INFERRED (not in the record) — An account under someone else's control keeps being used; the longer it stands, the more is lost that no later work recovers.",
+          "evidence_verified": false
+        }
+      ],
+      "rank": 5,
+      "tied_with": [
+        "2026-07-22-gulfcoast::A4"
+      ]
+    },
+    {
+      "id": "2026-07-22-gulfcoast::A4",
+      "kind": "action",
+      "title": "Settle the branding format for the community/area sites",
+      "source_line": "Determine final branding approach for community/area sites (e.g., realtyonecoralsprings.com format)",
+      "owner": "UNRESOLVED",
+      "owner_side": "UNRESOLVED",
+      "promised_on": "2026-07-22",
+      "due_by": null,
+      "value_usd": null,
+      "on_monetized_path": true,
+      "access_unlocked": "existing_contact",
+      "blocking": "ours_alone",
+      "effort_to_clear": "under_hour",
+      "reversibility": "costly",
+      "evidence": {
+        "deal_value": null,
+        "access_unlocked": null,
+        "time_decay": null,
+        "blocking": null,
+        "effort_to_clear": null,
+        "reversibility": null
+      },
+      "unresolved": "The record names a format to copy and never records a decision. Ask Rob whether the branding was settled.",
+      "rationale": {
+        "deal_value": "No figure on the decision itself, but every community site downstream of it is billable work.",
+        "access_unlocked": "A naming decision with the existing contact; no new person is required to make it.",
+        "time_decay": "No date is stated for the decision.",
+        "blocking": "Nothing in the record shows anyone waiting on it, but no community site can be built until it is made — so it is ours to clear.",
+        "effort_to_clear": "A decision between named formats, not a build; the example format is already on the table.",
+        "reversibility": "Domains and brand names chosen wrong are recoverable only by rebuilding and re-indexing the sites already published under them."
+      },
+      "composite": 45,
+      "band": "THIS WEEK",
+      "action": "date it inside 7 days",
+      "breakdown": [
+        {
+          "signal": "deal_value",
+          "raw": 15,
+          "weight": 0.28,
+          "weighted": 4.2,
+          "ladder_rung": "no dollar figure, but on the critical path of a step that has one",
+          "evidence": "INFERRED (not in the record) — No figure on the decision itself, but every community site downstream of it is billable work.",
+          "evidence_verified": false
+        },
+        {
+          "signal": "access_unlocked",
+          "raw": 20,
+          "weight": 0.22,
+          "weighted": 4.4,
+          "ladder_rung": "the existing contact only — no new access",
+          "evidence": "INFERRED (not in the record) — A naming decision with the existing contact; no new person is required to make it.",
+          "evidence_verified": false
+        },
+        {
+          "signal": "time_decay",
+          "raw": 70,
+          "weight": 0.18,
+          "weighted": 12.6,
+          "ladder_rung": "promised in-room with no date, 14 days ago",
+          "evidence": "INFERRED (not in the record) — No date is stated for the decision.",
+          "evidence_verified": false
+        },
+        {
+          "signal": "blocking",
+          "raw": 70,
+          "weight": 0.14,
+          "weighted": 9.8,
+          "ladder_rung": "ours alone — nobody is waiting, but only we can do it",
+          "evidence": "INFERRED (not in the record) — Nothing in the record shows anyone waiting on it, but no community site can be built until it is made — so it is ours to clear.",
+          "evidence_verified": false
+        },
+        {
+          "signal": "effort_to_clear",
+          "raw": 80,
+          "weight": 0.1,
+          "weighted": 8,
+          "ladder_rung": "under an hour — a call to place, a doc assembled from existing material",
+          "evidence": "INFERRED (not in the record) — A decision between named formats, not a build; the example format is already on the table.",
+          "evidence_verified": false
+        },
+        {
+          "signal": "reversibility",
+          "raw": 75,
+          "weight": 0.08,
+          "weighted": 6,
+          "ladder_rung": "recoverable only at material cost or a significant delay",
+          "evidence": "INFERRED (not in the record) — Domains and brand names chosen wrong are recoverable only by rebuilding and re-indexing the sites already published under them.",
+          "evidence_verified": false
+        }
+      ],
+      "rank": 6,
+      "tied_with": [
+        "2026-07-22-gulfcoast::A7"
+      ]
+    },
+    {
+      "id": "2026-07-22-gulfcoast::A7",
+      "kind": "action",
+      "title": "Check the IDX feed and the lead-capture consent wording on the live site",
+      "source_line": "Review IDX feed integration and lead capture consent language on the new site",
+      "owner": "UNRESOLVED",
+      "owner_side": "UNRESOLVED",
+      "promised_on": "2026-07-22",
+      "due_by": null,
+      "value_usd": null,
+      "on_monetized_path": true,
+      "access_unlocked": "existing_contact",
+      "blocking": "ours_alone",
+      "effort_to_clear": "under_hour",
+      "reversibility": "costly",
+      "evidence": {
+        "deal_value": null,
+        "access_unlocked": null,
+        "time_decay": null,
+        "blocking": null,
+        "effort_to_clear": null,
+        "reversibility": null
+      },
+      "unresolved": "The record does not say whether the consent language was reviewed or by whom. It is the one item here with a compliance edge — do not assume it is done.",
+      "rationale": {
+        "deal_value": "No figure; the IDX feed and lead capture are the mechanism the site is supposed to earn through.",
+        "access_unlocked": "A review of our own deliverable with the existing contact.",
+        "time_decay": "No date is stated.",
+        "blocking": "It is our build; nobody in the record is waiting, and nobody else can check it.",
+        "effort_to_clear": "Reading a feed configuration and a consent paragraph on a site that is already up.",
+        "reversibility": "Consent language wrong on a live lead-capture form contaminates every lead collected under it — the fix is cheap, the leads already taken are not."
+      },
+      "composite": 45,
+      "band": "THIS WEEK",
+      "action": "date it inside 7 days",
+      "breakdown": [
+        {
+          "signal": "deal_value",
+          "raw": 15,
+          "weight": 0.28,
+          "weighted": 4.2,
+          "ladder_rung": "no dollar figure, but on the critical path of a step that has one",
+          "evidence": "INFERRED (not in the record) — No figure; the IDX feed and lead capture are the mechanism the site is supposed to earn through.",
+          "evidence_verified": false
+        },
+        {
+          "signal": "access_unlocked",
+          "raw": 20,
+          "weight": 0.22,
+          "weighted": 4.4,
+          "ladder_rung": "the existing contact only — no new access",
+          "evidence": "INFERRED (not in the record) — A review of our own deliverable with the existing contact.",
+          "evidence_verified": false
+        },
+        {
+          "signal": "time_decay",
+          "raw": 70,
+          "weight": 0.18,
+          "weighted": 12.6,
+          "ladder_rung": "promised in-room with no date, 14 days ago",
+          "evidence": "INFERRED (not in the record) — No date is stated.",
+          "evidence_verified": false
+        },
+        {
+          "signal": "blocking",
+          "raw": 70,
+          "weight": 0.14,
+          "weighted": 9.8,
+          "ladder_rung": "ours alone — nobody is waiting, but only we can do it",
+          "evidence": "INFERRED (not in the record) — It is our build; nobody in the record is waiting, and nobody else can check it.",
+          "evidence_verified": false
+        },
+        {
+          "signal": "effort_to_clear",
+          "raw": 80,
+          "weight": 0.1,
+          "weighted": 8,
+          "ladder_rung": "under an hour — a call to place, a doc assembled from existing material",
+          "evidence": "INFERRED (not in the record) — Reading a feed configuration and a consent paragraph on a site that is already up.",
+          "evidence_verified": false
+        },
+        {
+          "signal": "reversibility",
+          "raw": 75,
+          "weight": 0.08,
+          "weighted": 6,
+          "ladder_rung": "recoverable only at material cost or a significant delay",
+          "evidence": "INFERRED (not in the record) — Consent language wrong on a live lead-capture form contaminates every lead collected under it — the fix is cheap, the leads already taken are not.",
+          "evidence_verified": false
+        }
+      ],
+      "rank": 7,
+      "tied_with": [
+        "2026-07-22-gulfcoast::A4"
+      ]
+    },
+    {
+      "id": "2026-07-22-gulfcoast::A1",
+      "kind": "action",
+      "title": "Get their feedback and edits on the new Gulf Coast website",
+      "source_line": "Review the new Gulf Coast website and send feedback and requested edits via email",
+      "owner": "UNRESOLVED",
+      "owner_side": "UNRESOLVED",
+      "promised_on": "2026-07-22",
+      "due_by": null,
+      "value_usd": null,
+      "on_monetized_path": true,
+      "access_unlocked": "existing_contact",
+      "blocking": "we_wait_no_nudge",
+      "effort_to_clear": "under_hour",
+      "reversibility": "redoable",
+      "evidence": {
+        "deal_value": null,
+        "access_unlocked": null,
+        "time_decay": null,
+        "blocking": "Review the new Gulf Coast website and send feedback and requested edits via email",
+        "effort_to_clear": "Review the new Gulf Coast website and send feedback and requested edits via email",
+        "reversibility": null
+      },
+      "unresolved": "The body never says who reviews or by when, and never says it happened. Ask Rob whether the feedback came back.",
+      "rationale": {
+        "deal_value": "No figure sits on the review itself; the site is the Phase 1 deliverable that was paid for, so it is on the monetized path.",
+        "access_unlocked": "Feedback returns from the same contact who was in the room — no new person is reached.",
+        "time_decay": "The record states no date for this one, so nothing is past due; only the meeting date is known.",
+        "blocking": "The line puts the review and the email on their side of the table, so the build waits on them; nothing in the record shows a nudge since 7/22.",
+        "effort_to_clear": "An email of edits against a site that already exists — the deliverable is not being created here.",
+        "reversibility": "Edits arriving late cost time, not the engagement; nothing closes."
+      },
+      "composite": 37.5,
+      "band": "SCHEDULED",
+      "action": "date it; not this week",
+      "breakdown": [
+        {
+          "signal": "deal_value",
+          "raw": 15,
+          "weight": 0.28,
+          "weighted": 4.2,
+          "ladder_rung": "no dollar figure, but on the critical path of a step that has one",
+          "evidence": "INFERRED (not in the record) — No figure sits on the review itself; the site is the Phase 1 deliverable that was paid for, so it is on the monetized path.",
+          "evidence_verified": false
+        },
+        {
+          "signal": "access_unlocked",
+          "raw": 20,
+          "weight": 0.22,
+          "weighted": 4.4,
+          "ladder_rung": "the existing contact only — no new access",
+          "evidence": "INFERRED (not in the record) — Feedback returns from the same contact who was in the room — no new person is reached.",
+          "evidence_verified": false
+        },
+        {
+          "signal": "time_decay",
+          "raw": 70,
+          "weight": 0.18,
+          "weighted": 12.6,
+          "ladder_rung": "promised in-room with no date, 14 days ago",
+          "evidence": "INFERRED (not in the record) — The record states no date for this one, so nothing is past due; only the meeting date is known.",
+          "evidence_verified": false
+        },
+        {
+          "signal": "blocking",
+          "raw": 45,
+          "weight": 0.14,
+          "weighted": 6.3,
+          "ladder_rung": "we are blocked on them and nobody has nudged since the meeting — one message restarts it",
+          "evidence": "Review the new Gulf Coast website and send feedback and requested edits via email",
+          "evidence_verified": true
+        },
+        {
+          "signal": "effort_to_clear",
+          "raw": 80,
+          "weight": 0.1,
+          "weighted": 8,
+          "ladder_rung": "under an hour — a call to place, a doc assembled from existing material",
+          "evidence": "Review the new Gulf Coast website and send feedback and requested edits via email",
+          "evidence_verified": true
+        },
+        {
+          "signal": "reversibility",
+          "raw": 25,
+          "weight": 0.08,
+          "weighted": 2,
+          "ladder_rung": "fully redoable, just later",
+          "evidence": "INFERRED (not in the record) — Edits arriving late cost time, not the engagement; nothing closes.",
+          "evidence_verified": false
+        }
+      ],
+      "rank": 8,
+      "tied_with": [
+        "2026-07-22-gulfcoast::A6"
+      ]
+    },
+    {
+      "id": "2026-07-22-gulfcoast::A6",
+      "kind": "action",
+      "title": "Settle the Babcock Ranch and community-site plan with Will, including how many sites",
+      "source_line": "Discuss Babcock Ranch and community site strategy with Will, including number of websites",
+      "owner": "UNRESOLVED",
+      "owner_side": "UNRESOLVED",
+      "promised_on": "2026-07-22",
+      "due_by": null,
+      "value_usd": null,
+      "on_monetized_path": true,
+      "access_unlocked": "none",
+      "blocking": "ours_alone",
+      "effort_to_clear": "under_hour",
+      "reversibility": "redoable",
+      "evidence": {
+        "deal_value": null,
+        "access_unlocked": "Discuss Babcock Ranch and community site strategy with Will, including number of websites",
+        "time_decay": null,
+        "blocking": null,
+        "effort_to_clear": "Discuss Babcock Ranch and community site strategy with Will, including number of websites",
+        "reversibility": null
+      },
+      "unresolved": "The published row's `attendeesMle` names Will DeVito, so the internal read of 'with Will' is the record's own, not an assumption — but the body never says the conversation happened. Ask Rob whether the site count was settled.",
+      "rationale": {
+        "deal_value": "No figure stated; the number of websites decided here is what the expansion is billed on.",
+        "access_unlocked": "The line names an internal conversation, so no counterparty is unlocked by having it.",
+        "time_decay": "No date is stated.",
+        "blocking": "Nobody in the record is waiting on it, and only we can place the conversation.",
+        "effort_to_clear": "A conversation to place with one named person.",
+        "reversibility": "The conversation is as good next week as this week; the record puts no window on it."
+      },
+      "composite": 36.6,
+      "band": "SCHEDULED",
+      "action": "date it; not this week",
+      "breakdown": [
+        {
+          "signal": "deal_value",
+          "raw": 15,
+          "weight": 0.28,
+          "weighted": 4.2,
+          "ladder_rung": "no dollar figure, but on the critical path of a step that has one",
+          "evidence": "INFERRED (not in the record) — No figure stated; the number of websites decided here is what the expansion is billed on.",
+          "evidence_verified": false
+        },
+        {
+          "signal": "access_unlocked",
+          "raw": 0,
+          "weight": 0.22,
+          "weighted": 0,
+          "ladder_rung": "no human on the other side (internal or admin step)",
+          "evidence": "Discuss Babcock Ranch and community site strategy with Will, including number of websites",
+          "evidence_verified": true
+        },
+        {
+          "signal": "time_decay",
+          "raw": 70,
+          "weight": 0.18,
+          "weighted": 12.6,
+          "ladder_rung": "promised in-room with no date, 14 days ago",
+          "evidence": "INFERRED (not in the record) — No date is stated.",
+          "evidence_verified": false
+        },
+        {
+          "signal": "blocking",
+          "raw": 70,
+          "weight": 0.14,
+          "weighted": 9.8,
+          "ladder_rung": "ours alone — nobody is waiting, but only we can do it",
+          "evidence": "INFERRED (not in the record) — Nobody in the record is waiting on it, and only we can place the conversation.",
+          "evidence_verified": false
+        },
+        {
+          "signal": "effort_to_clear",
+          "raw": 80,
+          "weight": 0.1,
+          "weighted": 8,
+          "ladder_rung": "under an hour — a call to place, a doc assembled from existing material",
+          "evidence": "Discuss Babcock Ranch and community site strategy with Will, including number of websites",
+          "evidence_verified": true
+        },
+        {
+          "signal": "reversibility",
+          "raw": 25,
+          "weight": 0.08,
+          "weighted": 2,
+          "ladder_rung": "fully redoable, just later",
+          "evidence": "INFERRED (not in the record) — The conversation is as good next week as this week; the record puts no window on it.",
+          "evidence_verified": false
+        }
+      ],
+      "rank": 9,
+      "tied_with": [
+        "2026-07-22-gulfcoast::A1"
+      ]
+    },
+    {
+      "id": "2026-06-16-gulfcoast-ai-alex-one::A4",
+      "kind": "action",
+      "title": "Price Bold Trail for the Boomtown comparison",
+      "source_line": "Look into Bold Trail pricing for comparison",
+      "owner": "UNRESOLVED",
+      "owner_side": "UNRESOLVED",
+      "promised_on": "2026-06-16",
+      "value_usd": null,
+      "on_monetized_path": false,
+      "access_unlocked": "none",
+      "blocking": "ours_alone",
+      "effort_to_clear": "minutes",
+      "reversibility": "redoable",
+      "evidence": {
+        "deal_value": null,
+        "access_unlocked": null,
+        "blocking": null,
+        "effort_to_clear": null,
+        "reversibility": null
+      },
+      "unresolved": "Owner not named.",
+      "rationale": {
+        "access_unlocked": "Public pricing lookup — no human on the other side.",
+        "blocking": "Ours, nobody waiting.",
+        "effort_to_clear": "A pricing page.",
+        "reversibility": "Fully redoable at any time.",
+        "deal_value": "No figure, and no monetized path: the record says the Boomtown decision is already made against migration."
+      },
+      "composite": 34.4,
+      "band": "SCHEDULED",
+      "action": "date it; not this week",
+      "breakdown": [
+        {
+          "signal": "deal_value",
+          "raw": 0,
+          "weight": 0.28,
+          "weighted": 0,
+          "ladder_rung": "no dollar figure and not on a monetized path",
+          "evidence": "INFERRED (not in the record) — No figure, and no monetized path: the record says the Boomtown decision is already made against migration.",
+          "evidence_verified": false
+        },
+        {
+          "signal": "access_unlocked",
+          "raw": 0,
+          "weight": 0.22,
+          "weighted": 0,
+          "ladder_rung": "no human on the other side (internal or admin step)",
+          "evidence": "INFERRED (not in the record) — Public pricing lookup — no human on the other side.",
+          "evidence_verified": false
+        },
+        {
+          "signal": "time_decay",
+          "raw": 70,
+          "weight": 0.18,
+          "weighted": 12.6,
+          "ladder_rung": "promised in-room with no date, 50 days ago",
+          "evidence": "Look into Bold Trail pricing for comparison",
+          "evidence_verified": false
+        },
+        {
+          "signal": "blocking",
+          "raw": 70,
+          "weight": 0.14,
+          "weighted": 9.8,
+          "ladder_rung": "ours alone — nobody is waiting, but only we can do it",
+          "evidence": "INFERRED (not in the record) — Ours, nobody waiting.",
+          "evidence_verified": false
+        },
+        {
+          "signal": "effort_to_clear",
+          "raw": 100,
+          "weight": 0.1,
+          "weighted": 10,
+          "ladder_rung": "≤15 min — one message with an asset that already exists",
+          "evidence": "INFERRED (not in the record) — A pricing page.",
+          "evidence_verified": false
+        },
+        {
+          "signal": "reversibility",
+          "raw": 25,
+          "weight": 0.08,
+          "weighted": 2,
+          "ladder_rung": "fully redoable, just later",
+          "evidence": "INFERRED (not in the record) — Fully redoable at any time.",
+          "evidence_verified": false
+        }
+      ],
+      "rank": 10
+    },
+    {
+      "id": "2026-07-22-gulfcoast::A5",
+      "kind": "action",
+      "title": "Get every agent onto a social profile, creating the missing ones",
+      "source_line": "Require all agents to have social media profiles; set up new ones where needed",
+      "owner": "UNRESOLVED",
+      "owner_side": "UNRESOLVED",
+      "promised_on": "2026-07-22",
+      "due_by": null,
+      "value_usd": null,
+      "on_monetized_path": true,
+      "access_unlocked": "operator",
+      "blocking": "neither",
+      "effort_to_clear": "over_3_days",
+      "reversibility": "redoable",
+      "evidence": {
+        "deal_value": null,
+        "access_unlocked": "Require all agents to have social media profiles; set up new ones where needed",
+        "time_decay": null,
+        "blocking": null,
+        "effort_to_clear": "Require all agents to have social media profiles; set up new ones where needed",
+        "reversibility": null
+      },
+      "unresolved": "The record does not say how many agents, nor who mandates it. The agent count is not on this page.",
+      "rationale": {
+        "deal_value": "No figure; the record calls this part of the recurring multi-profile scope.",
+        "access_unlocked": "The line reaches the agents themselves — operators below the contact whose accounts and credentials we need.",
+        "time_decay": "No date is stated.",
+        "blocking": "The record shows nobody waiting on it; it runs in parallel with the site work.",
+        "effort_to_clear": "Profiles for a whole agent roster, some created from scratch — this is not a task with an end inside a day.",
+        "reversibility": "A profile set up later is the same profile; nothing closes by waiting."
+      },
+      "composite": 29.6,
+      "band": "BACKLOG",
+      "action": "carry to the next touch; do not schedule",
+      "breakdown": [
+        {
+          "signal": "deal_value",
+          "raw": 15,
+          "weight": 0.28,
+          "weighted": 4.2,
+          "ladder_rung": "no dollar figure, but on the critical path of a step that has one",
+          "evidence": "INFERRED (not in the record) — No figure; the record calls this part of the recurring multi-profile scope.",
+          "evidence_verified": false
+        },
+        {
+          "signal": "access_unlocked",
+          "raw": 40,
+          "weight": 0.22,
+          "weighted": 8.8,
+          "ladder_rung": "an operator below the contact whose input or credentials we need",
+          "evidence": "Require all agents to have social media profiles; set up new ones where needed",
+          "evidence_verified": true
+        },
+        {
+          "signal": "time_decay",
+          "raw": 70,
+          "weight": 0.18,
+          "weighted": 12.6,
+          "ladder_rung": "promised in-room with no date, 14 days ago",
+          "evidence": "INFERRED (not in the record) — No date is stated.",
+          "evidence_verified": false
+        },
+        {
+          "signal": "blocking",
+          "raw": 0,
+          "weight": 0.14,
+          "weighted": 0,
+          "ladder_rung": "neither side is blocked — parallel or optional",
+          "evidence": "INFERRED (not in the record) — The record shows nobody waiting on it; it runs in parallel with the site work.",
+          "evidence_verified": false
+        },
+        {
+          "signal": "effort_to_clear",
+          "raw": 20,
+          "weight": 0.1,
+          "weighted": 2,
+          "ladder_rung": "more than 3 days, or needs a deliverable that does not exist yet",
+          "evidence": "Require all agents to have social media profiles; set up new ones where needed",
+          "evidence_verified": true
+        },
+        {
+          "signal": "reversibility",
+          "raw": 25,
+          "weight": 0.08,
+          "weighted": 2,
+          "ladder_rung": "fully redoable, just later",
+          "evidence": "INFERRED (not in the record) — A profile set up later is the same profile; nothing closes by waiting.",
+          "evidence_verified": false
+        }
+      ],
+      "rank": 11
+    },
+    {
+      "id": "2026-07-22-gulfcoast::A8",
+      "kind": "action",
+      "title": "Stand up a separate mailbox outside the company-shared account for sensitive mail",
+      "source_line": "Consider setting up a separate email/G Suite outside of the company-shared account for sensitive communications",
+      "owner": "UNRESOLVED",
+      "owner_side": "UNRESOLVED",
+      "promised_on": "2026-07-22",
+      "due_by": null,
+      "value_usd": null,
+      "on_monetized_path": false,
+      "access_unlocked": "existing_contact",
+      "blocking": "neither",
+      "effort_to_clear": "under_hour",
+      "reversibility": "redoable",
+      "evidence": {
+        "deal_value": null,
+        "access_unlocked": null,
+        "time_decay": null,
+        "blocking": "Consider setting up a separate email/G Suite outside of the company-shared account for sensitive communications",
+        "effort_to_clear": null,
+        "reversibility": null
+      },
+      "unresolved": "The line says 'consider' — the record never records a decision, and this bundle does not convert a consideration into a commitment.",
+      "rationale": {
+        "deal_value": "Their internal mail hygiene; nothing we bill sits on it.",
+        "access_unlocked": "A suggestion to the existing contact about his own accounts.",
+        "time_decay": "No date is stated.",
+        "blocking": "The word is 'consider' — the record puts nobody on either side waiting on it.",
+        "effort_to_clear": "Creating a mailbox.",
+        "reversibility": "A mailbox created later is the same mailbox."
+      },
+      "composite": 27,
+      "band": "BACKLOG",
+      "action": "carry to the next touch; do not schedule",
+      "breakdown": [
+        {
+          "signal": "deal_value",
+          "raw": 0,
+          "weight": 0.28,
+          "weighted": 0,
+          "ladder_rung": "no dollar figure and not on a monetized path",
+          "evidence": "INFERRED (not in the record) — Their internal mail hygiene; nothing we bill sits on it.",
+          "evidence_verified": false
+        },
+        {
+          "signal": "access_unlocked",
+          "raw": 20,
+          "weight": 0.22,
+          "weighted": 4.4,
+          "ladder_rung": "the existing contact only — no new access",
+          "evidence": "INFERRED (not in the record) — A suggestion to the existing contact about his own accounts.",
+          "evidence_verified": false
+        },
+        {
+          "signal": "time_decay",
+          "raw": 70,
+          "weight": 0.18,
+          "weighted": 12.6,
+          "ladder_rung": "promised in-room with no date, 14 days ago",
+          "evidence": "INFERRED (not in the record) — No date is stated.",
+          "evidence_verified": false
+        },
+        {
+          "signal": "blocking",
+          "raw": 0,
+          "weight": 0.14,
+          "weighted": 0,
+          "ladder_rung": "neither side is blocked — parallel or optional",
+          "evidence": "Consider setting up a separate email/G Suite outside of the company-shared account for sensitive communications",
+          "evidence_verified": true
+        },
+        {
+          "signal": "effort_to_clear",
+          "raw": 80,
+          "weight": 0.1,
+          "weighted": 8,
+          "ladder_rung": "under an hour — a call to place, a doc assembled from existing material",
+          "evidence": "INFERRED (not in the record) — Creating a mailbox.",
+          "evidence_verified": false
+        },
+        {
+          "signal": "reversibility",
+          "raw": 25,
+          "weight": 0.08,
+          "weighted": 2,
+          "ladder_rung": "fully redoable, just later",
+          "evidence": "INFERRED (not in the record) — A mailbox created later is the same mailbox.",
+          "evidence_verified": false
+        }
+      ],
+      "rank": 12
+    }
+  ],
+  "ties": [
+    {
+      "ids": [
+        "2026-06-16-gulfcoast-ai-alex-one::A1",
+        "2026-06-16-gulfcoast-ai-alex-one::A2"
+      ],
+      "gap": 0,
+      "note": "within 1.0 point — treat as tied and sequence by effort, not by rank"
+    },
+    {
+      "ids": [
+        "2026-07-22-gulfcoast::A3",
+        "2026-07-22-gulfcoast::A4"
+      ],
+      "gap": 0.2,
+      "note": "within 1.0 point — treat as tied and sequence by effort, not by rank"
+    },
+    {
+      "ids": [
+        "2026-07-22-gulfcoast::A4",
+        "2026-07-22-gulfcoast::A7"
+      ],
+      "gap": 0,
+      "note": "within 1.0 point — treat as tied and sequence by effort, not by rank"
+    },
+    {
+      "ids": [
+        "2026-07-22-gulfcoast::A1",
+        "2026-07-22-gulfcoast::A6"
+      ],
+      "gap": 0.9,
+      "note": "within 1.0 point — treat as tied and sequence by effort, not by rank"
+    }
+  ],
+  "constraints": [],
+  "pain_points": [
+    {
+      "quote": "Google is moving towards zero-click listings, meaning when people search, you know, people's homes for sale, it comes up right in the Google AI overview so they don't go to our site anymore",
+      "speaker": "UNRESOLVED (Gulf Coast principal)",
+      "speaker_side": "them",
+      "maps_to": "The organic/attribution gap the SEO teardown (A1) opened",
+      "attribution_unverified": true,
+      "attribution_note": "The deep read is an unattributed transcript. The side is established by the paragraph being the answer to a question Rob asked, not by speaker tagging."
+    },
+    {
+      "quote": "I know it's just like hard to quantify organic for 60 agents. You know what I mean? Like, how do I, I don't know how to present that to them.",
+      "speaker": "UNRESOLVED (Gulf Coast principal)",
+      "speaker_side": "them",
+      "maps_to": "Attribution reporting - the deliverable he says he cannot produce himself",
+      "attribution_unverified": true,
+      "attribution_note": "Same unattributed transcript; established as his by being the answer to Rob's question in the preceding paragraph."
+    },
+    {
+      "quote": "that is where we're weak, right? 'Cause we became so headstrong on PPC and developing the agents to learn how to convert PPC into clients. That's been our main pain point that we try to consistently solve is how to take these internet lookers and turn them into clients.",
+      "speaker": "UNRESOLVED (Gulf Coast principal)",
+      "speaker_side": "them",
+      "maps_to": "Conversion, not traffic - what any site we hand him is judged on",
+      "attribution_unverified": true,
+      "attribution_note": "Same unattributed transcript."
+    },
+    {
+      "quote": "The worst part about Boomtown is they're very... with their API. Native API. They don't play well with others. So I'm having to do all these workarounds to improve the technology of it.",
+      "speaker": "UNRESOLVED (Gulf Coast principal)",
+      "speaker_side": "them",
+      "maps_to": "Why he is building a replacement he owns outright rather than migrating",
+      "attribution_unverified": true,
+      "attribution_note": "Same unattributed transcript."
+    }
+  ],
+  "talking_points": [
+    {
+      "point": "He is not shopping for a website - he is diversifying off PPC and building four products at once (HyperLocal website factory, HomeCloneVault, a solopreneur home-services utility, an internal app for 60 agents). Anything we propose should attach to one of those four, not sit beside them.",
+      "why": "Attaching to a product he has already funded is a different conversation from selling him a fifth thing.",
+      "source_line": "Website Factory (HyperLocal)"
+    },
+    {
+      "point": "HyperLocal has a date and a price he has already thought about: go-to-market October/November at roughly $699-899/month as a pure licence. He explicitly prefers a higher fixed fee over a revenue share because he does not want to rely on other people's talent to get paid.",
+      "why": "His own pricing instinct, in his own numbers - quote against it, not over it.",
+      "source_line": "I'd rather go with a higher monthly fee because I don't want to rely on talent."
+    },
+    {
+      "point": "The Boomtown decision is already made and it is a two-year one: stay on legacy Boomtown for the ad-buying power, migrate nothing, and build the replacement he owns. Pitching a migration is pitching against a decision.",
+      "why": "Agents tested Bold Trail and rejected it; moving 60 of them is impractical.",
+      "source_line": "migration of 60 agents is impractical"
+    },
+    {
+      "point": "On HomeCloneVault he already has money out the door and a partner circling - Origin Vault has asked him about a revenue-share partnership. That proposal is on HIS deal, not ours.",
+      "why": "Worth knowing before anyone proposes terms near it.",
+      "source_line": "Origin Vault. has asked me if I'll do some sort of a revenue share partnership."
+    },
+    {
+      "point": "His own read on why a site converts is conversion science, not design taste - Boomtown gets him ~10% visitor-to-lead where he says some sites run 5%. Any site we hand him is judged against that number.",
+      "why": "It sets the acceptance criterion before we build.",
+      "source_line": "the site is only as good as it converts"
+    }
+  ],
+  "benefits_to_us": [
+    {
+      "benefit": "The leak is quantified in his own numbers, not ours: ~$1,500/day on PPC, ~2 sales per 100 leads, ~$1,100 customer acquisition cost, and 85% of revenue on the one channel he says Google is closing. That is the whole leaky-bucket argument stated by the buyer.",
+      "type": "opening",
+      "source_line": "Spending ~$1,500/day on PPC"
+    },
+    {
+      "benefit": "He named the gap we close and admitted he cannot close it himself. Attribution reporting for organic is a deliverable, not a favour, and it is the one he will feel every week.",
+      "type": "leverage",
+      "source_line": "I don't know how to present that to them"
+    },
+    {
+      "benefit": "He is already sold on the thesis. The work is not convincing him AI matters; it is being the one who ships before his October window.",
+      "type": "opening",
+      "source_line": "I just feel like we have in our grasp institutional grade software"
+    },
+    {
+      "benefit": "The SEO teardown was run live on his own site before any paperwork, and the schema defect is unfixable inside his hard-coded CMS template. That template constraint is precisely what a site we build removes.",
+      "type": "expansion path",
+      "source_line": "Meta tag too long (over 160 characters)"
+    },
+    {
+      "benefit": "He is paying an Upwork team on milestones for the internal app and calls it his first dev adventure. Four products, one first-time dev relationship and a hard October date is a delivery-capacity problem we are built for.",
+      "type": "expansion path",
+      "source_line": "Built via Upwork dev team (milestone-based payments); first dev project undertaken"
+    }
+  ],
+  "unresolved": [
+    {
+      "section": "meeting",
+      "id": "Gulf Coast RE Group",
+      "fields": [
+        "their_attendees"
+      ],
+      "note": "field(s) left UNRESOLVED — ask Rob"
+    },
+    {
+      "section": "items",
+      "id": "2026-06-16-gulfcoast-ai-alex-one::A3",
+      "fields": [
+        "owner",
+        "owner_side"
+      ],
+      "note": "Owner not named, and the record sets no date for it."
+    },
+    {
+      "section": "items",
+      "id": "2026-07-22-gulfcoast::A2",
+      "fields": [
+        "owner",
+        "owner_side"
+      ],
+      "note": "The body does not say whether the document was sent. It also does not say which legal analysis — ask Rob before re-sending anything."
+    },
+    {
+      "section": "items",
+      "id": "2026-06-16-gulfcoast-ai-alex-one::A1",
+      "fields": [
+        "owner",
+        "owner_side"
+      ],
+      "note": "The body never says who owns this to_do. It also never says it was done - and the 2026-06-17 in-person and the 2026-07-22 kickoff both happened since. Ask Rob whether it closed."
+    },
+    {
+      "section": "items",
+      "id": "2026-06-16-gulfcoast-ai-alex-one::A2",
+      "fields": [
+        "owner",
+        "owner_side"
+      ],
+      "note": "Owner not named. The meeting it confirms demonstrably took place, so this row is almost certainly closed - the page still does not say so."
+    },
+    {
+      "section": "items",
+      "id": "2026-07-22-gulfcoast::A3",
+      "fields": [
+        "owner",
+        "owner_side"
+      ],
+      "note": "The record does not say whose account, which credentials exist, or whether recovery was attempted. Ask before touching a Meta account."
+    },
+    {
+      "section": "items",
+      "id": "2026-07-22-gulfcoast::A4",
+      "fields": [
+        "owner",
+        "owner_side"
+      ],
+      "note": "The record names a format to copy and never records a decision. Ask Rob whether the branding was settled."
+    },
+    {
+      "section": "items",
+      "id": "2026-07-22-gulfcoast::A7",
+      "fields": [
+        "owner",
+        "owner_side"
+      ],
+      "note": "The record does not say whether the consent language was reviewed or by whom. It is the one item here with a compliance edge — do not assume it is done."
+    },
+    {
+      "section": "items",
+      "id": "2026-07-22-gulfcoast::A1",
+      "fields": [
+        "owner",
+        "owner_side"
+      ],
+      "note": "The body never says who reviews or by when, and never says it happened. Ask Rob whether the feedback came back."
+    },
+    {
+      "section": "items",
+      "id": "2026-07-22-gulfcoast::A6",
+      "fields": [
+        "owner",
+        "owner_side"
+      ],
+      "note": "The published row's `attendeesMle` names Will DeVito, so the internal read of 'with Will' is the record's own, not an assumption — but the body never says the conversation happened. Ask Rob whether the site count was settled."
+    },
+    {
+      "section": "items",
+      "id": "2026-06-16-gulfcoast-ai-alex-one::A4",
+      "fields": [
+        "owner",
+        "owner_side"
+      ],
+      "note": "Owner not named."
+    },
+    {
+      "section": "items",
+      "id": "2026-07-22-gulfcoast::A5",
+      "fields": [
+        "owner",
+        "owner_side"
+      ],
+      "note": "The record does not say how many agents, nor who mandates it. The agent count is not on this page."
+    },
+    {
+      "section": "items",
+      "id": "2026-07-22-gulfcoast::A8",
+      "fields": [
+        "owner",
+        "owner_side"
+      ],
+      "note": "The line says 'consider' — the record never records a decision, and this bundle does not convert a consideration into a commitment."
+    },
+    {
+      "section": "pain_points",
+      "id": "Google is moving towards zero-click listings, meaning when people search, you know, people's homes for sale, it comes up right in the Google AI overview so they don't go to our site anymore",
+      "fields": [
+        "speaker"
+      ],
+      "note": "field(s) left UNRESOLVED — ask Rob"
+    },
+    {
+      "section": "pain_points",
+      "id": "I know it's just like hard to quantify organic for 60 agents. You know what I mean? Like, how do I, I don't know how to present that to them.",
+      "fields": [
+        "speaker"
+      ],
+      "note": "field(s) left UNRESOLVED — ask Rob"
+    },
+    {
+      "section": "pain_points",
+      "id": "that is where we're weak, right? 'Cause we became so headstrong on PPC and developing the agents to learn how to convert PPC into clients. That's been our main pain point that we try to consistently solve is how to take these internet lookers and turn them into clients.",
+      "fields": [
+        "speaker"
+      ],
+      "note": "field(s) left UNRESOLVED — ask Rob"
+    },
+    {
+      "section": "pain_points",
+      "id": "The worst part about Boomtown is they're very... with their API. Native API. They don't play well with others. So I'm having to do all these workarounds to improve the technology of it.",
+      "fields": [
+        "speaker"
+      ],
+      "note": "field(s) left UNRESOLVED — ask Rob"
+    }
+  ]
+}

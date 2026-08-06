@@ -79,7 +79,9 @@
       "readWith": "find_meeting.py --page 3811de57-0199-8099-9137-ef10c8fd0efe --deep",
       "bodyBlocks": 281,
       "bodyChars": 44547,
-      "attendeesMle": ["Rob Acheson"],
+      "attendeesMle": [
+        "Rob Acheson"
+      ],
       "fieldsThatClaimAbsence": [
         "Call Recording",
         "Meeting Summary",
@@ -93,7 +95,7 @@
           "sourceRef": "body to_do 1",
           "excerpt": "Fix SEO issues on gulfcoastregroup.com before tomorrow's meeting (meta tags, headers, image alt text, broken links, schema)",
           "status": "open",
-          "rank": 2
+          "rank": 3
         },
         {
           "kind": "action-items",
@@ -101,7 +103,7 @@
           "sourceRef": "body to_do 2",
           "excerpt": "Confirm meeting details tonight",
           "status": "open",
-          "rank": 3
+          "rank": 4
         },
         {
           "kind": "action-items",
@@ -117,7 +119,7 @@
           "sourceRef": "body to_do 4",
           "excerpt": "Look into Bold Trail pricing for comparison",
           "status": "open",
-          "rank": 4
+          "rank": 10
         },
         {
           "kind": "pain-points",

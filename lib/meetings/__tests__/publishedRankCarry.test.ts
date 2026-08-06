@@ -47,9 +47,25 @@ describe("Q89 inc.13 — ranks carried onto a published meeting row", () => {
     expect(actionBlock().items.map((i) => i.text)).toEqual(EXPECTED_ORDER);
   });
 
+  /**
+   * UPDATED Q89 inc.19 — this asserted `[1, 2, 3, 4]` and went red the moment the ranking became
+   * account-level, which is the correct outcome and not a regression. `1,2,3,4` was the 06-16
+   * meeting's own ranking; the row now carries `1,3,4,10`, its four items' positions in ONE
+   * ranking over both Gulf Coast meetings (critic-rob punch #1 move 3). Contiguity was never the
+   * property worth pinning — it was an artifact of scoring one meeting in isolation, and holding
+   * onto it would have made the test demand the exact defect it was written to catch.
+   *
+   * The properties that DO survive, and are what a reader can be misled by, are asserted instead:
+   * every item carries a number (a hole reads as "unranked" while sitting in a ranked list), the
+   * numbers strictly ascend (the rendered order IS the score's order), and the gaps land where
+   * the other meeting's items were scored — proven by `crossMeetingRank.test.ts`, which owns the
+   * account-wide uniqueness check this file deliberately cannot see from one row.
+   */
   it("carries a rank on every action item — a partial ranking must not read as complete", () => {
     const ranks = actionBlock().items.map((i) => i.rank);
-    expect(ranks).toEqual([1, 2, 3, 4]);
+    expect(ranks.every((r) => typeof r === "number")).toBe(true);
+    expect(ranks).toEqual([...ranks].sort((a, b) => (a as number) - (b as number)));
+    expect(new Set(ranks).size).toBe(ranks.length);
   });
 
   it("leaves the other three blocks in source order — the scorer does not rank them", () => {
