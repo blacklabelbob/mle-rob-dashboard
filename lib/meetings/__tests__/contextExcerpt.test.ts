@@ -52,12 +52,32 @@ describe("contextExcerpt", () => {
     expect(contextExcerpt(item)).toBeNull();
   });
 
-  it("returns null when nothing was stored — an absent excerpt never becomes a fabricated one", () => {
-    const item = itemFrom({
+  // Q89 inc.22 changed what this case MEANS, so it is split rather than deleted.
+  //
+  // It used to read "an action item with no excerpt survives the gate and prints no source
+  // line". Since punch #9 the gate rejects that item outright, for every kind — so the old
+  // assertion would now pass for a reason that has nothing to do with contextExcerpt, which
+  // is a vacuous test wearing a green tick. The two real facts are asserted separately.
+  it("an item with no excerpt no longer reaches the surface at all — the gate rejects every kind", () => {
+    const intel = buildMeetingIntel([
+      {
+        kind: "action-items",
+        text: "Send the Phase 1 agreement",
+        provenance: { meetingId: "A-MTG-2026-07-22-GULFCOAST", sourceRef: "line 12" },
+      },
+    ]);
+    expect(intel.blocks.flatMap((b) => b.items)).toHaveLength(0);
+    expect(intel.rejected.map((r) => r.reason)).toEqual(["no-excerpt-to-check"]);
+  });
+
+  it("still returns null rather than fabricating one, if an excerpt-less item ever reaches it", () => {
+    // Constructed directly, NOT through the gate — this pins contextExcerpt's own defensive
+    // branch, which must keep holding even though the gate now makes it unreachable from here.
+    const item: IntelItem = {
       kind: "action-items",
       text: "Send the Phase 1 agreement",
       provenance: { meetingId: "A-MTG-2026-07-22-GULFCOAST", sourceRef: "line 12" },
-    });
+    };
     expect(contextExcerpt(item)).toBeNull();
   });
 

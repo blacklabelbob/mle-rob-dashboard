@@ -11,10 +11,17 @@ import {
 
 const OMEGA = "meeting-2026-07-28";
 
+// Q89 inc.22 — the default now carries an excerpt, because since punch #9 EVERY kind must
+// name the line it stands on. Cases that test the absence of one supply it explicitly by
+// overriding `provenance`, so nothing that was checking a missing excerpt got quietly fixed.
 function candidate(over: Partial<IntelCandidate> & Pick<IntelCandidate, "kind">): IntelCandidate {
   return {
     text: "Send Scott the Phase 1 scope",
-    provenance: { meetingId: OMEGA, sourceRef: "block-412" },
+    provenance: {
+      meetingId: OMEGA,
+      sourceRef: "block-412",
+      excerpt: "Rob agreed to send Scott the Phase 1 scope by Friday so legal can start on it",
+    },
     ...over,
   };
 }
@@ -36,11 +43,17 @@ describe("buildMeetingIntel — the four blocks", () => {
     expect(intel.isEmpty).toBe(true);
   });
 
-  it("keeps an item that carries the meeting AND the line within it", () => {
+  it("keeps an item that carries the meeting, the line within it, AND the text at that line", () => {
     const intel = buildMeetingIntel([candidate({ kind: "action-items", owner: "Rob", status: "open" })]);
     const b = block(intel, "action-items");
     expect(b.items).toHaveLength(1);
-    expect(b.items[0].provenance).toEqual({ meetingId: OMEGA, sourceRef: "block-412" });
+    // Q89 inc.22: the excerpt is now part of what "carries provenance" MEANS, so it is
+    // asserted here rather than allowed to be absent — an address with no text is a pointer.
+    expect(b.items[0].provenance).toEqual({
+      meetingId: OMEGA,
+      sourceRef: "block-412",
+      excerpt: "Rob agreed to send Scott the Phase 1 scope by Friday so legal can start on it",
+    });
     expect(b.items[0].owner).toBe("Rob");
     expect(b.isEmpty).toBe(false);
     expect(b.emptyReason).toBe("");

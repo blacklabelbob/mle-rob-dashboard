@@ -13,9 +13,11 @@
  *
  * THREE RULES, ENFORCED HERE IN CODE RATHER THAN ASKED FOR IN PROSE (CR-3):
  *
- * 1. NO PROVENANCE, NO RENDER. Every item carries the meeting it came from AND the line/block
- *    that produced it. An item that cannot be opened and checked is rejected, not shown. This
- *    is the whole Q84 discipline in one predicate: a field is a claim, never a finding.
+ * 1. NO PROVENANCE, NO RENDER. Every item carries the meeting it came from, the line/block that
+ *    produced it, AND the text at that line (Q89 inc.22 — previously only pain points owed the
+ *    text, which left three of the four blocks exempt from this module's own first rule). An
+ *    item that cannot be opened and checked is rejected, not shown. This is the whole Q84
+ *    discipline in one predicate: a field is a claim, never a finding.
  *
  * 2. PAIN POINTS ARE VERBATIM OR THEY ARE NOTHING. Rob's hard rule, and it is not a style
  *    note: the moment a pain is rewritten as "opportunity to streamline their workflow" it
@@ -74,7 +76,13 @@ export type Provenance = {
   meetingId: string;
   /** Block id, line number, or timestamp. The address WITHIN the meeting. */
   sourceRef: string;
-  /** The source text at that address. Required for pain points; it is what verbatim is checked against. */
+  /**
+   * The source text at that address. REQUIRED for all four kinds (Q89 inc.22): for pain points
+   * it is what verbatim is checked against, for the other three it is the line the claim stands
+   * on. Optional in the TYPE because this shape also describes an unvalidated candidate's
+   * provenance — `validate` is what makes it mandatory, and a rejected candidate must still be
+   * representable or it could not be reported by name.
+   */
   excerpt?: string;
   /** Deep link a human can click. Optional — its absence never fabricates one. */
   url?: string;
@@ -235,14 +243,46 @@ function validate(candidate: IntelCandidate): RejectedCandidate | IntelItem {
     };
   }
 
+  // Q89 inc.22 — punch #9. The excerpt is required for ALL FOUR kinds, not just pain points.
+  //
+  // Until now only a pain point had to carry the line it stands on, because only a pain point
+  // is checked word-for-word. But `sourceRef` alone is an ADDRESS, not evidence: "block-412"
+  // tells a reader where to go, and tells them nothing at all if that block is gone, renamed,
+  // or was never what the writer thought it was. A talking point or a benefit with no excerpt
+  // is therefore a claim standing on a pointer — and rule 1 of this module is that an item
+  // which cannot be opened and CHECKED is rejected, not shown. Three of the four blocks were
+  // exempt from the module's own first rule.
+  //
+  // The excerpt requirement and the verbatim requirement are deliberately still separate, and
+  // conflating them would be a real mistake: a talking point SHOULD be our wording (it is what
+  // we plan to say next time), a benefit is by definition our commercial read, and an action
+  // item is a commitment written as an instruction. Forcing those to occur verbatim in the
+  // transcript would either delete them all or push writers to paste a sentence that never
+  // supported the point. So: every kind must name the line it stands on; only pain points must
+  // BE that line.
+  //
+  // Measured before shipping rather than hoped: all 73 published items across the four meetings
+  // already carry an excerpt, so this rejects nothing today. It closes the door ahead of the
+  // next writer, which is the only time a gate is cheap to close.
+  //
+  // `.trim()` and not truthiness, and that is not pedantry — it is a hole this increment's own
+  // test found. `"   "` is a truthy string, so the old check waved it through: on a pain point
+  // it then failed the verbatim test and got reported as a PARAPHRASE (blaming the writer's
+  // wording for missing evidence), and on the other three kinds it would have been KEPT — a
+  // rendered claim whose source line is three spaces. Empty is absence wearing a costume, and
+  // `intelSource.str()` already refuses it one layer up; the gate must not depend on that.
+  if (!p.excerpt?.trim()) {
+    return {
+      candidate,
+      reason: "no-excerpt-to-check",
+      message:
+        candidate.kind === "pain-points"
+          ? `Pain point at ${p.meetingId}#${p.sourceRef} carries no source excerpt, so "verbatim" cannot be checked. Unchecked is not shown.`
+          : `${BLOCK_TITLES[candidate.kind]} item at ${p.meetingId}#${p.sourceRef} carries no source excerpt, so the line it stands on cannot be read. An address is not evidence.`,
+    };
+  }
+
   if (candidate.kind === "pain-points") {
-    if (!p.excerpt) {
-      return {
-        candidate,
-        reason: "no-excerpt-to-check",
-        message: `Pain point at ${p.meetingId}#${p.sourceRef} carries no source excerpt, so "verbatim" cannot be checked. Unchecked is not shown.`,
-      };
-    }
     if (!isVerbatim(text, p.excerpt)) {
       return {
         candidate,
