@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { groupIntelItems, type IntelGroup } from "@/lib/meetings/grouping";
 import {
   BLOCK_TITLES,
   contextExcerpt,
@@ -62,6 +63,51 @@ function ItemRow({ item, ranked }: { item: IntelItem; ranked: boolean }) {
   );
 }
 
+function ItemList({ items, ranked }: { items: IntelItem[]; ranked: boolean }) {
+  return (
+    <ul className="space-y-3">
+      {items.map((item, i) => (
+        <ItemRow
+          key={`${item.provenance.meetingId}-${item.provenance.sourceRef}-${i}`}
+          item={item}
+          ranked={ranked}
+        />
+      ))}
+    </ul>
+  );
+}
+
+// Q89 inc.23 — critic-rob punch #7: the Overview was one 22-row wall of every action item
+// in the CRM, ungrouped and uncapped. Grouped by company here, capped by `grouping.ts`.
+//
+// The overflow is a native <details>, not a state toggle: this is a server component on a
+// page with no client JS, and a disclosure that works with JS off is the honest version of
+// "show all N" anyway. The count in the summary is the TOTAL, never the hidden count —
+// a reader must be able to see how much there is without opening it.
+function ItemGroup({ group, ranked }: { group: IntelGroup; ranked: boolean }) {
+  return (
+    <div>
+      {group.context && (
+        <h4 className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+          {group.context}
+          <span className="ml-1.5 font-normal tabular-nums text-slate-600">{group.total}</span>
+        </h4>
+      )}
+      <ItemList items={group.shown} ranked={ranked} />
+      {group.hidden.length > 0 && (
+        <details className="mt-2">
+          <summary className="cursor-pointer list-none text-[11px] text-slate-400 underline decoration-white/20 hover:text-slate-200">
+            Show all {group.total} — {group.hidden.length} more
+          </summary>
+          <div className="mt-3">
+            <ItemList items={group.hidden} ranked={ranked} />
+          </div>
+        </details>
+      )}
+    </div>
+  );
+}
+
 function Block({ block }: { block: IntelBlock }) {
   return (
     <div className="rounded-lg border border-white/10 bg-black/20 p-4">
@@ -78,15 +124,11 @@ function Block({ block }: { block: IntelBlock }) {
       {block.isEmpty ? (
         <p className="mt-2 text-[12px] leading-relaxed text-slate-500">{block.emptyReason}</p>
       ) : (
-        <ul className="mt-3 space-y-3">
-          {block.items.map((item, i) => (
-            <ItemRow
-              key={`${item.provenance.meetingId}-${item.provenance.sourceRef}-${i}`}
-              item={item}
-              ranked={block.ordering === "ranked"}
-            />
+        <div className="mt-3 space-y-4">
+          {groupIntelItems(block.items).map((group) => (
+            <ItemGroup key={group.context ?? "__none"} group={group} ranked={block.ordering === "ranked"} />
           ))}
-        </ul>
+        </div>
       )}
 
       {/* A rejection under a block that still has items would otherwise vanish. */}
