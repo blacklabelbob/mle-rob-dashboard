@@ -175,6 +175,32 @@ export default async function CompanyPage({
         <div className="space-y-6 lg:col-span-2">
           <ThingsToAddress mode="entity" person={company.id} />
 
+          {/* Q89 inc.20 — punch #5. "brought front and center when you look up the
+              associated Companies" (Rob, 2026-08-05). This is the FIRST content panel
+              on the record, not the fifth: it used to sit ~33% down, below Deals, the
+              ROI estimator and the Phase Blueprint, which is below the fold on the
+              laptop Rob actually opens these on. The one thing above it is
+              `ThingsToAddress`, and that is deliberate — it renders nothing at all
+              unless this record has an OPEN flag, so it never pushes the intel down
+              on a clean record, and on a dirty one an unresolved conflict genuinely
+              does outrank what the last call taught us. */}
+          {meetingsUnavailable ? (
+            <section className="rounded-xl border border-amber-400/30 bg-amber-400/5 p-5 text-xs text-amber-200">
+              What the meetings taught us could not be read just now. This is our outage,
+              not a statement about this company — do not read it as &ldquo;nothing was
+              said&rdquo;.
+            </section>
+          ) : (
+            <MeetingIntelSection intel={meetingIntel} meetingCount={meetingIntelSource.meetingCount} />
+          )}
+          {meetingIntelSource.unusable.length > 0 && (
+            <p className="-mt-3 text-[11px] text-amber-400/80">
+              {meetingIntelSource.unusable.length} captured item
+              {meetingIntelSource.unusable.length === 1 ? "" : "s"} could not be filed under any
+              block and {meetingIntelSource.unusable.length === 1 ? "is" : "are"} not shown above.
+            </p>
+          )}
+
           {/* Q41 inc.5: a spinoff resolves to EITHER anchor, so the split renders on
               both record shells or it renders on whichever one Rob didn't open. Same
               `recordEquityView` as the master panel — never a second reading. */}
@@ -315,27 +341,6 @@ export default async function CompanyPage({
             </p>
           )}
           <PhaseBlueprint blueprint={blueprint} customerId={company.id} />
-
-          {/* Q89 — "all of this stuff brought front and center when you look up the
-              associated Companies" (Rob, 2026-08-05). It sits ABOVE the timeline
-              deliberately: the timeline says a call happened, this says what the call
-              taught us, and the second is the thing Rob opens the record for. */}
-          {meetingsUnavailable ? (
-            <section className="rounded-xl border border-amber-400/30 bg-amber-400/5 p-5 text-xs text-amber-200">
-              What the meetings taught us could not be read just now. This is our outage,
-              not a statement about this company — do not read it as &ldquo;nothing was
-              said&rdquo;.
-            </section>
-          ) : (
-            <MeetingIntelSection intel={meetingIntel} meetingCount={meetingIntelSource.meetingCount} />
-          )}
-          {meetingIntelSource.unusable.length > 0 && (
-            <p className="-mt-3 text-[11px] text-amber-400/80">
-              {meetingIntelSource.unusable.length} captured item
-              {meetingIntelSource.unusable.length === 1 ? "" : "s"} could not be filed under any
-              block and {meetingIntelSource.unusable.length === 1 ? "is" : "are"} not shown above.
-            </p>
-          )}
 
           {/* §3.4 — the record spine. Company rows anchor activities the same way
               a person row does (≤1-of-person/org), so this is the same feed the
