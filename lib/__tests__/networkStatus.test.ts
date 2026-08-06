@@ -189,7 +189,6 @@ describe("driftReport", () => {
 // committed file — Q71 makes that file deliberately synthetic so the bundle carries no
 // customer PII. It is a limit to state in a test so no surface treats it as truth.
 describe("the committed file book is synthetic and membership-blind", () => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const committed = require("../../data/network.json") as {
     __synthetic?: boolean;
     people: Person[];
