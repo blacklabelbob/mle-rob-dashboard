@@ -201,3 +201,117 @@ describe("checkBodyCoherence — the verdicts that are not mismatch", () => {
     });
   });
 });
+
+/**
+ * Q89 inc.25 — the internal ruling used to be granted without the body being read.
+ *
+ * Driven from a real row, and the citation was corrected in inc.26 after the original
+ * one failed verification: the source is
+ * `MLE Internal Meetings/transcripts/01KZ4ZNFE9ZKDJ6T9H4508PC9E.json` — `snf-vmxj-dpo`,
+ * 2026-08-03T23:34Z (19:34 EDT), 446 sentences, 23,883 chars of body. Its manifest row
+ * asserts no company, so `asserted` is legitimately empty — and on the old path that
+ * alone was enough for a ruling of "internal" to return `found: []` after inspecting
+ * zero characters.
+ *
+ * Every line below is `raw_text` copied out of that file, speaker attribution intact.
+ * Counts in the body as it actually reads: Omega 2, "Gulf coast" 1, "Martin Fiero" 3.
+ * Those figures are not taken on trust — inc.26 quoted three that were wrong. They are
+ * computed from the file itself in `citedEvidenceExists.test.ts`, which also asserts
+ * that each quoted line below appears verbatim in it.
+ */
+const PRECALL_BODY = [
+  "Robert Acheson: So, you know, we got this real estate agency, Gulf coast, and I knew the owner was part owner in one of the Omega title locations.",
+  "Robert Acheson: And so we got a meeting with the Omega title location and we thought it was just going to be the regional VP who came down, but actually the big boss came down too.",
+  "Austin Wilkins: He has Martin Fiero in Naples.",
+  "Austin Wilkins: For Martin Fiero.",
+].join("\n");
+
+const PRECALL_RULING = {
+  examined: true as const,
+  counterparty: "none" as const,
+  reason:
+    "Rob's pre-call with a remote collaborator ahead of a client meeting; no counterparty attended",
+  sourceRef: "body ¶«This is a pre-call between Rob (Robert Acheson) and a remote collaborator»",
+};
+
+describe("checkBodyCoherence — an internal ruling may not be silent about the body (Q89 inc.25)", () => {
+  it("names the known orgs the body mentions, and returns them as found evidence", () => {
+    const result = checkBodyCoherence({
+      asserted: [],
+      body: PRECALL_BODY,
+      counterpartyReview: PRECALL_RULING,
+      knownOrgNames: ["Omega", "Gulf Coast", "BBX Moving Company"],
+    });
+
+    // The human ruling still stands — this module never infers a counterparty (rule 1).
+    expect(result.verdict).toBe("internal-no-counterparty");
+    expect(result.safeToPublish).toBe(false);
+
+    // …but it can no longer be silent. The two orgs actually present come back — case
+    // and all: "Gulf coast" as spoken matches "Gulf Coast" as filed. The org that is
+    // absent does not come back, so the assertion is not vacuous.
+    expect(result.found.map((f) => f.term).sort()).toEqual(["Gulf Coast", "Omega"]);
+    expect(result.reason).toContain("2 org(s) this CRM already holds");
+    expect(result.reason).toContain("Gulf Coast");
+    // The ruling's own words survive alongside the evidence against it.
+    expect(result.reason).toContain("no counterparty attended");
+  });
+
+  /**
+   * The honest limit of this check, on the very row that motivated it. The CRM files
+   * the restaurant as "Martin Fierro Restaurant"; the transcript writes it "Martin Fiero"
+   * — 3 times, and "Martin Fierro" never. Those two counts are not prose: they are
+   * computed from the file in `citedEvidenceExists.test.ts` (inc.27), because the first
+   * two attempts at this comment both quoted numbers that did not hold. An exact-token
+   * match therefore does NOT surface it — a third org is in this body and this evidence
+   * line will not name it.
+   *
+   * That is deliberate and it is not a bug to paper over here: `bodyContains` is the
+   * same predicate that decides whether an ASSERTED counterparty is corroborated, and
+   * loosening it to fuzzy matching would make a mismatched row pass. The near-miss
+   * belongs to name resolution, not to this module. Pinned as a test so the gap is a
+   * known, named limit rather than a silent one.
+   */
+  it("does NOT fuzzy-match a near-miss spelling — 'Martin Fiero' in the body is not 'Martin Fierro' in the CRM", () => {
+    const result = checkBodyCoherence({
+      asserted: [],
+      body: PRECALL_BODY,
+      counterpartyReview: PRECALL_RULING,
+      knownOrgNames: ["Martin Fierro Restaurant", "Martin Fierro"],
+    });
+    expect(result.found).toEqual([]);
+    expect(result.reason).not.toContain("this CRM already holds");
+  });
+
+  it("stays silent when no known org appears in the body — no manufactured evidence", () => {
+    const result = checkBodyCoherence({
+      asserted: [],
+      body: "a stand-up about our own sprint board, naming nobody outside the team",
+      counterpartyReview: PRECALL_RULING,
+      knownOrgNames: ["Martin Fierro", "Omega", "Gulf Coast"],
+    });
+    expect(result.verdict).toBe("internal-no-counterparty");
+    expect(result.found).toEqual([]);
+    expect(result.reason).not.toContain("this CRM already holds");
+  });
+
+  it("is unchanged when the caller supplies no org list (back-compatible)", () => {
+    const result = checkBodyCoherence({
+      asserted: [],
+      body: PRECALL_BODY,
+      counterpartyReview: PRECALL_RULING,
+    });
+    expect(result.verdict).toBe("internal-no-counterparty");
+    expect(result.found).toEqual([]);
+  });
+
+  it("matches a short single-token org on a word boundary, not inside another word", () => {
+    const result = checkBodyCoherence({
+      asserted: [],
+      body: "we discussed the omegaverse plugin and nothing else",
+      counterpartyReview: PRECALL_RULING,
+      knownOrgNames: ["Omega"],
+    });
+    expect(result.found).toEqual([]);
+  });
+});

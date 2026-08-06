@@ -156,6 +156,12 @@ export function checkBodyCoherence(input: {
    * because the body is the harder evidence.
    */
   counterpartyReview?: CounterpartyReview;
+  /**
+   * Q89 inc.25 — org names the CRM already holds, supplied by the caller (never read
+   * here; this module has no store). Used ONLY to put evidence beside an internal
+   * ruling. See `knownOrgNames` note on the internal branch below.
+   */
+  knownOrgNames?: string[];
 }): BodyCoherenceResult {
   const asserted = input.asserted.filter((a) => normalize(a.term).length > 0);
   const body = input.body ?? "";
@@ -163,15 +169,56 @@ export function checkBodyCoherence(input: {
 
   if (asserted.length === 0) {
     if (review.examined) {
+      /**
+       * Q89 inc.25 — the internal ruling used to be accepted WITHOUT THE BODY BEING READ
+       * AT ALL, and that is how a real counterparty meeting disappears.
+       *
+       * Evidence — every figure below is computed from the file by
+       * `__tests__/citedEvidenceExists.test.ts`, not asserted here (inc.26 cited a path
+       * that was never written, and inc.26's own replacement then quoted three counts
+       * that did not hold; both are on the incident ledger):
+       * `MLE Internal Meetings/transcripts/01KZ4ZNFE9ZKDJ6T9H4508PC9E.json`
+       * (`snf-vmxj-dpo`, 2026-08-03T23:34Z = 19:34 EDT, 446 sentences, 23,883 chars).
+       * Its manifest row asserts no company at all — which is exactly why `asserted` is
+       * empty: the properties assert nothing, so there was nothing to check. On the old
+       * path a ruling of "internal" then returned immediately, `found: []`, having looked
+       * at zero characters. That body names **Omega twice and Gulf coast once** — two
+       * orgs already in this CRM — plus a third the matcher deliberately does not catch
+       * (see the spelling note in the test file).
+       *
+       * The ruling here happens to be right (it is Rob's pre-call with a collaborator; the
+       * orgs are the SUBJECT, not the other side of the table). But it was right by luck,
+       * not by check: the identical code path would have swallowed a genuine customer call
+       * whose properties were blank, which is the archive's normal state and the whole
+       * premise of Q84.
+       *
+       * So: the ruling still STANDS — a human ruled, and rule 1 says this module never
+       * infers a counterparty. It simply may no longer be silent. Any known org name
+       * present in the body comes back in `found` and is named in `reason`, so the ruling
+       * is printed next to the evidence that argues against it and a reviewer sees both.
+       * `safeToPublish` is unchanged and still false; nothing here publishes anything.
+       */
+      const namesInBody = (input.knownOrgNames ?? [])
+        .filter((name) => normalize(name).length > 0)
+        .filter((name) => bodyContains(body, name))
+        .map<AssertedIdentity>((name) => ({ term: name, sourceRef: "body" }));
+
+      const evidence = namesInBody.length
+        ? ` The body nevertheless names ${namesInBody.length} org(s) this CRM already holds — ` +
+          `${namesInBody.map((n) => n.term).join(", ")} — so read the ruling against that: ` +
+          "they are the subject of an internal conversation, or this row is not internal."
+        : "";
+
       return {
         verdict: "internal-no-counterparty",
-        found: [],
+        found: namesInBody,
         missing: [],
         reason:
           "A human read this row and ruled it has no counterparty: " +
           `${review.reason} (${review.sourceRef}). ` +
           "It is an internal meeting, so it is not owed another read and it may not be " +
-          "published onto a company record — there is no company it belongs to.",
+          "published onto a company record — there is no company it belongs to." +
+          evidence,
         safeToPublish: false,
       };
     }
