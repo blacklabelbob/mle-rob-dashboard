@@ -22,6 +22,8 @@ import { splitNotes } from "@/lib/notes";
 import { typeLabel, STAGE_LABELS } from "@/lib/labels";
 import MeetingIntelSection from "@/components/meetings/MeetingIntelSection";
 import { intelSourceFromActivities } from "@/lib/meetings/intelSource";
+import { meetingCoverage, noMeetingNote } from "@/lib/meetings/coverage";
+import { isCompany } from "@/lib/companies";
 import { buildMeetingIntel, type IntelCandidate } from "@/lib/meetings/meetingIntel";
 
 export const dynamic = "force-dynamic";
@@ -100,10 +102,22 @@ export default async function CompanyPage({
   // outage must not 500 the whole record; `meetingsUnavailable` is carried so the
   // section can say "we could not read your calls" instead of the far worse
   // "nothing was said on them", which is a claim we would have no basis for.
+  //
+  // Q89 inc.21 (punch #6): the network-wide read is taken in the SAME guarded block, so
+  // a record with no captured call can say how many the CRM has at all. It is a second
+  // read rather than a filter of the first because the filtered read is this company's
+  // and must stay that way — the coverage line is about the whole ledger. Same outage
+  // rule: if either read throws, we say we could not read, never "nothing was said".
   let meetingIntelSource = { candidates: [] as IntelCandidate[], meetingCount: 0, unusable: [] as { activityId: string; reason: string }[] };
+  let coverage = { meetings: 0, companiesWithMeetings: 0, totalCompanies: 0 };
   let meetingsUnavailable = false;
   try {
-    meetingIntelSource = intelSourceFromActivities(await store.listActivities({ orgId: company.id }));
+    const [mine, all] = await Promise.all([
+      store.listActivities({ orgId: company.id }),
+      store.listActivities(),
+    ]);
+    meetingIntelSource = intelSourceFromActivities(mine);
+    coverage = meetingCoverage(all, data.people.filter(isCompany).length);
   } catch {
     meetingsUnavailable = true;
   }
@@ -191,7 +205,11 @@ export default async function CompanyPage({
               said&rdquo;.
             </section>
           ) : (
-            <MeetingIntelSection intel={meetingIntel} meetingCount={meetingIntelSource.meetingCount} />
+            <MeetingIntelSection
+              intel={meetingIntel}
+              meetingCount={meetingIntelSource.meetingCount}
+              noMeetingNote={noMeetingNote(coverage)}
+            />
           )}
           {meetingIntelSource.unusable.length > 0 && (
             <p className="-mt-3 text-[11px] text-amber-400/80">

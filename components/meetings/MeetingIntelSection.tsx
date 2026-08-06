@@ -108,16 +108,31 @@ export default function MeetingIntelSection({
   // labels supplied by the caller; this component still computes nothing.
   title = "What the meetings taught us",
   countLabel,
+  // Q89 inc.21 — critic-rob punch #6. The one line a record with no captured meeting
+  // prints instead of nothing at all. Built by `lib/meetings/coverage.ts` so both
+  // surfaces quote the same numbers; this component still computes nothing.
+  noMeetingNote,
 }: {
   intel: MeetingIntel;
   meetingCount: number;
   title?: string;
   countLabel?: string;
+  noMeetingNote?: string;
 }) {
-  // No meetings and nothing rejected: there is no gap to report. Four empty boxes on a
-  // company we have never spoken to would make "no calls yet" and "call went uncaptured"
-  // look identical on every record — the exact confusion this section exists to end.
-  if (meetingCount === 0 && intel.isEmpty && intel.rejected.length === 0) return null;
+  // No meetings and nothing rejected. Four empty boxes here would make "no calls yet" and
+  // "call went uncaptured" look identical on every record — the exact confusion this
+  // section exists to end — so the answer is ONE line, not four blocks. Rendering nothing
+  // was worse than either: ~28 of ~31 companies showed a blank space, and a blank space
+  // reads as "nothing worth saying was said here", which is a claim about the customer.
+  // What is actually true is a fact about us: we have not captured a call on this record.
+  if (meetingCount === 0 && intel.isEmpty && intel.rejected.length === 0) {
+    if (!noMeetingNote) return null;
+    return (
+      <p className="rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-[12px] leading-relaxed text-slate-400">
+        {noMeetingNote}
+      </p>
+    );
+  }
 
   return (
     <section className="rounded-xl border border-white/10 bg-white/5 p-5">

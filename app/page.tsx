@@ -7,6 +7,8 @@ import NeedsActionPanel from "@/components/NeedsActionPanel";
 import EquitySplits from "@/components/EquitySplits";
 import MeetingIntelSection from "@/components/meetings/MeetingIntelSection";
 import { networkIntelFromActivities } from "@/lib/meetings/networkIntel";
+import { coverageCountLabel } from "@/lib/meetings/coverage";
+import { isCompany } from "@/lib/companies";
 import { buildMeetingIntel } from "@/lib/meetings/meetingIntel";
 import { dealCandidate } from "@/lib/equity";
 import { computeStats, contribution, isDemo, money } from "@/lib/stats";
@@ -165,13 +167,17 @@ export default async function Overview() {
             intel={networkIntel}
             meetingCount={networkSource.meetingCount}
             title="What the meetings taught us — across the network"
-            countLabel={`${networkSource.meetingCount} meeting${
-              networkSource.meetingCount === 1 ? "" : "s"
-            } · ${networkSource.companyCount} compan${networkSource.companyCount === 1 ? "y" : "ies"}${
-              networkSource.unattributedMeetings > 0
-                ? ` · ${networkSource.unattributedMeetings} unattached`
-                : ""
-            }`}
+            // Q89 inc.21 — punch #6. The denominator is the point: "3 companies" reads
+            // like coverage, "3 of 31 companies" reads like the gap it actually is, and
+            // that gap is the single most important fact about this feature today.
+            countLabel={coverageCountLabel(
+              {
+                meetings: networkSource.meetingCount,
+                companiesWithMeetings: networkSource.companyCount,
+                totalCompanies: data.people.filter(isCompany).length,
+              },
+              networkSource.unattributedMeetings
+            )}
           />
         )}
 
