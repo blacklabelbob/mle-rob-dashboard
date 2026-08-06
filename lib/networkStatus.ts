@@ -137,10 +137,44 @@ export function statusDrift(record: StatusFacts, members: readonly StatusFacts[]
   };
 }
 
-/** Convenience for a whole book of records; org members are looked up by `orgId`. */
-export function driftReport(
-  records: readonly Person[],
-): Array<{ id: string; name: string; drift: StatusDrift }> {
+export interface DriftReport {
+  items: Array<{ id: string; name: string; drift: StatusDrift }>;
+  /**
+   * Does this book record membership AT ALL? False when not one row carries `orgId`.
+   *
+   * Q91(c). This is not a statistic, it is the precondition for the org rung. The
+   * committed `data/network.json` is synthetic scaffolding (`__synthetic: true`) and
+   * carries **zero** `orgId` links — so under `STORAGE_SOURCE=file` with no local
+   * overlay, `byOrg` is empty for every org in the book and the member lookup returns
+   * `[]` for all of them. That is indistinguishable, inside `justifiedStatus`, from an
+   * org whose people are genuinely all cold. The ladder would then report `unlit`,
+   * reason "no meeting, quote, signature or payment on the record", about a company
+   * that was met — which is the exact Omega sentence Rob already had to ask about.
+   * A badge cannot be allowed to print that as a finding, so the book states what it
+   * cannot answer instead of the module guessing.
+   */
+  membershipKnown: boolean;
+  /**
+   * Org rows whose drift was WITHHELD because this book cannot answer the org rung.
+   *
+   * Only overstated org drift is withheld, and only when `membershipKnown` is false.
+   * Understated drift survives — it is proven by fields on the record itself (a quote,
+   * a signature, a payment) and members have no bearing on it. Overstated is the one
+   * direction the missing membership can manufacture: stored `warm`, no member list to
+   * justify it, so the ladder falls through to `unlit` and the record looks wrong when
+   * the BOOK is what is incomplete. Withheld, named, and counted — never silently
+   * dropped, because a suppressed row that nobody can enumerate is its own defect.
+   */
+  withheldForMissingMembership: string[];
+}
+
+/**
+ * Convenience for a whole book of records; org members are looked up by `orgId`.
+ *
+ * Returns the book's own state alongside the rows, rather than a bare array, because
+ * the caller cannot otherwise tell a confident `unlit` from an unanswerable one.
+ */
+export function driftReport(records: readonly Person[]): DriftReport {
   const byOrg = new Map<string, Person[]>();
   for (const p of records) {
     if (!p.orgId) continue;
@@ -148,10 +182,19 @@ export function driftReport(
     if (list) list.push(p);
     else byOrg.set(p.orgId, [p]);
   }
-  const out: Array<{ id: string; name: string; drift: StatusDrift }> = [];
+  const membershipKnown = byOrg.size > 0;
+
+  const items: DriftReport["items"] = [];
+  const withheldForMissingMembership: string[] = [];
   for (const r of records) {
     const drift = statusDrift(r, byOrg.get(r.id) ?? []);
-    if (drift) out.push({ id: r.id, name: r.name, drift });
+    if (!drift) continue;
+    const isOrg = r.entityKind === "company";
+    if (!membershipKnown && isOrg && drift.kind === "overstated") {
+      withheldForMissingMembership.push(r.id);
+      continue;
+    }
+    items.push({ id: r.id, name: r.name, drift });
   }
-  return out;
+  return { items, membershipKnown, withheldForMissingMembership };
 }

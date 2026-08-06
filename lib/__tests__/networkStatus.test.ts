@@ -133,12 +133,84 @@ describe("driftReport", () => {
       p({ id: "C-2018", name: "Gulf Coast RE Group", status: "lit", signed: true, keyDates: { paid: "2026-07-18" } }),
     ];
     const report = driftReport(rows);
-    expect(report.map((r) => r.id)).toEqual(["C-2019"]);
-    expect(report[0].drift.justified).toBe("warm");
-    expect(report[0].drift.assertable).toBe(true);
+    expect(report.items.map((r) => r.id)).toEqual(["C-2019"]);
+    expect(report.items[0].drift.justified).toBe("warm");
+    expect(report.items[0].drift.assertable).toBe(true);
+    expect(report.membershipKnown).toBe(true);
+    expect(report.withheldForMissingMembership).toEqual([]);
   });
 
   it("a book where every status matches its facts reports nothing", () => {
-    expect(driftReport([p({ id: "C-1", status: "unlit" })])).toEqual([]);
+    expect(driftReport([p({ id: "C-1", status: "unlit" })]).items).toEqual([]);
+  });
+
+  // Q91(c). The badge's precondition: a book that records no membership cannot be
+  // asked the org rung, and must say so rather than answer it.
+  describe("a book with no membership links at all", () => {
+    const membershipBlind = [
+      p({ id: "C-9", name: "Met Last Month Ltd", entityKind: "company", status: "warm" }),
+      p({ id: "C-8", name: "Quoted Ltd", entityKind: "company", status: "unlit", quotedAmount: 7000 }),
+      p({ id: "P-9", name: "A Person", entityKind: "person", status: "lit" }),
+    ];
+
+    it("declares that it cannot answer the org rung", () => {
+      expect(driftReport(membershipBlind).membershipKnown).toBe(false);
+    });
+
+    it("withholds overstated ORG drift, and names every row it withheld", () => {
+      const report = driftReport(membershipBlind);
+      // C-9 stores `warm` with no fact of its own; with members unknowable the ladder
+      // falls to `unlit`, which would print "no meeting, quote, signature or payment"
+      // about a company that may well have been met. Withheld, not asserted.
+      expect(report.withheldForMissingMembership).toEqual(["C-9"]);
+      expect(report.items.map((r) => r.id)).not.toContain("C-9");
+    });
+
+    it("still reports UNDERSTATED org drift — members have no bearing on it", () => {
+      const report = driftReport(membershipBlind);
+      const c8 = report.items.find((r) => r.id === "C-8")!;
+      expect(c8.drift.kind).toBe("understated");
+      expect(c8.drift.assertable).toBe(true);
+    });
+
+    it("does not withhold PERSON drift — the org rung was never theirs", () => {
+      const report = driftReport(membershipBlind);
+      expect(report.items.map((r) => r.id)).toContain("P-9");
+      expect(report.withheldForMissingMembership).not.toContain("P-9");
+    });
+  });
+});
+
+// Q91(c) — the split book, pinned against the real files rather than described.
+//
+// Rob asked why Omega Title reads unlit. Part of that answer is that the CRM has two
+// books that do not hold the same company under `C-2019`, and the badge would be built
+// on whichever one is loaded. This is NOT a bug to fix by copying real rows into the
+// committed file — Q71 makes that file deliberately synthetic so the bundle carries no
+// customer PII. It is a limit to state in a test so no surface treats it as truth.
+describe("the committed file book is synthetic and membership-blind", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const committed = require("../../data/network.json") as {
+    __synthetic?: boolean;
+    people: Person[];
+  };
+
+  it("is flagged synthetic", () => {
+    expect(committed.__synthetic).toBe(true);
+  });
+
+  it("holds a DIFFERENT company under C-2019 than the live book does", () => {
+    // Live Supabase C-2019 is Omega Title (FL). The committed book's C-2019 is an
+    // invented roofing company. Same id, different subject — so a badge computed from
+    // the committed book is not a weaker statement about Omega, it is a statement
+    // about someone else entirely.
+    const c2019 = committed.people.find((r) => r.id === "C-2019")!;
+    expect(c2019.name).toBe("Marlowe Roofing");
+    expect(c2019.name).not.toContain("Omega");
+  });
+
+  it("carries zero orgId links, so driftReport must refuse the org rung on it", () => {
+    expect(committed.people.filter((r) => r.orgId).length).toBe(0);
+    expect(driftReport(committed.people).membershipKnown).toBe(false);
   });
 });
