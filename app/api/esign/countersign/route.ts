@@ -20,6 +20,12 @@ import {
   esignSenderEnv,
   fullyExecutedEmail,
 } from "@/lib/esign/sender";
+import {
+  EXECUTED_COPY_KIND,
+  normalizeRecipients,
+  pendingExecutedCopies,
+  type DeliveryLedgerRow,
+} from "@/lib/esign/executedCopy";
 import { getStore } from "@/lib/storage";
 
 // Q47 countersign inc.2 — the executor over the pure planner (lib/esign/
@@ -67,6 +73,44 @@ export async function POST(req: NextRequest) {
     .limit(1)
     .maybeSingle();
   if (rErr) return NextResponse.json({ error: `request lookup: ${rErr.message}` }, { status: 500 });
+
+  // --- retry path (Q93 inc.1) -------------------------------------------
+  // The atomic claim below 409s every second POST, which is right for the
+  // signature and wrong for the mail: before this, one failed webhook call
+  // meant the counterparty was never told, with no way to try again. This
+  // reaches the ledger-deduped sender and nothing else — it re-mints the
+  // download link, touches no signature field, and re-dates nothing.
+  if (body.resendExecutedCopy === true) {
+    if (!doc.countersigned_at || !doc.countersigned_path) {
+      return NextResponse.json(
+        { error: "document is not countersigned yet — nothing to resend" },
+        { status: 409 }
+      );
+    }
+    const url = await signedUrlFor(
+      doc.countersigned_path,
+      7 * 24 * 3600,
+      downloadFilename(doc.title, "fully executed")
+    );
+    const retry = await deliverExecutedCopies({
+      requestId: reqRow?.id ?? "",
+      signerName: reqRow?.signer_name || reqRow?.sent_to || "there",
+      sentTo: reqRow?.sent_to ?? null,
+      documentTitle: doc.title,
+      downloadUrl: url,
+      countersignerName: doc.countersigner_name ?? name,
+      countersignerTitle: doc.countersigner_title ?? title,
+      executedAtIso: doc.countersigned_at,
+    });
+    return NextResponse.json({
+      ok: retry.failed.length === 0,
+      documentId: doc.id,
+      resend: true,
+      countersignedAt: doc.countersigned_at,
+      downloadUrl: url,
+      executedCopy: retry,
+    });
+  }
 
   let plan;
   try {
@@ -187,36 +231,19 @@ export async function POST(req: NextRequest) {
     downloadFilename(doc.title, "fully executed")
   );
 
-  // Completion notice to both sides. Same posture as the signed-copy send:
-  // a mailer failure is logged, never unwinds an executed agreement.
-  const env = esignSenderEnv();
-  if (esignSenderConfigured(env)) {
-    const mail = fullyExecutedEmail({
-      signerName: reqRow?.signer_name || reqRow?.sent_to || "there",
-      documentTitle: doc.title,
-      downloadUrl,
-      countersignerName: name,
-      countersignerTitle: title,
-      executedAtIso: plan.documentPatch.countersigned_at,
-    });
-    const recipients = [...new Set(
-      [reqRow?.sent_to, ROB_COPY_ADDRESS]
-        .filter(Boolean)
-        .map((a) => String(a).trim().toLowerCase())
-    )];
-    for (const to of recipients) {
-      const res = await deliverEsignEmail({ to, ...mail }, env);
-      if (res.sent && reqRow?.id) {
-        await insertEvent(
-          buildEvent(reqRow.id, "copy_delivered", new Date().toISOString(), {
-            meta: { to, kind: "fully_executed" },
-          })
-        ).catch(() => undefined);
-      } else if (!res.sent) {
-        console.error(`[esign] executed copy to ${to} not sent: ${res.reason}`);
-      }
-    }
-  }
+  // Completion notice to both sides. A mailer failure never unwinds an
+  // executed agreement — but it must not vanish either, so the outcome is
+  // returned to the caller and the ledger is what makes a retry safe.
+  const delivery = await deliverExecutedCopies({
+    requestId: reqRow?.id ?? "",
+    signerName: reqRow?.signer_name || reqRow?.sent_to || "there",
+    sentTo: reqRow?.sent_to ?? null,
+    documentTitle: doc.title,
+    downloadUrl,
+    countersignerName: name,
+    countersignerTitle: title,
+    executedAtIso: plan.documentPatch.countersigned_at,
+  });
 
   return NextResponse.json({
     ok: true,
@@ -225,5 +252,99 @@ export async function POST(req: NextRequest) {
     countersignedPath: outPath,
     sha256Countersigned,
     downloadUrl,
+    executedCopy: delivery,
   });
+}
+
+/**
+ * Q93 inc.1 — the executed-copy send, split out so the retry path can reach it.
+ * Reads the ledger first and mails only the addresses it does NOT receipt, so
+ * calling this twice mails the failures again and the successes never.
+ * Returns what happened; the caller surfaces it rather than swallowing it.
+ */
+async function deliverExecutedCopies(args: {
+  requestId: string;
+  signerName: string;
+  sentTo: string | null;
+  documentTitle: string;
+  downloadUrl: string;
+  countersignerName: string;
+  countersignerTitle: string;
+  executedAtIso: string;
+}): Promise<{
+  delivered: string[];
+  failed: { to: string; reason: string }[];
+  alreadyDelivered: string[];
+  senderConfigured: boolean;
+}> {
+  const env = esignSenderEnv();
+  const configured = esignSenderConfigured(env);
+  const recipients = normalizeRecipients([args.sentTo, ROB_COPY_ADDRESS]);
+  const empty = {
+    delivered: [] as string[],
+    failed: [] as { to: string; reason: string }[],
+    alreadyDelivered: [] as string[],
+    senderConfigured: configured,
+  };
+  if (!configured) {
+    console.error("[esign] executed copy not sent: sender webhook unconfigured");
+    return { ...empty, failed: recipients.map((to) => ({ to, reason: "sender not configured" })) };
+  }
+  if (!args.requestId) {
+    // No signer request means no ledger to receipt against; refuse to mail
+    // rather than send a copy nothing can prove was sent.
+    console.error("[esign] executed copy skipped: no signer request to ledger against");
+    return { ...empty, failed: recipients.map((to) => ({ to, reason: "no signer request" })) };
+  }
+
+  let priorEvents: DeliveryLedgerRow[] = [];
+  try {
+    const { data, error } = await esignDb()
+      .from("signature_events")
+      .select("type,meta")
+      .eq("request_id", args.requestId);
+    if (error) throw new Error(error.message);
+    priorEvents = (data ?? []) as DeliveryLedgerRow[];
+  } catch (err) {
+    // Unreadable ledger = unknown receipts. Mailing anyway risks a duplicate
+    // "fully executed" notice, which is worse than a late one; report instead.
+    console.error(`[esign] executed copy ledger read failed: ${(err as Error).message}`);
+    return { ...empty, failed: recipients.map((to) => ({ to, reason: "ledger unreadable" })) };
+  }
+
+  const pending = pendingExecutedCopies(recipients, priorEvents);
+  const alreadyDelivered = recipients.filter((to) => !pending.includes(to));
+  const mail = fullyExecutedEmail({
+    signerName: args.signerName,
+    documentTitle: args.documentTitle,
+    downloadUrl: args.downloadUrl,
+    countersignerName: args.countersignerName,
+    countersignerTitle: args.countersignerTitle,
+    executedAtIso: args.executedAtIso,
+  });
+
+  const delivered: string[] = [];
+  const failed: { to: string; reason: string }[] = [];
+  for (const to of pending) {
+    const res = await deliverEsignEmail({ to, ...mail }, env);
+    if (!res.sent) {
+      console.error(`[esign] executed copy to ${to} not sent: ${res.reason}`);
+      failed.push({ to, reason: res.reason });
+      continue;
+    }
+    try {
+      await insertEvent(
+        buildEvent(args.requestId, "copy_delivered", new Date().toISOString(), {
+          meta: { to, kind: EXECUTED_COPY_KIND },
+        })
+      );
+      delivered.push(to);
+    } catch (err) {
+      // Sent but unreceipted: say so. A retry would mail a duplicate, so this
+      // is deliberately NOT reported as delivered.
+      console.error(`[esign] executed copy receipt for ${to} failed: ${(err as Error).message}`);
+      failed.push({ to, reason: `sent but receipt not written: ${(err as Error).message}` });
+    }
+  }
+  return { delivered, failed, alreadyDelivered, senderConfigured: true };
 }

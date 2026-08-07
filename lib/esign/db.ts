@@ -23,6 +23,15 @@ export interface DocumentRow {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  // 0010 countersign leg — present in the table since the countersign
+  // migration; typed here (Q93 inc.1) so a reader of an executed document
+  // does not have to widen the type at every call site.
+  countersigned_at: string | null;
+  countersigner_name: string | null;
+  countersigner_title: string | null;
+  countersigner_email: string | null;
+  countersigned_path: string | null;
+  sha256_countersigned: string | null;
 }
 
 export interface RequestRow {
