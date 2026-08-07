@@ -183,20 +183,33 @@ describe("storage paths", () => {
 // Without this the browser names the saved file after the storage key
 // ("v1-signed.pdf"), which tells the recipient nothing.
 describe("download filename", () => {
-  it("names the saved file after the agreement, matching the email subject", () => {
+  // Rob, 2026-08-07, on the link in his inbox: "get rid of all the extra BS like
+  // the %58 and %5D". The name rides in a URL query parameter, so every
+  // non-ASCII character comes back as percent-encoded noise — an em dash as
+  // %E2%80%94, [DRY RUN 3] as %5BDRY+RUN+3%5D. ASCII only, by design.
+  it("names the saved file after the agreement, not the storage key", () => {
     expect(downloadFilename("Phase I Services Agreement — Omega Title Florida [DRY RUN]")).toBe(
-      "Phase I Services Agreement — Omega Title Florida [DRY RUN] (signed).pdf"
+      "Phase I Services Agreement - Omega Title Florida DRY RUN - signed.pdf"
     );
   });
 
-  it("keeps em dashes and smart punctuation — only illegal characters are replaced", () => {
-    expect(downloadFilename("A — B’s “deal”", "")).toBe("A — B’s “deal”.pdf");
-    expect(downloadFilename("Q3/Q4: plan?", "")).toBe("Q3-Q4- plan-.pdf");
+  it("flattens every character that would percent-encode in the link", () => {
+    const out = downloadFilename("A — B’s “deal” [v2] (final)", "");
+    expect(out).toBe("A - B's deal v2 final.pdf");
+    // The actual property that matters: nothing here can grow a % escape.
+    expect(encodeURIComponent(out)).not.toContain("%25");
+    expect(/^[\x20-\x7E]+$/.test(out)).toBe(true);
+  });
+
+  it("still replaces characters that are illegal in filenames", () => {
+    // The trailing "?" becomes a dash and is then trimmed — a filename should
+    // not end in punctuation that only ever came from an illegal character.
+    expect(downloadFilename("Q3/Q4: plan?", "")).toBe("Q3-Q4- plan.pdf");
   });
 
   it("labels the countersigned copy distinctly", () => {
     expect(downloadFilename("Agreement", "fully executed")).toBe(
-      "Agreement (fully executed).pdf"
+      "Agreement - fully executed.pdf"
     );
   });
 

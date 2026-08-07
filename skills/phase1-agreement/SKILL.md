@@ -58,3 +58,59 @@ MyLocalEverything (`DEFAULT_PROVIDER`); override only for a white-label send.
 - CRM route — `app/api/esign/generate/route.ts`
 - send / sign / countersign flow — `lib/esign/**`, `app/sign/**`, `app/api/esign/**`
 - build log + decisions — `docs/plans/ESIGN-BUILD-LOG.md`
+
+## Signatures land on the PAPER, not just the certificate (Rob, 2026-08-07)
+
+Rob rejected a signed agreement whose own `Signature: ____ / Date: ____` rules were
+blank: *"If the clients signed it that NEEDS to be present when I'm going to
+countersign it."* The audit certificate is the evidence; the filled line is what makes
+it read as executed. Both are required.
+
+**How placement works** — `lib/esign/pdfText.ts` (pdf.js text positions) →
+`lib/esign/signatureAnchors.ts` (pure locator) → `lib/esign/inkOnLine.ts` (drawer),
+called from `sign/route.ts` (CLIENT rule) and `countersign/route.ts` (PROVIDER rule).
+Ink is only ever placed at coordinates read off the page — never guessed.
+
+### THE COUPLING THAT BITES: heading wording ↔ the locator
+
+The locator finds the blocks by matching the `PROVIDER…` / `CLIENT…` headings.
+**Change that wording in the engine and signatures silently stop appearing** — the
+certificate still generates, the flow still returns 200, and nothing looks broken.
+This nearly shipped on 2026-08-07 when the block moved from `PROVIDER — Name` to
+`PROVIDER: Name`. If you touch the execution block in `agreementPdf.ts` or
+`phase1_engine.py`, update `isHeading()` in `signatureAnchors.ts` in the same change.
+
+### VERIFY IN PROD, NOT LOCALLY — the trap that cost two dry runs
+
+Placement passed every local test and did nothing on Vercel: pdf.js needs browser
+globals (`DOMMatrix`, `Path2D`, `ImageData`) its module body touches at import time,
+and the failure was swallowed by a bare `catch {}`. Fixes: `ensurePdfJsGlobals()`
+shims them, `serverExternalPackages: ["pdfjs-dist"]` keeps pdf.js out of the bundle,
+and failures are now logged instead of hidden.
+
+**Always confirm against production before telling Rob it works:**
+
+```
+GET /api/esign/documents?anchors=<documentId>
+→ { pagesExtracted, textItems, extractionError, anchors, verdict }
+```
+
+`verdict: "OK — both signature lines located"` is the only acceptable answer. Anything
+else means the signature will not appear. **A green local test is not evidence here.**
+
+### Standing rules from the same session
+
+- **Rob sees everything before the client does** — *"always send it to me FIRST not
+  the client."* Naming the client's address is not permission to send there first.
+- **Downloads are named after the document**, ASCII only. The name rides in a URL
+  parameter, so em dashes and brackets come back as `%E2%80%94` / `%5B` noise.
+  `downloadFilename()` in `lib/esign/storage.ts` — apply it to BOTH the emailed link
+  and the dashboard View button (the View path was missed the first time).
+- **Signing order is: counterparty signs, then MLE countersigns in the dashboard.**
+  Do not build emailed provider-signing. Rob, 2026-08-07: *"I dont know if I want the
+  reps siging off on their own agreements. I want them to be able to send them out."*
+  Countersigning being a CRM action is what stops a rep executing their own deal.
+- **Catch Rob's dictation slips** rather than shipping them (a missing comma in
+  "Greenwood Management, LLC" reached a client draft).
+- Deferred, with reasons: `contracts/docs/DEFERRED-2026-08-07.md` (Prepared-by line,
+  Google Drive copy, short `/d/<token>` links, "Complete" in the completion subject).

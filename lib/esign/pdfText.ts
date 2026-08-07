@@ -25,9 +25,58 @@ export function lastPdfTextError(): string | null {
   return lastExtractionError;
 }
 
+/**
+ * pdf.js v5 references browser globals while its module body evaluates, so the
+ * import itself throws "DOMMatrix is not defined" in a bare Node runtime — which
+ * is what Vercel gives us (measured 2026-08-07 via the ?anchors= diagnostic;
+ * local Node happened to get further, which is why this passed locally).
+ *
+ * Text extraction never rasterises anything, so these only have to EXIST and
+ * hold their values — no geometry is performed through them. Deliberately not
+ * pulling in `canvas`/`@napi-rs/canvas`: a native binary in the signing path to
+ * satisfy a constructor we never call is a bad trade.
+ */
+function ensurePdfJsGlobals(): void {
+  const g = globalThis as Record<string, unknown>;
+  if (typeof g.DOMMatrix === "undefined") {
+    g.DOMMatrix = class DOMMatrixShim {
+      a = 1; b = 0; c = 0; d = 1; e = 0; f = 0;
+      constructor(init?: number[] | string) {
+        if (Array.isArray(init) && init.length >= 6) {
+          [this.a, this.b, this.c, this.d, this.e, this.f] = init;
+        }
+      }
+    };
+  }
+  if (typeof g.Path2D === "undefined") {
+    g.Path2D = class Path2DShim {
+      addPath() {}
+      moveTo() {}
+      lineTo() {}
+      bezierCurveTo() {}
+      quadraticCurveTo() {}
+      closePath() {}
+      rect() {}
+    };
+  }
+  if (typeof g.ImageData === "undefined") {
+    g.ImageData = class ImageDataShim {
+      data: Uint8ClampedArray;
+      width: number;
+      height: number;
+      constructor(width: number, height: number) {
+        this.width = width;
+        this.height = height;
+        this.data = new Uint8ClampedArray(width * height * 4);
+      }
+    };
+  }
+}
+
 export async function extractPageText(pdf: Uint8Array): Promise<PageText[]> {
   lastExtractionError = null;
   try {
+    ensurePdfJsGlobals();
     const { getDocument } = await import("pdfjs-dist/legacy/build/pdf.mjs");
     // Copy: pdf.js transfers/detaches the buffer it is handed, and callers
     // reuse these bytes to hash and to stamp.

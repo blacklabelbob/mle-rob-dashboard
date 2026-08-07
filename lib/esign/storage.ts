@@ -86,10 +86,22 @@ export async function signedUrlFor(
  * only characters that are illegal in filenames are replaced.
  */
 export function downloadFilename(title: string, suffix = "signed"): string {
+  // Plain ASCII only. The filename rides in a URL query parameter, so anything
+  // outside it comes back as percent-encoded noise in the link and in the saved
+  // name: an em dash became %E2%80%94 and [DRY RUN 3] became %5BDRY+RUN+3%5D
+  // (Rob, 2026-08-07: "get rid of all the extra BS"). Dashes and brackets carry
+  // no meaning here, so they are normalised rather than escaped.
   const base = (title || "Agreement")
-    .replace(/[\\/:*?"<>|\n\r\t]/g, "-")
+    .replace(/[‒-―−]/g, "-") // – — ― figure/en/em dashes, minus
+    .replace(/[‘’‛]/g, "'")
+    .replace(/[“”]/g, "")
+    .replace(/[[\]{}()]/g, "") // brackets add nothing and encode badly
+    .replace(/[^\x20-\x7E]/g, "") // anything still non-ASCII
+    .replace(/[\\/:*?"<>|\n\r\t]/g, "-") // illegal in filenames
+    .replace(/\s*-\s*-+\s*/g, " - ")
     .replace(/\s+/g, " ")
-    .trim()
-    .slice(0, 120);
-  return `${base}${suffix ? ` (${suffix})` : ""}.pdf`;
+    .replace(/^[\s-]+|[\s-]+$/g, "")
+    .slice(0, 120)
+    .trim();
+  return `${base}${suffix ? ` - ${suffix}` : ""}.pdf`;
 }
