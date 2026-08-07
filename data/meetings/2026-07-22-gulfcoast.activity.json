@@ -38,7 +38,20 @@
     "a long transcript section concern an unresolved legal dispute with a named person, including",
     "statutory-damages estimates against her. Same ruling as inc.5's Scott allegation: an unresolved",
     "accusation against a named individual does not go on a company record Rob shows people. It goes",
-    "to the flag ledger for Rob to resolve, and only there. The other EIGHT action items are written."
+    "to the flag ledger for Rob to resolve, and only there. The other EIGHT action items are written.",
+    "",
+    "Q85 inc.26 — `attendeesOther` ADDED, and it is a RECOVERY, not new information. inc.25's",
+    "`audit:attendee-provenance` found this row `payload-dropped`: the Notion archive row has held",
+    "`Non MLE Attendees` all along and the payload above (hand-authored on 2026-08-05) never carried",
+    "it, so `audit:meeting-person` reported the row as storing no counterparty at all — a gap we",
+    "created and then blamed on a human. The cell was re-read from the live Notion page on",
+    "2026-08-07 (`GET /v1/pages/3a51de57…`, `last_edited_time` 2026-07-22T21:14:00Z) and holds the",
+    "literal string \"Alex Greenwood, Chris Acheson, Shasta\".",
+    "",
+    "ALL THREE NAMES ARE STORED, INCLUDING `Shasta`. The two-token identifying rule in",
+    "`archiveAttendees.ts` is a RESOLUTION rule — it decides who can be matched to a CRM record —",
+    "and applying it at STORAGE time would be this same defect a second time: dropping what the",
+    "source says because we cannot use it yet. The payload records the cell; the resolver decides."
   ],
   "activity": {
     "id": "A-MTG-2026-07-22-GULFCOAST",
@@ -62,6 +75,12 @@
         "Rob Acheson",
         "Will DeVito"
       ],
+      "attendeesOther": [
+        "Alex Greenwood",
+        "Chris Acheson",
+        "Shasta"
+      ],
+      "attendeesOtherReadOn": "2026-08-07",
       "fieldsThatClaimAbsence": [
         "Call Recording",
         "Meeting Summary",
