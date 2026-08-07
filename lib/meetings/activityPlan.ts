@@ -89,7 +89,17 @@
 // module's opinion as an unmarked fact. `no-date` stays exactly as it was for rows where no day
 // can be read — there the sentence is true.
 
+// Q85 inc.3 — `no-company` was telling eleven rows that only someone who was there could say
+// who the meeting was with, on rows whose own title states a host the CRM already holds.
+//
+// Same shape as inc.63, which killed the same false sentence about the DAY: a row was asked to
+// supply a fact it had already supplied. The near miss is built in `titleCompany.ts` and lands
+// here as `NearMiss.kind = "title-host"` — a QUESTION with a specific org attached, never a
+// match, because a title names the topic ("Cloudflare / SEO optimization") as readily as the
+// counterparty. See that module for the full reasoning; it is not repeated here.
+
 import { normalizeName } from "@/lib/dedup/match";
+import { titleHostHits } from "./titleCompany";
 import { effectiveDay, type ArchiveRowDetail } from "./unexplainedRows";
 
 /**
@@ -117,10 +127,15 @@ export type CrmPerson = { id: string; name: string; orgId?: string | null };
  *   - `person-not-company` — the value names a CRM person, not a company. Their org is the
  *                            likely answer, but the archive did not say so and this pass does
  *                            not decide it.
+ *   - `title-host`         — the "Company Meeting with" field does not resolve, but the row's
+ *                            own TITLE states a host a CRM org is registered at. The strongest
+ *                            near miss on this list and still not a match: a title names the
+ *                            topic as often as the counterparty (Q85 inc.3).
  */
 export type NearMiss =
   | { kind: "org-qualifier"; orgs: CrmOrg[] }
-  | { kind: "person-not-company"; people: CrmPerson[] };
+  | { kind: "person-not-company"; people: CrmPerson[] }
+  | { kind: "title-host"; hits: { host: string; orgs: CrmOrg[] }[] };
 
 /** A trailing parenthetical qualifier, removed. "Omega Title (FL)" → "Omega Title". */
 export function stripQualifier(name: string): string {
@@ -321,9 +336,43 @@ export function planMeetingActivities(
   const hostIndex = indexOrgsByHost(orgs);
   const strippedIndex = byStrippedName(orgs);
   const personIndex = byPersonName(people);
+  /**
+   * What the row's own title says, when the company field could not answer. Returns the near
+   * miss AND the sentence, together, so the two can never describe different orgs.
+   */
+  const fromTitle = (
+    row: ArchiveRowDetail
+  ): { nearMiss: NearMiss; nextStep: string } | undefined => {
+    const hits = titleHostHits(row.title, hostIndex);
+    if (!hits.length) return undefined;
+    const named = hits
+      .flatMap((h) => h.orgs.map((o) => `${o.name} [${o.id}] (${h.host})`))
+      .join(", ");
+    const single = hits.length === 1 && hits[0].orgs.length === 1;
+    return {
+      nearMiss: { kind: "title-host", hits },
+      nextStep:
+        `this row's own title states ${hits.length === 1 ? "a domain" : `${hits.length} domains`} the CRM already holds: ${named} — ` +
+        (single
+          ? "confirm that is who the meeting was WITH and put it in Notion's “Company Meeting with”, and this row attaches itself"
+          : "confirm which of these the meeting was with and put it in Notion's “Company Meeting with”") +
+        "; it is not attached here because a meeting title names what the call was ABOUT at " +
+        "least as often as who it was with",
+    };
+  };
+
   const rows: ActivityPlanRow[] = archiveOnly.map((row) => {
     const named = (row.company || "").trim();
     if (!named) {
+      const title = fromTitle(row);
+      if (title) {
+        return {
+          row,
+          disposition: "unknown-company",
+          nearMiss: title.nearMiss,
+          nextStep: `Notion's “Company Meeting with” is empty on this row, but ${title.nextStep}`,
+        };
+      }
       return {
         row,
         disposition: "no-company",
@@ -393,13 +442,20 @@ export function planMeetingActivities(
     // mistypes a host — and the fix is one field in the CRM, not a retype in Notion. Once
     // that host is on the org, this row attaches itself on the next run, permanently.
     if (namedHost) {
+      // The title is consulted BEFORE the "add it to the CRM" instruction is printed. On the
+      // live rows this is the difference between telling Rob to register `cgroofing.net` on
+      // some org and telling him his title already names `cgroofinggroup.com`, which is
+      // C-2017's registered host — one of those asks creates a second CG Roofing row.
+      const title = fromTitle(row);
       return {
         row,
         disposition: "unknown-company",
-        nextStep:
-          `the archive names this meeting by domain (${namedHost}) and no CRM org carries that host — ` +
-          "add it to the right org's Domain field in the CRM (a company can use more than one) " +
-          "and this row attaches itself; a look-alike host is never assumed to be the same company",
+        ...(title ? { nearMiss: title.nearMiss } : {}),
+        nextStep: title
+          ? `the archive names this meeting by domain (${namedHost}) and no CRM org carries that host — but ${title.nextStep}`
+          : `the archive names this meeting by domain (${namedHost}) and no CRM org carries that host — ` +
+            "add it to the right org's Domain field in the CRM (a company can use more than one) " +
+            "and this row attaches itself; a look-alike host is never assumed to be the same company",
       };
     }
     // Before telling anyone the company is missing, check what the CRM nearly has. Saying
@@ -432,6 +488,15 @@ export function planMeetingActivities(
           (withOrg.length
             ? ` — put that person's company in Notion's “Company Meeting with”; do NOT create a new org, ${withOrg.length === 1 ? "theirs" : "one of these"} already exists`
             : " — and that person has no company in the CRM yet, so the company is the missing record, not the meeting"),
+      };
+    }
+    const title = fromTitle(row);
+    if (title) {
+      return {
+        row,
+        disposition: "unknown-company",
+        nearMiss: title.nearMiss,
+        nextStep: `no CRM org is named “${named}”, but ${title.nextStep}`,
       };
     }
     return {
