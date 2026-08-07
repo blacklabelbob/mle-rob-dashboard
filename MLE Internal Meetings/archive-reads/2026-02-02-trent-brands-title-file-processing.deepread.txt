@@ -1,0 +1,78 @@
+==============================================================================
+TITLE (do not trust): Opportunity: Title File Processing
+URL: https://app.notion.com/p/Opportunity-Title-File-Processing-2fb1de57019980fd991bdbb5733c9437
+id : 2fb1de57-0199-80fd-991b-dbb5733c9437
+------------------------------------------------------------------------------
+PROPERTIES — in full; this is where the identity the title omits lives:
+  ∅ Google Doc Link [url]: None  ← claims absence
+  ∅ Show/No Show [multi_select]: None
+  · Next Steps/Action Items [rich_text]: Trent to Make Loom Videos
+  · Company URL [rich_text]: Child: Title Companies Parent: PROPLOGIX
+  ∅ Parent Account [multi_select]: None
+  · MLE [select]: YES
+  · Last Edited [last_edited_time]: 2026-07-22T12:03:00.000Z
+  ∅ Child Account [multi_select]: None
+  ∅ Other Combined/Possible referral [rich_text]: None
+  · Customer Pain Points [rich_text]: Time Spent 
+  ∅ Meeting Summary [rich_text]: None  ← claims absence
+  ∅ MLE Attendees [multi_select]: None
+  · Follow Up Date set [date]: 2026-02-11T12:00:00.000-05:00
+  ∅ Company Meeting with [rich_text]: None
+  ∅ Export Status [select]: None  ← claims absence
+  · Sales Rep [people]: ["Robert Acheson"]
+  ∅ Notion Meeting Page [url]: None
+  · Call Date [date]: 2026-02-02
+  ∅ Tags [multi_select]: None
+  ∅ Call Recording [url]: None  ← claims absence
+  · Contact Name [rich_text]: Trent Brands
+  ∅ Non MLE Attendees [rich_text]: None
+  ∅ TAM # [number]: None
+  · Created [created_time]: 2026-02-02T17:15:00.000Z
+  ∅ In Person/Virtual [multi_select]: None
+  · Urgent TO DO [rich_text]: Keep Cadence with Trent
+  · Meeting Type [multi_select]: ["Partner", "Product Research"]
+  ∅ Primary Target ICP [multi_select]: None
+  · Meeting Title [title]: Opportunity: Title File Processing
+------------------------------------------------------------------------------
+BODY: 34 blocks, 5461 chars — paragraph×19, heading_3×6, bulleted_list_item×6, to_do×2, transcription×1
+  ⚠ 4 field(s) imply 'no record'. CONTRADICTED — the body below HAS the content. Trust the body, not the field.
+      · Google Doc Link [url] = None
+      · Meeting Summary [rich_text] = None
+      · Export Status [select] = None
+      · Call Recording [url] = None
+------------------------------------------------------------------------------
+FULL BODY (summary + transcript) — read it, do not skim:
+[transcription] 
+  [paragraph] 
+    [heading_3] File Processing Components
+    [paragraph] The discussion covered the comprehensive process involved in handling real estate transaction files from start to finish. The speaker explained they previously created Loom videos for each task when training staff at States Title, which allowed for efficient training without constant supervision.
+    [heading_3] Main Process Stages
+    [paragraph] The file processing workflow consists of several key phases: 
+    [bulleted_list_item] Order Opening: Initial file setup with multiple required steps
+    [bulleted_list_item] File Processing: Reviewing title commitment, working through checklists, and identifying necessary items
+    [bulleted_list_item] Document Creation: Preparing required documentation for the transaction
+    [bulleted_list_item] Lender Processing: Coordinating documents with lenders and handling balance reconciliation
+    [bulleted_list_item] Pre-Closing: Sending settlement statements to agents, confirming commissions, and scheduling buyer and seller appointments
+    [bulleted_list_item] Funding and Recording: Distributing funds and submitting documents to the county
+    [paragraph] The speaker noted they have workflows documented for all these processes, though each stage contains numerous minor tasks. 
+    [heading_3] Training Documentation Plans
+    [paragraph] The speaker mentioned potentially creating new Loom videos next week to document each process, though availability this week is limited. 
+    [heading_3] Time Investment and Outsourcing Decision
+    [paragraph] The work requires hours of intensive effort for each file. The decision to outsource at $400-800 per file was driven by opportunity cost considerations, as the time investment was substantial. A key factor was the challenge of context switching between operational file work and sales calls, which made it difficult to maintain focus.
+    [heading_3] Universal Requirement
+    [paragraph] This processing is required for every home transaction, making it a consistent operational necessity.
+    [heading_3] Action Items
+    [to_do] Potentially create Loom videos for each process next week (if time permits)
+    [to_do] Keep in touch and continue discussion
+  [paragraph] 
+    [paragraph] 
+  [paragraph] 
+    [paragraph] Okay, so, and as it relates to the the file processing part of it. Would you mind just briefly describing What that means?
+    [paragraph] Yeah, so I mean, when it comes to all this processing stuff, so there's a lot of different, like, parts to it. So there's like, for example, I mean, I guess I could... I'm trying to think of, I really can't do it this week because cars aren't fit this week, so I really don't have that much time. But when I had a state's title, what I had done was I made all these loom videos of different tasks. So then when I was training people, I would just give them the loom video and be like, watch the video, then I don't have to stay here training you.
+    [paragraph] So if I have the time, maybe next week, I can start making loom videos of each of the processes going through them because basically you have like an order opening like opening the file up so there's like a bunch of things of opening it you have processing the file like once the title commitment comes in it's there's like a checklist and going through each one and finding the things you need to get and then also making the documents for it You could have linder processing, like they're gonna need documents to and balancing with the lenders, shit like that.
+    [paragraph] And then you're gonna have like, before the closing, so, Sending the settlement statement to agents, confirming commissions, scheduling the Buyer, seller, stuff like that. And then the funding and recording, which is like sending out the money and then sending the documents to the county. Ah. So that's basically like from start to finish, like a file, but obviously there's minor tasks and all those, but yeah, I've made videos for like every single one of the tasks through it, but that's just like kind of an overview.
+    [paragraph] And I even have like workflows for it. Yeah. Yeah. Yeah. There's so many different pieces.
+    [paragraph] But, Again, this is something that every home has to get Yeah. Right? And... You were saying that you were Initially off, well you initially had somebody in house doing it. or doing it yourself. and like I mean, if you had to put a rough number on how long that would take you, How long are we talking now? Because you had mentioned that You know, it was actually economical. from a opportunity cost perspective because it took so much time to pay between four and eight hundred dollars for someone else to do it per file.
+    [paragraph] Yeah. Yeah, so we're talking hours and hours and hours of work. Yeah, yeah, it's a lot. Okay.
+    [paragraph] Yeah. And honestly, the biggest thing with me is I know that Jumping in and out of like opening a file and trying to go into a sales call and like your head's just not in the game when you're doing shit like that. Yeah. So, um, that was the other thing of like, I'd rather just other people do it because otherwise I'm going to be all over the place. Yep.
+    [paragraph] Yeah. Alright, cool man. That makes sense. If that makes sense. Alright. Well, I appreciate it, man. Let's definitely keep in touch. and like we'll try to put some, I mean obviously I know you're running a business Here, but,
