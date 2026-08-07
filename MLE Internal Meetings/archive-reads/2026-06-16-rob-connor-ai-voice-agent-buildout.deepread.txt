@@ -1,0 +1,172 @@
+==============================================================================
+TITLE (do not trust): Meeting 2026-06-16T11:05:00.000-04:00
+URL: https://app.notion.com/p/Meeting-3811de57019980d4b8e5c0a7c8465085
+id : 3811de57-0199-80d4-b8e5-c0a7c8465085
+------------------------------------------------------------------------------
+PROPERTIES — in full; this is where the identity the title omits lives:
+  ∅ Google Doc Link [url]: None  ← claims absence
+  ∅ Show/No Show [multi_select]: None
+  ∅ Next Steps/Action Items [rich_text]: None
+  ∅ Company URL [rich_text]: None
+  ∅ Parent Account [multi_select]: None
+  ∅ MLE [select]: None
+  · Last Edited [last_edited_time]: 2026-07-22T12:22:00.000Z
+  ∅ Child Account [multi_select]: None
+  ∅ Other Combined/Possible referral [rich_text]: None
+  ∅ Customer Pain Points [rich_text]: None
+  ∅ Meeting Summary [rich_text]: None  ← claims absence
+  ∅ MLE Attendees [multi_select]: None
+  ∅ Follow Up Date set [date]: None
+  ∅ Company Meeting with [rich_text]: None
+  ∅ Export Status [select]: None  ← claims absence
+  ∅ Sales Rep [people]: None
+  ∅ Notion Meeting Page [url]: None
+  · Call Date [date]: 2026-06-16T15:05:00.000+00:00
+  ∅ Tags [multi_select]: None
+  ∅ Call Recording [url]: None  ← claims absence
+  ∅ Contact Name [rich_text]: None
+  ∅ Non MLE Attendees [rich_text]: None
+  ∅ TAM # [number]: None
+  · Created [created_time]: 2026-06-16T15:05:00.000Z
+  ∅ In Person/Virtual [multi_select]: None
+  ∅ Urgent TO DO [rich_text]: None
+  ∅ Meeting Type [multi_select]: None
+  ∅ Primary Target ICP [multi_select]: None
+  · Meeting Title [title]: Meeting 2026-06-16T11:05:00.000-04:00
+------------------------------------------------------------------------------
+BODY: 128 blocks, 19402 chars — paragraph×91, bulleted_list_item×23, heading_3×8, to_do×5, transcription×1
+  ⚠ 4 field(s) imply 'no record'. CONTRADICTED — the body below HAS the content. Trust the body, not the field.
+      · Google Doc Link [url] = None
+      · Meeting Summary [rich_text] = None
+      · Export Status [select] = None
+      · Call Recording [url] = None
+------------------------------------------------------------------------------
+FULL BODY (summary + transcript) — read it, do not skim:
+[transcription] 
+  [paragraph] 
+    [heading_3] Action Items
+    [to_do] Robert to send over the following for each agent: use case description, opening greeting, 3–5 conversation questions, success outcome (live transfer), and follow-up cadence 
+    [to_do] Hour Robert to compile an FAQ document to serve as the agent knowledge base for handling common objections and questions  
+    [to_do] Connor's team to send a follow-up email summary of requirements 
+    [to_do] Connor's team to build out initial agents once info is received 
+    [to_do] Schedule next call for Monday at 1 PM Eastern  
+    [heading_3] Meeting Overview
+    [bulleted_list_item] Meeting between Robert (real estate professional) and Connor (AI agent builder) to plan and configure AI voice agents for outbound lead follow-up  
+    [bulleted_list_item] Leads are all opt-in 
+    [bulleted_list_item] Plan to enroll approximately 500 leads per month from overflow/pond leads 
+    [heading_3] Agent Design & Conversation Strategy
+    [bulleted_list_item] Agents should be non-aggressive and relationship-focused — reminding leads of the value being provided (listings, resources) and staying top of mind for when they're ready to move 
+    [bulleted_list_item] Best practice: 3–5 questions per agent to keep conversations short and reduce AI detection risk  
+    [bulleted_list_item] Each agent may need to be purpose-built depending on the conversation outcome, since not every call will follow the same path  
+    [bulleted_list_item] Example rapport-building question suggested: asking leads about their personal connection or history to the area of Florida 
+    [heading_3] Workflow & Cadence
+    [bulleted_list_item] Proposed cadence: one outreach in week one, one in week three, then monthly thereafter 
+    [bulleted_list_item] If a conversation ends without a clear next step (e.g., lead says they're not ready), the current cadence may be disrupted — leads may need to be re-enrolled in a separate campaign  
+    [bulleted_list_item] Custom pipeline stages will be used to track disposition and identify who needs manual re-enrollment vs. continued AI outreach 
+    [bulleted_list_item] Zapier may be used to automate transitions between workflows 
+    [bulleted_list_item] A live ISA will manage the system and manually intervene when the AI workflow is no longer appropriate 
+    [heading_3] Live Transfer Setup
+    [bulleted_list_item] When a successful conversation occurs, the AI sends a live transfer message to the lead and a whisper message to the ISA with context before they connect  
+    [bulleted_list_item] A call summary (a few sentences) can optionally be included in the whisper to give the ISA quick context — balancing prep time against keeping the lead waiting   
+    [bulleted_list_item] Both messages are customizable from the default templates 
+    [heading_3] Knowledge Base & Fine-Tuning
+    [bulleted_list_item] Knowledge base (FAQ): Robert will provide answers to questions likely to stump the AI (e.g., "Are you an AI?", how contact info was obtained, services offered)  
+    [bulleted_list_item] Fine-tuning: Already has some configuration in place; used to shape AI behavior and steer conversations away from unproductive topics  
+    [bulleted_list_item] Fine-tuning is often iterated on after observing real call behavior 
+    [heading_3] Voice AI Quality & Demographics
+    [bulleted_list_item] Robert expressed prior skepticism about voice AI being clunky and recognizable 
+    [bulleted_list_item] Connor confirmed the current voice quality is strong — many users don't realize they're talking to AI, and even those who do tend to still engage 
+    [bulleted_list_item] Robert's primary demographic is 60+, which was raised as a potential concern 
+    [bulleted_list_item] Connor noted real estate and mortgage are among the top industries using this technology, and has not seen the older demographic cause meaningful issues in practice 
+    [bulleted_list_item] Short conversations (3–5 questions) reduce the likelihood of the AI being detected or making errors  
+    [heading_3] 
+  [paragraph] 
+    [paragraph] 
+  [paragraph] 
+    [paragraph] 
+    [paragraph] Yeah, yeah, nothing major, really.
+    [paragraph] Just a consideration. Notion AI is transcribing this news. These all are going to be like opt-in leads?
+    [paragraph] They're all opt-in, yeah. Yeah, yeah, yeah. So, yes, and like I have in mind the kickoff sentence or question or conversational piece to hopefully start the conversation and then it keeps it kind of in that realm. Is that the same way to think?
+    [paragraph] Yeah, similar thing. So like this, you know, we may have to build multiple agents or maybe some more in-world ones that we have to do given What's going to happen is if our agent connects with someone, we may be able to find a way around this and have the thing, but if our agent connects with someone on the phone and has to It's possible that it dispositions that person in a way that doesn't have that exact follow-up.
+    [paragraph] So really each agent we're building in this case would then be kind of targeted for if someone does answer the phone and does engage in a conversation, what should that conversation specifically look like? We may need to build a way to, given what you're talking about, because it sounds like not every conversation is directly going
+    [paragraph] - It's more of don't forget we're the ones giving you the resources, sending you the listings and keeping in touch. Like don't forget about us when you think of potentially making a move. - Okay. - And some of them will be like open-ended questions trying to learn more, but very non-aggressive, non-invasive. More like kitchen table talk, just trying to be friendly and build rapport, really. Yeah.
+    [paragraph] - Like you're gonna need to do is build out a few pages Are you still using that account? Yeah. Yeah, okay. So let's just see if there might be something that we can do with, say, here. I think we're going to... I was talking to...
+    [paragraph] Yeah, Boontown's horrible. Yeah.
+    [paragraph] They're horrible.
+    [paragraph] They're horrible. They just don't play nice. It was a bad move on their end.
+    [paragraph] And if people aren't responding or they pick up and then hang up, there's not really a conversation had, Someone does pick up, like let's say on month two's outreach, you know, we give them a call. you - It may not, it may not because if they say something like, oh, I'm not ready right now to do anything.
+    [paragraph] If it has that kind of question-- - I got what you're saying. So you're saying like, depending on the outcome of the conversation, it could totally kill the cadence and we need to re-enroll them in a separate campaign, but we wanna trigger it so it's automatic flow from one workflow to another type thing?
+    [paragraph] - Yeah, we'll have to figure that piece out because that last piece you
+    [paragraph] - So that may be something that we can do through Zapier, there may be-- - And I am, just so you know, I'm gonna have a live ISA realtor that's gonna be managing the system, obviously. So if it comes down to the point where it's just flagged that, okay, this workflow and agent is no longer gonna fit this event or this person's timeline, you know what I'm saying? Thank you. We might not get, you know, we're falling on our feet.
+    [paragraph] Our custom stages here to, it looks like the party with the theater. These custom stages create additional custom stages, and what will happen is we can flip people into those stages, kind of depending on the conversation that they have. In that case, then, we can use these stages to see who falls into that bucket of likely not still being engaged by the AI because they already had a conversation, and then use that to see who we need to re-enroll if it doesn't happen to be a manual.
+    [paragraph] How many leads are you planning on putting in here?
+    [paragraph] So what I spoke with the sales team was I'm probably going to take just a chunk of the pond overflow every month, about 500 leads a month.
+    [paragraph] Okay, doable. - Something we're gonna have to work on.
+    [paragraph] Okay. Okay. Yeah, the more we talk, the more I'm kind of putting it together on what different agents I'll need. It's starting to make more sense the more you talk, so that's good. I mean, what do you, so what do you suggest that I try to go ahead and go ahead and try to build out what I think is advantageous and then we get back on a call and You kind of tell me where I'm wrong and where I'm right?
+    [paragraph] Yeah, so what I'd actually recommend here because we're kind of building these agents, we're still kind of building the initial agents, we'd like to give you kind of a good starting point of them. So if you do - I want you to know how to build them and you can manage this obviously on your own as much as you can.
+    [paragraph] - Sure.
+    [paragraph] - But if I can-- - I'm looking for you to put it all the time
+    [paragraph] Yeah, and you know, if you guys do it with my collaboration as I'm using it, I will be learning. So, you know, it's all good.
+    [paragraph] Exactly. And we could even do it, you know, if you have what you want, we could even do it where it won't be filled out. that we need to make so you can kind of see the process because it's pretty easy. I mean, I can walk you through it. There's just some new work to do it that you wouldn't necessarily be aware of.
+    [paragraph] I guess what would be most... I guess my question is when I go to send it to you, what is the data that you need? Like this agent, the strategy for this agent needs to be X, anything else or...
+    [paragraph] Yes, yes. I guess kind of use case is one thing that we want to know. Then, you know, if you drop a specific greeting, like right now, this is the greeting for the follow-up agent outbound. Hey, Alex, this is, I don't know the name of your boss, so I'll just say Connor. Hey, Alex, this is Connor with the authority group in Southwest. - We're at home search and answer any questions. If you're still keeping an eye on the cardiac health, send me a monthly update, how can I help?
+    [paragraph] So like if you do have a specific reading that you want now, I would say, - You know, we can always try it out. There's no harm in trying it necessarily, but typically,
+    [paragraph] Yes, just to one ISA always, yes.
+    [paragraph] Okay. Ben, we don't necessarily need this from you. This is just part of the folks here. Just so that you know, so we have a live transfer message. This is going to be what our AI sends to the lead. Okay. So that's great. I'm going to get your call and transfer it over to Will's RE group. Please hold on for a moment while I You have a whisper message, which is what the AI will actually be saying to your ISA when it transfers over.
+    [paragraph] So, Paul is saying, great, I'm going to get your call transferred over to the health and prosperity group. Once your agent picks up, it's going to say, Paul has finished talking with Alex. Gotcha.
+    [paragraph] Okay, so it gives her a little bit of background before she jumps on.
+    [paragraph] We can adjust both of these things to a few more. This is just our standard. So if you do want it to be something specific, one thing we could add in here, for example, is the summary.
+    [paragraph] Yeah, so call summary. And we have this hard code, and they keep it pretty short.
+    [paragraph] So I think that call summary is maybe a few sentences tops. But it all depends on exactly what You can also just leave this and we will be sending a message.
+    [paragraph] Yeah, I'm sure it's a balancing act. You don't want the client waiting too long so you're prepped.
+    [paragraph] Right, let's say it takes you 20 seconds to pick up the phone and start a conversation.
+    [paragraph] Yeah, too much friction.
+    [paragraph] Yeah. Yeah, I'm going to drop. So this is an example of like the kind of, The best agents that we see are between three to five questions total.
+    [paragraph] that the agent uses to kick off the conversation.
+    [paragraph] - Yeah, exactly.
+    [paragraph] - Okay.
+    [paragraph] - So like, you know, I call right now and say, "Oh, this AI agent's not calling you." market or still just exploring options? for the most part, they will throw in some things like, it probably won't
+    [paragraph] A good one for us is like, oh, that's great. Do you have any connection or history to this area of Florida? Because a lot of our people do. You know, they've been vacationing here for 20 years, all that. And then they love to go into, you know, their history here in Florida. Yeah.
+    [paragraph] So there's that. The only other thing we need-- so there's really five things that we need. We've gone over kind of four of them already. So we need the use case. The questions, which we just went over again, about three to five is typically the best that we see there. Okay. We need a success outcome. I'm going to assume that all of them are live transferring, but if you do have one where you wanted to schedule an appointment, let's say, then...
+    [paragraph] So if it's, you know, when you first enroll, we reach out once in the first week, once in week three, then once every month after that, or whatever.
+    [paragraph] Right, and kind of taper off, yeah.
+    [paragraph] And then the last thing, this is less of a core team, those first five core teams. This one is a nice to have, is knowledge bases. Right. or asking, so this might be something, like I always like to go to the example of, you know, RU and AI. If someone asks that, if there's a specific way you find handling that, services offerings, why you're reaching out, how you got my contact information, things like that.
+    [paragraph] We can prescribe the agents answers to those questions so that answers very directly. The other route that we would use is what's called fine tuning here and there already is a good amount of fine tuning in here which is good.
+    [paragraph] Is that our fine tuning or just default?
+    [paragraph] This is yours. We actually don't have any default time.
+    [paragraph] Okay.
+    [paragraph] So, this also kind of gives... to the AI, so if you want it behaving a certain way or answering questions a certain way, but it's If this comes up, we wanna try and, you know, if they inquire about Move the conversation away from the... Like that where you can see how it's a little bit different from the knowledge base. Give it a direct answer to get to that question.
+    [paragraph] Okay.
+    [paragraph] Okay. It all makes a little bit more sense as we build into it. Essentially, this is fine too. It's the behavior of the AI.
+    [paragraph] Okay. So the knowledge base, I'm going to get you the FAQ that I think is going to potentially stumble the AI that they need the direct information from me. That's the FAQ. And then the fine-tuning, we're going to leave as is for now, and then is that what you said? Yeah, we can. I mean, if there is anything. I'll take a look at it too and...
+    [paragraph] learn and then say, you know what, okay, actually this is a little bit weird. Let's add something to fine tune it. That's honestly a lot of the time what we do because, you know, today you never,
+    [paragraph] - Sure, sure. Let me ask you your own personal beliefs. I've been trying to deploy AI to fill gaps for a while now. And one area that I have never really had much confidence in yet is voice, is call, AI. It just wasn't there for a long time. It tried to be there, but it was totally, recognizable that it was AI and it wasn't very smooth and it was clunky. And I don't know how consumers perceive that either.
+    [paragraph] So like, what is your experience with Paul Iage? I mean, like in my mind, it's low priority, last ditch effort, but you tell me if I'm wrong.
+    [paragraph] One, the voice AI itself
+    [paragraph] No, I tested it and it sounds great.
+    [paragraph] Yeah. Yeah. Okay, perfect. Then in that case, that's kind of the one end where I feel like actually a lot of times people won't even necessarily realize they weren't talking to an AI. It does genuinely feel like people are being less even if they recognize that it's an AI. And so there's no one to have like the conversations and engage, especially if we're having short conversations. And that's why we try to stick to three to five.
+    [paragraph] The longer you let it talk to someone, the more chance they have.
+    [paragraph] More mistakes. Yeah.
+    [paragraph] Whereas if we, you know, because if you call in, you know, if you call in to. questions, but like how long it was, that wasn't
+    [paragraph] - My biggest concern is that, yes, the data now says, like you're saying, you have the data, you've been running this, and a lot of people are having good success with phone. My only question mark in my head is demographic. Because my demographic that we're going to be going after is going to be 60 plus. Almost exclusively.
+    [paragraph] - The two biggest industries that work with real estate mortgage and not, you are definitely not alone in. - It's definitely not a real estate. - I think a team based app. - Do we have a team based app? - Maybe you're on the H side. - What I've seen in my experience so far, it really has not posed much of a problem. It isn't a problem at all. I haven't seen it directly cause any issues with people when it reaches out.
+    [paragraph] - And it's the same success, like their goal is to take, go from the conversation to shifting the phone call to you? - Yep. - Okay. - The vast majority so far have gotten
+    [paragraph] I'm calling a number Okay.
+    [paragraph] Cool.
+    [paragraph] Awesome.
+    [paragraph] Okay, cool. That's what I want to hear. Alright, so you want me to get working on those agents, get you over the descriptions, the greeting, the FAQ, the three to five questions, and what a success outcome looks like, which is life transfer, cadence, meaning how often we're going to be following up and how much time passes between each, and... The knowledge base FAQ like I mentioned before. Anything I'm missing?
+    [paragraph] No, I think that's good. We'll also send you an email summary too in case there's anything that you're missing. Oh, okay. Cool.
+    [paragraph] Yeah, I'm Eastern. Yeah, I can. 11 is good. It's always good for me.
+    [paragraph] Yeah. Give me one second.
+    [paragraph] Let me just make sure. Yeah, it's fine. Yeah, unfortunately Tuesday I'll be actually traveling up to my northern office to train an agent.
+    [paragraph] So that'll be tough.
+    [paragraph] Tuesday will be tough for me, but Wednesday I'm wide open. Monday... Okay.
+    [paragraph] I mean, do you have one day
+    [paragraph] Yeah, one is perfect.
+    [paragraph] Okay, let's do that. Let's do 20 seconds.
+    [paragraph] Okay, let's do it.
+    [paragraph] I'll get this sent over to you here, and then we'll reconnect then. Whenever you have a chance, just get us over to that information that we just talked about here, and then we should be good to go by the end of our next call.
+    [paragraph] All right, I will work on that, and I'll look forward to chatting with you on Monday.
+    [paragraph] Good deal. Have a great rest of your week.
+    [paragraph] I appreciate it, Connor. Have a good one. What is this pink shit that Chris is telling me? It's like...
+    [paragraph] 
