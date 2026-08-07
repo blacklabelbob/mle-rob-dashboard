@@ -1,6 +1,6 @@
 {
-  "_comment": "Q86 inc.3 — a LIVE read of Rob's primary Google Calendar (rob@aivoicetech.io), taken 2026-08-07 by the build driver through the Google Calendar MCP. It is a SNAPSHOT, not a cache: no OAuth/service-account credential for Calendar exists in .env.local, so no .mjs script in this repo can fetch this itself today. `scripts/calendar-spine.mjs` therefore consumes a snapshot and states its age; the fetcher gap is written up in the increment note. Window is deliberately short (2 weeks) — this is the first live pass and a small window that is verifiably right beats a long one nobody checked.",
-  "fetchedAt": "2026-08-07T20:10:00Z",
+  "_comment": "Q86 inc.3 — a LIVE read of Rob's primary Google Calendar (rob@aivoicetech.io), taken 2026-08-07 by the build driver through the Google Calendar MCP. It is a SNAPSHOT, not a cache: no OAuth/service-account credential for Calendar exists in .env.local, so no .mjs script in this repo can fetch this itself today. `scripts/calendar-spine.mjs` therefore consumes a snapshot and states its age; the fetcher gap is written up in the increment note. Window is deliberately short (2 weeks) — this is the first live pass and a small window that is verifiably right beats a long one nobody checked. — RE-READ 2026-08-07 (inc.4): the `attachments` field is now captured. inc.3 dropped it and the live calendar carried two `Notes by Gemini` docs; that omission was filed to /api/admin/flags and is closed here. All 11 events were re-listed live this run and exactly 2 carry an attachment; the other 9 carry none, so an absent `attachments` key on this file means MEASURED-ABSENT, not unread.",
+  "fetchedAt": "2026-08-07T21:20:00-04:00",
   "calendarId": "rob@aivoicetech.io",
   "timeZone": "America/New_York",
   "window": {
@@ -54,6 +54,12 @@
           "self": true
         },
         {}
+      ],
+      "attachments": [
+        {
+          "fileUrl": "https://docs.google.com/document/d/1R3Dh6W7w_dk_mc57wehfak3ToktX_nEfq9_o02ZjQV8/edit?usp=meet_tnfm_calendar",
+          "title": "Notes by Gemini"
+        }
       ]
     },
     {
@@ -88,6 +94,12 @@
           "self": true
         },
         {}
+      ],
+      "attachments": [
+        {
+          "fileUrl": "https://docs.google.com/document/d/1JD70AcU5xNnXZEVYo_4fDiPq2U82O9kDCB8jEOPZ2WM/edit?usp=meet_tnfm_calendar",
+          "title": "Notes by Gemini"
+        }
       ]
     },
     {

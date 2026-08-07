@@ -29,7 +29,7 @@ import { basename, join } from "node:path";
 import { homedir } from "node:os";
 import { fileURLToPath } from "node:url";
 
-import { fromCalendarEvents, SOURCES_NOT_WIRED } from "../lib/meetings/calendarEvents.ts";
+import { fromCalendarEvents, SOURCES_NOT_WIRED, sourceRecordsFromAttachments } from "../lib/meetings/calendarEvents.ts";
 import { reconcileCalendarSpine } from "../lib/meetings/calendarSpine.ts";
 import { fromManifest, fromTranscriptFiles } from "../lib/meetings/spineSources.ts";
 
@@ -91,14 +91,23 @@ const files = existsSync(TRANSCRIPTS)
   : [];
 const harvest = fromTranscriptFiles(files, { source: "local-repo" });
 
-const report = reconcileCalendarSpine(meetings, [...fireflies, ...harvest.records]);
+// ── the source the calendar was already holding (inc.4) ────────────────────────────────────────
+// Not a fetch and not a credential: `Notes by Gemini` docs are attached to the event itself, so
+// reading them off the spine costs nothing. They are LOCATED, never READ — see the refusal in
+// `sourceRecordsFromAttachments`. Every one of these carries `hasTranscript: false`, so no row's
+// coverage status can move because of this list; what moves is that the human sent to look now
+// has the URL.
+const attached = sourceRecordsFromAttachments(snapshot.events ?? [], { toLocalDay });
+
+const report = reconcileCalendarSpine(meetings, [...fireflies, ...harvest.records, ...attached]);
 
 if (AS_JSON) {
   console.log(
     JSON.stringify(
       {
         snapshot: { path: CALENDAR, fetchedAt: snapshot.fetchedAt, window: snapshot.window, timeZone },
-        sourcesRead: ["fireflies", "local-repo"],
+        sourcesRead: ["fireflies", "local-repo", "calendar-attachments"],
+        attached,
         sourcesNotWired: SOURCES_NOT_WIRED,
         skipped,
         stubs: harvest.stubs,
@@ -115,7 +124,7 @@ const c = report.counts;
 console.log(`\n📅 CALENDAR SPINE — ${snapshot.window?.start ?? "?"} → ${snapshot.window?.end ?? "?"} (${timeZone})`);
 console.log(`   snapshot taken ${snapshot.fetchedAt ?? "(undated — treat as unknown age)"} · ${CALENDAR}`);
 console.log(
-  `   sources READ: fireflies (${fireflies.length} records), local-repo (${harvest.records.length} files)`,
+  `   sources READ: fireflies (${fireflies.length} records), local-repo (${harvest.records.length} files), calendar attachments (${attached.length} located, 0 read)`,
 );
 console.log(
   `   sources NOT WIRED, so silent and NOT a finding: ${SOURCES_NOT_WIRED.join(", ")} — a source nobody asked has answered nothing.\n`,

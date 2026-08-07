@@ -28,7 +28,7 @@
  * job this repo keeps getting wrong by answering it early.
  */
 
-import type { CalendarMeeting } from "@/lib/meetings/calendarSpine";
+import type { CalendarMeeting, MeetingSource, SourceRecord } from "@/lib/meetings/calendarSpine";
 
 /**
  * The sources `MEETING-SOURCE-MAP.md` names that nothing in this repo can query yet.
@@ -46,6 +46,18 @@ import type { CalendarMeeting } from "@/lib/meetings/calendarSpine";
  */
 export const SOURCES_NOT_WIRED = ["gemini", "fathom", "notion", "gmail", "drive"] as const;
 
+/**
+ * A file Google Calendar hangs off an event. Google Meet writes one of these — `Notes by Gemini` —
+ * onto the event automatically when Gemini takes notes, which is why this field is the cheapest
+ * real coverage on the board: the pointer is already sitting on the spine we read.
+ */
+export type RawCalendarAttachment = {
+  fileId?: string;
+  fileUrl?: string;
+  title?: string;
+  mimeType?: string;
+};
+
 /** A Google Calendar event, narrowed to the fields the spine actually reads. */
 export type RawCalendarEvent = {
   id: string;
@@ -56,6 +68,7 @@ export type RawCalendarEvent = {
   eventType?: string;
   start?: { dateTime?: string; date?: string };
   attendees?: { email?: string; self?: boolean }[];
+  attachments?: RawCalendarAttachment[];
 };
 
 /** An event that is not a meeting, carried forward with the reason rather than dropped. */
@@ -154,4 +167,90 @@ export function fromCalendarEvents(
   }
 
   return { meetings, skipped };
+}
+
+/* ------------------------------------------------------------------------------------------------
+ * Q86 inc.4 — attachments on the event become NAMED, LOCATED source records.
+ * ---------------------------------------------------------------------------------------------- */
+
+/**
+ * The Drive file id inside a Docs/Drive URL, when there is one.
+ *
+ * A record needs a stable id or the spine cannot tell two runs apart. Google gives attachments a
+ * `fileId` sometimes and not others — neither of Rob's two live `Notes by Gemini` attachments
+ * carries one, only a `fileUrl` — so the id is lifted out of the URL, and the whole URL is the
+ * fallback. Never a synthesised counter: an index would change the moment an attachment is added.
+ */
+function driveFileIdFrom(url: string): string | undefined {
+  const byPath = /\/d\/([A-Za-z0-9_-]{10,})/.exec(url);
+  if (byPath) return byPath[1];
+  const byQuery = /[?&]id=([A-Za-z0-9_-]{10,})/.exec(url);
+  return byQuery ? byQuery[1] : undefined;
+}
+
+/** Google Meet's own name for the doc Gemini writes. Matched loosely — the noun is what matters. */
+function isGeminiNotes(title: string): boolean {
+  return /gemini/i.test(title);
+}
+
+/**
+ * Calendar attachments → source records the spine can reconcile.
+ *
+ * WHAT THIS FIXES: inc.3's snapshot dropped `attachments`, so two meetings Gemini demonstrably took
+ * notes on read as `owed-a-human` with **no lead at all** — the report told a human to go looking
+ * while the calendar was already holding the address. Rob named Gemini himself: *"sometimes I have
+ * gemeni in there just in case"*.
+ *
+ * THE REFUSAL THAT MATTERS, and it is the whole reason this returns what it returns:
+ * **`hasTranscript` and `hasVideo` are ALWAYS `false`.** Nothing in this repo has opened these
+ * Docs — there is no Drive credential (see `SOURCES_NOT_WIRED`) — and *"a doc exists"* is not
+ * *"a transcript exists"*. Setting `hasTranscript: true` here would flip both rows to
+ * `transcript-only` and CLOSE them on evidence nobody read, which is INCIDENT-LEDGER #22/#34
+ * running in the opposite direction: the same substitution of a reader's state for the meeting's.
+ * So the row stays open and gains a URL. **Located is the claim. Read is not.**
+ *
+ * PURE per CR-3 — same contract as `fromCalendarEvents`, and `toLocalDay` is the caller's.
+ */
+export function sourceRecordsFromAttachments(
+  events: RawCalendarEvent[],
+  opts: { toLocalDay: (iso: string) => string },
+): SourceRecord[] {
+  const records: SourceRecord[] = [];
+
+  for (const event of events) {
+    // A cancelled event did not happen; a doc hanging off it is not coverage of a meeting.
+    if (event.status === "cancelled") continue;
+
+    const startIso = event.start?.dateTime ?? event.start?.date;
+
+    for (const attachment of event.attachments ?? []) {
+      const url = attachment.fileUrl?.trim();
+      const id = attachment.fileId?.trim() || (url ? driveFileIdFrom(url) : undefined) || url;
+
+      // No id and no URL is not a located record — it is a rumour. Dropped rather than reported
+      // as a source, because a source link a human cannot open is worse than an empty row.
+      if (!id) continue;
+
+      const title = attachment.title?.trim() || "(untitled attachment)";
+
+      // Gemini's notes are their own source in MEETING-SOURCE-MAP.md; anything else attached to a
+      // Google Calendar event is a Drive file, which is also a source the map names.
+      const source: MeetingSource = isGeminiNotes(title) ? "gemini" : "drive";
+
+      records.push({
+        source,
+        id,
+        title,
+        ...(startIso ? { day: opts.toLocalDay(startIso) } : {}),
+        // The certain join — this file is ON the event, so the spine links it at rung 1 and never
+        // has to guess from a title.
+        calendarEventId: event.id,
+        hasTranscript: false,
+        hasVideo: false,
+        ...(url ? { url } : {}),
+      });
+    }
+  }
+
+  return records;
 }
