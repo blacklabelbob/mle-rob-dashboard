@@ -175,6 +175,23 @@ async function readPeople() {
 }
 
 /**
+ * Q85 inc.23 — the verticals a person proposal may be filed under, read from the SAME database
+ * the row would land in. The list rides onto Rob's ledger row so the ask is answerable where he
+ * reads it. Read with a `try`: an unreachable list must degrade the row to "ask for the list",
+ * never take down the whole check over a dropdown.
+ */
+async function readVerticals() {
+  try {
+    const url = `${SUPABASE_URL}/rest/v1/verticals?select=id&order=id`;
+    const res = await fetch(url, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } });
+    if (!res.ok) return [];
+    return (await res.json()).map((v) => v.id).filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
+/**
  * Q84 inc.65 — the recordings this machine actually holds, read off the manifest the sync
  * already maintains. Read with a `try`: a missing or unparseable manifest must degrade the
  * report to what it printed yesterday, never take down a CRM check over an attendee list.
@@ -485,8 +502,11 @@ if (FILE_FLAG) {
   // on Rob's page saying 40 forever. Its own key, because "the CRM never heard about these
   // meetings" and "the CRM has never met these people" are two findings — one key would make
   // each run silently overwrite the other's row.
+  // Q85 inc.23 — the row now carries the two answers only Rob can give, with the live vertical
+  // list. Read here rather than inside the pure builder (CR-3), and read at file time rather
+  // than at report time so a `--flag`-less run never touches the network for it.
   await fileFinding(
-    buildPersonProposalFinding([...unknownSeen.values()]),
+    buildPersonProposalFinding([...unknownSeen.values()], await readVerticals()),
     "nothing to file — every attendee name resolves to a CRM person.",
   );
   // Q85 inc.11 — the CAUSE. The three rows above answer "how many meetings are missing" and
