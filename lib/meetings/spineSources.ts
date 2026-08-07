@@ -25,6 +25,7 @@
  */
 
 import type { MeetingSource, SourceRecord } from "@/lib/meetings/calendarSpine";
+import type { ConfirmedNotionRead } from "@/lib/meetings/notionReads";
 
 /**
  * Below this, a `.txt` is a placeholder rather than a transcript.
@@ -210,6 +211,10 @@ export type NotionBodyFinding = {
 export type NotionHarvest = {
   records: SourceRecord[];
   bodyFindings: NotionBodyFinding[];
+  /** Page ids whose body was READ off disk and RULED a transcript — the only rows that are coverage. */
+  confirmedTranscripts: string[];
+  /** Read on disk, opened, and ruled NOT a transcript. Closed work, not open — and not coverage. */
+  ruledNotTranscript: string[];
 };
 
 /**
@@ -240,43 +245,81 @@ export type NotionHarvest = {
  * PURE per CR-3: handed already-read rows; no fs, no network, no clock. Notion states a day, so
  * there is no instant to convert and no timezone to borrow.
  */
-export function fromNotion(rows: NotionMeetingRow[]): NotionHarvest {
+export function fromNotion(
+  rows: NotionMeetingRow[],
+  reads: Map<string, ConfirmedNotionRead> = new Map(),
+): NotionHarvest {
   const records: SourceRecord[] = [];
   const bodyFindings: NotionBodyFinding[] = [];
+  const confirmedTranscripts: string[] = [];
+  const ruledNotTranscript: string[] = [];
 
   for (const r of rows) {
-    const bodyChars = r.bodyChars ?? 0;
+    const read = reads.get(r.id);
+    const verdict = read?.confirmation?.verdict;
+    /**
+     * THE SNAPSHOT'S MEASUREMENT IS A FLOOR, NOT THE BODY — measured 2026-08-07, inc.10.
+     *
+     * `notion-spine-snapshot.mjs` counts TOP-LEVEL blocks only, deliberately, to avoid a request
+     * per toggle. On this database that cap does not merely understate: **11 pages measure ZERO
+     * characters** while their committed deep read walks 5,461 · 11,462 · 19,402 · 21,102 · 25,225
+     * · 28,869 · 33,786 · 44,547 · 44,935 · 65,104 · **114,354** characters — every one of them
+     * nested one level below the top. Read on the snapshot alone those pages are EMPTY, so they
+     * never even reach the finding threshold: a number asserting absence over a 114k-character
+     * body is the 2026-07-28 Omega shape exactly (INCIDENT-LEDGER #34), arrived at by arithmetic
+     * instead of by a checkbox. So the deeper of the two counts wins, always.
+     */
+    const bodyChars = Math.max(r.bodyChars ?? 0, read?.chars ?? 0);
+
+    if (verdict === "transcript") confirmedTranscripts.push(r.id);
+    else if (verdict) ruledNotTranscript.push(r.id);
+
     records.push({
       source: "notion" as const,
       id: r.id,
       title: r.title,
       day: r.day,
-      hasTranscript: false,
+      // The ONLY thing that turns this true: a body read off disk and RULED a transcript by a
+      // named someone. Never the checkbox, never a character count, never the shape of the blocks.
+      hasTranscript: verdict === "transcript",
       hasVideo: false,
       url: r.url,
     });
 
-    if (bodyChars >= NOTION_BODY_UNREAD_CHARS) {
-      const contradictsCheckbox = r.transcriptAvailable !== true;
-      bodyFindings.push({
-        id: r.id,
-        title: r.title,
-        day: r.day,
-        url: r.url,
-        bodyChars,
-        contradictsCheckbox,
-        why:
-          `the page body holds ${bodyChars.toLocaleString("en-US")} characters that nothing in this ` +
+    if (bodyChars < NOTION_BODY_UNREAD_CHARS) continue;
+    // A ruled page is settled — either it is coverage above, or it was opened and found to hold no
+    // speech. Neither is "text nobody has read", and leaving it on that list is how a finished
+    // reading gets done twice while a genuinely unread page waits behind it.
+    if (verdict) continue;
+
+    const contradictsCheckbox = r.transcriptAvailable !== true;
+    bodyFindings.push({
+      id: r.id,
+      title: r.title,
+      day: r.day,
+      url: r.url,
+      bodyChars,
+      contradictsCheckbox,
+      why: read
+        ? // READ but UNRULED. inc.9 printed "nothing in this repo has read" over 32 rows whose full
+          // body is committed at this exact path. Say where the text is; the reading is what is owed.
+          `the body was already pulled to disk at \`${read.path}\`` +
+          (read.chars ? ` (${read.chars.toLocaleString("en-US")} characters, read recursively)` : "") +
+          ((read.chars ?? 0) > (r.bodyChars ?? 0)
+            ? ` — the snapshot measured only ${(r.bodyChars ?? 0).toLocaleString("en-US")} at the top level, so the depth cap was hiding ${((read.chars ?? 0) - (r.bodyChars ?? 0)).toLocaleString("en-US")} characters`
+            : "") +
+          ` — nobody has RULED it. Open that file and record transcript / summary-only / empty in ` +
+          `\`MLE Internal Meetings/notion-read-confirmations.json\`; until then it is not coverage.`
+        : `the page body holds ${bodyChars.toLocaleString("en-US")} characters that nothing in this ` +
           `repo has read` +
           (contradictsCheckbox
             ? `, while the row's own "Transcript Available" checkbox says there is none — the 2026-07-28 ` +
               `Omega shape (INCIDENT-LEDGER #34). The body is the evidence; the checkbox is not.`
             : `. The checkbox agrees, but agreement is not a reading — open the page before counting it.`),
-      });
-    }
+    });
   }
 
-  return { records, bodyFindings };
+  return { records, bodyFindings, confirmedTranscripts, ruledNotTranscript };
 }
 
 /**

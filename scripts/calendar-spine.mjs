@@ -32,6 +32,7 @@ import { fileURLToPath } from "node:url";
 
 import { fromCalendarEvents, SOURCES_NOT_WIRED, sourceRecordsFromAttachments } from "../lib/meetings/calendarEvents.ts";
 import { reconcileCalendarSpine } from "../lib/meetings/calendarSpine.ts";
+import { indexNotionReads, parseDeepReadHeader } from "../lib/meetings/notionReads.ts";
 import { fromFathom, fromManifest, fromNotion, fromTranscriptFiles } from "../lib/meetings/spineSources.ts";
 
 const AS_JSON = process.argv.includes("--json");
@@ -52,6 +53,9 @@ const FATHOM =
 const NOTION =
   argOf("--notion") ?? join(REPO, "MLE Internal Meetings", "notion-snapshot-2026-08-07.json");
 const TRANSCRIPTS = join(homedir(), "Projects", "MyLocalEverything", "transcripts");
+// Q84's deep reads of the Notion page bodies, and the rulings on them (inc.10).
+const ARCHIVE_READS = join(REPO, "MLE Internal Meetings", "archive-reads");
+const READ_RULINGS = join(REPO, "MLE Internal Meetings", "notion-read-confirmations.json");
 
 /**
  * ISO instant → local day in the snapshot's timezone.
@@ -111,8 +115,29 @@ const fathomConfirmed = fathom.filter((r) => r.hasTranscript).length;
 // purpose: the checkbox is a claim (ticked on 0 of 49 rows live) and a measured body is located,
 // not read. What the source contributes is the page, the day and the character count that sends a
 // human to the exact page — never a row that goes green because text exists somewhere.
+// inc.10: and the reads Q84 already pulled to disk. `archive-reads/*.deepread.txt` holds the FULL
+// recursive body of 32 of these 49 pages, keyed by page id, committed — inc.9 printed "nothing in
+// this repo has read" over every one of them. Scanning is here because it touches the filesystem;
+// the parsing and the join are pure in `lib/meetings/notionReads.ts`.
 const notionSnap = existsSync(NOTION) ? JSON.parse(readFileSync(NOTION, "utf8")) : null;
-const notion = notionSnap ? fromNotion(notionSnap.rows ?? []) : { records: [], bodyFindings: [] };
+const deepReads = existsSync(ARCHIVE_READS)
+  ? readdirSync(ARCHIVE_READS)
+      .filter((f) => f.endsWith(".deepread.txt"))
+      .map((f) =>
+        parseDeepReadHeader(
+          `MLE Internal Meetings/archive-reads/${f}`,
+          readFileSync(join(ARCHIVE_READS, f), "utf8"),
+        ),
+      )
+      .filter(Boolean)
+  : [];
+const confirmations = existsSync(READ_RULINGS)
+  ? JSON.parse(readFileSync(READ_RULINGS, "utf8")).confirmations ?? []
+  : [];
+const { byPageId: notionReads, orphanedConfirmations } = indexNotionReads(deepReads, confirmations);
+const notion = notionSnap
+  ? fromNotion(notionSnap.rows ?? [], notionReads)
+  : { records: [], bodyFindings: [], confirmedTranscripts: [], ruledNotTranscript: [] };
 
 // ── the source the calendar was already holding (inc.4) ────────────────────────────────────────
 // Not a fetch and not a credential: `Notes by Gemini` docs are attached to the event itself, so
@@ -145,7 +170,16 @@ if (AS_JSON) {
         snapshot: { path: CALENDAR, fetchedAt: snapshot.fetchedAt, window: snapshot.window, timeZone },
         sourcesRead: ["fireflies", "local-repo", "calendar-attachments", "fathom", "notion"],
         fathom: { path: FATHOM, fetchedAt: fathomSnap?.fetchedAt ?? null, records: fathom.length, transcriptsConfirmed: fathomConfirmed },
-        notion: { path: NOTION, fetchedAt: notionSnap?.fetchedAt ?? null, rows: notion.records.length, bodyFindings: notion.bodyFindings },
+        notion: {
+          path: NOTION,
+          fetchedAt: notionSnap?.fetchedAt ?? null,
+          rows: notion.records.length,
+          bodyFindings: notion.bodyFindings,
+          deepReadsOnDisk: deepReads.length,
+          confirmedTranscripts: notion.confirmedTranscripts,
+          ruledNotTranscript: notion.ruledNotTranscript,
+          orphanedConfirmations,
+        },
         attached,
         sourcesNotWired: SOURCES_NOT_WIRED,
         skipped,
@@ -163,7 +197,7 @@ const c = report.counts;
 console.log(`\n📅 CALENDAR SPINE — ${snapshot.window?.start ?? "?"} → ${snapshot.window?.end ?? "?"} (${timeZone})`);
 console.log(`   snapshot taken ${snapshot.fetchedAt ?? "(undated — treat as unknown age)"} · ${CALENDAR}`);
 console.log(
-  `   sources READ: fireflies (${fireflies.length} records), local-repo (${harvest.records.length} files), calendar attachments (${attached.length} located, 0 read), fathom (${fathom.length} recordings, ${fathomConfirmed} transcript${fathomConfirmed === 1 ? "" : "s"} confirmed), notion (${notion.records.length} rows, ${notion.bodyFindings.length} with an UNREAD body)`,
+  `   sources READ: fireflies (${fireflies.length} records), local-repo (${harvest.records.length} files), calendar attachments (${attached.length} located, 0 read), fathom (${fathom.length} recordings, ${fathomConfirmed} transcript${fathomConfirmed === 1 ? "" : "s"} confirmed), notion (${notion.records.length} rows, ${notion.confirmedTranscripts.length} body READ + ruled a transcript, ${notion.bodyFindings.length} still unread)`,
 );
 if (!fathomSnap)
   console.log(`   ⚠ no fathom snapshot at ${FATHOM} — fathom is reading as EMPTY, which is not the same as absent.`);
@@ -200,9 +234,32 @@ if (notion.bodyFindings.length) {
   // The inverse of the stub list, and the reason Notion is worth reading at all: a stub LOOKS like
   // coverage and is not, while these pages hold real text that nothing has opened. Neither moves a
   // row's status; both tell a human exactly where to spend ten minutes.
-  console.log(`\n— NOTION PAGES HOLDING TEXT NOBODY HAS READ (${notion.bodyFindings.length}) —`);
+  console.log(`\n— NOTION PAGES HOLDING TEXT NOBODY HAS RULED (${notion.bodyFindings.length}) —`);
   for (const f of notion.bodyFindings)
-    console.log(`   · ${f.day ?? "(no date)"}  ${f.title}\n       ${f.bodyChars.toLocaleString("en-US")} chars${f.contradictsCheckbox ? " · checkbox says NO transcript" : ""} · ${f.url ?? "(no url)"}`);
+    console.log(`   · ${f.day ?? "(no date)"}  ${f.title}\n       ${f.bodyChars.toLocaleString("en-US")} chars${f.contradictsCheckbox ? " · checkbox says NO transcript" : ""} · ${f.url ?? "(no url)"}\n       ${f.why}`);
+}
+
+// inc.10: reading is a STAGE, so the finished ones are printed as finished. A ruling that came out
+// "summary-only" is worth as much as one that came out "transcript" — it is the only thing that
+// stops the same body being re-read every week — so both are shown, and neither is folded into the
+// other's count.
+if (notion.confirmedTranscripts.length || notion.ruledNotTranscript.length) {
+  console.log(
+    `\n— NOTION BODIES ALREADY READ AND RULED (${notion.confirmedTranscripts.length + notion.ruledNotTranscript.length}) —`,
+  );
+  const titleOf = (id) => notion.records.find((r) => r.id === id)?.title ?? id;
+  for (const id of notion.confirmedTranscripts)
+    console.log(`   ✔ TRANSCRIPT  ${titleOf(id)}`);
+  for (const id of notion.ruledNotTranscript)
+    console.log(`   · not a transcript — ${titleOf(id)} (read, ruled, not coverage)`);
+}
+
+if (orphanedConfirmations.length) {
+  // A ruling on a file that is not there is an assertion. It is dropped from the join and said out
+  // loud here rather than quietly ignored — the whole item is that nothing goes missing silently.
+  console.log(`\n— ⚠ RULINGS WITH NO READ ON DISK (${orphanedConfirmations.length}), DROPPED —`);
+  for (const c of orphanedConfirmations)
+    console.log(`   · ${c.pageId} ruled "${c.verdict}" by ${c.confirmedBy} on ${c.confirmedAt} — no .deepread.txt carries that id`);
 }
 
 if (harvest.stubs.length) {

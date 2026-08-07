@@ -18,6 +18,11 @@ import {
   type TranscriptFile,
 } from "@/lib/meetings/spineSources";
 import { reconcileCalendarSpine, type CalendarMeeting } from "@/lib/meetings/calendarSpine";
+import {
+  indexNotionReads,
+  type NotionPageRead,
+  type NotionReadConfirmation,
+} from "@/lib/meetings/notionReads";
 
 const ROW: ManifestRow = {
   id: "01KZ5077XC5JW5P57VHK0HNRJJ",
@@ -239,5 +244,84 @@ describe("fromNotion", () => {
     expect(out.rows[0].links.map((l) => l.source)).toEqual(["notion"]);
     expect(out.rows[0].status).toBe("owed-a-human");
     expect(out.counts.withTranscript).toBe(0);
+  });
+});
+
+/**
+ * Q86 inc.10 — the reads that were already on disk, and the ruling that makes one count.
+ *
+ * inc.9 printed *"characters that nothing in this repo has read"* over 32 pages whose full
+ * recursive body is committed at `MLE Internal Meetings/archive-reads/*.deepread.txt`. These tests
+ * pin the three refusals that fix costs: a read alone is not coverage, a ruling alone is not a
+ * read, and the snapshot's top-level character count may never win over a deeper measurement.
+ */
+describe("fromNotion + deep reads (inc.10)", () => {
+  const PAGE_ID = "2cf1de57-0199-8003-9e6d-fd921fbb8a59";
+  const ROW: NotionMeetingRow = {
+    id: PAGE_ID,
+    title: "will Devito 2025-12-20T01:43:00.000-05:00",
+    day: "2025-12-20",
+    url: "https://www.notion.so/will-Devito",
+    transcriptAvailable: false,
+    bodyChars: 37099,
+    bodyBlocks: 6,
+  };
+  // Real header numbers from `2025-12-20-will-devito.deepread.txt` — 49 blocks / 77,465 chars.
+  const READ: NotionPageRead = {
+    pageId: PAGE_ID,
+    path: "MLE Internal Meetings/archive-reads/2025-12-20-will-devito.deepread.txt",
+    blocks: 49,
+    chars: 77465,
+  };
+  const RULING: NotionReadConfirmation = {
+    pageId: PAGE_ID,
+    verdict: "transcript",
+    note: "verbatim first-person speech in the body tail",
+    confirmedAt: "2026-08-07",
+    confirmedBy: "max",
+  };
+  const index = (reads: NotionPageRead[], rulings: NotionReadConfirmation[] = []) =>
+    indexNotionReads(reads, rulings).byPageId;
+
+  it("a read WITHOUT a ruling is not coverage — but stops the report saying nobody has read it", () => {
+    const { records, bodyFindings, confirmedTranscripts } = fromNotion([ROW], index([READ]));
+    expect(records[0].hasTranscript).toBe(false);
+    expect(confirmedTranscripts).toEqual([]);
+    // The sentence that was false for 32 rows must not survive anywhere in the finding.
+    expect(bodyFindings[0].why).not.toContain("nothing in this repo has read");
+    expect(bodyFindings[0].why).toContain("2025-12-20-will-devito.deepread.txt");
+  });
+
+  it("a read RULED a transcript is coverage, and leaves the unread list", () => {
+    const { records, bodyFindings, confirmedTranscripts } = fromNotion([ROW], index([READ], [RULING]));
+    expect(records[0].hasTranscript).toBe(true);
+    expect(confirmedTranscripts).toEqual([PAGE_ID]);
+    expect(bodyFindings).toHaveLength(0);
+  });
+
+  it("a ruling of summary-only closes the reading WITHOUT ever becoming coverage", () => {
+    const ruled = { ...RULING, verdict: "summary-only" as const };
+    const { records, bodyFindings, ruledNotTranscript } = fromNotion([ROW], index([READ], [ruled]));
+    expect(records[0].hasTranscript).toBe(false);
+    expect(ruledNotTranscript).toEqual([PAGE_ID]);
+    expect(bodyFindings).toHaveLength(0);
+  });
+
+  it("the DEEPER character count wins — 11 live pages measure ZERO at the top level", () => {
+    // The snapshot's depth cap reports absence over bodies of up to 114,354 characters. Read on the
+    // snapshot alone those pages never reach the finding threshold at all, which is the Omega shape
+    // (INCIDENT-LEDGER #34) reached by arithmetic instead of by a checkbox.
+    const capped: NotionMeetingRow = { ...ROW, bodyChars: 0, bodyBlocks: 0 };
+    const { bodyFindings } = fromNotion([capped], index([{ ...READ, chars: 114354 }]));
+    expect(bodyFindings).toHaveLength(1);
+    expect(bodyFindings[0].bodyChars).toBe(114354);
+    expect(bodyFindings[0].why).toContain("depth cap was hiding 114,354 characters");
+  });
+
+  it("a ruling with no read on disk is DROPPED and reported, never applied", () => {
+    const { byPageId, orphanedConfirmations } = indexNotionReads([], [RULING]);
+    expect(byPageId.size).toBe(0);
+    expect(orphanedConfirmations).toEqual([RULING]);
+    expect(fromNotion([ROW], byPageId).records[0].hasTranscript).toBe(false);
   });
 });
