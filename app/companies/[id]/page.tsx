@@ -21,6 +21,12 @@ import { provenanceOf } from "@/lib/phases/phase2ReturnsSelect";
 import { splitNotes } from "@/lib/notes";
 import { typeLabel, STAGE_LABELS } from "@/lib/labels";
 import MeetingIntelSection from "@/components/meetings/MeetingIntelSection";
+import AttendeeRoster from "@/components/meetings/AttendeeRoster";
+import {
+  rosterLinkCounts,
+  rostersFromActivities,
+  type MeetingRoster,
+} from "@/lib/meetings/attendeeRoster";
 import { intelSourceFromActivities } from "@/lib/meetings/intelSource";
 import { meetingCoverage, noMeetingNote } from "@/lib/meetings/coverage";
 import { isCompany } from "@/lib/companies";
@@ -113,16 +119,28 @@ export default async function CompanyPage({
   let meetingIntelSource = { candidates: [] as IntelCandidate[], meetingCount: 0, unusable: [] as { activityId: string; reason: string }[] };
   let coverage = { meetings: 0, companiesWithMeetings: 0, totalCompanies: 0 };
   let meetingsUnavailable = false;
+  // Q85 inc.27 — who was in the room, built from the SAME read as the intel. A second
+  // `listActivities` call would be a second answer to "which calls does this record have",
+  // and two answers is how the roster and the intel start disagreeing on the same page.
+  let rosters: MeetingRoster[] = [];
   try {
     const [mine, all] = await Promise.all([
       store.listActivities({ orgId: company.id }),
       store.listActivities(),
     ]);
     meetingIntelSource = intelSourceFromActivities(mine);
+    // Humans only. `data.people` mixes company nodes in, and a company node is not somebody
+    // who can attend a meeting — passing it to the resolver would let a company name match
+    // an attendee. The org link is `orgId`, carried through as-is.
+    rosters = rostersFromActivities(
+      mine,
+      data.people.filter((p) => !isCompany(p)).map((p) => ({ id: p.id, name: p.name, orgId: p.orgId })),
+    );
     coverage = meetingCoverage(all, data.people.filter(isCompany).length);
   } catch {
     meetingsUnavailable = true;
   }
+  const rosterCounts = rosterLinkCounts(rosters);
   const meetingIntel = buildMeetingIntel(meetingIntelSource.candidates);
 
   // Q91(a): the whole book goes through `driftReport` and this record is looked up in
@@ -224,6 +242,14 @@ export default async function CompanyPage({
               intel={meetingIntel}
               meetingCount={meetingIntelSource.meetingCount}
               noMeetingNote={noMeetingNote(coverage)}
+            />
+          )}
+          {/* Q85 inc.27 — directly under the intel, because "what the call taught us" and
+              "who said it" are one thought. Renders nothing when no meeting is captured. */}
+          {!meetingsUnavailable && (
+            <AttendeeRoster
+              rosters={rosters}
+              countLabel={`${rosterCounts.linked} linked · ${rosterCounts.unlinked} not yet`}
             />
           )}
           {meetingIntelSource.unusable.length > 0 && (
