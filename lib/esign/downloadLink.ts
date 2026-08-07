@@ -59,8 +59,12 @@ export function verifyDownloadSignature(
  * The link to put in an email. Returns null when no signing key is configured,
  * so callers fall back to the long storage URL rather than mailing a dead link.
  */
-export function downloadLink(documentId: string, baseUrl: string): string | null {
-  const sig = downloadSignature(documentId);
+export function downloadLink(
+  documentId: string,
+  baseUrl: string,
+  key = linkKey()
+): string | null {
+  const sig = downloadSignature(documentId, key);
   if (!sig) return null;
   return `${baseUrl.replace(/\/+$/, "")}/d/${documentId}/${sig}`;
 }

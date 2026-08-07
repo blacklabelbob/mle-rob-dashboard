@@ -85,8 +85,8 @@ export function signedCopyEmail(args: {
       `${args.signedAtIso.slice(0, 10)} (UTC).\n\n` +
       `Download the completed agreement (includes the signature & audit certificate):\n\n` +
       `${args.downloadUrl}\n\n` +
-      `This download link expires in 7 days; the agreement itself is retained securely ` +
-      `and a fresh copy can be requested at any time.\n\n` +
+      `The link stays valid and always returns the current copy — including the ` +
+      `fully executed version once both parties have signed.\n\n` +
       `My Local Everything`,
   };
 }
@@ -106,7 +106,7 @@ export function fullyExecutedEmail(args: {
 }): Omit<EsignEmail, "to"> {
   const first = args.signerName.split(/\s+/)[0] || "there";
   return {
-    subject: `Fully executed: ${args.documentTitle}`,
+    subject: `Complete: ${args.documentTitle} — fully executed`,
     text:
       `Hi ${first},\n\n` +
       `"${args.documentTitle}" is now fully executed — signed by both parties ` +
@@ -115,8 +115,7 @@ export function fullyExecutedEmail(args: {
       `${args.countersignerTitle}.\n\n` +
       `Download the fully executed agreement (both signatures + audit certificate):\n\n` +
       `${args.downloadUrl}\n\n` +
-      `This download link expires in 7 days; the agreement is retained securely ` +
-      `and a fresh copy can be requested at any time.\n\n` +
+      `The link stays valid and always returns the current copy.\n\n` +
       `Rob Acheson\nMy Local Everything`,
   };
 }

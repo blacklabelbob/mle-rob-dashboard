@@ -114,3 +114,23 @@ else means the signature will not appear. **A green local test is not evidence h
   "Greenwood Management, LLC" reached a client draft).
 - Deferred, with reasons: `contracts/docs/DEFERRED-2026-08-07.md` (Prepared-by line,
   Google Drive copy, short `/d/<token>` links, "Complete" in the completion subject).
+
+### Emailed links are SHORT links, on our own domain
+
+Every download in an agreement email is `/d/<documentId>/<hmac>` (`lib/esign/downloadLink.ts`
+→ `app/d/[documentId]/[sig]/route.ts`), never a raw Supabase signed URL. Rob rejected the raw
+one twice: ~600 characters, wrapped over five lines, tail full of `%255BDRY+RUN+3%255D`.
+
+- Stateless — the path is the document id plus an HMAC of it. No table, no migration.
+- Resolved at click time, so ONE link stays correct for the life of the agreement: mailed at
+  signing, it returns the fully-executed copy once countersigned. Do not mail stage-specific
+  URLs.
+- The route is public (`/d/` is in `isPublicPath`) — counterparties have no dashboard creds.
+- No key configured ⇒ `downloadLink()` returns null and callers fall back to the long signed
+  URL. A missing env must never mail a dead link.
+- **On the record: this link does not self-expire.** It is an unguessable bearer link to one
+  agreement, refused once the document is voided or archived. If that ever needs to change,
+  stamp an expiry into the payload — do not lengthen the signature.
+
+Completion email subject leads with **Complete:** (Rob's wording). Do not revert it to
+"Fully executed:".
