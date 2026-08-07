@@ -1,0 +1,242 @@
+==============================================================================
+TITLE (do not trust): Matt Jackson and Ryan Groth 2025-12-17T10:00:00.000-05:00
+URL: https://app.notion.com/p/Matt-Jackson-and-Ryan-Groth-2cc1de5701998071b1acc075faf9fdbd
+id : 2cc1de57-0199-8071-b1ac-c075faf9fdbd
+------------------------------------------------------------------------------
+PROPERTIES — in full; this is where the identity the title omits lives:
+  ∅ Google Doc Link [url]: None  ← claims absence
+  ∅ Show/No Show [multi_select]: None
+  ∅ Next Steps/Action Items [rich_text]: None
+  ∅ Company URL [rich_text]: None
+  ∅ Parent Account [multi_select]: None
+  ∅ MLE [select]: None
+  · Last Edited [last_edited_time]: 2026-07-22T12:05:00.000Z
+  ∅ Child Account [multi_select]: None
+  ∅ Other Combined/Possible referral [rich_text]: None
+  ∅ Customer Pain Points [rich_text]: None
+  ∅ Meeting Summary [rich_text]: None  ← claims absence
+  ∅ MLE Attendees [multi_select]: None
+  ∅ Follow Up Date set [date]: None
+  ∅ Company Meeting with [rich_text]: None
+  ∅ Export Status [select]: None  ← claims absence
+  ∅ Sales Rep [people]: None
+  ∅ Notion Meeting Page [url]: None
+  · Call Date [date]: 2025-12-17T15:00:00.000+00:00
+  ∅ Tags [multi_select]: None
+  ∅ Call Recording [url]: None  ← claims absence
+  ∅ Contact Name [rich_text]: None
+  ∅ Non MLE Attendees [rich_text]: None
+  ∅ TAM # [number]: None
+  · Created [created_time]: 2025-12-17T15:06:00.000Z
+  ∅ In Person/Virtual [multi_select]: None
+  ∅ Urgent TO DO [rich_text]: None
+  ∅ Meeting Type [multi_select]: None
+  ∅ Primary Target ICP [multi_select]: None
+  · Meeting Title [title]: Matt Jackson and Ryan Groth 2025-12-17T10:00:00.000-05:00
+------------------------------------------------------------------------------
+BODY: 198 blocks, 44935 chars — paragraph×126, bulleted_list_item×54, heading_3×12, to_do×5, transcription×1
+  ⚠ 4 field(s) imply 'no record'. CONTRADICTED — the body below HAS the content. Trust the body, not the field.
+      · Google Doc Link [url] = None
+      · Meeting Summary [rich_text] = None
+      · Export Status [select] = None
+      · Call Recording [url] = None
+------------------------------------------------------------------------------
+FULL BODY (summary + transcript) — read it, do not skim:
+[transcription] 
+  [paragraph] 
+    [heading_3] Business Growth and Goals
+    [bulleted_list_item] Company has grown from $4M (at acquisition) to ~$8M this year, with only ~10% from storm work  
+    [bulleted_list_item] Target: $10M next year, $50M by 2030 
+    [bulleted_list_item] Recent win: $1.2M Supreme job with 43% gross profit margins 
+    [bulleted_list_item] Operating in Tampa/Fort Myers/Sarasota market with significant growth opportunity  
+    [heading_3] Sales Compensation Structure Discussion
+    [bulleted_list_item] Current bonus structure: After $1M in sales, salespeople earn $10K bonus for every additional $250K sold (effectively ~5% of total) 
+    [bulleted_list_item] Questions around whether this is too generous or too little for commercial roofing sales 
+    [bulleted_list_item] Discussion of balancing base salary vs. performance-based compensation
+    [heading_3] Sales Team Structure Challenges
+    [bulleted_list_item] Need to transition from player (individual contributor) to player-coach role   
+    [bulleted_list_item] Current challenge: Founder is highly effective salesperson but needs to build scalable team 
+    [bulleted_list_item] Concern about finding salespeople with right technical knowledge to handle engineer questions 
+    [bulleted_list_item] Two potential models discussed:  
+      [bulleted_list_item] Biz dev/account manager model (for mature businesses with brand recognition)
+      [bulleted_list_item] Account executive/hunter model (better fit for current stage)
+    [heading_3] Sales Process and Role Specialization
+    [bulleted_list_item] Salespeople should focus on pipeline, decision makers, presentations, referrals, and networking - not estimating and takeoffs  
+    [bulleted_list_item] Recommended approach: Dedicated takeoff and estimators to support sales team  
+    [bulleted_list_item] Sales reps should be ~80% effective on discovery, presenting, prospecting, and networking 
+    [bulleted_list_item] Technical sales engineer role needed to support account executives in complex situations  
+    [bulleted_list_item] Current estimating done via Excel spreadsheets; should invest in tools like Estimating Edge or Timberline   
+    [heading_3] Service Business Strategy
+    [bulleted_list_item] Goal: 30% of revenue from service work  
+    [bulleted_list_item] Service margins are higher, need to make it as exciting as re-roof sales to prevent reps from only pushing re-roofs 
+    [bulleted_list_item] Currently doing very little residential (5-10% max), focusing on commercial  
+    [heading_3] Competitive Advantages and Sales Approach
+    [bulleted_list_item] Owner's Wall Street/corporate finance background creates differentiation 
+    [bulleted_list_item] Discovery-focused approach using financial analysis and payback period discussions 
+    [bulleted_list_item] Presents 3+ system options vs. competitors who only pitch one 
+    [bulleted_list_item] Detailed scope of work (down to specific component counts) helps justify premium pricing    
+    [bulleted_list_item] Supreme rep praised presentation and bid packages as better than major competitors   
+    [bulleted_list_item] $5M insurance coverage and high-profile references (Orlando International Airport) used as credibility markers 
+    [heading_3] Market Positioning Considerations
+    [bulleted_list_item] Potential to segment by vertical: HOA, industrial, government  
+    [bulleted_list_item] Recommendation: Follow best clients and continue pattern with high-margin, fast-paying, good customers rather than chasing new verticals  
+    [bulleted_list_item] Bonded for government work, just starting to pursue that market 
+    [heading_3] Current Team Structure
+    [bulleted_list_item] Office manager and office administrator
+    [bulleted_list_item] One W-2 sales person (salary + commission) 
+    [bulleted_list_item] One 1099 sales person 
+    [bulleted_list_item] Old owner fading out in June (not very productive) 
+    [bulleted_list_item] Director of operations (promoted today) 
+    [bulleted_list_item] Two site supervisors 
+    [bulleted_list_item] One repair crew (can split into two) 
+    [bulleted_list_item] Two foam technicians for low-rise work 
+    [bulleted_list_item] Majority of production work subcontracted out 
+    [heading_3] Infrastructure Needs Identified
+    [bulleted_list_item] Need methodical sales training program beyond current "ride along" approach  
+    [bulleted_list_item] Started creating Loom videos but need comprehensive process 
+    [bulleted_list_item] Recruiting funnel currently just Indeed postings - needs major upgrade  
+    [bulleted_list_item] Sales process, management infrastructure, onboarding plan all need documentation 
+    [bulleted_list_item] Want to standardize "Matt Jackson special" into repeatable playbook 
+    [heading_3] Proposed Solution Overview
+    [bulleted_list_item] Sales Builder Program: Year-long engagement with high-impact work upfront 
+    [bulleted_list_item] One-on-one sales manager/leader coaching 
+    [bulleted_list_item] Build infrastructure assets including sales process, recruiting funnel, onboarding 
+    [bulleted_list_item] Integrate founder's proven approach into standardized playbook 
+    [bulleted_list_item] Focus on leading with service, emphasizing relationships and retail/commercial work 
+    [bulleted_list_item] Create courses and group training for methodical sales process with discovery focus 
+    [heading_3] Personal Context
+    [bulleted_list_item] Owner married with two daughters (ages 3 and 1) 
+    [bulleted_list_item] Has cash to invest in growth initiatives now 
+    [bulleted_list_item] Background: 6 years on Wall Street, institutional consulting, ultra high net worth clients 
+    [bulleted_list_item] Previously mortgage broker, then corporate finance, then institutional consultant managing money for insurance companies and pension funds 
+    [heading_3] Action Items
+    [to_do] @Robert Acheson to work with consultant on presenting Sales Builder Program proposal  
+    [to_do] Schedule follow-up presentation meeting for Tuesday next week at 10 a.m.  
+    [to_do] Build out recruiting funnel infrastructure 
+    [to_do] Create standardized sales playbook from current approach 
+    [to_do] Develop onboarding plan and sales process documentation 
+  [paragraph] 
+    [paragraph] 
+  [paragraph] 
+    [paragraph] We'll see how much of that activity leads to actual pipeline. work to be determined. *laughs* structure *Metal music* It's a very low base out. I don't think that's a lot of money, especially to a salesperson.
+    [paragraph] And basically, every year they hit over a million dollars. So there's like a $10,000 bonus for $250,000. This starts after a million. So every $250,000 they sell after a million. It's $10,000, but it's $2 million, it's $20,000 bonus, $3 million, $30,000 bonus, et cetera, et cetera. So it kind of works out like 5% of total. Yeah. I don't know if that's too little or too generous. So those are some of the questions I have.
+    [paragraph] How do you structure? And I guess part of it, a lot of it just goes to your point in the first place. If you don't have the right people in the funnel in the first place, you're going to get shitty results regardless of how good your process is. For sure. So there's so many, I just think our, It's definitely, it can be complex. Um, definitely. Um, Can I just want to first off, this is Rob. He's in Fort Myers.
+    [paragraph] Hey, man. How's it going?
+    [paragraph] Nice to meet you, man. Oh, nice. And he'll, you know, I'll catch you up, but I'm recording this anyway. So as far as... So you've got questions about structure in the recruiting and how to structure the sales team. Congrats on selling yourself and doing that. That's huge. Getting a process. I mean, you come across more as a professional than the average roofing contractor. So you will attract people.
+    [paragraph] I think that's the type of people you want. When I'm seeing you, I'm seeing some like, I'm seeing I'm seeing some companies that I've worked with that have really crushed it over the course of four to five years. with a pretty straightforward outside sales team structure and comp. But I do I do have some curiosity about like, your brand investment, like how much you're putting into brand and lead gen.
+    [paragraph] Because there's kind of a couple of models. There's like the biz dev account manager model, which usually happens in a more mature business with a lot of brand recognition. And then there's a little bit more of like the account executive, like sales executive style model, which I feel like is probably more popular. Behooves is more in line with where you are at the stage of the business and maybe more in line with your style.
+    [paragraph] Which is like, let's get some hunter-killer dudes that can just go get it done and stand in front of a boardroom and present well and communicate well and do full sales cycle, basically, until there's a lot of accounts. Are you servicing them? Are you doing service maintenance?
+    [paragraph] Yeah, we do. The goal for the financial measure of the business, I want to get, I mean, this is whatever you think. Everybody wants this.
+    [paragraph] You want to get to 30%, right? Revenue being 30%. We definitely need to make sure that's calm. for service. The margins are higher. The volume is smaller, but we want to make that as exciting or more exciting than the re-roof or else they're just going to try to sell the re-roof every time. So I think that that's a major thing. My other question is, The reason I asked about court like about Legion and brand is is there is There definitely is a seat for like the coordinator role, like somebody who's supporting sales, somebody uh And then typically in most high-performing companies, The salesperson is not estimating and doing takeoffs.
+    [paragraph] At all. Like they just don't even do it. They just focus on pipeline, decision makers, presentations, referrals, networking, networking.
+    [paragraph] Like they don't.
+    [paragraph] They know what's going on. They're aware of it, but they're not responsible for that. So, you know, that's something I would also have you think about is, you know, having dedicated takeoff and estimators. I know with AI, things are starting to change even faster. So I don't know. All of those answers right now. But... I'm trying to get a pulse on some tools and how fast we can pump out accurate estimates with AI.
+    [paragraph] It's hard. I mean, it's very hard because you're taper packages, right? You're taper packages. We don't do our in-house taper system. So you just never know what the design is going to come back based on where all the water is going. So I think that's going to be the hardest hurdle to overcome. as far as getting an accurate quote out. Yeah.
+    [paragraph] But, you know, there's reliable estimating tools out there. You should probably invest into or look at. What are you using to estimate right now?
+    [paragraph] So right now I've got Excel spreadsheets. It's pretty... And when I bought the company, there was like yellow pieces of paper.
+    [paragraph] So it's, yeah, I mean, estimating edge is pretty big. Like, um, I know there's a Timberline software that if you, you pimp that out, it could be pretty scalable with the estimator, but, um, Yeah, I would say if you had somebody who's devoted to the estimating side. Takeoffs, if we could have the sales rep do the takeoffs, that's probably ideal, but... Even if we sent somebody out for that, on re-roofing jobs.
+    [paragraph] So I'm just saying they could be somewhat armed and dangerous, but if they're spending more of their time on that, they're going to get bogged down and not generate the pipeline and qualify and do the discovery. That's the magic, right? You talk about it, discovery. All right, so let's get to like... So you have some questions around structure and how to build the business. But my point being earlier is I have some companies that have been more let's build the sales executive style, like people who do commercial real estate, like people who have a I've worked with owners and managers and people with larger assets that can talk the talk and present well.
+    [paragraph] are very motivated and they don't have a small money ceiling that they kind of get spooked with like big lots of zeros on a contract. Those guys I've seen companies that we've worked with that we've really kickstarted things and they went from like 12 to 50 million over four years or from zero to 27 million in six years, just like of all service in Reroof. So just straight, relationship based selling and prospecting.
+    [paragraph] Leading with service, selling, re-roofing and restoration. And I think with your market that you're in, Seattle is a very big market. Um... that type of thing is possible.
+    [paragraph] But let's get back to that.
+    [paragraph] So real quick on this, just a quick question.
+    [paragraph] So when they're selling, right, do you think, is it hard for a good salesperson to overcome the technical knowledge that might be needed if there's an engineer on board or an engineer's a decision maker that... Just ask them super technical questions. That's kind of like my concern with delegating the estimating. I'm okay doing that. They need to kind of understand all the components that go into it.
+    [paragraph] They should, they should. But that's when you come when needed or you have that technical sales engineer type person with you, with them that can step in and answer questions. But we know how those people are though, right? They're so knowledge heavy. that they can come in and actually like confuse or oversell or over educate something. Right. And that's actually what we're like. We want to kind of be that.
+    [paragraph] The account executive which I like that title for roofing sales They You know, they're kind of like fielding, hey, I've done all this discovery. I have a relationship with them, but I don't want to. I don't want to overspill. I want to kind of bring them into when I need them in those moments. So the board meeting or the pre-bid when necessary, things like that. So yeah. I think that you probably need to just either find somebody or train that technical person is what I would say alongside.
+    [paragraph] But you have to fill that in for a minute. A technical, personal, you know, to support. You're never gonna have sales reps who are gonna come, batteries included, that know how to do all that stuff, right? If anything, we want them to be, 80% effective on discovery and presenting and prospecting and networking and all that stuff. And you fill in until that person's strong and technically able to support the team.
+    [paragraph] So that's what I've seen. Got it, makes sense. So let's talk about like, Hopefully I've answered some questions. The main, like, The main thing for you right now is you want to become a better sales manager and better structure the team. and you've sold now, how do you actually like bring in and keep the right team? and actually win with that team. Seems like that's the reason we're here.
+    [paragraph] Right, right. I figured out how to skin the cat myself. How do I... you know, what are the deficiencies in my process? How do I identify those? How do we take care of those? And then also myself, like, you know I know I'm a really, really good sales person, right? Like me doing it. It's just so easy compared to like Wall Street. Like it's kind of laughable how easy it is relative to what I had to sell before.
+    [paragraph] Right. But like, how do I, yeah. Then how do I become a better coach myself, right?
+    [paragraph] Like how do I become-Yeah, you're like a player, but like player, coach, transition and you know, that, Doing that well, because if not, you're just going to be in five years doing this yourself again. We'll be here all over again, like in three years, five years. And you're making money, but it's not like you're... building the way you value. So is that a vision for you is to build? Yeah, the vision is...
+    [paragraph] Reduce key man risk, things like that.
+    [paragraph] Yeah, like at the end of the day, it's... I want to have a sellable asset. Not that I didn't want to sell it, but that's how I get to go fishing all the time. You know what I mean? Like, so yeah, I, you know, we, the business, when I bought, I was like doing 4 million, right this year we, we topped, I think we'll be right around eight. Um, and, and a good side, I don't think like 10% of that's from the storm work.
+    [paragraph] Right. So it's, we're not, we didn't get a huge bump from the storms.
+    [paragraph] We did obviously get, was it like insurance proceeds or was it just, no, it was like retail stuff like that. Uh, just triggered by the storm.
+    [paragraph] Right. Right. Exactly. So we don't do any storm chasing. We do storm catching. I like it like that. I don't want to build a storm chasing.
+    [paragraph] You're in a Florida market. You don't need to mess around. Like, yeah, that's you're, you're in a sweet spot. If you could just stay right there, serve your clients, do a good job, build a good brand. Yeah. You're, you're good. People can't come in like they used to anyway with the way it's changed. So. You're good. You're in a good spot.
+    [paragraph] So sellable after that? Yeah, so sellable. The goal for next year is 10 million. You know the goal for the organization you know over the next five years is 50 million how we go about that if we're putting satellite offices up I'm not sure maybe we'll acquire some businesses. I don't know the right path to get there, but the goal is $50 million. Um... by 2030.
+    [paragraph] You could probably do most of that in Tampa. You know, Tampa, Sarasota, You know, outskirts of Orlando. Just knowing the size. I mean... You know, you got like a Sutter, right? They've been around forever. A lot of new construction. They're doing 150. They know Sutter pretty well. Yeah, you know Sutter. Like the Crowthers. both those companies doing over 100 in the same market.
+    [paragraph] There's a lot of business where you are right now. There's a huge business. We're bonded. We do some government work. We've just touched the tip of the iceberg on government stuff. You know, that's the other question I kind of had. Like, generally... The other part I'm thinking is like... as I built the sales team, is like, you know, delineating between this person's kind of HOA, this person's industrial, this person's government, right?
+    [paragraph] Because there's, three different kind of decision-making processes for all these buyers, you know.
+    [paragraph] Yeah. Yeah, I've seen that the pod, like a pod structure starts to form whenever there's enough revenue to justify like little teams going after certain vertical markets. I've said, I've seen that work. I can't tell you that you should do that. I can't tell you. I would say follow your best clients and continue to follow that pattern, that red crumb trail into more accounts right now. Just keep going with your high margin, fast paying, happy customers that are good to work with.
+    [paragraph] Just keep following that trail relationally and industry. Just keep doing it. Don't, Hey, we should, this sounds like a good idea. Let's do that. And you're like, well, shit, we're starting from zero. Right. Well, we could have just like kept doing this and then we get the referral. Now we start to follow that one. If it's a good client, right. The pumpkin plan is a, is a book. I'd like to teach on with a B2B stuff.
+    [paragraph] So yeah, um So what I'm hearing from you is Sales management. coaching you're a clear player. How do I become player coach? How do I structure the team? How do I lead them? How do I not burn a bunch of cash on the way to doing it? But it's this blend of performance base. They kind of grow into it. We weed themselves out a bit, but I'm also, this isn't residential door-to-door sales. This is like commercial roofing.
+    [paragraph] There's an investment period. What does it look like in five years as we're getting to 50%? And, um... Um... That's what I'm hearing from you. And you, if you're thinking about Help from us. What is your solution aware? If you were to describe what I would imagine an SDG to help me, what would that sound like to you? What would that look like to you if you have something in mind already?
+    [paragraph] Yeah, I think it's having your sales process. I don't know, I'm not too familiar with your suite of offerings, right? At some point, I need to have, like, I'm kind of have, I kind of like this, have this half ass sales training to be quite honest. Like I kind of like driving off the truck with the guys and like, here's how you do it. Here's ideas, but we need to have like a process and I'm so busy running the bids that are coming through the pipeline still that I don't have time to build it.
+    [paragraph] Like I started building like loom videos for like this type of investment together and stuff, but actually having like a methodical approach to success, like it's something we need. And, and quite frankly, Like it's really hard for me to put what's everything up in my head like down on paper and then put like a process around that right yeah it's like the I know how it works and sauce yeah like right but like that's not fair and like I don't want to bring in people.
+    [paragraph] Like, I don't want to bring in people and have them burn out because... I think it's in the right platform to develop on. Yeah, I got you.
+    [paragraph] And then it's not just the sales process, so if I'm gonna add to it, it's like management infrastructure, the recruiting funnel, the onboarding plan.
+    [paragraph] It's everything. Right. Like our recruiting funnel right now is we put stuff on Indeed.
+    [paragraph] Yeah, but you saw mine yesterday and you're like, okay, this would probably be a good project to build out.
+    [paragraph] This is like fucking way better, right? Yeah. It takes some time to build it.
+    [paragraph] No, but you'd be dope to interview because I know someone's going to say, oh man, like Wall Street, like You know, there's definitely a... There's going to be an edge to this guy. He's professional. Like, look how fast he's going. Like, I can see... You know, you building some a team of like, you know, guys and gals, if you know you both that are. that have a DNA about them, you know, that separates you guys from your competition.
+    [paragraph] And I think that that's something we can lean into. Go ahead.
+    [paragraph] So like the Suprema rep, right? He was in, we're doing our first for equal Suprema. He's like, "Hey Matt, can I just take a look at your sales stuff, like your presentations, like your bid package?" I showed it to him and he was like, Just blown away. He's like, yeah, he's like, it's better than anything I've ever seen from him.
+    [paragraph] He's so literally, he's like, dude, this is better than all the big guys.
+    [paragraph] He's like, if you can figure out how to scale this, like there's no reason you won't be at 50 million.
+    [paragraph] I think we can kind of create a container infrastructure, uh, I think just to preview, we like to do typically year-long engagements with a lot of high-impact stuff in the beginning, a lot of structure. And Coach to coach, and we have some courses and group training that would absolutely provide that methodical sales process with a ton of discovery, but we would... You know, for certain, want to take some of your, you know, the Matt Jackson special, integrate that into it, standardize it into a playbook.
+    [paragraph] And there's some things we definitely want to do together that would help, you know. build out the sales org. And, um, Yeah, I think that we could definitely help you. I like working with You know, forward-thinking, growth-minded, you know, brand-focused commercial roofers. Within a retail function, I think I've worked with a lot of commercial companies commercial storm guys and it's like the only and I've tried to rather and the only way it works with them is if there's like a massive residential business that kind of help incubates it because it's just such a volatile big swing and miss business where like We help lead with service, emphasize service, brand, relationships, and reverse calm.
+    [paragraph] And if you just double down and can do a really good job consistently over and again, build disciplines around that and the skills translate into better results over time and the right people are in there. you'll have a great business.
+    [paragraph] And the service component, man, it's so important. I just won a $1.2 million contract, it's that supreme job. 43% gross profit margins. Come on dude.
+    [paragraph] Just absolutely crushed it.
+    [paragraph] The biggest reason why is the, it just goes back to discovery why it's so important. Right. So like the first questions I'm asking the board president was like, you know, what's, what's the community's, you know, likelihood to spend more money today is going to save them 40% in 15 years. He's like, what do you mean by that? And I started asking all these questions. I started talking about payback period.
+    [paragraph] I started throwing around these like, basic financial terms, he's like, stop, stop, stop, stop. He's like, dude, you don't sound like a roofer. I was like, funny you mentioned that. My background is I was on Wall Street for six years in corporate finance before that. I was like, but I am actually a licensed roofer in the state of Florida. He just goes, whoa. They just kept adding on.
+    [paragraph] You're a savage sales guy. We're not going to get clones of you. I just want to prepare you. We won't get clones of you. You're freaking great. If we can get... like something close, like 70%, like times five, times six, we can do something, you know? You just got to know that you're going to be, you're a bulldog. Stay in it. Stay in it.
+    [paragraph] Because you're going to inspire. I love it. My favorite thing to do is just to go crush accounts at like not the lowest price, right?
+    [paragraph] Like Zach Wallach. He's my age. He's Greg Wallach's son of Best Roofing. Yeah, I saw your interview with him. Didn't you interview him? Yeah, yeah. He was just out in Maui on a vacation and we were hanging out. I'm moving back to Texas, by the way. back in a to the mainland. But anyway, yeah, dude, he was VP of sales and whatever, EVP of sales as the last promotion and... I mean, dude, he sold like 30 million by himself and then the rest of the company sold the rest of the other 20.
+    [paragraph] And that's just there's a guy advanced roofing, you know, advanced right in Florida. Of course. Yes. You probably know their main sales guy, the guy whose wife is like the MLB Network chick. What's forgetting his name? Dude, he's a $50 million a year guy. That was like seven years ago. I mean, it's just, you know, when you have a guy that makes it rain, like it, It builds confidence to the rest of the team.
+    [paragraph] There's a lot. You just got to stay in it like this. Progressive roofing guys, the owner, when they sold out to the private equity, he was doing 70 million by himself. And he's, you know, it's just. You're gonna build this, it's gonna be built around you and if you sell, they're gonna want to have you to hang out for a while unless you wanna cash out and leave. But keep rain making, keep doing what you're doing.
+    [paragraph] We can build a team that can do something. They'll carry weight. It'll happen. You can go fishing. It will happen. But I like what I'm seeing with you, man. I think there's a lot we can do with you. What I'm gonna do is work on With Rob, I want to present to you our sales builder program with some upfront work. And that's a sales manager, sales leader coaching program that's working one-on-one with you.
+    [paragraph] And we build out some of these infrastructure assets. We coach the coach and sales processes included onboarding a bunch of different elements to help ensure that we nail it. And you build a killer team.
+    [paragraph] I'm pumped. And I've got the cash to do it now. So it's a much different business. now than it was two years ago. Yeah, man, congrats. I can finally make some investments and everything just keeps getting invested back in the company in order to keep growing it. Yeah, that's good, man.
+    [paragraph] This will be a long-tail ROI. We're building out infrastructure that will compound over time. Last question, man. Are you married, kids? What's the personal side?
+    [paragraph] Married. I've got a three-year-old and one-year-old. They keep me incredibly busy. Two girls. They're insane. It's so much fun. I love it. Two girls.
+    [paragraph] That's cool. Daddy's home!
+    [paragraph] Our first one was IBF. Long story short. It took five years. The second one was like, oh shit. Twelve months later, she's pregnant. And so I got two boys on ice right now. So like, I really want to have a third. I just, dude, it's just kids.
+    [paragraph] It's a lot of money and time and the emotion.
+    [paragraph] And it's an extra, it's an extra airplane row. So like, it's a whole thing, right? To have the third kid.
+    [paragraph] Like we'd love to do it. Dude, I don't know if you know, did you, do you know how many kids I have? How many? I have six kids, dude. Holy shit, bro. So I don't miss. And now I don't even try anymore because it's ridiculous. I do not want anymore. But yeah, we have four boys and two girls. It's absolutely... Awesome. It's amazing. It's bonkers. It's all of it. It's crazy. It's expensive. But yeah, dude.
+    [paragraph] So yeah.
+    [paragraph] Well, I mean, congratulations.
+    [paragraph] Yeah. Thank you. I just Rob and I will work on something. Let's schedule that now. Rob, can you open up? Yeah, let's do it. And then we'll set up this guy in 45 minutes. We want to do an hour at least any time for questions, but yeah, we'll go from there.
+    [paragraph] How you looking Friday, Matt?
+    [paragraph] Oh You're out. Sorry, one sec. You guys hear me?
+    [paragraph] I'm going to make you host because I have another call right now. Yep. Rob, I'm going to make sure to schedule that. I got to go. See you, Rob.
+    [paragraph] See you. Bye. I can hear you, man. Yeah. Friday is somewhat busy. Next week. Yeah. Friday is actually not a good day. Dude. Next week is completely open up until like Monday, Tuesday, next week. Are you guys going to be in? Pick a time. Pick a time on their Tuesday next week. Yeah. I'm sorry, Calder, but... All right, Rob. Have a good Monday. What was that? Sorry. Yeah, I worked in Wall Street for six years before that.
+    [paragraph] I was in corporate finance and Before that, I was actually a mortgage broker right out of college. So that's... This is where my sales chops learned a lot of smiling and dialing. Um, Yeah, man. And then... I was an institutional consultant. I was managing a lot of money for insurance companies, pension funds, deferred cap plans. And then we had some ultra high net worth clients. like 50 million and up.
+    [paragraph] And it's just so crazy because like any one of those clients that you're managing, like you have to understand 50 different components of their life or their investment objectives. And there's so many different like tax things that go into it. So like there can literally be, you know, a thousand different variations plus of how to structure their accounts. And then you get into the risk profiles and then there's like, okay, now there's 40 different asset classes.
+    [paragraph] And then those asset classes, I've got at least 200 options to pick from. Right. So it's like, you've got this infinite amount of like shit that can happen. And if you miss any one, like it goes wrong. I get in the roofing. I'm like, dude, there's like fucking four things we do. Right? I'm like, this is so easy. But all these commercial roof guys, like the kind of older commercial roof guys are like fucking speaking jargon.
+    [paragraph] Everything's like super like crazy. And it's like, dude, they don't understand. Like they don't care what low rise adhesive foam is. Dude, it's you glue it or you screw it. You know what I mean? Like it's... Like, you can get technical with him, but, like, just – You know, but they, they speak in jargon. It's like, people don't understand what the hell they're talking about. So like, you know, all my competition, they're, they're, they're pitching one system wherever they install.
+    [paragraph] I pitch at least three systems on every single customer. And most of that's because I typically know what they're going to go with when I go into it. but it's just more about taking out the competition. Right. Because because no one else is doing that. Right. Like. So, so, so then by the end of the conversation, the goal is to get them to say, you know, kind of like two things. Right. And the one's like, well, that's kind of expensive.
+    [paragraph] And like, you know, you're not the lowest price. And, And I just say, yeah, my goal is never to be the lowest price. Oh, by the way, I've got $5 million of insurance. How much does my competition have? Right. We service the Orlando International Airport. You know what I mean? Like, so it's kind of like, So that they're like, okay, I get it. They start to see the value in that and just our capabilities and our team.
+    [paragraph] And then I try to get them to typically say, They'll typically by end of conversation will say, well, I think we found a roofer. We just got to figure out what roof we're going to go with. And then right there, I schedule a call at the next board meeting or the next whatever meeting I'm being with. And I say, well, think about it. Let's come back. But before that, I'll typically ask, what is your major considerations?
+    [paragraph] Right? Like... like what what is your like like what are the pros like i've explained the pros and cons Right? Like, what are your objections to each system? It usually comes down to like money, right? At the end of the day, it's how do we get it? And then a conversation goes to, well, guys, there's only three ways to get money. You know, like you borrow it. take it out of your savings or reserves, you know, or you have to go raise it from your condos if it's a condo, you know.
+    [paragraph] So. you Yeah, yeah, yeah. Exactly. Yeah. I have like a little financial analysis I run and it's super simple. Like it's all modeled based off some insurance underwriting guidelines. Um Which is super important in our market, right? So... they're like they just start to see it right like like oh we're paying more today, but If we had to do this again in 15 years, like, holy shit, that's going to be a lot more money now.
+    [paragraph] Right. And like I've got my table set up for like a rate of inflation. Like, what do you think inflation should be? I use 6%. I think in roofing that's... Fair number, right? Like, and, uh, They're like... Yeah, but then sometimes you'll get the economic guy who's like, well, but the CPI is is this and I was like yeah well that's fine what that's that's fine it's so then I'll be like core or what you know what what metric they're like what how the fuck does this guy know this you know like just throw it right it's so much fun like I love selling I love being in front of boards I love the hard questions because they're it's basically at all at the end of the day it comes down to egos right like and I have no ego dude I used to be I used to have a super huge ego and And I learned that that hasn't gotten me very far.
+    [paragraph] So like at the end of the day, I just want to win the business, man. I just want to win the business and give people the best solution for where they're at.
+    [paragraph] You know, it's that simple, you know. And our competition is so shitty, dude. I've literally seen proposals that say Mayterra offers to deck.
+    [paragraph] Right, or like, we'll install ISO. Okay, how much ISO are you putting? What's the average R value? Are you mechanically fasting it or are you gluing it down? you know, then we'll install membrane, like just such like, and these are like, you know, three, $400,000 jobs. I see it every day. Like if you're in each condo association is going to get three bids because they have to buy the all. Typically one of those bids, you can throw it right out the door because it's not, if you can get them to not focus on price and only focus on like, let's focus on the scope of work first.
+    [paragraph] if you can have that conversation with them, I can typically get both of his thrown out because I, Because I'm like, okay, well, you've got it's like look you've got you know 8,000 square feet of parapet walls we're doing TPL I have to skim coat that wood so I get good adhesion or you get the warranty They don't have that included. What's their wood clause say? Okay, 8,000 square feet. Dude, that's like 240 boards, so that's another $24,000 right there.
+    [paragraph] or they're just going to half-ass your roof. And they're like, Oh God, I didn't even think about that. Right. But like, look at my right here. It says right here, 240 sheets of plywood, two skim skim coat walls. You're not going to get the wood claws for that. Cause it's already in my bid. So they start seeing this stuff and you have to educate them and put it together. They're like, Oh, it makes so much sense.
+    [paragraph] Like, yeah, yours is more because you're including everything that actually goes into the roof. Right. like we we detail it we detail it down to like there's 42 three inch pipe boots you know 21 two inch pipe boots so then so there's no questions to ask right you know how many ac stands are we doing multiply that times four that's totally sealant stand penetrations right are we three courses so like we yeah we just try to be God, it took me years to get it.
+    [paragraph] It took me years to have, it took me two years though to get into leggy. this level of understanding the components and the systems, right? Amen. Yeah, we'll be at like eight sold. Like 72 built. this year. So it's like seven, two will be the top line number. We had a couple jobs go off that just weren't estimated well that, you know, and then I had a crew screw it up. So that was like the one job, like a 250 K hit, you know, to the bottom line this year, we just had to eat it and fuck it.
+    [paragraph] It was what it was, you know, that, that was super strong. I lost two months out in the field straightening that shit up. So like, I think you know, we've gotten beyond a lot of that. Hopefully shit's always going to go wrong, but I don't think we'll have stuff that goes that wrong because after that I was like, you're running operations, I'm running sales. And like, I'll stack them up. you flame, you know what I mean?
+    [paragraph] It's like, it's like, so, so, and I really trust our ops guy and I think we've got our team in a much better spot. So like, Um...
+    [paragraph] Yeah, I think we're finally at a level where everyone has the knowledge to actually start building a team the way I want it to be built. Um, And we have the operations to get it done.
+    [paragraph] And we're finally set up with every top tier manufacturers at FiberTite. So like I've got Supreme at Carlisle, Elevate, JF, all of them, and like top tiers also. So yeah, it's going to be exciting 2026. And it's just crazy to me because I talked to other roofers and they're like, man, we're so slow right now.
+    [paragraph] And I'm like, dude, I am literally the busiest I've ever been. Like And I haven't really done much. Like I haven't really done like, like I haven't really spent a ton of time, like, actually being out there.
+    [paragraph] Like it's like, I've invested some money. It's like, The marketing is mostly just going to like conference conferences and shit, but like, Um... you know, it's, it's, I think the CAC on commercial is probably a little bit different. Like, I don't really want to go spend a bunch of money on Google clicks and get a bunch of residential bullshit that I don't even want. I'm trying to get out of residential completely.
+    [paragraph] I just don't want to do it.
+    [paragraph] Um, So yeah, that's-Maybe five.
+    [paragraph] five to ten at most like probably it's probably somewhere in that range it's very very little and like i said it's The only reason why we're still doing it is because like... you know it's a property manager's you know grammar or something right or it's like one of one of our referrals one of our referral partners stuff and they trust us like hey can you go take care of this like yeah of course we'll go go knock it out for you know but like But even then I asked him like, "Hey, look, you know, we do commercial stuff, right?
+    [paragraph] So you know, my field supervisor is making six figures, right?" And like, "Yeah." I was like, "So you know, I'm not going to be as cheap as the guy that's just going to go throw a subgroup on your job, right?" Even if I do it for my cost, they're going to be less. Like, I would get it, you know? So that's the first question always on the residential link call-in is I've trained my sales staff and my admin staff to like, assets are looking for the lowest price and They're always going to tell you no, they're not.
+    [paragraph] So at the end of the day, these resi people are getting more business commercial people are reading eight bids nine bids and That's fucking insane, dude. And there's guys out there plowing out shingles for like 450 foot for like an 18 square job. It's not worth being immobilized out there. It's crazy. It's so funny.
+    [paragraph] I go to conferences. or like polyglass trainings or at least I do try to always go to manufacturer trainings as much as I possibly can as well because I think it's just so important to like know what's coming up you know what's what's being updated the specs and whatnot but like, I'll talk to these Rezzy guys and they're like, yeah so you said you do like commercial right like yeah they're like i really want to get in that it's no really and then i'll say well here's what you have to do and i'll show them one of my big presentations And every time they're like, I can't do there's no way I can do that.
+    [paragraph] I said, oh, and by the way, if you miss this one component, you're going to lose like 70 grand. And if you don't spec this right, it's going to be an extra 20 grand. And if you miss this, that's going to be this. If you miss that, it's going to be that. And they're like, Like, so, you know, like, I think I'll keep it in the Resi world. Like, I think I'm happy banging out Resi roofs, right? Like, yeah.
+    [paragraph] Yeah, exactly. So, isn't it? We have an office manager. an office administrator, And then we have... I have one W2 sales guy on Salve Plus. I have one 1099 sales guy. I have... The other salesperson is the old owner. But he is fading out in June. He really is not very productive anyways. We're paying the ass to deal with. And then we have A director now, he will be director after today. He's my ops guy.
+    [paragraph] So he runs up all the field ops and then we have Two site supervisors. Two repair crews. I'm sorry, one repair crew that can turn into two repair crews. And then I retained two of my foam technicians. just to service our glue rigs now that we're using for our low rise. And they kind of bounce around jobs or run trailers and stuff like that. And we sub out the majority of our production review for it, but we service everything.
+    [paragraph] And we have those site supers on every job, make sure quality is met with subs. So, and I'm just, once we stabilize, once the revenue becomes more predictable and we show that it's more predictable, I think I'll probably end up, I'll build out the in-house crews. I just, it's been kind of, It's hard to figure out how to like... like i get busy and then it kind of goes like this a little bit so i'd like to just kind of have it you know Slow, yeah, predictable, linear, you know what I mean?
+    [paragraph] So like once I just can't, and plus like the sub cruise, man, like, Dude, our sub crews are so fucking good. Like, they're so good. Like, I can't even... Like they're fantastic. And anytime I asked them to do something like a little bit above and beyond, I get no problem, you know, like, You know, they're just, they're just fantastic. And as long as our, our, Like we use the same couple guys, you know, for everything we do.
+    [paragraph] And as long as our site supers are there, I don't really see an ROI operating that in-house right now based on where we are on the stage. Yeah.
+    [paragraph] 10 a.m.
+    [paragraph] Sweet. Thanks, Rob. Have a good one, man. Sweet. Thanks, Rob. Have a good one, man.
