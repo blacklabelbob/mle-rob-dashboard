@@ -61,10 +61,17 @@ const SAME_LINE_EPS = 2.5;
 
 function isHeading(str: string, word: "provider" | "client"): boolean {
   const s = str.trim().toLowerCase();
-  // "PROVIDER — My Local Everything, LLC" / "CLIENT". Anchored so a mid-sentence
-  // mention of the defined term ("...referred to as the Client") can't match.
-  if (word === "provider") return s.startsWith("provider —") || s.startsWith("provider -") || s === "provider";
-  return s === "client" || s.startsWith("client —") || s.startsWith("client -");
+  // Execution-block headings. Our own generator emits an em dash
+  // ("PROVIDER — My Local Everything, LLC", agreementPdf.ts) and a bare
+  // "CLIENT", but an UPLOADED agreement is not ours: Word and Google Docs
+  // routinely render the same block as "PROVIDER: ..." or with an en dash or
+  // hyphen. Accepting those separators costs nothing here, because the heading
+  // still has to have a "Signature:" run below it to become an anchor.
+  //
+  // Anchored to the start and to a separator so a mid-sentence mention of the
+  // defined term ("...jointly referred to as the Client") can never match.
+  if (s === word) return true;
+  return new RegExp(`^${word}\\s*[—–:-]`).test(s);
 }
 
 /** The nearest "Signature:" run BELOW a heading, plus its same-line "Date:". */
@@ -93,6 +100,30 @@ function anchorBelow(page: PageText, headingY: number): SignatureAnchor | undefi
 }
 
 /**
+ * The anchor for one party on one page, when the page names that party more
+ * than once. Candidates are tried from the BOTTOM of the page upward, and the
+ * first one that actually has a signature line below it wins.
+ *
+ * Both directions of that rule are load-bearing:
+ *  - bottom-up, because a party block near the top ("Client: Gulf Coast
+ *    Realty, LLC") sits ABOVE the provider's rule, so a top-down search would
+ *    hand the CLIENT the PROVIDER's line — the signer's ink in Rob's block.
+ *  - "that actually has a line below it", because a running footer or a notice
+ *    clause naming the party below the execution block would otherwise win and
+ *    resolve to nothing, silently discarding a good anchor.
+ */
+function anchorForParty(page: PageText, word: "provider" | "client"): SignatureAnchor | undefined {
+  const headings = page.items
+    .filter((it) => isHeading(it.str, word))
+    .sort((a, b) => a.y - b.y); // lowest on the page first
+  for (const h of headings) {
+    const anchor = anchorBelow(page, h.y);
+    if (anchor) return anchor;
+  }
+  return undefined;
+}
+
+/**
  * Locate the two signature blocks. Searched from the LAST page backwards
  * because the execution block lives at the end; the first page carrying a
  * PROVIDER/CLIENT heading wins, so a mid-document mention cannot hijack it.
@@ -100,12 +131,11 @@ function anchorBelow(page: PageText, headingY: number): SignatureAnchor | undefi
 export function findSignatureAnchors(pages: PageText[]): SignatureAnchors {
   for (let i = pages.length - 1; i >= 0; i--) {
     const page = pages[i];
-    const provHeading = page.items.find((it) => isHeading(it.str, "provider"));
-    const cliHeading = page.items.find((it) => isHeading(it.str, "client"));
-    if (!provHeading && !cliHeading) continue;
     const out: SignatureAnchors = {};
-    if (provHeading) out.provider = anchorBelow(page, provHeading.y);
-    if (cliHeading) out.client = anchorBelow(page, cliHeading.y);
+    const provider = anchorForParty(page, "provider");
+    const client = anchorForParty(page, "client");
+    if (provider) out.provider = provider;
+    if (client) out.client = client;
     // A page with headings but no signature runs is not the execution page.
     if (out.provider || out.client) return out;
   }

@@ -74,7 +74,14 @@ export interface IntakeBlock {
 export interface AgreementConfig {
   fee?: string | null;
   provider?: Partial<ProviderConfig>;
-  client: { legal_name: string; descriptor: string; address: string };
+  client: {
+    legal_name: string;
+    descriptor: string;
+    address: string;
+    /** Names the CLIENT side of the execution block when the bare legal name
+     *  is not the whole story (joint clients). Rob 2026-08-07. */
+    signature_label?: string;
+  };
   entities: EntityConfig[];
   additional_scope?: { title: string; description: string }[];
   intake?: IntakeBlock;
@@ -626,7 +633,7 @@ export async function buildAgreementPdf(
   const sig: Flowable[] = [
     P('Agreed and accepted by the Parties as of the Effective Date:', S.body),
     { kind: "spacer", h: 8 },
-    P(`<b>PROVIDER &mdash; ${prov.name}</b>`, S.sig),
+    P(`<b>PROVIDER: ${prov.name}</b>`, S.sig),
     { kind: "spacer", h: 14 },
   ];
   for (const s of prov.signers) {
@@ -639,7 +646,7 @@ export async function buildAgreementPdf(
   }
   sig.push(
     { kind: "spacer", h: 2 },
-    P('<b>CLIENT</b>', S.sig),
+    P(`<b>CLIENT: ${cli.signature_label || cli.legal_name}</b>`, S.sig),
     { kind: "spacer", h: 14 },
     P('Signature: ______________________________&nbsp;&nbsp;&nbsp;&nbsp;Date: ____________', S.sig),
     P('Name:', S.sig),

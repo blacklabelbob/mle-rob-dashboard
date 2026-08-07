@@ -81,6 +81,61 @@ describe("findSignatureAnchors", () => {
     expect(client!.pageIndex).toBe(1); // the real execution page, not the decoy
   });
 
+  it("reads the heading separators an UPLOADED agreement uses, not only our own em dash", () => {
+    // Our generator emits "PROVIDER — ..."; a Word/Docs original of the same
+    // block routinely comes through with a colon, an en dash or a hyphen.
+    for (const heading of [
+      "PROVIDER: My Local Everything, LLC",
+      "PROVIDER – My Local Everything, LLC",
+      "PROVIDER - My Local Everything, LLC",
+    ]) {
+      const page: PageText = {
+        pageIndex: 0,
+        width: 612,
+        height: 792,
+        items: [item(heading, 72, 400), item("Signature: ______________", 72, 360, 200)],
+      };
+      expect(findSignatureAnchors([page]).provider?.sigY, heading).toBe(360);
+    }
+  });
+
+  it("does not let a party block ABOVE the execution block steal the other party's line", () => {
+    // The regression the colon separator opens: "Client: Gulf Coast Realty"
+    // in the opening party block sits above BOTH rules, so a top-down search
+    // binds CLIENT to the provider's line — Alex's ink in Rob's block.
+    const page: PageText = {
+      pageIndex: 0,
+      width: 612,
+      height: 792,
+      items: [
+        item("Client: Gulf Coast Realty, LLC", 72, 720),
+        item("PROVIDER — My Local Everything, LLC", 72, 400),
+        item("Signature: ____________________", 72, 360, 200),
+        item("CLIENT", 72, 280),
+        item("Signature: ____________________", 72, 240, 200),
+      ],
+    };
+    const { provider, client } = findSignatureAnchors([page]);
+    expect(provider!.sigY).toBe(360);
+    expect(client!.sigY).toBe(240); // its own rule, not the provider's 360
+  });
+
+  it("skips a party named BELOW the block and keeps the real anchor", () => {
+    // A notice clause or footer naming the client after the rules must not win
+    // and resolve to nothing — that would discard a perfectly good anchor.
+    const page: PageText = {
+      pageIndex: 0,
+      width: 612,
+      height: 792,
+      items: [
+        item("CLIENT", 72, 300),
+        item("Signature: ____________________", 72, 260, 200),
+        item("Client: notices to the address above", 72, 90),
+      ],
+    };
+    expect(findSignatureAnchors([page]).client!.sigY).toBe(260);
+  });
+
   it("returns no anchors when nothing can be located — the safe fallback", () => {
     const scan: PageText = {
       pageIndex: 0,
