@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createDocumentVersion } from "@/lib/esign/createDocument";
 import { esignDb, type DocumentRow, type RequestRow } from "@/lib/esign/db";
-import { signedUrlFor } from "@/lib/esign/storage";
+import { downloadFilename, downloadPdf, signedUrlFor } from "@/lib/esign/storage";
+import { extractPageText, lastPdfTextError } from "@/lib/esign/pdfText";
+import { findSignatureAnchors } from "@/lib/esign/signatureAnchors";
 
 // Q47 e-sign document intake + listing (admin: behind the proxy Basic gate,
 // same as every /api/admin route — NOT in isPublicPath).
@@ -23,14 +25,54 @@ export async function GET(req: NextRequest) {
     // agreement hands back the fully executed paper, not the draft.
     const { data: doc, error } = await esignDb()
       .from("documents")
-      .select("storage_path,signed_path,countersigned_path")
+      .select("title,storage_path,signed_path,countersigned_path")
       .eq("id", view)
       .maybeSingle();
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     if (!doc) return NextResponse.json({ error: "document not found" }, { status: 404 });
-    const url = await signedUrlFor(doc.countersigned_path ?? doc.signed_path ?? doc.storage_path, 3600);
+    // Name the download after the document, not the storage key. The email path
+    // already did this; the dashboard View button did not, so every file Rob
+    // opened from the CRM still saved as "v1-signed.pdf" (his report, 2026-08-07).
+    const path = doc.countersigned_path ?? doc.signed_path ?? doc.storage_path;
+    const stage = doc.countersigned_path
+      ? "fully executed"
+      : doc.signed_path
+        ? "signed"
+        : "";
+    const url = await signedUrlFor(path, 3600, downloadFilename(doc.title, stage));
     return NextResponse.json({ url });
   }
+  // ?anchors=<documentId> — does the signature locator actually work against
+  // THIS file, in THIS runtime? Added 2026-08-07 because the locator passed
+  // every local test and silently no-opped on Vercel, and nothing could tell
+  // us that without a human signing a document first.
+  const anchors = p.get("anchors");
+  if (anchors) {
+    const { data: doc, error } = await esignDb()
+      .from("documents")
+      .select("storage_path,signed_path")
+      .eq("id", anchors)
+      .maybeSingle();
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (!doc) return NextResponse.json({ error: "document not found" }, { status: 404 });
+    const bytes = await downloadPdf(doc.signed_path ?? doc.storage_path);
+    const pages = await extractPageText(bytes);
+    const found = findSignatureAnchors(pages);
+    return NextResponse.json({
+      documentId: anchors,
+      pagesExtracted: pages.length,
+      textItems: pages.reduce((n, pg) => n + pg.items.length, 0),
+      extractionError: lastPdfTextError(),
+      anchors: found,
+      verdict:
+        found.client && found.provider
+          ? "OK — both signature lines located"
+          : pages.length === 0
+            ? "BROKEN — no text extracted (pdf.js unavailable in this runtime?)"
+            : "PARTIAL — text extracted but headings/rules not matched",
+    });
+  }
+
   const person = p.get("person");
   const org = p.get("org");
   const deal = p.get("deal");

@@ -9,10 +9,24 @@
 // Never throws: extraction failure degrades to "no anchors found", which makes
 // every caller fall back to certificate-only stamping (the pre-2026-08-07
 // behaviour). A malformed upload must not be able to break signing.
+//
+// BUT IT MUST NOT BE SILENT. The first version swallowed the error with a bare
+// `catch {}`, so when the import failed inside a Vercel function the signature
+// simply stopped appearing on the page and nothing anywhere said why — Rob hit
+// it twice before it was diagnosed. Degrade quietly for the SIGNER, never for
+// the operator: every failure is logged, and `lastExtractionError` lets a
+// caller (and the anchors= diagnostic) report the real reason.
 
 import type { PageText, TextItem } from "./signatureAnchors";
 
+/** Why the last extraction returned nothing. null = it worked (or never ran). */
+let lastExtractionError: string | null = null;
+export function lastPdfTextError(): string | null {
+  return lastExtractionError;
+}
+
 export async function extractPageText(pdf: Uint8Array): Promise<PageText[]> {
+  lastExtractionError = null;
   try {
     const { getDocument } = await import("pdfjs-dist/legacy/build/pdf.mjs");
     // Copy: pdf.js transfers/detaches the buffer it is handed, and callers
@@ -43,7 +57,11 @@ export async function extractPageText(pdf: Uint8Array): Promise<PageText[]> {
     }
     await doc.destroy();
     return pages;
-  } catch {
+  } catch (err) {
+    lastExtractionError = (err as Error)?.message ?? String(err);
+    // Loud for us, invisible to the signer: signing still completes, and the
+    // certificate page still carries the evidence.
+    console.error("[esign] pdf text extraction failed — signature will not be placed on the page:", lastExtractionError);
     return [];
   }
 }
