@@ -70,13 +70,14 @@ export const Q85_LEGACY_RETIREMENTS: readonly RetirementRule[] = [
   },
   {
     legacyId: 207,
-    disposition: "hold",
-    why: "Three named CG Roofing meetings whose titles hold the domain the Notion field omits. No keyed writer emits a per-company breakdown; the survivor family counts rows, not companies.",
+    disposition: "retire",
+    survivorKey: "meeting-archive/blocked-by-company",
+    why: "HELD at inc.10 because the survivor family counted rows, not companies. inc.12 built the per-company writer: `buildBlockedByCompanyFinding` groups the blocked rows by the CRM record their own title points at, so the three CG Roofing meetings appear as ONE decision with its three Notion links — this row's exact finding, re-measured every `check:archive` run instead of frozen at the moment it was typed.",
   },
   {
     legacyId: 208,
     disposition: "hold",
-    why: "The 4→6 movement in title-derived company names is a DELTA. No keyed row carries a before/after, so this is the only record that the planner's reach grew.",
+    why: "STILL HELD after inc.12, and the reason is narrower than it was: the per-company writer now re-states WHICH rows name their company from the title, but this row's content is the 4→6 MOVEMENT — a delta between two runs. A writer that re-measures the present cannot restate a change over time, so retiring this against it would file a supersede note that is not true. Retire it only when something keyed carries a before/after, or when Rob reads the delta once and closes it himself.",
   },
   {
     legacyId: 209,

@@ -197,6 +197,7 @@ import { KEY_CRM_GAP } from "../meetings/crmGapFinding";
 import { KEY_NEEDS_HUMAN_ACCOUNT } from "../meetings/archiveFinding";
 import { KEY_PERSON_PROPOSALS } from "../meetings/personFinding";
 import { KEY_WRITE_BLOCKERS } from "../meetings/writeBlockerFinding";
+import { KEY_BLOCKED_BY_COMPANY } from "../meetings/blockedByCompany";
 import { CENSUS_REFUSAL_KEY, CENSUS_UNREADABLE_ROWS_KEY, departureKey } from "../integrity/wrapperClock";
 import { familyPattern } from "./producedFamily";
 
@@ -246,6 +247,15 @@ export const LEDGER_FILERS: Filer[] = [
     name: "notion-crm-check.mjs (blockers)",
     source: "lib/meetings/writeBlockerFinding.ts",
     keys: [KEY_WRITE_BLOCKERS],
+  },
+  {
+    // Q85 inc.12 — the per-COMPANY half of the same script. Fifth filer in `meeting-archive/`,
+    // and registered separately for the reason the four above were: the census keys on the
+    // SOURCE file emitting the constant, and this key lives in its own module. The count is
+    // moved ONE filer per increment on purpose, so an unnoticed sixth fails the census.
+    name: "notion-crm-check.mjs (by company)",
+    source: "lib/meetings/blockedByCompany.ts",
+    keys: [KEY_BLOCKED_BY_COMPANY],
   },
   {
     name: "flag-key-drift.mjs",

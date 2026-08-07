@@ -49,6 +49,7 @@ import { resolveRowAttendees } from "../lib/meetings/attendeePerson.ts";
 import { decidePersonProposal, personProposalText } from "../lib/meetings/personProposal.ts";
 import { buildPersonProposalFinding } from "../lib/meetings/personFinding.ts";
 import { buildWriteBlockerFinding } from "../lib/meetings/writeBlockerFinding.ts";
+import { buildBlockedByCompanyFinding } from "../lib/meetings/blockedByCompany.ts";
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), "..");
 const DATA_SOURCE_ID = "600498eb-b6e0-41af-a625-e369cbe5fc6a";
@@ -490,6 +491,17 @@ if (FILE_FLAG) {
   await fileFinding(
     buildWriteBlockerFinding(activityPlan.rows),
     "nothing to file — every recorded meeting can be written onto a company record.",
+  );
+  // Q85 inc.12 — the WORKLIST. The row above counts blocked meetings by cause, which is the
+  // right shape for "what is standing in the way" and the wrong one for doing anything: a human
+  // holding it still has to open every Notion page to learn which company each row is. This
+  // groups them by the record their own title points at, so three CG Roofing rows read as one
+  // decision. Its own key because it moves when ONE company's cell is filled, while the row
+  // above moves on any cell — one key over two independently-moving numbers is the #132/#134
+  // split all over again.
+  await fileFinding(
+    buildBlockedByCompanyFinding(activityPlan.rows),
+    "nothing to file — no blocked meeting names a record the CRM already holds.",
   );
   console.log("");
 }

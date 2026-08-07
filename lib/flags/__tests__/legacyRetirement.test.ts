@@ -15,19 +15,26 @@ const survivor: LedgerRow = { id: 213, status: "open", dedupeKey: "meeting-archi
  * that keeps a supersede note from pointing at nothing.
  */
 const blockerSurvivor: LedgerRow = { id: 214, status: "open", dedupeKey: "meeting-archive/write-blockers" };
+/**
+ * Q85 inc.12 — the third survivor. `meeting-archive/blocked-by-company` is the per-company
+ * worklist, and it is what releases the hold on #207. Same discipline as the row above: with it
+ * absent the pass SKIPS #207 rather than filing a note that points at nothing.
+ */
+const byCompanySurvivor: LedgerRow = { id: 215, status: "open", dedupeKey: "meeting-archive/blocked-by-company" };
 const legacy = (id: number, status: LedgerRow["status"] = "open"): LedgerRow => ({ id, status, dedupeKey: null });
 
 const fullLedger: LedgerRow[] = [
   survivor,
   blockerSurvivor,
+  byCompanySurvivor,
   ...Q85_LEGACY_RETIREMENTS.map((r) => legacy(r.legacyId)),
 ];
 
 describe("planLegacyRetirements", () => {
   it("retires only the rows a live keyed row re-states, and holds the rest OPEN", () => {
     const steps = planLegacyRetirements(Q85_LEGACY_RETIREMENTS, fullLedger);
-    expect(steps.filter((s) => s.action === "retire").map((s) => s.legacyId)).toEqual([206, 210, 211, 212]);
-    expect(steps.filter((s) => s.action === "hold").map((s) => s.legacyId)).toEqual([207, 208, 209]);
+    expect(steps.filter((s) => s.action === "retire").map((s) => s.legacyId)).toEqual([206, 207, 210, 211, 212]);
+    expect(steps.filter((s) => s.action === "hold").map((s) => s.legacyId)).toEqual([208, 209]);
     expect(steps.some((s) => s.action === "skip")).toBe(false);
   });
 
@@ -35,6 +42,7 @@ describe("planLegacyRetirements", () => {
     // The exact state prod is in until `check:archive --flag` runs the new writer once.
     const steps = planLegacyRetirements(Q85_LEGACY_RETIREMENTS, [
       survivor,
+      byCompanySurvivor,
       ...Q85_LEGACY_RETIREMENTS.map((r) => legacy(r.legacyId)),
     ]);
     expect(steps.filter((s) => s.action === "skip").map((s) => s.legacyId)).toEqual([206, 211]);
@@ -43,11 +51,23 @@ describe("planLegacyRetirements", () => {
     }
   });
 
+  it("SKIPS #207 when the per-company writer has not filed its row yet — inc.12's own hold, released the same way", () => {
+    const steps = planLegacyRetirements(Q85_LEGACY_RETIREMENTS, [
+      survivor,
+      blockerSurvivor,
+      ...Q85_LEGACY_RETIREMENTS.map((r) => legacy(r.legacyId)),
+    ]);
+    expect(steps.filter((s) => s.action === "skip").map((s) => s.legacyId)).toEqual([207]);
+    expect((steps.find((s) => s.legacyId === 207) as { reason: string }).reason).toContain(
+      "meeting-archive/blocked-by-company",
+    );
+  });
+
   it("points every retirement at the survivor's real id, in the grammar the Reopen control reads", () => {
     const steps = planLegacyRetirements(Q85_LEGACY_RETIREMENTS, fullLedger);
     // Two survivors now, and each retirement must point at ITS OWN — a note pointing at the
     // wrong live row is the same defect as one pointing at nothing, only harder to spot.
-    const expected: Record<number, number> = { 206: 214, 210: 213, 211: 214, 212: 213 };
+    const expected: Record<number, number> = { 206: 214, 207: 215, 210: 213, 211: 214, 212: 213 };
     for (const step of steps) {
       if (step.action !== "retire") continue;
       expect(step.survivorId).toBe(expected[step.legacyId]);
@@ -93,7 +113,7 @@ describe("planLegacyRetirements", () => {
     ];
     const steps = planLegacyRetirements(Q85_LEGACY_RETIREMENTS, after);
     expect(steps.some((s) => s.action === "retire")).toBe(false);
-    expect(steps.filter((s) => s.action === "hold")).toHaveLength(3);
+    expect(steps.filter((s) => s.action === "hold")).toHaveLength(2);
   });
 });
 
@@ -114,8 +134,8 @@ describe("the mapping itself", () => {
 describe("retirementPlanText", () => {
   it("counts the held rows separately from the skipped ones, so a hold never reads as a failure", () => {
     const text = retirementPlanText(planLegacyRetirements(Q85_LEGACY_RETIREMENTS, fullLedger));
-    expect(text).toContain("4 to retire · 3 held open on purpose · 0 skipped");
-    expect(text).toContain("HOLD    #207  stays OPEN");
+    expect(text).toContain("5 to retire · 2 held open on purpose · 0 skipped");
+    expect(text).toContain("HOLD    #208  stays OPEN");
     expect(text).toContain("RETIRE  #212 → #213");
   });
 });
