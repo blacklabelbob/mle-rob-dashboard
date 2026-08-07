@@ -39,6 +39,7 @@
     "confirm:meeting-company": "node --import ./scripts/ts-loader.mjs scripts/confirm-meeting-company.mjs",
     "propose:archive-person": "node --import ./scripts/ts-loader.mjs scripts/propose-archive-person.mjs",
     "audit:meeting-person": "node --import ./scripts/ts-loader.mjs scripts/audit-meeting-person.mjs",
+    "audit:attendee-provenance": "node --import ./scripts/ts-loader.mjs scripts/audit-attendee-provenance.mjs",
     "recount:q84": "node scripts/q84-recount.mjs",
     "worklist:q84": "node --import ./scripts/ts-loader.mjs scripts/q84-worklist.mjs",
     "sync:meetings": "node --import ./scripts/ts-loader.mjs scripts/notion-meetings-sync.mjs",
