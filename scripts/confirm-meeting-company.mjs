@@ -55,6 +55,7 @@ import { readFileSync } from "node:fs";
 import { planCompanyConfirmations } from "../lib/meetings/companyConfirmation.ts";
 import {
   confirmArgFor,
+  titleConfirmArgFor,
   suggestCompaniesForEmptyCells,
 } from "../lib/meetings/emptyCellSuggestions.ts";
 
@@ -162,7 +163,13 @@ if (SUGGEST) {
         {
           mode: "suggest",
           counts: offers.counts,
-          suggestions: offers.suggestions.map((s) => ({ ...s, confirmArg: confirmArgFor(s) })),
+          // Two keys, never one. A consumer that reads `confirmArg` gets attendee-derived
+          // offers only; the weaker class is opt-in by name (Q85 inc.17).
+          suggestions: offers.suggestions.map((s) => ({
+            ...s,
+            confirmArg: confirmArgFor(s),
+            titleConfirmArg: titleConfirmArgFor(s),
+          })),
         },
         null,
         2,
@@ -172,21 +179,41 @@ if (SUGGEST) {
   }
 
   const { candidate, rows } = offers.counts;
-  console.log(`\nSUGGEST — ${rows} row(s) with an empty \`Company Meeting with\` that a recorder saw; ${candidate} can be offered a company\n`);
+  const titleCandidates = offers.counts["title-candidate"];
+  console.log(`\nSUGGEST — ${rows} row(s) with an empty \`Company Meeting with\` that a recorder saw; ${candidate} can be offered a company from its ATTENDEES, ${titleCandidates} from its TITLE only\n`);
   for (const s of offers.suggestions) {
     const arg = confirmArgFor(s);
-    console.log(`  ${arg ? "→" : "·"} ${s.pageTitle}${s.day ? `  (${s.day})` : ""}`);
+    const titleArg = titleConfirmArgFor(s);
+    // `→` is an attendee-derived offer, `~` a title-derived one. Two markers, because a reader
+    // scanning the left column must be able to see which class they are agreeing to (inc.17).
+    console.log(`  ${arg ? "→" : titleArg ? "~" : "·"} ${s.pageTitle}${s.day ? `  (${s.day})` : ""}`);
     console.log(`      [${s.candidate.outcome}] ${s.candidate.nextStep}`);
+    if (s.titleCandidate) {
+      console.log(`      [title:${s.titleCandidate.outcome}] ${s.titleCandidate.nextStep}`);
+    }
     if (s.pageUrl) console.log(`      ${s.pageUrl}`);
     if (arg) console.log(`      ${arg}`);
+    else if (titleArg) console.log(`      ${titleArg}   ← TITLE-DERIVED, read the title first`);
   }
   // The command is printed WITHOUT a `--by`, on purpose: the one field this pass may not supply
   // is who decided, and a copy-paste line with a name already in it would supply it.
-  console.log(
-    candidate > 0
-      ? `\nNothing written — these are offers. To act on them:\n  node scripts/confirm-meeting-company.mjs --input ${INPUT} --by "<your name>" \\\n    ${offers.suggestions.map(confirmArgFor).filter(Boolean).join(" \\\n    ")}\n`
-      : "\nNothing written, and nothing to offer — every row above says what would make it answerable.\n",
-  );
+  const attendeeArgs = offers.suggestions.map(confirmArgFor).filter(Boolean);
+  const titleArgs = offers.suggestions.map(titleConfirmArgFor).filter(Boolean);
+  // TWO commands, never one merged line. A single pasted command would let a human confirm both
+  // evidence classes with one keystroke and no moment where they chose the weaker one (inc.17).
+  if (attendeeArgs.length) {
+    console.log(
+      `\nNothing written — these are offers. To act on the ATTENDEE-derived ones:\n  node scripts/confirm-meeting-company.mjs --input ${INPUT} --by "<your name>" \\\n    ${attendeeArgs.join(" \\\n    ")}\n`,
+    );
+  }
+  if (titleArgs.length) {
+    console.log(
+      `TITLE-derived, weaker — a title names what a call was ABOUT as often as who it was WITH.\nRead each title above before running this SEPARATELY:\n  node scripts/confirm-meeting-company.mjs --input ${INPUT} --by "<your name>" \\\n    ${titleArgs.join(" \\\n    ")}\n`,
+    );
+  }
+  if (!attendeeArgs.length && !titleArgs.length) {
+    console.log("\nNothing written, and nothing to offer — every row above says what would make it answerable.\n");
+  }
   process.exit(0);
 }
 

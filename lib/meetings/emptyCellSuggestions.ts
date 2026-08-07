@@ -31,11 +31,13 @@
  */
 
 import type { ActivityPlanRow, CrmOrg, CrmPerson } from "./activityPlan";
+import { indexOrgsByHost } from "./activityPlan";
 import { recorderSawMeeting } from "./activityDraft";
 import { blockerFor } from "./writeBlockerFinding";
 import { readArchiveAttendees } from "./archiveAttendees";
 import { resolveRowAttendees } from "./attendeePerson";
 import { candidateOrgFromAttendees, type AttendeeOrgCandidate, type AttendeeOrgOutcome } from "./attendeeOrgCandidate";
+import { candidateOrgFromTitle, type TitleOrgCandidate } from "./titleOrgCandidate";
 
 export type EmptyCellSuggestion = {
   pageId: string;
@@ -44,6 +46,14 @@ export type EmptyCellSuggestion = {
   /** The day the row would be dated, carried so a human can recognise the meeting. */
   day: string;
   candidate: AttendeeOrgCandidate;
+  /**
+   * Q85 inc.17 — the SECOND, WEAKER evidence class, in its own field and never merged into
+   * `candidate`. Present only when `candidate.outcome !== "candidate"`: a row the humans already
+   * answered is never re-answered by its title, so the two can never disagree in one output.
+   * Null therefore means one of two different things and the distinction is readable off
+   * `candidate` — either the attendees answered, or the title was consulted and said nothing.
+   */
+  titleCandidate: TitleOrgCandidate | null;
 };
 
 export type EmptyCellSuggestions = {
@@ -52,11 +62,22 @@ export type EmptyCellSuggestions = {
   counts: Record<AttendeeOrgOutcome, number> & {
     /** Rows in scope: recorder-seen AND blocked on an empty company cell. */
     rows: number;
+    /**
+     * Q85 inc.17 — rows with NO attendee-derived candidate whose TITLE reaches exactly one org.
+     * Counted separately and never added into `candidate`: adding them would make one number
+     * mean two different strengths of evidence, which is the merge this build refuses.
+     */
+    "title-candidate": number;
   };
 };
 
-/** Only `candidate` is actionable; the rest are reported so a reader sees the whole shape. */
-const OFFERABLE_FIRST = (s: EmptyCellSuggestion) => (s.candidate.outcome === "candidate" ? 0 : 1);
+/**
+ * Three tiers, in strength order: an attendee-derived answer, then a title-derived one, then
+ * everything with no answer at all. The tiers are the two evidence classes plus the absence of
+ * both — NOT a confidence score. Nothing inside a tier is re-ranked (see the sort's own note).
+ */
+const OFFERABLE_FIRST = (s: EmptyCellSuggestion) =>
+  s.candidate.outcome === "candidate" ? 0 : s.titleCandidate?.outcome === "title-candidate" ? 1 : 2;
 
 /**
  * Offer a company for every empty-cell row the confirm path would accept.
@@ -72,6 +93,9 @@ export function suggestCompaniesForEmptyCells(
   people: CrmPerson[],
 ): EmptyCellSuggestions {
   const suggestions: EmptyCellSuggestion[] = [];
+  // Built once, from the same orgs the attendee path uses, so a title host and a company-field
+  // host can never resolve to different companies (`titleCompany.ts`'s standing rule).
+  const hostIndex = indexOrgsByHost(orgs);
 
   for (const planRow of planRows) {
     const row = planRow.row;
@@ -88,12 +112,21 @@ export function suggestCompaniesForEmptyCells(
     // No org. See the header — this is the one line the circularity rule lives on.
     const resolved = resolveRowAttendees(attendees, people);
 
+    const candidate = candidateOrgFromAttendees(resolved, orgs);
+
     suggestions.push({
       pageId: row.id,
       pageTitle: row.title || "(untitled)",
       pageUrl: row.url || null,
       day: row.day || "",
-      candidate: candidateOrgFromAttendees(resolved, orgs),
+      candidate,
+      // Subordinate by construction: the title is only consulted where the humans could not
+      // answer. This `if` is the whole of the precedence rule — there is no scoring, no
+      // fallback chain, and no place a title answer can overwrite an attendee answer.
+      titleCandidate:
+        candidate.outcome === "candidate"
+          ? null
+          : candidateOrgFromTitle(row.title, orgs, hostIndex),
     });
   }
 
@@ -118,6 +151,8 @@ export function suggestCompaniesForEmptyCells(
       "person-without-org": count("person-without-org"),
       "ambiguous-orgs": count("ambiguous-orgs"),
       "org-not-in-crm": count("org-not-in-crm"),
+      "title-candidate": ordered.filter((s) => s.titleCandidate?.outcome === "title-candidate")
+        .length,
     },
   };
 }
@@ -133,4 +168,24 @@ export function confirmArgFor(suggestion: EmptyCellSuggestion): string | null {
   const { outcome, orgId } = suggestion.candidate;
   if (outcome !== "candidate" || !orgId) return null;
   return `--confirm ${suggestion.pageId}=${orgId}`;
+}
+
+/**
+ * Q85 inc.17 — the same string for the WEAKER class, and a SEPARATE FUNCTION on purpose.
+ *
+ * The pair it emits is byte-identical to `confirmArgFor`'s — the confirm path cannot tell them
+ * apart and must not: `planCompanyConfirmations` re-checks the cell and the caller re-reads the
+ * page whatever produced the pair. What differs is where a human meets it. Two functions means
+ * every caller has to decide, in code, to print the title-derived offers, and can print them
+ * under their own heading. One function with a flag would have made it possible to render both
+ * classes into one list by passing nothing — which is exactly the merge this increment refuses.
+ *
+ * Returns null when the attendee class already answered: a row with a real candidate is never
+ * offered its title as a second option, because there is no question left for it to answer.
+ */
+export function titleConfirmArgFor(suggestion: EmptyCellSuggestion): string | null {
+  if (suggestion.candidate.outcome === "candidate") return null;
+  const title = suggestion.titleCandidate;
+  if (!title || title.outcome !== "title-candidate" || !title.orgId) return null;
+  return `--confirm ${suggestion.pageId}=${title.orgId}`;
 }
