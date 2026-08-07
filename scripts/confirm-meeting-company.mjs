@@ -79,8 +79,15 @@ function readEnvLocal() {
 }
 
 const env = { ...readEnvLocal(), ...process.env };
-const NOTION_KEY = env.NOTION_API_KEY || env.NOTION_KEY || "";
-const NOTION_VERSION = env.NOTION_VERSION || "2025-09-03";
+// `NOTION_API_KEY` only, and the API version is a CONSTANT — both exactly as
+// `notion-crm-check.mjs` has them. The first draft of this file accepted `NOTION_KEY` as an
+// alias and read the version from `NOTION_VERSION`, and the env-manifest gate
+// (lib/__tests__/envManifest.test.ts) refused the push: two undocumented names that nothing
+// else in the repo sets. An alias for a credential is not a convenience — it is a second
+// spelling that can be set, go unread, and leave a script "missing a key" that is right there.
+// Removed rather than documented.
+const NOTION_KEY = env.NOTION_API_KEY || "";
+const NOTION_VERSION = "2025-09-03";
 
 /* ── input ───────────────────────────────────────────────────────────────────────────── */
 
