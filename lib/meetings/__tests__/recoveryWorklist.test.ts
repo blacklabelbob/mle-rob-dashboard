@@ -371,6 +371,48 @@ describe("parseExhaustedDeepReadPageIds — the uncapped read that came back emp
     expect(buildRecoveryWorklist(measured, {})).toEqual(buildRecoveryWorklist(measured));
   });
 
+  it("gives EVERY step the page's address — a step that names work must name the page", () => {
+    const steps = buildRecoveryWorklist(
+      [
+        row({ id: "a", url: "https://notion.so/a", verdict: "body-present" }),
+        row({ id: "b", url: "https://notion.so/b", verdict: "container-only" }),
+        row({ id: "c", url: "https://notion.so/c", verdict: "body-empty" }),
+        row({ id: "d", url: "https://notion.so/d", verdict: "body-empty", day: "" }),
+        row({ id: "e", url: "https://notion.so/e", verdict: "unmeasured" }),
+      ],
+      { alreadyRead: [], deepReadExhausted: [] },
+    ).steps;
+    expect(steps).toHaveLength(5);
+    for (const step of steps) expect(step.ref).toBe(`https://notion.so/${step.row.id}`);
+  });
+
+  it("the two COMMANDLESS buckets still carry an openable address", () => {
+    // The whole point. `open-in-notion` and `already-read` return early, before `stepFor`
+    // ever runs, so they are the two branches a ref could most easily be missing from — and
+    // `open-in-notion` is the one whose entire action is a human opening that page.
+    const { steps } = buildRecoveryWorklist(
+      [
+        row({ id: "exh", url: "https://notion.so/exh", verdict: "container-only" }),
+        row({ id: "done", url: "https://notion.so/done", verdict: "body-present" }),
+      ],
+      { alreadyRead: ["done"], deepReadExhausted: ["exh"] },
+    );
+    const byAction = Object.fromEntries(steps.map((s) => [s.action, s]));
+    expect(byAction["open-in-notion"].command).toBe("");
+    expect(byAction["open-in-notion"].ref).toBe("https://notion.so/exh");
+    expect(byAction["already-read"].command).toBe("");
+    expect(byAction["already-read"].ref).toBe("https://notion.so/done");
+  });
+
+  it("falls back to the uuid when a row has no url — never to an empty address", () => {
+    const { steps } = buildRecoveryWorklist(
+      [row({ id: "3b21de57-0199-80e8-95b6-ca602d7129c6", url: "", verdict: "container-only" })],
+      { deepReadExhausted: ["3b21de57-0199-80e8-95b6-ca602d7129c6"] },
+    );
+    expect(steps[0].action).toBe("open-in-notion");
+    expect(steps[0].ref).toBe("3b21de57-0199-80e8-95b6-ca602d7129c6");
+  });
+
   it("PROVEN ON THE REAL ARCHIVE: the four container dumps on disk are recognised", () => {
     // A fixture would go green on a shape nobody has seen. These are the actual files this
     // increment archived, read through the same 12,000-char window the script uses.

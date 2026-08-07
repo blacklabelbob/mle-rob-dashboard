@@ -161,6 +161,11 @@ for (const step of steps) {
   console.log(`  ${(step.row.day || "NO-DATE").padEnd(10)} ${step.row.title.slice(0, 60)}`);
   console.log(`      why: ${step.why}`);
   if (step.command) console.log(`      run: ${step.command}`);
+  // A command already carries the page's address inside it. A step WITHOUT one had nowhere
+  // to carry it, and `open-in-notion` is the one bucket whose entire content is "a human
+  // opens this page" — printed, until now, as a date and a truncated title. Three rows read
+  // `Meeting 2026-08-04`; none of them could be told apart, let alone opened.
+  else if (step.ref) console.log(`      open: ${step.ref}`);
 }
 
 console.log(

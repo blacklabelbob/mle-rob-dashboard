@@ -98,8 +98,23 @@ export type Action =
 export type WorklistStep = {
   action: Action;
   row: MeasuredRow;
-  /** The exact command to run. Empty only for `identify-first`, which has nothing to run. */
+  /**
+   * The exact command to run. Empty for the three actions that have nothing to RUN:
+   * `identify-first`, `already-read`, and `open-in-notion` — the last of which is owed to a
+   * human in a browser rather than to a shell.
+   */
   command: string;
+  /**
+   * The page's address — its Notion url, falling back to its uuid. Always present, on every
+   * action, because a step that names work without naming WHICH page is not actionable.
+   *
+   * It exists because of the bucket that has no command: `open-in-notion`'s entire content is
+   * "a human must open this page", and until this field the list printed a date and a
+   * truncated title and no link — three separate rows reading `Meeting 2026-08-04`, none of
+   * them openable. A command-bearing step already carries the ref inside its command; a
+   * commandless one had nowhere to carry it at all.
+   */
+  ref: string;
   /** One line naming why this command is owed. Never a claim about the meeting's content. */
   why: string;
 };
@@ -266,7 +281,8 @@ function pageRef(row: MeasuredRow): string {
   return (row.url || "").trim() || row.id;
 }
 
-function stepFor(row: MeasuredRow): WorklistStep {
+/** The ref is stamped by the caller, so every branch gets it — including the early returns. */
+function stepFor(row: MeasuredRow): Omit<WorklistStep, "ref"> {
   const ref = pageRef(row);
   const day = (row.day || "").trim();
 
@@ -335,8 +351,12 @@ export function buildRecoveryWorklist(
   const read = new Set([...(opts.alreadyRead ?? [])].map(normalizePageId));
   const exhausted = new Set([...(opts.deepReadExhausted ?? [])].map(normalizePageId));
   const steps = measured
-    .map((row) => {
+    .map((row): WorklistStep => {
       const id = normalizePageId(row.id);
+      // Stamped here, once, on every branch below — including the two that return early.
+      // A step that named work without naming the page is exactly the defect this closes,
+      // so the ref is attached at the single point every step passes through.
+      const ref = pageRef(row);
       // Checked BEFORE `already-read`, and the order is the whole point. An exhausted dump
       // is also an archived dump, so `parseArchivedReadPageIds` matches it too — and letting
       // that win would file "nothing further is owed" onto the one bucket where something
@@ -347,6 +367,7 @@ export function buildRecoveryWorklist(
           action: "open-in-notion" as const,
           row,
           command: "",
+          ref,
           why: "the uncapped re-read ran and the API returned a [transcription] wrapper with no text under it — the reader is exhausted, the page is not; open it in Notion rather than calling it empty",
         };
       }
@@ -355,10 +376,11 @@ export function buildRecoveryWorklist(
           action: "already-read" as const,
           row,
           command: "",
+          ref,
           why: "this page has been opened and its read is filed in the read log — nothing further is owed on the page itself",
         };
       }
-      return stepFor(row);
+      return { ...stepFor(row), ref };
     })
     .sort(
       (a, b) =>
