@@ -26,6 +26,33 @@ export interface DriftBadge {
   evidenceLabel: string;
 }
 
+export interface DriftMark {
+  tone: BadgeTone;
+  /** Fits beside a status chip in a table row. Two words, no punctuation. */
+  label: string;
+  /** Hover text — the same sentence the record page prints, never a shorter claim. */
+  title: string;
+}
+
+/**
+ * The row-level form of the same finding (Q91(a), ledger tables).
+ *
+ * A table row has no space for the evidence list, so the mark carries the verdict and
+ * defers the proof to the record page. What it may NOT do is upgrade the claim to fit
+ * the space: the label is derived from the same `tone`, and the hover text is the
+ * badge's own `detail` verbatim. An overstated row says "worth a look" here exactly as
+ * it does there — a table full of red dots would read as a list of errors, and the
+ * overstated ones are not errors.
+ */
+export function driftMark(drift: StatusDrift): DriftMark {
+  const badge = driftBadge(drift);
+  return {
+    tone: badge.tone,
+    label: badge.tone === "correctable" ? `should be ${drift.justified}` : "worth a look",
+    title: badge.detail,
+  };
+}
+
 export function driftBadge(drift: StatusDrift): DriftBadge {
   const n = drift.evidence.length;
   const evidenceLabel = n === 1 ? "1 fact on the record" : `${n} facts on the record`;
@@ -43,8 +70,26 @@ export function driftBadge(drift: StatusDrift): DriftBadge {
     };
   }
 
-  // Overstated. The stored value may be right for a reason no column holds — `lit`
-  // also means "actively referring", and nothing on the record records a referral.
+  // Not assertable. TWO different situations land here and they read as opposites, so
+  // one sentence cannot serve both — found on PROD, on C-2019 Omega Title, the exact
+  // record Rob asked about in dev_chat #58. Since inc.32 added the referral rung,
+  // `assertable` requires `understated && provable`, which means an UNDERSTATED record
+  // can fall through to this branch. The overstated copy then printed backwards about
+  // it: "the fields here only justify lit … unlit also covers a relationship the
+  // columns do not hold" — about a record stored BELOW what its fields show.
+  if (drift.kind === "understated") {
+    return {
+      tone: "review",
+      headline: "Worth a look",
+      // Says what the record shows and stops. The referral rung may defend a status,
+      // never accuse one, so this must not slide into "should be" (networkStatus.ts).
+      detail: `Stored as ${drift.stored}; the record also shows ${drift.reason}, which can justify ${drift.justified}. Not proof on its own, so nothing here is called wrong.`,
+      evidenceLabel,
+    };
+  }
+
+  // Overstated. The stored value may be right for a reason no column holds — warmth
+  // with no artifact at all, "personally close", which nothing in the schema records.
   return {
     tone: "review",
     headline: "Worth a look",

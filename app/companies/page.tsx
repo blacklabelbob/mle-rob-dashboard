@@ -2,6 +2,8 @@ import { getStore } from "@/lib/storage";
 import { isDemo, money } from "@/lib/stats";
 import { buildCompanyRows, companyTotals } from "@/lib/companies";
 import CompaniesTable from "@/components/CompaniesTable";
+import { driftReport } from "@/lib/networkStatus";
+import type { StatusDrift } from "@/lib/networkStatus";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +23,14 @@ export default async function CompaniesPage() {
   });
   const totals = companyTotals(rows);
 
+  // Q91(a) — the ledger says what each row's own facts justify, computed once over the
+  // whole book. `driftReport` (never `statusDrift` per row) because the Q91(c)
+  // membership guard lives inside it: a withheld row is simply absent here, so the
+  // table prints nothing rather than an accusation this book cannot support.
+  const report = driftReport(data.people.filter((p) => !isDemo(p)));
+  const drift: Record<string, StatusDrift> = {};
+  for (const i of report.items) drift[i.id] = i.drift;
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -34,7 +44,7 @@ export default async function CompaniesPage() {
           </p>
         </div>
       </div>
-      <CompaniesTable rows={rows} />
+      <CompaniesTable rows={rows} drift={drift} />
     </div>
   );
 }

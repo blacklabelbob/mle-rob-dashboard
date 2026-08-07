@@ -2,6 +2,8 @@ import Link from "next/link";
 import { money } from "@/lib/stats";
 import { typeLabel } from "@/lib/labels";
 import type { CompanyRow } from "@/lib/companies";
+import StatusDriftMark from "@/components/StatusDriftMark";
+import type { StatusDrift } from "@/lib/networkStatus";
 
 // Company ledger table — Master View 2.0 §8/4a. Read-only for now; the record
 // page (5a) and inline editing (14) land in later increments.
@@ -32,7 +34,16 @@ function daysAgo(iso: string | undefined): string {
   return `${days}d ago`;
 }
 
-export default function CompaniesTable({ rows }: { rows: CompanyRow[] }) {
+export default function CompaniesTable({
+  rows,
+  // Q91(a). Keyed by record id, computed ONCE over the whole book by the page —
+  // never per row here, because `driftReport` is where the Q91(c) membership guard
+  // lives and a per-row call would rebuild the rule with the guard missing.
+  drift,
+}: {
+  rows: CompanyRow[];
+  drift?: Record<string, StatusDrift>;
+}) {
   if (rows.length === 0) {
     return (
       <div className="rounded-xl border border-white/10 bg-white/[0.03] p-8 text-center text-sm text-slate-400">
@@ -90,6 +101,7 @@ export default function CompaniesTable({ rows }: { rows: CompanyRow[] }) {
                 >
                   {r.status}
                 </span>
+                <StatusDriftMark drift={drift?.[r.id]} />
               </td>
               <td className="px-4 py-3 text-slate-300">{phaseLabel(r.phaseOne)}</td>
               <td className="px-4 py-3 text-right tabular-nums text-slate-200">

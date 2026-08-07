@@ -10,6 +10,8 @@ import { InlineSelect, InlineText, InlineToggle } from "@/components/inline/fiel
 import { useTableRows } from "@/lib/filters/useTableRows";
 import { withShareToken } from "@/lib/filters/browserView";
 import ViewPicker from "@/components/ViewPicker";
+import StatusDriftMark from "@/components/StatusDriftMark";
+import type { StatusDrift } from "@/lib/networkStatus";
 
 // People ledger — Attio/Linear standard: every cell is live. Click a value,
 // type, it saves on blur with an amber pulse. No edit mode, no Save button.
@@ -88,9 +90,14 @@ function CopyShareLink({ token }: { token: string }) {
 export default function PeopleTable({
   people,
   verticals,
+  // Q91(a). Keyed by record id, computed ONCE over the whole book by the page —
+  // never per row here, because `driftReport` is where the Q91(c) membership guard
+  // lives and a per-row call would rebuild the rule with the guard missing.
+  drift,
 }: {
   people: Person[];
   verticals: Vertical[];
+  drift?: Record<string, StatusDrift>;
 }) {
   const router = useRouter();
   const [sortKey, setSortKey] = useState<SortKey>("contribution");
@@ -335,6 +342,7 @@ export default function PeopleTable({
                         )
                       }
                     />
+                    <StatusDriftMark drift={drift?.[p.id]} />
                   </td>
                   <td className="px-3 py-2.5">
                     <div className="flex items-center gap-1.5">

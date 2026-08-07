@@ -3,6 +3,8 @@ import { getStore } from "@/lib/storage";
 import { isDemo } from "@/lib/stats";
 import { reconcileLedger, splitLedger } from "@/lib/peopleLedger";
 import PeopleTable from "@/components/PeopleTable";
+import { driftReport } from "@/lib/networkStatus";
+import type { StatusDrift } from "@/lib/networkStatus";
 import SearchBar from "@/components/SearchBar";
 import CsvButtons from "@/components/CsvButtons";
 
@@ -15,6 +17,13 @@ export default async function PeoplePage() {
   // Master View 2.0 §8 increment 4b — humans only; companies live on /companies.
   const { humans } = splitLedger(data.people);
   const counts = reconcileLedger(data.people);
+
+  // Q91(a) — drift over the WHOLE book, not just the humans on this page: org members
+  // feed the org rung and doors-opened edges are counted across every row, so a
+  // filtered list would compute a different answer than /companies for the same record.
+  const report = driftReport(data.people);
+  const drift: Record<string, StatusDrift> = {};
+  for (const i of report.items) drift[i.id] = i.drift;
 
   return (
     <div className="space-y-4">
@@ -42,7 +51,7 @@ export default async function PeoplePage() {
           <CsvButtons />
         </div>
       </div>
-      <PeopleTable people={humans} verticals={data.verticals} />
+      <PeopleTable people={humans} verticals={data.verticals} drift={drift} />
     </div>
   );
 }
