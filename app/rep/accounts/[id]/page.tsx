@@ -12,8 +12,10 @@ import RepLogInteraction from "@/components/RepLogInteraction";
 import RepEmailDrafts from "@/components/RepEmailDrafts";
 import RepCollateralShelf from "@/components/RepCollateralShelf";
 import DemoFooter from "@/components/DemoFooter";
+import StatusJustification from "@/components/StatusJustification";
 import { InlineDateChip, InlineSelect, InlineText } from "@/components/inline/fields";
 import { getStore } from "@/lib/storage";
+import { driftReport } from "@/lib/networkStatus";
 import { accountStageChip } from "@/lib/deals/accountStageChip";
 import { draftViewsFor } from "@/lib/rep/emailTemplates";
 import { collateralViewsFor } from "@/lib/rep/collateral";
@@ -97,6 +99,17 @@ export default async function RepAccountWorkspace({
   // chip, the drafts, the shelf and the line from being four opinions.
   const stageGuidance = guidanceViewFor(chipDeal?.stage);
   const reason = touchReason(person);
+  // Q91(a) — the third surface named in the DoD, and the one where the answer is worth
+  // the most: the rep is the person who can actually fix an understated row, because
+  // they are the one who made the call the status is lagging behind.
+  //
+  // Same call shape as /companies/[id] and /people/[id] on purpose — the WHOLE book
+  // goes through `driftReport` and this row is looked up in the result. Calling
+  // `statusDrift` on `person` alone would look tidier here and would be wrong twice:
+  // `doorsOpened` is an edge count only a holder of every row can compute, and the
+  // Q91(c) membership guard lives in `driftReport`. A rep seeing a different verdict
+  // from Rob on the same record is exactly the drift this module exists to end.
+  const statusDrift = driftReport(data.people).items.find((i) => i.id === person.id)?.drift ?? null;
   const ctx = sourceContext(person);
   const isDemo = isDemoPerson(person);
   const paidDate = person.keyDates?.paid;
@@ -210,6 +223,16 @@ export default async function RepAccountWorkspace({
             </div>
           </div>
         </div>
+        {/* Q91(a) — under the whole header, not tucked beside the name: the detail
+            line names the field that decided it and needs the full width to stay on
+            one row. Renders nothing when the record agrees with itself, which is the
+            common case and must stay silent. No write — the status control above is
+            already the rep's one-click, and it is theirs to click. */}
+        {statusDrift && (
+          <div className="mt-4 max-w-3xl">
+            <StatusJustification drift={statusDrift} />
+          </div>
+        )}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
