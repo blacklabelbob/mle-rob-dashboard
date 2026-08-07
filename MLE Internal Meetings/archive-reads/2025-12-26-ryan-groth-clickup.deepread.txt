@@ -1,0 +1,154 @@
+==============================================================================
+TITLE (do not trust): Ryan Groth Explaining ClickUp
+URL: https://app.notion.com/p/Ryan-Groth-Explaining-ClickUp-2d51de5701998091905ce0000e9aa309
+id : 2d51de57-0199-8091-905c-e0000e9aa309
+------------------------------------------------------------------------------
+PROPERTIES — in full; this is where the identity the title omits lives:
+  ∅ Google Doc Link [url]: None  ← claims absence
+  ∅ Show/No Show [multi_select]: None
+  ∅ Next Steps/Action Items [rich_text]: None
+  ∅ Company URL [rich_text]: None
+  ∅ Parent Account [multi_select]: None
+  ∅ MLE [select]: None
+  · Last Edited [last_edited_time]: 2026-07-22T12:29:00.000Z
+  ∅ Child Account [multi_select]: None
+  ∅ Other Combined/Possible referral [rich_text]: None
+  ∅ Customer Pain Points [rich_text]: None
+  ∅ Meeting Summary [rich_text]: None  ← claims absence
+  ∅ MLE Attendees [multi_select]: None
+  ∅ Follow Up Date set [date]: None
+  ∅ Company Meeting with [rich_text]: None
+  ∅ Export Status [select]: None  ← claims absence
+  ∅ Sales Rep [people]: None
+  ∅ Notion Meeting Page [url]: None
+  · Call Date [date]: 2025-12-26
+  ∅ Tags [multi_select]: None
+  ∅ Call Recording [url]: None  ← claims absence
+  · Contact Name [rich_text]: Ryan Groth
+  ∅ Non MLE Attendees [rich_text]: None
+  ∅ TAM # [number]: None
+  · Created [created_time]: 2025-12-26T17:01:00.000Z
+  ∅ In Person/Virtual [multi_select]: None
+  ∅ Urgent TO DO [rich_text]: None
+  ∅ Meeting Type [multi_select]: None
+  ∅ Primary Target ICP [multi_select]: None
+  · Meeting Title [title]: Ryan Groth Explaining ClickUp
+------------------------------------------------------------------------------
+BODY: 110 blocks, 21102 chars — paragraph×63, bulleted_list_item×34, heading_3×10, to_do×2, transcription×1
+  ⚠ 4 field(s) imply 'no record'. CONTRADICTED — the body below HAS the content. Trust the body, not the field.
+      · Google Doc Link [url] = None
+      · Meeting Summary [rich_text] = None
+      · Export Status [select] = None
+      · Call Recording [url] = None
+------------------------------------------------------------------------------
+FULL BODY (summary + transcript) — read it, do not skim:
+[transcription] 
+  [paragraph] 
+    [heading_3] Sales Launch Workshop & Kickoff Materials
+    [bulleted_list_item] Complete sales launch workshop deliverables in ClickUp including job descriptions for salespeople and managers, sales rep templates, compensation structures, and workbooks 
+    [bulleted_list_item] Sales vision deck template for company owners/sales leaders to present at team kickoffs, covering core values, company history, ICP, positioning, targets, KPIs, sales process, coaching rhythm, and tech stack   
+    [bulleted_list_item] Kickoff workbook that teams work through after the vision presentation    
+    [bulleted_list_item] Personalized action plans generated from OMG assessments and baseline selling playbook using ChatGPT prompts, then formatted as PDFs via Gamma with coaching plans tailored by industry, goals, competencies, and qualification gates    
+    [heading_3] Sales Builder Service Components
+    [bulleted_list_item] Service includes full A-player recruitment with VSL (Video Sales Letter), not sold separately due to need for integrated onboarding, playbook, and management systems    
+    [bulleted_list_item] Baseline selling environment powered by Sales Ask with SOP for coach onboarding 
+    [bulleted_list_item] Open coaching sessions with ClickUp SOP documentation 
+    [bulleted_list_item] Lead generation strategy documentation 
+    [heading_3] Comprehensive Sales Playbook
+    [bulleted_list_item] Living playbook with company branding, vision, welcome messages, and standards documentation   
+    [bulleted_list_item] Professional environment tab covering how sales athletes should show up, core values, dress code, meeting standards, and out-of-office communication 
+    [bulleted_list_item] ICP documentation, customer acquisition templates, positioning statements, and partner leverage strategies 
+    [bulleted_list_item] Tech stack overview including CRM, proposals, contracts, estimating SOPs (some still in development for certain industries) 
+    [bulleted_list_item] School platform access, Personal Transformation Blueprint, Achievement Planning System, and baseline selling training  
+    [bulleted_list_item] OMG assessment scorecard, required reading, and commitment documentation 
+    [heading_3] Sales Athlete Onboarding System
+    [bulleted_list_item] Templatized four-phase onboarding spanning weeks 1-11+ with company-specific customization  
+    [bulleted_list_item] Phase-based progression through foundation skills: CRM training, discovery, presentations, proposals, closing, objection handling  
+    [bulleted_list_item] Built-in checkpoints with role plays and field observation requirements before advancement  
+    [bulleted_list_item] OMG assessment review integrated into later onboarding phases 
+    [heading_3] Hiring & Recruitment System
+    [bulleted_list_item] VSL interview process and recruiting tech stack setup guide included 
+    [heading_3] Sales Summit System
+    [bulleted_list_item] Executive-ready solution for quarterly or annual team events to cultivate vision, strengthen culture, build mastery and camaraderie  
+    [bulleted_list_item] Earned attendance standards and detailed agendas for morning, midday, afternoon, and evening sessions  
+    [bulleted_list_item] Recognition categories: top producer, most improved, sales athlete of year, culture award, rookie of year 
+    [bulleted_list_item] Team cohesion activities including dinners, outdoor events, service projects 
+    [bulleted_list_item] Venue suggestions, investment planning, pre-planning checklists, and ROI measurement frameworks 
+    [bulleted_list_item] Cost framework with variable costs per rep, total investment examples, benchmarks, and budgeting rules 
+    [bulleted_list_item] Recommendation to video record for future recruiting opportunities 
+    [heading_3] Service Tiers
+    [bulleted_list_item] Workshop and kickoff serve as foundation that integrates into full Sales Builder offering 
+    [bulleted_list_item] Platinum tier includes all Sales Builder components plus weekly calls and sales team-facing coaching/training 
+    [heading_3] Outstanding Development Items
+    [bulleted_list_item] Leaderboarding and scoreboarding solutions not yet completed  
+    [bulleted_list_item] CRM setup guides for industry partners still in progress 
+    [heading_3] Marketing & Growth Strategy
+    [bulleted_list_item] Development of detailed customer personas with demographics, income, markets, marital status, and visual descriptions for hyper-targeted content  
+    [bulleted_list_item] Automated content creation including LinkedIn posts, YouTube scripts addressing objections 
+    [bulleted_list_item] Exploring AI clone technology to generate content without filming or writing 
+    [bulleted_list_item] Discussion of creating AI-generated customer testimonials through fake social media accounts based on real customer profiles (noted as potentially sketchy but reportedly effective)        
+    [heading_3] Action Items
+    [to_do] Complete leaderboarding and scoreboarding component  
+    [to_do] Prepare presentation for upcoming call with Kyle 
+  [paragraph] 
+    [paragraph] 
+  [paragraph] 
+    [paragraph] I have, um... This is gonna be all much cleaner and it's almost as this is already done in ClickUp but we have the sales launch workshop so I have job descriptions for salespeople, for sales managers, sales rep templates. compensation for salespeople. Um... We have the workbook that they do. And then I have a A sales vision deck that we want them to have for the kickoff. Which is, did I ever show you this?
+    [paragraph] No. So this is something that The owner or sales leader will then utilize to show their sales team at the beginning of the kickoff. Oh, cool. That's a good idea. So it's like, I get to do this. I don't know why I got away from it. It's me, but... Kind of a template here. So they share why they're doing the kickoff. core values, Um... Where we've beenMm-hmm.
+    [paragraph] You know, what winning looks like, our ICP, who we say no to, what our positioning statement is. Um Our targets Breaking revenue into math. KPIs we're going to track. Cool. Baseline selling, sales process, coaching rhythm, what the assessments are going to be doing. Having a great sales meeting, we're going to have better sales meetings, accountability. Sales athletes standard championships and incentives we're going to roll out.
+    [paragraph] what this means for you, your call to action, questions. Here's the kickoff agenda. Here's our tech stack. After the kickoff, here's your support system, let's go.
+    [paragraph] Cool. Building that into that, that's been new. Um We have... What's the workbook sales launch? Um, That is what we're... We're working through, we print it out for everybody participating. This is what I built earlier this summer. Okay. It walks through. This is what, when we sell sales launches, it's part of what they're getting. I got you. So then we have the sales team kickoff as well, which is right here.
+    [paragraph] The workbook. So this is the kickoff workbook.
+    [paragraph] This will happen after they do this presentation.
+    [paragraph] So they'll start working through that. Yep.
+    [paragraph] This is the keynote right here, the vision casting I shared. We have the assessments. I have a personalized action plan. SOP So I have an SOP of inputs for Um... So they have baseline selling playbook, the OMG assessment, Chat GPT prompt. Yep. And so then here's the prompt copy paste. They would have some industry tweaks they would make. And then here's an example of a personalized coaching plan. that comes out of the competency assessments.
+    [paragraph] But then I said, now let's turn this to an asset for the kickoff. Open gamma, paste, choose document, preserve, da-da-da-da-da-da-da-da-da. images, insert images, bio, bam, make it a PDF. And then now they have Hey. Coaching plan. That is for this person this industry goalConfidencies. Mm-hmm. where the alignment is, skills, mindset work Hmm? Demonstratable proof points. And then the sign off. that they've gotten better at selling value from the coach.
+    [paragraph] Yep, yep. Consultative selling. Where does this happen? Hear the drills. Here's the checkpoints that it's showing. Now let's do a checkpoint, you know, role play pass, game film review, boom, boom, boom. So we're doing a personalized plan with qualification gates.
+    [paragraph] Yeah, totally.
+    [paragraph] I've never built something like this. So now we have that. That's that kickoff. I want them to have that at kickoff for every rest. It doesn't take that much work. You just got to build it. And then that's completed, right? And then we have...
+    [paragraph] Huh, I don't have the answers to that.
+    [paragraph] Um Sales creed.
+    [paragraph] Where does he say that? Okay. We have in sales builder work, it gets pretty spicy and good, but we have the SOP for recruiting. Yep. We have a sales playbook. Play both. Um... Cool. We have a bunch of stuff to fill in. The welcome message Alright, so let's get into Let's get into sales builder work, which happens after these two things.
+    [paragraph] Or if we want to start on a hiring BSL sooner from like a time urgency standpoint, we'll move it sooner.
+    [paragraph] Question. Are we still doing the, so when we do the A player recruitment with the sales builder, Is that like, are we including like the full VSL or is the VSL still a separate?
+    [paragraph] Yeah, that's a part of the journey. Yeah, that's all part of it. But we are still going to sell the VSL separate? Yeah. No, it's all part of it.
+    [paragraph] If they're sales building or applying them-Can we sell the VSL separate?
+    [paragraph] We probably could, but I don't see why we would because there's a lot of onboarding, playbooking that they still need done. Because if you do a VSL but you don't have onboarding, you don't have a playbook, you don't have a management system, it's going to be not a great ROI anyway. I'm going to be positioning it When I market that, like if I do another webinar on recruiting the A-player recruiting system.
+    [paragraph] Yeah. I'm going to sell them in the sales builder. I'm not going to just sell them that because it's... So we have... You know, our environment, I have baseline selling baseline AI powered by sales ask. SOP to set that up for coaches to onboard them. So now that everything, then we have the sales greed. We have an open coach SOP. So when we do open coaching sessions, they have an SOP on how to do that within ClickUp.
+    [paragraph] Our lead gen strategy to understand that is key. The sales playbook.
+    [paragraph] So now if we look up The gamma version of this.
+    [paragraph] So there's a living playbook, put some company branding in there. company vision and stories. They got to put in a vision statement, some why we exist stuff. and then a video, a loom link of explaining some of the things that they've already been built on with us. And we would obviously want to We can tweak this imagery a little bit. Sure. Um... So here's a welcome message to the sales team, which is basically the same kickoff.
+    [paragraph] documentation, but it's been readjusted for a new teammate on a playbook rather than a kickoff. So I basically... said, hey, you know, welcome to the team as you start your journey, right? Boom, boom, boom. So That's all in there. What we expect from you. Um... you know, explain what elite looks like here in a video. And then you have standards. Here's our creed. Sales Creed's in here. Read that out loud.
+    [paragraph] Cool. Professional environment, here's the environment tab. So now here's how sales athletes show up, here's core values, dress code, sales meetings. That should be tailored to theirs. out of office communication and standards, boom. It's very like somebody brand new, if they're hearing a founder of that company speak to this type of content, they're gonna feel super stoked. Right, totally. professional environment, meeting rhythm, here's what we meet.
+    [paragraph] here's some basics, here's our customer, so here's our ICP documentation that we got for them. Let's build, you know, this is our ICP. How do we acquire customers? All that should be built for them. Here's our customer acquisition template. So that's all position. Here's our positioning statement. Here's our partner, who are partners, How do we leverage them? So they should have their own partner document.
+    [paragraph] so they can leverage relationships with partners, suppliers, local partners. Here's our tech stack. Here's all the CRM stuff. So we have proposals, contracts, CRM with SOPs in there, estimating SOPs in there. That's something we don't have for everybody for them. So that's a little bit more on them right now. Here's school, right? Here's how they get into the platform. Personal Transformation Blueprint.
+    [paragraph] Achievement planning system training. Here's the full sales or baseline selling playbook. So that we have what is baseline selling, right? And then we have versions of it that we haven't built for all industries, but we can because this is a multi-industry version. Everything else is roofing. Here's how you log into Baseline AI, which they're going to have game film recordings, Lord willing. They've got to tweak that.
+    [paragraph] Here's how it's used, reviewing it. And then we have the sales competency, the OMG assessment scorecard. Here's some required reading. Here's a commitment. And... you know, record a personal video sharing while you're here, how you'll show up. So this is just like, I mean, building that playbook's huge. Presentations, proposals, contracts. And then we have an onboarding system. So this onboarding system is a little bit different because it's, um, That's a playbook, but this is an onboarding system.
+    [paragraph] So this is like templatized for... them where they have the company name, sales manager name, boom, boom, boom, it's tailored for them. This is helping you do this. Here's the sales playbook, right? Here's the link for that. Here's the CRM. Here's your call recording for game film. Here's the proposal tool logins, right? It's like, boom. Phase one, weeks one through three. Phase two, phase three, phase four.
+    [paragraph] Foundation, week one. Boom. So you have all this. Let's role play that. Check. Yes, we're good. Next thing. CRM. Did we role play? Do you know how to do all that? Check. Great. CRM. Discovery. Do you have the discovery training? Have you gone through it? You know, have you observed one? Have you, do you know? Let's role play it. Okay, check. You're ready for that one. Um Your presentation. Let's make sure that you know how to structure your proposals.
+    [paragraph] Are you ready for presentations? Mm-hmm. you know, closing, You know, like... Let's make sure you're, you can, let's watch you in the field and do it. Can you, all right, now are you ready for your own? Okay, now week seven, you should be. Closing, let's talk about classroom pipeline management training. Um... Let's add that. Now let's look at your OMG assessment. You know, week's 11. You know, your overall score from discovery, presentation, closing, objection handling.
+    [paragraph] So like we have, this is called the sales athlete onboarding system, right? So that's like, we can give this to them. A coach can tailor this for that company. So that's now in Sales Builder, right? And then we have the hiring VSL interview. The hiring VSL tech stack, how to set up your recruiting tech stack for this. What do you need? You need these tools. I have a couple open systems here. I have a couple open items on leaderboards and how we're going to get leaderboarding and scoreboarding.
+    [paragraph] I don't have that solved yet. Then we have the sales summit system. This is sick.
+    [paragraph] So, This is for bigger companies?
+    [paragraph] Mm-hmm. They can start really small. But This is a executive ready solution. for sales summit system. So how do we basically... have Create an environment where it's quarterly or annual to cultivate vision, strengthen the team culture, build mastery and camaraderie. And it reinforces their identity, reinforces standards, company vision goals, retention, recognizing people's successes, So this is in the system where we're like, helping them roll out The types of summits.
+    [paragraph] um making sure their standards are earned to attend the summit. Uh... Here's an agenda. Morning session, midday session, afternoon session, evening. Um, Here's the annual summit agenda, day one, day two, day three. Getting your program speakers, so like looking at different speakers. Um, recognizing people for like top producer, most improved sales athlete of the year, culture, rookie of the year. um Fostering team cohesion, team dinners, outdoor events, service projects.
+    [paragraph] giving them venues, ideas, investment planning on how much they should be spending on this. pre-planning checklist, Maximizing the ROI. Measuring your sales summit's impact. The cost of budgeting, the cost framework for all this for quarterly and annual. Make sure you video record it so you have it for future recruiting opportunities. The variable cost per rep, total investment examples, average cost per rep benchmarks.
+    [paragraph] ROI guardrails, budgeting rules, Boom. So now we have like... Hey. Recruiting, sales training, onboarding, Coaching the coach framework. Um... Just a little bit loose is CRM setup guides for our industry partners and our leaderboarding component where we can take the data and have it like be live all the time. Yes. So you're basically looking at. workshop, which is foundational, which carries into the kickoff and we take everything we built there and it snaps into place into the rest of the build out.
+    [paragraph] And so then it's in sales builder or platinum is going to be all that on a weekly call plus the sales team facing coaching that they're getting in training.
+    [paragraph] That's super dope dude. Feeling good about the progress for sure. Yeah, man, I'll tell you, you know, some of these... Some of these You know, documents. It would be great Here, let me just show you something.
+    [paragraph] Relief magnets or something?
+    [paragraph] Yeah, exactly. So what I'm in the middle of doing... is Mm-mm. Alright, so I've got a ton of stuff in here on this. About our four phase, blah, blah, blah. company description stuff, market research stuff. This is a deep dive. into the bottlenecks, what some of the opportunities are, Who's this for?
+    [paragraph] For our company?
+    [paragraph] For our company. So I'm using this to basically build out... Build out personas. So like here's a persona I built out specifically for us, dude. This thing is so detailed. We even have a visual description of like, this would be like one persona of many, but even visual descriptions actionable of what these look like, right? So we can make even just auto make UGC stuff from people that look like that, their demographics, what their personal income is, the markets that they were, their marital status, all this stuff.
+    [paragraph] You can get hyper, hyper, hyper, hyper specific. And then what you do with it is is I've set up automations so that I can create like automated, like LinkedIn posts talking about some of these things, you know, going over objections, YouTube scripts, um, I mean, this sounds really good.
+    [paragraph] What I'm looking at is if I can clone myself and have an AI clone, we could just have the AI say everything we want it to do and I don't have to do any filming or any writing. Yeah. We just have AI. I'm looking at... filming myself to be an AI clone and just be able to Pump out content. as my clone.
+    [paragraph] On all kinds of channels specific, you know going after people but a hundred percent but one of the I'm friends with one of the top AI guys under 30 in the world and so what he does is he builds out these crazy deep personas for people and then sets up a bunch of social media accounts for them, right? Okay automatically posts a bunch of poach a post and so People buy from...
+    [paragraph] Oh, like you're saying like fake clients.
+    [paragraph] Like create a fake client that talks about us.
+    [paragraph] Totally. So what you do is you actually get what the guy looks like, the way he talks that are based on real customers. And then use that as another funnel to come in.
+    [paragraph] That's interesting.
+    [paragraph] So like have like Johnny Bravo out there on LinkedIn talking about... STG. TikTok.
+    [paragraph] But he's a roofer. But he's a roofer, dude. Yep.
+    [paragraph] That's kind of sketchy, though, I'll be honest.
+    [paragraph] It's a little bit sketchy, but... Does it work?
+    [paragraph] I mean, I want to know. It works like crazy. It works like crazy. That's kind of interesting. All right. Yeah. That's good. Okay. I need to go because Kyle, I have a call with him in 38 minutes, and I don't know if he's locked in today, and I'm hedging my bets that he's not, so I need to prepare the presentation.
