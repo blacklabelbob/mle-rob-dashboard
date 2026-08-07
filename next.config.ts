@@ -9,6 +9,14 @@ const nextConfig: NextConfig = {
   // signature-placement step passed every local test and then silently did
   // nothing in production (2026-08-07).
   serverExternalPackages: ["pdfjs-dist"],
+  // pdf.js loads its worker by dynamic path at runtime, so Vercel's file tracer
+  // cannot see the dependency and ships the function without pdf.worker.mjs
+  // ("Cannot find module .../pdf.worker.mjs", measured in prod 2026-08-07).
+  // Naming it here forces it into the bundle for the e-sign routes that read
+  // signature-line coordinates.
+  outputFileTracingIncludes: {
+    "/api/esign/**": ["./node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs"],
+  },
 };
 
 // The runtime SDK stays inert until NEXT_PUBLIC_SENTRY_DSN is set (see
