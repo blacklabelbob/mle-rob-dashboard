@@ -54,7 +54,14 @@ export type Action =
   /** Nothing on the page and no day to sweep with. The fix is identifying it, not reading it. */
   | "identify-first"
   /** The measurement itself failed. Re-measure — never inherit "empty" from an error. */
-  | "re-measure";
+  | "re-measure"
+  /**
+   * The page has already been opened, read, and filed in the read log. It is carried here
+   * rather than dropped: a row that vanishes from a work-list is indistinguishable from a row
+   * nobody ever owed, and "16 to read" that silently includes six finished reads is the same
+   * kind of stale claim Q84 exists to retire.
+   */
+  | "already-read";
 
 export type WorklistStep = {
   action: Action;
@@ -93,7 +100,41 @@ const RANK: Record<Action, number> = {
   "sweep-by-date": 2,
   "identify-first": 3,
   "re-measure": 4,
+  // Last, because it is the only entry that asks for nothing. It stays visible so the list
+  // can be checked against the read log, and so a wrongly-matched id is caught by eye.
+  "already-read": 5,
 };
+
+/**
+ * Page ids the read log says have actually been opened and read.
+ *
+ * PURE: it is handed the log's TEXT, never a path — the caller does the filesystem read, so
+ * this stays testable against a string and cannot go looking for a file that moved.
+ *
+ * The gate is deliberately narrow. An id counts as read only when it sits inside a `##`
+ * section whose heading carries the literal token `READ` — the log's own convention for
+ * "this page was opened and its output is on disk". Ids that appear anywhere else (a
+ * still-owed list, a cross-reference, a prose mention) are NOT read, because the whole
+ * discipline of that file is that a mention is not a read.
+ */
+export function parseReadLogPageIds(markdown: string): string[] {
+  const ids = new Set<string>();
+  // Split on `##` headings, keeping each heading with the body that follows it.
+  const sections = markdown.split(/\n(?=##\s)/);
+  for (const section of sections) {
+    const heading = section.split("\n", 1)[0] ?? "";
+    if (!/\bREAD\b/.test(heading)) continue;
+    for (const raw of section.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|\b[0-9a-f]{32}\b/gi) ?? []) {
+      ids.add(normalizePageId(raw));
+    }
+  }
+  return [...ids];
+}
+
+/** Notion prints the same id dashed and undashed; compare on the dashless lower-case form. */
+export function normalizePageId(id: string): string {
+  return id.replace(/-/g, "").toLowerCase();
+}
 
 /**
  * How much text a row is already known to hold, used only to order the reads.
@@ -174,9 +215,24 @@ function stepFor(row: MeasuredRow): WorklistStep {
  * carrying the most unread text are opened first. Rows tying on both keep a stable order by
  * title, so two runs on the same input print the same list.
  */
-export function buildRecoveryWorklist(measured: MeasuredRow[]): Worklist {
+export function buildRecoveryWorklist(
+  measured: MeasuredRow[],
+  opts: { alreadyRead?: Iterable<string> } = {},
+): Worklist {
+  // Absent `alreadyRead`, every row is scheduled exactly as before — a caller that knows
+  // nothing about the read log gets a byte-identical list, so this cannot quietly hide work.
+  const read = new Set([...(opts.alreadyRead ?? [])].map(normalizePageId));
   const steps = measured
-    .map(stepFor)
+    .map((row) =>
+      read.has(normalizePageId(row.id))
+        ? {
+            action: "already-read" as const,
+            row,
+            command: "",
+            why: "this page has been opened and its read is filed in the read log — nothing further is owed on the page itself",
+          }
+        : stepFor(row),
+    )
     .sort(
       (a, b) =>
         RANK[a.action] - RANK[b.action] ||
@@ -196,6 +252,7 @@ export function buildRecoveryWorklist(measured: MeasuredRow[]): Worklist {
       "sweep-by-date": count("sweep-by-date"),
       "identify-first": count("identify-first"),
       "re-measure": count("re-measure"),
+      "already-read": count("already-read"),
     },
     // Only a row with nothing on its page could ever be unrecoverable, and only after its
     // sweep comes back empty. A `container-only` row is excluded on purpose: it has blocks,

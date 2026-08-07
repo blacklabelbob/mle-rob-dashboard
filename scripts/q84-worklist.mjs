@@ -19,11 +19,19 @@
  * same trap sits in front of every `npm run … --json > file` in this repo.
  */
 
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 
-import { buildRecoveryWorklist } from "../lib/meetings/recoveryWorklist.ts";
+import { buildRecoveryWorklist, parseReadLogPageIds } from "../lib/meetings/recoveryWorklist.ts";
 
 const AS_JSON = process.argv.includes("--json");
+
+/**
+ * The log of pages that have ACTUALLY been opened. Without it this pass re-schedules finished
+ * reads — which is what it was doing: six of the rows it printed as "to read" had been read
+ * and filed days earlier, and the top of the list was a page whose transcript is already on
+ * disk. A work-list that reopens finished work is the hand-maintenance Q84 exists to retire.
+ */
+const READ_LOG = new URL("../docs/research/Q84-READ-LOG-2026-08-05.md", import.meta.url);
 
 function readInput() {
   const flag = process.argv.indexOf("--input");
@@ -46,7 +54,12 @@ if (!Array.isArray(input?.measured)) {
   process.exit(2);
 }
 
-const worklist = buildRecoveryWorklist(input.measured);
+// A missing read log means "nothing has been read yet", never "skip the check silently":
+// the absence is printed below so a moved file cannot masquerade as an empty log.
+const readLogFound = existsSync(READ_LOG);
+const alreadyRead = readLogFound ? parseReadLogPageIds(readFileSync(READ_LOG, "utf8")) : [];
+
+const worklist = buildRecoveryWorklist(input.measured, { alreadyRead });
 
 if (AS_JSON) {
   console.log(JSON.stringify(worklist, null, 2));
@@ -60,6 +73,7 @@ const HEAD = {
   "sweep-by-date": "SWEEP — nothing on the page; check every other database for that day",
   "identify-first": "IDENTIFY — nothing on the page and no date to sweep with",
   "re-measure": "RE-MEASURE — the measurement itself failed; an error is not an empty page",
+  "already-read": "ALREADY READ — opened and filed in the read log; listed, not hidden",
 };
 
 console.log(`\n── Q84 recovery work-list: ${counts.rows} open archive row(s) ──`);
@@ -71,6 +85,13 @@ console.log(
 console.log(
   `   At most ${atMostUnrecoverable} row(s) could turn out to be unrecoverable — and only ` +
     `after every read above comes back empty. Not a finding.`,
+);
+console.log(
+  readLogFound
+    ? `   ${counts["already-read"]} row(s) are already read and filed in the read log ` +
+        `(${counts["already-read"]} of ${counts.rows}); they are listed at the bottom, not dropped.`
+    : `   ⚠ No read log at ${READ_LOG.pathname} — every row below is scheduled as UNREAD. ` +
+        `If reads have happened, this list is wrong and the log is what is missing.`,
 );
 
 let current = "";

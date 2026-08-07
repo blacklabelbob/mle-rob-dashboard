@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 
+import { readFileSync } from "node:fs";
+
 import {
   buildRecoveryWorklist,
   FIND_MEETING,
   MEASURED_DEPTH_CAP,
+  parseReadLogPageIds,
   type MeasuredRow,
 } from "../recoveryWorklist";
 
@@ -131,6 +134,86 @@ describe("buildRecoveryWorklist", () => {
     const { steps, counts, atMostUnrecoverable } = buildRecoveryWorklist([]);
     expect(steps).toEqual([]);
     expect(counts.rows).toBe(0);
+    expect(atMostUnrecoverable).toBe(0);
+  });
+});
+
+describe("parseReadLogPageIds — which pages the read log says are actually READ", () => {
+  it("takes an id from a section whose heading carries the READ token", () => {
+    expect(
+      parseReadLogPageIds(
+        "## READ 2026-08-05 — `Meeting 2026-07-28`\n\n**Page:** `3ab1de57-0199-80ef-bf9c-c2b98d7578ed`\n",
+      ),
+    ).toEqual(["3ab1de57019980efbf9cc2b98d7578ed"]);
+  });
+
+  it("refuses an id that is only MENTIONED — a mention is not a read", () => {
+    expect(
+      parseReadLogPageIds(
+        "## Still owed (12 reads + 18 uncapped re-reads)\n\n" +
+          "- `3ad1de57-0199-80dd-b213-d09c387217e7` has not been opened\n",
+      ),
+    ).toEqual([]);
+  });
+
+  it("matches the dashless form Notion also prints, and normalises both to one key", () => {
+    const dashless = parseReadLogPageIds("## READ\n\n3a51de570199802bb9f8f59fa153a013\n");
+    const dashed = parseReadLogPageIds("## READ\n\n`3a51de57-0199-802b-b9f8-f59fa153a013`\n");
+    expect(dashless).toEqual(["3a51de570199802bb9f8f59fa153a013"]);
+    expect(dashed).toEqual(dashless);
+  });
+
+  it("reads the REAL committed log and finds the six pages filed there", () => {
+    const log = readFileSync(
+      new URL("../../../docs/research/Q84-READ-LOG-2026-08-05.md", import.meta.url),
+      "utf8",
+    );
+    const ids = parseReadLogPageIds(log);
+    // Guard the guard: if the log ever stops naming page ids this test must fail loudly
+    // rather than go green on an empty set, which would silently re-schedule every read.
+    expect(ids.length).toBeGreaterThanOrEqual(6);
+    expect(ids).toContain("3ab1de57019980efbf9cc2b98d7578ed"); // the Omega 7/28 row
+    expect(ids).toContain("3a51de570199802bb9f8f59fa153a013"); // Gulf Coast 7/22 kickoff
+  });
+});
+
+describe("buildRecoveryWorklist — rows the read log has already closed", () => {
+  it("schedules every row when no read log is supplied (byte-identical to before)", () => {
+    const measured = [row({ id: "p1", verdict: "body-present", body: { blocks: 9, chars: 900 } })];
+    expect(buildRecoveryWorklist(measured)).toEqual(buildRecoveryWorklist(measured, {}));
+    expect(buildRecoveryWorklist(measured).counts["read-page"]).toBe(1);
+  });
+
+  it("stops asking for a read that has already happened, and says so instead of hiding it", () => {
+    const { steps, counts } = buildRecoveryWorklist(
+      [
+        row({ id: "3ab1de57-0199-80ef-bf9c-c2b98d7578ed", verdict: "body-present", body: { blocks: 531, chars: 95_769 } }),
+        row({ id: "unread-page", title: "Not yet opened", verdict: "body-present", body: { blocks: 9, chars: 900 } }),
+      ],
+      { alreadyRead: ["3ab1de57019980efbf9cc2b98d7578ed"] },
+    );
+    expect(counts["read-page"]).toBe(1);
+    expect(counts["already-read"]).toBe(1);
+    expect(counts.rows).toBe(2); // carried, never dropped
+    expect(steps.at(-1)?.action).toBe("already-read");
+    expect(steps.at(-1)?.command).toBe(""); // nothing left to run on it
+    expect(steps[0]?.row.title).toBe("Not yet opened"); // the real work is first
+  });
+
+  it("matches a read id whichever way the dashes fall", () => {
+    const { counts } = buildRecoveryWorklist(
+      [row({ id: "3a51de570199802bb9f8f59fa153a013", verdict: "body-present" })],
+      { alreadyRead: ["3a51de57-0199-802b-b9f8-f59fa153a013"] },
+    );
+    expect(counts["already-read"]).toBe(1);
+  });
+
+  it("never lets an already-read row into the unrecoverable ceiling", () => {
+    const { atMostUnrecoverable, counts } = buildRecoveryWorklist(
+      [row({ id: "gone", verdict: "body-empty", body: { blocks: 0, chars: 0 } })],
+      { alreadyRead: ["gone"] },
+    );
+    expect(counts["sweep-by-date"]).toBe(0);
     expect(atMostUnrecoverable).toBe(0);
   });
 });
