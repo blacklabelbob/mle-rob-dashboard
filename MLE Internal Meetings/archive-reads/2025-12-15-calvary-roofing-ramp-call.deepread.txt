@@ -1,0 +1,199 @@
+==============================================================================
+TITLE (do not trust): Calvary Roofing RAMP Call | Donny & Tyson &Robert 2025-12-15T14:00:00.000-05:00
+URL: https://app.notion.com/p/Calvary-Roofing-RAMP-Call-Donny-Tyson-Robert-2ca1de57019980aaa323fc9d3fc564a0
+id : 2ca1de57-0199-80aa-a323-fc9d3fc564a0
+------------------------------------------------------------------------------
+PROPERTIES — in full; this is where the identity the title omits lives:
+  ∅ Google Doc Link [url]: None  ← claims absence
+  ∅ Show/No Show [multi_select]: None
+  ∅ Next Steps/Action Items [rich_text]: None
+  ∅ Company URL [rich_text]: None
+  ∅ Parent Account [multi_select]: None
+  ∅ MLE [select]: None
+  · Last Edited [last_edited_time]: 2025-12-15T21:39:00.000Z
+  ∅ Child Account [multi_select]: None
+  ∅ Other Combined/Possible referral [rich_text]: None
+  ∅ Customer Pain Points [rich_text]: None
+  ∅ Meeting Summary [rich_text]: None  ← claims absence
+  ∅ MLE Attendees [multi_select]: None
+  ∅ Follow Up Date set [date]: None
+  ∅ Company Meeting with [rich_text]: None
+  ∅ Export Status [select]: None  ← claims absence
+  ∅ Sales Rep [people]: None
+  ∅ Notion Meeting Page [url]: None
+  · Call Date [date]: 2025-12-15T14:00:00.000-05:00
+  ∅ Tags [multi_select]: None
+  ∅ Call Recording [url]: None  ← claims absence
+  ∅ Contact Name [rich_text]: None
+  ∅ Non MLE Attendees [rich_text]: None
+  ∅ TAM # [number]: None
+  · Created [created_time]: 2025-12-15T19:00:00.000Z
+  ∅ In Person/Virtual [multi_select]: None
+  ∅ Urgent TO DO [rich_text]: None
+  ∅ Meeting Type [multi_select]: None
+  ∅ Primary Target ICP [multi_select]: None
+  · Meeting Title [title]: Calvary Roofing RAMP Call | Donny & Tyson &Robert 2025-12-15T14:00:00.000-05:00
+------------------------------------------------------------------------------
+BODY: 155 blocks, 25225 chars — paragraph×112, bulleted_list_item×30, heading_3×8, to_do×4, transcription×1
+  ⚠ 4 field(s) imply 'no record'. CONTRADICTED — the body below HAS the content. Trust the body, not the field.
+      · Google Doc Link [url] = None
+      · Meeting Summary [rich_text] = None
+      · Export Status [select] = None
+      · Call Recording [url] = None
+------------------------------------------------------------------------------
+FULL BODY (summary + transcript) — read it, do not skim:
+[transcription] 
+  [paragraph] 
+    [heading_3] Meeting Purpose
+    [paragraph] This was a kickoff call between Donnie, the founder of Calvary Roofing, and his consulting team (Robert Acheson and Tyson) to prepare for an upcoming 2-day in-person consulting session. The goal is to help Donnie build a repeatable, predictable sales process and establish foundational business systems as he launches his roofing company.  
+    [heading_3] Donnie's Background and Business Journey
+    [bulleted_list_item] Donnie has extensive roofing industry experience but this is his first venture as a business owner 
+    [bulleted_list_item] Previously worked as a motorcoach driver before transitioning to roofing 
+    [bulleted_list_item] Worked as a 1099 project manager for a large Kansas City roofing company for 3.5 years, then moved to a smaller Christian-owned company for 1.5 years  
+    [bulleted_list_item] Left previous employers due to concerns about how they treated employees and lack of support  
+    [bulleted_list_item] Decided to launch Calvary Roofing to build a "Christ-like and kingdom minded" business where he can be the kind of manager and employer he wanted to see 
+    [bulleted_list_item] Currently transitioning from "Chester's Maintenance & Repair" (CRM) by filing for a name change rather than starting completely from scratch 
+    [bulleted_list_item] Officially launched the Calvary name a couple weeks ago at a BNI networking group 
+    [bulleted_list_item] Has not yet completed any roofs under the Calvary Roofing name 
+    [heading_3] Sales Experience and Market
+    [bulleted_list_item] In previous roles, Donnie's portfolio was approximately 50% insurance claims and 50% retail work 
+    [bulleted_list_item] During his two best years with the large roofing company, sold about $700,000 in retail "without trying" - primarily through networking rather than door-knocking 
+    [bulleted_list_item] Kansas City market receives a fair amount of storms 
+    [bulleted_list_item] Previous compensation structure was 50/50 profit split after 13% overhead was taken by the company 
+    [heading_3] One-Year Business Goals
+    [paragraph] Donnie's vision for Calvary Roofing one year from now: 
+    [bulleted_list_item] Have a solid system in place
+    [bulleted_list_item] Hire one or two sales representatives
+    [bulleted_list_item] Bring on an in-house production person to help manage operations 
+    [heading_3] 2-Day Consulting Session Details
+    [bulleted_list_item] Dates scheduled: January 14-15 (Wednesday-Thursday)  
+    [bulleted_list_item] Location: Donnie's home 
+    [bulleted_list_item] Day 1 schedule: 10:00 AM - 4:00 PM (flexible timing to accommodate Donnie's 8:00-9:30 AM BNI meeting)  
+    [bulleted_list_item] Day 2 schedule: 9:00 AM - 4:00 PM (flexible as needed) 
+    [heading_3] Session Objectives and Focus Areas
+    [paragraph] The 2-day onsite will be both diagnostic and solution-focused: 
+    [bulleted_list_item] Build out repeatable, predictable sales process 
+    [bulleted_list_item] Work through a 37-step project management system 
+    [bulleted_list_item] Provide resources and tools for recruiting, interviewing, and onboarding future employees 
+    [bulleted_list_item] Establish accountability systems and development processes 
+    [bulleted_list_item] Address Donnie's identified weakness: organization and being proactive 
+    [bulleted_list_item] Assess and recommend appropriate CRM options based on anticipated volume 
+    [bulleted_list_item] Focus on foundational must-haves (LLC formation, insurance) rather than "shiny objects" like elaborate websites 
+    [heading_3] Key Insights Shared
+    [bulleted_list_item] Tyson has experience working with companies ranging from one-person operations (like a contractor who did $1.4M in his first year) to an 84-million-dollar company  
+    [bulleted_list_item] The consulting approach is not one-size-fits-all and will be customized to Donnie's specific needs 
+    [bulleted_list_item] Donnie learns best in person, which is why the in-person format was chosen 
+    [bulleted_list_item] Donnie's wife is supportive after seeing 4-5 years of proof that he can succeed in commission-based work  
+    [heading_3] Action Items
+    [to_do] Tyson to send calendar invites for January 14-15 sessions 
+    [to_do] Tyson to send Slack channel invitation to Donnie  
+    [to_do] Donnie to arrange Kansas City barbecue for both days 
+    [to_do] No homework required before the session - Donnie doesn't need to set up CRM or other systems in advance 
+  [paragraph] 
+    [paragraph] 
+  [paragraph] 
+    [paragraph] Recording in progress Hey, hey, hey. Hey Rob.
+    [paragraph] How was your weekend, my friend? Uh, might be. A little relaxing. Let me see. We just got off our company call, so forgive me. The Thank you. Hey, can you guys hear me? Yep, we can hear you. No. No, you can't hear me? Not at all. What did you say? Alright cool Alright well Tyson I just hopped off the The company call so forgive me for just finishing up with a couple notes there, but cool Donnie I Super excited to have you on board.
+    [paragraph] New venture for you. That's our favorite thing. We're super fired up to help you reach your goals and to plan out all the steps that it's going to take to get you there. I'm going to let Tyson handle most of this conversation since he's going to be your coach. And obviously, you know each other already, which is a good thing. So just as a quick recap, so we kind of set the table. Donnie, you've been in the business for a long time.
+    [paragraph] You're very experienced, but you're not an experienced businessman. owner. This is a new venture for you. You'll learn best in person, which is why we decided to come out and do the sales launch. You know, there are certain things when you're starting a business, as we talked about, that are must-haves, right? You need the LLC or however you're going to structure the formation of the organization. You need the insurance and all that good stuff.
+    [paragraph] But a lot of the other shinier objects, are not as important as a lot of people make them out to be. We don't need the craziest website or anything like that. So what we're going to be talking about and one of the things Tyson's going to be doing is building out that repeatable, predictable sales process with you, making sure that you have all of the resources and tools in place, talking about your goals and how we get you there, and doing all the micro steps it takes to get there.
+    [paragraph] We also have a very, very extensive kind of intake form and 37 step, I think it is, project management system. So you're going to be working with Tyson on all of that good stuff. So with that, I'll step back. Tyson, take it away. All right.
+    [paragraph] We'll say the weather is pretty good in KC today. Yeah.
+    [paragraph] Everyone's blue, but the weather's good. That's not funny.
+    [paragraph] So I live in Florida. And you definitely got the Florida vibes going on over there. Or maybe the Bahamas or something like that.
+    [paragraph] Yeah. I like the beach. It's pretty fun.
+    [paragraph] Have you guys come down to Florida? Is it a vacation spot?
+    [paragraph] A couple of times, yeah. Yeah, cool.
+    [paragraph] That's good. Well, yeah, so definitely looking forward to working with you. This meeting, when it was scheduled, so the default says an hour. This will not be an hour meeting. Unless you want it to be or need it to be, it will be short and sweet because everything, we're really going to work out in person. There are a couple things I do want to accomplish today, one of which is setting the dates for the two days.
+    [paragraph] That way we can Are we gonna send out safety postcards? I'm going to send out save the day postcards. That's right. Um, uh, Baby, Baby Dew, Calvary Roofing 2.0, All the above. All the above. So anyway, yeah, obviously a little bit about kind of the backstory here, what's happening. And I know that you have quite a bit of industry experience. Can you refresh for me? When did you officially start? start Calvary.
+    [paragraph] And I guess what was your, what was the mission or why behind you breaking out kind of thing?
+    [paragraph] Sure, and I'll give you the collapse version. I was on the road driving motorcoats for a couple of years and I needed to get off for a lot of different reasons. So I said, what am I going to do? And I've already had some background in construction. and those kind of things. So I came across a roofing project manager position through a large company in Kansas City. So I said, what the heck? It was all commission-based, so it scared my wife half to death, but I was pretty happy about it.
+    [paragraph] I have the flexibility to do my own thing. And so after about three and a half years of that, just saw how their business was operating and I didn't know if I liked it, the way they treated their 1099 employees and whatnot. So long story made shorter, we decided to part ways. I went to work for a Christian couple that owned a company, a smaller one. Then after a year and a half of that, I was like, they weren't supporting me at all.
+    [paragraph] They just were just, all my work and making it, you know, take splitting the profits. So, so I've had some people in my networking groups as you ought to just do your own. I said, well, I don't know. So, so ultimately I decided to do my own thing and now I can build a business that that's Christ like and kingdom minded and I can do what I want as a, as a. manager and employer that I didn't see happen for me.
+    [paragraph] So that's kind of in a nutshell. where it came from. Yeah, okay.
+    [paragraph] And then, so how, I know you're early in the journey, but have you sold any roofs under Calvary at this point in time?
+    [paragraph] I officially launched the name a couple of weeks ago in a BNI group here in the community. So I officially launched and submitted paperwork to have name change in Missouri. And I've got the paperwork ready as soon as that's approved to go to the, to change my EIN number. And I say that because CRM, which is what's on my shirt is Chester's maintenance system. repair, so I've done a lot of repair work.
+    [paragraph] So I've had that business for a while. So instead of starting over, I just submitted for a name change. So to answer the question, no, I have not officially done any roofs under Calgary Mission Roofing. Okay.
+    [paragraph] And Kansas City, because I've worked with some companies in the Kansas City area. In fact, well, one in Missouri, the other one was a little bit west of Kansas City, Kansas. but You get a fair amount of storms in that area. So has your history been heavy on insurance sales with some retail sprinkled in or what does that look like?
+    [paragraph] Yeah, fair question. Honestly, my personal experience. portfolio over the last, if I evaluated over the last couple of years has been about 15%. 50? About 50% insurance claims and 50%... Oh, okay.
+    [paragraph] Okay. Okay. Gotcha. Yeah. Okay. All right. Um, Okay, cool. And then obviously I know you've been thinking about and considering Looking ahead to the trajectory that I imagine you desire for Calvary, let's just look at one year out. How does the company look one year from today? What's the ideal for you? What are you aiming towards?
+    [paragraph] I'm aiming towards... to have a solid system in place. where I can start hiring, if not already have hired one or two sales reps. and possibly an in-house production person to kind of help keep things rolling once those two places are filled. Because I know I won't be doing it all on my own.
+    [paragraph] Yeah, for sure. Okay, good. Good. Awesome. Love it. So your wife wasn't keen on a 1099 and now you're launching your own company. Is she fully on board?
+    [paragraph] I think I've proven to her over the last four or five years that, hey, we can make it.
+    [paragraph] Yeah, it's worth the risk. Yeah, that's good.
+    [paragraph] Absolutely. She's very supportive. She helps out whenever she can.
+    [paragraph] Yeah, yeah. And you said you were, what was your title? Did they call you a project manager previously?
+    [paragraph] Yes. Yep.
+    [paragraph] Okay, but you were a selling project manager?
+    [paragraph] A selling, but yeah, but I, in the roofing space, you probably know this, but, I have never seen a roughing company have a W-2 employee for a project manager. you know, other than unless they're a site manager or a branch manager or something like that. So... My job entailed creating taking the lead whether I was self-generated or company generated and taking them through every step of the process to completion and final and final um certificate of completion.
+    [paragraph] So I did all the insurance work, the paperwork, the Making sure the crews were there, the supplies delivered, ordered, blah, blah, blah. Okay.
+    [paragraph] Gotcha. And then what was the... If there's a typical or if there's a high end, what would you call a good year for you in sales when you were a PM? Um...
+    [paragraph] Honestly, I didn't work all that hard. I did DoorKnock, I just did networking. I had a love-hate relationship with door-knocking, so...
+    [paragraph] Because you're not a sociopath. That's why. Just a little bit to enjoy it. But yeah.
+    [paragraph] So I hated, I, so I changed, changed the way my approach and that's when I got into networking. And so, yeah, Hold on, I think I lost your question.
+    [paragraph] I was just asking what your years look like.
+    [paragraph] Oh, what's my years look like? Yeah, so. My two good years when I was with the big roofing company, I sold about 700,000. Okay. In retail. And that's without trying, honestly. I didn't try. Yeah. I stayed busy, but I didn't do all the things they wanted me to do, like work seven days a week, set up to send out. I just didn't do it. I was 15 years old. I wasn't interested. Right.
+    [paragraph] You were 1099 with them. Were they paying you 10% of revenue or were they paying you off profit?
+    [paragraph] Off profit. Yeah. The breakdown was... Pretty simple. They took a 10% and I mean 13 before I left, they raised it 13% overhead off the total of the job. So if the job was 10 grand, 10,000 goes to the company. Yeah. Bills are paid. Then the profit is split between the company and myself at 50. Got it. Okay.
+    [paragraph] All right. Okay, cool. Um, All right, let's do this before I get too far ahead of myself. Can you pull up a calendar and just see if we can set some... Yep. Some dates to make this happen here? Yes, sir. Okay, let me get mine up here.
+    [paragraph] Okay, I got it open. Eric.
+    [paragraph] You beat me to it. Give me a second here.
+    [paragraph] One point for Donnie.
+    [paragraph] One point for Donnie. Every point is a $500 refund Donnie. Sweet. You're going to be a rich man now, Ken. Okay. All right. Cute. While I'm getting my calendar up here, do you have any? I know that Rob was very thorough and then some. Do you have any questions about the nature of the two-day onsite? What it entails? The components that we'll be walking through? Any point of confusion or missing pieces there for you?
+    [paragraph] Obviously, I can't see the future. I went through the agenda that he sent me over, so that can't be a rough idea. I'm sure I have to work through some expectations once we get going through there. But ultimately, what I'd like to do is be Be able to breathe at the end of our two days and say, okay, I can do this. I can take what I've learned and move forward and know that I've got a support system on me if I have questions.
+    [paragraph] But my expectation would be to... Basically, get up and going as if I'd planned for months. I don't know that may be a little off, but... And if that's not the case, then you let me know. Bye.
+    [paragraph] I think it's an okay way to approach it. We've done a lot of these as a company. I don't know, maybe dozens of these. And the idea is that, I mean, it's really the intent of the two days is twofold. Number one, it's diagnostic. Diagnostic is going to be easy for us because you don't have a ton of history. as an entity that we're having to diagnose. So you kind of, instead of having to erase a lot, you've already got the template, the blank sheet there.
+    [paragraph] So we'll work through all the nuances that you see, all the components that are listed out in the agenda. We'll work through those in detail. And the idea is to be able to give you Um, give you the best practices, give you tangible things that you can work with, real resources that as you hire people will equip you both from an interview, onboarding, equip you to hold them accountable, equip you to develop them, disciple them, and raise them up so that everybody's winning collectively.
+    [paragraph] So it's a pretty power-packed, information-packed two days, but we want you to be able to look at a tool belt that's packed at the end of it and at least know how to identify and use the tools that are there. alongside thereafter as needed. No, but that's the big idea. All right. Okay. So let's see. How are you looking the 24th and 25th of this month?
+    [paragraph] I think I've got family coming.
+    [paragraph] I think you might have plans. You might have plans. I'm just kidding.
+    [paragraph] I'll put something under the tree for you.
+    [paragraph] There you go. Love it. I'm going to go with my, I'll give you my earliest availability, which is going to be. Yeah. January 14th and 15th, which is a Wednesday, Thursday, How does that look for you?
+    [paragraph] Mmm I can make it work. I usually have my B&I group Wednesday mornings, but that's not something I can't skip.
+    [paragraph] Well, how long does that run?
+    [paragraph] An hour and a half.
+    [paragraph] What time does it start?
+    [paragraph] Eight o'clock.
+    [paragraph] Well, it's not a big deal. We could run 10 to 4 or whatever. We can work around it if it's not too long of a day for you. It doesn't bother me. We can have flexibility on timing.
+    [paragraph] It'll work for me. That'd be fine.
+    [paragraph] Okay. Let's do the 14th and 15th then. That's a Wednesday, Thursday. I'll create a calendar, invite, and send it to you so that we've got shared information there. But we can work around the B&I. So that's, you said it goes from 8:00 to 9:30 typically? Yep. Okay. You want to start that day at 10, 1030? What'll be best for you?
+    [paragraph] Yeah, 10 o'clock is fine. Okay.
+    [paragraph] We'll do 10 o'clock then. Usually it's Yeah, so we started 10, we're what we want to accomplish day one. We'll see. We'll say 10 to 4. But I'm not a second of time. Well, uh... we'll use what we need to use. Not a big deal. we need to go beyond four. So we'll say 10 to four. It can be 10 to 5. I don't care. See how it shakes out. And then I'll set up Thursday for... nine two but if we need to run I'm not constrained by the time.
+    [paragraph] Does that work for you?
+    [paragraph] Yeah, like I said, I can do... I'm up early, so... How do you want or that's how you want?
+    [paragraph] All right, perfect. That's going to be 1.14, 1.15. All right, awesome. Do you have an idea? Do you want to do this at your house? Is there a central place that you'd want to...
+    [paragraph] I don't mind depending on how much space you need. I don't have a lot of space, but I don't mind my home. That's fine.
+    [paragraph] Do you have a 12 by 12 dance floor?
+    [paragraph] No.
+    [paragraph] Because I'm not going to need it. So that's perfect. I don't dance. Strictly forbidden in the AG bylaws, I'm just kidding. Maybe it is, it wasn't one point in time.
+    [paragraph] It wasn't one time, not anymore.
+    [paragraph] It wasn't one time for sure. All right. Okay. So 114, 115, I'll send those calendar invites out. That'll be good. We'll look forward to that. Yeah, so really honestly, everything we want to accomplish, I don't want to be redundant. We know the agenda, we'll dig into it, we'll have all the time in the world to work through it, give you everything that you need those two days. What questions do you have for me?
+    [paragraph] What requests, what loose ends, anything at all on your side?
+    [paragraph] One of my weaknesses I know is organization. Okay. So if you can kind of think about that. All right. If I can figure out how to organize and be proactive on stuff, I think that would help me a ton. Mm-hmm. We won't get him. Yeah. And just let me know if there's anything I can get done before you come. If I need to do research or... have forms ready or whatever.
+    [paragraph] Yeah, the only thing I would need before I get there, which I don't know that you would have based on what you've told me thus far, but if you have, financials, from sales if you had, I mean, you have, I don't think you've done any recruiting, so you don't have any like recruiting processes, onboarding, job advertising. You don't have that stuff, which is fine. Super easy. In the absence of that, I don't know if there's really any homework you need to do besides finding the best Kansas City barbecue and making sure we get it both days.
+    [paragraph] That's about it. Okay.
+    [paragraph] Make that happen. Easy.
+    [paragraph] What about Tyson, any, like, systems, you know, infrastructure type stuff that he doesn't have yet. Like, do you recommend that, you know, we get signed up for pipe drive or something else? Or do you want to kind of assess that at the time?
+    [paragraph] I think we'll probably wait. I wouldn't worry about anything just yet. Because while I'm there, we can explore some options that probably would make sense for you and the volume that you anticipate for this year. So yeah, I wouldn't say as far as the CRM is concerned, I want to go Yeah. you know, having anything ready at this point. Okay.
+    [paragraph] Well, Tyson's our most experienced coach, so I have full faith in his process, and he could probably get done.
+    [paragraph] That's a risky thing to say, Rob, because I'm about to turn 40. Let's drop that experience language. Yeah, yeah, yeah.
+    [paragraph] Well, he's definitely the best looking coach that we have, right?
+    [paragraph] Yeah, something like that. Yeah. Yeah, no, it'll be good. It'll be good. And Donnie, I've worked with companies. I did this with a company last week, one man band, just like you. He's finishing his first year. But he has no sales staff, he has no systems, he has no process. He pulled off 1.4 million on his own, probably working 80 hours a week. But he's got nothing in play, and he's feeling good. He's resourced.
+    [paragraph] He's starting to consider bringing on one or two people at this point. But yeah, I've done this for companies in your shoes who are just getting off the ground all the way up to And it, you know, 84 million is the largest company I've worked with and you think that they have all their stuff together at 84 million? I'm scratching my head, I don't know how you made it past 20 with what you've got going on.
+    [paragraph] And so the stuff works, but it's good to get on site because we're not one size fits all. So really to understand how we want to tweak and shape things to make it work for you is the big idea. Yeah. Yeah. Yeah. So Rob, did you have any other questions or considerations I might be missing here? Um...
+    [paragraph] No, you know, we're building the foundation from the ground up. And, you know, Donnie mentioned that he works best in person. I know you guys obviously are going to hit it off. Tyson, like I said, is... Very knowledgeable. So, you know, we're not going to have to do a lot of like, you know, trying this this way and trying this this way. We can start you off in the right direction. Of course, there's going to be iterations as we, you know, go throughout the process.
+    [paragraph] But you have the the Slack invitation that we sent over to you. You have the.
+    [paragraph] Oh, I haven't seen any of that. No? Mm-mm.
+    [paragraph] Rob, are you talking about for the Slack channel? Yes.
+    [paragraph] Could you get that over to him?
+    [paragraph] Did you send it?
+    [paragraph] Yeah, I sometimes I welcome invite Was it your-The last communication I got, I think, Rob, is this call. Hold on, let me look. Oh, there's a welcome menu. Hold on. It's yeah, it's just blank. It just says, no, that's from Tyson. Hold on. The school link.
+    [paragraph] The school link is there, right?
+    [paragraph] It's in that email, and that's it.
+    [paragraph] Rob, you talking about for the Slack channel? Yes. Okay. Well, Donnie, do you use Slack or have you used Slack before?
+    [paragraph] I have used it before. I'm familiar with it.
+    [paragraph] Do you like it? Ugh.
+    [paragraph] It's okay.
+    [paragraph] Why don't you give me your cell phone number and I'll text you. That way you have my cell. There you go. And we'll at least have that as a starting point because that might be a little easier communication. What's your cell number?
+    [paragraph] 746. Three, two, two, zero.
+    [paragraph] All right, I'll send it so you got my contact. So since you're out in KC, I gotta ask you, has the Mike Bickle dust settled around there? Mike Tickle.
