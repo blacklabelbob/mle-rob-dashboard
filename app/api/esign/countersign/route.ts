@@ -4,6 +4,7 @@ import { buildEvent } from "@/lib/esign/events";
 import { stampCountersignature } from "@/lib/esign/countersignPdf";
 import { anchorIdOf, esignDb, insertEvent, type DocumentRow } from "@/lib/esign/db";
 import { sha256Hex } from "@/lib/esign/hash";
+import { downloadLink, publicBaseUrl } from "@/lib/esign/downloadLink";
 import { extractPageText } from "@/lib/esign/pdfText";
 import { findSignatureAnchors } from "@/lib/esign/signatureAnchors";
 import {
@@ -225,11 +226,9 @@ export async function POST(req: NextRequest) {
     })
     .catch((err) => console.error("[esign] countersign timeline activity failed:", err));
 
-  const downloadUrl = await signedUrlFor(
-    outPath,
-    7 * 24 * 3600,
-    downloadFilename(doc.title, "fully executed")
-  );
+  const downloadUrl =
+    downloadLink(doc.id, publicBaseUrl()) ??
+    (await signedUrlFor(outPath, 7 * 24 * 3600, downloadFilename(doc.title, "fully executed")));
 
   // Completion notice to both sides. A mailer failure never unwinds an
   // executed agreement — but it must not vanish either, so the outcome is

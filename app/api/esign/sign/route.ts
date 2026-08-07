@@ -9,6 +9,7 @@ import {
 import { anchorIdOf, esignDb, getRequestByTokenHash, insertEvent, listEvents } from "@/lib/esign/db";
 import { buildEvent } from "@/lib/esign/events";
 import { sha256Hex } from "@/lib/esign/hash";
+import { downloadLink, publicBaseUrl } from "@/lib/esign/downloadLink";
 import { extractPageText } from "@/lib/esign/pdfText";
 import { findSignatureAnchors } from "@/lib/esign/signatureAnchors";
 import {
@@ -388,11 +389,13 @@ export async function POST(req: NextRequest) {
     .catch((err) => console.error("[esign] timeline activity failed:", err));
 
   // Copy delivery (ESIGN element 4). 7-day link; failures logged, never fatal.
-  const downloadUrl = await signedUrlFor(
-    signedPath,
-    7 * 24 * 3600,
-    downloadFilename(document.title)
-  );
+  // Short link on our own domain, resolved at click time (Rob 2026-08-07 —
+  // the raw storage URL wrapped across five lines of the email). Falls back to
+  // the long signed URL if no signing key is configured, so a missing env can
+  // never mail a dead link.
+  const downloadUrl =
+    downloadLink(document.id, publicBaseUrl()) ??
+    (await signedUrlFor(signedPath, 7 * 24 * 3600, downloadFilename(document.title)));
   const env = esignSenderEnv();
   if (esignSenderConfigured(env)) {
     const copy = signedCopyEmail({

@@ -19,6 +19,10 @@ export function isPublicPath(pathname: string): boolean {
     // expiring — lib/esign/token.ts); every other /api/esign/* route
     // (send, documents) stays behind the Basic gate.
     pathname.startsWith("/sign/") ||
+    // Short download links (/d/<documentId>/<hmac>) go to counterparties who
+    // hold no dashboard credentials; the HMAC in the path is the auth, and the
+    // route mints a 5-minute storage URL. Same posture as /sign/.
+    pathname.startsWith("/d/") ||
     pathname === "/api/esign/sign"
   );
 }
