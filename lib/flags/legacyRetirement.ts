@@ -64,8 +64,9 @@ export type RetirementStep =
 export const Q85_LEGACY_RETIREMENTS: readonly RetirementRule[] = [
   {
     legacyId: 206,
-    disposition: "hold",
-    why: "Names the CAUSE — all 15 writable meetings fail on one empty Notion 'Company Meeting with' column. `meeting-archive/crm-gap` (#133) counts the meetings and never states the cause, so retiring this deletes the only place the cause is written.",
+    disposition: "retire",
+    survivorKey: "meeting-archive/write-blockers",
+    why: "HELD at inc.10 because nothing keyed stated the CAUSE. inc.11 built the writer: `buildWriteBlockerFinding` re-measures the blocker breakdown — empty Notion company column vs a company the CRM does not hold vs no readable day — on every `check:archive` run, naming the system each fix lives in. The cause is now re-stated with current numbers where this row's are frozen.",
   },
   {
     legacyId: 207,
@@ -90,8 +91,9 @@ export const Q85_LEGACY_RETIREMENTS: readonly RetirementRule[] = [
   },
   {
     legacyId: 211,
-    disposition: "hold",
-    why: "States that the COMPANY, not the person, is what blocks all three writable rows. #213 is the person half only; nothing keyed says the block is on the company side.",
+    disposition: "retire",
+    survivorKey: "meeting-archive/write-blockers",
+    why: "HELD at inc.10 because #213 is the person half only. inc.11's finding states the company/person asymmetry as a computed consequence of its own blocker mapping — every blocker it can emit is a company or a date, and an unresolved attendee never stops a write. Re-stated every run rather than typed once.",
   },
   {
     legacyId: 212,

@@ -8,24 +8,50 @@ import {
 import { supersededBy } from "../supersede";
 
 const survivor: LedgerRow = { id: 213, status: "open", dedupeKey: "meeting-archive/person-proposals" };
+/**
+ * Q85 inc.11 — the second survivor. `meeting-archive/write-blockers` is the keyed writer built
+ * for the CAUSE, and it is what releases the holds on #206 and #211. Its presence here is not
+ * decoration: with this row absent the pass SKIPS both (asserted below), which is the refusal
+ * that keeps a supersede note from pointing at nothing.
+ */
+const blockerSurvivor: LedgerRow = { id: 214, status: "open", dedupeKey: "meeting-archive/write-blockers" };
 const legacy = (id: number, status: LedgerRow["status"] = "open"): LedgerRow => ({ id, status, dedupeKey: null });
 
-const fullLedger: LedgerRow[] = [survivor, ...Q85_LEGACY_RETIREMENTS.map((r) => legacy(r.legacyId))];
+const fullLedger: LedgerRow[] = [
+  survivor,
+  blockerSurvivor,
+  ...Q85_LEGACY_RETIREMENTS.map((r) => legacy(r.legacyId)),
+];
 
 describe("planLegacyRetirements", () => {
   it("retires only the rows a live keyed row re-states, and holds the rest OPEN", () => {
     const steps = planLegacyRetirements(Q85_LEGACY_RETIREMENTS, fullLedger);
-    expect(steps.filter((s) => s.action === "retire").map((s) => s.legacyId)).toEqual([210, 212]);
-    expect(steps.filter((s) => s.action === "hold").map((s) => s.legacyId)).toEqual([206, 207, 208, 209, 211]);
+    expect(steps.filter((s) => s.action === "retire").map((s) => s.legacyId)).toEqual([206, 210, 211, 212]);
+    expect(steps.filter((s) => s.action === "hold").map((s) => s.legacyId)).toEqual([207, 208, 209]);
     expect(steps.some((s) => s.action === "skip")).toBe(false);
+  });
+
+  it("SKIPS #206 and #211 when the blocker writer has not filed its row yet — a hold is released by a live row, never by an edit to this table", () => {
+    // The exact state prod is in until `check:archive --flag` runs the new writer once.
+    const steps = planLegacyRetirements(Q85_LEGACY_RETIREMENTS, [
+      survivor,
+      ...Q85_LEGACY_RETIREMENTS.map((r) => legacy(r.legacyId)),
+    ]);
+    expect(steps.filter((s) => s.action === "skip").map((s) => s.legacyId)).toEqual([206, 211]);
+    for (const step of steps.filter((s) => s.action === "skip")) {
+      expect((step as { reason: string }).reason).toContain("meeting-archive/write-blockers");
+    }
   });
 
   it("points every retirement at the survivor's real id, in the grammar the Reopen control reads", () => {
     const steps = planLegacyRetirements(Q85_LEGACY_RETIREMENTS, fullLedger);
+    // Two survivors now, and each retirement must point at ITS OWN — a note pointing at the
+    // wrong live row is the same defect as one pointing at nothing, only harder to spot.
+    const expected: Record<number, number> = { 206: 214, 210: 213, 211: 214, 212: 213 };
     for (const step of steps) {
       if (step.action !== "retire") continue;
-      expect(step.survivorId).toBe(213);
-      expect(supersededBy(step.note)).toBe(213);
+      expect(step.survivorId).toBe(expected[step.legacyId]);
+      expect(supersededBy(step.note)).toBe(expected[step.legacyId]);
     }
   });
 
@@ -60,13 +86,14 @@ describe("planLegacyRetirements", () => {
   it("is idempotent: re-running after the retirements landed proposes no second write", () => {
     const after: LedgerRow[] = [
       survivor,
+      blockerSurvivor,
       ...Q85_LEGACY_RETIREMENTS.map((r) =>
         r.disposition === "retire" ? legacy(r.legacyId, "resolved") : legacy(r.legacyId),
       ),
     ];
     const steps = planLegacyRetirements(Q85_LEGACY_RETIREMENTS, after);
     expect(steps.some((s) => s.action === "retire")).toBe(false);
-    expect(steps.filter((s) => s.action === "hold")).toHaveLength(5);
+    expect(steps.filter((s) => s.action === "hold")).toHaveLength(3);
   });
 });
 
@@ -87,8 +114,8 @@ describe("the mapping itself", () => {
 describe("retirementPlanText", () => {
   it("counts the held rows separately from the skipped ones, so a hold never reads as a failure", () => {
     const text = retirementPlanText(planLegacyRetirements(Q85_LEGACY_RETIREMENTS, fullLedger));
-    expect(text).toContain("2 to retire · 5 held open on purpose · 0 skipped");
-    expect(text).toContain("HOLD    #206  stays OPEN");
+    expect(text).toContain("4 to retire · 3 held open on purpose · 0 skipped");
+    expect(text).toContain("HOLD    #207  stays OPEN");
     expect(text).toContain("RETIRE  #212 → #213");
   });
 });

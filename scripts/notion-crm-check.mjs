@@ -48,6 +48,7 @@ import { summarizeAttendeeCoverage, readArchiveAttendees } from "../lib/meetings
 import { resolveRowAttendees } from "../lib/meetings/attendeePerson.ts";
 import { decidePersonProposal, personProposalText } from "../lib/meetings/personProposal.ts";
 import { buildPersonProposalFinding } from "../lib/meetings/personFinding.ts";
+import { buildWriteBlockerFinding } from "../lib/meetings/writeBlockerFinding.ts";
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), "..");
 const DATA_SOURCE_ID = "600498eb-b6e0-41af-a625-e369cbe5fc6a";
@@ -480,6 +481,15 @@ if (FILE_FLAG) {
   await fileFinding(
     buildPersonProposalFinding([...unknownSeen.values()]),
     "nothing to file — every attendee name resolves to a CRM person.",
+  );
+  // Q85 inc.11 — the CAUSE. The three rows above answer "how many meetings are missing" and
+  // "which humans are unresolved"; none of them has ever said WHAT IS STANDING IN THE WAY. That
+  // sentence lived only on hand-typed prod row #206, frozen the moment it was filed. Its own key
+  // because it moves independently of the others: filling one Notion cell changes this row and
+  // not #133, writing a meeting changes #133 and not this one.
+  await fileFinding(
+    buildWriteBlockerFinding(activityPlan.rows),
+    "nothing to file — every recorded meeting can be written onto a company record.",
   );
   console.log("");
 }

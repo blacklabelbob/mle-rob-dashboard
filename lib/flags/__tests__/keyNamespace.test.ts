@@ -132,12 +132,19 @@ describe("the live registry", () => {
     expect(report.partitioned).toBe(false);
 
     // Independent processes in one namespace, separated only by the words they picked.
-    // Q85 inc.9 added a THIRD — `meeting-archive/person-proposals` — which makes the point
-    // sharper, not stale: the namespace keeps growing and nothing enforces the partition.
+    // Q85 inc.9 added a THIRD — `meeting-archive/person-proposals` — and inc.11 a FOURTH,
+    // `meeting-archive/write-blockers`. Each addition makes the point sharper, not stale: the
+    // namespace keeps growing and nothing enforces the partition. This list is updated
+    // deliberately, one increment at a time, precisely so an unnoticed fifth filer fails here.
     expect(report.sharedNamespaces).toEqual([
       {
         namespace: "meeting-archive",
-        filers: ["notion-crm-check.mjs", "meeting-archive pass", "notion-crm-check.mjs (people)"],
+        filers: [
+          "notion-crm-check.mjs",
+          "meeting-archive pass",
+          "notion-crm-check.mjs (people)",
+          "notion-crm-check.mjs (blockers)",
+        ],
       },
     ]);
 
