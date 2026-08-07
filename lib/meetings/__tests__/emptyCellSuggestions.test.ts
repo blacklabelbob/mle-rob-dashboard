@@ -13,7 +13,7 @@ import { describe, expect, it } from "vitest";
 import type { ActivityPlanRow, CrmOrg, CrmPerson } from "../activityPlan";
 import { blockerFor } from "../writeBlockerFinding";
 import { planCompanyConfirmations } from "../companyConfirmation";
-import { confirmArgFor, suggestCompaniesForEmptyCells } from "../emptyCellSuggestions";
+import { confirmArgFor, personAskLines, suggestCompaniesForEmptyCells } from "../emptyCellSuggestions";
 
 const ORGS: CrmOrg[] = [
   { id: "C-2005", name: "Martin Fierro Restaurant" },
@@ -145,5 +145,87 @@ describe("suggestCompaniesForEmptyCells", () => {
       companyText: "Martin Fierro Restaurant",
       confirmedBy: "Rob Acheson",
     });
+  });
+});
+
+/**
+ * Q85 inc.18 — the two `no-matched-person` rows on prod, and why one of them must NOT be acted on.
+ *
+ * Fixtures are the exact live values read off prod this increment: `Contact Name = "Joseph Green"`
+ * on the Fireflies "Next Steps" row, and `Contact Name = "Dix thedev08"` on the Dixith intro call.
+ * P-1010 Dixith Magadiev and P-1018 Caleb Green are real CRM records; both are in the fixture
+ * because both are the reason an answer here is not the obvious one.
+ */
+describe("no-matched-person rows carry WHICH human, and whether to create them", () => {
+  const CAST: CrmPerson[] = [
+    ...PEOPLE,
+    { id: "P-1010", name: "Dixith Magadiev", orgId: "C-2006" },
+    { id: "P-1018", name: "Caleb Green", orgId: "C-2005" },
+  ];
+
+  it("proposes a genuinely missing human, and carries the shared surname as context not a match", () => {
+    const rows = [emptyCellRow("page-j", { contactName: "Joseph Green" })];
+    const { suggestions, counts } = suggestCompaniesForEmptyCells(rows, ORGS, CAST);
+
+    expect(suggestions[0].candidate.outcome).toBe("no-matched-person");
+    expect(suggestions[0].personAsk).toHaveLength(1);
+    expect(suggestions[0].personAsk[0].kind).toBe("propose");
+    expect(counts["person-to-propose"]).toBe(1);
+    expect(counts["person-withheld"]).toBe(0);
+
+    // Caleb Green [P-1018] is named as context. It must never be offered as the person.
+    const line = personAskLines(suggestions[0])[0];
+    expect(line).toContain("＋");
+    expect(line).toContain("Caleb Green [P-1018]");
+    expect(line).toContain("DIFFERENT person");
+  });
+
+  it("WITHHOLDS the display handle — following the generic next step would duplicate P-1010", () => {
+    const rows = [emptyCellRow("page-d", { contactName: "Dix thedev08" })];
+    const { suggestions, counts } = suggestCompaniesForEmptyCells(rows, ORGS, CAST);
+
+    expect(suggestions[0].candidate.outcome).toBe("no-matched-person");
+    expect(suggestions[0].personAsk[0].kind).toBe("withhold");
+    expect(counts["person-withheld"]).toBe(1);
+    expect(counts["person-to-propose"]).toBe(0);
+
+    const line = personAskLines(suggestions[0])[0];
+    expect(line).toContain("⛔");
+    expect(line).toContain("Dixith Magadiev [P-1010]");
+    expect(line).toContain("Do NOT create a person");
+  });
+
+  it("the generic sentence and the per-name answer are never both shown — the per-name one wins", () => {
+    const rows = [emptyCellRow("page-d", { contactName: "Dix thedev08" })];
+    const { suggestions } = suggestCompaniesForEmptyCells(rows, ORGS, CAST);
+
+    // The generic string still exists on the candidate (its own module's tests pin it) and says
+    // the opposite of the truth for this row. `personAskLines` is non-empty, which is the signal
+    // the caller uses to print the specific answer INSTEAD.
+    expect(suggestions[0].candidate.nextStep).toContain("Create the person first");
+    expect(personAskLines(suggestions[0])).not.toHaveLength(0);
+  });
+
+  it("is populated ONLY for no-matched-person — not on every row", () => {
+    const rows = [
+      emptyCellRow("page-ok", { contactName: "Michael Jaenvega" }), // candidate
+      emptyCellRow("page-none", {}), // no-counterparty
+    ];
+    const { suggestions } = suggestCompaniesForEmptyCells(rows, ORGS, CAST);
+
+    for (const s of suggestions) {
+      expect(s.candidate.outcome).not.toBe("no-matched-person");
+      expect(s.personAsk).toEqual([]);
+      expect(personAskLines(s)).toEqual([]);
+    }
+  });
+
+  it("a single-token counterparty identifies nobody, so it gets no proposal at all", () => {
+    // "Alex" is below inc.5's two-token floor: `not-identifying`, never `unknown`. A proposal
+    // built from it would create a record for a first name, which is how a second Alex is born.
+    const rows = [emptyCellRow("page-a", { contactName: "Alex" })];
+    const { suggestions } = suggestCompaniesForEmptyCells(rows, ORGS, CAST);
+
+    expect(suggestions[0].personAsk).toEqual([]);
   });
 });

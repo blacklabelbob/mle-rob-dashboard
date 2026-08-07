@@ -57,6 +57,7 @@ import {
   confirmArgFor,
   titleConfirmArgFor,
   suggestCompaniesForEmptyCells,
+  personAskLines,
 } from "../lib/meetings/emptyCellSuggestions.ts";
 
 const args = process.argv.slice(2);
@@ -187,7 +188,17 @@ if (SUGGEST) {
     // `→` is an attendee-derived offer, `~` a title-derived one. Two markers, because a reader
     // scanning the left column must be able to see which class they are agreeing to (inc.17).
     console.log(`  ${arg ? "→" : titleArg ? "~" : "·"} ${s.pageTitle}${s.day ? `  (${s.day})` : ""}`);
-    console.log(`      [${s.candidate.outcome}] ${s.candidate.nextStep}`);
+    // Q85 inc.18 — the per-name answer REPLACES the generic one where it exists. See
+    // `personAskLines`: the generic sentence tells this reader to create a person, and for
+    // `Dix thedev08` that is a duplicate of P-1010. Printing both would hand a reader a
+    // contradiction whose wrong branch is unrecoverable.
+    const personLines = personAskLines(s);
+    if (personLines.length) {
+      console.log(`      [${s.candidate.outcome}] the archive names people the CRM has not matched — and they are NOT one ask:`);
+      for (const line of personLines) console.log(`        ${line}`);
+    } else {
+      console.log(`      [${s.candidate.outcome}] ${s.candidate.nextStep}`);
+    }
     if (s.titleCandidate) {
       console.log(`      [title:${s.titleCandidate.outcome}] ${s.titleCandidate.nextStep}`);
     }

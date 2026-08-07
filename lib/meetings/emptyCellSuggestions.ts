@@ -38,6 +38,7 @@ import { readArchiveAttendees } from "./archiveAttendees";
 import { resolveRowAttendees } from "./attendeePerson";
 import { candidateOrgFromAttendees, type AttendeeOrgCandidate, type AttendeeOrgOutcome } from "./attendeeOrgCandidate";
 import { candidateOrgFromTitle, type TitleOrgCandidate } from "./titleOrgCandidate";
+import { decidePersonProposal, personProposalText, type PersonProposalDecision } from "./personProposal";
 
 export type EmptyCellSuggestion = {
   pageId: string;
@@ -54,6 +55,20 @@ export type EmptyCellSuggestion = {
    * `candidate` — either the attendees answered, or the title was consulted and said nothing.
    */
   titleCandidate: TitleOrgCandidate | null;
+  /**
+   * Q85 inc.18 — WHICH unknown human, and whether creating a record for them is the right move.
+   *
+   * `no-matched-person` ships one sentence for the whole row — *"Create the person first"* — and
+   * on prod one of the two rows carrying it names **`Dix thedev08`**, which is P-1010 Dixith
+   * Magadiev's Notion display handle. Following that sentence creates a second record for a human
+   * the CRM already holds. inc.8 computed exactly that refusal and this surface never asked it.
+   *
+   * Populated ONLY for `no-matched-person` — it is that outcome's own detail, not a field every
+   * row carries. `[]` everywhere else, and `[]` here too when nothing resolvable is unknown
+   * (an `ambiguous` name is already a question with its own next step; re-answering it here would
+   * put two ladders on one row, which is `decidePersonProposal`'s own rule, not a new one).
+   */
+  personAsk: PersonProposalDecision[];
 };
 
 export type EmptyCellSuggestions = {
@@ -68,6 +83,13 @@ export type EmptyCellSuggestions = {
      * mean two different strengths of evidence, which is the merge this build refuses.
      */
     "title-candidate": number;
+    /**
+     * Q85 inc.18 — `no-matched-person` rows split by what a human should DO. Two keys, never a
+     * sum: one row wants a record created and the other must never get one, and a single
+     * "2 unknown people" would invite two records, one of which duplicates P-1010.
+     */
+    "person-to-propose": number;
+    "person-withheld": number;
   };
 };
 
@@ -127,6 +149,14 @@ export function suggestCompaniesForEmptyCells(
         candidate.outcome === "candidate"
           ? null
           : candidateOrgFromTitle(row.title, orgs, hostIndex),
+      // Reused, never re-decided: `decidePersonProposal` already returns null for every outcome
+      // that is not `unknown`, so the filter below is the module's own contract, not a second one.
+      personAsk:
+        candidate.outcome === "no-matched-person"
+          ? resolved.resolutions
+              .map((r) => decidePersonProposal(r, people))
+              .filter((d): d is PersonProposalDecision => d !== null)
+          : [],
     });
   }
 
@@ -153,8 +183,34 @@ export function suggestCompaniesForEmptyCells(
       "org-not-in-crm": count("org-not-in-crm"),
       "title-candidate": ordered.filter((s) => s.titleCandidate?.outcome === "title-candidate")
         .length,
+      // Q85 inc.18 — counted at ROW level, and the two are counted apart for the reason the whole
+      // increment exists: summing them would put the row that must NOT get a record back into the
+      // same number as the row that should, which is the sentence being corrected.
+      "person-to-propose": ordered.filter((s) => s.personAsk.some((d) => d.kind === "propose"))
+        .length,
+      "person-withheld": ordered.filter((s) => s.personAsk.some((d) => d.kind === "withhold"))
+        .length,
     },
   };
+}
+
+/**
+ * Q85 inc.18 — what a human should actually do about a `no-matched-person` row.
+ *
+ * REPLACES `candidate.nextStep` for these rows rather than joining it, and that is the point.
+ * The generic sentence says *"Create the person first"*; for `Dix thedev08` the right answer is
+ * *do not create anything, fix the name in Notion*. Printing both would put a contradiction in
+ * one row and leave the reader to pick — which, given one instruction is an unrecoverable
+ * duplicate, is not a choice this surface may hand over. The per-name answer is strictly more
+ * specific and comes off the same resolutions, so it wins outright.
+ *
+ * Returns `[]` when there is nothing more specific to say — the caller then prints the generic
+ * `nextStep` unchanged, exactly as it did before this function existed.
+ */
+export function personAskLines(suggestion: EmptyCellSuggestion): string[] {
+  return suggestion.personAsk.map(
+    (d) => `${d.kind === "withhold" ? "⛔" : "＋"} ${personProposalText(d)}`
+  );
 }
 
 /**
