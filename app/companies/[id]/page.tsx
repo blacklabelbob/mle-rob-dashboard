@@ -25,6 +25,8 @@ import { intelSourceFromActivities } from "@/lib/meetings/intelSource";
 import { meetingCoverage, noMeetingNote } from "@/lib/meetings/coverage";
 import { isCompany } from "@/lib/companies";
 import { buildMeetingIntel, type IntelCandidate } from "@/lib/meetings/meetingIntel";
+import StatusJustification from "@/components/StatusJustification";
+import { driftReport } from "@/lib/networkStatus";
 
 export const dynamic = "force-dynamic";
 
@@ -122,6 +124,14 @@ export default async function CompanyPage({
     meetingsUnavailable = true;
   }
   const meetingIntel = buildMeetingIntel(meetingIntelSource.candidates);
+
+  // Q91(a): the whole book goes through `driftReport` and this record is looked up in
+  // the result, rather than calling `statusDrift` on the company alone. That is not a
+  // detour — `driftReport` is where the Q91(c) membership guard lives, and calling the
+  // ladder directly here would re-derive the rule with the guard silently missing (the
+  // second-copy failure Q88 exists to catch). A withheld row is simply absent, so this
+  // page prints nothing rather than an accusation the book cannot support.
+  const statusDrift = driftReport(data.people).items.find((i) => i.id === company.id)?.drift ?? null;
   const picks = await loadScanPicks(company.id);
   const returns = await loadPhase2Returns(company.id);
   const blueprint = buildBlueprint({
@@ -183,6 +193,11 @@ export default async function CompanyPage({
           )}
           {company.phone && ` · ${company.phone}`}
         </p>
+        {statusDrift && (
+          <div className="mt-3 max-w-3xl">
+            <StatusJustification drift={statusDrift} />
+          </div>
+        )}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
