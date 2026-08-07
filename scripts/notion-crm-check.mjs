@@ -44,7 +44,8 @@ import {
   attendanceForRow,
   attendanceNextStep,
 } from "../lib/meetings/attendeeCompany.ts";
-import { summarizeAttendeeCoverage } from "../lib/meetings/archiveAttendees.ts";
+import { summarizeAttendeeCoverage, readArchiveAttendees } from "../lib/meetings/archiveAttendees.ts";
+import { resolveRowAttendees } from "../lib/meetings/attendeePerson.ts";
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), "..");
 const DATA_SOURCE_ID = "600498eb-b6e0-41af-a625-e369cbe5fc6a";
@@ -306,6 +307,24 @@ if (ap.considered) {
       `name a counterparty a person resolver could act on · ` +
       `${attendeeCoverage.counterpartyNotIdentifying} name only a first name (type a surname into Notion and they become work) · ` +
       `${attendeeCoverage.total - attendeeCoverage.withCounterparty} name nobody on the other side.`,
+  );
+
+  // Q85 inc.6 — and of the counterparties we CAN act on, how many is the CRM actually holding?
+  // Coverage above counts names the archive supplies; this counts names the CRM can answer.
+  // The two are deliberately separate numbers: a row naming a resolvable human the CRM has
+  // never met is not the same problem as a row naming nobody, and the fix differs (propose a
+  // person vs. type a surname into Notion). Nothing here writes — see lib/meetings/attendeePerson.ts.
+  const personTally = { matched: 0, ambiguous: 0, unknown: 0 };
+  for (const item of activityPlan.rows) {
+    const resolved = resolveRowAttendees(readArchiveAttendees(item.row), people, item.org?.id);
+    personTally.matched += resolved.counts.matched;
+    personTally.ambiguous += resolved.counts.ambiguous;
+    personTally.unknown += resolved.counts.unknown;
+  }
+  console.log(
+    `  🧑‍💼 of those names, the CRM holds: ${personTally.matched} resolved to one person (attachable) · ` +
+      `${personTally.ambiguous} name more than one person (a human confirms, nothing is picked) · ` +
+      `${personTally.unknown} are people the CRM has never met (propose, never attach to a similar name).`,
   );
 
   if (activityPlan.rows.some((r) => r.dayFrom === "title"))
