@@ -13,7 +13,7 @@ import {
   type DocumentStatus,
 } from "../status";
 import { EVENT_TYPES, buildEvent, formatEventChain } from "../events";
-import { documentPath } from "../storage";
+import { documentPath, downloadFilename } from "../storage";
 import { ESIGN_CONSENT_TEXT } from "../consent";
 
 const NOW = new Date("2026-07-23T12:00:00Z");
@@ -175,6 +175,35 @@ describe("storage paths", () => {
     expect(() => documentPath("", "doc-1", 1)).toThrow();
     expect(() => documentPath("org-1", "doc-1", 0)).toThrow();
     expect(() => documentPath("org-1", "doc-1", 1.5)).toThrow();
+  });
+});
+
+// Rob 2026-08-07: "make the the name of the file when you download it matches
+// the subject Phase I Services Agreement — Omega Title Florida [DRY RUN]".
+// Without this the browser names the saved file after the storage key
+// ("v1-signed.pdf"), which tells the recipient nothing.
+describe("download filename", () => {
+  it("names the saved file after the agreement, matching the email subject", () => {
+    expect(downloadFilename("Phase I Services Agreement — Omega Title Florida [DRY RUN]")).toBe(
+      "Phase I Services Agreement — Omega Title Florida [DRY RUN] (signed).pdf"
+    );
+  });
+
+  it("keeps em dashes and smart punctuation — only illegal characters are replaced", () => {
+    expect(downloadFilename("A — B’s “deal”", "")).toBe("A — B’s “deal”.pdf");
+    expect(downloadFilename("Q3/Q4: plan?", "")).toBe("Q3-Q4- plan-.pdf");
+  });
+
+  it("labels the countersigned copy distinctly", () => {
+    expect(downloadFilename("Agreement", "fully executed")).toBe(
+      "Agreement (fully executed).pdf"
+    );
+  });
+
+  it("never yields a nameless file and stays within filesystem limits", () => {
+    expect(downloadFilename("", "")).toBe("Agreement.pdf");
+    const long = downloadFilename("x".repeat(400), "");
+    expect(long.length).toBeLessThanOrEqual(124);
   });
 });
 

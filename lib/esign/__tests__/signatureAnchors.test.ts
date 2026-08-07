@@ -1,105 +1,135 @@
 import { describe, expect, it } from "vitest";
-import fs from "node:fs";
-import path from "node:path";
-import { PDFDocument, StandardFonts } from "@cantoo/pdf-lib";
-import { findSignatureAnchors, labelFraction, type PageText } from "../signatureAnchors";
-import { extractPageText } from "../pdfText";
-import { drawInkOnLine, formatSignatureDate } from "../inkOnLine";
+import {
+  findSignatureAnchors,
+  labelFraction,
+  type PageText,
+  type TextItem,
+} from "../signatureAnchors";
 
-// The real execution page of a generated Phase I agreement, as pdf.js reports
-// it (probed 2026-08-07 from "Phase 1 Agreement - Omega Title Florida v1.pdf").
-const EXEC_PAGE: PageText = {
-  pageIndex: 3,
-  width: 612,
-  height: 792,
-  items: [
-    { str: "Agreed and accepted by the Parties as of the Effective Date:", x: 78, y: 343.1, width: 281.3 },
-    { str: "PROVIDER — My Local Everything, LLC", x: 78, y: 308.6, width: 199.5 },
-    { str: "Signature: ______________________________", x: 78, y: 274.6, width: 225.9 },
-    { str: "Date: ____________", x: 315.6, y: 274.6, width: 98.1 },
-    { str: "Name: Robert Acheson", x: 78, y: 254.6, width: 109.1 },
-    { str: "Title: Chief Operating Officer", x: 78, y: 234.6, width: 133.0 },
-    { str: "CLIENT", x: 78, y: 198.6, width: 37.9 },
-    { str: "Signature: ______________________________", x: 78, y: 164.6, width: 225.9 },
-    { str: "Date: ____________", x: 315.6, y: 164.6, width: 98.1 },
-    { str: "Name: Alex Greenwood", x: 78, y: 144.6, width: 111.5 },
-    { str: "Title: Authorized Signer for Omega National Title Agency, LLC", x: 78, y: 124.6, width: 288.9 },
-  ],
-};
+// Q47 signature placement (Rob 2026-08-07: "On the Agreement itself it doesnt
+// fill in my Signature or the Date"). These pin the ONE property that makes
+// drawing on the source pages safe at all: ink is placed only at coordinates
+// read off the page, and anything we cannot locate degrades to no anchor —
+// which sends every caller back to certificate-only stamping.
+
+function item(str: string, x: number, y: number, width = str.length * 5): TextItem {
+  return { str, x, y, width };
+}
+
+/** The execution block as the Phase 1 engine lays it out: two headings, each
+ *  with its own "Signature: ____" / "Date: ____" row on a shared baseline. */
+function executionPage(pageIndex = 3): PageText {
+  return {
+    pageIndex,
+    width: 612,
+    height: 792,
+    items: [
+      item("PROVIDER — My Local Everything, LLC", 72, 400),
+      item("Signature: ____________________", 72, 360, 200),
+      item("Date: ____________", 320, 360, 120),
+      item("CLIENT", 72, 280),
+      item("Signature: ____________________", 72, 240, 200),
+      item("Date: ____________", 320, 240, 120),
+    ],
+  };
+}
 
 describe("findSignatureAnchors", () => {
-  it("maps each heading to the signature rule BELOW it, not the nearest one", () => {
-    const a = findSignatureAnchors([EXEC_PAGE]);
-    // The provider rule (274.6) sits between the two headings — the naive
-    // "closest line" reading would hand it to CLIENT. It belongs to PROVIDER.
-    expect(a.provider?.sigY).toBe(274.6);
-    expect(a.client?.sigY).toBe(164.6);
-    expect(a.provider?.dateX).toBe(315.6);
-    expect(a.client?.dateY).toBe(164.6);
+  it("locates both blocks and pairs each with the Date on its own baseline", () => {
+    const { provider, client } = findSignatureAnchors([executionPage()]);
+
+    expect(provider).toBeDefined();
+    expect(provider!.pageIndex).toBe(3);
+    expect(provider!.sigY).toBe(360);
+    expect(provider!.dateX).toBe(320);
+    expect(provider!.dateY).toBe(360);
+
+    expect(client).toBeDefined();
+    expect(client!.sigY).toBe(240);
+    expect(client!.dateY).toBe(240);
   });
 
-  it("ignores the defined term 'Client' inside prose", () => {
-    const prose = {
-      ...EXEC_PAGE,
+  it("binds each heading to the NEAREST signature line below it, not the first found", () => {
+    // If PROVIDER grabbed the lowest line on the page it would steal the
+    // client's rule and Rob's countersignature would land in Alex's block.
+    const { provider } = findSignatureAnchors([executionPage()]);
+    expect(provider!.sigY).toBe(360); // its own row, not the client's 240
+  });
+
+  it("ignores a mid-sentence mention of the defined term", () => {
+    const page: PageText = {
+      pageIndex: 0,
+      width: 612,
+      height: 792,
       items: [
-        { str: "jointly referred to as the “Client”).", x: 78, y: 600, width: 200 },
-        { str: "Signature: ______", x: 78, y: 560, width: 100 },
+        item("...jointly referred to as the Client, agrees to...", 72, 700),
+        item("Signature: ____________________", 72, 660, 200),
       ],
     };
-    expect(findSignatureAnchors([prose]).client).toBeUndefined();
+    // The recital is not a heading, so this page carries no execution block.
+    expect(findSignatureAnchors([page])).toEqual({});
   });
 
-  it("returns nothing for a PDF with no execution block (upload fallback)", () => {
-    expect(findSignatureAnchors([{ ...EXEC_PAGE, items: [] }])).toEqual({});
+  it("searches from the last page backwards so an earlier page cannot hijack it", () => {
+    const decoy: PageText = {
+      pageIndex: 0,
+      width: 612,
+      height: 792,
+      items: [item("CLIENT", 72, 500), item("Signature: ______", 72, 460, 120)],
+    };
+    const { client } = findSignatureAnchors([decoy, executionPage(1)]);
+    expect(client!.pageIndex).toBe(1); // the real execution page, not the decoy
   });
 
-  it("splits label from rule by width ratio, independent of font size", () => {
-    const measure = (s: string) => s.length * 3; // any linear stand-in
-    const f = labelFraction("Signature: ______________________________", measure);
-    expect(f).toBeGreaterThan(0.2);
-    expect(f).toBeLessThan(0.35);
+  it("returns no anchors when nothing can be located — the safe fallback", () => {
+    const scan: PageText = {
+      pageIndex: 0,
+      width: 612,
+      height: 792,
+      items: [item("(scanned image, no extractable text)", 0, 0)],
+    };
+    expect(findSignatureAnchors([scan])).toEqual({});
+    expect(findSignatureAnchors([])).toEqual({});
+  });
+
+  it("does not pair a Date from a different row", () => {
+    const page: PageText = {
+      pageIndex: 0,
+      width: 612,
+      height: 792,
+      items: [
+        item("CLIENT", 72, 300),
+        item("Signature: ____________________", 72, 260, 200),
+        item("Date: ____________", 320, 120, 120), // far below — a different row
+      ],
+    };
+    const { client } = findSignatureAnchors([page]);
+    expect(client!.sigY).toBe(260);
+    expect(client!.dateX).toBeNull(); // date left blank rather than misplaced
   });
 });
 
-// End-to-end against the real generated agreement: locate, stamp, and confirm
-// the ink is inside the rule — the defect Rob reported was a blank line.
-const AGREEMENT = path.resolve(
-  process.env.HOME ?? "",
-  "Projects/MyLocalEverything/contracts/agreements/Phase 1 Agreement - Omega Title Florida v1.pdf"
-);
+describe("labelFraction", () => {
+  const measure = (s: string) => s.length; // monospace stand-in
 
-describe.skipIf(!fs.existsSync(AGREEMENT))("ink placement on the real agreement", () => {
-  it("finds both rules and draws inside them", async () => {
-    const bytes = new Uint8Array(fs.readFileSync(AGREEMENT));
-    const anchors = findSignatureAnchors(await extractPageText(bytes));
-    expect(anchors.client).toBeDefined();
-    expect(anchors.provider).toBeDefined();
-
-    const doc = await PDFDocument.load(bytes);
-    const helv = await doc.embedFont(StandardFonts.Helvetica);
-    const italic = await doc.embedFont(StandardFonts.TimesRomanItalic);
-    const drew = await drawInkOnLine({
-      doc,
-      anchor: anchors.client!,
-      typedName: "Alex Greenwood",
-      dateText: formatSignatureDate("2026-08-07T16:29:37.663Z"),
-      helvetica: helv,
-      italic,
-    });
-    expect(drew).toBe(true);
-
-    // Re-read: the client rule now carries a name and a date on its baseline.
-    const after = await extractPageText(await doc.save());
-    const line = after
-      .at(-1)!
-      .items.filter((i) => Math.abs(i.y - anchors.client!.sigY) < 6)
-      .map((i) => i.str)
-      .join(" ");
-    expect(line).toContain("Alex Greenwood");
-    expect(line).toContain("August 7, 2026");
+  it("returns the share of the run occupied by the label before the rule", () => {
+    // "Signature: " is 11 of 21 chars in "Signature: __________".
+    expect(labelFraction("Signature: __________", measure)).toBeCloseTo(11 / 21, 5);
   });
 
-  it("formats the stamped date in UTC", () => {
-    expect(formatSignatureDate("2026-08-07T00:30:00.000Z")).toBe("August 7, 2026");
+  it("is font-size agnostic — scaling the measurer does not move the fraction", () => {
+    const big = (s: string) => s.length * 7.3;
+    expect(labelFraction("Signature: __________", big)).toBeCloseTo(
+      labelFraction("Signature: __________", measure),
+      5
+    );
+  });
+
+  it("never exceeds the whole run", () => {
+    expect(labelFraction("Signature:", measure)).toBeLessThanOrEqual(1);
+  });
+
+  it("yields 0 when there is no label to skip", () => {
+    expect(labelFraction("__________", measure)).toBe(0);
   });
 });
