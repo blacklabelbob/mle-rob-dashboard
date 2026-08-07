@@ -241,7 +241,13 @@ if (AS_JSON) {
     recording: hit.recording.title || hit.recording.id,
     resolution: hit.resolution,
   }));
-  console.log(JSON.stringify({ ...check, unexplained, activityPlan, attendance }, null, 2));
+  // Q85 inc.14 — the CRM snapshot the plan above was built from, emitted rather than left for
+  // the caller to re-fetch. `planCompanyConfirmations` takes `orgs`/`people` as arguments on
+  // purpose (see its header): the plan a human approves must be computed from the SAME read
+  // as the report they were shown. A caller that re-queries `orgs` a minute later can be
+  // handed a row this pass never saw, and would then label a legitimate confirmation
+  // `unknown-org` — or worse, resolve one this pass had refused.
+  console.log(JSON.stringify({ ...check, unexplained, activityPlan, attendance, crm: { orgs, people } }, null, 2));
   process.exit(0);
 }
 
