@@ -97,6 +97,28 @@ export function draftActivityId(pageId: string, day: string): string {
 }
 
 /**
+ * Q85 inc.2 — the scope line of Q85, as a predicate instead of a paragraph.
+ *
+ * Q85's DoD is "a meeting **a recorder saw** becomes an activity", and it names what it leaves
+ * alone: "the rows no recording explains (Q84's separate pass)". Those two sentences are the
+ * same rule read from both sides, and the first live run of the writer proved the rule has
+ * teeth: the ONE row in the whole archive that clears the company check is a `needs-human-account`
+ * row — placeholder title "Meeting 2026-07-30", no Call Date, no summary, and no recording. The
+ * only thing anyone knows about it is a company name somebody typed into Notion.
+ *
+ * Writing that onto C-2005 would put a meeting on a real company record that nothing witnessed,
+ * on a screen Rob shows people, and it would be indistinguishable from the recorded ones next to
+ * it. That is the unrecoverable weld the plan/act split exists to prevent, so it is refused HERE,
+ * in code, rather than left to whoever is reading the plan output at the time.
+ *
+ * This is a scope gate, not a truth claim: a row failing it is not "not a meeting". It is a
+ * meeting only a human can vouch for, and Q84 is the pass that asks them.
+ */
+export function recorderSawMeeting(row: { recording?: string }): boolean {
+  return Boolean((row?.recording || "").trim());
+}
+
+/**
  * @param planRow one row of `planMeetingActivities(...)`, any disposition.
  * @param createdBy who to record as the author of the row — the caller's own label (e.g.
  *   `driver:Q85-inc.2`). Passed in rather than hardcoded so a row can always be traced to the run

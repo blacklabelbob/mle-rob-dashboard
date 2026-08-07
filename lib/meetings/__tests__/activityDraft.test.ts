@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { draftActivityFromPlan, draftActivityId } from "@/lib/meetings/activityDraft";
+import { draftActivityFromPlan, draftActivityId, recorderSawMeeting } from "@/lib/meetings/activityDraft";
 import { planMeetingActivities, type CrmOrg } from "@/lib/meetings/activityPlan";
 import type { ArchiveRowDetail } from "@/lib/meetings/unexplainedRows";
 
@@ -128,5 +128,30 @@ describe("draftActivityFromPlan", () => {
     if (!result.drafted) return;
     expect(result.draft.occurredAt).toBe("2026-07-30T12:00:00.000Z");
     expect(result.draft.sourceContext.dayFrom).toBe("title");
+  });
+});
+
+// Q85 inc.2 — the scope gate. The writer's first live run against prod found that the ONE
+// archive row clearing the company check is one no recorder ever saw, so this predicate is the
+// difference between "wrote nothing, correctly" and "welded an unwitnessed meeting onto C-2005".
+describe("recorderSawMeeting — Q85's scope line as code", () => {
+  it("is true only when the row carries a recording", () => {
+    expect(recorderSawMeeting({ recording: "https://fireflies.ai/view/abc" })).toBe(true);
+  });
+
+  it("is false for the shapes prod actually produces — absent, empty, and whitespace", () => {
+    expect(recorderSawMeeting({})).toBe(false);
+    expect(recorderSawMeeting({ recording: "" })).toBe(false);
+    expect(recorderSawMeeting({ recording: "   " })).toBe(false);
+  });
+
+  it("excludes the real 2026-07-30 Martin Fierro row that the writer would otherwise have written", () => {
+    // Verbatim from prod via `check:archive --json`: attachable, matched by name to C-2005,
+    // day read off its own placeholder title, and nothing witnessed it.
+    const live = row({ title: "Meeting 2026-07-30", day: "", company: "Martin Fierro Restaurant ", recording: "" });
+    const planned = planMeetingActivities([live], [{ id: "C-2005", name: "Martin Fierro Restaurant" }]).rows[0];
+    expect(planned.disposition).toBe("attachable");
+    // The plan is right that it COULD attach. The scope gate is what says this pass must not.
+    expect(recorderSawMeeting(planned.row)).toBe(false);
   });
 });
