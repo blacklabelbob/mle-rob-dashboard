@@ -281,6 +281,68 @@ proven parity) · this log current ✅.
    source-drift guard pinning checkbox/button/submit wiring) + server-side consumer-400
    test. Required before `ESIGN_CONSUMER_ENABLED` ever flips.
 
+## VERDICT — attach the executed PDF to the completion email? (Q93 DoD (b), 2026-08-07)
+
+Rob asked it as a cost question: *"cant we just attach the fully executed pdf to the
+email or is that a pain in the ass??"* — so the answer is a cost, measured, not a
+preference. **Verdict: YES, it is worth doing, and it is NOT in this driver's hands —
+it is an edit to Rob's live n8n workflow, not a code change.** Each of the three
+factors the DoD named, answered separately:
+
+**1. Size — a non-issue, by three orders of magnitude.** Measured against the real
+objects in the private `agreements` bucket (`P-1002/doc-msj7wohm-c5e551/`), not
+estimated: `v1.pdf` = **11,959 bytes**, `v1-signed.pdf` = **15,318 bytes**. The fully
+executed copy adds a countersignature and an audit certificate page to the same
+document, so it lands in the same tens-of-kilobytes band. Gmail's send ceiling is
+**25 MB**. A ~20 KB attachment uses **under 0.1%** of it. Size never becomes the
+reason not to attach, and it will not become one as agreements grow — a 25 MB
+agreement is not a document, it is a scan problem.
+
+**2. The n8n sender cannot attach anything as it stands — measured from the live
+workflow, not assumed.** `EIR0mgUWcn26rsjD` ("MLE — agreement link sender", active)
+is four nodes: Webhook (`esign-send`) → secret-check IF → **Gmail send** → respond.
+Its Gmail node carries `emailType: "text"` and `options: {appendAttribution: false}`
+and **no `attachmentsUi` / `attachmentsBinary` key at all**. The n8n Gmail node
+attaches only from *binary* properties on the incoming item, and our webhook posts
+JSON — `{to, subject, text}`, the whole of `EsignEmail` in `lib/esign/sender.ts`.
+There is no binary anywhere in the flow to attach. So "a pain in the ass" resolves
+to a specific, small, three-part job:
+  - **n8n (interactive, Rob's cloud instance):** insert an HTTP Request node between
+    the IF and the Gmail node that GETs `$json.body.attachmentUrl` with
+    `responseFormat: file` → produces a binary property; then set the Gmail node's
+    `options.attachmentsUi.attachmentsBinary` to that property. Must be a
+    **conditional** branch — the signing-link email has no attachment and must not
+    break when the field is absent.
+  - **Code (this repo):** widen `EsignEmail` with an optional `attachmentUrl`, and
+    have `fullyExecutedEmail`'s caller pass the same signed URL it already mints.
+    Everything else — the `copy_delivered` ledger, `pendingExecutedCopies()`, the
+    resend path — is untouched, because the receipt is per-address, not per-payload.
+  - **Copy:** the link stays in the body regardless. An attachment that fails to
+    render on a phone client must never be the only way to get the agreement.
+**This driver did not make that n8n edit and should not.** Editing a live workflow
+that sends real mail from `rob@aivoicetech.io` is an outward-facing production change
+on Rob's instance; it wants his hand on it, or at minimum his say-so, not a headless
+increment. The N8N API key in `.env.local` makes it *possible*, which is exactly why
+it is being declined in writing rather than silently.
+
+**3. A copy leaving the private bucket is acceptable HERE, and the reasoning does not
+generalise.** The bucket is `public:false` and every read today is a 7-day signed URL
+(`lib/esign/storage.ts`). An attachment is different in kind: it is permanent,
+un-expiring, forwardable, and comes to rest on mail servers we do not control. That
+is a real loss of control — and it is the *correct* trade for **this one document to
+these two parties**, because a counterparty who has signed an agreement is a party to
+it and is entitled to keep their own copy forever. That is the industry norm
+(DocuSign attaches the executed PDF). The narrow scope is the safeguard, and it must
+be enforced in code rather than remembered: **only `fullyExecutedEmail` may carry an
+attachment.** The signing-link email must never carry one — it goes to someone who
+has *not* yet signed, sometimes to an address we are still confirming, and the whole
+point of the tokenised link is that access is revocable until it isn't.
+
+**Open, and Rob's call, not a blocker:** whether the executed PDF also lands as an
+attachment on the MLE-side copy to `rob@aivoicetech.io`, or whether Rob would rather
+his own copy stay a link so his inbox does not accumulate duplicates of documents the
+bucket already holds. Either is defensible; nobody should guess.
+
 ## Morning queue (what remains)
 
 - Nudge cron wiring: route (CRON_SECRET bearer) + n8n schedule executing
