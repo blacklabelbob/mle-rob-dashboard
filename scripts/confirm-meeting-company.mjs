@@ -29,13 +29,22 @@
  * race that would let a bulk pass clobber them. A page whose cell filled since the snapshot is
  * SKIPPED and reported — never overwritten, and never silently.
  *
+ * `--suggest` — Q85 inc.16. The mode that answers "which company?" instead of assuming a human
+ * already knows. It prints, for every row this script would ACCEPT a confirmation on, the org the
+ * archive's own named attendees point at, the people that named it, and the exact `--confirm`
+ * pair to paste back. It is an OFFER, not a confirmation, and it can never become one: the mode
+ * shares no code path with `--apply`, produces no `confirmedBy`, and exits before the writer.
+ * Rows it cannot answer are printed too, each with the step that would fix them — a row that
+ * quietly vanishes from an offer list is indistinguishable from a row nobody ever owed.
+ *
  * Usage:
  *   npm run --silent check:archive -- --json > /tmp/q85-check.json
+ *   node scripts/confirm-meeting-company.mjs --input /tmp/q85-check.json --suggest
  *   node scripts/confirm-meeting-company.mjs --input /tmp/q85-check.json \
  *        --by "Rob Acheson" --confirm <notion-page-id>=<C-####>
  *   … same command with --apply to write.
  *   --confirmations <file.json>  # [{ pageId, orgId, confirmedBy }] instead of --confirm flags
- *   --json                       # the plan as data, for a reviewer or another script
+ *   --json                       # the plan (or the offers) as data, for a reviewer or a script
  *
  * `--silent` is not optional on the producing command: without it npm prints its banner onto
  * STDOUT ahead of the JSON and the redirect captures a file no parser will read.
@@ -44,10 +53,15 @@
 import { readFileSync } from "node:fs";
 
 import { planCompanyConfirmations } from "../lib/meetings/companyConfirmation.ts";
+import {
+  confirmArgFor,
+  suggestCompaniesForEmptyCells,
+} from "../lib/meetings/emptyCellSuggestions.ts";
 
 const args = process.argv.slice(2);
 const APPLY = args.includes("--apply");
 const AS_JSON = args.includes("--json");
+const SUGGEST = args.includes("--suggest");
 
 function flag(name) {
   const i = args.indexOf(name);
@@ -95,6 +109,7 @@ function usage(msg) {
   console.error(msg);
   console.error("usage: confirm-meeting-company.mjs --input <check:archive --json> --by <name> \\");
   console.error("         (--confirm <pageId>=<orgId> … | --confirmations <file.json>) [--apply] [--json]");
+  console.error("   or: confirm-meeting-company.mjs --input <check:archive --json> --suggest [--json]");
   console.error("  produce the input with:  npm run --silent check:archive -- --json > /tmp/q85-check.json");
   process.exit(2);
 }
@@ -129,6 +144,50 @@ const orgs = check?.crm?.orgs;
 const people = check?.crm?.people;
 if (!Array.isArray(orgs) || !Array.isArray(people)) {
   usage(`${INPUT} carries no crm.orgs/crm.people — re-run \`check:archive --json\` (Q85 inc.14 added them).`);
+}
+
+/* ── --suggest (pure; reads nothing, writes nothing, exits before the writer) ─────────── */
+
+if (SUGGEST) {
+  // Refused rather than ignored. `--suggest --apply` is a human believing this mode confirms
+  // something, and the safe reading of that belief is to stop, not to print offers and exit 0
+  // as though the write they asked for had been considered.
+  if (APPLY) usage("--suggest never writes; drop --apply, or drop --suggest and pass --confirm pairs.");
+
+  const offers = suggestCompaniesForEmptyCells(planRows, orgs, people);
+
+  if (AS_JSON) {
+    console.log(
+      JSON.stringify(
+        {
+          mode: "suggest",
+          counts: offers.counts,
+          suggestions: offers.suggestions.map((s) => ({ ...s, confirmArg: confirmArgFor(s) })),
+        },
+        null,
+        2,
+      ),
+    );
+    process.exit(0);
+  }
+
+  const { candidate, rows } = offers.counts;
+  console.log(`\nSUGGEST — ${rows} row(s) with an empty \`Company Meeting with\` that a recorder saw; ${candidate} can be offered a company\n`);
+  for (const s of offers.suggestions) {
+    const arg = confirmArgFor(s);
+    console.log(`  ${arg ? "→" : "·"} ${s.pageTitle}${s.day ? `  (${s.day})` : ""}`);
+    console.log(`      [${s.candidate.outcome}] ${s.candidate.nextStep}`);
+    if (s.pageUrl) console.log(`      ${s.pageUrl}`);
+    if (arg) console.log(`      ${arg}`);
+  }
+  // The command is printed WITHOUT a `--by`, on purpose: the one field this pass may not supply
+  // is who decided, and a copy-paste line with a name already in it would supply it.
+  console.log(
+    candidate > 0
+      ? `\nNothing written — these are offers. To act on them:\n  node scripts/confirm-meeting-company.mjs --input ${INPUT} --by "<your name>" \\\n    ${offers.suggestions.map(confirmArgFor).filter(Boolean).join(" \\\n    ")}\n`
+      : "\nNothing written, and nothing to offer — every row above says what would make it answerable.\n",
+  );
+  process.exit(0);
 }
 
 let confirmations;
