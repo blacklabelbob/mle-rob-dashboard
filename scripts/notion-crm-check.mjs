@@ -46,6 +46,7 @@ import {
 } from "../lib/meetings/attendeeCompany.ts";
 import { summarizeAttendeeCoverage, readArchiveAttendees } from "../lib/meetings/archiveAttendees.ts";
 import { resolveRowAttendees } from "../lib/meetings/attendeePerson.ts";
+import { decidePersonProposal, personProposalText } from "../lib/meetings/personProposal.ts";
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), "..");
 const DATA_SOURCE_ID = "600498eb-b6e0-41af-a625-e369cbe5fc6a";
@@ -345,6 +346,29 @@ if (ap.considered) {
       `${personTally.ambiguous} name more than one person (a human confirms, nothing is picked) · ` +
       `${personTally.unknown} are people the CRM has never met (propose, never attach to a similar name).`,
   );
+
+  // Q85 inc.8 — "unknown" is two different asks, and printing one sentence for both is how a
+  // duplicate gets created. `Dix thedev08` is not a person the CRM is missing; it is P-1010's
+  // Notion display handle. Each unknown name is named ONCE with its own next step, and the
+  // withheld ones say do-not-create out loud. Nothing here writes — see lib/meetings/personProposal.ts.
+  const unknownSeen = new Map();
+  for (const item of activityPlan.rows) {
+    const resolved = attendeesByRow.get(item.row.id);
+    if (!resolved) continue;
+    for (const r of resolved.resolutions) {
+      const decision = decidePersonProposal(r, people);
+      if (decision && !unknownSeen.has(decision.name)) unknownSeen.set(decision.name, decision);
+    }
+  }
+  if (unknownSeen.size) {
+    const withheld = [...unknownSeen.values()].filter((d) => d.kind === "withhold").length;
+    console.log(
+      `\n  ${unknownSeen.size} distinct unknown name(s) — ${unknownSeen.size - withheld} to propose, ${withheld} withheld as a display handle:`,
+    );
+    for (const decision of unknownSeen.values()) {
+      console.log(`     ${decision.kind === "withhold" ? "⛔" : "＋"} ${personProposalText(decision)}`);
+    }
+  }
 
   if (activityPlan.rows.some((r) => r.dayFrom === "title"))
     console.log(`\n  * day read from the row's own title — Notion's Call Date is still empty there`);
