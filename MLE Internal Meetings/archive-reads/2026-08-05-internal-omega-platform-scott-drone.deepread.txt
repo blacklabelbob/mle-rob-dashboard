@@ -1,0 +1,145 @@
+==============================================================================
+TITLE (do not trust): Meeting 2026-08-05
+URL: https://app.notion.com/p/Meeting-3b31de57019980ea9171cd12c228e3d7
+id : 3b31de57-0199-80ea-9171-cd12c228e3d7
+------------------------------------------------------------------------------
+PROPERTIES — in full; this is where the identity the title omits lives:
+  ∅ Google Doc Link [url]: None  ← claims absence
+  ∅ Show/No Show [multi_select]: None
+  ∅ Next Steps/Action Items [rich_text]: None
+  ∅ Company URL [rich_text]: None
+  ∅ Parent Account [multi_select]: None
+  ∅ MLE [select]: None
+  · Last Edited [last_edited_time]: 2026-08-06T01:52:00.000Z
+  ∅ Child Account [multi_select]: None
+  · Other Combined/Possible referral [rich_text]: Omega (title company prospect) — looking to keep existing restrictive title software; wants integrations/centralized reporting + agent-facing platform; interested in recurring internet-based revenue (has never had it). Potential in-person ops review with Catherine & Paul. Likely related: Omega National Title Agency https://omeganationaltitle.com/ and/or Omega Title Holdings Group https://omegatitlegroup.com/
+
+TitleCapture — referenced as benchmark for pricing (~$4k/mo mentioned in call; public plans range ~199–699/mo depending on tier). Title quote / net sheet / ordering tools for title agencies. https://titlecapture.com/
+
+Drone inspection / property documentation service (Scott) — nationwide network of drone pilots; targeting $2M+ properties with “fortify your insurance” positioning; questions around certifying drone models, inspector association alignment, and whether AI-based evidence would hold up in court. (No exact company name provided in transcript; needs identification.) Potential related industry example: EagleView Assess (drone property data for insurance) https://www.eagleview.com/ (if relevant)
+
+Private adjustment firm (unnamed) — Scott mentioned a friend who owns one; could be a referral/resource for claims/adjusting validation.
+
+Next steps mentioned:
+- Wrap up platform proposal/demo for the title company prospect.
+- Will + at least one attendee to visit Catherine & Paul in person to observe operations + ask questions.
+- Follow up with Scott re: drone inspection service details, drone model certification, and legal admissibility of AI-based evidence.
+  ∅ Customer Pain Points [rich_text]: None
+  ∅ Meeting Summary [rich_text]: None  ← claims absence
+  ∅ MLE Attendees [multi_select]: None
+  ∅ Follow Up Date set [date]: None
+  ∅ Company Meeting with [rich_text]: None
+  ∅ Export Status [select]: None  ← claims absence
+  ∅ Sales Rep [people]: None
+  ∅ Notion Meeting Page [url]: None
+  ∅ Call Date [date]: None
+  ∅ Tags [multi_select]: None
+  ∅ Call Recording [url]: None  ← claims absence
+  ∅ Contact Name [rich_text]: None
+  ∅ Non MLE Attendees [rich_text]: None
+  ∅ TAM # [number]: None
+  · Created [created_time]: 2026-08-05T18:39:00.000Z
+  ∅ In Person/Virtual [multi_select]: None
+  ∅ Urgent TO DO [rich_text]: None
+  ∅ Meeting Type [multi_select]: None
+  ∅ Primary Target ICP [multi_select]: None
+  · Meeting Title [title]: Meeting 2026-08-05
+------------------------------------------------------------------------------
+BODY: 90 blocks, 11462 chars — paragraph×59, bulleted_list_item×21, heading_3×5, to_do×4, transcription×1
+  ⚠ 4 field(s) imply 'no record'. CONTRADICTED — the body below HAS the content. Trust the body, not the field.
+      · Google Doc Link [url] = None
+      · Meeting Summary [rich_text] = None
+      · Export Status [select] = None
+      · Call Recording [url] = None
+------------------------------------------------------------------------------
+FULL BODY (summary + transcript) — read it, do not skim:
+[transcription] 
+  [paragraph] 
+    [heading_3] Action Items
+    [to_do] Finalize and wrap up the platform proposal/demo for the title company prospect  
+    [to_do] Will and at least one other attendee to visit Catherine and Paul in person to review operations and ask questions 
+    [to_do] Follow up with Scott regarding drone inspection service, certification of drone models, and viability of AI-based evidence in court  
+    [to_do] Target real estate agents with social media content and lead magnet strategy as part of the platform rollout  
+    [heading_3] Title Company Prospect
+    [bulleted_list_item] The key differentiator for the prospect was that their current software is very restrictive in who it integrates with, limiting their options 
+    [bulleted_list_item] The team believes they can work around this limitation — noted that any website can effectively be turned into an API  
+    [bulleted_list_item] The prospect has never had internet-based revenue and has relied entirely on in-person networking with agents; the team believes even an initial demo would impress them 
+    [bulleted_list_item] The prospect will want to see proof before committing to a national launch 
+    [heading_3] Platform Value Proposition
+    [bulleted_list_item] Core principle: three clicks or less for any action, to ensure adoption — especially among older owners who are reluctant to learn new tools  
+    [bulleted_list_item] Proposed features: 
+      [bulleted_list_item] Centralized dashboard consolidating all reporting
+      [bulleted_list_item] Optimized website and Google Business Profile
+      [bulleted_list_item] Social media content and lead magnets targeting real estate agents
+    [bulleted_list_item] Goal is to consolidate existing tech rather than fully replace it, with all reports in one place 
+    [bulleted_list_item] Recurring revenue model discussed as a significant motivator; even modest recurring revenue from the platform is seen as valuable  
+    [bulleted_list_item] Reference to title capture tools averaging ~$4,000/month as a benchmark for fee potential 
+    [heading_3] Meeting with Catherine and Paul
+    [bulleted_list_item] Discussed logistics for an in-person visit — Will and at least one other person may go for a full day to observe operations and ask questions 
+    [bulleted_list_item] Trent provided a detailed play-by-play of the workflow/process in advance, giving the team a head start  
+    [bulleted_list_item] Recording the session was discussed as potentially still valuable even with in-person attendance 
+    [heading_3] Scott Call — Drone Inspection & Property Documentation
+    [bulleted_list_item] Scott discussed a property inspection service using drone pilots across the nation, with a goal of certifying drone models and working with inspector associations 
+    [bulleted_list_item] The pitch targets the $2M+ property market, positioning the service as a way to "fortify your insurance" 
+    [bulleted_list_item] Key argument: AI-based evidence has been presented in 99% of court systems, making traditional pre-loss documentation companies potentially obsolete 
+    [bulleted_list_item] Discussion around whether the process and documentation would hold up in court 
+    [bulleted_list_item] Ground-level inspection involves moisture meters, interior scans (including wall-view technology), and macro capture  
+    [bulleted_list_item] A contact who owns a private adjustment firm was mentioned as a potential resource 
+  [paragraph] 
+    [paragraph] 
+  [paragraph] 
+    [paragraph] 
+    [paragraph] Was there any automations in particular, and we can pull them up, that you recall really kind of jumped out at them?
+    [paragraph] For title or real estate?
+    [paragraph] For title.
+    [paragraph] I honestly haven't seen them. I haven't looked. Yeah. Just right on the website, right? The list of automations?
+    [paragraph] Oh, no. I mean, we got 19,000. There's a handful, but...
+    [paragraph] Oh, so how do I determine that?
+    [paragraph] No, no, no. I meant if like if, you know, any anything that Will or I talked about at the meeting, he was like, you know.
+    [paragraph] Yeah, that that's the biggest thing that was the biggest differentiator for him, I think, was that. He mentioned that the software that he's using is very restrictive in who they connect with. Yes. So they limited him somehow.
+    [paragraph] That's right.
+    [paragraph] And I was like, well, I think we can get around that. Yes, we can. We don't have an API.
+    [paragraph] I was just talking to you.
+    [paragraph] We can.
+    [paragraph] I'm talking to you guys.
+    [paragraph] We can. We can. You can turn any website into an API.
+    [paragraph] Okay. That's what I figured. Nowadays.
+    [paragraph] So we're going to do console. State existing tech that they want to keep. And, you know, I'm sure we'll probably replace some of it. Um, so the existing tech and centralized, so you have all the reports in one place. Now, here's – now, I guess here would be the next question. The next question – I guess the big thing that you need to – and, of course, like he's going to want to see proof, too. He's not going to say, like, yes, we're going to launch this nationally.
+    [paragraph] But, you know, we certainly –
+    [paragraph] Wanted to work with Omega because we and you because we have ambitions of doing I don't want to do any I don't really have much desire below my little title company I just want I want to help with this because yeah I mean if I ever move or you know whatever I at least some of the revenue Reoccurring revenue is cool.
+    [paragraph] I've never had that a hundred percent.
+    [paragraph] So it excites me even if it's just a little Yeah
+    [paragraph] And I think we can get some, I think we get some good fees on that. Like, because like, dude, again, the fucking title capture. And quality is like, I think the average is like $4,000 a month. Now they're doing, you know, different stuff too, but really, you know, I don't know. There's just so, so many opportunities. Right. Um, But most these platforms kind of box themselves in a way like in one area or another, you know Well in the other big thing that they do is They'll say hey we have You know automated reservations and you can do social media through here and this and blah blah blah and You know, they don't like onboard them, you know, yeah, it's like good luck.
+    [paragraph] Our big thing is is It's three clicks or less, right?
+    [paragraph] Yeah, because otherwise they won't adopt. Especially the average owner right now is probably 50-something years old, I would think. And they don't want to learn shit. That's what I think.
+    [paragraph] Yeah, absolutely. So if you have one dashboard that's basically consolidating and showing everything, you've got your website that's optimized for anybody looking up, The Google business profile optimized and then on top of that we're pulling in the real estate agents with awesome awesome Social media stuff and some cool lead magnet stuff, right? I think I think that's a good place to I think that's a good place to start now.
+    [paragraph] I Now, I think part of the question...
+    [paragraph] That loan would give him something he never had. He's never had revenue coming in from the internet. Imagine that. That sucks. So he's always been a network guy and meet agents and all that shit. So I think if we showed him even just the first day it's finished, I think we'll blow him away. Although it is a little challenging. I guess we just have to go after agents.
+    [paragraph] Yeah, I think that's...
+    [paragraph] Yeah, it's kind of a crossover, but I guess, you know, I think we could make it work.
+    [paragraph] Man, if I was an agent and I saw another...
+    [paragraph] Oh, shit. Yeah, I got to call Scott.
+    [paragraph] No worries. If I was an agent and I saw another brokerage coming up with, like, dope-ass shit, I'd be like, who the fuck are those guys, right?
+    [paragraph] Right, I want to replicate that shit.
+    [paragraph] Yeah, exactly. And it's going to be the same thing. Like, at minimum, they're going to call them and be like, hey... What are you guys doing, right? Let me just see if this is on. Good afternoon, this is Alex.
+    [paragraph] Good, how are you? Click. Fuck you.
+    [paragraph] I didn't know if it was him or not.
+    [paragraph] So, um...
+    [paragraph] Double dial, look at him, he's good.
+    [paragraph] So, yeah, like that, double tap. So, okay, so we'll do that...
+    [paragraph] I'll get them wrapped up. I'll get them wrapped up.
+    [paragraph] Okay, we'll get them wrapped up. You know, if we need to throw in, you know, something else that's top of mind.
+    [paragraph] Do you want... How do you want to logistically sit with Catherine and Paul? Do you want me to just go and take notes?
+    [paragraph] I don't know. Worst case scenario, Will and I will go for a day so we can look at everything. And ask questions. Yeah. And I do think there, even if we were recording everything that they were doing, there would still be There will still be value in that. And outside question points and stuff. And I'll tell you, Trent gave me a pretty good play-by-play of literally all of the pieces of the show.
+    [paragraph] Oh, okay, good, good, good, good, good, good. So we have an idea already.
+    [paragraph] Yep, exactly, exactly.
+    [paragraph] I guess I do have his number. Scott, okay, all right. Scott, hey, how are you? Good, good, good. Just chasing my tail, man.
+    [paragraph] It held like usual. Yes, sir. Yes, sir. So, how's everything going? What's going on? Thank you. - You have to use one drone Thank you. - *ahem* - drone pilots, they're all across the nation. And so I'm going to go there first. And if I could certify some of your drum models, - And then the inspector guys, and there's an association with those, their court-- and understand why it's so important. Because this stuff's gonna, at the end of the day, hopefully hold up in court.
+    [paragraph] What I'm going to do is market to the start with 2 million plus, focus on that market, and the pitch is like fortify your insurance. Right now, all these pre-loss companies, they're obsolete. The court systems, 99% of court systems have been presented with AI-based evidence. Then you show up with a bolt. - You know, if you look at all the data, system requires that give me something as far as a record
+    [paragraph] But also get his true technical knowledge and opinion on the process and whether or not it would hold up. But I just don't see the hole in it. Yeah, I guess so. I didn't know they had no
+    [paragraph] Yeah.
+    [paragraph] you I'm using that on the teal guys. I'll let you see. I'll let you see. -
+    [paragraph] I won't touch him. Period. It just gets into the whole shipping multiple times a week. Number one, we're operating in the gray area here, but also, like, it sucks having to wait extra days. So let me know if that makes sense and you want to do it. When he gets held up in transit.
+    [paragraph] Mm-mm. Bye. So we got one guy on the ground, doing the interior, doing the moisture meter, and every wall. All that good stuff. Right. Right, right. And so we would have like the screen that views into the wall or whatever you call it. - ... ... ... I wonder how the
+    [paragraph] Who will appreciate it?
+    [paragraph] She's capturing the macros. Yes, but now we-- Oh Yeah. - I'm going to go to, I got a friend that owns a private adjustment.
