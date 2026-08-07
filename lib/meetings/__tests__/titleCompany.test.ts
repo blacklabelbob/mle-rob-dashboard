@@ -5,7 +5,7 @@
 import { describe, expect, it } from "vitest";
 
 import { planMeetingActivities, type CrmOrg } from "../activityPlan";
-import { hostsInTitle, titleHostHits } from "../titleCompany";
+import { hostsInTitle, nameCandidatesInTitle, titleHostHits, titleNameHits } from "../titleCompany";
 import type { ArchiveRowDetail } from "../unexplainedRows";
 
 /** The prod orgs that matter to these rows, verbatim from `/rest/v1/orgs` on 2026-08-07. */
@@ -137,5 +137,90 @@ describe("planMeetingActivities — title-host near miss", () => {
     ).rows[0];
     expect(out.disposition).toBe("attachable");
     expect(out.org).toEqual(GULF);
+  });
+});
+
+// ── Q85 inc.4 — the title NAME near miss ─────────────────────────────────────────────────────
+describe("nameCandidatesInTitle", () => {
+  it("takes the subject side, not the attendee list", () => {
+    expect(nameCandidatesInTitle("Rob & Austin | MArtin Fierro")).toEqual(["martin fierro"]);
+  });
+
+  it("splits a subject that names two things", () => {
+    expect(nameCandidatesInTitle("Rob, Alex, Will, Chris | Gulf Coast RE + AI Platform")).toEqual([
+      "gulf coast re",
+      "ai platform",
+    ]);
+  });
+
+  it("drops the trailing date and recorder stamps", () => {
+    expect(nameCandidatesInTitle("Rob | Gulf Coast RE Group — 2026-08-03")).toEqual([
+      "gulf coast re group",
+    ]);
+    expect(nameCandidatesInTitle("Rob | Gulf Coast RE Group (Fireflies)")).toEqual([
+      "gulf coast re group",
+    ]);
+  });
+
+  it("refuses a one-token candidate — a single word is a topic, not an identification", () => {
+    expect(nameCandidatesInTitle("Rob, Austin | Cloudflare / SEO")).toEqual([]);
+    expect(nameCandidatesInTitle("Rob | Omega")).toEqual([]);
+  });
+
+  it("yields nothing from dates, versions and bare numbers", () => {
+    expect(nameCandidatesInTitle("2026-06-19")).toEqual([]);
+    expect(nameCandidatesInTitle("Rob | pricing 1.5 vs 2.0")).toEqual([]);
+  });
+
+  it("is empty on an empty or missing title", () => {
+    expect(nameCandidatesInTitle(null)).toEqual([]);
+    expect(nameCandidatesInTitle("")).toEqual([]);
+  });
+});
+
+describe("titleNameHits", () => {
+  const orgs = [
+    { id: "C-2005", name: "Martin Fierro Restaurant" },
+    { id: "C-2018", name: "Gulf Coast RE Group" },
+    { id: "C-2017", name: "CG Roofing Group" },
+  ];
+
+  it("survives the suffix the org carries and the speaker drops", () => {
+    expect(titleNameHits("Rob & Austin | MArtin Fierro", orgs)).toEqual([
+      { candidate: "martin fierro", orgs: [orgs[0]] },
+    ]);
+    expect(titleNameHits("Rob, Alex, Will, Chris | Gulf Coast RE + AI Platform", orgs)).toEqual([
+      { candidate: "gulf coast re", orgs: [orgs[1]] },
+    ]);
+  });
+
+  it("NEVER matches on edit distance — one wrong character is a different company", () => {
+    expect(titleNameHits("Rob | Martin Fierra Restaurant", orgs)).toEqual([]);
+    expect(titleNameHits("Rob | Gulf Coast RE Grop", orgs)).toEqual([]);
+  });
+
+  it("requires every candidate token, not a majority", () => {
+    // "Roofing Group" is in CG Roofing Group; "Atlas Roofing Group" is not, and partial
+    // agreement is exactly the wrong answer to report as a hit.
+    expect(titleNameHits("Rob | Atlas Roofing Group", orgs)).toEqual([]);
+  });
+
+  it("returns both orgs when a candidate hits two, and picks neither", () => {
+    const twins = [
+      { id: "C-1", name: "Gulf Coast RE Group" },
+      { id: "C-2", name: "Gulf Coast RE Holdings" },
+    ];
+    expect(titleNameHits("Rob | Gulf Coast RE + AI Platform", twins)).toEqual([
+      { candidate: "gulf coast re", orgs: twins },
+    ]);
+  });
+
+  it("does not read the attendee list as a company", () => {
+    const withPersonish = [{ id: "C-9", name: "Rob Austin Roofing" }];
+    expect(titleNameHits("Rob Austin | quarterly sync", withPersonish)).toEqual([]);
+  });
+
+  it("is empty when no org contains the candidate", () => {
+    expect(titleNameHits("Rob | Cloudflare SEO optimization", orgs)).toEqual([]);
   });
 });

@@ -78,7 +78,10 @@ describe("buildCrmGapFinding", () => {
   });
 
   it("prints no dangling list when every orphan is in the no-company wall", () => {
-    const rows = [row("a", "2026-07-28", "Omega"), row("b", "2026-07-22", "Gulf Coast")];
+    // Both titles must name NOBODY for this test to still be about the no-company wall. Since
+    // Q85 inc.4 a title whose every word appears in an org's name is a `title-name` near miss,
+    // so "Gulf Coast" would resolve to C-1 and leave only one row in the wall.
+    const rows = [row("a", "2026-07-28", "Omega"), row("b", "2026-07-22", "weekly sync")];
     const plan = planMeetingActivities(rows, [{ id: "C-1", name: "Gulf Coast RE" }]);
     const f = buildCrmGapFinding(check({ archiveRows: 40, crmMeetings: 0 }, rows), plan)!;
     expect(f.detail).toContain("2 never said who the meeting was with at all");

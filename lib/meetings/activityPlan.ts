@@ -99,7 +99,7 @@
 // counterparty. See that module for the full reasoning; it is not repeated here.
 
 import { normalizeName } from "@/lib/dedup/match";
-import { titleHostHits } from "./titleCompany";
+import { titleHostHits, titleNameHits } from "./titleCompany";
 import { effectiveDay, type ArchiveRowDetail } from "./unexplainedRows";
 
 /**
@@ -131,11 +131,17 @@ export type CrmPerson = { id: string; name: string; orgId?: string | null };
  *                            own TITLE states a host a CRM org is registered at. The strongest
  *                            near miss on this list and still not a match: a title names the
  *                            topic as often as the counterparty (Q85 inc.3).
+ *   - `title-name`         — the field does not resolve and the title states no host, but the
+ *                            title NAMES a company whose every word appears in a CRM org's own
+ *                            name ("Gulf Coast RE" ⊆ "Gulf Coast RE Group"). Whole-token
+ *                            containment, never edit distance — the suffix a speaker drops is
+ *                            survivable, a mistyped character is not (Q85 inc.4).
  */
 export type NearMiss =
   | { kind: "org-qualifier"; orgs: CrmOrg[] }
   | { kind: "person-not-company"; people: CrmPerson[] }
-  | { kind: "title-host"; hits: { host: string; orgs: CrmOrg[] }[] };
+  | { kind: "title-host"; hits: { host: string; orgs: CrmOrg[] }[] }
+  | { kind: "title-name"; hits: { candidate: string; orgs: CrmOrg[] }[] };
 
 /** A trailing parenthetical qualifier, removed. "Omega Title (FL)" → "Omega Title". */
 export function stripQualifier(name: string): string {
@@ -340,11 +346,37 @@ export function planMeetingActivities(
    * What the row's own title says, when the company field could not answer. Returns the near
    * miss AND the sentence, together, so the two can never describe different orgs.
    */
+  /**
+   * The name fallback, consulted ONLY when the title states no host. Host first is deliberate
+   * and matches the company-field path's own order: a host is an address and a name is a
+   * description, so when a row offers both, the address decides (Q85 inc.4).
+   */
+  const fromTitleName = (
+    row: ArchiveRowDetail
+  ): { nearMiss: NearMiss; nextStep: string } | undefined => {
+    const hits = titleNameHits(row.title, orgs);
+    if (!hits.length) return undefined;
+    const named = hits
+      .flatMap((h) => h.orgs.map((o) => `${o.name} [${o.id}] (from “${h.candidate}”)`))
+      .join(", ");
+    const single = hits.length === 1 && hits[0].orgs.length === 1;
+    return {
+      nearMiss: { kind: "title-name", hits },
+      nextStep:
+        `this row's own title names ${single ? "a company" : "companies"} the CRM already holds: ${named} — ` +
+        (single
+          ? "confirm that is who the meeting was WITH and put it in Notion's “Company Meeting with”, and this row attaches itself"
+          : "confirm which of these the meeting was with and put it in Notion's “Company Meeting with”") +
+        "; it is not attached here because every word matched but the title still names what the " +
+        "call was ABOUT at least as often as who it was with",
+    };
+  };
+
   const fromTitle = (
     row: ArchiveRowDetail
   ): { nearMiss: NearMiss; nextStep: string } | undefined => {
     const hits = titleHostHits(row.title, hostIndex);
-    if (!hits.length) return undefined;
+    if (!hits.length) return fromTitleName(row);
     const named = hits
       .flatMap((h) => h.orgs.map((o) => `${o.name} [${o.id}] (${h.host})`))
       .join(", ");
