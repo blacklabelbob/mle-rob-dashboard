@@ -77,10 +77,15 @@ if (JSON_OUT) {
 if (APPLY) {
   for (const r of found) {
     const note = supersededNote(r.survivorId);
+    // Q85 inc.20: inc.19 sent `{ id, status, resolutionNote }` — a shape the route has never
+    // accepted. It 400s on the first line of the handler, so the write path shipped broken and
+    // read as "nothing to apply" because the live scan happened to find nothing to try it on.
+    // The contract is `{ id, action, note }`, and `unverifiedActorRefusal` means an actor field
+    // is not merely unnecessary here — sending one is refused.
     const patch = await fetch(`${BASE}/api/admin/flags`, {
       method: "PATCH",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ id: r.restatedId, status: "resolved", resolutionNote: note }),
+      body: JSON.stringify({ id: r.restatedId, action: "resolve", note }),
     });
     console.log(
       patch.ok

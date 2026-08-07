@@ -60,6 +60,43 @@ function canon(s: string): string {
 }
 
 /**
+ * Q85 inc.20 — **a quoted CLAUSE is not a thing the row is about.**
+ *
+ * inc.19 left every quoted string counting as a subject, and reported honestly what that cost:
+ * prod #219 escaped containment in #213 by exactly ONE subject — the stock sentence
+ * `"Create the person first"`, which #219 quotes only to say the tool no longer prints it.
+ * A filer quoting the phrase it is retiring was being read as a fourth person the row is about,
+ * so the module said *this row carries news* about a row that carries none.
+ *
+ * The narrowing is on SHAPE, never on a word list, because a stop-word list is a guess about
+ * English and this has to hold for names nobody has typed yet. A quoted subject counts only if
+ * every token is one a name can be made of:
+ *
+ *   - **capitalised** — `Joseph`, `Green`, `Omega` — how a proper noun is written;
+ *   - **digit-bearing** — `thedev08` — how a handle is written, and `“Dix thedev08”` is a
+ *     subject this ledger genuinely names (see #213's own reasoning: *“thedev08” carries a digit*).
+ *
+ * Anything else — `the`, `person`, `first`, `with` — makes the quote a clause, and the whole
+ * quote is dropped. Length is capped at five tokens for the same reason: a name is short.
+ *
+ * **The failure direction is deliberate.** Dropping a quote can only SHRINK a row's subject set.
+ * On the unkeyed side that makes containment easier — so this rule can create a supersession
+ * recommendation, which is why it is narrow and why nothing is applied without a human. On the
+ * keyed side it makes containment harder, i.e. it refuses. Names this rule cannot read — a
+ * lowercase particle (`de la Cruz`), a leading article (`The Title Base`) — are simply not
+ * subjects, and the row keeps its own counsel. A missed subject costs a refusal; a clause read
+ * as a subject costs a false claim about what a row says. We take the refusal.
+ */
+const NAME_TOKEN = /^(?:\p{Lu}[\p{L}\p{N}'’.-]*|[\p{L}'’.-]*\p{N}[\p{L}\p{N}'’.-]*)$/u;
+const MAX_NAME_TOKENS = 5;
+
+export function isNameShaped(quoted: string): boolean {
+  const tokens = quoted.trim().split(/\s+/).filter(Boolean);
+  if (tokens.length === 0 || tokens.length > MAX_NAME_TOKENS) return false;
+  return tokens.every((t) => NAME_TOKEN.test(t.replace(/^[([{]+|[)\]}.,;:!?]+$/gu, "") || t));
+}
+
+/**
  * Every subject named anywhere in a row's title and detail.
  *
  * Returned as a sorted array rather than a Set so a caller can print it and a test can pin it;
@@ -70,11 +107,10 @@ export function subjectsOf(row: Pick<LedgerFlagRow, "title" | "detail">): string
   const found = new Set<string>();
   for (const m of text.matchAll(RECORD_ID)) found.add(m[0].toUpperCase());
   for (const m of text.matchAll(QUOTED)) {
+    // Shape is read BEFORE case is folded — capitalisation is the evidence, so `canon` would
+    // destroy the very thing `isNameShaped` reads.
+    if (!isNameShaped(m[1])) continue;
     const c = canon(m[1]);
-    // A quoted sentence is not a subject. Names are short; the ledger's prose quotes whole
-    // clauses ("Company Meeting with", "Create the person first") and those are caught by the
-    // subset test below only when the keyed row happens to quote them too — which is the
-    // correct outcome, because then both rows really are quoting the same thing.
     if (c) found.add(c);
   }
   return [...found].sort();

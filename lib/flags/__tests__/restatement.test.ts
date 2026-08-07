@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   ambiguousRestatements,
   findRestatements,
+  isNameShaped,
   subjectsOf,
   type LedgerFlagRow,
 } from "../restatement";
@@ -30,7 +31,11 @@ const UNKEYED_219 = row({
   title: "Only ONE of the two unmatched meeting attendees should become a person — the other is P-1010",
   detail:
     'CREATE — "Joseph Green". Caleb Green [P-1018] shares the surname and is a DIFFERENT person. ' +
-    'DO NOT CREATE — "Dix thedev08". This is Dixith Magadiev [P-1010]s Notion display handle.',
+    'DO NOT CREATE — "Dix thedev08". This is Dixith Magadiev [P-1010]s Notion display handle. ' +
+    // The sentence inc.19 measured #219 escaping on: a quoted CLAUSE, retained here verbatim
+    // because the fixture is worthless if it is tidier than the row it stands for.
+    'The --suggest surface now prints the per-name answer instead of the blanket "Create the ' +
+    'person first", so the wrong branch is no longer reachable by following the tool.',
 });
 
 describe("subjectsOf", () => {
@@ -40,19 +45,62 @@ describe("subjectsOf", () => {
     );
   });
 
-  it("treats curly and straight quotes as the same subject", () => {
+  it("treats curly and straight quotes, and doubled whitespace, as the same subject", () => {
     const a = subjectsOf(row({ id: 1, detail: "“Joseph  Green”" }));
-    const b = subjectsOf(row({ id: 2, detail: '"joseph green"' }));
+    const b = subjectsOf(row({ id: 2, detail: '"Joseph Green"' }));
     expect(a).toEqual(b);
+    expect(a).toEqual(["joseph green"]);
+  });
+
+  // Q85 inc.20 changed this, and it is a real loss stated rather than hidden: comparison still
+  // folds case, but RECOGNITION cannot. An all-lowercase quote is indistinguishable from a
+  // lowercase clause fragment, so it is dropped — a refusal, never a silent match.
+  it("does not read an all-lowercase quote as a name, even one it would otherwise know", () => {
+    expect(subjectsOf(row({ id: 1, detail: '"joseph green"' }))).toEqual([]);
   });
 
   it("finds nothing in prose that names nobody", () => {
     expect(subjectsOf(row({ id: 1, detail: "Nine rows are blocked on an empty column." }))).toEqual([]);
   });
+
+  // Q85 inc.20 — the sentence #219 escaped on. A filer quoting the phrase it is RETIRING was
+  // being counted as a fourth thing the row is about.
+  it("drops a quoted clause — it is what the row says, not what the row is about", () => {
+    const subjects = subjectsOf(UNKEYED_219);
+    expect(subjects).not.toContain("create the person first");
+    expect(subjects).toEqual(expect.arrayContaining(["joseph green", "dix thedev08", "P-1010"]));
+  });
+});
+
+describe("isNameShaped", () => {
+  it("accepts a proper name and a handle carrying a digit", () => {
+    expect(isNameShaped("Joseph Green")).toBe(true);
+    expect(isNameShaped("Dix thedev08")).toBe(true);
+    expect(isNameShaped("Omega Title")).toBe(true);
+  });
+
+  it("rejects a clause, however short", () => {
+    expect(isNameShaped("Create the person first")).toBe(false);
+    expect(isNameShaped("Company Meeting with")).toBe(false);
+    expect(isNameShaped("the")).toBe(false);
+  });
+
+  it("rejects a sentence outright — a name is short", () => {
+    expect(isNameShaped("Only ONE of the two unmatched meeting attendees")).toBe(false);
+  });
+
+  // The refusal direction, stated as a test so nobody later "fixes" it into a guess: a name this
+  // rule cannot read is dropped, which costs a supersession we do not make. That is the cheap side.
+  it("refuses a name with a lowercase particle rather than guessing", () => {
+    expect(isNameShaped("de la Cruz")).toBe(false);
+  });
 });
 
 describe("findRestatements", () => {
-  it("supersedes the hand-filed row by the keyed one — the measured prod pair", () => {
+  // Q85 inc.20 — this is the pair inc.19 could NOT match, with the clause still in it. The
+  // fixture did not get easier; the rule got right.
+  it("supersedes the hand-filed row by the keyed one — the measured prod pair, clause and all", () => {
+    expect(UNKEYED_219.detail).toContain("Create the ");
     const found = findRestatements([KEYED_213, UNKEYED_219]);
     expect(found).toHaveLength(1);
     expect(found[0].restatedId).toBe(219);
