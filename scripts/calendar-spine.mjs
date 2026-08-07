@@ -120,6 +120,12 @@ if (AS_JSON) {
   process.exit(0);
 }
 
+// The window's own bounds as LOCAL DAYS, so an unclaimed record's day can be compared against
+// them with the same zone rule the meetings were placed with. Undefined if the snapshot declares
+// no window — in which case nothing below claims to know whether a record is inside it.
+const windowStartDay = snapshot.window?.start ? toLocalDay(snapshot.window.start) : null;
+const windowEndDay = snapshot.window?.end ? toLocalDay(snapshot.window.end) : null;
+
 const c = report.counts;
 console.log(`\n📅 CALENDAR SPINE — ${snapshot.window?.start ?? "?"} → ${snapshot.window?.end ?? "?"} (${timeZone})`);
 console.log(`   snapshot taken ${snapshot.fetchedAt ?? "(undated — treat as unknown age)"} · ${CALENDAR}`);
@@ -159,13 +165,35 @@ if (harvest.stubs.length) {
 }
 
 if (report.unclaimed.length) {
+  // inc.5: this used to read "the window above is two weeks" — a sentence that was true when it
+  // was written and silently false the moment anyone widened the snapshot. The excuse is now
+  // ARITHMETIC against the snapshot's own declared window, and it is stated per record, because
+  // "outside the window" and "inside the window and matched nothing" are opposite findings: the
+  // first is an artefact to be fixed by a wider read, the second is a real record the spine could
+  // not place and a human has to look at. A record with no day at all is neither — it is counted
+  // separately rather than folded into whichever number reads better.
+  const inWindow = (day) =>
+    day && windowStartDay && windowEndDay ? day >= windowStartDay && day < windowEndDay : null;
+  const verdictOf = (u) => {
+    const v = inWindow(u.day);
+    if (v === true) return "IN WINDOW — unmatched, a human has to place this";
+    if (v === false) return "outside the window — artefact of the read, widen it before counting it";
+    return "no date on the record — cannot be judged against the window";
+  };
+  const tally = { inside: 0, outside: 0, undated: 0 };
+  for (const u of report.unclaimed) {
+    const v = inWindow(u.day);
+    tally[v === true ? "inside" : v === false ? "outside" : "undated"] += 1;
+  }
+
   console.log(`\n— SOURCE RECORDS NO CALENDAR EVENT IN THIS WINDOW CLAIMS (${report.unclaimed.length}) —`);
   for (const u of report.unclaimed.slice(0, 15)) {
-    console.log(`   · ${u.source}:${u.title}${u.day ? ` (${u.day})` : ""}`);
+    console.log(`   · ${u.source}:${u.title}${u.day ? ` (${u.day})` : ""} — ${verdictOf(u)}`);
   }
   if (report.unclaimed.length > 15) console.log(`   … ${report.unclaimed.length - 15} more (use --json)`);
   console.log(
-    `   These are NOT orphans: the window above is two weeks and the archive is not. Widen the snapshot before reading anything into this number.`,
+    `   ${tally.inside} inside the window (real, unplaced) · ${tally.outside} outside it (widen the snapshot) · ` +
+      `${tally.undated} undated. Only the first number is a finding.`,
   );
 }
 

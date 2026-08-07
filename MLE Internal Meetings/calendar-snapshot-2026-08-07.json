@@ -1,197 +1,601 @@
 {
-  "_comment": "Q86 inc.3 — a LIVE read of Rob's primary Google Calendar (rob@aivoicetech.io), taken 2026-08-07 by the build driver through the Google Calendar MCP. It is a SNAPSHOT, not a cache: no OAuth/service-account credential for Calendar exists in .env.local, so no .mjs script in this repo can fetch this itself today. `scripts/calendar-spine.mjs` therefore consumes a snapshot and states its age; the fetcher gap is written up in the increment note. Window is deliberately short (2 weeks) — this is the first live pass and a small window that is verifiably right beats a long one nobody checked. — RE-READ 2026-08-07 (inc.4): the `attachments` field is now captured. inc.3 dropped it and the live calendar carried two `Notes by Gemini` docs; that omission was filed to /api/admin/flags and is closed here. All 11 events were re-listed live this run and exactly 2 carry an attachment; the other 9 carry none, so an absent `attachments` key on this file means MEASURED-ABSENT, not unread.",
-  "fetchedAt": "2026-08-07T21:20:00-04:00",
-  "calendarId": "rob@aivoicetech.io",
-  "timeZone": "America/New_York",
-  "window": {
-    "start": "2026-07-24T00:00:00-04:00",
-    "end": "2026-08-07T00:00:00-04:00"
-  },
-  "events": [
+ "_comment": "Q86 inc.5 — a LIVE read of Rob's primary Google Calendar (rob@aivoicetech.io) through the Google Calendar MCP, taken 2026-08-07 by the build driver and redacted IN CODE by scripts/calendar-snapshot-from-mcp.mjs (inc.3/inc.4 did that transcription by hand). WINDOW WIDENED from 14 days to 2026-06-01 → 2026-08-08, chosen to cover the Fireflies archive manifest's own earliest row (2026-06-16) rather than a round number: the 14-day report warned that its 18 unclaimed Fireflies records were an artefact of the window, and that warning was doing work the window should do. Google returned 35 events with NO nextPageToken, so this is the complete window, not a page of it. It remains a SNAPSHOT, not a cache: no OAuth/service-account credential for Calendar exists in .env.local, so no .mjs in this repo can fetch this itself.",
+ "fetchedAt": "2026-08-07T17:24:00-04:00",
+ "calendarId": "rob@aivoicetech.io",
+ "timeZone": "America/New_York",
+ "window": {
+  "start": "2026-06-01T00:00:00-04:00",
+  "end": "2026-08-08T00:00:00-04:00"
+ },
+ "_pii": "Attendee EMAIL ADDRESSES, displayNames, event descriptions, creator/organizer and htmlLink are DELIBERATELY ABSENT — removed in CODE by scripts/calendar-snapshot-from-mcp.mjs, not by hand. `fromCalendarEvents` reads exactly two things off an attendee: Google's own `self` marker and the COUNT of everyone else. Attendee identity is resolved from the LIVE calendar by person-resolver.",
+ "events": [
+  {
+   "id": "_c8sjeqrld8smudpke0pj8p1hdsr6us3a6pij2rr575n6qd376com8dbi6pqn2ohjcdm72dj1dtp3gdbgddmna",
+   "summary": "[WEBINAR] The Reddit Client Machine: How To Find Hidden Buyer Conversations, Automate Engagement, And Turn Reddit Into A 24/7 Traffic, Lead & Sales Channel — Without Ads.",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "https://us06web.zoom.us/w/89224863388?tk=mQyXg3qday0VrjBaCtzzsvTL7e7YVqv-Nvde8kDmoiw.DQkAAAAUxjdenBZsRTRQZU85Q1JaZVpna1JzRmYtRFdRAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&uuid=WN_OMfqNBB5RPOfsarTMXp3-Q",
+   "start": {
+    "dateTime": "2026-06-04T20:00:00-04:00"
+   },
+   "attendees": [
     {
-      "id": "hu43f2n171fcbdc58lejj67ilo",
-      "summary": "Sarah",
-      "status": "confirmed",
-      "eventType": "DEFAULT",
-      "start": {
-        "dateTime": "2026-07-26T17:00:00-04:00"
-      }
-    },
-    {
-      "id": "elg2rm7mbmsugnjcj7qeum9pus",
-      "summary": "Meeting with Mike @ Omega",
-      "status": "confirmed",
-      "eventType": "DEFAULT",
-      "location": "3384 Woods Edge Cir #103, Bonita Springs, FL 34134, USA",
-      "conferenceUrl": "https://meet.google.com/nhc-jmhf-ucs",
-      "start": {
-        "dateTime": "2026-07-28T09:00:00-04:00"
-      },
-      "attendees": [
-        {},
-        {},
-        {},
-        {},
-        {
-          "self": true
-        },
-        {},
-        {}
-      ]
-    },
-    {
-      "id": "k5c9v683uk0umjqp618ltsrbbg",
-      "summary": "Rob & Dix | MLE & Skin Cancer Detection AI Model",
-      "status": "confirmed",
-      "eventType": "DEFAULT",
-      "conferenceUrl": "https://meet.google.com/bai-dvjq-dat",
-      "start": {
-        "dateTime": "2026-07-29T14:00:00-04:00"
-      },
-      "attendees": [
-        {},
-        {
-          "self": true
-        },
-        {}
-      ],
-      "attachments": [
-        {
-          "fileUrl": "https://docs.google.com/document/d/1R3Dh6W7w_dk_mc57wehfak3ToktX_nEfq9_o02ZjQV8/edit?usp=meet_tnfm_calendar",
-          "title": "Notes by Gemini"
-        }
-      ]
-    },
-    {
-      "id": "nq6pvdi96jabv2pe8u3hf2or4c",
-      "summary": "Dani, Rob, Will | Martin Fierro Restaurant & MLE",
-      "status": "confirmed",
-      "eventType": "DEFAULT",
-      "location": "Martin Fierro Restaurant, 13040 Livingston Rd #11, Naples, FL 34105, USA",
-      "start": {
-        "dateTime": "2026-07-30T10:30:00-04:00"
-      },
-      "attendees": [
-        {},
-        {},
-        {
-          "self": true
-        }
-      ]
-    },
-    {
-      "id": "6o95pd7dj1sk5j0fildnp2di7o",
-      "summary": "Rob & Austin | MArtin Fierro",
-      "status": "confirmed",
-      "eventType": "DEFAULT",
-      "location": "https://meet.google.com/snf-vmxj-dpo",
-      "conferenceUrl": "https://meet.google.com/twu-rpxe-fvg",
-      "start": {
-        "dateTime": "2026-08-03T19:45:00-04:00"
-      },
-      "attendees": [
-        {
-          "self": true
-        },
-        {}
-      ],
-      "attachments": [
-        {
-          "fileUrl": "https://docs.google.com/document/d/1JD70AcU5xNnXZEVYo_4fDiPq2U82O9kDCB8jEOPZ2WM/edit?usp=meet_tnfm_calendar",
-          "title": "Notes by Gemini"
-        }
-      ]
-    },
-    {
-      "id": "rtutcob7ggkp1qme9rj4uj4t9g",
-      "summary": "Dani, Michael, Rob | Total Restaurant Optimization-Next Steps",
-      "status": "confirmed",
-      "eventType": "DEFAULT",
-      "start": {
-        "dateTime": "2026-08-04T10:00:00-04:00"
-      },
-      "attendees": [
-        {},
-        {
-          "self": true
-        },
-        {}
-      ]
-    },
-    {
-      "id": "s7c7flm4rct9ofpe277m4thlpc",
-      "summary": "Alex & Rob | Iron Out Omega Deal",
-      "status": "confirmed",
-      "eventType": "DEFAULT",
-      "location": "3384 Woods Edge Cir Ste 103, Bonita Springs, FL 34134",
-      "start": {
-        "dateTime": "2026-08-05T10:00:00-04:00"
-      },
-      "attendees": [
-        {
-          "self": true
-        },
-        {}
-      ]
-    },
-    {
-      "id": "l2jth8k7hk4g1ps6sqgvpfl5lg_20260805T150000Z",
-      "summary": "Ellie Birthday Em",
-      "status": "confirmed",
-      "eventType": "DEFAULT",
-      "start": {
-        "dateTime": "2026-08-05T11:00:00-04:00"
-      }
-    },
-    {
-      "id": "55h812hg42pqskfi9n38gkmic1",
-      "summary": "Rob & Dix | Skin Cancer Model Demo",
-      "status": "confirmed",
-      "eventType": "DEFAULT",
-      "conferenceUrl": "https://meet.google.com/goh-hgaz-gug",
-      "start": {
-        "dateTime": "2026-08-05T14:00:00-04:00"
-      },
-      "attendees": [
-        {},
-        {
-          "self": true
-        }
-      ]
-    },
-    {
-      "id": "l8gh6kiv25crhpm49m04ls5ibs",
-      "summary": "Alex, Rob, Austin | Update",
-      "status": "confirmed",
-      "eventType": "DEFAULT",
-      "location": "3384 Woods Edge Cir Ste 103, Bonita Springs, FL 34134",
-      "start": {
-        "dateTime": "2026-08-06T10:00:00-04:00"
-      },
-      "attendees": [
-        {
-          "self": true
-        },
-        {},
-        {}
-      ]
-    },
-    {
-      "id": "uksu71r784jv1da60j817hbcgs",
-      "summary": "Rob & Austin| Progress Update",
-      "status": "confirmed",
-      "eventType": "DEFAULT",
-      "location": "TBD",
-      "start": {
-        "dateTime": "2026-08-06T12:00:00-04:00"
-      },
-      "attendees": [
-        {},
-        {
-          "self": true
-        }
-      ]
+     "self": true
     }
-  ],
-  "_pii": "Attendee EMAIL ADDRESSES ARE DELIBERATELY ABSENT and were never needed. `fromCalendarEvents` reads exactly two things off an attendee: Googles own `self` marker, and the COUNT of everyone else. It never reads an address. Committing the real ones would have put live contacts (a client, Robs brother, a restaurant) into git for no gain — guard:pii caught it on pre-push, which is the guard doing its job. Attendee identity is resolved from the LIVE calendar by person-resolver, never from this file."
+   ]
+  },
+  {
+   "id": "_c8sjeqrld8smudj7dtl6ep38dcrj8sra61i3ipr575n6qd376com8dbi6pqn2ohjcdm72dj1dtp3gdbgddmna",
+   "summary": "[ENCORE WEBINAR] The Reddit Sales Machine: See How To Find Buyer Conversations, Automate Engagement, And Turn Reddit Into A 24/7 Lead & Client Channel — Without Ads",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "https://us06web.zoom.us/w/84186499050?tk=6idymrohalieAAYDZ1wFFVB6Ia17sgWnQOc_Y1kydFA.DQkAAAATmegH6hZNLWNwZ1JGT1JjaUJVcWdhQmZuNDlBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&pwd=L06oDsyxtG44fcT2YQqprCNHpGHJ9Q.1&uuid=WN_VyQjwCkTTFKGFgDSxkeQgw",
+   "start": {
+    "dateTime": "2026-06-05T08:00:00-04:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "_c8sjeqrld8smudpkecpj0p38dor76rra6phjiqj575n6qd376com8dbi6pqn2ohjcdm72dj1dtp3gdbgddmna",
+   "summary": "[FREE BLUEPRINT] How To Sell AI-Powered Content Engines To Businesses For $300–$1,500 Per Project Using SmartAgentX",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "https://us06web.zoom.us/w/89806771313?tk=Vm-Qm9gTjQMzcHolVZuW1Ud7w_qu74IrxGIM9v_M2A0.DQkAAAAU6OaUcRZkR1l5YU0tRFRwdUJDRGNFbmpORFVRAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&uuid=WN_cCzHlYwYQ9CVJulnCMqn1g",
+   "start": {
+    "dateTime": "2026-06-06T10:00:00-04:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "_c8sjeqrld8smudhoe5l62p3gdcrj0shjcli6gpr575n6qd376com8dbi6pqn2ohjcdm72dj1dtp3gdbgddmna",
+   "summary": "Encore: [BLUEPRINT] How To Sell AI-Powered Content Engines To Businesses For $300–$1,500 Per Project Using SmartAgentX",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "https://us06web.zoom.us/w/82557486760?tk=xFvN7xKpwlZcMfc1WRXo4nrvwREpsGq-tRd3_C6EQs8.DQkAAAATOM9GqBZFVU9QSzRoNFFNZUhmZzNyNkZ4ZjdRAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&uuid=WN_5GiHT0AKRZuhwRUkGJoNyw",
+   "start": {
+    "dateTime": "2026-06-07T08:00:00-04:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "04s52ea9add9kidch3cukhk1fg",
+   "summary": "Avoma Demo for AI VoiceTech",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "start": {
+    "dateTime": "2026-06-09T15:00:00-04:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    },
+    {}
+   ]
+  },
+  {
+   "id": "144j5r6tligcsk9k56tdpb7geo",
+   "summary": "Turn LinkedIn Into a Consistent Source of High Quality Leads Without Ads or Daily Posting",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "https://www.impactforleads.com/linkedin-leads-training",
+   "start": {
+    "dateTime": "2026-06-11T14:00:00-04:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "_c8sjeqrld8smudj7edl62oppdkr3gs3a6hhn0qr575n6qd376com8dbi6pqn2ohjcdm72dj1dtp3gdbgddmna",
+   "summary": "ENCORE: Here's Why You're Losing $5,400/Month\": How To Get Paid $500–$2,000/Month Per Client By Showing Local Businesses The Money They're Already Losing",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "https://us06web.zoom.us/w/84951623234?tk=jHtayBqq9g7_LeVij3HjaZWbRwZMCtw5OhDnpSk6pAg.DQkAAAATx4LmQhZzLVFKa1JHZlJSLVNnNEt3SGV3VkRBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&uuid=WN_eAyQG4hXSWSbYcd-eq1dxA",
+   "start": {
+    "dateTime": "2026-06-11T20:00:00-04:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "4ods95v77ggfjfeaqvbf7oiqhv",
+   "summary": "Caleb, Rob, Will | CGRoofingGroup.com + AI Platform Discovery",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "conferenceUrl": "https://meet.google.com/ozh-rutc-sxt",
+   "start": {
+    "dateTime": "2026-06-16T13:00:00-04:00"
+   },
+   "attendees": [
+    {},
+    {
+     "self": true
+    },
+    {},
+    {},
+    {}
+   ],
+   "attachments": [
+    {
+     "fileUrl": "https://docs.google.com/document/d/1479bPU0Jn1QrMomzSdwpWHrx5lFXTvDP0_W0ppJVd_Y/edit?usp=meet_tnfm_calendar",
+     "title": "Notes by Gemini"
+    }
+   ]
+  },
+  {
+   "id": "1lkdsm5231qan366clj0ph22nc",
+   "summary": "Rob, Alex, Will, Chris | Gulf Coast RE + AI Platform",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "3384 Woods Edge Cir, Bonita Springs, FL 34134, USA",
+   "conferenceUrl": "https://meet.google.com/nxy-nugb-dty",
+   "start": {
+    "dateTime": "2026-06-17T11:30:00-04:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    },
+    {},
+    {},
+    {}
+   ]
+  },
+  {
+   "id": "9tj3knkgih914iblpjvtma8lc4",
+   "summary": "Rob, Alex, Will, Chris | Gulf Coast RE + AI Platform",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "3384 Woods Edge Cir, Bonita Springs, FL 34134, USA",
+   "start": {
+    "dateTime": "2026-06-18T11:00:00-04:00"
+   },
+   "attendees": [
+    {},
+    {
+     "self": true
+    },
+    {},
+    {}
+   ]
+  },
+  {
+   "id": "3e5ommarc5f4rl57c0dfvfpmdk",
+   "summary": "Caleb, Rob, Will | CGR, Red Rocks, Roof CRM | Get Phase I and 2 rolling and Minimum. Get Onboarded. Scope. Establish Cadence Calls for Continual Progession",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "conferenceUrl": "https://meet.google.com/aob-fada-amf",
+   "start": {
+    "dateTime": "2026-06-18T13:30:00-04:00"
+   },
+   "attendees": [
+    {},
+    {},
+    {
+     "self": true
+    },
+    {},
+    {},
+    {}
+   ],
+   "attachments": [
+    {
+     "fileUrl": "https://docs.google.com/document/d/1479bPU0Jn1QrMomzSdwpWHrx5lFXTvDP0_W0ppJVd_Y/edit?usp=meet_tnfm_calendar",
+     "title": "Notes by Gemini"
+    }
+   ]
+  },
+  {
+   "id": "8as3f8nl3tgqikd7rk04tno3ts",
+   "summary": "Will and Rob to meet with Alex: phase one continuation.",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "21701 Sungate Ct, Estero, FL 33928, USA",
+   "conferenceUrl": "https://meet.google.com/rez-abvs-gmv",
+   "start": {
+    "dateTime": "2026-06-20T11:00:00-04:00"
+   },
+   "attendees": [
+    {},
+    {},
+    {},
+    {
+     "self": true
+    },
+    {}
+   ]
+  },
+  {
+   "id": "e4k93ql4buorq204hcfb3ol08k",
+   "summary": "Joseph, Rob, & Will | AI Discovery",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "conferenceUrl": "https://meet.google.com/dhf-uurh-rwb",
+   "start": {
+    "dateTime": "2026-07-02T15:00:00-04:00"
+   },
+   "attendees": [
+    {},
+    {},
+    {
+     "self": true
+    },
+    {}
+   ]
+  },
+  {
+   "id": "_70p3ac9k88s3eb9i8gojcb9k8933eb9o6t0k8b9j6cq36d1m88r42ga488",
+   "summary": "Confirm with Austin time for tomorrow and 600 Jack in the Box",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "start": {
+    "dateTime": "2026-07-07T12:45:00-04:00"
+   }
+  },
+  {
+   "id": "cvs7vbqkr8lmte1lgo3ci5i0hg",
+   "summary": "Make sure Valarie from Legends set up a time for this week",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "conferenceUrl": "https://meet.google.com/ste-fpxe-anc",
+   "start": {
+    "dateTime": "2026-07-07T15:00:00-04:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "v87n6666bga3c08grq6arlkbv4",
+   "summary": "Call with Dixith & Rob - MLE",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "conferenceUrl": "https://meet.google.com/bsn-kwzp-wch",
+   "start": {
+    "dateTime": "2026-07-08T14:00:00-04:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    },
+    {},
+    {}
+   ],
+   "attachments": [
+    {
+     "fileUrl": "https://docs.google.com/document/d/1dFBZJ0cAItYPHOEkIwmi-vdciNy_4F7CI-AXnbOiOBg/edit?usp=meet_tnfm_calendar",
+     "title": "Notes by Gemini"
+    }
+   ]
+  },
+  {
+   "id": "4dt5a4q9plnaiakvrf6rh77r6c",
+   "summary": "MLE Companywide Meeting at Polks",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "start": {
+    "dateTime": "2026-07-09T14:00:00-04:00"
+   }
+  },
+  {
+   "id": "ipnef717ll221ra8rcpei5fhlo",
+   "summary": "Rob, David, Mark | MLE -Sales Network Intro",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "conferenceUrl": "https://meet.google.com/chm-jzse-ukg",
+   "start": {
+    "dateTime": "2026-07-10T14:00:00-04:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    },
+    {},
+    {}
+   ]
+  },
+  {
+   "id": "o42ambchnnk15d3gd6b399eoso",
+   "summary": "Joseph, Rob, Will | Next Steps",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "conferenceUrl": "https://meet.google.com/zib-eaao-urg",
+   "start": {
+    "dateTime": "2026-07-15T12:00:00-04:00"
+   },
+   "attendees": [
+    {},
+    {
+     "self": true
+    },
+    {}
+   ],
+   "attachments": [
+    {
+     "fileUrl": "https://docs.google.com/document/d/1RcgLuFmrRT08fUXHaLv48UTZ7p1PCx2zis7TIFPFjo8/edit?usp=meet_tnfm_calendar",
+     "title": "Notes by Gemini"
+    }
+   ]
+  },
+  {
+   "id": "3g7ktk3vv7302ntar95vbmoe34",
+   "summary": "Rob, Will, Alex | kickoff Meeting",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "start": {
+    "dateTime": "2026-07-16T09:00:00-04:00"
+   }
+  },
+  {
+   "id": "bpa7857sll7jmqsg52k4s98iuk",
+   "summary": "Joseph, Rob, Will | MLE Partnership",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "conferenceUrl": "https://meet.google.com/gvb-xieq-bma",
+   "start": {
+    "dateTime": "2026-07-20T14:00:00-04:00"
+   },
+   "attendees": [
+    {},
+    {},
+    {
+     "self": true
+    }
+   ],
+   "attachments": [
+    {
+     "fileUrl": "https://docs.google.com/document/d/162aprusmYFj2wTy8jqi26wUT7O-vwif7NCPoPw6_Lv8/edit?usp=meet_tnfm_calendar",
+     "title": "Notes by Gemini"
+    }
+   ]
+  },
+  {
+   "id": "oumfvbv21i51cukfe4dmrv9270",
+   "summary": "Rob, David, Mark | AI MLE",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "conferenceUrl": "https://meet.google.com/jdz-oimy-gqi",
+   "start": {
+    "dateTime": "2026-07-21T14:00:00-04:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    },
+    {},
+    {}
+   ]
+  },
+  {
+   "id": "7rtts46vbpl92doi7sf834ko54",
+   "summary": "10 am - meet with Rob and Will; Kick off meeting. ",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "conferenceUrl": "https://meet.google.com/ctt-qccy-kbb",
+   "start": {
+    "dateTime": "2026-07-22T12:30:00-04:00"
+   },
+   "attendees": [
+    {},
+    {},
+    {
+     "self": true
+    },
+    {},
+    {}
+   ]
+  },
+  {
+   "id": "n596vo23pp2rcp2ehqr58ik9vk",
+   "summary": "Build Out Training Portal",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "start": {
+    "dateTime": "2026-07-22T16:00:00-04:00"
+   }
+  },
+  {
+   "id": "hu43f2n171fcbdc58lejj67ilo",
+   "summary": "Sarah",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "start": {
+    "dateTime": "2026-07-26T17:00:00-04:00"
+   }
+  },
+  {
+   "id": "elg2rm7mbmsugnjcj7qeum9pus",
+   "summary": "Meeting with Mike @ Omega",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "3384 Woods Edge Cir #103, Bonita Springs, FL 34134, USA",
+   "conferenceUrl": "https://meet.google.com/nhc-jmhf-ucs",
+   "start": {
+    "dateTime": "2026-07-28T09:00:00-04:00"
+   },
+   "attendees": [
+    {},
+    {},
+    {},
+    {},
+    {
+     "self": true
+    },
+    {},
+    {}
+   ]
+  },
+  {
+   "id": "k5c9v683uk0umjqp618ltsrbbg",
+   "summary": "Rob & Dix | MLE & Skin Cancer Detection AI Model",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "conferenceUrl": "https://meet.google.com/bai-dvjq-dat",
+   "start": {
+    "dateTime": "2026-07-29T14:00:00-04:00"
+   },
+   "attendees": [
+    {},
+    {
+     "self": true
+    },
+    {}
+   ],
+   "attachments": [
+    {
+     "fileUrl": "https://docs.google.com/document/d/1R3Dh6W7w_dk_mc57wehfak3ToktX_nEfq9_o02ZjQV8/edit?usp=meet_tnfm_calendar",
+     "title": "Notes by Gemini"
+    }
+   ]
+  },
+  {
+   "id": "nq6pvdi96jabv2pe8u3hf2or4c",
+   "summary": "Dani, Rob, Will | Martin Fierro Restaurant & MLE",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "Martin Fierro Restaurant, 13040 Livingston Rd #11, Naples, FL 34105, USA",
+   "start": {
+    "dateTime": "2026-07-30T10:30:00-04:00"
+   },
+   "attendees": [
+    {},
+    {},
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "6o95pd7dj1sk5j0fildnp2di7o",
+   "summary": "Rob & Austin | MArtin Fierro",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "https://meet.google.com/snf-vmxj-dpo",
+   "conferenceUrl": "https://meet.google.com/twu-rpxe-fvg",
+   "start": {
+    "dateTime": "2026-08-03T19:45:00-04:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    },
+    {}
+   ],
+   "attachments": [
+    {
+     "fileUrl": "https://docs.google.com/document/d/1JD70AcU5xNnXZEVYo_4fDiPq2U82O9kDCB8jEOPZ2WM/edit?usp=meet_tnfm_calendar",
+     "title": "Notes by Gemini"
+    }
+   ]
+  },
+  {
+   "id": "rtutcob7ggkp1qme9rj4uj4t9g",
+   "summary": "Dani, Michael, Rob | Total Restaurant Optimization-Next Steps",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "start": {
+    "dateTime": "2026-08-04T10:00:00-04:00"
+   },
+   "attendees": [
+    {},
+    {
+     "self": true
+    },
+    {}
+   ]
+  },
+  {
+   "id": "s7c7flm4rct9ofpe277m4thlpc",
+   "summary": "Alex & Rob | Iron Out Omega Deal",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "3384 Woods Edge Cir Ste 103, Bonita Springs, FL 34134",
+   "start": {
+    "dateTime": "2026-08-05T10:00:00-04:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    },
+    {}
+   ]
+  },
+  {
+   "id": "l2jth8k7hk4g1ps6sqgvpfl5lg_20260805T150000Z",
+   "summary": "Ellie Birthday Em",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "start": {
+    "dateTime": "2026-08-05T11:00:00-04:00"
+   }
+  },
+  {
+   "id": "55h812hg42pqskfi9n38gkmic1",
+   "summary": "Rob & Dix | Skin Cancer Model Demo",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "conferenceUrl": "https://meet.google.com/goh-hgaz-gug",
+   "start": {
+    "dateTime": "2026-08-05T14:00:00-04:00"
+   },
+   "attendees": [
+    {},
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "l8gh6kiv25crhpm49m04ls5ibs",
+   "summary": "Alex, Rob, Austin | Update",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "3384 Woods Edge Cir Ste 103, Bonita Springs, FL 34134",
+   "start": {
+    "dateTime": "2026-08-06T10:00:00-04:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    },
+    {},
+    {}
+   ]
+  },
+  {
+   "id": "uksu71r784jv1da60j817hbcgs",
+   "summary": "Rob & Austin| Progress Update",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "TBD",
+   "start": {
+    "dateTime": "2026-08-06T12:00:00-04:00"
+   },
+   "attendees": [
+    {},
+    {
+     "self": true
+    }
+   ]
+  }
+ ]
 }
