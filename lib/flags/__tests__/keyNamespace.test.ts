@@ -131,9 +131,14 @@ describe("the live registry", () => {
     const report = measureNamespace(LEDGER_FILERS);
     expect(report.partitioned).toBe(false);
 
-    // Two independent processes in one namespace, separated only by the words they picked.
+    // Independent processes in one namespace, separated only by the words they picked.
+    // Q85 inc.9 added a THIRD — `meeting-archive/person-proposals` — which makes the point
+    // sharper, not stale: the namespace keeps growing and nothing enforces the partition.
     expect(report.sharedNamespaces).toEqual([
-      { namespace: "meeting-archive", filers: ["notion-crm-check.mjs", "meeting-archive pass"] },
+      {
+        namespace: "meeting-archive",
+        filers: ["notion-crm-check.mjs", "meeting-archive pass", "notion-crm-check.mjs (people)"],
+      },
     ]);
 
     // And five keys in the global space, where a hand-typed agent key lands (inc.103 #144/#145).

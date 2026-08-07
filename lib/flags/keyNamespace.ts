@@ -195,6 +195,7 @@ export function measureNamespace(filers: Filer[]): NamespaceReport {
 
 import { KEY_CRM_GAP } from "../meetings/crmGapFinding";
 import { KEY_NEEDS_HUMAN_ACCOUNT } from "../meetings/archiveFinding";
+import { KEY_PERSON_PROPOSALS } from "../meetings/personFinding";
 import { CENSUS_REFUSAL_KEY, CENSUS_UNREADABLE_ROWS_KEY, departureKey } from "../integrity/wrapperClock";
 import { familyPattern } from "./producedFamily";
 
@@ -228,6 +229,14 @@ export const LEDGER_FILERS: Filer[] = [
     name: "meeting-archive pass",
     source: "lib/meetings/archiveFinding.ts",
     keys: [KEY_NEEDS_HUMAN_ACCOUNT],
+  },
+  {
+    // Q85 inc.9 — the PEOPLE half of the same script. Registered as its own filer rather than
+    // folded into the `notion-crm-check.mjs` row above, because the census keys on the SOURCE
+    // file that emits the constant, and this key lives in its own module.
+    name: "notion-crm-check.mjs (people)",
+    source: "lib/meetings/personFinding.ts",
+    keys: [KEY_PERSON_PROPOSALS],
   },
   {
     name: "flag-key-drift.mjs",

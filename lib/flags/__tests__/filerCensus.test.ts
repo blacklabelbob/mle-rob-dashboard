@@ -108,7 +108,7 @@ describe("the live tree", () => {
     expect(census.complete).toBe(true);
   });
 
-  it("finds the six filers the namespace report measures", () => {
+  it("finds the seven filers the namespace report measures", () => {
     const emitting = new Set(scanRepo().map((s) => s.path));
     expect([...emitting].sort()).toEqual(LEDGER_FILERS.map((f) => f.source).sort());
   });

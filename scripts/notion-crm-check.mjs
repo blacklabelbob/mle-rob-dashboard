@@ -47,6 +47,7 @@ import {
 import { summarizeAttendeeCoverage, readArchiveAttendees } from "../lib/meetings/archiveAttendees.ts";
 import { resolveRowAttendees } from "../lib/meetings/attendeePerson.ts";
 import { decidePersonProposal, personProposalText } from "../lib/meetings/personProposal.ts";
+import { buildPersonProposalFinding } from "../lib/meetings/personFinding.ts";
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), "..");
 const DATA_SOURCE_ID = "600498eb-b6e0-41af-a625-e369cbe5fc6a";
@@ -266,6 +267,10 @@ for (const r of check.archiveOnly) console.log(`  ${r.day || "(no date)"}  ${cli
 // the CRM already has and a pipeline could file unattended; the rest need a human before any
 // pipeline could help. Printed cheapest-first so the expensive ask shrinks before it is asked.
 const ap = activityPlan.counts;
+// Q85 inc.9 — hoisted out of the print block on purpose: these decisions are no longer only a
+// terminal read, they compose the ledger row below. Declared here so the finding can never be
+// built from a second, differently-collected set of names than the one printed.
+const unknownSeen = new Map();
 if (ap.considered) {
   console.log(`\n── of those ${ap.considered}, where an activity WOULD go (PLAN ONLY — nothing is written) ──`);
   console.log(
@@ -351,7 +356,6 @@ if (ap.considered) {
   // duplicate gets created. `Dix thedev08` is not a person the CRM is missing; it is P-1010's
   // Notion display handle. Each unknown name is named ONCE with its own next step, and the
   // withheld ones say do-not-create out loud. Nothing here writes — see lib/meetings/personProposal.ts.
-  const unknownSeen = new Map();
   for (const item of activityPlan.rows) {
     const resolved = attendeesByRow.get(item.row.id);
     if (!resolved) continue;
@@ -468,6 +472,15 @@ if (FILE_FLAG) {
     "nothing to file — every archived meeting has a CRM activity.",
   );
   await fileFinding(buildArchiveFinding(unexplained), "nothing to file — no row needs a human account.");
+  // Q85 inc.9 — the PEOPLE half, on the same mechanism as the two meeting halves above.
+  // inc.8 posted this finding by hand with no dedupeKey, which is exactly how #133 came to sit
+  // on Rob's page saying 40 forever. Its own key, because "the CRM never heard about these
+  // meetings" and "the CRM has never met these people" are two findings — one key would make
+  // each run silently overwrite the other's row.
+  await fileFinding(
+    buildPersonProposalFinding([...unknownSeen.values()]),
+    "nothing to file — every attendee name resolves to a CRM person.",
+  );
   console.log("");
 }
 
