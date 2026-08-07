@@ -1,0 +1,65 @@
+==============================================================================
+TITLE (do not trust): Rescheduled: Bud and Rob & Kyle | STG & MacDermott Roofing 2025-12-17T11:00:00.000-05:00
+URL: https://app.notion.com/p/Rescheduled-Bud-and-Rob-Kyle-STG-MacDermott-Roofing-2cc1de570199802abe27d2fc6c2ec5d0
+id : 2cc1de57-0199-802a-be27-d2fc6c2ec5d0
+------------------------------------------------------------------------------
+PROPERTIES — in full; this is where the identity the title omits lives:
+  ∅ Google Doc Link [url]: None  ← claims absence
+  · Show/No Show [multi_select]: ["No Show"]
+  ∅ Next Steps/Action Items [rich_text]: None
+  ∅ Company URL [rich_text]: None
+  ∅ Parent Account [multi_select]: None
+  · MLE [select]: YES
+  · Last Edited [last_edited_time]: 2026-07-22T12:01:00.000Z
+  ∅ Child Account [multi_select]: None
+  ∅ Other Combined/Possible referral [rich_text]: None
+  ∅ Customer Pain Points [rich_text]: None
+  ∅ Meeting Summary [rich_text]: None  ← claims absence
+  ∅ MLE Attendees [multi_select]: None
+  ∅ Follow Up Date set [date]: None
+  ∅ Company Meeting with [rich_text]: None
+  ∅ Export Status [select]: None  ← claims absence
+  ∅ Sales Rep [people]: None
+  ∅ Notion Meeting Page [url]: None
+  · Call Date [date]: 2025-12-17
+  ∅ Tags [multi_select]: None
+  ∅ Call Recording [url]: None  ← claims absence
+  ∅ Contact Name [rich_text]: None
+  ∅ Non MLE Attendees [rich_text]: None
+  ∅ TAM # [number]: None
+  · Created [created_time]: 2025-12-17T15:59:00.000Z
+  ∅ In Person/Virtual [multi_select]: None
+  ∅ Urgent TO DO [rich_text]: None
+  · Meeting Type [multi_select]: ["2) Presentation + Pitch"]
+  ∅ Primary Target ICP [multi_select]: None
+  · Meeting Title [title]: Rescheduled: Bud and Rob & Kyle | STG & MacDermott Roofing 2025-12-17T11:00:00.000-05:00
+------------------------------------------------------------------------------
+BODY: 21 blocks, 1290 chars — bulleted_list_item×10, paragraph×6, heading_3×4, transcription×1
+  ⚠ 4 field(s) imply 'no record'. CONTRADICTED — the body below HAS the content. Trust the body, not the field.
+      · Google Doc Link [url] = None
+      · Meeting Summary [rich_text] = None
+      · Export Status [select] = None
+      · Call Recording [url] = None
+------------------------------------------------------------------------------
+FULL BODY (summary + transcript) — read it, do not skim:
+[transcription] 
+  [paragraph] 
+    [heading_3] Project Overview
+    [bulleted_list_item] @Robert Acheson is creating a VAPI Voice agent for STG 
+    [bulleted_list_item] Requesting a prompt that can be copied and pasted into the assistant 
+    [heading_3] Requirements and Information Provided
+    [bulleted_list_item] VAPI punctuation handling documentation has been provided as reference 
+    [bulleted_list_item] The prompt should be formatted in a way that the voice assistant can follow the instructions 
+    [bulleted_list_item] Request for recommendations on any additional content to add to the knowledge base 
+    [heading_3] Script Priorities
+    [bulleted_list_item] Opening line: Needs to be worked out word-for-word 
+    [bulleted_list_item] First response: The response after the client or prospect acknowledges they have time to talk needs specific attention 
+    [bulleted_list_item] These two elements should be built into the script and carefully crafted 
+    [heading_3] Approach
+    [bulleted_list_item] Instructions should be translated into a format that the voice assistant can follow effectively 
+    [bulleted_list_item] The prompt should enable the assistant to execute the semantic intent of the request 
+  [paragraph] 
+    [paragraph] 
+  [paragraph] 
+    [paragraph] I
+[paragraph] 

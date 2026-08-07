@@ -165,6 +165,27 @@ describe("parseReadLogPageIds — which pages the read log says are actually REA
     expect(dashed).toEqual(dashless);
   });
 
+  it("takes the id from a heading that NAMES the page and never types READ", () => {
+    // The shape inc.45 actually wrote. Skipping it made the pass report a write-up as owed
+    // when it was on disk — the checker lying about its own evidence.
+    expect(
+      parseReadLogPageIds(
+        "## `3761de57-0199-8054-86a9-cdc63def71a5` — `2026-06-05T13:56:00.000-04:00`\n\n" +
+          "Read 2026-08-07 (inc.45), `--deep`, rc=0.\n",
+      ),
+    ).toEqual(["3761de570199805486a9cdc63def71a5"]);
+  });
+
+  it("still refuses a prose id inside an id-headed section — only the HEADING addresses a page", () => {
+    // Recognising the id-headed shape must not smuggle mentions back in through its body.
+    expect(
+      parseReadLogPageIds(
+        "## `3761de57-0199-8054-86a9-cdc63def71a5` — the row read on 2026-08-07\n\n" +
+          "Compare with `3ad1de57-0199-80dd-b213-d09c387217e7`, which is still unread.\n",
+      ),
+    ).toEqual(["3761de570199805486a9cdc63def71a5"]);
+  });
+
   it("reads the REAL committed log and finds the six pages filed there", () => {
     const log = readFileSync(
       new URL("../../../docs/research/Q84-READ-LOG-2026-08-05.md", import.meta.url),
@@ -176,6 +197,8 @@ describe("parseReadLogPageIds — which pages the read log says are actually REA
     expect(ids.length).toBeGreaterThanOrEqual(6);
     expect(ids).toContain("3ab1de57019980efbf9cc2b98d7578ed"); // the Omega 7/28 row
     expect(ids).toContain("3a51de570199802bb9f8f59fa153a013"); // Gulf Coast 7/22 kickoff
+    // inc.45's id-headed entry: proof the real log's second heading shape is picked up.
+    expect(ids).toContain("3761de570199805486a9cdc63def71a5");
   });
 });
 

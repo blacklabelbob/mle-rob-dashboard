@@ -116,6 +116,19 @@ const RANK: Record<Action, number> = {
  * "this page was opened and its output is on disk". Ids that appear anywhere else (a
  * still-owed list, a cross-reference, a prose mention) are NOT read, because the whole
  * discipline of that file is that a mention is not a read.
+ *
+ * SECOND ACCEPTED HEADING SHAPE, added 2026-08-07 (Q84 inc.46) because the first one silently
+ * dropped a real entry. inc.45 filed its write-up under `` ## `3761de57-…` — `2026-06-05T13:56` ``
+ * — a heading that names the page by ID and never types the word READ. The section was skipped,
+ * and the pass then printed that page as a read "proven by an archived dump but ABSENT from the
+ * read log", i.e. a write-up owed that had in fact been written. A checker that reports owed work
+ * as owed when it is done is the same class of lie Q84 exists to kill, so the shape the log
+ * actually uses is now recognised rather than reported as a gap.
+ *
+ * The discipline is NOT loosened by it: in an id-headed section only the ids IN THE HEADING
+ * count. The heading is the log addressing that page; the body is prose, and a page id mentioned
+ * in prose stays exactly as unread as it was before. `READ`-headed sections keep scanning their
+ * whole section, which is the convention their entries were written against.
  */
 export function parseReadLogPageIds(markdown: string): string[] {
   const ids = new Set<string>();
@@ -123,13 +136,19 @@ export function parseReadLogPageIds(markdown: string): string[] {
   const sections = markdown.split(/\n(?=##\s)/);
   for (const section of sections) {
     const heading = section.split("\n", 1)[0] ?? "";
-    if (!/\bREAD\b/.test(heading)) continue;
-    for (const raw of section.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|\b[0-9a-f]{32}\b/gi) ?? []) {
-      ids.add(normalizePageId(raw));
-    }
+    const headingIds = heading.match(PAGE_ID_PATTERN) ?? [];
+    // An id-headed section is scanned in the heading ONLY; a READ-headed one, in full.
+    const scanned = /\bREAD\b/.test(heading)
+      ? (section.match(PAGE_ID_PATTERN) ?? [])
+      : headingIds;
+    for (const raw of scanned) ids.add(normalizePageId(raw));
   }
   return [...ids];
 }
+
+/** Notion page ids as the log writes them — dashed uuid or the 32-char dashless form. */
+const PAGE_ID_PATTERN =
+  /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|\b[0-9a-f]{32}\b/gi;
 
 /**
  * Page ids proven read by the ARCHIVED OUTPUT ITSELF, independent of whether anyone wrote the
