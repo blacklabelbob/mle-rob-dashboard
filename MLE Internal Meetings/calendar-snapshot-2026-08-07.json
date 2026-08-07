@@ -1,0 +1,185 @@
+{
+  "_comment": "Q86 inc.3 — a LIVE read of Rob's primary Google Calendar (rob@aivoicetech.io), taken 2026-08-07 by the build driver through the Google Calendar MCP. It is a SNAPSHOT, not a cache: no OAuth/service-account credential for Calendar exists in .env.local, so no .mjs script in this repo can fetch this itself today. `scripts/calendar-spine.mjs` therefore consumes a snapshot and states its age; the fetcher gap is written up in the increment note. Window is deliberately short (2 weeks) — this is the first live pass and a small window that is verifiably right beats a long one nobody checked.",
+  "fetchedAt": "2026-08-07T20:10:00Z",
+  "calendarId": "rob@aivoicetech.io",
+  "timeZone": "America/New_York",
+  "window": {
+    "start": "2026-07-24T00:00:00-04:00",
+    "end": "2026-08-07T00:00:00-04:00"
+  },
+  "events": [
+    {
+      "id": "hu43f2n171fcbdc58lejj67ilo",
+      "summary": "Sarah",
+      "status": "confirmed",
+      "eventType": "DEFAULT",
+      "start": {
+        "dateTime": "2026-07-26T17:00:00-04:00"
+      }
+    },
+    {
+      "id": "elg2rm7mbmsugnjcj7qeum9pus",
+      "summary": "Meeting with Mike @ Omega",
+      "status": "confirmed",
+      "eventType": "DEFAULT",
+      "location": "3384 Woods Edge Cir #103, Bonita Springs, FL 34134, USA",
+      "conferenceUrl": "https://meet.google.com/nhc-jmhf-ucs",
+      "start": {
+        "dateTime": "2026-07-28T09:00:00-04:00"
+      },
+      "attendees": [
+        {},
+        {},
+        {},
+        {},
+        {
+          "self": true
+        },
+        {},
+        {}
+      ]
+    },
+    {
+      "id": "k5c9v683uk0umjqp618ltsrbbg",
+      "summary": "Rob & Dix | MLE & Skin Cancer Detection AI Model",
+      "status": "confirmed",
+      "eventType": "DEFAULT",
+      "conferenceUrl": "https://meet.google.com/bai-dvjq-dat",
+      "start": {
+        "dateTime": "2026-07-29T14:00:00-04:00"
+      },
+      "attendees": [
+        {},
+        {
+          "self": true
+        },
+        {}
+      ]
+    },
+    {
+      "id": "nq6pvdi96jabv2pe8u3hf2or4c",
+      "summary": "Dani, Rob, Will | Martin Fierro Restaurant & MLE",
+      "status": "confirmed",
+      "eventType": "DEFAULT",
+      "location": "Martin Fierro Restaurant, 13040 Livingston Rd #11, Naples, FL 34105, USA",
+      "start": {
+        "dateTime": "2026-07-30T10:30:00-04:00"
+      },
+      "attendees": [
+        {},
+        {},
+        {
+          "self": true
+        }
+      ]
+    },
+    {
+      "id": "6o95pd7dj1sk5j0fildnp2di7o",
+      "summary": "Rob & Austin | MArtin Fierro",
+      "status": "confirmed",
+      "eventType": "DEFAULT",
+      "location": "https://meet.google.com/snf-vmxj-dpo",
+      "conferenceUrl": "https://meet.google.com/twu-rpxe-fvg",
+      "start": {
+        "dateTime": "2026-08-03T19:45:00-04:00"
+      },
+      "attendees": [
+        {
+          "self": true
+        },
+        {}
+      ]
+    },
+    {
+      "id": "rtutcob7ggkp1qme9rj4uj4t9g",
+      "summary": "Dani, Michael, Rob | Total Restaurant Optimization-Next Steps",
+      "status": "confirmed",
+      "eventType": "DEFAULT",
+      "start": {
+        "dateTime": "2026-08-04T10:00:00-04:00"
+      },
+      "attendees": [
+        {},
+        {
+          "self": true
+        },
+        {}
+      ]
+    },
+    {
+      "id": "s7c7flm4rct9ofpe277m4thlpc",
+      "summary": "Alex & Rob | Iron Out Omega Deal",
+      "status": "confirmed",
+      "eventType": "DEFAULT",
+      "location": "3384 Woods Edge Cir Ste 103, Bonita Springs, FL 34134",
+      "start": {
+        "dateTime": "2026-08-05T10:00:00-04:00"
+      },
+      "attendees": [
+        {
+          "self": true
+        },
+        {}
+      ]
+    },
+    {
+      "id": "l2jth8k7hk4g1ps6sqgvpfl5lg_20260805T150000Z",
+      "summary": "Ellie Birthday Em",
+      "status": "confirmed",
+      "eventType": "DEFAULT",
+      "start": {
+        "dateTime": "2026-08-05T11:00:00-04:00"
+      }
+    },
+    {
+      "id": "55h812hg42pqskfi9n38gkmic1",
+      "summary": "Rob & Dix | Skin Cancer Model Demo",
+      "status": "confirmed",
+      "eventType": "DEFAULT",
+      "conferenceUrl": "https://meet.google.com/goh-hgaz-gug",
+      "start": {
+        "dateTime": "2026-08-05T14:00:00-04:00"
+      },
+      "attendees": [
+        {},
+        {
+          "self": true
+        }
+      ]
+    },
+    {
+      "id": "l8gh6kiv25crhpm49m04ls5ibs",
+      "summary": "Alex, Rob, Austin | Update",
+      "status": "confirmed",
+      "eventType": "DEFAULT",
+      "location": "3384 Woods Edge Cir Ste 103, Bonita Springs, FL 34134",
+      "start": {
+        "dateTime": "2026-08-06T10:00:00-04:00"
+      },
+      "attendees": [
+        {
+          "self": true
+        },
+        {},
+        {}
+      ]
+    },
+    {
+      "id": "uksu71r784jv1da60j817hbcgs",
+      "summary": "Rob & Austin| Progress Update",
+      "status": "confirmed",
+      "eventType": "DEFAULT",
+      "location": "TBD",
+      "start": {
+        "dateTime": "2026-08-06T12:00:00-04:00"
+      },
+      "attendees": [
+        {},
+        {
+          "self": true
+        }
+      ]
+    }
+  ],
+  "_pii": "Attendee EMAIL ADDRESSES ARE DELIBERATELY ABSENT and were never needed. `fromCalendarEvents` reads exactly two things off an attendee: Googles own `self` marker, and the COUNT of everyone else. It never reads an address. Committing the real ones would have put live contacts (a client, Robs brother, a restaurant) into git for no gain — guard:pii caught it on pre-push, which is the guard doing its job. Attendee identity is resolved from the LIVE calendar by person-resolver, never from this file."
+}

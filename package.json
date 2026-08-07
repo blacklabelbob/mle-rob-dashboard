@@ -46,7 +46,8 @@
     "audit:clocks": "node --import ./scripts/ts-loader.mjs scripts/audit-wrapper-clocks.mjs",
     "publish:meeting": "node scripts/publish-meeting-activity.mjs",
     "audit:questions": "node --experimental-strip-types scripts/audit-open-questions.mjs",
-    "status:q84": "node --import ./scripts/ts-loader.mjs scripts/q84-transcription-status.mjs"
+    "status:q84": "node --import ./scripts/ts-loader.mjs scripts/q84-transcription-status.mjs",
+    "spine:q86": "node --import ./scripts/ts-loader.mjs scripts/calendar-spine.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.110.0",
