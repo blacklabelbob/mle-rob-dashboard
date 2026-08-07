@@ -131,6 +131,37 @@ export function parseReadLogPageIds(markdown: string): string[] {
   return [...ids];
 }
 
+/**
+ * Page ids proven read by the ARCHIVED OUTPUT ITSELF, independent of whether anyone wrote the
+ * log paragraph.
+ *
+ * This exists because the log was a single point of failure and it failed. A prior run read
+ * `3b11de57-0199-8020-9fb9-c3171150b472` in full (31,417 bytes), archived it, and never wrote
+ * the log entry — and it landed in a `MLE Internal Meetings/` directory OUTSIDE the repo, a
+ * sibling of it, so git never saw the file either. The work-list then printed that page at the
+ * TOP of "to read", and the next run would have re-read 28,869 chars that were already on disk.
+ * Same shape as the six re-scheduled reads inc.37 fixed: the read happened, the record of it
+ * did not.
+ *
+ * So a read now has two independent witnesses and either one is sufficient — the human-written
+ * log OR the machine-written artifact. The artifact is the stronger of the two: the log records
+ * an intention to remember, the file records the read.
+ *
+ * PURE like its sibling: handed each archive's TEXT, never a directory — the caller walks the
+ * filesystem. Reads the `id :` header `find_meeting.py` writes at the top of every dump, which
+ * is the only place the page id survives; the filenames are human-chosen and carry no id.
+ */
+export function parseArchivedReadPageIds(archives: Iterable<string>): string[] {
+  const ids = new Set<string>();
+  for (const text of archives) {
+    // Anchored to the header line, not a loose scan: a page id quoted in the BODY of a
+    // transcript (a pasted link, a cross-reference) is not evidence that page was read.
+    const match = /^\s*id\s*:\s*([0-9a-f-]{32,36})\s*$/im.exec(text);
+    if (match) ids.add(normalizePageId(match[1]));
+  }
+  return [...ids];
+}
+
 /** Notion prints the same id dashed and undashed; compare on the dashless lower-case form. */
 export function normalizePageId(id: string): string {
   return id.replace(/-/g, "").toLowerCase();

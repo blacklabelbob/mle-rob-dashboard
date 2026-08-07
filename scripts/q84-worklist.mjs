@@ -19,9 +19,13 @@
  * same trap sits in front of every `npm run … --json > file` in this repo.
  */
 
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 
-import { buildRecoveryWorklist, parseReadLogPageIds } from "../lib/meetings/recoveryWorklist.ts";
+import {
+  buildRecoveryWorklist,
+  parseArchivedReadPageIds,
+  parseReadLogPageIds,
+} from "../lib/meetings/recoveryWorklist.ts";
 
 const AS_JSON = process.argv.includes("--json");
 
@@ -32,6 +36,27 @@ const AS_JSON = process.argv.includes("--json");
  * disk. A work-list that reopens finished work is the hand-maintenance Q84 exists to retire.
  */
 const READ_LOG = new URL("../docs/research/Q84-READ-LOG-2026-08-05.md", import.meta.url);
+
+/**
+ * The archived dumps themselves — the second, stronger witness that a page was read.
+ *
+ * The log above is hand-written and therefore skippable, and it WAS skipped: the page this
+ * list printed first had been read in full and archived days earlier, with no log entry, into
+ * a `MLE Internal Meetings/` directory sitting OUTSIDE this repo. Untracked by git, unseen by
+ * the log parser, so the work-list honestly believed it was unread. Reading it again would
+ * have cost 28,869 chars to learn nothing.
+ *
+ * Both sources are consulted and unioned; neither is trusted to be complete on its own.
+ */
+const READ_ARCHIVE = new URL("../MLE Internal Meetings/archive-reads/", import.meta.url);
+
+/** Header of each dump only — enough for the `id :` line, without loading whole transcripts. */
+function archivedReadTexts() {
+  if (!existsSync(READ_ARCHIVE)) return [];
+  return readdirSync(READ_ARCHIVE)
+    .filter((name) => name.endsWith(".deepread.txt"))
+    .map((name) => readFileSync(new URL(encodeURIComponent(name), READ_ARCHIVE), "utf8").slice(0, 2000));
+}
 
 function readInput() {
   const flag = process.argv.indexOf("--input");
@@ -57,7 +82,11 @@ if (!Array.isArray(input?.measured)) {
 // A missing read log means "nothing has been read yet", never "skip the check silently":
 // the absence is printed below so a moved file cannot masquerade as an empty log.
 const readLogFound = existsSync(READ_LOG);
-const alreadyRead = readLogFound ? parseReadLogPageIds(readFileSync(READ_LOG, "utf8")) : [];
+const loggedIds = readLogFound ? parseReadLogPageIds(readFileSync(READ_LOG, "utf8")) : [];
+const archivedIds = parseArchivedReadPageIds(archivedReadTexts());
+// Union, because each source has already been observed to miss a read the other caught.
+const alreadyRead = [...new Set([...loggedIds, ...archivedIds])];
+const archivedOnly = archivedIds.filter((id) => !loggedIds.includes(id));
 
 const worklist = buildRecoveryWorklist(input.measured, { alreadyRead });
 
@@ -93,6 +122,14 @@ console.log(
     : `   ⚠ No read log at ${READ_LOG.pathname} — every row below is scheduled as UNREAD. ` +
         `If reads have happened, this list is wrong and the log is what is missing.`,
 );
+if (archivedOnly.length) {
+  // Not an error — the read is safe either way. It is an owed WRITE-UP, printed so the gap
+  // between "we read it" and "we recorded reading it" cannot close silently again.
+  console.log(
+    `   ⚠ ${archivedOnly.length} read(s) proven by an archived dump but ABSENT from the read log ` +
+      `— the dump is on disk, the write-up is owed: ${archivedOnly.join(", ")}`,
+  );
+}
 
 let current = "";
 for (const step of steps) {

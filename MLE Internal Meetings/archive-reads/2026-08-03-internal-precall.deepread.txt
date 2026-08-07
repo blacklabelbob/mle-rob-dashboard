@@ -1,0 +1,329 @@
+==============================================================================
+TITLE (do not trust): 2026-08-03T19:34:00.000-04:00
+URL: https://app.notion.com/p/3b11de57019980209fb9c3171150b472
+id : 3b11de57-0199-8020-9fb9-c3171150b472
+------------------------------------------------------------------------------
+PROPERTIES — in full; this is where the identity the title omits lives:
+  ∅ Google Doc Link [url]: None  ← claims absence
+  ∅ Show/No Show [multi_select]: None
+  ∅ Next Steps/Action Items [rich_text]: None
+  ∅ Company URL [rich_text]: None
+  ∅ Parent Account [multi_select]: None
+  ∅ MLE [select]: None
+  · Last Edited [last_edited_time]: 2026-08-04T00:26:00.000Z
+  ∅ Child Account [multi_select]: None
+  ∅ Other Combined/Possible referral [rich_text]: None
+  ∅ Customer Pain Points [rich_text]: None
+  ∅ Meeting Summary [rich_text]: None  ← claims absence
+  ∅ MLE Attendees [multi_select]: None
+  ∅ Follow Up Date set [date]: None
+  ∅ Company Meeting with [rich_text]: None
+  ∅ Export Status [select]: None  ← claims absence
+  ∅ Sales Rep [people]: None
+  ∅ Notion Meeting Page [url]: None
+  ∅ Call Date [date]: None
+  ∅ Tags [multi_select]: None
+  ∅ Call Recording [url]: None  ← claims absence
+  ∅ Contact Name [rich_text]: None
+  ∅ Non MLE Attendees [rich_text]: None
+  ∅ TAM # [number]: None
+  · Created [created_time]: 2026-08-03T23:34:00.000Z
+  ∅ In Person/Virtual [multi_select]: None
+  ∅ Urgent TO DO [rich_text]: None
+  ∅ Meeting Type [multi_select]: None
+  ∅ Primary Target ICP [multi_select]: None
+  · Meeting Title [title]: 2026-08-03T19:34:00.000-04:00
+------------------------------------------------------------------------------
+BODY: 285 blocks, 28869 chars — paragraph×246, bulleted_list_item×25, heading_3×7, to_do×6, transcription×1
+  ⚠ 4 field(s) imply 'no record'. CONTRADICTED — the body below HAS the content. Trust the body, not the field.
+      · Google Doc Link [url] = None
+      · Meeting Summary [rich_text] = None
+      · Export Status [select] = None
+      · Call Recording [url] = None
+------------------------------------------------------------------------------
+FULL BODY (summary + transcript) — read it, do not skim:
+[transcription] 
+  [paragraph] 
+    [heading_3] Action Items
+    [to_do] Will to grant super admin permissions on Cloudflare so team members can be invited  
+    [to_do] Send Cloudflare account invite to Rob at rob@aivoicetech.io once permissions are resolved  
+    [to_do] Rob and remote participant to meet in person at Martin Fierro restaurant for 10am meeting tomorrow  
+    [to_do] Review Martin Fierro mobile SEO/responsiveness issues using proper tooling (e.g. Hoverfly)  
+    [to_do] Remote participant to share Martin Fierro demo environment URL for review 
+    [to_do] Plan to get a new computer to address performance and soundboard issues 
+    [heading_3] Meeting Context
+    [bulleted_list_item] This is a pre-call between Rob (Robert Acheson) and a remote collaborator, preparing for a client meeting the next day  
+    [bulleted_list_item] Will is a third team member not on the call; several open items depend on Will completing setup tasks  
+    [bulleted_list_item] Audio and connection issues affected much of the call   
+    [heading_3] Tomorrow's Meeting
+    [bulleted_list_item] In-person meeting at Martin Fierro restaurant, North Naples, at 10am  
+    [bulleted_list_item] Both participants are based in North Naples — roughly 15 minutes from the venue  
+    [bulleted_list_item] After the meeting, the plan is to find a place to work together for the remainder of the day 
+    [bulleted_list_item] A Notion transcript from last Thursday's meeting was shared in the group thread with Rob and Will for reference   
+    [heading_3] Business Strategy & Sales Approach
+    [bulleted_list_item] Strategy is focused on network effects: mapping known business owner contacts and tracing part-ownership links to open new doors 
+      [bulleted_list_item] Example: Gulf Coast real estate agency owner → part owner at Omega Title → unexpected meeting with major holding company (with ~5 businesses worth ~$400M)  
+    [bulleted_list_item] Former credit card processing contacts are a strong lead pool — owners are the decision-makers and sole signatories 
+    [bulleted_list_item] Plan for first month: leverage existing network and pursue warm intros 
+    [bulleted_list_item] Second month focus: training appointment bookers, with potential to graduate them into full sales roles  
+    [bulleted_list_item] Sales philosophy: treat it as an engineered process, not just natural charm — "you can totally engineer your way through conversation" 
+    [bulleted_list_item] Will acquiring his dad's company is seen as a key early opportunity for testimonials and credibility 
+    [heading_3] Technical Setup & Access
+    [bulleted_list_item] Will is the Cloudflare super admin; the remote participant only has limited member access and cannot send invites  
+    [bulleted_list_item] Attempted to invite Rob (rob@aivoicetech.io) to Cloudflare but the invite button was greyed out due to insufficient permissions   
+    [bulleted_list_item] Remote participant's setup includes: AI agents deployed locally, personal Cloudflare account linked to Will's system, Google Drive (largely empty so far)   
+    [bulleted_list_item] Will's computer is locked and inaccessible, creating a blocker for some shared resources 
+    [heading_3] Martin Fierro Website Review
+    [bulleted_list_item] The remote participant reviewed the Martin Fierro site and attempted to address mobile responsiveness and SEO issues (e.g. LCP) flagged in prior screenshots   
+    [bulleted_list_item] Changes were made on a demo environment, not the live site  
+    [bulleted_list_item] No definitive tooling (e.g. Hoverfly) was available to measure SEO impact on mobile 
+    [bulleted_list_item] More in-depth work (thematic redesign, etc.) was intentionally left for Will to lead 
+    [heading_3] Hardware & Infrastructure Notes
+    [bulleted_list_item] Remote participant is on an older MacBook Pro (M1, ~2021); it struggles to keep up with Will's machine  
+    [bulleted_list_item] Soundboard issues on the call highlight a need to upgrade hardware 
+    [bulleted_list_item] New computer purchase is planned 
+  [paragraph] 
+    [paragraph] 
+  [paragraph] 
+    [paragraph] I'm sorry, this person is not available. To leave an additional message, Yo, what's up, man?
+    [paragraph] Rob, you there? No worries.
+    [paragraph] Yo.
+    [paragraph] Hey, yeah.
+    [paragraph] Can you hear me? AndBe good. No, it's cutting in and out.
+    [paragraph] Yup. I can hear you.
+    [paragraph] Yeah. Yeah, it's cutting in and out.
+    [paragraph] My audio or.
+    [paragraph] Oh, okay. You're coming through fine on my end, so...
+    [paragraph] Yeah, I can hear you.
+    [paragraph] All right.
+    [paragraph] You're coming through fine.
+    [paragraph] Be fun, now.
+    [paragraph] Good on my end.
+    [paragraph] Yeah, fuck this, hold on.
+    [paragraph] Oh, that's why.
+    [paragraph] All right, you got me now You got me now, brother?
+    [paragraph] Loud and clear.
+    [paragraph] What the fuck?
+    [paragraph] Everything come through.
+    [paragraph] Sounding good?
+    [paragraph] All right, you can hear me now.
+    [paragraph] You can hear me now.
+    [paragraph] Yep, sounds good. All right, dude.
+    [paragraph] Yeah, sounds good. All right dude.
+    [paragraph] I do not. I did. I did all the shit.
+    [paragraph] I do. I, dude, I got all kinds of shit. I got a, We got to fix with this thing. In fact, maybe you could give me a little advice on it.
+    [paragraph] We got a fixedIn fact, maybe you can give her a little advice. What kind of-what kind of-Yeah?
+    [paragraph] What kind of computer are you running?
+    [paragraph] We're now out.
+    [paragraph] MacBook Pro. Yeah. It's kind of old, but I mean...
+    [paragraph] Do you feel like you can? Bye.
+    [paragraph] Do you feel like you can keep up with like Will's shit? I mean, Like it's not... impossible to keep up, but his...
+    [paragraph] -I mean, like it's not impossible.
+    [paragraph] WhichOh really, okay.
+    [paragraph] His stuff runs... Fairly. quicker than mine. What year do you have of MacBook Pro?
+    [paragraph] Either 2020 or 2021. oh really okay yeah it's probably 2021 i think so it's about five years old is it an m1 Yes.
+    [paragraph] Wow, that's interesting.
+    [paragraph] You're right. Why aren't they changing?
+    [paragraph] Because mine came back up. 9, 9, 5, 4. But... Yeah, I'm gonna. I'm gonna get some Something new in office.
+    [paragraph] just mine cannot fucking i mine cannot keep up um But, you know, who knows? They've abused it over the years. But yeah, I'm going to get... I'm going to get something, uh, something new and obviously we're having an issue with the soundboard so you know that alone is not good.
+    [paragraph] But.
+    [paragraph] But, yeah, man, I appreciate you taking the time.
+    [paragraph] One.
+    [paragraph] I look forward to Getting to know you a little better, working with you this week.
+    [paragraph] Getting to know you a little better. I guess maybe the first question I haveWell, so first of all,Um.
+    [paragraph] I guess maybe, man, the first question that I have and like, Well, so first of all, let me just kind of talk about tomorrow.
+    [paragraph] So we had a great one. OnThursday.
+    [paragraph] So we had a great meeting with them on, Last Thursday, I put the Um, Transcript.
+    [paragraph] Hood you Um, Transcript. I just, you know, The notion.
+    [paragraph] I just hit the notion note taker. So you should have...
+    [paragraph] Should have.
+    [paragraph] You should have access to it. and put it in the thing with in this thread with you and I, and, And Will, if you feel like...
+    [paragraph] You should have the outfit. Do it. In Who is it? In the threadYeah. And we'll--I'm gonna get you a cup of that. Cruising in the wall. but But yeah, basically, They-Yeah, it's a good one.
+    [paragraph] cruising it at all. But, um, But yeah, basically... they, um, I'm going to get my notes pulled up. I've got so many lately.
+    [paragraph] Yeah, I took a glance at it the other day in between some things I had going on over the weekends. I didn't read it too thoroughly, but I took a quick glance through it.
+    [paragraph] Yep, yep. Let's see, should we have...
+    [paragraph] Yeah, yeah.
+    [paragraph] And here we have... i was under delta force nice All right. This one here, actually I was probably Okay. Ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-ba-bayeah so right now so they own a few um different restaurants and then they also own this business that i want to get called um miga my buddy gary owns it and he's a great guy we're friends but he is just so busy um and you know this isn't particularly pertinent as of the moment but um you know, just so you know, the way that I operate is, especially in the beginning, right?
+    [paragraph] Yeah, so right nowMiga?
+    [paragraph] What do you get? Right. So busy. and Oh, just perfect. moment, but You know, just so you know, This is my Right. To build aBrand name?
+    [paragraph] Because like, it's so hard to, to build a brand name, you know, especially like the first month, which is why Will acquiring his dad's company is going to be is going to be great because we'll be able to get a lot of testimonials and things like that.
+    [paragraph] Cheers. Y. Willow's water. Dad's coming. Is gonna beButI'm a very network Right now, all those that have No.
+    [paragraph] But I'm a very... network effects type of guy, right?
+    [paragraph] -Oh, I know he's back up. that need to also. -Um, And...
+    [paragraph] So I write down all the nodes that I have where I know there's a business owner I'm friends with, but I know he's also a part owner in another business, and then I can get in that business, and I know that he's a part owner in this business. So we got this real estate agency, Gulf Coast and I knew the owner was part owner in one of the Omega title And so we got a meeting with the Omega title location and we thought it was just going to be the regional VP who came down, but actually the big boss came down too.
+    [paragraph] I knew the owner of those. Or. I'll make it. Oh. locationOkay. You know, he came here after that big bar of stick and pills, you know. Really important.
+    [paragraph] So, you know, we really impressed him.
+    [paragraph] AndBut it is great.
+    [paragraph] And I'm trying to solidify that deal now, but it was great because in the middle of the meeting, he's like, you know, my partner, we have a holding company and we have like any list off like fucking five, like $400 million businesses.
+    [paragraph] Thank you.
+    [paragraph] No.
+    [paragraph] Harder. We were holding company. -Fucking five. This is funny.
+    [paragraph] This would probably work for them too. I'm like, yeah, I think it would.
+    [paragraph] So, um, You'll really be focused on doing stuff like that this first month.
+    [paragraph] I think it would. You know? So, um, you know, really been focusing on doing stuff like that this first month. Cause you know, one thing we don't have a lot of is, is time, but I really want to focus, um, in this kind of, we'll call it like second month on being able to train up Our guys, I have some...
+    [paragraph] You know, the one thing we don't have a lot of isOoh, it's hot, but. really want. It was so hard. In this world, like... able toYeah. Um, Our guys... people I used to process And soYeah.
+    [paragraph] people that I used to own a credit card processing business.
+    [paragraph] That is. you know, across the country.
+    [paragraph] You're talking to the governor, right? You know agreement.
+    [paragraph] you know-Bye.
+    [paragraph] And so I got a lot of contacts in that industry. And that is a great one because, you know, with credit card processing, you're talking to the owner, right? So he's the only one that can sign off on the, on the, agreement because they're technically a unsecured line of credit.
+    [paragraph] Oh, no. but Basically just. Building at ourAnd And yeah.
+    [paragraph] But, you know, you get a portfolio of a hundred or a thousand guys, call them up, you know, and say, Hey, there's a new service too. But, you know, you, basically just kind of, you know, building out our own network and And, you know, I'm going to bring on some guys to just kind of start with appointment booking and then maybe they can graduate into actually doing the sales too.
+    [paragraph] Let's start with that. Appointment booking. We go from the same apartment to the house.
+    [paragraph] And obviously the goal with sales right now is... is uh you know to bring in people that actually can sell right they can actually you know, do, a full pitch because it's, uh, you know, It's a, it's a, it's an art form.
+    [paragraph] Is You know--Actually, we can... Yeah, we're out of the connection. You know, do you... A full bitch. Because it's... You know... It's a lot for people to get to know. Builds a great. That's really really cool. And we'll get into all of that.
+    [paragraph] People think of sales as just kind of the gift to gab, but you can totally engineer your way through conversation. It's just like an engineer and you're, you know, builds a bridge. So, so that's what I'm really focused on. And, and we'll get into all of that later.
+    [paragraph] more so tomorrow. but But just wonderful.
+    [paragraph] more so tomorrow. But, um, but just wanted to first check We have this meeting at 10.
+    [paragraph] We have this meeting.
+    [paragraph] What do you do in the rest of the day? Tomorrow...
+    [paragraph] As far as I'm aware, nothing. So pretty open schedule.
+    [paragraph] Okay, awesome.
+    [paragraph] So. -Set for a while.
+    [paragraph] Okay, awesome. So perfect. So we'll plan on meeting over there and then we'll just find a place to post up for a while. No.
+    [paragraph] Now, Chris.
+    [paragraph] Tomorrow's morning or is that in person or is it a.
+    [paragraph] Yeah, it's in person. Oh, where at?
+    [paragraph] In person or in person? Yeah, it's a good question.
+    [paragraph] It's in person. -Oh, okay.
+    [paragraph] Where are you based out of? I mean, I'm in North Naples.
+    [paragraph] So no, it's, it's, It's uh...
+    [paragraph] Oh, okay. Yeah, me too. So no, it's, it's, um, It's probably 15 minutes away.
+    [paragraph] Yep.
+    [paragraph] Is it at the restaurant? That one you guys met at last week? Yeah, it's at the restaurant.
+    [paragraph] Yeah, pretty.
+    [paragraph] I'm not far from there. Yeah. Yeah.
+    [paragraph] Yeah.
+    [paragraph] And so let me ask you this.
+    [paragraph] I'm pretty sure I put the address in the,If not, I can, it's Martin Fierro, if I remember correctly, right? Right, but. Okay, yeah, I'm not far from there. Okay, cool. I've seen it before, so... Yeah.
+    [paragraph] Two. Well,What? but different.
+    [paragraph] Cool. And so let me, let me ask you this too, because I love Will. He's my boy, but, um, you know, he's working on a lot of different things. Uh, I mean, do you have...
+    [paragraph] I mean, I remotely...
+    [paragraph] I reminded him a million times. Do you have access to his docs that like he made for these guys, the website address, I mean, if you put it on the...
+    [paragraph] Let's do it.
+    [paragraph] If he created a domain for it, then yeah, probably. I mean, there was one that I was working on the night before that meeting when I saw you guys talking about it, because typically he doesn't like, he usually handles the meetings unless he wants, unless he messaged me to come on board. So I didn't. Sure. But I was working a little bit on trying to fix a couple of days. He has Martin Fierro, Naples...
+    [paragraph] What is this? I think he might have done this one. Is it just Cloudflare? Yeah, it's just a Cloudflare account we have. Okay. Can you send me an invite?
+    [paragraph] His-Is it just cloud?
+    [paragraph] Yes. Okay. Right.
+    [paragraph] I don't know if I can because it's his account I had to get access through.
+    [paragraph] I can take a look at it.
+    [paragraph] Yeah, see if you can. Always.
+    [paragraph] I can take a look. Yeah, see if you can. He just always forgets.
+    [paragraph] Because I've never used Cloudflare in a deployment sense like this. Let's see. I mean, I can look it up later. Here, let me see. But, uh...
+    [paragraph] How do I add a user to Cloudflare?
+    [paragraph] Because I know it's just an email invite, but...
+    [paragraph] Yeah.
+    [paragraph] Yeah, but--Account members, okay. Login, manage account members, click invite, enter their email.
+    [paragraph] LoginBird.
+    [paragraph] Set the scope, all domains. Pick roles, you need to be a super admin.
+    [paragraph] Set this to a little main.
+    [paragraph] Take a roll.
+    [paragraph] Everybody, you.
+    [paragraph] Perfect. Okay, I don't think he made me a super admin then.
+    [paragraph] You can be a super admin wherever you want to.
+    [paragraph] Is that on there?
+    [paragraph] I'm on the Cloudflare account, but he's the admin account, if that makes sense. Like everything still goes through his account on Cloudflare. Mine just exists there just to have access to it.
+    [paragraph] Yeah, it does.
+    [paragraph] Yeah.
+    [paragraph] Does that make sense?
+    [paragraph] Yeah, it does. Would you mind checking, though, if... I'm looking through it just to see if I remember when the three of us were sitting there that one day he's like do you mind if we make Austin and I'm like no that's fine Let's see.
+    [paragraph] No.
+    [paragraph] Yo.
+    [paragraph] -sitting there a couple days. Do you mind if we talk? -
+    [paragraph] Manifest count. Was it manage account members via email should be the way to do. Let me see. Members. invited members email addresses Uh... Let me check something. But if I'm what? Zero. Okay. Resource specifics. High performance. I mean, yeah, give that PERMs, network services. I mean, realistically, if Will doesn't want, because I don't know what perms I have. So realistically, if this is something he takes a look at and doesn't want.
+    [paragraph] If I ask you for anything that he doesn't want anybody else, I don't know what I'm asked for. I don't know because I don't think I'm a super admin. But... Yeah, I'm just gonna go ahead and off you for like, you know the majority of this Yeah, it's fine, dude.
+    [paragraph] ---Yeah, trust me.
+    [paragraph] I'm Yeah so Because I know he's, he can be particular, but not particular, but like, I just, I know he wants security.
+    [paragraph] I know you.
+    [paragraph] Send it to Rob.
+    [paragraph] It's just Will. I get it. What is your email, Rob?
+    [paragraph] And we are done. Boys. . Technology.
+    [paragraph] Send it to Rob at AIVoice.com Heck yeah. dot I-O.
+    [paragraph] Is that heck with an E or heck with an A?
+    [paragraph] Got it.
+    [paragraph] Like tech, technology, technology, like tech.
+    [paragraph] Oh, AI voice tech. Mm-hmm. Rob at AIVoiceTech.io. You got it. All right. rob at ai voice tag dot io The... Why is the invite numbers not... If only one permission to membership had a place.
+    [paragraph] Why is this not valid? Final impressions one members should have with the new account level scope. Oh, I don't think I have invite terms.
+    [paragraph] Oh, You're driving me crazy, bro.
+    [paragraph] Even now.
+    [paragraph] Oh, Will! You're driving me crazy, bro.
+    [paragraph] I know. Literally everything's checked, but the invite members is fully like...
+    [paragraph] Faded out. He...
+    [paragraph] He, um...
+    [paragraph] He, uh... You know, even he did, he even left it.
+    [paragraph] He, you know, evenYou're lucky. It's great. He's a dudeYep. -Yeah.
+    [paragraph] He called me this today. He's like, He's like, dude, you got to get it. You guys, you got to use my computer. I forgot to do all this stuff. And then I'm like, yeah, I'm like, yeah, I'll go get it. And he goes, oh shit, the door's locked. Yeah.
+    [paragraph] Oops, it did hurt a lot. Yeah. I'm like, dude, I'm gonna give up. Thanks. Yeah.
+    [paragraph] Yeah, I was like, dude, it's in your house.
+    [paragraph] I'm like, dude, I'll fucking get a locksmith. Bye.
+    [paragraph] Thank you. Yeah, him kind of leaving, I wouldn't say last minute, but...
+    [paragraph] Like not about.
+    [paragraph] Like bro, like We're gonna sit down. -Is that my? Well, You know me.
+    [paragraph] like a little last minute because he told me about this like four days ago i know i know i think he's like kind of avoiding me having the conversation with him about like dude you can't like not about not leaving but like bro like we're going to sit down and we're going to do this because like, and you're not going anywhere. Cause I'm like, I told him, I'm like, bro, like, like, you know, You know me, we're partners.
+    [paragraph] I'm like, The first thing I told you was, we trust each other.
+    [paragraph] -Bye. IFirst thing,Told you. See you.
+    [paragraph] I'm not gonna gate you, which I could do.
+    [paragraph] I'm not gonna... I could do.
+    [paragraph] to my network, you know, because if you want to go start talking, if you hit it off with somebody, you know, that's that, you know, we spin something up, that's fine.
+    [paragraph] to define that word. you know, want to go first one. Good. Did it all for two degrees? Yes.
+    [paragraph] But like, but he's got to reciprocate a little bit more and like he means to he just like forgets Yeah.
+    [paragraph] You know, you want to But he's got the most effort. And like, Forget it.
+    [paragraph] Yeah. Is your login your Google login or do you have another login?
+    [paragraph] Is yourYours look.
+    [paragraph] Thank you.
+    [paragraph] To Cloudflare? Yeah. It's my... Like email, personal email.
+    [paragraph] Google So you draw.
+    [paragraph] So you logged in through Google?
+    [paragraph] I guess what I'm asking is You probably did it.
+    [paragraph] I mean, the invite was just to my Gmail account. Um, Oh, okay.
+    [paragraph] I guess what I'm asking is, do you have a different password to... email and that.
+    [paragraph] were to Amen. And that was good. I would like to. but I didn't want it. Okay. One, and two.
+    [paragraph] Just because I would like to... If I could log in as you, I'd like to take a look at it so I can ensure it's the same one.
+    [paragraph] So I think.
+    [paragraph] Yes, but I know that this one's like an encrypted password. Yes. So I actually don't know what it is because I just used my fingerprint thing on the Mac.
+    [paragraph] I don't know what it is.
+    [paragraph] I'm going to use my fingerprint on that. Right, but you can do that.
+    [paragraph] Right, but you can still go to passwords and open it up.
+    [paragraph] Yeah, yeah.
+    [paragraph] Yeah, yeah, I just don't know what it was. It was like a randomly generated like 40 character encrypted password. Find it, but...
+    [paragraph] Right.
+    [paragraph] I mean, I can, like, if you want to take a look at it, like, right now in this sense, I can definitely, like, screen share and give you that if you want to do that. Again, unless like, are you wanting to look at like the, the build for Martin Fierro or do you just want to look at the Cloudflare accounts?
+    [paragraph] Take it off.
+    [paragraph] It should do it.
+    [paragraph] I should show it.
+    [paragraph] I just didn't know what you, uh... Like we're asking about Rob? Did I lose you?
+    [paragraph] Rob, you there?
+    [paragraph] Oh my god, hold on.
+    [paragraph] No worries, I thought I lost you.
+    [paragraph] My power went out the other day, so my internet died.
+    [paragraph] All right, sorry All good.
+    [paragraph] Just making sure.
+    [paragraph] I thought I lost you. Yeah.
+    [paragraph] All right, let's go to.
+    [paragraph] meetings So annoying.
+    [paragraph] This is theuh what more were you uh wanting to talk about on the phone yeah yeah um so sorry like i missed like if you were talking i missed a lot of it because my phone went out so no no you're good So are you able to share screen?
+    [paragraph] Yeah, I can do that.
+    [paragraph] Let's do the entire screen, why not? That should work. This seems to be what he's got. So far, for Martin Fierro, I don't know. I can take a look at mobile in a minute, but I mean, otherwise, I don't know if this is what you guys talked about.
+    [paragraph] Yeah, this was the presentation for last meeting.
+    [paragraph] Yes, it was. Do you... Now, when he gave you access to...
+    [paragraph] to like, he gave you access to his like, um, his like Google Cloud shit, right?
+    [paragraph] Or some of it.
+    [paragraph] Cloud, no.
+    [paragraph] What did he give you access to as far as being able to do stuff?
+    [paragraph] I mean, the... tools and everything, like the AI stuff, that was just a package file that Basically, his AI zipped up and it was a setup process for me.
+    [paragraph] connecting everything and actually hooking up the accounts and everything.
+    [paragraph] So, I mean like Google everything like on the drive platform, that's, well, this is my personal account, but This is the tech account email, or I guess what I don't remember it, but it's basically the same thing. Just Google Drive with like a... Uh... My local everything folder in there that's empty right now. There's nothing like been shared over drive so far in that light. I guess there'll be like documentation and stuff uploaded there when things kind of move forward.
+    [paragraph] But outside of like Google necessarily, just the... Hide this. Just the, where the hell is it? Somewhere out here. Just a... Basically connecting up my personal Clod account with his system So that way I can give it, you know, commands and stuff to run and build everything that we need to do with his essentially agents built in. and deployed already on my system. So that's... Really, that's really, that's about it.
+    [paragraph] And then, like I said, just the actual... Like, Cloudflare, like I said, I'm just on the account, but he's the super admin. So everything gets deployed through his account. So he has all the admin terms to do everything. Okay.
+    [paragraph] Sorry. So we got more for euro right there.
+    [paragraph] Yeah. This is, uh, that's, that's fun.
+    [paragraph] Okay. Could you do the mobile or a pair of a mobile?
+    [paragraph] Yeah, this is one that I was... Trying to do with some of the SEO issues you had mentioned we were having. Okay. I was taking a look into that to see if anything would come about. That's an old ass email. It's basically their same site. There was just a couple of tweaks I was doing. I don't have Hoverfly. So I can't read the actual SEO of their system in mobile.
+    [paragraph] Here, send it over to me. I have it.
+    [paragraph] Let's see, that should be live on the demo. environments. Oops. I was just trying to tweak a couple things, see if it would work better. I ran it as a mobile environment through my desktop, and responsiveness seemed a little better than checking previously before any tweaks to it. But I don't have any actual data and tools to check it. So...
+    [paragraph] Out of curiosity, why did he have you do it on their normal one, just in case they were to come back and be like, we like our site? He didn't.
+    [paragraph] I didn't. Okay. I just tried to optimize... Excuse me. I just went in and optimized the issues that you had pointed out, or at least tried to optimize the issues that you pointed out. and then give that a base framework just to see if that helped a little bit and then we can go from there to you know do something more like uh thematic, the way that Ali does things. Yeah. Realistically, it was more so to see if that it would resolve the issues you had pointed out.
+    [paragraph] And then if that was the case, then we can go further. No, the issues I pointed out, are you being specific to SEO or are you talking about with the voice chatbot or SEO specifically, the one of the screenshots you sent, Some of their stuff here, like mostly with mobile. If you can see this screen, like the screenshot you sent us about like LCP and any kind of like...
+    [paragraph] Oh, right, right. Just to see if there would be an optimized route for it with their base website.
+    [paragraph] Yeah. But I didn't go full. I figured Will was going to go full in-depth with this. So I was going to let him... Take those reins. Okay.
+    [paragraph] Now, can you You bounce over to Cloudflare again, please. Okay, could you send me the...

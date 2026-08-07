@@ -6,6 +6,8 @@ import {
   buildRecoveryWorklist,
   FIND_MEETING,
   MEASURED_DEPTH_CAP,
+  parseArchivedReadPageIds,
+  normalizePageId,
   parseReadLogPageIds,
   type MeasuredRow,
 } from "../recoveryWorklist";
@@ -215,5 +217,56 @@ describe("buildRecoveryWorklist — rows the read log has already closed", () =>
     );
     expect(counts["sweep-by-date"]).toBe(0);
     expect(atMostUnrecoverable).toBe(0);
+  });
+});
+
+describe("parseArchivedReadPageIds — the dump on disk as proof of a read", () => {
+  // The real header `find_meeting.py` writes, trimmed to the lines that matter.
+  const dump = (id: string, body = "") =>
+    [
+      "==============================================================================",
+      "TITLE (do not trust): 2026-08-03T19:34:00.000-04:00",
+      "URL: https://app.notion.com/p/3b11de57019980209fb9c3171150b472",
+      `id : ${id}`,
+      "------------------------------------------------------------------------------",
+      body,
+    ].join("\n");
+
+  it("recovers the page id from an archived dump", () => {
+    expect(parseArchivedReadPageIds([dump("3b11de57-0199-8020-9fb9-c3171150b472")])).toEqual([
+      "3b11de57019980209fb9c3171150b472",
+    ]);
+  });
+
+  it("normalizes to the dashless form so it compares against a logged id", () => {
+    const [archived] = parseArchivedReadPageIds([dump("3B11DE57019980209FB9C3171150B472")]);
+    expect(archived).toBe(normalizePageId("3b11de57-0199-8020-9fb9-c3171150b472"));
+  });
+
+  it("does NOT count a page id merely quoted inside a transcript body", () => {
+    // A pasted link in someone's meeting notes is not evidence that page was opened.
+    const body = "[paragraph] see also id : 3a51de57-0199-802b-b9f8-f59fa153a013 in that thread";
+    const ids = parseArchivedReadPageIds([dump("3b11de57-0199-8020-9fb9-c3171150b472", body)]);
+    expect(ids).toEqual([normalizePageId("3b11de57-0199-8020-9fb9-c3171150b472")]);
+  });
+
+  it("ignores a dump with no id header rather than inventing one", () => {
+    expect(parseArchivedReadPageIds(["no header here at all"])).toEqual([]);
+  });
+
+  it("THE DEFECT: an archived read with no log entry still retires the row", () => {
+    // Exactly what happened — read, archived outside the repo, never logged, and the
+    // work-list printed it at the TOP of "to read".
+    const id = "3b11de57-0199-8020-9fb9-c3171150b472";
+    const measured = [row({ id, verdict: "body-present", body: { blocks: 285, chars: 24112 } })];
+
+    const logOnly = buildRecoveryWorklist(measured, { alreadyRead: parseReadLogPageIds("") });
+    expect(logOnly.counts["read-page"]).toBe(1); // the bug, reproduced
+
+    const withArchive = buildRecoveryWorklist(measured, {
+      alreadyRead: parseArchivedReadPageIds([dump(id)]),
+    });
+    expect(withArchive.counts["read-page"]).toBe(0);
+    expect(withArchive.counts["already-read"]).toBe(1);
   });
 });
