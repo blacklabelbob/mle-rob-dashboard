@@ -163,7 +163,12 @@ describe("reconcileCalendarSpine — records the spine does not claim", () => {
     const out = reconcileCalendarSpine([MEET], [rec]);
     expect(out.rows).toHaveLength(1);
     expect(out.unclaimed).toHaveLength(1);
-    expect(out.unclaimed[0].why).toContain("never on the calendar");
+    // Q86 inc.7 corrected this assertion in place. It used to demand the sentence "either the
+    // event was never on the calendar, or the read did not cover this day" — an OR the caller can
+    // resolve and this module was stating as if it could not. With NO window declared the module
+    // now says exactly that much and no more: it does not know what the read covered.
+    expect(out.unclaimed[0].placement).toBe("unknown-window");
+    expect(out.unclaimed[0].why).toContain("no read window");
   });
 
   it("says plainly that a dateless record cannot be placed against the spine at all", () => {

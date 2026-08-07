@@ -145,12 +145,52 @@ export type MeetingCoverageRow = {
   reason?: string;
 };
 
+/**
+ * Q86 inc.7 — the days the calendar read actually covered, as the caller declares them.
+ *
+ * `startDay` inclusive, `endDay` EXCLUSIVE, both local `YYYY-MM-DD` in the same zone the meetings
+ * were placed with. It is the caller's, exactly like `toLocalDay` and exactly like which events
+ * are "past": this module may not read a clock, and a window it invented would be a claim about a
+ * fetch it never performed.
+ */
+export type SpineWindow = { startDay: string; endDay: string };
+
+/**
+ * Where an unclaimed record sits relative to the read — the distinction inc.6 wrote down as
+ * "either the event was never on the calendar at all, or one whose invite the read did not reach",
+ * and said must not be guessed.
+ *
+ *   - `undated`             — the record states no day; it cannot be judged against a window at all.
+ *   - `unknown-window`      — no window was declared, so nothing here knows what the read covered.
+ *   - `outside-window`      — an artefact of how far the read went. Widen the snapshot, then re-ask.
+ *   - `in-window-day-empty` — the read covered that day and the calendar holds NO event on it. The
+ *                             recording is of something that was never on this calendar.
+ *   - `in-window-day-busy`  — the read covered that day, the calendar holds events on it, and none
+ *                             of them is this. The candidates are named so a human rules in minutes.
+ *
+ * The last two are opposite findings with opposite fixes, and folding them together is how a
+ * calendar gap and a matching gap end up in one number nobody can act on.
+ */
+export type UnclaimedPlacement =
+  | "undated"
+  | "unknown-window"
+  | "outside-window"
+  | "in-window-day-empty"
+  | "in-window-day-busy";
+
 /** A source record no calendar event claims. Reported, never promoted into a meeting. */
 export type UnclaimedRecord = {
   source: MeetingSource;
   id: string;
   title: string;
   day?: string;
+  placement: UnclaimedPlacement;
+  /**
+   * Every meeting the spine holds on this record's day, when there are any. Named rather than
+   * counted: the whole point of `in-window-day-busy` is that a human can look at three titles and
+   * settle in a minute what no title-matching rule is allowed to settle for them.
+   */
+  sameDayMeetings: { id: string; title: string }[];
   why: string;
 };
 
@@ -168,6 +208,14 @@ export type SpineReconciliation = {
     /** Meetings carrying at least one unruled near-match. */
     withUncertain: number;
     unclaimed: number;
+    /**
+     * Unclaimed records the read DID cover — the only unclaimed number that is a finding. The
+     * other two are reported beside it and never added into it: `outside-window` is an artefact of
+     * the read's reach and `undated` is a record that cannot be judged at all.
+     */
+    unclaimedInWindow: number;
+    unclaimedOutsideWindow: number;
+    unclaimedUndated: number;
   };
 };
 
@@ -230,6 +278,7 @@ function sharedTokens(a: string, b: string): string[] {
 export function reconcileCalendarSpine(
   meetings: CalendarMeeting[],
   records: SourceRecord[],
+  opts: { window?: SpineWindow } = {},
 ): SpineReconciliation {
   const claimed = new Set<string>();
   const key = (r: SourceRecord) => `${r.source}:${r.id}`;
@@ -346,19 +395,52 @@ export function reconcileCalendarSpine(
     };
   });
 
+  // Q86 inc.7 — the same-day index is built off the meetings this report actually holds, so a
+  // "the calendar has nothing that day" verdict can never be stronger than the read behind it.
+  const meetingsByDay = new Map<string, { id: string; title: string }[]>();
+  for (const m of meetings) {
+    const onDay = meetingsByDay.get(m.day) ?? [];
+    onDay.push({ id: m.id, title: m.title });
+    meetingsByDay.set(m.day, onDay);
+  }
+
+  const placementOf = (day?: string): UnclaimedPlacement => {
+    if (!day) return "undated";
+    const w = opts.window;
+    if (!w) return "unknown-window";
+    // End EXCLUSIVE, matching how the window was declared to the fetcher. String compare is exact
+    // for `YYYY-MM-DD` and needs no Date, which this module is not allowed to construct.
+    if (day < w.startDay || day >= w.endDay) return "outside-window";
+    return (meetingsByDay.get(day)?.length ?? 0) > 0 ? "in-window-day-busy" : "in-window-day-empty";
+  };
+
   const unclaimed: UnclaimedRecord[] = records
     .filter((r) => !claimed.has(key(r)))
-    .map((r) => ({
-      source: r.source,
-      id: r.id,
-      title: r.title,
-      day: r.day,
-      why: r.day
-        ? `no calendar meeting on ${r.day} carries this id or this title — either the event was ` +
-          `never on the calendar, or the calendar read did not cover this day.`
-        : `this record states no day, so it cannot be placed against the spine at all. It needs ` +
-          `its date read before it can be reconciled.`,
-    }));
+    .map((r) => {
+      const placement = placementOf(r.day);
+      const sameDayMeetings = r.day ? (meetingsByDay.get(r.day) ?? []) : [];
+      const why =
+        placement === "undated"
+          ? `this record states no day, so it cannot be placed against the spine at all. It needs ` +
+            `its date read before it can be reconciled.`
+          : placement === "unknown-window"
+            ? `no calendar meeting on ${r.day} carries this id or this title — and no read window ` +
+              `was declared, so nothing here knows whether the calendar was even read for that day.`
+            : placement === "outside-window"
+              ? `${r.day} is outside the window that was read (${opts.window!.startDay} → ` +
+                `${opts.window!.endDay}, end exclusive). An artefact of how far the read reached, ` +
+                `not a finding about the meeting — widen the snapshot before counting it as one.`
+              : placement === "in-window-day-empty"
+                ? `the read covered ${r.day} and the calendar holds NO event that day, so this is a ` +
+                  `recording of something that was never on the calendar we read. It may have been ` +
+                  `on another calendar or never invited at all — that is a question for a human, ` +
+                  `not a conclusion from this report.`
+                : `the read covered ${r.day} and the calendar holds ${sameDayMeetings.length} ` +
+                  `event(s) that day, none of which carries this id, room code or title: ` +
+                  `${sameDayMeetings.map((m) => `"${m.title}"`).join(", ")}. One of them may be it; ` +
+                  `a human rules, because welding on a resemblance is exactly what this module refuses.`;
+      return { source: r.source, id: r.id, title: r.title, day: r.day, placement, sameDayMeetings, why };
+    });
 
   return {
     rows,
@@ -371,6 +453,11 @@ export function reconcileCalendarSpine(
       owedAHuman: rows.filter((r) => r.status === "owed-a-human").length,
       withUncertain: rows.filter((r) => r.uncertain.length > 0).length,
       unclaimed: unclaimed.length,
+      unclaimedInWindow: unclaimed.filter(
+        (u) => u.placement === "in-window-day-empty" || u.placement === "in-window-day-busy",
+      ).length,
+      unclaimedOutsideWindow: unclaimed.filter((u) => u.placement === "outside-window").length,
+      unclaimedUndated: unclaimed.filter((u) => u.placement === "undated").length,
     },
   };
 }

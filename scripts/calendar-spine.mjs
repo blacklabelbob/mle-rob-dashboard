@@ -99,7 +99,17 @@ const harvest = fromTranscriptFiles(files, { source: "local-repo" });
 // has the URL.
 const attached = sourceRecordsFromAttachments(snapshot.events ?? [], { toLocalDay });
 
-const report = reconcileCalendarSpine(meetings, [...fireflies, ...harvest.records, ...attached]);
+// The window's own bounds as LOCAL DAYS, so an unclaimed record's day is compared against them
+// with the same zone rule the meetings were placed with. Passed INTO the module (inc.7) rather
+// than re-derived at print time: the verdict is arithmetic and belongs where the tests are.
+const spineWindow =
+  snapshot.window?.start && snapshot.window?.end
+    ? { startDay: toLocalDay(snapshot.window.start), endDay: toLocalDay(snapshot.window.end) }
+    : undefined;
+
+const report = reconcileCalendarSpine(meetings, [...fireflies, ...harvest.records, ...attached], {
+  window: spineWindow,
+});
 
 if (AS_JSON) {
   console.log(
@@ -119,12 +129,6 @@ if (AS_JSON) {
   );
   process.exit(0);
 }
-
-// The window's own bounds as LOCAL DAYS, so an unclaimed record's day can be compared against
-// them with the same zone rule the meetings were placed with. Undefined if the snapshot declares
-// no window — in which case nothing below claims to know whether a record is inside it.
-const windowStartDay = snapshot.window?.start ? toLocalDay(snapshot.window.start) : null;
-const windowEndDay = snapshot.window?.end ? toLocalDay(snapshot.window.end) : null;
 
 const c = report.counts;
 console.log(`\n📅 CALENDAR SPINE — ${snapshot.window?.start ?? "?"} → ${snapshot.window?.end ?? "?"} (${timeZone})`);
@@ -165,35 +169,27 @@ if (harvest.stubs.length) {
 }
 
 if (report.unclaimed.length) {
-  // inc.5: this used to read "the window above is two weeks" — a sentence that was true when it
-  // was written and silently false the moment anyone widened the snapshot. The excuse is now
-  // ARITHMETIC against the snapshot's own declared window, and it is stated per record, because
-  // "outside the window" and "inside the window and matched nothing" are opposite findings: the
-  // first is an artefact to be fixed by a wider read, the second is a real record the spine could
-  // not place and a human has to look at. A record with no day at all is neither — it is counted
-  // separately rather than folded into whichever number reads better.
-  const inWindow = (day) =>
-    day && windowStartDay && windowEndDay ? day >= windowStartDay && day < windowEndDay : null;
-  const verdictOf = (u) => {
-    const v = inWindow(u.day);
-    if (v === true) return "IN WINDOW — unmatched, a human has to place this";
-    if (v === false) return "outside the window — artefact of the read, widen it before counting it";
-    return "no date on the record — cannot be judged against the window";
+  // inc.5 made the window excuse arithmetic; inc.7 moved that arithmetic into the module, where
+  // tests run it. The printer now RENDERS a verdict rather than computing a second one — a rule
+  // that lives in the printer agrees with the report only until someone edits one of the two.
+  const VERDICT = {
+    "in-window-day-busy": "IN WINDOW, day is busy — one of the day's events may be it, a human rules",
+    "in-window-day-empty": "IN WINDOW, calendar EMPTY that day — never on the calendar we read",
+    "outside-window": "outside the window — artefact of the read, widen it before counting it",
+    "unknown-window": "no window declared — the read's reach is unknown",
+    undated: "no date on the record — cannot be judged against the window",
   };
-  const tally = { inside: 0, outside: 0, undated: 0 };
-  for (const u of report.unclaimed) {
-    const v = inWindow(u.day);
-    tally[v === true ? "inside" : v === false ? "outside" : "undated"] += 1;
-  }
 
   console.log(`\n— SOURCE RECORDS NO CALENDAR EVENT IN THIS WINDOW CLAIMS (${report.unclaimed.length}) —`);
   for (const u of report.unclaimed.slice(0, 15)) {
-    console.log(`   · ${u.source}:${u.title}${u.day ? ` (${u.day})` : ""} — ${verdictOf(u)}`);
+    console.log(`   · ${u.source}:${u.title}${u.day ? ` (${u.day})` : ""} — ${VERDICT[u.placement]}`);
+    // The candidates, not a count: this is the line that turns an orphan into a two-minute ruling.
+    for (const m of u.sameDayMeetings) console.log(`       ↳ same day: "${m.title}"`);
   }
   if (report.unclaimed.length > 15) console.log(`   … ${report.unclaimed.length - 15} more (use --json)`);
   console.log(
-    `   ${tally.inside} inside the window (real, unplaced) · ${tally.outside} outside it (widen the snapshot) · ` +
-      `${tally.undated} undated. Only the first number is a finding.`,
+    `   ${c.unclaimedInWindow} inside the window (real, unplaced) · ${c.unclaimedOutsideWindow} outside it ` +
+      `(widen the snapshot) · ${c.unclaimedUndated} undated. Only the first number is a finding.`,
   );
 }
 
