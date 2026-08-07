@@ -413,6 +413,98 @@ describe("parseExhaustedDeepReadPageIds — the uncapped read that came back emp
     expect(steps[0].ref).toBe("3b21de57-0199-80e8-95b6-ca602d7129c6");
   });
 
+  describe("Notion's own transcription status answers the open-in-notion bucket", () => {
+    const EXH = { id: ID, verdict: "container-only" as const, body: { blocks: 5, chars: 76 } };
+
+    it("retires the human read when Notion says no transcript was ever produced", () => {
+      const out = buildRecoveryWorklist([row(EXH)], {
+        deepReadExhausted: [ID],
+        transcriptionStatuses: [[ID, "transcription_not_started"]],
+      });
+      expect(out.steps[0].action).toBe("notion-says-no-transcript");
+      expect(out.counts["open-in-notion"]).toBe(0);
+      expect(out.counts["notion-says-no-transcript"]).toBe(1);
+      // The verbatim status rides through, so the claim can be checked against Notion.
+      expect(out.steps[0].why).toContain("transcription_not_started");
+      // And it is never dressed up as a read.
+      expect(out.counts["already-read"]).toBe(0);
+    });
+
+    it("treats `transcription_paused` the same way without collapsing the two statuses", () => {
+      const out = buildRecoveryWorklist([row(EXH)], {
+        deepReadExhausted: [ID],
+        transcriptionStatuses: [[ID, "transcription_paused"]],
+      });
+      expect(out.steps[0].action).toBe("notion-says-no-transcript");
+      expect(out.steps[0].why).toContain("transcription_paused");
+      expect(out.steps[0].why).not.toContain("not_started");
+    });
+
+    it("keeps the human read for a status the ladder does not recognise", () => {
+      for (const status of ["transcription_completed", "transcription_teleported", ""]) {
+        const out = buildRecoveryWorklist([row(EXH)], {
+          deepReadExhausted: [ID],
+          transcriptionStatuses: [[ID, status]],
+        });
+        expect(out.steps[0].action).toBe("open-in-notion");
+      }
+    });
+
+    it("matches on the dashless id, so a dashed status file still lands", () => {
+      const dashed = "3b21de57-0199-80e8-95b6-ca602d7129c6";
+      const out = buildRecoveryWorklist([row({ ...EXH, id: dashed })], {
+        deepReadExhausted: [dashed],
+        transcriptionStatuses: [[dashed.replace(/-/g, ""), "transcription_not_started"]],
+      });
+      expect(out.steps[0].action).toBe("notion-says-no-transcript");
+    });
+
+    it("does NOT let a transcription status cancel a container's uncapped re-read", () => {
+      // The status is about the TRANSCRIPT; a `--deep` read looks for all body text. Only a
+      // row already proven exhausted may be answered by it.
+      const out = buildRecoveryWorklist([row(EXH)], {
+        transcriptionStatuses: [[ID, "transcription_not_started"]],
+      });
+      expect(out.steps[0].action).toBe("deep-read-page");
+    });
+
+    it("never promotes an answered row into the unrecoverable ceiling", () => {
+      const out = buildRecoveryWorklist([row(EXH)], {
+        deepReadExhausted: [ID],
+        transcriptionStatuses: [[ID, "transcription_not_started"]],
+      });
+      expect(out.atMostUnrecoverable).toBe(0);
+    });
+
+    it("is inert when no statuses are supplied — byte-identical to before the option existed", () => {
+      const measured = [row(EXH), row({ id: "page-9", verdict: "body-present", body: { blocks: 20, chars: 900 } })];
+      const opts = { deepReadExhausted: [ID] };
+      expect(buildRecoveryWorklist(measured, { ...opts, transcriptionStatuses: [] })).toEqual(
+        buildRecoveryWorklist(measured, opts),
+      );
+    });
+
+    it("ranks the answered rows below open-in-notion and above already-read", () => {
+      const out = buildRecoveryWorklist(
+        [
+          row({ id: "answered", verdict: "container-only" }),
+          row({ id: "unanswered", verdict: "container-only" }),
+          row({ id: "done", verdict: "body-present" }),
+        ],
+        {
+          deepReadExhausted: ["answered", "unanswered"],
+          alreadyRead: ["done"],
+          transcriptionStatuses: [["answered", "transcription_not_started"]],
+        },
+      );
+      expect(out.steps.map((s) => s.action)).toEqual([
+        "open-in-notion",
+        "notion-says-no-transcript",
+        "already-read",
+      ]);
+    });
+  });
+
   it("PROVEN ON THE REAL ARCHIVE: the four container dumps on disk are recognised", () => {
     // A fixture would go green on a shape nobody has seen. These are the actual files this
     // increment archived, read through the same 12,000-char window the script uses.

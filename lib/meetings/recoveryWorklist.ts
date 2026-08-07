@@ -35,8 +35,12 @@
  *
  * PURE (CR-3): no clock, no network, no Notion, no filesystem. It never reads a page, never
  * writes one, and never produces a summary of a meeting — it produces commands and the
- * reason each one is owed.
+ * reason each one is owed. It now grades transcription statuses through
+ * `transcriptionStatus.ts`, which is pure for the same reasons: the status is HANDED to this
+ * module by a caller that did the network, exactly as the read log's text is.
  */
+
+import { classifyTranscription } from "./transcriptionStatus";
 
 /** The re-count's verdict for one row. Mirrors `scripts/q84-recount.mjs`. */
 export type BodyVerdict = "body-present" | "container-only" | "body-empty" | "unmeasured";
@@ -87,6 +91,22 @@ export type Action =
    * never counted toward `atMostUnrecoverable` — the page has blocks.
    */
   | "open-in-notion"
+  /**
+   * `open-in-notion`, ANSWERED. The row's transcription block carries a `status`, Notion
+   * reports it as never produced, and so the human read that bucket asks for cannot recover
+   * text that was never written.
+   *
+   * This is deliberately a SEPARATE action rather than a quiet removal from `open-in-notion`.
+   * The row still exists, still holds blocks, and still may have a recording somewhere that is
+   * not Notion (Fireflies, Fathom, Zoom, Drive — that is Q86). What has been retired is exactly
+   * one task: opening this page in a browser. Collapsing it into `already-read` would claim a
+   * read that never happened; leaving it in `open-in-notion` would keep asking a human to go
+   * find nothing. Both are lies of a different sign, so it gets its own rung.
+   *
+   * Only Notion's own recognised statuses may put a row here — see `transcriptionStatus.ts`.
+   * An unknown status leaves the row in `open-in-notion` untouched.
+   */
+  | "notion-says-no-transcript"
   /**
    * The page has already been opened, read, and filed in the read log. It is carried here
    * rather than dropped: a row that vanishes from a work-list is indistinguishable from a row
@@ -151,6 +171,10 @@ const RANK: Record<Action, number> = {
   // script can do. Burying it under the finished rows would hide the only bucket whose
   // remedy is a human opening a browser.
   "open-in-notion": 4.5,
+  // Directly under the bucket it answers, and above `already-read`, because it is not a read.
+  // It sits adjacent to `open-in-notion` on purpose: the two are the same rows before and
+  // after Notion was asked, and a reader scanning the list should see them next to each other.
+  "notion-says-no-transcript": 4.8,
   // Last, because it is the only entry that asks for nothing. It stays visible so the list
   // can be checked against the read log, and so a wrongly-matched id is caught by eye.
   "already-read": 5,
@@ -344,12 +368,33 @@ function stepFor(row: MeasuredRow): Omit<WorklistStep, "ref"> {
  */
 export function buildRecoveryWorklist(
   measured: MeasuredRow[],
-  opts: { alreadyRead?: Iterable<string>; deepReadExhausted?: Iterable<string> } = {},
+  opts: {
+    alreadyRead?: Iterable<string>;
+    deepReadExhausted?: Iterable<string>;
+    /**
+     * What Notion says about each page's own transcription block, keyed by page id — the
+     * verbatim `status` string, exactly as `status:q84` measured it. Absent, every row keeps
+     * the disposition it had before this option existed.
+     *
+     * It is consulted in ONE place — the `open-in-notion` branch — and that narrowness is
+     * deliberate. `open-in-notion`'s entire content is "a human must open this page and look at
+     * the transcription wrapper", which is precisely the task a never-produced status retires.
+     * A `container-only` row is NOT short-circuited by the same status: its `--deep` re-read
+     * looks for ALL body text (AI summaries, action items, section blocks), not only the
+     * transcript, so a page with no transcript can still have a body worth reading. Letting a
+     * transcription status cancel that read would convert a claim about the TRANSCRIPT into a
+     * claim about the PAGE — the substitution Q84 exists to kill.
+     */
+    transcriptionStatuses?: Iterable<readonly [string, string | null | undefined]>;
+  } = {},
 ): Worklist {
   // Absent `alreadyRead`, every row is scheduled exactly as before — a caller that knows
   // nothing about the read log gets a byte-identical list, so this cannot quietly hide work.
   const read = new Set([...(opts.alreadyRead ?? [])].map(normalizePageId));
   const exhausted = new Set([...(opts.deepReadExhausted ?? [])].map(normalizePageId));
+  const statuses = new Map(
+    [...(opts.transcriptionStatuses ?? [])].map(([id, status]) => [normalizePageId(id), status]),
+  );
   const steps = measured
     .map((row): WorklistStep => {
       const id = normalizePageId(row.id);
@@ -363,6 +408,19 @@ export function buildRecoveryWorklist(
       // is: a human opening the page in Notion. The stronger claim must not be reachable by
       // the weaker witness.
       if (exhausted.has(id)) {
+        // Notion is allowed to answer the question this bucket asks, and ONLY with a status
+        // the ladder recognises as never-produced. `transcript-exists`, `unknown`, and a row
+        // nobody measured all fall through to the human read below, unchanged.
+        const verdict = statuses.has(id) ? classifyTranscription(statuses.get(id)) : null;
+        if (verdict?.disposition === "never-produced") {
+          return {
+            action: "notion-says-no-transcript" as const,
+            row,
+            command: "",
+            ref,
+            why: `${verdict.why} — the human read this row was owed is retired; a recording elsewhere (Fireflies, Fathom, Zoom, Drive) is Q86, not a Notion read`,
+          };
+        }
         return {
           action: "open-in-notion" as const,
           row,
@@ -402,6 +460,7 @@ export function buildRecoveryWorklist(
       "identify-first": count("identify-first"),
       "re-measure": count("re-measure"),
       "open-in-notion": count("open-in-notion"),
+      "notion-says-no-transcript": count("notion-says-no-transcript"),
       "already-read": count("already-read"),
     },
     // Only a row with nothing on its page could ever be unrecoverable, and only after its
@@ -409,6 +468,9 @@ export function buildRecoveryWorklist(
     // and counting it here would smuggle the retired assertion back in under a new name.
     // `open-in-notion` is excluded for the same reason and one more: its page has blocks AND
     // a transcription wrapper, so it is the row LEAST entitled to be called an absence.
+    // `notion-says-no-transcript` is excluded on exactly the same grounds and is NOT promoted
+    // by having been answered: Notion saying it never transcribed a meeting is a claim about
+    // Notion's transcript, never about whether the meeting was recorded anywhere else.
     atMostUnrecoverable: count("sweep-by-date") + count("identify-first"),
   };
 }

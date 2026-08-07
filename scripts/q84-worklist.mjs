@@ -106,7 +106,36 @@ const archivedOnly = archivedIds.filter(
   (id) => !loggedIds.includes(id) && !deepReadExhausted.includes(id),
 );
 
-const worklist = buildRecoveryWorklist(input.measured, { alreadyRead, deepReadExhausted });
+/**
+ * What Notion says about each page's own transcription block, from `status:q84 --json`.
+ *
+ * OPTIONAL and absent by default, which keeps this pass offline by construction: the statuses
+ * are MEASURED by `status:q84` (which does hold the Notion key) and merely read here. Without
+ * `--statuses`, every row prints exactly as it did before, so a stale or missing file can only
+ * ever ask for MORE work, never less.
+ *
+ * Only the verbatim `status` string is forwarded. The disposition in that file is re-derived by
+ * `classifyTranscription` inside the work-list rather than trusted, so there is one ladder and
+ * a hand-edited `disposition` field cannot retire a row.
+ */
+function transcriptionStatuses() {
+  const flag = process.argv.indexOf("--statuses");
+  const path = flag !== -1 ? process.argv[flag + 1] : undefined;
+  if (!path) return [];
+  const parsed = JSON.parse(readFileSync(path, "utf8"));
+  const rows = Array.isArray(parsed?.measured) ? parsed.measured : [];
+  // A row the status pass could not measure carries `error` and no status; it is skipped
+  // entirely rather than forwarded as null, because "we failed to ask" must not read as an
+  // answer. Skipped rows keep their `open-in-notion` disposition, which is the safe direction.
+  return rows.filter((r) => r?.id && !r.error && r.status).map((r) => [r.id, r.status]);
+}
+
+const statuses = transcriptionStatuses();
+const worklist = buildRecoveryWorklist(input.measured, {
+  alreadyRead,
+  deepReadExhausted,
+  transcriptionStatuses: statuses,
+});
 
 if (AS_JSON) {
   console.log(JSON.stringify(worklist, null, 2));
@@ -123,6 +152,9 @@ const HEAD = {
   "open-in-notion":
     "OPEN IN NOTION — the uncapped re-read RAN and the API has no more to give; a [transcription] " +
     "wrapper with no text under it is a limit of the reader, never an empty meeting",
+  "notion-says-no-transcript":
+    "NOTHING TO OPEN — Notion's own transcription status says no transcript was ever produced; " +
+    "the browser read is retired, the meeting is NOT called unrecoverable (a recording elsewhere is Q86)",
   "already-read": "ALREADY READ — opened and filed in the read log; listed, not hidden",
 };
 
@@ -131,6 +163,14 @@ console.log(
   `   ${counts["read-page"]} to read · ${counts["deep-read-page"]} to re-read uncapped · ` +
     `${counts["sweep-by-date"]} to sweep · ${counts["identify-first"]} to identify · ` +
     `${counts["re-measure"]} to re-measure · ${counts["open-in-notion"]} to open by hand in Notion`,
+);
+console.log(
+  statuses.length === 0
+    ? `   ⚠ No transcription statuses supplied — every exhausted row is scheduled as a human read.\n` +
+        `     Measure them first, then pass the file:  npm run --silent status:q84 -- --input <recount.json> --json > /tmp/q84-status.json\n` +
+        `     and re-run this with  --statuses /tmp/q84-status.json`
+    : `   ${counts["notion-says-no-transcript"]} of ${statuses.length} measured row(s) are answered by Notion's own ` +
+        `transcription status — no transcript was ever produced, so no browser read can recover one.`,
 );
 console.log(
   `   At most ${atMostUnrecoverable} row(s) could turn out to be unrecoverable — and only ` +
