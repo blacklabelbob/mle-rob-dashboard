@@ -1,0 +1,48 @@
+==============================================================================
+TITLE (do not trust): 2026-07-29T14:01:00.000-04:00
+URL: https://app.notion.com/p/3ac1de57019980de9f7bef7146b6383d
+id : 3ac1de57-0199-80de-9f7b-ef7146b6383d
+------------------------------------------------------------------------------
+PROPERTIES — in full; this is where the identity the title omits lives:
+  ∅ Google Doc Link [url]: None  ← claims absence
+  ∅ Show/No Show [multi_select]: None
+  ∅ Next Steps/Action Items [rich_text]: None
+  ∅ Company URL [rich_text]: None
+  ∅ Parent Account [multi_select]: None
+  ∅ MLE [select]: None
+  · Last Edited [last_edited_time]: 2026-07-29T18:07:00.000Z
+  ∅ Child Account [multi_select]: None
+  · Other Combined/Possible referral [rich_text]: None mentioned in notes/transcript.
+  ∅ Customer Pain Points [rich_text]: None
+  ∅ Meeting Summary [rich_text]: None  ← claims absence
+  ∅ MLE Attendees [multi_select]: None
+  ∅ Follow Up Date set [date]: None
+  ∅ Company Meeting with [rich_text]: None
+  ∅ Export Status [select]: None  ← claims absence
+  ∅ Sales Rep [people]: None
+  ∅ Notion Meeting Page [url]: None
+  ∅ Call Date [date]: None
+  ∅ Tags [multi_select]: None
+  ∅ Call Recording [url]: None  ← claims absence
+  ∅ Contact Name [rich_text]: None
+  ∅ Non MLE Attendees [rich_text]: None
+  ∅ TAM # [number]: None
+  · Created [created_time]: 2026-07-29T18:01:00.000Z
+  ∅ In Person/Virtual [multi_select]: None
+  ∅ Urgent TO DO [rich_text]: None
+  ∅ Meeting Type [multi_select]: None
+  ∅ Primary Target ICP [multi_select]: None
+  · Meeting Title [title]: 2026-07-29T14:01:00.000-04:00
+------------------------------------------------------------------------------
+BODY: 3 blocks, 46 chars — paragraph×2, transcription×1
+  ‼ A [transcription] wrapper is present but recovered almost no text. Do NOT report 'no transcript' — open the page in Notion and say so.
+  ⚠ 4 field(s) imply 'no record'. Body is thin too — that is still not a finding. Work all 8 sources (--checklist).
+      · Google Doc Link [url] = None
+      · Meeting Summary [rich_text] = None
+      · Export Status [select] = None
+      · Call Recording [url] = None
+------------------------------------------------------------------------------
+FULL BODY (summary + transcript) — read it, do not skim:
+[transcription] 
+  [paragraph] 
+    [paragraph] 
