@@ -7,6 +7,13 @@
       "note": "Read end to end 2026-08-07 at MLE Internal Meetings/archive-reads/2025-12-20-will-devito.deepread.txt (49 blocks, 77,465 chars). The tail of the body is verbatim first-person speech, not summary prose — e.g. a [paragraph] block opening 'Me: Hit me. So there's three steps to building an automation, any automation, that's it. The first step. What is your input data?', followed by continuous unbulleted spoken paragraphs including an aside about being blind in the right eye. Summary bullets (Quick Facts: BBX Moving Company, owner Chai, ~$2.0-2.2M revenue) sit ABOVE the speech in the same body; both are present, which is why block shape cannot decide this and a human read has to. Four Notion fields on this row claim absence (Google Doc Link, Meeting Summary, Export Status, Call Recording) and all four are contradicted by the body — the 2026-07-28 Omega shape, INCIDENT-LEDGER #34.",
       "confirmedAt": "2026-08-07",
       "confirmedBy": "max"
+    },
+    {
+      "pageId": "3811de57-0199-8099-9137-ef10c8fd0efe",
+      "verdict": "transcript",
+      "note": "Read end to end 2026-08-07 at MLE Internal Meetings/archive-reads/2026-06-16-gulfcoast-ai-alex-one.deepread.txt (281 blocks, 44,547 chars). The body is an AI summary ON TOP (Action Items, Meeting Overview, SEO Audit Findings, Boomtown pros/cons) and, below a 'Notion AI is transcribing this meeting.' marker, ~200 [paragraph] blocks of verbatim two-party speech running to the end of the page — e.g. Alex: 'that is right now... 85% of our revenue. But I'm diversifying. My whole goal is to diversify because Google is moving towards zero-click listings … so I'm diversifying like a motherfucker', and later 'What the fuck are all the broken links?', closing on 'I'm going to take a shit, man. / Oh, yeah, yeah. And so, like, yeah, man, we have all the tech shit we need. But we'll have a lot of fun tomorrow. Yeah, let me confirm tonight.' Profanity and an interrupted thought are not summariser output; this is the raw call. Hard numbers carried in the speech and NOT in any CRM field: ~60 agents, ~$1,500/day PPC, ~2 sales per 100 leads, ~$1,100 CAC, Boomtown enterprise $2,500/mo, ~$40/lead down to ~$22. Four Notion fields on this row claim absence (Google Doc Link, Meeting Summary, Export Status, Call Recording) and all four are contradicted by the body — the 2026-07-28 Omega shape, INCIDENT-LEDGER #34.",
+      "confirmedAt": "2026-08-07",
+      "confirmedBy": "max"
     }
   ]
 }

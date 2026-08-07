@@ -7,8 +7,11 @@
  * to prevent.
  */
 
+import { readFileSync, readdirSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { indexNotionReads, parseDeepReadHeader } from "@/lib/meetings/notionReads";
+import type { NotionReadConfirmation } from "@/lib/meetings/notionReads";
 
 // Copied verbatim from `MLE Internal Meetings/archive-reads/2025-12-20-will-devito.deepread.txt`.
 const HEADER = `==============================================================================
@@ -50,5 +53,46 @@ describe("indexNotionReads", () => {
     );
     expect(byPageId.get(read.pageId)?.confirmation?.verdict).toBe("transcript");
     expect(orphanedConfirmations).toHaveLength(0);
+  });
+});
+
+/**
+ * Q86 inc.11 — these read the COMMITTED files, not fixtures.
+ *
+ * inc.10 justified refusing a block-shape heuristic in a doc comment, and got its own example
+ * backwards: it called `2026-06-16-gulfcoast-ai-alex-one` "a pure AI summary". Reading it end to
+ * end ruled it `transcript`. A fixture would have stayed green through that mistake, because the
+ * mistake was about what is on disk. So the claim is now made against the disk.
+ */
+describe("the committed reads and rulings", () => {
+  const root = join(__dirname, "..", "..", "..", "MLE Internal Meetings");
+  const confirmations: NotionReadConfirmation[] = JSON.parse(
+    readFileSync(join(root, "notion-read-confirmations.json"), "utf8"),
+  ).confirmations;
+  const reads = readdirSync(join(root, "archive-reads"))
+    .filter((f) => f.endsWith(".deepread.txt"))
+    .map((f) => parseDeepReadHeader(f, readFileSync(join(root, "archive-reads", f), "utf8")))
+    .filter((r): r is NonNullable<typeof r> => r !== null);
+
+  it("rules on files that exist — no confirmation names a read nobody can open", () => {
+    expect(indexNotionReads(reads, confirmations).orphanedConfirmations).toEqual([]);
+  });
+
+  it("kills the shape heuristic with the corpus itself: two transcripts, 9 paragraphs vs 228", () => {
+    const { byPageId } = indexNotionReads(reads, confirmations);
+    // will Devito — 74k of its 77k chars sit in FOUR paragraph blocks, so the census reads 9.
+    const devito = byPageId.get("2cf1de57-0199-8003-9e6d-fd921fbb8a59");
+    // Gulf Coast / AI Alex — the same kind of verbatim speech, chunked into ~200 blocks.
+    const alex = byPageId.get("3811de57-0199-8099-9137-ef10c8fd0efe");
+    expect(devito?.confirmation?.verdict).toBe("transcript");
+    expect(alex?.confirmation?.verdict).toBe("transcript");
+
+    const census = (path: string) =>
+      /^BODY:.*paragraph×(\d+)/m.exec(readFileSync(join(root, "archive-reads", path), "utf8"))?.[1];
+    expect(census(devito!.path)).toBe("9");
+    expect(census(alex!.path)).toBe("228");
+    // Same verdict, 25× apart on the axis a heuristic would key off. Shape measures how Notion
+    // recorded the page, not what the page holds. If this ever goes red because a verdict moved,
+    // the doc comment in notionReads.ts is what has to change with it.
   });
 });

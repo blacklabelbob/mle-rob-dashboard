@@ -15,14 +15,24 @@
  *      the row COVERAGE.
  *
  * WHY THE VERDICT IS A RECORDED RULING AND NOT A SHAPE HEURISTIC. The tempting rule is "many
- * `[paragraph]` blocks ⇒ transcript, mostly `[bulleted_list_item]` ⇒ summary". It was measured
- * against the real corpus this increment and it does not hold: the read that provably contains
- * verbatim speech (`2025-12-20-will-devito`, 49 blocks) is 34 bullets and 9 paragraphs, while a
- * pure AI summary (`2026-06-16-gulfcoast-ai-alex-one`) is 228 paragraphs. A speaker-prefix regex
- * scores the transcript at 2 lines and every other file at 0. Guessing from shape here would call
- * summaries transcripts and transcripts summaries — the exact false-coverage failure Q86 exists to
- * kill. Someone has to open the file. When they do, the ruling is written down with the evidence,
- * once, and never has to be re-derived.
+ * `[paragraph]` blocks ⇒ transcript, mostly `[bulleted_list_item]` ⇒ summary". It does not hold,
+ * and inc.11 replaced inc.10's justification for saying so because inc.10's was WRONG about the
+ * file it cited. inc.10 called `2026-06-16-gulfcoast-ai-alex-one` "a pure AI summary (228
+ * paragraphs)". It is not. It was read end to end on 2026-08-07 and ruled `transcript`: under a
+ * `Notion AI is transcribing this meeting.` marker sit ~200 paragraph blocks of verbatim
+ * two-party speech, profanity and all. Both of the two files inc.10 compared are transcripts.
+ *
+ * The real reason shape cannot decide it is stronger than the one inc.10 gave: the SAME kind of
+ * content is chunked differently by the recorder. `2025-12-20-will-devito` carries its transcript
+ * in FOUR paragraph blocks of 37,122 / 21,637 / 8,151 / 7,342 chars — 74k of its 77k in four
+ * blocks — so its census reads `paragraph×9`. `2026-06-16-gulfcoast-ai-alex-one` carries the same
+ * kind of speech as `paragraph×228` of a few hundred chars each. A block census measures how
+ * Notion happened to record the page, not what the page contains; two transcripts differ by 25×
+ * on the very axis the heuristic would key off. A speaker-prefix regex is no better — it scores
+ * will-devito at 2 lines and gulfcoast-alex, which has no speaker labels at all, at 0.
+ *
+ * So someone opens the file. When they do, the ruling is written down with the evidence, once,
+ * and never has to be re-derived.
  *
  * PURE per CR-3: handed already-read text; no fs, no network, no clock. The scanning lives in
  * `scripts/calendar-spine.mjs`.
