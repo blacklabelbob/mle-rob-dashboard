@@ -45,7 +45,7 @@ import type { CalendarMeeting, MeetingSource, SourceRecord } from "@/lib/meeting
  * keeps its full reach over `scripts/`, and every real route into that mailbox — the credential
  * name, the API surface, IMAP — still matches there.
  */
-export const SOURCES_NOT_WIRED = ["gemini", "notion", "gmail", "drive"] as const;
+export const SOURCES_NOT_WIRED = ["gemini", "gmail", "drive"] as const;
 
 /**
  * A file Google Calendar hangs off an event. Google Meet writes one of these — `Notes by Gemini` —

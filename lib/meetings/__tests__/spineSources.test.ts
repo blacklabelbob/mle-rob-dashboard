@@ -11,8 +11,10 @@ import {
   TRANSCRIPT_MIN_BYTES,
   fromFathom,
   fromManifest,
+  fromNotion,
   fromTranscriptFiles,
   type ManifestRow,
+  type NotionMeetingRow,
   type TranscriptFile,
 } from "@/lib/meetings/spineSources";
 import { reconcileCalendarSpine, type CalendarMeeting } from "@/lib/meetings/calendarSpine";
@@ -162,5 +164,80 @@ describe("fromFathom", () => {
     );
     expect(out.rows[0].transcriptSources).toEqual(["fathom"]);
     expect(out.counts.withTranscript).toBe(1);
+  });
+});
+
+/**
+ * Q86 inc.9 — Notion, the second of the five unwired sources, and DoD (d).
+ *
+ * The refusals under test are the two ways this source could have lied: believing the human's
+ * `Transcript Available` checkbox, and treating a measured page body as a read one.
+ *
+ * The fixtures are REAL rows, copied out of `MLE Internal Meetings/notion-snapshot-2026-08-07.json`
+ * — the checkbox-vs-body contradiction they encode is a live property of Rob's database, and a
+ * fixture invented to demonstrate it would prove nothing about the database it is meant to police.
+ */
+describe("fromNotion", () => {
+  const BODY_ROW: NotionMeetingRow = {
+    id: "2531de57-0199-8085-a8f5-de3e9a9b4e5a",
+    title: "will Devito 2025-12-20T01:43:00.000-05:00",
+    day: "2025-12-20",
+    url: "https://www.notion.so/will-Devito",
+    transcriptAvailable: false,
+    bodyChars: 37099,
+    bodyBlocks: 6,
+  };
+  const EMPTY_ROW: NotionMeetingRow = {
+    id: "2551de57-0199-81a4-9b1f-f0e6d4b6c111",
+    title: "Meeting 2026-08-05",
+    transcriptAvailable: false,
+    bodyChars: 0,
+    bodyBlocks: 1,
+  };
+
+  it("NEVER claims a transcript — not from the checkbox, and not from a 37k-character body", () => {
+    // Both directions of the lie, in one assertion each. A page with 37,099 characters in it is
+    // located, not read; a ticked checkbox is a human's claim about a page nobody opened.
+    expect(fromNotion([BODY_ROW]).records[0].hasTranscript).toBe(false);
+    expect(fromNotion([{ ...BODY_ROW, transcriptAvailable: true }]).records[0].hasTranscript).toBe(false);
+    expect(fromNotion([EMPTY_ROW]).records[0].hasTranscript).toBe(false);
+  });
+
+  it("raises the body as a FINDING with the count and the page URL, so a human can go read it", () => {
+    const { bodyFindings } = fromNotion([BODY_ROW, EMPTY_ROW]);
+    expect(bodyFindings).toHaveLength(1);
+    expect(bodyFindings[0].bodyChars).toBe(37099);
+    expect(bodyFindings[0].url).toBe("https://www.notion.so/will-Devito");
+    expect(bodyFindings[0].contradictsCheckbox).toBe(true);
+    expect(bodyFindings[0].why).toContain("37,099 characters");
+    expect(bodyFindings[0].why).toContain("INCIDENT-LEDGER #34");
+  });
+
+  it("still says 'open it' when the checkbox AGREES — agreement is not a reading", () => {
+    const [finding] = fromNotion([{ ...BODY_ROW, transcriptAvailable: true }]).bodyFindings;
+    expect(finding.contradictsCheckbox).toBe(false);
+    expect(finding.why).toContain("open the page before counting it");
+  });
+
+  it("keeps every row as a record, body or not — a row dropped is a row nobody looks for again", () => {
+    expect(fromNotion([BODY_ROW, EMPTY_ROW]).records.map((r) => r.id)).toEqual([BODY_ROW.id, EMPTY_ROW.id]);
+    expect(fromNotion([BODY_ROW]).records[0].source).toBe("notion");
+    expect(fromNotion([BODY_ROW]).records[0].hasVideo).toBe(false);
+  });
+
+  it("leaves a meeting OWED A HUMAN even when Notion holds its page and its body", () => {
+    // The end-to-end shape of DoD (d): the page is linked to the meeting, the human is pointed at
+    // 37k characters — and the row does NOT go green, because nobody has read them yet.
+    const meeting: CalendarMeeting = {
+      id: "evt-devito",
+      title: "will Devito 2025-12-20T01:43:00.000-05:00",
+      day: "2025-12-20",
+      startsAt: "2025-12-20T01:43:00-05:00",
+      isPast: true,
+    };
+    const out = reconcileCalendarSpine([meeting], fromNotion([BODY_ROW]).records);
+    expect(out.rows[0].links.map((l) => l.source)).toEqual(["notion"]);
+    expect(out.rows[0].status).toBe("owed-a-human");
+    expect(out.counts.withTranscript).toBe(0);
   });
 });

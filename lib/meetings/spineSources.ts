@@ -165,6 +165,121 @@ export function fromFathom(recordings: FathomRecording[]): SourceRecord[] {
 }
 
 /**
+ * One row of `MLE Internal Meetings/notion-snapshot-2026-08-07.json`, cited by its real dated name
+ * rather than as a glob — `citedEvidenceExists.test.ts` opens every archive path named under
+ * `lib/meetings/`, and a wildcard is a citation no reader can open (the guard that caught inc.8).
+ */
+export type NotionMeetingRow = {
+  /** The Notion page id. */
+  id: string;
+  title: string;
+  /** Local day `YYYY-MM-DD` from the `Call Date` property. Notion states a day, not an instant. */
+  day?: string;
+  /** The `notion.so/…` page URL, so a human sent to look has the address. */
+  url?: string;
+  /** The human's `Transcript Available` checkbox. A CLAIM — never coverage. See below. */
+  transcriptAvailable?: boolean;
+  /** Characters of text measured in the page's top-level blocks. A MEASUREMENT. */
+  bodyChars?: number;
+  /** Block count, carried so a body of 6 huge blocks is distinguishable from 600 empty ones. */
+  bodyBlocks?: number;
+};
+
+/**
+ * Above this, a Notion page body holds real content that nobody in this repo has read.
+ *
+ * Set to catch content, NOT to tell a summary from a transcript — that distinction requires
+ * actually reading the page, and this module refuses to fake it. In the live database the AI
+ * summary rows run ~3–5k characters and the one page holding a real transcript runs 37,099; both
+ * are over the floor and both are reported the same way, as *text nobody has opened*.
+ */
+export const NOTION_BODY_UNREAD_CHARS = 2000;
+
+/** A Notion page whose body holds content no pass in this repo has ever read. */
+export type NotionBodyFinding = {
+  id: string;
+  title: string;
+  day?: string;
+  url?: string;
+  bodyChars: number;
+  /** TRUE when the row's own checkbox says there is no transcript while the body holds text. */
+  contradictsCheckbox: boolean;
+  why: string;
+};
+
+export type NotionHarvest = {
+  records: SourceRecord[];
+  bodyFindings: NotionBodyFinding[];
+};
+
+/**
+ * Notion "📞 Master Meetings Database" rows → source records. Q86 inc.9, and DoD (d) verbatim:
+ * *"the Notion-AI transcript that lives in a page BODY is read"*.
+ *
+ * `hasTranscript` IS FALSE ON EVERY ROW, DELIBERATELY, AND THAT IS NOT THIS MODULE BEING TIMID.
+ * Two separate things could have set it true and both are wrong:
+ *
+ *   1. **The `Transcript Available` checkbox is a claim, never a finding.** This is the rule Q84
+ *      exists to enforce and the one INCIDENT-LEDGER #34 was opened for: on 2026-07-28 the Omega
+ *      row carried FOUR fields asserting absence while its page body held 531 blocks / 104,683
+ *      characters — the full summary *and* the complete transcript — and a daily brief asked Rob
+ *      twice to reconstruct from memory a meeting that was sitting in front of it. Trusting that
+ *      checkbox is how that happened. Measured live 2026-08-07: the checkbox is ticked on **0 of
+ *      49** rows, so believing it would report a database with a 37,099-character transcript in it
+ *      as holding nothing at all.
+ *   2. **A measured body is LOCATED, not READ.** A page carrying 4,719 characters may hold a
+ *      transcript or may hold an AI summary and an action list; the two are indistinguishable
+ *      without opening it, and calling a summary a transcript is the false-coverage failure this
+ *      whole item keeps killing. So the body raises a FINDING with the character count and the
+ *      URL — the human gets sent to the exact page — and the meeting stays `owed-a-human` until
+ *      someone actually reads it. Same line `sourceRecordsFromAttachments` and `fromFathom` hold.
+ *
+ * `hasVideo` is false for the same reason it is false everywhere else: a linked URL is a page this
+ * module has not opened.
+ *
+ * PURE per CR-3: handed already-read rows; no fs, no network, no clock. Notion states a day, so
+ * there is no instant to convert and no timezone to borrow.
+ */
+export function fromNotion(rows: NotionMeetingRow[]): NotionHarvest {
+  const records: SourceRecord[] = [];
+  const bodyFindings: NotionBodyFinding[] = [];
+
+  for (const r of rows) {
+    const bodyChars = r.bodyChars ?? 0;
+    records.push({
+      source: "notion" as const,
+      id: r.id,
+      title: r.title,
+      day: r.day,
+      hasTranscript: false,
+      hasVideo: false,
+      url: r.url,
+    });
+
+    if (bodyChars >= NOTION_BODY_UNREAD_CHARS) {
+      const contradictsCheckbox = r.transcriptAvailable !== true;
+      bodyFindings.push({
+        id: r.id,
+        title: r.title,
+        day: r.day,
+        url: r.url,
+        bodyChars,
+        contradictsCheckbox,
+        why:
+          `the page body holds ${bodyChars.toLocaleString("en-US")} characters that nothing in this ` +
+          `repo has read` +
+          (contradictsCheckbox
+            ? `, while the row's own "Transcript Available" checkbox says there is none — the 2026-07-28 ` +
+              `Omega shape (INCIDENT-LEDGER #34). The body is the evidence; the checkbox is not.`
+            : `. The checkbox agrees, but agreement is not a reading — open the page before counting it.`),
+      });
+    }
+  }
+
+  return { records, bodyFindings };
+}
+
+/**
  * Transcript files → source records, with the stub rule applied.
  *
  * A file at or above the floor is a transcript. A file below it is returned in `stubs` AND as a

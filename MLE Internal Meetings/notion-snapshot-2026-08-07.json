@@ -1,0 +1,489 @@
+{
+  "source": "notion",
+  "dataSourceId": "600498eb-b6e0-41af-a625-e369cbe5fc6a",
+  "fetchedAt": "2026-08-07T22:35:25.563Z",
+  "note": "Body measured, not read: bodyChars counts characters in top-level blocks; no body text, no attendee emails are stored here. transcriptAvailable is the human checkbox and is NEVER used as coverage — see fromNotion() in lib/meetings/spineSources.ts.",
+  "rows": [
+    {
+      "id": "3b31de57-0199-80ea-9171-cd12c228e3d7",
+      "title": "Meeting 2026-08-05",
+      "url": "https://app.notion.com/p/Meeting-3b31de57019980ea9171cd12c228e3d7",
+      "transcriptAvailable": false,
+      "recordingLinked": false,
+      "bodyBlocks": 1,
+      "bodyChars": 0
+    },
+    {
+      "id": "3b21de57-0199-80e8-95b6-ca602d7129c6",
+      "title": "Meeting 2026-08-04",
+      "url": "https://app.notion.com/p/Meeting-3b21de57019980e895b6ca602d7129c6",
+      "transcriptAvailable": false,
+      "recordingLinked": false,
+      "bodyBlocks": 1,
+      "bodyChars": 0
+    },
+    {
+      "id": "3b21de57-0199-8006-959b-d4a9c66718ef",
+      "title": "Meeting 2026-08-04",
+      "url": "https://app.notion.com/p/Meeting-3b21de5701998006959bd4a9c66718ef",
+      "transcriptAvailable": false,
+      "recordingLinked": false,
+      "bodyBlocks": 1,
+      "bodyChars": 0
+    },
+    {
+      "id": "3b21de57-0199-8027-8f75-c0bd6b76a138",
+      "title": "Meeting 2026-08-04",
+      "url": "https://app.notion.com/p/Meeting-3b21de57019980278f75c0bd6b76a138",
+      "transcriptAvailable": false,
+      "recordingLinked": false,
+      "bodyBlocks": 1,
+      "bodyChars": 0
+    },
+    {
+      "id": "3b21de57-0199-819b-a21e-cf7d985e1a84",
+      "title": "Robert Acheson, Austin Wilkins | Cloudflare / SEO optimization — 2026-08-03",
+      "day": "2026-08-03",
+      "url": "https://app.notion.com/p/Robert-Acheson-Austin-Wilkins-Cloudflare-SEO-optimization-2026-08-03-3b21de570199819ba21ecf7d985e1a84",
+      "transcriptAvailable": false,
+      "recordingLinked": true,
+      "bodyBlocks": 0,
+      "bodyChars": 0
+    },
+    {
+      "id": "3b21de57-0199-814a-b1d4-ff2f7d3f6f67",
+      "title": "Rob & Austin | MArtin Fierro",
+      "day": "2026-08-03",
+      "url": "https://app.notion.com/p/Rob-Austin-MArtin-Fierro-3b21de570199814ab1d4ff2f7d3f6f67",
+      "transcriptAvailable": false,
+      "recordingLinked": true,
+      "bodyBlocks": 0,
+      "bodyChars": 0
+    },
+    {
+      "id": "3b21de57-0199-804c-89f5-d0aee4a6c96a",
+      "title": "Meeting 2026-08-03",
+      "url": "https://app.notion.com/p/Meeting-3b21de570199804c89f5d0aee4a6c96a",
+      "transcriptAvailable": false,
+      "recordingLinked": false,
+      "bodyBlocks": 1,
+      "bodyChars": 0
+    },
+    {
+      "id": "3b11de57-0199-8020-9fb9-c3171150b472",
+      "title": "2026-08-03T19:34:00.000-04:00",
+      "url": "https://app.notion.com/p/3b11de57019980209fb9c3171150b472",
+      "transcriptAvailable": false,
+      "recordingLinked": false,
+      "bodyBlocks": 1,
+      "bodyChars": 0
+    },
+    {
+      "id": "3ae1de57-0199-80ce-b9cd-d8b94eb4d85b",
+      "title": "2026-07-31T10:14:00.000-04:00",
+      "url": "https://app.notion.com/p/3ae1de57019980ceb9cdd8b94eb4d85b",
+      "transcriptAvailable": false,
+      "recordingLinked": false,
+      "bodyBlocks": 1,
+      "bodyChars": 0
+    },
+    {
+      "id": "3ad1de57-0199-81fb-b5f4-ff0a83b0e901",
+      "title": "Speaker 1 — 2026-06-19",
+      "day": "2026-06-19",
+      "url": "https://app.notion.com/p/Speaker-1-2026-06-19-3ad1de57019981fbb5f4ff0a83b0e901",
+      "transcriptAvailable": false,
+      "recordingLinked": true,
+      "bodyBlocks": 0,
+      "bodyChars": 0
+    },
+    {
+      "id": "3ad1de57-0199-81fa-a946-f2c7ebb01a30",
+      "title": "Caleb, Rob, Will | CGRoofingGroup.com + AI Platform Discovery",
+      "day": "2026-06-16",
+      "url": "https://app.notion.com/p/Caleb-Rob-Will-CGRoofingGroup-com-AI-Platform-Discovery-3ad1de57019981faa946f2c7ebb01a30",
+      "transcriptAvailable": false,
+      "recordingLinked": true,
+      "bodyBlocks": 0,
+      "bodyChars": 0
+    },
+    {
+      "id": "3ad1de57-0199-81be-83dc-d95d5a6f89fe",
+      "title": "Speaker 1, Robert Acheson, Speaker 3 | Calendar invite / Google Meet — 2026-06-18",
+      "day": "2026-06-18",
+      "url": "https://app.notion.com/p/Speaker-1-Robert-Acheson-Speaker-3-Calendar-invite-Google-Meet-2026-06-18-3ad1de57019981be83dcd95d5a6f89fe",
+      "transcriptAvailable": false,
+      "recordingLinked": true,
+      "bodyBlocks": 0,
+      "bodyChars": 0
+    },
+    {
+      "id": "3ad1de57-0199-8152-ac7f-cdb6306d003d",
+      "title": "Rob, David, Mark | MLE -Sales Network Intro",
+      "day": "2026-07-10",
+      "url": "https://app.notion.com/p/Rob-David-Mark-MLE-Sales-Network-Intro-3ad1de5701998152ac7fcdb6306d003d",
+      "transcriptAvailable": false,
+      "recordingLinked": true,
+      "bodyBlocks": 0,
+      "bodyChars": 0
+    },
+    {
+      "id": "3ad1de57-0199-81e8-880e-f421234601c5",
+      "title": "Joseph, Rob, Will | MLE Partnership",
+      "day": "2026-07-20",
+      "url": "https://app.notion.com/p/Joseph-Rob-Will-MLE-Partnership-3ad1de57019981e8880ef421234601c5",
+      "transcriptAvailable": false,
+      "recordingLinked": true,
+      "bodyBlocks": 0,
+      "bodyChars": 0
+    },
+    {
+      "id": "3ad1de57-0199-8127-8535-d2b063e6757a",
+      "title": "Dix thedev08, Robert Acheson | Skin lesion AI model / Large Language Model integration — 2026-07-29",
+      "day": "2026-07-29",
+      "url": "https://app.notion.com/p/Dix-thedev08-Robert-Acheson-Skin-lesion-AI-model-Large-Language-Model-integration-2026-07-29-3ad1de57019981278535d2b063e6757a",
+      "transcriptAvailable": false,
+      "recordingLinked": true,
+      "bodyBlocks": 0,
+      "bodyChars": 0
+    },
+    {
+      "id": "3ad1de57-0199-8101-af9a-fc29c62cf579",
+      "title": "MLE TEAM KICKOFF",
+      "day": "2026-07-09",
+      "url": "https://app.notion.com/p/MLE-TEAM-KICKOFF-3ad1de5701998101af9afc29c62cf579",
+      "transcriptAvailable": false,
+      "recordingLinked": true,
+      "bodyBlocks": 0,
+      "bodyChars": 0
+    },
+    {
+      "id": "3ad1de57-0199-80dd-b213-d09c387217e7",
+      "title": "Meeting 2026-07-30",
+      "url": "https://app.notion.com/p/Meeting-3ad1de57019980ddb213d09c387217e7",
+      "transcriptAvailable": false,
+      "recordingLinked": false,
+      "bodyBlocks": 2,
+      "bodyChars": 0
+    },
+    {
+      "id": "3ac1de57-0199-80ff-94ec-eeea07d36588",
+      "title": "Rob & Dix | MLE & Skin Cancer Detection AI Model",
+      "day": "2026-07-29",
+      "url": "https://app.notion.com/p/Rob-Dix-MLE-Skin-Cancer-Detection-AI-Model-3ac1de57019980ff94eceeea07d36588",
+      "transcriptAvailable": false,
+      "recordingLinked": true,
+      "bodyBlocks": 1,
+      "bodyChars": 0
+    },
+    {
+      "id": "3ac1de57-0199-80de-9f7b-ef7146b6383d",
+      "title": "2026-07-29T14:01:00.000-04:00",
+      "url": "https://app.notion.com/p/3ac1de57019980de9f7bef7146b6383d",
+      "transcriptAvailable": false,
+      "recordingLinked": false,
+      "bodyBlocks": 1,
+      "bodyChars": 0
+    },
+    {
+      "id": "3ab1de57-0199-80ef-bf9c-c2b98d7578ed",
+      "title": "Meeting 2026-07-28",
+      "day": "2026-07-28",
+      "url": "https://app.notion.com/p/Meeting-3ab1de57019980efbf9cc2b98d7578ed",
+      "transcriptAvailable": false,
+      "recordingLinked": false,
+      "bodyBlocks": 1,
+      "bodyChars": 0
+    },
+    {
+      "id": "3a51de57-0199-802b-b9f8-f59fa153a013",
+      "title": "Gulf Coast RE KICKOFF 2026-07-22",
+      "day": "2026-07-22",
+      "url": "https://app.notion.com/p/Gulf-Coast-RE-KICKOFF-3a51de570199802bb9f8f59fa153a013",
+      "transcriptAvailable": false,
+      "recordingLinked": false,
+      "bodyBlocks": 2,
+      "bodyChars": 0
+    },
+    {
+      "id": "3c349f70-08dd-48c6-89c6-e0d71fd93d82",
+      "title": "Rob, Alex, Will, Chris | Gulf Coast RE + AI Platform - Jun 17, 2026 (Fireflies)",
+      "day": "2026-06-17",
+      "url": "https://app.notion.com/p/Rob-Alex-Will-Chris-Gulf-Coast-RE-AI-Platform-Jun-17-2026-Fireflies-3c349f7008dd48c689c6e0d71fd93d82",
+      "transcriptAvailable": false,
+      "recordingLinked": true,
+      "bodyBlocks": 7,
+      "bodyChars": 4565
+    },
+    {
+      "id": "1ce2ff0c-e5cc-4756-8d48-28e37f66a2f1",
+      "title": "Caleb, Rob, Will | CGRoofingGroup.com + AI Platform Discovery - Jun 16, 2026 (Fireflies)",
+      "day": "2026-06-16",
+      "url": "https://app.notion.com/p/Caleb-Rob-Will-CGRoofingGroup-com-AI-Platform-Discovery-Jun-16-2026-Fireflies-1ce2ff0ce5cc47568d4828e37f66a2f1",
+      "transcriptAvailable": false,
+      "recordingLinked": true,
+      "bodyBlocks": 7,
+      "bodyChars": 2962
+    },
+    {
+      "id": "79dbbdf5-61fe-441c-8324-1d3f75c8a6a9",
+      "title": "Joseph, Rob, Will | Next Steps - Jul 15, 2026 (Fireflies)",
+      "day": "2026-07-15",
+      "url": "https://app.notion.com/p/Joseph-Rob-Will-Next-Steps-Jul-15-2026-Fireflies-79dbbdf561fe441c83241d3f75c8a6a9",
+      "transcriptAvailable": false,
+      "recordingLinked": true,
+      "bodyBlocks": 7,
+      "bodyChars": 4719
+    },
+    {
+      "id": "3a01de57-0199-8036-8dd8-e54130f6abb0",
+      "title": "📊 Weekly Review - Pipeline / Deals / Next Week Plan 2026-07-17T16:00:00.000-04:00",
+      "day": "2026-07-17",
+      "url": "https://app.notion.com/p/Weekly-Review-Pipeline-Deals-Next-Week-Plan-3a01de57019980368dd8e54130f6abb0",
+      "transcriptAvailable": false,
+      "recordingLinked": false,
+      "bodyBlocks": 1,
+      "bodyChars": 0
+    },
+    {
+      "id": "3971de57-0199-803e-8edb-d81be7596732",
+      "title": "Call with Dixith & Rob -MLE Intro & then What Else is He Working on",
+      "day": "2026-07-08",
+      "url": "https://app.notion.com/p/Call-with-Dixith-Rob-MLE-Intro-then-What-Else-is-He-Working-on-3971de570199803e8edbd81be7596732",
+      "transcriptAvailable": false,
+      "recordingLinked": true,
+      "bodyBlocks": 1,
+      "bodyChars": 0
+    },
+    {
+      "id": "38b1de57-0199-807f-9268-e278b740821c",
+      "title": "📊 Weekly Review - Pipeline / Deals / Next Week Plan 2026-06-26T16:00:00.000-04:00",
+      "day": "2026-06-26",
+      "url": "https://app.notion.com/p/Weekly-Review-Pipeline-Deals-Next-Week-Plan-38b1de570199807f9268e278b740821c",
+      "transcriptAvailable": false,
+      "recordingLinked": false,
+      "bodyBlocks": 1,
+      "bodyChars": 0
+    },
+    {
+      "id": "3831de57-0199-8068-855a-e55c59e00577",
+      "title": "Rob Will Caleb | CGRoofinggroup.com - Next Steps",
+      "day": "2026-06-18",
+      "url": "https://app.notion.com/p/Rob-Will-Caleb-CGRoofinggroup-com-Next-Steps-3831de5701998068855ae55c59e00577",
+      "transcriptAvailable": false,
+      "recordingLinked": true,
+      "bodyBlocks": 1,
+      "bodyChars": 0
+    },
+    {
+      "id": "3811de57-0199-8099-9137-ef10c8fd0efe",
+      "title": "Gulf Coast Realty, AI Alex meeting one",
+      "day": "2026-06-16",
+      "url": "https://app.notion.com/p/Gulf-Coast-Realty-AI-Alex-meeting-one-3811de57019980999137ef10c8fd0efe",
+      "transcriptAvailable": false,
+      "recordingLinked": false,
+      "bodyBlocks": 1,
+      "bodyChars": 0
+    },
+    {
+      "id": "3811de57-0199-80d4-b8e5-c0a7c8465085",
+      "title": "Meeting 2026-06-16T11:05:00.000-04:00",
+      "day": "2026-06-16",
+      "url": "https://app.notion.com/p/Meeting-3811de57019980d4b8e5c0a7c8465085",
+      "transcriptAvailable": false,
+      "recordingLinked": false,
+      "bodyBlocks": 1,
+      "bodyChars": 0
+    },
+    {
+      "id": "3761de57-0199-8054-86a9-cdc63def71a5",
+      "title": "2026-06-05T13:56:00.000-04:00",
+      "day": "2026-06-05",
+      "url": "https://app.notion.com/p/3761de570199805486a9cdc63def71a5",
+      "transcriptAvailable": false,
+      "recordingLinked": false,
+      "bodyBlocks": 1,
+      "bodyChars": 0
+    },
+    {
+      "id": "3761de57-0199-80e9-a6eb-ff707627cc66",
+      "title": "📊 Weekly Review - Pipeline / Deals / Next Week Plan 2026-06-05T16:00:00.000-04:00",
+      "day": "2026-06-05",
+      "url": "https://app.notion.com/p/Weekly-Review-Pipeline-Deals-Next-Week-Plan-3761de57019980e9a6ebff707627cc66",
+      "transcriptAvailable": false,
+      "recordingLinked": false,
+      "bodyBlocks": 1,
+      "bodyChars": 0
+    },
+    {
+      "id": "3511de57-0199-807b-91db-e5adc61dcab7",
+      "title": "🔨 BUILD - Ingrid's Chatbot (elevateroofingsolutions.net) 2026-04-30T13:00:00.000-04:00",
+      "day": "2026-04-30",
+      "url": "https://app.notion.com/p/BUILD-Ingrid-s-Chatbot-elevateroofingsolutions-net-3511de570199807b91dbe5adc61dcab7",
+      "transcriptAvailable": false,
+      "recordingLinked": false,
+      "bodyBlocks": 1,
+      "bodyChars": 0
+    },
+    {
+      "id": "3511de57-0199-80a8-8d2a-f96358c106dc",
+      "title": "📞 AI Outreach Block - Hector / Dick Seth / PropLogix / Phil 21 Electric / David Degeorgi 2026-04-29T13:00:00.000-04:00",
+      "day": "2026-04-29",
+      "url": "https://app.notion.com/p/AI-Outreach-Block-Hector-Dick-Seth-PropLogix-Phil-21-Electric-David-Degeorgi-3511de57019980a88d2af96358c106dc",
+      "transcriptAvailable": false,
+      "recordingLinked": false,
+      "bodyBlocks": 1,
+      "bodyChars": 0
+    },
+    {
+      "id": "3511de57-0199-807a-acb4-ce1fc956b3e0",
+      "title": "🤝 Fulfillment Recruiting Block (Tyson, Nick, Dwayne, David Reed) 2026-04-29T09:00:00.000-04:00",
+      "day": "2026-04-29",
+      "url": "https://app.notion.com/p/Fulfillment-Recruiting-Block-Tyson-Nick-Dwayne-David-Reed-3511de570199807aacb4ce1fc956b3e0",
+      "transcriptAvailable": false,
+      "recordingLinked": false,
+      "bodyBlocks": 1,
+      "bodyChars": 0
+    },
+    {
+      "id": "34f1de57-0199-8000-8821-c77f5e7295fa",
+      "title": "🔴 Chris (Blooming Blinds CEO, 75 locations) - AI Demo 2026-04-28T14:00:00.000-04:00",
+      "day": "2026-04-28",
+      "url": "https://app.notion.com/p/Chris-Blooming-Blinds-CEO-75-locations-AI-Demo-34f1de57019980008821c77f5e7295fa",
+      "transcriptAvailable": false,
+      "recordingLinked": false,
+      "bodyBlocks": 1,
+      "bodyChars": 0
+    },
+    {
+      "id": "3281de57-0199-809b-9d9b-c7c17613e691",
+      "title": "Phil, Ingrid & Rob | Proposal Review & Next Steps 2026-03-19T15:00:00.000-04:00",
+      "day": "2026-03-19",
+      "url": "https://app.notion.com/p/Phil-Ingrid-Rob-Proposal-Review-Next-Steps-3281de570199809b9d9bc7c17613e691",
+      "transcriptAvailable": false,
+      "recordingLinked": false,
+      "bodyBlocks": 1,
+      "bodyChars": 0
+    },
+    {
+      "id": "2fb1de57-0199-80fd-991b-dbb5733c9437",
+      "title": "Opportunity: Title File Processing",
+      "day": "2026-02-02",
+      "url": "https://app.notion.com/p/Opportunity-Title-File-Processing-2fb1de57019980fd991bdbb5733c9437",
+      "transcriptAvailable": false,
+      "recordingLinked": false,
+      "bodyBlocks": 1,
+      "bodyChars": 0
+    },
+    {
+      "id": "2f61de57-0199-80ac-af6a-d470150c197f",
+      "title": "The Roof Co & STG | Presentation 2026-01-28T16:00:00.000-05:00",
+      "day": "2026-01-28",
+      "url": "https://app.notion.com/p/The-Roof-Co-STG-Presentation-2f61de57019980acaf6ad470150c197f",
+      "transcriptAvailable": false,
+      "recordingLinked": false,
+      "bodyBlocks": 1,
+      "bodyChars": 0
+    },
+    {
+      "id": "2d51de57-0199-8091-905c-e0000e9aa309",
+      "title": "Ryan Groth Explaining ClickUp",
+      "day": "2025-12-26",
+      "url": "https://app.notion.com/p/Ryan-Groth-Explaining-ClickUp-2d51de5701998091905ce0000e9aa309",
+      "transcriptAvailable": false,
+      "recordingLinked": false,
+      "bodyBlocks": 1,
+      "bodyChars": 0
+    },
+    {
+      "id": "2d11de57-0199-806d-a463-d6fa23abb167",
+      "title": "Matt, Ryan, & Rob | STG Presentation 2025-12-22T10:00:00.000-05:00",
+      "day": "2025-12-22",
+      "url": "https://app.notion.com/p/Matt-Ryan-Rob-STG-Presentation-2d11de570199806da463d6fa23abb167",
+      "transcriptAvailable": false,
+      "recordingLinked": false,
+      "bodyBlocks": 2,
+      "bodyChars": 0
+    },
+    {
+      "id": "2cf1de57-0199-8003-9e6d-fd921fbb8a59",
+      "title": "will Devito 2025-12-20T01:43:00.000-05:00",
+      "day": "2025-12-20",
+      "url": "https://app.notion.com/p/will-Devito-2cf1de57019980039e6dfd921fbb8a59",
+      "transcriptAvailable": false,
+      "recordingLinked": false,
+      "bodyBlocks": 6,
+      "bodyChars": 37099
+    },
+    {
+      "id": "2ce1de57-0199-807a-ad21-d485624258e8",
+      "title": "MacDermott & STG | Fractional Sales VP Program 2025-12-19T15:30:00.000-05:00",
+      "day": "2025-12-19",
+      "url": "https://app.notion.com/p/MacDermott-STG-Fractional-Sales-VP-Program-2ce1de570199807aad21d485624258e8",
+      "transcriptAvailable": false,
+      "recordingLinked": false,
+      "bodyBlocks": 1,
+      "bodyChars": 0
+    },
+    {
+      "id": "2cd1de57-0199-801b-a9d1-c09e11554992",
+      "title": "Chain & Rob | STG Sales & Recruiting Analysis 2025-12-18T17:00:00.000-05:00",
+      "day": "2025-12-18",
+      "url": "https://app.notion.com/p/Chain-Rob-STG-Sales-Recruiting-Analysis-2cd1de570199801ba9d1c09e11554992",
+      "transcriptAvailable": false,
+      "recordingLinked": false,
+      "bodyBlocks": 1,
+      "bodyChars": 0
+    },
+    {
+      "id": "2cd1de57-0199-8029-8c87-ea7fdf6c9c53",
+      "title": "GHL AI Agent Knowledge Base Webinar 2025-12-18T15:00:00.000-05:00",
+      "day": "2025-12-18",
+      "url": "https://app.notion.com/p/GHL-AI-Agent-Knowledge-Base-Webinar-2cd1de57019980298c87ea7fdf6c9c53",
+      "transcriptAvailable": false,
+      "recordingLinked": false,
+      "bodyBlocks": 2,
+      "bodyChars": 0
+    },
+    {
+      "id": "2cc1de57-0199-802a-be27-d2fc6c2ec5d0",
+      "title": "Rescheduled: Bud and Rob & Kyle | STG & MacDermott Roofing 2025-12-17T11:00:00.000-05:00",
+      "day": "2025-12-17",
+      "url": "https://app.notion.com/p/Rescheduled-Bud-and-Rob-Kyle-STG-MacDermott-Roofing-2cc1de570199802abe27d2fc6c2ec5d0",
+      "transcriptAvailable": false,
+      "recordingLinked": false,
+      "bodyBlocks": 2,
+      "bodyChars": 0
+    },
+    {
+      "id": "2cc1de57-0199-8071-b1ac-c075faf9fdbd",
+      "title": "Matt Jackson and Ryan Groth 2025-12-17T10:00:00.000-05:00",
+      "day": "2025-12-17",
+      "url": "https://app.notion.com/p/Matt-Jackson-and-Ryan-Groth-2cc1de5701998071b1acc075faf9fdbd",
+      "transcriptAvailable": false,
+      "recordingLinked": false,
+      "bodyBlocks": 1,
+      "bodyChars": 0
+    },
+    {
+      "id": "2cb1de57-0199-8060-9859-df447f869755",
+      "title": "Tony Alicea: STG Sales Action Plan Call 2025-12-16T14:30:00.000-05:00",
+      "day": "2025-12-16",
+      "url": "https://app.notion.com/p/Tony-Alicea-STG-Sales-Action-Plan-Call-2cb1de57019980609859df447f869755",
+      "transcriptAvailable": false,
+      "recordingLinked": false,
+      "bodyBlocks": 1,
+      "bodyChars": 0
+    },
+    {
+      "id": "2ca1de57-0199-80aa-a323-fc9d3fc564a0",
+      "title": "Calvary Roofing RAMP Call | Donny & Tyson &Robert 2025-12-15T14:00:00.000-05:00",
+      "day": "2025-12-15",
+      "url": "https://app.notion.com/p/Calvary-Roofing-RAMP-Call-Donny-Tyson-Robert-2ca1de57019980aaa323fc9d3fc564a0",
+      "transcriptAvailable": false,
+      "recordingLinked": false,
+      "bodyBlocks": 1,
+      "bodyChars": 0
+    }
+  ]
+}

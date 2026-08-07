@@ -19,9 +19,10 @@
  * increment note, and it gates the refresh, not the report.
  *
  * The two sources it can read for itself, it reads for itself: the Fireflies archive manifest and
- * the transcript files on disk. The other five (Gemini, Fathom, Notion, Gmail, Drive) are not wired
- * yet and the report SAYS so — a source that was never asked must never read as a source that
- * answered "nothing", which is INCIDENT-LEDGER #22/#34 in one line.
+ * the transcript files on disk. Fathom (inc.8) and Notion (inc.9) arrive as captured snapshots for
+ * the same reason the calendar does. The three still unwired (Gemini, Gmail, Drive) are NAMED as
+ * unwired on every run — a source that was never asked must never read as a source that answered
+ * "nothing", which is INCIDENT-LEDGER #22/#34 in one line.
  */
 
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
@@ -31,7 +32,7 @@ import { fileURLToPath } from "node:url";
 
 import { fromCalendarEvents, SOURCES_NOT_WIRED, sourceRecordsFromAttachments } from "../lib/meetings/calendarEvents.ts";
 import { reconcileCalendarSpine } from "../lib/meetings/calendarSpine.ts";
-import { fromFathom, fromManifest, fromTranscriptFiles } from "../lib/meetings/spineSources.ts";
+import { fromFathom, fromManifest, fromNotion, fromTranscriptFiles } from "../lib/meetings/spineSources.ts";
 
 const AS_JSON = process.argv.includes("--json");
 
@@ -48,6 +49,8 @@ const CALENDAR =
 const MANIFEST = join(REPO, "MLE Internal Meetings", "manifest.json");
 const FATHOM =
   argOf("--fathom") ?? join(REPO, "MLE Internal Meetings", "fathom-snapshot-2026-08-07.json");
+const NOTION =
+  argOf("--notion") ?? join(REPO, "MLE Internal Meetings", "notion-snapshot-2026-08-07.json");
 const TRANSCRIPTS = join(homedir(), "Projects", "MyLocalEverything", "transcripts");
 
 /**
@@ -102,6 +105,15 @@ const fathomSnap = existsSync(FATHOM) ? JSON.parse(readFileSync(FATHOM, "utf8"))
 const fathom = fathomSnap ? fromFathom(fathomSnap.recordings ?? []) : [];
 const fathomConfirmed = fathom.filter((r) => r.hasTranscript).length;
 
+// ── the archive Rob checks the CRM against (inc.9) ─────────────────────────────────────────────
+// Notion's "📞 Master Meetings Database", captured by `scripts/notion-spine-snapshot.mjs` with the
+// page BODIES MEASURED rather than trusted — DoD (d). Every row lands `hasTranscript: false` on
+// purpose: the checkbox is a claim (ticked on 0 of 49 rows live) and a measured body is located,
+// not read. What the source contributes is the page, the day and the character count that sends a
+// human to the exact page — never a row that goes green because text exists somewhere.
+const notionSnap = existsSync(NOTION) ? JSON.parse(readFileSync(NOTION, "utf8")) : null;
+const notion = notionSnap ? fromNotion(notionSnap.rows ?? []) : { records: [], bodyFindings: [] };
+
 // ── the source the calendar was already holding (inc.4) ────────────────────────────────────────
 // Not a fetch and not a credential: `Notes by Gemini` docs are attached to the event itself, so
 // reading them off the spine costs nothing. They are LOCATED, never READ — see the refusal in
@@ -120,7 +132,7 @@ const spineWindow =
 
 const report = reconcileCalendarSpine(
   meetings,
-  [...fireflies, ...harvest.records, ...attached, ...fathom],
+  [...fireflies, ...harvest.records, ...attached, ...fathom, ...notion.records],
   {
     window: spineWindow,
   },
@@ -131,8 +143,9 @@ if (AS_JSON) {
     JSON.stringify(
       {
         snapshot: { path: CALENDAR, fetchedAt: snapshot.fetchedAt, window: snapshot.window, timeZone },
-        sourcesRead: ["fireflies", "local-repo", "calendar-attachments", "fathom"],
+        sourcesRead: ["fireflies", "local-repo", "calendar-attachments", "fathom", "notion"],
         fathom: { path: FATHOM, fetchedAt: fathomSnap?.fetchedAt ?? null, records: fathom.length, transcriptsConfirmed: fathomConfirmed },
+        notion: { path: NOTION, fetchedAt: notionSnap?.fetchedAt ?? null, rows: notion.records.length, bodyFindings: notion.bodyFindings },
         attached,
         sourcesNotWired: SOURCES_NOT_WIRED,
         skipped,
@@ -150,10 +163,12 @@ const c = report.counts;
 console.log(`\n📅 CALENDAR SPINE — ${snapshot.window?.start ?? "?"} → ${snapshot.window?.end ?? "?"} (${timeZone})`);
 console.log(`   snapshot taken ${snapshot.fetchedAt ?? "(undated — treat as unknown age)"} · ${CALENDAR}`);
 console.log(
-  `   sources READ: fireflies (${fireflies.length} records), local-repo (${harvest.records.length} files), calendar attachments (${attached.length} located, 0 read), fathom (${fathom.length} recordings, ${fathomConfirmed} transcript${fathomConfirmed === 1 ? "" : "s"} confirmed)`,
+  `   sources READ: fireflies (${fireflies.length} records), local-repo (${harvest.records.length} files), calendar attachments (${attached.length} located, 0 read), fathom (${fathom.length} recordings, ${fathomConfirmed} transcript${fathomConfirmed === 1 ? "" : "s"} confirmed), notion (${notion.records.length} rows, ${notion.bodyFindings.length} with an UNREAD body)`,
 );
 if (!fathomSnap)
   console.log(`   ⚠ no fathom snapshot at ${FATHOM} — fathom is reading as EMPTY, which is not the same as absent.`);
+if (!notionSnap)
+  console.log(`   ⚠ no notion snapshot at ${NOTION} — notion is reading as EMPTY, which is not the same as absent.`);
 console.log(
   `   sources NOT WIRED, so silent and NOT a finding: ${SOURCES_NOT_WIRED.join(", ")} — a source nobody asked has answered nothing.\n`,
 );
@@ -179,6 +194,15 @@ for (const row of report.rows) {
 if (skipped.length) {
   console.log(`\n— NOT COUNTED AS MEETINGS (${skipped.length}), listed so the denominator stays honest —`);
   for (const s of skipped) console.log(`   · ${s.title} — ${s.why}`);
+}
+
+if (notion.bodyFindings.length) {
+  // The inverse of the stub list, and the reason Notion is worth reading at all: a stub LOOKS like
+  // coverage and is not, while these pages hold real text that nothing has opened. Neither moves a
+  // row's status; both tell a human exactly where to spend ten minutes.
+  console.log(`\n— NOTION PAGES HOLDING TEXT NOBODY HAS READ (${notion.bodyFindings.length}) —`);
+  for (const f of notion.bodyFindings)
+    console.log(`   · ${f.day ?? "(no date)"}  ${f.title}\n       ${f.bodyChars.toLocaleString("en-US")} chars${f.contradictsCheckbox ? " · checkbox says NO transcript" : ""} · ${f.url ?? "(no url)"}`);
 }
 
 if (harvest.stubs.length) {
