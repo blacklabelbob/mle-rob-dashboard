@@ -167,6 +167,9 @@ export default async function Overview() {
             intel={networkIntel}
             meetingCount={networkSource.meetingCount}
             title="What the meetings taught us — across the network"
+            // Q92(b) — the grouped surface, and the only one that compacts the label: the
+            // <h4> above each row already prints the company, so the row need not repeat it.
+            compact
             // Q89 inc.21 — punch #6. The denominator is the point: "3 companies" reads
             // like coverage, "3 of 31 companies" reads like the gap it actually is, and
             // that gap is the single most important fact about this feature today.

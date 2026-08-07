@@ -244,11 +244,30 @@ export function sourceLabel(p: Provenance): string {
  * single-company surface leaves `context` unset), so nothing is redundant and the bare
  * `meetingId · sourceRef` that `companyRecordRender.test.ts` pins stands unchanged. The two
  * surfaces are different on purpose.
+ *
+ * ⚠️ CORRECTED 2026-08-06 — that last paragraph was true of the MODULE and false of the SCREEN.
+ * `MeetingIntelSection` is the one component both surfaces render through, and it called this
+ * function unconditionally, so the company record was getting elided titles too. Dropping the
+ * context prefix was correctly gated (a record leaves `context` unset, so there was nothing to
+ * drop); the TITLE elision was not gated at all, and it fires on `sourceRef` alone.
+ *
+ * The guard test could not catch it: it compared `compactSourceLabel(bare)` to `sourceLabel(bare)`
+ * on a title of TEN characters — under the 28-char limit, so the elision it was written to
+ * forbid never ran. A test whose fixture cannot reach the branch is green about nothing.
+ *
+ * So elision is now something a caller ASKS for rather than something it receives. `elideTitles`
+ * defaults to true to keep every existing Overview call byte-identical, and the company record
+ * passes it false — the surface knows which surface it is; this module must not guess from the
+ * shape of the data.
  */
 export const COMPACT_REF_TITLE_MAX = 28;
 
-export function compactSourceLabel(p: Provenance, opts?: { omitContext?: boolean }): string {
-  const ref = elideQuotedTitles(p.sourceRef ?? "");
+export function compactSourceLabel(
+  p: Provenance,
+  opts?: { omitContext?: boolean; elideTitles?: boolean },
+): string {
+  const raw = p.sourceRef ?? "";
+  const ref = opts?.elideTitles === false ? raw : elideQuotedTitles(raw);
   const address = `${p.meetingId} · ${ref}`;
   if (opts?.omitContext) return address;
   return p.context ? `${p.context} · ${address}` : address;

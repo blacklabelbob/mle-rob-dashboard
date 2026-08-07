@@ -28,16 +28,21 @@ function ItemRow({
   // than inferred: the label may only drop the company name when the reader can still see
   // it, and only this component knows whether the <h4> was actually rendered.
   groupContext = null,
+  // Q92(b) correction 2026-08-06 — which SURFACE this is, passed down from the page rather
+  // than guessed from the data. The company record renders the bare address; only the
+  // grouped Overview compacts. See `compactSourceLabel` for why guessing was the bug.
+  compact,
 }: {
   item: IntelItem;
   ranked: boolean;
   groupContext?: string | null;
+  compact: boolean;
 }) {
   // The full address, always — this is what the reader hovers to get back what was elided,
   // and it is the string every test that pins an address asserts.
   const fullLabel = sourceLabel(item.provenance);
   const omitContext = groupContext !== null && groupContext === item.provenance.context?.trim();
-  const label = compactSourceLabel(item.provenance, { omitContext });
+  const label = compactSourceLabel(item.provenance, { omitContext, elideTitles: compact });
   // The evidence, on the page. See `contextExcerpt` for why this is the honest form of
   // punch #4: no anchor exists to link to yet, so the source line comes to the reader
   // instead of the reader being sent to grep a 117KB transcript. Never computed here.
@@ -87,10 +92,12 @@ function ItemList({
   items,
   ranked,
   groupContext = null,
+  compact,
 }: {
   items: IntelItem[];
   ranked: boolean;
   groupContext?: string | null;
+  compact: boolean;
 }) {
   return (
     <ul className="space-y-3">
@@ -100,6 +107,7 @@ function ItemList({
           item={item}
           ranked={ranked}
           groupContext={groupContext}
+          compact={compact}
         />
       ))}
     </ul>
@@ -113,7 +121,15 @@ function ItemList({
 // page with no client JS, and a disclosure that works with JS off is the honest version of
 // "show all N" anyway. The count in the summary is the TOTAL, never the hidden count —
 // a reader must be able to see how much there is without opening it.
-function ItemGroup({ group, ranked }: { group: IntelGroup; ranked: boolean }) {
+function ItemGroup({
+  group,
+  ranked,
+  compact,
+}: {
+  group: IntelGroup;
+  ranked: boolean;
+  compact: boolean;
+}) {
   return (
     <div>
       {group.context && (
@@ -122,14 +138,14 @@ function ItemGroup({ group, ranked }: { group: IntelGroup; ranked: boolean }) {
           <span className="ml-1.5 font-normal tabular-nums text-slate-600">{group.total}</span>
         </h4>
       )}
-      <ItemList items={group.shown} ranked={ranked} groupContext={group.context} />
+      <ItemList items={group.shown} ranked={ranked} groupContext={group.context} compact={compact} />
       {group.hidden.length > 0 && (
         <details className="mt-2">
           <summary className="cursor-pointer list-none text-[11px] text-slate-400 underline decoration-white/20 hover:text-slate-200">
             Show all {group.total} — {group.hidden.length} more
           </summary>
           <div className="mt-3">
-            <ItemList items={group.hidden} ranked={ranked} groupContext={group.context} />
+            <ItemList items={group.hidden} ranked={ranked} groupContext={group.context} compact={compact} />
           </div>
         </details>
       )}
@@ -137,7 +153,7 @@ function ItemGroup({ group, ranked }: { group: IntelGroup; ranked: boolean }) {
   );
 }
 
-function Block({ block }: { block: IntelBlock }) {
+function Block({ block, compact }: { block: IntelBlock; compact: boolean }) {
   return (
     <div className="rounded-lg border border-white/10 bg-black/20 p-4">
       <div className="flex items-baseline justify-between gap-2">
@@ -155,7 +171,12 @@ function Block({ block }: { block: IntelBlock }) {
       ) : (
         <div className="mt-3 space-y-4">
           {groupIntelItems(block.items).map((group) => (
-            <ItemGroup key={group.context ?? "__none"} group={group} ranked={block.ordering === "ranked"} />
+            <ItemGroup
+              key={group.context ?? "__none"}
+              group={group}
+              ranked={block.ordering === "ranked"}
+              compact={compact}
+            />
           ))}
         </div>
       )}
@@ -183,12 +204,16 @@ export default function MeetingIntelSection({
   // prints instead of nothing at all. Built by `lib/meetings/coverage.ts` so both
   // surfaces quote the same numbers; this component still computes nothing.
   noMeetingNote,
+  // Q92(b) correction 2026-08-06 — OFF by default, so a new surface gets the full address
+  // until someone decides otherwise. The Overview opts in; the company record never does.
+  compact = false,
 }: {
   intel: MeetingIntel;
   meetingCount: number;
   title?: string;
   countLabel?: string;
   noMeetingNote?: string;
+  compact?: boolean;
 }) {
   // No meetings and nothing rejected. Four empty boxes here would make "no calls yet" and
   // "call went uncaptured" look identical on every record — the exact confusion this
@@ -223,7 +248,7 @@ export default function MeetingIntelSection({
 
       <div className="mt-4 grid gap-3 md:grid-cols-2">
         {intel.blocks.map((block) => (
-          <Block key={block.kind} block={block} />
+          <Block key={block.kind} block={block} compact={compact} />
         ))}
       </div>
 

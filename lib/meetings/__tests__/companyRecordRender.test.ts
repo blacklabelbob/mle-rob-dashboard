@@ -38,7 +38,13 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { Activity } from "@/lib/types";
 import { intelSourceFromActivities } from "../intelSource";
-import { buildMeetingIntel, contextExcerpt, sourceLabel } from "../meetingIntel";
+import {
+  buildMeetingIntel,
+  COMPACT_REF_TITLE_MAX,
+  compactSourceLabel,
+  contextExcerpt,
+  sourceLabel,
+} from "../meetingIntel";
 import { groupIntelItems, GROUP_CAP } from "../grouping";
 
 const activity: Activity = JSON.parse(
@@ -107,6 +113,36 @@ describe("company record — the four blocks as rendered", () => {
         expect(label).not.toContain("undefined");
         expect(label.trim()).not.toBe("·");
       }
+    }
+  });
+
+  /**
+   * Q92(b) CORRECTION 2026-08-06 — the case above asserts what `sourceLabel` returns, and
+   * the component stopped calling `sourceLabel` for its visible text when Q92(b) landed: it
+   * calls `compactSourceLabel`, on BOTH surfaces. So the record was rendering elided titles
+   * while this suite stayed green about a string nobody was showing. This case asserts what
+   * `ItemRow` actually prints on the record — `compact={false}`, hence `elideTitles: false`
+   * and no group heading to omit — and it first proves a real row is over the limit, because
+   * an assertion that cannot reach the branch is how the bug survived in the first place.
+   */
+  it("prints the UNELIDED address on the record — long titles and all", () => {
+    const items = recordIntel().blocks.flatMap((b) => b.items);
+    const overLimit = items.filter((i) =>
+      [...(i.provenance.sourceRef ?? "").matchAll(/«([^»]*)»/g)].some(
+        (m) => m[1].trim().length > COMPACT_REF_TITLE_MAX
+      )
+    );
+    expect(overLimit.length, "no row is long enough to elide — this test would prove nothing")
+      .toBeGreaterThan(0);
+
+    for (const item of items) {
+      // Exactly the arguments `ItemRow` passes on the record surface.
+      const rendered = compactSourceLabel(item.provenance, {
+        omitContext: false,
+        elideTitles: false,
+      });
+      expect(rendered).toBe(sourceLabel(item.provenance));
+      expect(rendered).not.toContain("…");
     }
   });
 

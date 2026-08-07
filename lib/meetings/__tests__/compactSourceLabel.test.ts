@@ -106,9 +106,27 @@ describe("Q92(b) — compactSourceLabel", () => {
   });
 
   it("leaves a single-company surface alone — the company record keeps the bare full address", () => {
-    // No context set is exactly the company-record shape; nothing may be dropped there.
-    const bare: Provenance = { meetingId: "A-MTG-X", sourceRef: "body bullet «Next Steps»" };
-    expect(compactSourceLabel(bare, { omitContext: false })).toBe(sourceLabel(bare));
+    // ⚠️ This case used to pass a TEN-character title, which is under COMPACT_REF_TITLE_MAX,
+    // so the elision it exists to forbid could never run and the assertion proved nothing.
+    // The company record was in fact getting elided titles on screen. The fixture is now a
+    // title that is over the limit — the only shape that can tell the two behaviours apart.
+    const bare: Provenance = {
+      meetingId: "A-MTG-X",
+      sourceRef: "body bullet «Restaurant Background & Challenges»",
+    };
+    expect(bare.sourceRef.match(/«([^»]*)»/)![1].length).toBeGreaterThan(COMPACT_REF_TITLE_MAX);
+    expect(compactSourceLabel(bare, { omitContext: false, elideTitles: false })).toBe(sourceLabel(bare));
+  });
+
+  it("elides only when the caller asks — the default stays on for the Overview's existing calls", () => {
+    // Two surfaces, one component: the difference must be a decision passed in, not a shape
+    // inferred from the data. `elideTitles` omitted must behave exactly as it did before.
+    expect(compactSourceLabel(LONG, { omitContext: true })).toBe(
+      compactSourceLabel(LONG, { omitContext: true, elideTitles: true }),
+    );
+    expect(compactSourceLabel(LONG, { omitContext: true, elideTitles: false })).toContain(
+      "«Restaurant Background & Challenges»",
+    );
   });
 });
 
