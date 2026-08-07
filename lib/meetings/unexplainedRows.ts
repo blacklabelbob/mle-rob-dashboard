@@ -29,6 +29,15 @@ export type ArchiveRowDetail = {
   recording?: string;
   summary?: string;
   company?: string;
+  /**
+   * Q85 inc.5 — who was in the room, straight off the Notion columns. Optional because most
+   * rows carry none; see `lib/meetings/archiveAttendees.ts` for what each column means and
+   * why side is read off the column rather than guessed from the name.
+   */
+  contactName?: string;
+  nonMleAttendees?: string;
+  mleAttendees?: string[];
+  salesRep?: string[];
 };
 
 /**

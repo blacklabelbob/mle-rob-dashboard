@@ -44,6 +44,7 @@ import {
   attendanceForRow,
   attendanceNextStep,
 } from "../lib/meetings/attendeeCompany.ts";
+import { summarizeAttendeeCoverage } from "../lib/meetings/archiveAttendees.ts";
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), "..");
 const DATA_SOURCE_ID = "600498eb-b6e0-41af-a625-e369cbe5fc6a";
@@ -110,6 +111,14 @@ async function readArchive() {
         // close it, and only the row itself knows that.
         summary: plain(p["Meeting Summary"]?.rich_text),
         company: plain(p["Company Meeting with"]?.rich_text),
+        // Q85 inc.5: the person half of the DoD was unreachable because the read carried no
+        // attendees. These four columns are the whole of what the archive knows about who
+        // was in the room; `lib/meetings/archiveAttendees.ts` decides what may be resolved
+        // from them and what is only a question.
+        contactName: plain(p["Contact Name"]?.rich_text),
+        nonMleAttendees: plain(p["Non MLE Attendees"]?.rich_text),
+        mleAttendees: (p["MLE Attendees"]?.multi_select || []).map((o) => o.name).filter(Boolean),
+        salesRep: (p["Sales Rep"]?.people || []).map((o) => o.name).filter(Boolean),
       });
     }
     cursor = json.has_more ? json.next_cursor : null;
@@ -286,6 +295,19 @@ if (ap.considered) {
         `${tally("no-external")} carried only our own domains or free mailboxes and can never name a company.`,
     );
   }
+  // Q85 inc.5 — the PERSON half of Q85's DoD, measured rather than assumed. Reported next to
+  // the company yield above because they are different questions about the same rows: an org
+  // can be named by a domain nobody typed, a person cannot. A first name with no surname is
+  // counted in its own bucket, not folded into "no attendees" — those rows are not silent,
+  // they are one surname away from being work.
+  const attendeeCoverage = summarizeAttendeeCoverage(check.archiveOnly.map((r) => r));
+  console.log(
+    `\n  👤 who was in the room: ${attendeeCoverage.withResolvableCounterparty} of ${attendeeCoverage.total} ` +
+      `name a counterparty a person resolver could act on · ` +
+      `${attendeeCoverage.counterpartyNotIdentifying} name only a first name (type a surname into Notion and they become work) · ` +
+      `${attendeeCoverage.total - attendeeCoverage.withCounterparty} name nobody on the other side.`,
+  );
+
   if (activityPlan.rows.some((r) => r.dayFrom === "title"))
     console.log(`\n  * day read from the row's own title — Notion's Call Date is still empty there`);
 }
