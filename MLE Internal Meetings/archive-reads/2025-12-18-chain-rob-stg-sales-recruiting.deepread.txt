@@ -1,0 +1,245 @@
+==============================================================================
+TITLE (do not trust): Chain & Rob | STG Sales & Recruiting Analysis 2025-12-18T17:00:00.000-05:00
+URL: https://app.notion.com/p/Chain-Rob-STG-Sales-Recruiting-Analysis-2cd1de570199801ba9d1c09e11554992
+id : 2cd1de57-0199-801b-a9d1-c09e11554992
+------------------------------------------------------------------------------
+PROPERTIES — in full; this is where the identity the title omits lives:
+  ∅ Google Doc Link [url]: None  ← claims absence
+  · Show/No Show [multi_select]: ["Show"]
+  · Next Steps/Action Items [rich_text]: Present VSL Recruiting Funnel
+  · Company URL [rich_text]: BBX Moving Company
+  ∅ Parent Account [multi_select]: None
+  ∅ MLE [select]: None
+  · Last Edited [last_edited_time]: 2026-07-17T03:41:00.000Z
+  ∅ Child Account [multi_select]: None
+  ∅ Other Combined/Possible referral [rich_text]: None
+  · Customer Pain Points [rich_text]: • Flat revenue at ~$2.0–2.2M for 3 years, struggling to break through growth ceiling
+• Commercial growth constrained by top-of-funnel lead volume, not close rate
+• Heavy dependence on purchased commercial lead lists that are expensive, shared with competitors, and include 30–40% dead leads
+• Long, inconsistent commercial sales cycles leading to lumpy opportunity flow (some months only 4–5 quotes vs. others with 10)
+• Desire to add a commercial BD producer but concern about budget for a high-base, experienced hire and risk of long ramp time
+• Residential volume is decent but market is soft, highly competitive, and average ticket size is much lower than commercial
+• Owner (Chai) is still involved in sales/BD, limiting leverage and scale
+• Need a repeatable, scalable way to attract “needle in a haystack” rock star BD talent without overcommitting to fixed comp
+  · Meeting Summary [rich_text]: Discovery call with Chai (owner, BBX Moving Company) about unlocking growth beyond ~$2.0–2.2M by fixing top-of-funnel constraints on the commercial side. BBX has strong close rates (75% commercial, 50% residential) but is constrained by lead volume and inconsistent commercial opportunities. Current commercial sourcing relies on purchased, competitive lead lists and relationship-based referrals from TI/renovation GCs. Chai wants either a dedicated commercial BD hire or to free up his current commercial rep for more BD, but is constrained by budget and ramp risk. Rob positioned STG’s recruiting VSL funnel as a way to systematically attract a rock star BD/relationship builder on a mixed comp structure. Next step: Rob to build a tailored VSL recruiting funnel presentation and reconvene with Chai and Ryan on January 16 at 10:30am PT / 1:30pm ET.
+  ∅ MLE Attendees [multi_select]: None
+  ∅ Follow Up Date set [date]: None
+  ∅ Company Meeting with [rich_text]: None
+  · Export Status [select]: Not Exported
+  · Sales Rep [people]: ["Robert Acheson"]
+  ∅ Notion Meeting Page [url]: None
+  · Call Date [date]: 2025-12-18
+  · Tags [multi_select]: ["Recruiting VSL", "Commercial", "Moving"]
+  ∅ Call Recording [url]: None  ← claims absence
+  · Contact Name [rich_text]: Chai
+  ∅ Non MLE Attendees [rich_text]: None
+  ∅ TAM # [number]: None
+  · Created [created_time]: 2025-12-18T22:00:00.000Z
+  ∅ In Person/Virtual [multi_select]: None
+  ∅ Urgent TO DO [rich_text]: None
+  · Meeting Type [multi_select]: ["2) Presentation + Pitch"]
+  ∅ Primary Target ICP [multi_select]: None
+  · Meeting Title [title]: Chain & Rob | STG Sales & Recruiting Analysis 2025-12-18T17:00:00.000-05:00
+------------------------------------------------------------------------------
+BODY: 196 blocks, 33786 chars — paragraph×90, bulleted_list_item×89, heading_3×12, numbered_list_item×4, transcription×1
+  ⚠ 2 field(s) imply 'no record'. CONTRADICTED — the body below HAS the content. Trust the body, not the field.
+      · Google Doc Link [url] = None
+      · Call Recording [url] = None
+------------------------------------------------------------------------------
+FULL BODY (summary + transcript) — read it, do not skim:
+[transcription] 
+  [paragraph] 
+    [heading_3] Meeting Context
+    [paragraph] Discovery call between Rob (STG) and Chai, owner of BBX Moving Company (commercial and residential moving, ~14 years in market). Chai attended STG’s recruiting webinar and wanted to explore whether STG could help him break through a flat revenue ceiling and add a true commercial business development producer.
+    [heading_3] Company Snapshot (BBX Moving Company)
+    [bulleted_list_item] Service mix: ~60% commercial moving (offices, warehouses, government agencies), ~40% residential.
+    [bulleted_list_item] Revenue: ~$2.0–$2.2M per year for the last 3 years (2023–2025), essentially flat.
+    [bulleted_list_item] 2026 goal: ~20% growth to ~$2.6M, with most upside expected from the commercial side.
+    [bulleted_list_item] Sales structure: 3-person sales team — 1 commercial-focused rep, 1 residential-focused rep, and Chai covering both but limited time in sales.
+    [bulleted_list_item] Close rates: ~75% commercial, ~50% residential.
+    [heading_3] Current Go-To-Market & Lead Flow
+    [paragraph] Residential
+    [bulleted_list_item] Mostly inbound: people find BBX via online presence and marketing.
+    [bulleted_list_item] Channels: online search, letters, referrals from realtors, brand recognition built over 14 years.
+    [bulleted_list_item] Dynamics: higher volume, lower average job size (~$2K–$10K), more competition and price sensitivity.
+    [paragraph] Commercial
+    [bulleted_list_item] Mixed inbound and outbound, but growth is constrained primarily by top-of-funnel lead volume, not by closing ability.
+    [bulleted_list_item] Average job size: ~$11K on the low end up to ~$200K on the high end.
+    [bulleted_list_item] Close rate: ~75% once BBX gets in to quote opportunities.
+    [bulleted_list_item] Market structure: limited direct competitors (about 5–6 commercial movers in the city), and projects are time-sensitive and complex — which favors BBX’s expertise and contributes to high close rates.
+    [bulleted_list_item] Key relationship channel: large commercial tenant improvement (TI) and renovation contractors who are offering “turnkey” build-out plus move-in solutions. BBX is often brought in as a subcontractor or referral partner to execute the move.
+    [bulleted_list_item] These GC/TI relationships are valuable but lumpy: each contractor may only have one or two active projects at a time, so Chai needs many relationships to produce enough opportunities.
+    [bulleted_list_item] Important nuance: once BBX is in the door via these partners, they are still selling and quoting to the end customer, not the GC, and they are good at converting those opportunities.
+    [heading_3] Existing Outbound Campaigns (Commercial)
+    [numbered_list_item] Purchased commercial moving lead lists + cold calling
+      [bulleted_list_item] Buys ~80 leads/month from two 3rd-party providers that specialize in commercial moving leads (North America, UK, Australia, etc.).
+      [bulleted_list_item] Data quality issues: 30–40% of leads are dead (already moved, not moving, plans changed).
+      [bulleted_list_item] Competitive pressure: lists are sold to several other local movers (3–4 competitors also calling the same accounts).
+      [bulleted_list_item] Workflow: leads go into CRM → BBX sends letters → a virtual cold caller works the list to set appointments for in-person estimates.
+      [bulleted_list_item] Yield: from ~80 raw leads → ~50 viable → ~10 actual quoting opportunities → BBX closes ~60–70% of those.
+      [bulleted_list_item] Challenge: timing and sales cycle length cause uneven flow; some months only 4–5 opportunities, other months ~10. Overall ROI is modest and inconsistent.
+    [numbered_list_item] Relationship-based business development with commercial TI/renovation contractors
+      [bulleted_list_item] Chai invests time building relationships with commercial TI and renovation general contractors that manage office and warehouse buildouts.
+      [bulleted_list_item] These firms want to be turnkey providers, so they often bring BBX in as a subcontractor or referral partner to handle the move portion.
+      [bulleted_list_item] This has produced solid opportunities over the last year, but is inherently slow and inconsistent because each GC only has a few active projects.
+      [bulleted_list_item] No material involvement from commercial roofing partners; primary focus is TI/renovation contractors.
+    [heading_3] Strategic Challenges (From Chai’s Perspective)
+    [bulleted_list_item] Growth Ceiling: Stuck at ~$2.0–$2.2M revenue for 3+ years; wants to reach ~$2.6M with commercial as the primary growth engine.
+    [bulleted_list_item] Top-of-Funnel Constraint (Commercial): Close rate is strong once they are in front of opportunities, but there are not enough at-bats.
+    [bulleted_list_item] Lead Source Quality and Consistency:
+      [bulleted_list_item] Purchased lists are expensive, shared with competitors, and contain a high percentage of dead leads.
+      [bulleted_list_item] TI/GC referrals are high-quality but lumpy and hard to scale.
+    [bulleted_list_item] Capacity vs. Demand: Operationally, BBX is not at capacity. They could handle more commercial work if the pipeline were healthier.
+    [bulleted_list_item] People Problem – Commercial BD/Relationship Builder:
+      [bulleted_list_item] Chai sees a big opportunity in adding a “rock star” commercial BD hire who can deepen and expand relationships and consistently create opportunities.
+      [bulleted_list_item] Budget and risk are the bottlenecks: the market seems to demand a high-base, experienced BD profile (~$100K+ base), but ramp times are long and there is no guarantee of quick results.
+      [bulleted_list_item] The ideal candidate is someone credible with GCs and construction-related stakeholders, which often means they are already embedded in larger, more stable companies.
+    [bulleted_list_item] Role Design Ambiguity:
+      [bulleted_list_item] Two possible paths:
+        [numbered_list_item] Hire a new BD-focused producer to do what Chai currently does (networking, relationship-building, higher-level BD).
+        [numbered_list_item] Move the existing commercial sales rep into more of a BD role and backfill with a sales estimator, increasing leverage on current relationships.
+      [bulleted_list_item] The right path depends on the talent available in the market (i.e., “Michael Jordan in the draft” analogy) and Chai’s comfort with comp structure.
+    [heading_3] STG Positioning & Proposed Angle
+    [paragraph] Rob positions STG squarely on Chai’s side as a partner focused on:
+    [bulleted_list_item] End-to-end sales process support: recruiting, onboarding, training, accountability, sales leadership, and close-rate improvement.
+    [bulleted_list_item] Specific to this conversation, the focus is STG’s VSL recruiting funnel as a scalable way to attract a needle-in-a-haystack commercial BD hire.
+    [bulleted_list_item] STG’s experience: now working with 1,000+ contractors in the trades across North America with measurable lifts in close rates and recruiting outcomes.
+    [paragraph] Recruiting VSL Funnel Concept (High-Level):
+    [bulleted_list_item] Deep discovery process (Rob references asking ~100 questions) to understand the business, role, culture, and success profile.
+    [bulleted_list_item] Creation of a compelling, story-driven recruiting VSL that “sells” BBX and the role to the right kind of candidate, mirroring how BBX effectively sells to customers.
+    [bulleted_list_item] Funnel structure designed to surface high-caliber, growth-minded candidates who are open to a mixed fixed/variable comp structure and excited to build something with Chai.
+    [bulleted_list_item] This system is positioned as a way to attract and filter true “rock star” commercial BD talent in a noisy labor market.
+    [heading_3] Value & Investment Discussion
+    [bulleted_list_item] Rob frames the investment for a full STG recruiting VSL funnel build as in the $5K–$7.5K range, depending on scope and attributes.
+    [bulleted_list_item] Emphasis on ROI: relative to the cost of a mis-hire or the ongoing cost of being stuck at ~$2.0–$2.2M, the ability to land the right BD producer can be a massive multiplier.
+    [bulleted_list_item] STG’s process is consultative: diagnose first, then prescribe. Rob proposes doing deeper research, building a tailored VSL recruiting funnel, and then reviewing it with Chai.
+    [heading_3] Next Steps & Commitments
+    [bulleted_list_item] Chai is heading out of town and will be unavailable until January 12.
+    [bulleted_list_item] They agree to schedule a follow-up presentation call on Friday, January 16 at 10:30am PT / 1:30pm ET.
+    [bulleted_list_item] Rob commits to:
+      [bulleted_list_item] Doing deeper research on BBX’s market and motion.
+      [bulleted_list_item] Building out a tailored VSL recruiting funnel concept and presentation specific to BBX’s commercial BD challenge.
+      [bulleted_list_item] Inviting Ryan (STG) to the follow-up call, leveraging Ryan’s experience with commercial contractors and construction networks as an additional strategic angle.
+    [bulleted_list_item] Goal of the next call: review the full recruiting VSL funnel, show Chai how it would work in practice, and align on whether this is the right path to unlock BBX’s commercial growth.
+  [paragraph] 
+    [heading_3] Quick Facts
+    [bulleted_list_item] Company: BBX Moving Company
+    [bulleted_list_item] Owner / Decision Maker: Chai
+    [bulleted_list_item] Location/Market: Vancouver area (commercial and residential moving)
+    [bulleted_list_item] Years in business: ~14 years
+    [bulleted_list_item] Service mix: ~60% commercial, ~40% residential
+    [bulleted_list_item] Annual revenue: ~$2.0–$2.2M (flat for 3+ years)
+    [bulleted_list_item] 2026 revenue goal: ~$2.6M (~20% growth)
+    [bulleted_list_item] Commercial avg. job size: ~$11K–$200K
+    [bulleted_list_item] Residential avg. job size: ~$2K–$10K
+    [bulleted_list_item] Sales structure: 3-person team (commercial rep, residential rep, Chai)
+    [bulleted_list_item] Close rates: ~75% commercial, ~50% residential
+    [heading_3] Key Pain Points (From Chai’s Side)
+    [bulleted_list_item] Stuck at a revenue ceiling (~$2.0–$2.2M) despite strong project execution.
+    [bulleted_list_item] Top-of-funnel constraint on commercial: not enough qualified opportunities.
+    [bulleted_list_item] Purchased commercial lead lists:
+      [bulleted_list_item] 30–40% of leads are dead.
+      [bulleted_list_item] Lists shared with 3–4 local competitors.
+      [bulleted_list_item] Cold calling is tough and ROI is inconsistent.
+    [bulleted_list_item] Referral/relationship channel (TI/renovation GCs) is valuable but lumpy and slow to scale.
+    [bulleted_list_item] Not at operational capacity; could handle more commercial work if the pipeline were stronger.
+    [bulleted_list_item] Wants a high-caliber commercial BD/relationship builder but is:
+      [bulleted_list_item] Concerned about needing a high base salary (~$100K+).
+      [bulleted_list_item] Worried about long ramp times and risk if the hire does not produce.
+    [bulleted_list_item] Role design uncertainty between:
+      [bulleted_list_item] Hiring a net-new BD producer.
+      [bulleted_list_item] Elevating existing commercial rep into BD and backfilling with an estimator.
+    [heading_3] STG Opportunity / Levers
+    [bulleted_list_item] Use STG’s recruiting VSL funnel to attract, filter, and close a “needle in a haystack” commercial BD hire.
+    [bulleted_list_item] Position BBX as a compelling growth platform for the right candidate, with mixed comp (fixed + variable) to fit budget constraints.
+    [bulleted_list_item] Leverage Ryan’s commercial and construction network experience in both messaging and relationship angles.
+    [bulleted_list_item] Long-term: once the BD seat is filled and producing, apply STG’s broader sales process support (onboarding, training, accountability, leadership) to maximize the value of that hire.
+    [heading_3] Next Meeting
+    [bulleted_list_item] Type: Follow-up / VSL recruiting funnel presentation.
+    [bulleted_list_item] Date: Friday, January 16.
+    [bulleted_list_item] Time: 10:30am Pacific / 1:30pm Eastern.
+    [bulleted_list_item] Attendees (planned): Chai (BBX), Rob (STG), Ryan (STG).
+    [bulleted_list_item] Objective: Present a clear VSL recruiting funnel for the commercial BD role, validate fit, and align on investment and implementation path.
+  [paragraph] 
+    [paragraph] Recording in progress Thank you.
+    [paragraph] Yes, the address will be 5-4-8-9-7-0-8-4-0. Oh. Hey Chai, how you doing? I'm good. Hey, Rob.
+    [paragraph] I'm doing great. I'm doing great. I appreciate you taking a couple of minutes here. So, yeah, appreciate you... Coming to the The recruiting webinar and I just kind of wanted to set the stage for what we'll talk about today. Basically, we kind of handle these calls by first just asking a couple of questions to get an understanding of your business, to make sure we can help. Then we kind of talk about, you know, Where you want things to go and if it's a fit, I'll share what our strategy would be to help you achieve and all that good stuff.
+    [paragraph] But typically at the end of the conversation, we have all the information we need to make sure it's a good fit. So we're set for about 15, 20 minutes. You still good, Doug? With that amount of time? Yeah. Okay, cool. So how familiar are you broadly with STJ?
+    [paragraph] Quite familiar. I think we bought some coaching from you guys before.
+    [paragraph] Okay. How many years ago was that?
+    [paragraph] A long time ago.
+    [paragraph] Yeah.
+    [paragraph] What's the father's name again? I can't remember his name.
+    [paragraph] Ryan. Ryan, yeah, I think we didn't get to work with Ryan at the time, but But yeah, then we stopped it because we found that it wasn't quite the right fit.
+    [paragraph] Okay. Gotcha, gotcha, gotcha. Yeah, we had a... I'm not even sure. That was before my time, how much... Stuff we had as far as like the portfolio services, but I mean, you know, kind of just for context, at this point, we've worked with, we just added it up the other day, over a thousand contractors and people and working in, you know, the trades nationwide. And, you know, on average, we see a pretty significant lift in close rates.
+    [paragraph] You know, obviously we focus on Everything sales process related, right? So everything from recruiting, as you know, to increasing the close rate, onboarding, training, accountability, sales leadership. So yeah, so I'm confident we can identify any real opportunities here. So let's kind of, if you could, let's talk about what's going on at BBX right now. Could you tell me a little bit about the company?
+    [paragraph] Yeah, we're a moving company. We do commercial and residential moving. About 60% is commercial moving, so we move other businesses, government agencies, things like that.
+    [paragraph] And then the rest of our business is residential, so homes and so on. Um... Right now in terms of sales and marketing, I would say we We have a small sales team. It's three of us. One specializes in commercial, one specializes in residential, and then I do a little bit of both, but I don't do too much of sales. Between the three of us, residential is mostly inbound. People find us online or through our marketing.
+    [paragraph] We do letters, referrals from realtors, that kind of stuff. I do most of the business. So I go out there and network and meet people. And then when I get a lead, I hand it off to my sales guys. Gotcha. So for residential, it's mostly inbound. And I would say our closing ratio on that is about 50%. For commercial, we have a mixture of outbound cold caller who tries to get us in for an appointment to quote the job.
+    [paragraph] And then referrals, repeat customers, partnerships, that type of, that's how our leads come in for commercial. Not so much online. Most of the leads that come in for residential is online. Most of the leads that come in for commercial is somewhat more old school in terms of finding the business. On the commercial side, between myself and my commercial sales person, we average 75% closing ratio. Our biggest pain point right now is actually getting more leads.
+    [paragraph] on the top end of the funnel, not so much the the closing. I think it's because we're in a unique sort of marketplace where we are. We don't have a lot of Uh... We don't have a lot of competitors doing commercial moving. There's only maybe like five or six of us in the city. And because these are relatively large projects and time sensitive for clients, that's why our closing ratio is high. On the residential, it's a bit different.
+    [paragraph] There's a lot of competitors out there. But because most of our leads are inbound, they are sort of looking for us, so to speak. But that's why the closing ratio is also lower. For residential we deal with more volume but lower average job size versus commercial. So commercial average job size anything I would say is about $11,000 to on the high end could be up to like $200,000. For residential average job size about $2,000.
+    [paragraph] Between $2,000 to maybe $10,000. on the higher end. Gotcha. Yeah, so that's kind of...
+    [paragraph] So you mentioned, you know, particularly on the residential, most of it is inbound and then a commercial. It's a mixture of outbound and inbound. But, you know, what would... If you were to kind of estimate how How much of the business is driven from Your network. Specifically, right? Like, you know, you mentioned with the residential, a lot of people are just trying to lead off and stuff.
+    [paragraph] Not a whole lot at this time. I think my network, maybe it's 20% of the leads in the business. The rest is really with my sales guys and repeat and referral from previous clients. So the 20% I would say is from my networking and business development. The rest, the other 80% is is through our marketing efforts, Yeah, and partnerships, but quite a lot of those partnerships are not from my, specifically not from me.
+    [paragraph] So it's just, we've been around for about 14 years. So, you know, we do have, people do remember us for our name and our brand and not specifically myself. Yeah.
+    [paragraph] so So As far as, you gave me a range as far as the average average ticket size. Where are you going to track, do you think, roughly from a total revenue perspective year to date? And how would you compare that to the last few years? And then where would you like to be in the one, three, five year range? Just kind of ballpark. You know, when I talk to...
+    [paragraph] In terms of revenue? Sorry? In terms of revenue?
+    [paragraph] Yeah, just from a top line perspective.
+    [paragraph] Yeah, for sure.
+    [paragraph] So this year, so last, the last 23, 24, 25 will be flat with, we averaged about two, 2.1, $2.2 million a year in revenue. And we have not been able to get out of that ceiling. So next year, we hope to grow by about 20%. But the real estate market has been kind of depressed since 23. Especially on the residential side, commercial has been up and down with macroeconomic stuff from tariffs and Trump and all that shit.
+    [paragraph] But I think there's growth in the commercial side. interest rates have kind of leveled out and companies are starting to make capital investments again. So I think our growth is probably going to come from commercial for next year or so. Residential, I think the market's still going to be pretty flat. So yeah, we're hoping to get to $2.6 million for 2026. One of our challenges, like I said, is filling the funnel, right?
+    [paragraph] Like I would like to recruit and hire an additional commercial salesperson. At the same time, we don't, we can't find enough leads for him to sell and estimate and close, that's the biggest problem, right? 'Cause right now, we're not at capacity in terms of you know, resources operationally, but also resources in terms of quoting and closing the sale that are coming in just between the three of us at the moment.
+    [paragraph] So Yeah, that's...
+    [paragraph] That's the challenge that we're finding right now to be able to grow like by like 20% in revenue and In terms of the outbound stuff, you said most of that is from cold calling efforts?
+    [paragraph] Yeah, so we buy on the commercial side, we buy a list of leads from two third party providers. And they specialize in providing commercial moving leads in various markets across the Western world, like North America, the UK, Australia, and so on. And we get about 80 of these per month. And it just points us in a certain direction, name of company and very high level information, like potentially when they're moving, how big is the company, stuff like that.
+    [paragraph] And then after that, we put that into our CRM. We send them a letter in the mail and we have a virtual cold caller. that picks up the phone and cold calls them to try to set an appointment for us to go in in person to do a quote because we got to actually see it. The challenge with that is, you know, cold calling is tough, but also those lists are sold to, you know, the other three to four moving companies that buy them here.
+    [paragraph] So highly competitive. So it's not the best in terms of a campaign, in terms of ROI, because let's say 80, Peace. easily 30 to 40% of those 80 leads are dead, meaning they've either already moved or they're no longer moving or something's changed, right? And so then we're dealing with the remainder, let's say 50 leads. And through that 50 leads, we may get in to be able to quote on maybe I would say 10.
+    [paragraph] And out of that 10, we'll close like 60, 70% of those. But the challenge for us is that those 10 leads that we can close on or that we can even quote on, it's really spread out. It's not 10 every month. You see what I mean? The sales cycle can be quite long. So we could go some months where we only get into four or five opportunities and then some months getting into 10 opportunities. So it's very inconsistent in that sense.
+    [paragraph] So, Yeah, so that's one campaign. The other one is more business development and building relationships to get referrals. So my number one referral sort of partner right now are large commercial construction companies, companies that specialize in commercial TI's and renovations because they are usually the service provider in just before we come in to do our work. And a lot of these construction companies, in Vancouver right now because the market is quite soft and very competitive they're trying to provide turnkey solutions to their clients meaning we'll build out your new office and we'll look after it from start to end and end for the means until you move in so that's where they bring us in as a partner and sometimes there's a straight referral Well, sometimes we come in actually as a subcontractor for the construction company.
+    [paragraph] And then they point to the quote to the client. So that route is more long term and it's not constant because as you can imagine most commercial construction companies are doing maybe one or two projects at any one time. So I have to try to build relationships with quite a few of these guys to get into opportunities.
+    [paragraph] That's interesting. Do you work with many commercial roofers who do servicing for these companies?
+    [paragraph] No, not roofers.
+    [paragraph] It would be specifically commercial... tenant improvement companies like guys that will renovate an office right um or build uh the inside of a warehouse because we move a lot of warehouses as well um But yeah, so I would have to try to build relationships with, or I'm trying to, and it's been quite successful now for the past year. Okay. These relationships, but we're not selling to them directly.
+    [paragraph] You see what I mean? They're not the ones moving, right? Right, right, exactly. Yeah, so once we get into opportunity as a referral from these guys, we then have to quote and sell to the end user. Right, the company just actually moves. So then, yeah, so we know how to do that and we're quite good at that. Like I said, it's mostly just trying to get More opportunities, and that's our bottleneck at the moment.
+    [paragraph] Yep, yep, yep. No, that makes a lot of sense. You know, as far as the services that we provide, it's really the actual, most of it's related to the actual sales process. So as far as leads go, we can certainly introduce you to some interesting firms that are doing some things that maybe you're not, You know, the one thing that I would potentially suggest is having a discussion about, well, you said you're not at capacity, but, you know, that could change.
+    [paragraph] You said most of the growth will likely come from the commercial side. So it seems to me that one of the big opportunities potentially would just be to get in, you know, another rock star who's actually going out and building those relationships, right?
+    [paragraph] Yeah, totally. It's just that from a...
+    [paragraph] From a budget, I think that's one of the issues we've been looking for that role and exploring it in our market anyways. A lot of that BD work to be successful, I guess. We're looking to have to pay someone a pretty large base salary because the cycles are very long. And usually these people, the person needs to be quite established in their career to know what they're talking about, to be relatable to to some of these construction guys.
+    [paragraph] And we just don't have the budget for the moment. You know, we're talking about like 100 grand or more in annuals. Um... where they might not see a single lead even for months, especially if they don't have industry-related experience in construction or moving because it's kind of like an indirect long game. Yes. See what I mean? Yeah, because most of the guys that have experience in the construction industry would then be already working at a large construction firm.
+    [paragraph] Yeah. Because it's the most obvious. It's easier. It's relatable. And you'll see results way faster. Yeah. Whereas... For us, it's a bit different. Yeah, so that's been the struggle. But yeah, I would love to find another person to do what I'm doing so we can double up efforts.
+    [paragraph] Let's say that there was a way to work out such that the... the The compensation was, you know, mixed between kind of variable and Um, and fixed. And we were to get maybe just kind of like a guy to come in that What are you doing right now to try to find that needle in the haystack? How do you market yourself? Like, "Hey, you want to work here? We're going places. We've got a great company culture." What are you actually doing?
+    [paragraph] So, I mean, we put up job ads on Indeed, Craigslist, LinkedIn, and just my own networking efforts to just try to find the right fit the right person, fit our culture and company and that's willing to do like what you said, a variable and fix sort of Income? Yeah.
+    [paragraph] How long have you been doing that for?
+    [paragraph] We started since the beginning of November, I would say. Okay. We're still looking. We've got to find the right, like what you said, a needle in a haystack, this specific person, right? Okay. Um... Yeah, the other, of course, the other strategy was to take my commercial sales guy, my current guy, and replace him with a sales estimator role and then and bring him up to do more what I do because he's been with me for like five seven years now so he knows me well he knows what he's talking about he can also help with the beating uh BD and build those relationships so we're looking for potentially Either one, someone to take his place, we have more of his time.
+    [paragraph] So take him out of that role and he can do more BD and less sales. Or we find another guy who's doing business development.
+    [paragraph] Yeah, no, that makes a lot of sense.
+    [paragraph] Yeah, I mean, it could go either way, right? Like, depending on who we can find.
+    [paragraph] But I know how to kind of write...
+    [paragraph] Two job ads in one. Yeah.
+    [paragraph] Because they're very different roles.
+    [paragraph] You see what I mean? Of course.
+    [paragraph] Of course. And it's going to be dependent on like, you know, if Michael Jordan's available in the draft, you take Michael Jordan. But, you know, if he's not, then you might take, you might go one direction versus the other, right? Yeah. So that makes a lot of sense. But I would say the one thing that might be worth exploring a little bit more, and I would do some research before we hop down another call, is...
+    [paragraph] Have you... I actually wasn't able to watch the recruiting webinar. Did they get much into setting up kind of like a recruiting VSL funnel? For finding that rock star?
+    [paragraph] No, they didn't get there.
+    [paragraph] It was more of... Yeah, they didn't they just kind of laid out like a very high level framework But they didn't really get into solid details on how to actually execute on it.
+    [paragraph] So I think that would be worth exploring We're having a lot of success with that and we are finding these guys that are kind of a needle on the haystack Right, and there's so much fluctuation in the in the labor market right now that You know If you are able to, just like you do a great job selling yourself to customers, you know, you're closing 75% on one division of the business and 50% on the other.
+    [paragraph] But what we do is we kind of... To give you kind of an overview, we asked like a series of 100 questions. We put everything together and turned it into this like kind of amazing recruiting funnel that we've had some incredible experiences with. So I think like as far as the strategy for the business, you know, like we said, it's going to come on the commercial side. and fix such that it works for the business.
+    [paragraph] But that's the angle it seems like to continue that growth, to continue hitting that 20% is to get another guy out there. And they are out there. It's just a matter of attracting them. If that's something that you're interested in, we could hop on a call. I'd set up a presentation and just kind of take you through it point by point. I know we only had you for 20 minutes tonight, and I got a call coming up in a few, but we could circle back next week, and that would just be another kind of recap.
+    [paragraph] But yeah, man, we've had pretty amazing success with that for our customers, and they're finding some real rock stars. So I would think that that would be the worth exploring.
+    [paragraph] How much is that?
+    [paragraph] You know, it varies. It's on the order of Five to seven. But you know the ROI and the guys that they're finding relative to what they would have paid and the performance level is pretty ridiculous, so You know It kind of just depends on the extent of what we need to do. So we always like to kind of, you know, before we prescribe, we always have to kind of diagnose, right? So we would do all the research on the back end, have another conversation with you, really get into it.
+    [paragraph] But it's in the range of five to seven and a half, depending on a couple of the different attributes that we want to try. And we would obviously recommend, which direction to go for you. But I think that would be worth exploring because this is where the growth is going to come from, right? There's just not a lot of opportunities out there, like you said, and finding a guy who can can be that kind of like, that rock star out in the field for you and create those relationships and be multiple places at once and create network effects.
+    [paragraph] There are guys like that out there. It's just a matter of finding them.
+    [paragraph] I see. Yeah. Okay. Well, I don't have a lot of time.
+    [paragraph] Well, I don't have time next week because I'm actually going away on Monday. Oh, good. Taking a few days off. And I won't be back until January 12th.
+    [paragraph] Okay. Yeah. But yeah, have a good look.
+    [paragraph] Yeah, yeah, absolutely. Yeah. Why don't we... You're heading out and you're going to be back on the 12th. I don't know, you wanna pencil something in for, For that week, we can do kind of a recap and I'll build out kind of the full funnel of what it would look like for you so you can get the full scope of what it would look like. And I'd probably bring Ryan on the call as well. He has so much commercial experience and knows so many people from the perspective of both roofers and construction companies that that could be an additional way to Expand the network as well.
+    [paragraph] So we want to loop him in on that andAs well, so yeah, do you wanna set something up for the week of the 12th?
+    [paragraph] Yeah, can you do something on Friday the 16th in the morning? In the morning? Yeah. Do you have a, I don't, where are you calling from?
+    [paragraph] Florida. I'm East Coast, yeah.
+    [paragraph] Yeah, do you have something for 10 a.m. Pacific? Is that like 1 p.m.?
+    [paragraph] Yeah, that would be one my time on Friday. I have 10.30 your time.
+    [paragraph] Yeah, that's good. All right, perfect.
+    [paragraph] Well, hey, I appreciate your time. I think this is going to be very interesting once you take a look at it. But yeah, man, have a great couple weeks off there and, you know, enjoy the holiday season. And I'll send over that invite and we'll plan on circling back on the 16th and we'll dive into the VSL recruiting funnel. Okay. All right. Thanks so much. Have a great weekend.
+    [paragraph] Okay, thank you. Bye-bye. Bye. Okay, thank you. Bye-bye. Bye.
