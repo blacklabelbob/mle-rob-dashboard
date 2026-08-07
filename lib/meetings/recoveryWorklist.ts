@@ -19,6 +19,20 @@
  * are therefore re-read with `--deep` BEFORE any cross-database sweep is allowed to run —
  * the cheap local read comes first, and only a page that survives it may be called absent.
  *
+ * ⚠ WHAT `--deep` ACTUALLY DOES — corrected 2026-08-07 (inc.47) after reading the reader.
+ * The paragraph above says the deep re-read exists to get BELOW a depth cap. That is the
+ * right instinct pointed at the wrong flag. `find_meeting.py`'s `walk_blocks` recurses on
+ * `has_children` with **no depth limit at all**; `--deep` raises its BLOCK BUDGET, 6,000 →
+ * 60,000. So the flag lifts a width/volume ceiling, never a depth one. The depth-4 cap is
+ * the RE-COUNT's, and it belongs to the measurement, not the reader — which means a
+ * `container-only` row measured at 5 blocks was never budget-limited, and its scheduled
+ * `--deep` re-read returns byte-identical output to the measurement's own reach. Verified,
+ * not reasoned: four rows re-read uncapped (`3b21de57…7129c6`, `…6718ef`, `…76a138`,
+ * `…a6c96a`) each came back 5 blocks / 76 chars, a `[transcription]` wrapper over four empty
+ * paragraphs. The re-read is still owed once per row — a page CAN be budget-truncated, and
+ * only running it proves which — but a row that has run it and come back empty must stop
+ * being re-scheduled, which is what `open-in-notion` below exists to record.
+ *
  * PURE (CR-3): no clock, no network, no Notion, no filesystem. It never reads a page, never
  * writes one, and never produces a summary of a meeting — it produces commands and the
  * reason each one is owed.
@@ -55,6 +69,24 @@ export type Action =
   | "identify-first"
   /** The measurement itself failed. Re-measure — never inherit "empty" from an error. */
   | "re-measure"
+  /**
+   * The uncapped re-read RAN and the API had nothing more to give: a `[transcription]`
+   * wrapper with no recoverable text under it. This is a THIRD state and both neighbours
+   * would be a lie about it.
+   *
+   * `deep-read-page` would re-schedule a command already proven to return the same bytes,
+   * forever — the re-scheduling defect inc.37 and inc.46 each fixed in a different column.
+   * `already-read` would say "nothing further is owed on the page itself", and something is:
+   * `find_meeting.py` prints, in its own words, *"Do NOT report 'no transcript' — open the
+   * page in Notion and say so."* The content exists in Notion's AI transcription block and
+   * is simply not exposed by `/blocks/{id}/children`. Filing that as read would convert a
+   * TOOL limit into a claim about the MEETING, which is the exact substitution Q84 exists
+   * to kill (INCIDENT-LEDGER #22/#34).
+   *
+   * So it is neither owed-again nor done: it is owed to a HUMAN, in a browser, and it is
+   * never counted toward `atMostUnrecoverable` — the page has blocks.
+   */
+  | "open-in-notion"
   /**
    * The page has already been opened, read, and filed in the read log. It is carried here
    * rather than dropped: a row that vanishes from a work-list is indistinguishable from a row
@@ -100,6 +132,10 @@ const RANK: Record<Action, number> = {
   "sweep-by-date": 2,
   "identify-first": 3,
   "re-measure": 4,
+  // Above `already-read` and below every machine action: it asks for work, but not work a
+  // script can do. Burying it under the finished rows would hide the only bucket whose
+  // remedy is a human opening a browser.
+  "open-in-notion": 4.5,
   // Last, because it is the only entry that asks for nothing. It stays visible so the list
   // can be checked against the read log, and so a wrongly-matched id is caught by eye.
   "already-read": 5,
@@ -175,6 +211,31 @@ export function parseArchivedReadPageIds(archives: Iterable<string>): string[] {
   for (const text of archives) {
     // Anchored to the header line, not a loose scan: a page id quoted in the BODY of a
     // transcript (a pasted link, a cross-reference) is not evidence that page was read.
+    const match = /^\s*id\s*:\s*([0-9a-f-]{32,36})\s*$/im.exec(text);
+    if (match) ids.add(normalizePageId(match[1]));
+  }
+  return [...ids];
+}
+
+/**
+ * Page ids whose archived read PROVES the reader hit the end of what the API exposes: a
+ * `[transcription]` wrapper with no recoverable text under it.
+ *
+ * The witness is the reader's OWN warning line, not this module's inference. `find_meeting.py`
+ * emits `‼ A [transcription] wrapper is present but recovered almost no text.` only when it
+ * has walked the wrapper and come back empty-handed — so the marker means the walk happened,
+ * which is precisely what distinguishes this from "nobody has looked yet".
+ *
+ * Deliberately NOT keyed on a char count. A threshold here would be a second, drifting copy
+ * of the reader's own judgement, and the first page that sits either side of it would be
+ * classified by this module rather than by the tool that did the reading.
+ *
+ * PURE like its siblings: handed each archive's TEXT, never a directory.
+ */
+export function parseExhaustedDeepReadPageIds(archives: Iterable<string>): string[] {
+  const ids = new Set<string>();
+  for (const text of archives) {
+    if (!/\[transcription\] wrapper is present but recovered almost no text/i.test(text)) continue;
     const match = /^\s*id\s*:\s*([0-9a-f-]{32,36})\s*$/im.exec(text);
     if (match) ids.add(normalizePageId(match[1]));
   }
@@ -267,22 +328,38 @@ function stepFor(row: MeasuredRow): WorklistStep {
  */
 export function buildRecoveryWorklist(
   measured: MeasuredRow[],
-  opts: { alreadyRead?: Iterable<string> } = {},
+  opts: { alreadyRead?: Iterable<string>; deepReadExhausted?: Iterable<string> } = {},
 ): Worklist {
   // Absent `alreadyRead`, every row is scheduled exactly as before — a caller that knows
   // nothing about the read log gets a byte-identical list, so this cannot quietly hide work.
   const read = new Set([...(opts.alreadyRead ?? [])].map(normalizePageId));
+  const exhausted = new Set([...(opts.deepReadExhausted ?? [])].map(normalizePageId));
   const steps = measured
-    .map((row) =>
-      read.has(normalizePageId(row.id))
-        ? {
-            action: "already-read" as const,
-            row,
-            command: "",
-            why: "this page has been opened and its read is filed in the read log — nothing further is owed on the page itself",
-          }
-        : stepFor(row),
-    )
+    .map((row) => {
+      const id = normalizePageId(row.id);
+      // Checked BEFORE `already-read`, and the order is the whole point. An exhausted dump
+      // is also an archived dump, so `parseArchivedReadPageIds` matches it too — and letting
+      // that win would file "nothing further is owed" onto the one bucket where something
+      // is: a human opening the page in Notion. The stronger claim must not be reachable by
+      // the weaker witness.
+      if (exhausted.has(id)) {
+        return {
+          action: "open-in-notion" as const,
+          row,
+          command: "",
+          why: "the uncapped re-read ran and the API returned a [transcription] wrapper with no text under it — the reader is exhausted, the page is not; open it in Notion rather than calling it empty",
+        };
+      }
+      if (read.has(id)) {
+        return {
+          action: "already-read" as const,
+          row,
+          command: "",
+          why: "this page has been opened and its read is filed in the read log — nothing further is owed on the page itself",
+        };
+      }
+      return stepFor(row);
+    })
     .sort(
       (a, b) =>
         RANK[a.action] - RANK[b.action] ||
@@ -302,11 +379,14 @@ export function buildRecoveryWorklist(
       "sweep-by-date": count("sweep-by-date"),
       "identify-first": count("identify-first"),
       "re-measure": count("re-measure"),
+      "open-in-notion": count("open-in-notion"),
       "already-read": count("already-read"),
     },
     // Only a row with nothing on its page could ever be unrecoverable, and only after its
     // sweep comes back empty. A `container-only` row is excluded on purpose: it has blocks,
     // and counting it here would smuggle the retired assertion back in under a new name.
+    // `open-in-notion` is excluded for the same reason and one more: its page has blocks AND
+    // a transcription wrapper, so it is the row LEAST entitled to be called an absence.
     atMostUnrecoverable: count("sweep-by-date") + count("identify-first"),
   };
 }

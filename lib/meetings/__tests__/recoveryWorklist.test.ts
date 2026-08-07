@@ -7,6 +7,7 @@ import {
   FIND_MEETING,
   MEASURED_DEPTH_CAP,
   parseArchivedReadPageIds,
+  parseExhaustedDeepReadPageIds,
   normalizePageId,
   parseReadLogPageIds,
   type MeasuredRow,
@@ -291,5 +292,97 @@ describe("parseArchivedReadPageIds — the dump on disk as proof of a read", () 
     });
     expect(withArchive.counts["read-page"]).toBe(0);
     expect(withArchive.counts["already-read"]).toBe(1);
+  });
+});
+
+describe("parseExhaustedDeepReadPageIds — the uncapped read that came back empty", () => {
+  // The real shape, copied from the four 2026-08-04/03 container rows. `find_meeting.py`
+  // writes this line itself; the module keys on the READER's verdict, never its own.
+  const WARNING =
+    "  \u203c A [transcription] wrapper is present but recovered almost no text. " +
+    "Do NOT report 'no transcript' \u2014 open the page in Notion and say so.";
+
+  const dump = (id: string, body = "") =>
+    [
+      "==============================================================================",
+      "TITLE (do not trust): Meeting 2026-08-04",
+      "URL: https://app.notion.com/p/3b21de57019980e895b6ca602d7129c6",
+      `id : ${id}`,
+      "------------------------------------------------------------------------------",
+      body,
+    ].join("\n");
+
+  const ID = "3b21de57-0199-80e8-95b6-ca602d7129c6";
+
+  it("recognises an exhausted deep read by the reader's own warning line", () => {
+    expect(parseExhaustedDeepReadPageIds([dump(ID, WARNING)])).toEqual([normalizePageId(ID)]);
+  });
+
+  it("does NOT claim exhaustion for a dump that recovered real text", () => {
+    const rich = dump(ID, "BODY: 784 blocks, 114354 chars\n[paragraph] Alex opened by saying");
+    expect(parseExhaustedDeepReadPageIds([rich])).toEqual([]);
+  });
+
+  it("needs the id header too — a warning with no id names no page", () => {
+    expect(parseExhaustedDeepReadPageIds(["no header here\n" + WARNING])).toEqual([]);
+  });
+
+  it("THE DEFECT: an exhausted row is neither re-scheduled nor filed as read", () => {
+    // Before: `container-only` \u2192 `deep-read-page` every run, forever, running a command
+    // already proven to return the same bytes.
+    const measured = [row({ id: ID, verdict: "container-only", body: { blocks: 5, chars: 76 } })];
+    expect(buildRecoveryWorklist(measured).counts["deep-read-page"]).toBe(1);
+
+    const after = buildRecoveryWorklist(measured, {
+      deepReadExhausted: parseExhaustedDeepReadPageIds([dump(ID, WARNING)]),
+    });
+    expect(after.counts["deep-read-page"]).toBe(0);
+    expect(after.counts["open-in-notion"]).toBe(1);
+    // And it is NOT "already read" \u2014 something is still owed, by a human, in a browser.
+    expect(after.counts["already-read"]).toBe(0);
+  });
+
+  it("open-in-notion BEATS already-read, because the same dump satisfies both witnesses", () => {
+    // An exhausted dump is also an archived dump, so `parseArchivedReadPageIds` matches it.
+    // If that won, the row would read "nothing further is owed on the page itself" \u2014 a
+    // tool limit laundered into a claim about the meeting.
+    const text = dump(ID, WARNING);
+    const measured = [row({ id: ID, verdict: "container-only", body: { blocks: 5, chars: 76 } })];
+    const out = buildRecoveryWorklist(measured, {
+      alreadyRead: parseArchivedReadPageIds([text]),
+      deepReadExhausted: parseExhaustedDeepReadPageIds([text]),
+    });
+    expect(out.counts["open-in-notion"]).toBe(1);
+    expect(out.counts["already-read"]).toBe(0);
+    expect(out.steps[0].why).toContain("open it in Notion");
+  });
+
+  it("never counts an exhausted row toward the unrecoverable ceiling", () => {
+    const measured = [row({ id: ID, verdict: "container-only", body: { blocks: 5, chars: 76 } })];
+    const out = buildRecoveryWorklist(measured, { deepReadExhausted: [ID] });
+    expect(out.atMostUnrecoverable).toBe(0);
+  });
+
+  it("is inert when the caller passes nothing \u2014 the list is byte-identical", () => {
+    const measured = [
+      row({ id: ID, verdict: "container-only", body: { blocks: 5, chars: 76 } }),
+      row({ id: "page-9", verdict: "body-present", body: { blocks: 20, chars: 900 } }),
+    ];
+    expect(buildRecoveryWorklist(measured, {})).toEqual(buildRecoveryWorklist(measured));
+  });
+
+  it("PROVEN ON THE REAL ARCHIVE: the four container dumps on disk are recognised", () => {
+    // A fixture would go green on a shape nobody has seen. These are the actual files this
+    // increment archived, read through the same 12,000-char window the script uses.
+    const names = [
+      "2026-08-04-meeting-container-a",
+      "2026-08-04-meeting-container-b",
+      "2026-08-04-meeting-container-c",
+      "2026-08-03-meeting-container-d",
+    ];
+    const texts = names.map((n) =>
+      readFileSync(`MLE Internal Meetings/archive-reads/${n}.deepread.txt`, "utf8").slice(0, 12000),
+    );
+    expect(parseExhaustedDeepReadPageIds(texts)).toHaveLength(4);
   });
 });

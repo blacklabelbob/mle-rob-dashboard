@@ -24,6 +24,7 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import {
   buildRecoveryWorklist,
   parseArchivedReadPageIds,
+  parseExhaustedDeepReadPageIds,
   parseReadLogPageIds,
 } from "../lib/meetings/recoveryWorklist.ts";
 
@@ -50,12 +51,23 @@ const READ_LOG = new URL("../docs/research/Q84-READ-LOG-2026-08-05.md", import.m
  */
 const READ_ARCHIVE = new URL("../MLE Internal Meetings/archive-reads/", import.meta.url);
 
-/** Header of each dump only — enough for the `id :` line, without loading whole transcripts. */
+/**
+ * Header of each dump only — enough for the `id :` line AND the `BODY:` summary block that
+ * follows it, without loading whole transcripts (the largest dump on disk is 114k chars).
+ *
+ * ⚠ The window was 2,000 and that was sized for the `id :` line alone. `find_meeting.py`
+ * prints every property before the body summary, so the transcription-wrapper warning that
+ * `parseExhaustedDeepReadPageIds` keys on lands at char ~1,725 on today's 30-column schema —
+ * inside the old window by 275 characters. One added Notion column would have pushed it out,
+ * and the failure mode is silent: the row falls back to `deep-read-page` and is re-scheduled
+ * forever, which is the exact defect that detector exists to stop. Widened to 12,000, which
+ * clears any plausible schema while still reading none of the transcript.
+ */
 function archivedReadTexts() {
   if (!existsSync(READ_ARCHIVE)) return [];
   return readdirSync(READ_ARCHIVE)
     .filter((name) => name.endsWith(".deepread.txt"))
-    .map((name) => readFileSync(new URL(encodeURIComponent(name), READ_ARCHIVE), "utf8").slice(0, 2000));
+    .map((name) => readFileSync(new URL(encodeURIComponent(name), READ_ARCHIVE), "utf8").slice(0, 12000));
 }
 
 function readInput() {
@@ -86,9 +98,15 @@ const loggedIds = readLogFound ? parseReadLogPageIds(readFileSync(READ_LOG, "utf
 const archivedIds = parseArchivedReadPageIds(archivedReadTexts());
 // Union, because each source has already been observed to miss a read the other caught.
 const alreadyRead = [...new Set([...loggedIds, ...archivedIds])];
-const archivedOnly = archivedIds.filter((id) => !loggedIds.includes(id));
+// Proven by the reader's own warning line, so it survives the read log being wrong in either
+// direction. Subtracted from `archivedOnly` below: a dump that recovered nothing owes no
+// write-up, and printing one would be the "done work reported as owed" lie inc.46 removed.
+const deepReadExhausted = parseExhaustedDeepReadPageIds(archivedReadTexts());
+const archivedOnly = archivedIds.filter(
+  (id) => !loggedIds.includes(id) && !deepReadExhausted.includes(id),
+);
 
-const worklist = buildRecoveryWorklist(input.measured, { alreadyRead });
+const worklist = buildRecoveryWorklist(input.measured, { alreadyRead, deepReadExhausted });
 
 if (AS_JSON) {
   console.log(JSON.stringify(worklist, null, 2));
@@ -102,6 +120,9 @@ const HEAD = {
   "sweep-by-date": "SWEEP — nothing on the page; check every other database for that day",
   "identify-first": "IDENTIFY — nothing on the page and no date to sweep with",
   "re-measure": "RE-MEASURE — the measurement itself failed; an error is not an empty page",
+  "open-in-notion":
+    "OPEN IN NOTION — the uncapped re-read RAN and the API has no more to give; a [transcription] " +
+    "wrapper with no text under it is a limit of the reader, never an empty meeting",
   "already-read": "ALREADY READ — opened and filed in the read log; listed, not hidden",
 };
 
@@ -109,7 +130,7 @@ console.log(`\n── Q84 recovery work-list: ${counts.rows} open archive row(s)
 console.log(
   `   ${counts["read-page"]} to read · ${counts["deep-read-page"]} to re-read uncapped · ` +
     `${counts["sweep-by-date"]} to sweep · ${counts["identify-first"]} to identify · ` +
-    `${counts["re-measure"]} to re-measure`,
+    `${counts["re-measure"]} to re-measure · ${counts["open-in-notion"]} to open by hand in Notion`,
 );
 console.log(
   `   At most ${atMostUnrecoverable} row(s) could turn out to be unrecoverable — and only ` +
