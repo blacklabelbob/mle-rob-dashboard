@@ -105,6 +105,81 @@ describe("statusDrift — direction decides whether it can be asserted", () => {
     expect(d.assertable).toBe(false);
   });
 
+  // Q91(a) inc.32 — the referral rung. lib/types.ts:4-7 has always defined `lit` as
+  // "signed / paying / actively referring"; only the first two were implemented.
+  describe("the referral rung", () => {
+    it("lights a record that opened doors, and names the count in English", () => {
+      const j = justifiedStatus({ status: "unlit", doorsOpened: 10 });
+      expect(j.status).toBe("lit");
+      expect(j.reason).toBe("opened 10 doors in the network");
+      expect(j.evidence).toContain("doorsOpened=10");
+    });
+
+    it("says door, not doors, for one", () => {
+      expect(justifiedStatus({ status: "unlit", doorsOpened: 1 }).reason).toBe(
+        "opened 1 door in the network",
+      );
+    });
+
+    it("ranks below money — a paid referrer is lit for the reason Rob cares about", () => {
+      const j = justifiedStatus({ status: "lit", doorsOpened: 3, keyDates: { paid: "2026-07-18" } });
+      expect(j.reason).toBe("paid 2026-07-18");
+    });
+
+    it("ranks above quoted — doors opened is further along than merely quoted", () => {
+      const j = justifiedStatus({ status: "unlit", doorsOpened: 2, quotedAmount: 7000 });
+      expect(j.status).toBe("lit");
+      expect(j.reason).toBe("opened 2 doors in the network");
+    });
+
+    it("treats counted-zero exactly like an uncounted field, and prints neither", () => {
+      // 0 must fall through to the money rungs, and must never appear as evidence:
+      // "doorsOpened=0" beside a lit status reads as the finding when it is the
+      // absence of one.
+      const counted = justifiedStatus({ status: "lit", doorsOpened: 0 });
+      const uncounted = justifiedStatus({ status: "lit" });
+      expect(counted).toEqual(uncounted);
+      expect(counted.evidence.join()).not.toContain("doorsOpened");
+    });
+
+    it("may defend a stored status but may never accuse one", () => {
+      // The rung is the only non-provable one: an edge is the attribution chain, which
+      // OVERLAPS with "actively referring" without being it. Stored warm + 1 door must
+      // therefore surface as a look, never as "should be lit".
+      expect(justifiedStatus({ status: "warm", doorsOpened: 1 }).provable).toBe(false);
+      const d = statusDrift({ status: "warm", doorsOpened: 1 })!;
+      expect(d.kind).toBe("understated");
+      expect(d.assertable).toBe(false);
+      // ...while a money rung in the same direction stays assertable.
+      expect(statusDrift({ status: "unlit", quotedAmount: 7000 })!.assertable).toBe(true);
+    });
+
+    it("every other rung stays provable — the flag is not a general amnesty", () => {
+      for (const r of [
+        { status: "unlit" as const, keyDates: { paid: "2026-07-18" } },
+        { status: "unlit" as const, keyDates: { invoiced: "2026-07-16" } },
+        { status: "unlit" as const, signed: true },
+        { status: "unlit" as const, quotedAmount: 7000 },
+        { status: "unlit" as const, keyDates: { met: "2026-07-28" } },
+        { status: "lit" as const },
+      ]) {
+        expect(justifiedStatus(r).provable).toBe(true);
+      }
+      expect(justifiedStatus({ status: "unlit" }, [{ status: "warm" }]).provable).toBe(true);
+    });
+
+    it("stops accusing P-1001 Rob Acheson — the record that IS the origin", () => {
+      // The case that forced this rung. Measured on prod 2026-08-06 before the fix:
+      // Rob stored `lit`, no money field on his own row, 10 referredById edges
+      // pointing at him — so the ladder called it overstated and the badge would have
+      // read "worth a look" on the record he opens most.
+      const rob = { status: "lit" as const, doorsOpened: 10 };
+      expect(statusDrift(rob)).toBeNull();
+      // ...and it was genuinely drifting before the rung existed.
+      expect(statusDrift({ status: "lit" })).not.toBeNull();
+    });
+  });
+
   it("never writes — the record handed in is unchanged", () => {
     const before = JSON.stringify(onTimeMoving);
     statusDrift(onTimeMoving);
@@ -138,6 +213,28 @@ describe("driftReport", () => {
     expect(report.items[0].drift.assertable).toBe(true);
     expect(report.membershipKnown).toBe(true);
     expect(report.withheldForMissingMembership).toEqual([]);
+  });
+
+  // Q91(a) inc.32 — driftReport is the ONLY caller allowed to supply doorsOpened,
+  // because it is the only one holding every row.
+  it("counts referral edges across the whole book, so a connector is not accused", () => {
+    const rows = [
+      p({ id: "P-1001", name: "Rob Acheson", status: "lit" }),
+      p({ id: "P-2", referredById: "P-1001" }),
+      p({ id: "P-3", referredById: "P-1001" }),
+    ];
+    // Rob holds no money field of his own; without the edge count he drifts.
+    expect(statusDrift({ status: "lit" })).not.toBeNull();
+    expect(driftReport(rows).items.map((r) => r.id)).not.toContain("P-1001");
+  });
+
+  it("a person who opened no doors is still judged on the rest of the ladder", () => {
+    // The mirror of the above: the rung must not amnesty every row it touches.
+    const rows = [p({ id: "P-9", name: "No Doors", status: "lit" })];
+    const report = driftReport(rows);
+    expect(report.items.map((r) => r.id)).toEqual(["P-9"]);
+    expect(report.items[0].drift.kind).toBe("overstated");
+    expect(report.items[0].drift.assertable).toBe(false);
   });
 
   it("a book where every status matches its facts reports nothing", () => {

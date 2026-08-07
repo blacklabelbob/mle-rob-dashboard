@@ -7,9 +7,11 @@ import DocumentsSection from "@/components/esign/DocumentsSection";
 import EnrichmentSection from "@/components/EnrichmentSection";
 import EstimatePanel from "@/components/EstimatePanel";
 import PersonEditor from "@/components/PersonEditor";
+import StatusJustification from "@/components/StatusJustification";
 import ThingsToAddress from "@/components/ThingsToAddress";
 import EquityOnRecord from "@/components/EquityOnRecord";
 import { typeLabel } from "@/lib/labels";
+import { driftReport } from "@/lib/networkStatus";
 import { ORIGIN_ID, formatChain, indexNodes, lineage } from "@/lib/lineage";
 import { splitNotes } from "@/lib/notes";
 import { resolveRecord } from "@/lib/records/resolveRecord";
@@ -42,6 +44,19 @@ export default async function PersonPage({
   // org link renders — a role with no orgId stays plain text rather than
   // implying a company we don't have on file.
   const org = person.orgId ? data.people.find((p) => p.id === person.orgId) : undefined;
+
+  // Q91(a) — the DoD says "every org/person record", and inc.31 only reached the org
+  // half. Same call shape as /companies/[id] on purpose: the whole book goes through
+  // `driftReport` and this row is looked up in the result, rather than calling
+  // `statusDrift` on the person alone. `driftReport` is where the Q91(c) membership
+  // guard lives; calling the ladder directly here would re-derive the rule with the
+  // guard silently missing (the second-copy failure Q88 exists to catch).
+  //
+  // A person row is never the row that guard withholds — withholding is scoped to
+  // `entityKind === "company"`, because members are what an org's rung depends on and
+  // a person has none. So on this page the guard is inherited, not relied upon: what
+  // it buys is that the rule has ONE implementation, not that this page needs it.
+  const statusDrift = driftReport(data.people).items.find((i) => i.id === person.id)?.drift ?? null;
 
   return (
     <div className="space-y-6">
@@ -89,6 +104,11 @@ export default async function PersonPage({
               </>
             )}
           </p>
+        )}
+        {statusDrift && (
+          <div className="mt-3 max-w-3xl">
+            <StatusJustification drift={statusDrift} />
+          </div>
         )}
       </div>
 
