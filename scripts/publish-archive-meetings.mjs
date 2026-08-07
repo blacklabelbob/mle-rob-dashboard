@@ -96,7 +96,10 @@ const SERVICE_KEY = env.SUPABASE_SERVICE_ROLE_KEY || "";
 function toRow(a) {
   return {
     id: a.id,
-    person_id: null,
+    // inc.7 — set only when exactly one counterparty on the row resolved to one CRM person.
+    // `null` here is a stated refusal, not a gap: `sourceContext.attendees` carries who was
+    // named and why nobody was attached.
+    person_id: a.personId ?? null,
     org_id: a.orgId,
     deal_id: null,
     created_by: a.createdBy,
@@ -129,6 +132,7 @@ const drafts = [];
 const refusals = [];
 const outOfScope = [];
 const droppedSummaries = [];
+const personRefusals = [];
 for (const planRow of planRows) {
   // Q85's own scope line, enforced before anything is drafted — see `recorderSawMeeting`.
   // Kept separate from `refusals` on purpose: a refusal is the plan saying "answer something
@@ -138,9 +142,13 @@ for (const planRow of planRows) {
     outOfScope.push({ rowId: planRow?.row?.id, title: planRow?.row?.title, disposition: planRow?.disposition });
     continue;
   }
-  const result = draftActivityFromPlan(planRow, CREATED_BY);
+  // Q85 inc.7 — the row's own attendee resolution, computed once by `check:archive` and carried
+  // on the plan row it belongs to. Absent on an older JSON file, which is why the draft module
+  // takes it as OPTIONAL: an input produced before inc.7 writes exactly the row it always wrote.
+  const result = draftActivityFromPlan(planRow, CREATED_BY, planRow?.attendeeResolution);
   if (result.drafted) {
     drafts.push({ draft: result.draft, planRow });
+    if (result.personRefusal) personRefusals.push({ id: result.draft.id, why: result.personRefusal });
     if (result.droppedSummary) droppedSummaries.push({ id: result.draft.id, why: result.droppedSummary });
   } else {
     refusals.push({ rowId: planRow?.row?.id, title: planRow?.row?.title, refusal: result.refusal });
@@ -198,6 +206,7 @@ if (AS_JSON) {
         alreadyPresent: alreadyPresent.map((d) => d.draft.id),
         wouldInsert: toInsert.map((d) => d.draft),
         droppedSummaries,
+        personRefusals,
         applied: false,
       },
       null,
@@ -217,11 +226,14 @@ console.log(`would insert           ${toInsert.length}\n`);
 for (const d of toInsert) {
   const s = d.draft;
   console.log(`  + ${s.id}`);
-  console.log(`      org=${s.orgId}  occurred=${s.occurredAt}  dayFrom=${s.sourceContext.dayFrom}  matchedBy=${s.sourceContext.matchedBy ?? "—"}`);
+  console.log(`      org=${s.orgId}  person=${s.personId ?? "—"}  occurred=${s.occurredAt}  dayFrom=${s.sourceContext.dayFrom}  matchedBy=${s.sourceContext.matchedBy ?? "—"}`);
   console.log(`      "${(d.planRow.row.title || "").slice(0, 90)}"`);
   console.log(`      summary=${s.summary ? `${s.summary.length} chars` : "none"}`);
 }
 for (const d of droppedSummaries) console.log(`\n  ! ${d.id}: ${d.why}`);
+// inc.7 — a row landing on a company with no human on it says WHY, next to the row. A null
+// person_id nobody explained reads as "we forgot"; every one of these is a decision.
+for (const d of personRefusals) console.log(`\n  👤 ${d.id}: ${d.why}`);
 for (const d of alreadyPresent) console.log(`\n  = ${d.draft.id} already present — left exactly as it is (this pass never overwrites a meeting row)`);
 
 if (!APPLY) {
@@ -245,5 +257,5 @@ if (!res.ok) {
 }
 const written = await res.json();
 console.log(`\nWROTE ${written.length} activity row(s):`);
-for (const w of written) console.log(`  ${w.id}  type=${w.type}  org=${w.org_id}  occurred=${w.occurred_at}`);
+for (const w of written) console.log(`  ${w.id}  type=${w.type}  org=${w.org_id}  person=${w.person_id ?? "—"}  occurred=${w.occurred_at}`);
 console.log(`\nRe-run \`npm run check:archive\` to see the reconciliation move.`);

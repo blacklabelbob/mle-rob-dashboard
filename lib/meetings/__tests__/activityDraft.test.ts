@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { draftActivityFromPlan, draftActivityId, recorderSawMeeting } from "@/lib/meetings/activityDraft";
-import { planMeetingActivities, type CrmOrg } from "@/lib/meetings/activityPlan";
+import { planMeetingActivities, type CrmOrg, type CrmPerson } from "@/lib/meetings/activityPlan";
+import { readArchiveAttendees } from "@/lib/meetings/archiveAttendees";
+import { resolveRowAttendees } from "@/lib/meetings/attendeePerson";
 import type { ArchiveRowDetail } from "@/lib/meetings/unexplainedRows";
 
 const ORGS: CrmOrg[] = [
@@ -153,5 +155,88 @@ describe("recorderSawMeeting — Q85's scope line as code", () => {
     expect(planned.disposition).toBe("attachable");
     // The plan is right that it COULD attach. The scope gate is what says this pass must not.
     expect(recorderSawMeeting(planned.row)).toBe(false);
+  });
+});
+
+/**
+ * Q85 inc.7 — the person half of the draft. Every case below is built through the REAL resolver
+ * (`resolveRowAttendees`) and the real reader (`readArchiveAttendees`), so nothing here can pass
+ * against a hand-made resolution shape the pipeline never produces.
+ */
+describe("draftActivityFromPlan — the person on the row (inc.7)", () => {
+  const PEOPLE: CrmPerson[] = [
+    { id: "P-1022", name: "Alex Greenwood", orgId: "C-0002" },
+    { id: "P-1018", name: "Caleb Green", orgId: "C-0006" },
+  ];
+  const attachable = () => plan1(row({ company: "Gulf Coast RE Group", recording: "https://fireflies.ai/view/x" }));
+  const resolveFor = (fields: Parameters<typeof readArchiveAttendees>[0], orgId = "C-0002") =>
+    resolveRowAttendees(readArchiveAttendees(fields), PEOPLE, orgId);
+
+  it("attaches the one counterparty the CRM resolved, and says so in sourceContext", () => {
+    const result = draftActivityFromPlan(
+      attachable(),
+      "driver:test",
+      resolveFor({ nonMleAttendees: "Alex Greenwood", mleAttendees: ["Rob Acheson"] })
+    );
+    expect(result.drafted).toBe(true);
+    if (!result.drafted) return;
+    expect(result.draft.personId).toBe("P-1022");
+    expect(result.draft.sourceContext.attendees).toMatchObject({ counterparties: 1, matched: 1, matchedIds: ["P-1022"] });
+    expect(result.personRefusal).toBeUndefined();
+  });
+
+  it("never attaches an internal attendee — Rob is on both sides of every meeting", () => {
+    const result = draftActivityFromPlan(attachable(), "driver:test", resolveFor({ mleAttendees: ["Rob Acheson"] }));
+    expect(result.drafted).toBe(true);
+    if (!result.drafted) return;
+    expect(result.draft.personId).toBeUndefined();
+    expect(result.draft.sourceContext.attendees).toMatchObject({ counterparties: 0 });
+    expect(result.personRefusal).toContain("names nobody on the other side");
+  });
+
+  it("refuses to pick when TWO counterparties resolved — person_id is one column, a meeting is not", () => {
+    const result = draftActivityFromPlan(
+      attachable(),
+      "driver:test",
+      resolveFor({ nonMleAttendees: "Alex Greenwood, Caleb Green" })
+    );
+    expect(result.drafted).toBe(true);
+    if (!result.drafted) return;
+    expect(result.draft.personId).toBeUndefined();
+    // Both are still ON the row — refusing to pick is not refusing to record.
+    expect(result.draft.sourceContext.attendees?.matchedIds).toEqual(["P-1022", "P-1018"]);
+    expect(result.personRefusal).toContain("none is picked");
+  });
+
+  it("attaches nobody for a person the CRM has never met — the live Joseph Green / Caleb Green trap", () => {
+    const result = draftActivityFromPlan(attachable(), "driver:test", resolveFor({ nonMleAttendees: "Joseph Green" }));
+    expect(result.drafted).toBe(true);
+    if (!result.drafted) return;
+    expect(result.draft.personId).toBeUndefined();
+    expect(result.draft.sourceContext.attendees).toMatchObject({ unknown: 1, matched: 0 });
+    expect(result.personRefusal).toContain("never met");
+  });
+
+  it("attaches nobody for a first name alone, and says which fix makes it work", () => {
+    const result = draftActivityFromPlan(attachable(), "driver:test", resolveFor({ contactName: "Alex" }));
+    expect(result.drafted).toBe(true);
+    if (!result.drafted) return;
+    expect(result.draft.personId).toBeUndefined();
+    expect(result.personRefusal).toContain("first name only");
+  });
+
+  it("a caller that passes no attendees drafts exactly the pre-inc.7 row — no person, no context, no refusal", () => {
+    const before = draftActivityFromPlan(attachable(), "driver:test");
+    expect(before.drafted).toBe(true);
+    if (!before.drafted) return;
+    expect(before.draft.personId).toBeUndefined();
+    expect(before.draft.sourceContext.attendees).toBeUndefined();
+    expect(before.personRefusal).toBeUndefined();
+  });
+
+  it("attaching a person never changes the row's identity — the id is the page, not the human", () => {
+    const withPerson = draftActivityFromPlan(attachable(), "driver:test", resolveFor({ nonMleAttendees: "Alex Greenwood" }));
+    const without = draftActivityFromPlan(attachable(), "driver:test");
+    expect(withPerson.drafted && without.drafted && withPerson.draft.id === without.draft.id).toBe(true);
   });
 });

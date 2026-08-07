@@ -214,7 +214,24 @@ for (const item of activityPlan.rows) {
   if (hit) attendanceByRow.set(item.row.id, hit);
 }
 
+// Q85 inc.7 — resolve the archive's own attendee columns to CRM people ONCE, here, and hand the
+// answer to every consumer below. Before this, the resolution was computed inside the
+// human-readable printer only, so the `--json` output the writer reads carried no people at all
+// and `publish-archive-meetings.mjs` hardcoded `person_id: null`. Two call sites computing the
+// same answer separately is how the printed number and the written row drift apart; there is one
+// call site now, and the printer reads this map rather than re-resolving.
+const attendeesByRow = new Map();
+for (const item of activityPlan.rows) {
+  attendeesByRow.set(item.row.id, resolveRowAttendees(readArchiveAttendees(item.row), people, item.org?.id));
+}
+
 if (AS_JSON) {
+  // The resolution rides on the plan row it belongs to, so a consumer cannot pair the wrong
+  // person list with the wrong meeting by mis-joining two arrays.
+  activityPlan.rows = activityPlan.rows.map((item) => ({
+    ...item,
+    attendeeResolution: attendeesByRow.get(item.row.id),
+  }));
   const attendance = [...attendanceByRow].map(([rowId, hit]) => ({
     rowId,
     recording: hit.recording.title || hit.recording.id,
@@ -316,7 +333,9 @@ if (ap.considered) {
   // person vs. type a surname into Notion). Nothing here writes — see lib/meetings/attendeePerson.ts.
   const personTally = { matched: 0, ambiguous: 0, unknown: 0 };
   for (const item of activityPlan.rows) {
-    const resolved = resolveRowAttendees(readArchiveAttendees(item.row), people, item.org?.id);
+    // inc.7 — read, not re-resolved. See `attendeesByRow` above.
+    const resolved = attendeesByRow.get(item.row.id);
+    if (!resolved) continue;
     personTally.matched += resolved.counts.matched;
     personTally.ambiguous += resolved.counts.ambiguous;
     personTally.unknown += resolved.counts.unknown;

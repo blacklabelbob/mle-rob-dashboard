@@ -43,6 +43,7 @@
 
 import { detectEmptyRecordingBoilerplate } from "./emptyRecordingBoilerplate";
 import type { ActivityPlanRow } from "./activityPlan";
+import type { ResolvedAttendees } from "./attendeePerson";
 
 /**
  * The `activities` row, in the exact shape `scripts/publish-meeting-activity.mjs` reads out of
@@ -52,6 +53,13 @@ import type { ActivityPlanRow } from "./activityPlan";
 export type ActivityDraft = {
   id: string;
   orgId: string;
+  /**
+   * Q85 inc.7 — set ONLY when exactly one counterparty on the row resolved to exactly one CRM
+   * person. Absent is the normal answer and it is not a failure: `activities.person_id` is one
+   * column, a meeting can have three counterparties in it, and there is no honest way to pick
+   * which of three humans a call "was with". See `personRefusal` for why a given row has none.
+   */
+  personId?: string;
   type: "meeting";
   source: "notion-archive";
   createdBy: string;
@@ -70,6 +78,21 @@ export type ActivityDraft = {
     dayFrom: "call-date" | "title";
     /** How the plan agreed on the company, so a reader can weigh it without re-running the plan. */
     matchedBy?: "name" | "domain";
+    /**
+     * Q85 inc.7 — what the archive said about who was in the room, and what the CRM could answer,
+     * carried onto the row itself. Written whether or not a person was attached, because "nobody
+     * was attached" and "nobody was named" are different facts and the second one is the one that
+     * gets fixed in Notion. `matchedIds` is every counterparty that resolved — including the case
+     * where there are two and neither was attached.
+     */
+    attendees?: {
+      counterparties: number;
+      matched: number;
+      ambiguous: number;
+      unknown: number;
+      notIdentifying: number;
+      matchedIds: string[];
+    };
   };
 };
 
@@ -79,7 +102,18 @@ export type DraftRefusal =
   | { kind: "no-day"; why: string };
 
 export type DraftResult =
-  | { drafted: true; draft: ActivityDraft; /** Stated when the summary was dropped. */ droppedSummary?: string }
+  | {
+      drafted: true;
+      draft: ActivityDraft;
+      /** Stated when the summary was dropped. */ droppedSummary?: string;
+      /**
+       * Q85 inc.7 — why this row carries no `personId`, in the words of what a human would go do
+       * about it. Present on every drafted row that attached nobody; absent when one attached.
+       * Never silent: a meeting landing on a company with no human on it is a thing a reader is
+       * entitled to see explained next to the row rather than infer from a null.
+       */
+      personRefusal?: string;
+    }
   | { drafted: false; refusal: DraftRefusal };
 
 /**
@@ -123,8 +157,24 @@ export function recorderSawMeeting(row: { recording?: string }): boolean {
  * @param createdBy who to record as the author of the row — the caller's own label (e.g.
  *   `driver:Q85-inc.2`). Passed in rather than hardcoded so a row can always be traced to the run
  *   that made it, and so this module holds no opinion about who is running it.
+ * @param attendees the output of `resolveRowAttendees` for this same row, when the caller has it.
+ *   OPTIONAL on purpose: omitting it produces exactly the draft this module produced before
+ *   inc.7 — no person, no attendee context — so a caller that has not been taught about people
+ *   yet writes the row it always did rather than a subtly different one.
+ *
+ * ON PERSON ATTACHMENT (inc.7), which has one rule: ATTACH ONLY WHEN THE ROW NAMES EXACTLY ONE
+ * RESOLVED COUNTERPARTY. `activities.person_id` is a single column and a meeting is not. With
+ * two matched humans there is no fact saying which of them the meeting "was with", so both are
+ * recorded in `sourceContext.attendees.matchedIds` and neither is welded into the column — the
+ * same refusal the org half makes when two companies are in the room. `ambiguous`, `unknown` and
+ * `not-identifying` never attach, by their own definitions: each is a question, and inc.6's live
+ * prod read (Joseph Green vs the CRM's Caleb Green) is what a guess would have cost.
  */
-export function draftActivityFromPlan(planRow: ActivityPlanRow, createdBy: string): DraftResult {
+export function draftActivityFromPlan(
+  planRow: ActivityPlanRow,
+  createdBy: string,
+  attendees?: ResolvedAttendees
+): DraftResult {
   if (planRow.disposition !== "attachable" || !planRow.org) {
     return {
       drafted: false,
@@ -156,9 +206,12 @@ export function draftActivityFromPlan(planRow: ActivityPlanRow, createdBy: strin
   const dropSummary = boilerplate?.verdict === "boilerplate-only";
   const summary = dropSummary ? undefined : rawSummary || undefined;
 
+  const person = resolvePersonForDraft(attendees);
+
   const draft: ActivityDraft = {
     id: draftActivityId(planRow.row.id, day),
     orgId: planRow.org.id,
+    ...(person.personId ? { personId: person.personId } : {}),
     type: "meeting",
     source: "notion-archive",
     createdBy,
@@ -177,17 +230,76 @@ export function draftActivityFromPlan(planRow: ActivityPlanRow, createdBy: strin
       ...(planRow.row.recording ? { recording: planRow.row.recording } : {}),
       dayFrom: planRow.dayFrom || "call-date",
       ...(planRow.matchedBy ? { matchedBy: planRow.matchedBy } : {}),
+      ...(person.context ? { attendees: person.context } : {}),
     },
   };
 
-  return dropSummary
-    ? {
-        drafted: true,
-        draft,
-        droppedSummary:
-          "the archive's summary is Notion's empty-recording template and nothing else " +
-          `(${boilerplate?.matched.length} markers matched, ${boilerplate?.substantiveChars} substantive chars) — ` +
-          "it is not what anyone said, so it is not written onto a company record",
-      }
-    : { drafted: true, draft };
+  return {
+    drafted: true,
+    draft,
+    ...(person.refusal ? { personRefusal: person.refusal } : {}),
+    ...(dropSummary
+      ? {
+          droppedSummary:
+            "the archive's summary is Notion's empty-recording template and nothing else " +
+            `(${boilerplate?.matched.length} markers matched, ${boilerplate?.substantiveChars} substantive chars) — ` +
+            "it is not what anyone said, so it is not written onto a company record",
+        }
+      : {}),
+  };
+}
+
+/**
+ * The person half of one draft, kept separate from the draft body so the rule is readable on its
+ * own page: exactly one resolved counterparty attaches, everything else explains itself.
+ *
+ * A caller that passes no attendees gets `{}` — no id, no context, and no refusal text either,
+ * because "this caller never asked about people" is not a refusal about this row.
+ */
+function resolvePersonForDraft(attendees?: ResolvedAttendees): {
+  personId?: string;
+  context?: NonNullable<ActivityDraft["sourceContext"]["attendees"]>;
+  refusal?: string;
+} {
+  if (!attendees) return {};
+
+  const { counts, attachablePersonIds } = attendees;
+  const context = {
+    counterparties: counts.total,
+    matched: counts.matched,
+    ambiguous: counts.ambiguous,
+    unknown: counts.unknown,
+    notIdentifying: counts.notIdentifying,
+    matchedIds: attachablePersonIds,
+  };
+
+  if (attachablePersonIds.length === 1) return { personId: attachablePersonIds[0], context };
+
+  if (attachablePersonIds.length > 1)
+    return {
+      context,
+      refusal:
+        `${attachablePersonIds.length} counterparties resolved (${attachablePersonIds.join(", ")}) and ` +
+        `person_id holds one — all of them are on the row in sourceContext.attendees, none is picked. ` +
+        `Set the one the meeting was with by hand if it matters.`,
+    };
+
+  if (counts.total === 0)
+    return {
+      context,
+      refusal:
+        "the archive names nobody on the other side of this meeting — the four attendee columns in " +
+        "Notion are empty, so there is no human to attach. Fill one in and this row resolves unattended.",
+    };
+
+  const parts: string[] = [];
+  if (counts.ambiguous) parts.push(`${counts.ambiguous} name more than one CRM person`);
+  if (counts.unknown) parts.push(`${counts.unknown} are people the CRM has never met`);
+  if (counts.notIdentifying) parts.push(`${counts.notIdentifying} give a first name only`);
+  return {
+    context,
+    refusal:
+      `${counts.total} counterpart(ies) named, none attachable: ${parts.join(" · ")}. ` +
+      "The meeting is on the company; the human is a question, and a question is not a null to be filled in.",
+  };
 }
