@@ -12,7 +12,7 @@
 // look") — never "wrong", never an error tone. A badge that called Gulf Coast an
 // error for being lit while referring work would be the module lying with confidence.
 
-import type { StatusDrift } from "./networkStatus";
+import type { DriftReport, StatusDrift } from "./networkStatus";
 
 export type BadgeTone = "correctable" | "review";
 
@@ -51,6 +51,57 @@ export function driftMark(drift: StatusDrift): DriftMark {
     label: badge.tone === "correctable" ? `should be ${drift.justified}` : "worth a look",
     title: badge.detail,
   };
+}
+
+export interface DriftSummary {
+  /** Records the ladder can prove wrong. Same gate as the `correctable` badge tone. */
+  correctable: number;
+  /** Records that merely disagree. Never called wrong, here or anywhere else. */
+  review: number;
+  /** Orgs whose drift was WITHHELD because the book records no membership (Q91(c)). */
+  withheld: number;
+  /** The Overview line. Null when the book has nothing to report — then print nothing. */
+  line: string | null;
+}
+
+/**
+ * The book-level count for the Overview (Q91(a), the last line of its DoD).
+ *
+ * Two rules it exists to keep:
+ *
+ *  1. **It counts by asking `driftBadge`, not by reading `assertable`.** The tables and
+ *     the record pages decide "is this an error or a look?" through that function; a
+ *     second copy of the test here would be free to drift from them, and the Overview
+ *     would then total something no page prints. One arbiter, consumed twice.
+ *
+ *  2. **Withheld rows are counted, never folded in.** `driftReport` suppresses
+ *     overstated org drift when the book has no membership to judge it by, and a
+ *     summary that only added `items.length` would report those as *agreement*. The
+ *     book cannot answer for them — which is a different thing from "they are fine",
+ *     and the one the Overview must not blur.
+ */
+export function driftSummary(report: DriftReport): DriftSummary {
+  let correctable = 0;
+  let review = 0;
+  for (const item of report.items) {
+    if (driftBadge(item.drift).tone === "correctable") correctable++;
+    else review++;
+  }
+  const withheld = report.withheldForMissingMembership.length;
+
+  const parts: string[] = [];
+  if (correctable > 0) {
+    // Indicative, matching the record page: these are contradicted by fields they hold.
+    parts.push(correctable === 1 ? "1 record contradicts its own fields" : `${correctable} records contradict their own fields`);
+  }
+  if (review > 0) {
+    parts.push(`${review} worth a look`);
+  }
+  if (withheld > 0) {
+    parts.push(withheld === 1 ? "1 org this book cannot judge" : `${withheld} orgs this book cannot judge`);
+  }
+
+  return { correctable, review, withheld, line: parts.length > 0 ? parts.join(" · ") : null };
 }
 
 export function driftBadge(drift: StatusDrift): DriftBadge {

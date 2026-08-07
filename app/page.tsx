@@ -13,6 +13,8 @@ import { buildMeetingIntel } from "@/lib/meetings/meetingIntel";
 import { dealCandidate } from "@/lib/equity";
 import { computeStats, contribution, isDemo, money } from "@/lib/stats";
 import { isOriginId } from "@/lib/records/origin";
+import { driftReport } from "@/lib/networkStatus";
+import { driftSummary } from "@/lib/statusBadge";
 import type { Person, Project, WillItem } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -32,6 +34,17 @@ export default async function Overview() {
   const [data, deals] = await Promise.all([store.getNetwork(), store.listDeals()]);
   data.people = data.people.filter((p) => !isDemo(p));
   const stats = computeStats(data);
+
+  // Q91(a), last line of the DoD — the drift count, on the tile it is about.
+  //
+  // `data.people` is already demo-filtered above, so this counts EXACTLY the rows the
+  // lit/warm/unlit numbers beside it count. Anything narrower and the Overview would
+  // report drift against a denominator it does not print.
+  //
+  // `driftReport` over the whole book, never `statusDrift` per row: doors-opened edges
+  // are counted book-wide and the Q91(c) membership guard lives in the report, so a
+  // per-row loop here would both understate connectors and lose the withheld rows.
+  const drift = driftSummary(driftReport(data.people));
 
   // Q41 inc.1: a stake is not always an entity. The Gulf Coast 30% lives on a DEAL
   // (`deal-gulf-coast-equity-phase4`) — feeding only people/orgs silently dropped a
@@ -96,6 +109,9 @@ export default async function Overview() {
           label="Lit / warm / unlit"
           value={`${stats.litCount} / ${stats.warmCount} / ${stats.unlitCount}`}
           accent="text-amber-300"
+          // Silent when the book agrees with itself. A "0 drifting" line every day is
+          // furniture, and furniture is what stops being read before the day it matters.
+          sub={drift.line ?? undefined}
         />
         <Stat
           label="Signed value"
