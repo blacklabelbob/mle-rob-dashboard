@@ -9,6 +9,8 @@ import {
 import { anchorIdOf, esignDb, getRequestByTokenHash, insertEvent, listEvents } from "@/lib/esign/db";
 import { buildEvent } from "@/lib/esign/events";
 import { sha256Hex } from "@/lib/esign/hash";
+import { extractPageText } from "@/lib/esign/pdfText";
+import { findSignatureAnchors } from "@/lib/esign/signatureAnchors";
 import {
   ROB_COPY_ADDRESS,
   deliverEsignEmail,
@@ -18,7 +20,7 @@ import {
 } from "@/lib/esign/sender";
 import { stampAndCertify } from "@/lib/esign/stamp";
 import { canTransition, type DocumentStatus } from "@/lib/esign/status";
-import { documentPath, downloadPdf, signedUrlFor, uploadPdf } from "@/lib/esign/storage";
+import { documentPath, downloadFilename, downloadPdf, signedUrlFor, uploadPdf } from "@/lib/esign/storage";
 import { hashToken, verifyToken } from "@/lib/esign/token";
 import { getStore } from "@/lib/storage";
 
@@ -181,8 +183,14 @@ export async function POST(req: NextRequest) {
       { type: "signed", at: now, ip },
     ];
 
+    // Locate the agreement's own signature rules so the ink lands on the
+    // paper, not only on the certificate (Rob 2026-08-07). Never fatal:
+    // extractPageText returns [] on any failure -> no anchors -> old behaviour.
+    const anchors = findSignatureAnchors(await extractPageText(original));
+
     const signedBytes = await stampAndCertify({
       originalPdf: original,
+      anchors,
       documentTitle: document.title,
       documentId: document.id,
       version: document.version,
@@ -380,7 +388,11 @@ export async function POST(req: NextRequest) {
     .catch((err) => console.error("[esign] timeline activity failed:", err));
 
   // Copy delivery (ESIGN element 4). 7-day link; failures logged, never fatal.
-  const downloadUrl = await signedUrlFor(signedPath, 7 * 24 * 3600);
+  const downloadUrl = await signedUrlFor(
+    signedPath,
+    7 * 24 * 3600,
+    downloadFilename(document.title)
+  );
   const env = esignSenderEnv();
   if (esignSenderConfigured(env)) {
     const copy = signedCopyEmail({
@@ -389,7 +401,14 @@ export async function POST(req: NextRequest) {
       downloadUrl,
       signedAtIso: now,
     });
-    for (const to of [signerEmail || request.sent_to, ROB_COPY_ADDRESS]) {
+    // Dedupe: when the signer IS the copy address (dry runs, or Rob signing
+    // something himself) one send, not two identical emails (Rob 2026-08-07).
+    const recipients = [...new Set(
+      [signerEmail || request.sent_to, ROB_COPY_ADDRESS]
+        .filter(Boolean)
+        .map((a) => String(a).trim().toLowerCase())
+    )];
+    for (const to of recipients) {
       const result = await deliverEsignEmail({ to, ...copy }, env);
       if (result.sent) {
         await insertEvent(

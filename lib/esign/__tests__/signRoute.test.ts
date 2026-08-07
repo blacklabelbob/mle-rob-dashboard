@@ -131,6 +131,7 @@ describe("POST /api/esign/sign — post-latch failure recovery", () => {
         uploaded.push(path);
       },
       signedUrlFor: async () => "https://example.com/signed-url",
+      downloadFilename: (title: string, suffix = "signed") => `${title} (${suffix}).pdf`,
     }));
     vi.doMock("@/lib/esign/stamp", () => ({
       stampAndCertify: async () => {

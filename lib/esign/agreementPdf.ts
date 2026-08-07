@@ -270,7 +270,11 @@ export function buildScopeContent(
   const items: string[] = [];
   for (const e of entities) {
     const label = sole ? "for the Company" : `for ${e.name}`;
-    items.push(`&ldquo;Living&rdquo; Second Brain Knowledge System (RAG) ${label} &mdash; ${BRAIN_DESC}.`);
+    // Bold lead-in matches every other scope bullet (Rob 2026-08-07); kept in
+    // lockstep with the Python engine's build_scope so parity holds.
+    items.push(
+      `<b>&ldquo;Living&rdquo; Second Brain Knowledge System (RAG) ${label}</b> &mdash; ${BRAIN_DESC}.`
+    );
   }
   for (const e of entities) {
     const a = e.agents;

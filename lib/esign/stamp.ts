@@ -1,5 +1,7 @@
 import { PDFDocument, PDFFont, PDFPage, StandardFonts, rgb } from "@cantoo/pdf-lib";
 import { ESIGN_CONSENT_TEXT } from "./consent";
+import { drawInkOnLine, formatSignatureDate } from "./inkOnLine";
+import type { SignatureAnchors } from "./signatureAnchors";
 import { formatEventChain } from "./events";
 
 // Q47 e-sign: server-side stamping via @cantoo/pdf-lib (MIT, the scout's
@@ -10,11 +12,15 @@ import { formatEventChain } from "./events";
 // signer IP/user-agent, and the full event chain — "the page that wins the
 // court fight" (walkthrough step 6).
 //
-// Deliberate choice, on the record: the signature is NOT overlaid onto the
-// source last page. pdf-lib has no text extraction, so placing ink at guessed
-// coordinates risks covering legal text on any non-standard layout; the
-// certificate page is unambiguous, always legible, and part of the same PDF
-// (ESIGN association element). Pure function: all timestamps/meta passed in.
+// AMENDED 2026-08-07 (Rob: "it doesnt fill in my Signature or the Date").
+// The original rule was "never overlay ink on the source pages", because
+// pdf-lib has no text extraction and GUESSED coordinates can cover legal text.
+// That reasoning stands — the conclusion was too broad. pdf.js gives us real
+// text positions (pdfText.ts -> signatureAnchors.ts), so ink now goes on the
+// agreement's ACTUAL "Signature: ____" rule, never on a guess. When the anchors
+// are not found, the old certificate-only behaviour is used unchanged.
+// The certificate page remains the evidentiary record either way.
+// Pure function: all timestamps/meta passed in.
 
 export interface StampArgs {
   originalPdf: Uint8Array;
@@ -33,6 +39,10 @@ export interface StampArgs {
   sha256AtUpload: string;
   sha256AtSign: string;
   events: { type: string; at: string; ip: string | null }[];
+  // Located signature lines on the source pages (pdfText + signatureAnchors).
+  // Optional by design: when absent, stamping behaves exactly as it did before
+  // in-place signatures existed — certificate page only.
+  anchors?: SignatureAnchors;
   // Consumer (§7001(c)) extras — ESIGN-CONSUMER-DISCLOSURE-SPEC §3.4: the
   // certificate reproduces the FULL disclosure text + version the consumer
   // saw, and the demonstrable-access evidence line.
@@ -76,6 +86,21 @@ export async function stampAndCertify(args: StampArgs): Promise<Uint8Array> {
   const helvBold = await doc.embedFont(StandardFonts.HelveticaBold);
   const italic = await doc.embedFont(StandardFonts.TimesRomanItalic);
   const mono = await doc.embedFont(StandardFonts.Courier);
+
+  // Fill the agreement's OWN client signature line when we could locate it
+  // (Rob 2026-08-07 — a blank "Signature: ____" does not read as executed).
+  // Absent anchors, this is a no-op and the certificate carries it alone.
+  if (args.anchors?.client) {
+    await drawInkOnLine({
+      doc,
+      anchor: args.anchors.client,
+      signatureDataUrl: args.signatureDataUrl,
+      typedName: args.typedName,
+      dateText: formatSignatureDate(args.signedAtIso),
+      helvetica: helv,
+      italic,
+    });
+  }
 
   const page = doc.addPage([612, 792]); // letter
   const width = 612 - MARGIN * 2;

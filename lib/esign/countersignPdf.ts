@@ -1,9 +1,13 @@
 import { PDFDocument, StandardFonts, rgb } from "@cantoo/pdf-lib";
+import { drawInkOnLine, formatSignatureDate } from "./inkOnLine";
+import type { SignatureAnchors } from "./signatureAnchors";
 
 // Q47 countersign (inc.2): the MLE-side second signature, appended to the
-// signer's already-stamped PDF. Same deliberate choice as stamp.ts — nothing
-// is overlaid on the counterparty's pages; the countersignature is its own
-// page so the executed copy reads as one continuous, unaltered record:
+// signer's already-stamped PDF. AMENDED 2026-08-07 in lockstep with stamp.ts:
+// the countersignature is now also drawn on the agreement's own PROVIDER
+// "Signature: ____ / Date: ____" rule when that line can be located by real
+// text position, so the executed PDF reads as signed by BOTH parties on the
+// paper itself. The dedicated page remains, so the record is still:
 //   [original] + [SIGNATURE & AUDIT CERTIFICATE] + [COUNTERSIGNATURE].
 // Pure in the same sense as stamp.ts: bytes + facts in, bytes out, no clock,
 // no network, no DB. The `signed` status is untouched by design (0010 header).
@@ -20,6 +24,9 @@ export interface CountersignStampArgs {
   countersignerEmail: string | null;
   countersignedAtIso: string; // server-stamped, never self-reported
   sha256Signed: string; // digest of the bytes being countersigned
+  // PROVIDER-side signature line located on the source pages. Optional: absent
+  // anchors fall back to the countersignature page alone (pre-2026-08-07).
+  anchors?: SignatureAnchors;
 }
 
 const INK = rgb(0.1, 0.12, 0.16);
@@ -41,6 +48,20 @@ export async function stampCountersignature(args: CountersignStampArgs): Promise
   const helvBold = await doc.embedFont(StandardFonts.HelveticaBold);
   const italic = await doc.embedFont(StandardFonts.TimesRomanItalic);
   const mono = await doc.embedFont(StandardFonts.Courier);
+
+  // Ink on the agreement's own PROVIDER line (Rob 2026-08-07). Typed name is
+  // used for the countersignature — the CRM form captures name + title, not a
+  // drawn mark.
+  if (args.anchors?.provider) {
+    await drawInkOnLine({
+      doc,
+      anchor: args.anchors.provider,
+      typedName: name,
+      dateText: formatSignatureDate(args.countersignedAtIso),
+      helvetica: helv,
+      italic,
+    });
+  }
 
   const page = doc.addPage([612, 792]); // letter, matching the certificate page
   let y = 792 - 64;

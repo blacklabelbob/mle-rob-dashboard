@@ -62,12 +62,34 @@ export async function downloadPdf(path: string): Promise<Uint8Array> {
 
 // Time-limited read link for the private bucket (view buttons, signer preview,
 // copy emails). Default 1 hour; copy emails pass a longer window explicitly.
-export async function signedUrlFor(path: string, expiresInSeconds = 3600): Promise<string> {
+//
+// `downloadAs` sets the saved filename (Content-Disposition). Without it the
+// browser names the file after the storage key — "v1-signed.pdf" — which tells
+// the recipient nothing (Rob 2026-08-07: make the filename match the subject).
+export async function signedUrlFor(
+  path: string,
+  expiresInSeconds = 3600,
+  downloadAs?: string
+): Promise<string> {
   const { data, error } = await db()
     .storage.from(AGREEMENTS_BUCKET)
-    .createSignedUrl(path, expiresInSeconds);
+    .createSignedUrl(path, expiresInSeconds, downloadAs ? { download: downloadAs } : undefined);
   if (error || !data?.signedUrl) {
     throw new Error(`esign signed url ${path}: ${error?.message ?? "no url"}`);
   }
   return data.signedUrl;
+}
+
+/**
+ * A filesystem-safe download name built from the document title, so the saved
+ * PDF matches the email subject. Em dashes and smart punctuation are kept —
+ * only characters that are illegal in filenames are replaced.
+ */
+export function downloadFilename(title: string, suffix = "signed"): string {
+  const base = (title || "Agreement")
+    .replace(/[\\/:*?"<>|\n\r\t]/g, "-")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 120);
+  return `${base}${suffix ? ` (${suffix})` : ""}.pdf`;
 }

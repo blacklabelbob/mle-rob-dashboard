@@ -1,9 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { planCountersign, type CountersignDoc } from "@/lib/esign/countersign";
+import { buildEvent } from "@/lib/esign/events";
 import { stampCountersignature } from "@/lib/esign/countersignPdf";
 import { anchorIdOf, esignDb, insertEvent, type DocumentRow } from "@/lib/esign/db";
 import { sha256Hex } from "@/lib/esign/hash";
-import { countersignedPath, downloadPdf, signedUrlFor, uploadPdf } from "@/lib/esign/storage";
+import { extractPageText } from "@/lib/esign/pdfText";
+import { findSignatureAnchors } from "@/lib/esign/signatureAnchors";
+import {
+  countersignedPath,
+  downloadFilename,
+  downloadPdf,
+  signedUrlFor,
+  uploadPdf,
+} from "@/lib/esign/storage";
+import {
+  ROB_COPY_ADDRESS,
+  deliverEsignEmail,
+  esignSenderConfigured,
+  esignSenderEnv,
+  fullyExecutedEmail,
+} from "@/lib/esign/sender";
 import { getStore } from "@/lib/storage";
 
 // Q47 countersign inc.2 — the executor over the pure planner (lib/esign/
@@ -97,8 +113,11 @@ export async function POST(req: NextRequest) {
         `stored signed copy digest ${digest} does not match documents.sha256_signed — refusing to countersign an altered file`
       );
     }
+    const anchors = findSignatureAnchors(await extractPageText(signedBytes));
+
     const stamped = await stampCountersignature({
       signedPdf: signedBytes,
+      anchors,
       documentTitle: doc.title,
       documentId: doc.id,
       version: doc.version,
@@ -162,7 +181,43 @@ export async function POST(req: NextRequest) {
     })
     .catch((err) => console.error("[esign] countersign timeline activity failed:", err));
 
-  const downloadUrl = await signedUrlFor(outPath, 7 * 24 * 3600);
+  const downloadUrl = await signedUrlFor(
+    outPath,
+    7 * 24 * 3600,
+    downloadFilename(doc.title, "fully executed")
+  );
+
+  // Completion notice to both sides. Same posture as the signed-copy send:
+  // a mailer failure is logged, never unwinds an executed agreement.
+  const env = esignSenderEnv();
+  if (esignSenderConfigured(env)) {
+    const mail = fullyExecutedEmail({
+      signerName: reqRow?.signer_name || reqRow?.sent_to || "there",
+      documentTitle: doc.title,
+      downloadUrl,
+      countersignerName: name,
+      countersignerTitle: title,
+      executedAtIso: plan.documentPatch.countersigned_at,
+    });
+    const recipients = [...new Set(
+      [reqRow?.sent_to, ROB_COPY_ADDRESS]
+        .filter(Boolean)
+        .map((a) => String(a).trim().toLowerCase())
+    )];
+    for (const to of recipients) {
+      const res = await deliverEsignEmail({ to, ...mail }, env);
+      if (res.sent && reqRow?.id) {
+        await insertEvent(
+          buildEvent(reqRow.id, "copy_delivered", new Date().toISOString(), {
+            meta: { to, kind: "fully_executed" },
+          })
+        ).catch(() => undefined);
+      } else if (!res.sent) {
+        console.error(`[esign] executed copy to ${to} not sent: ${res.reason}`);
+      }
+    }
+  }
+
   return NextResponse.json({
     ok: true,
     documentId: doc.id,

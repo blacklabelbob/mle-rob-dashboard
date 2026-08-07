@@ -92,3 +92,31 @@ export function signedCopyEmail(args: {
 }
 
 export const ROB_COPY_ADDRESS = "rob@aivoicetech.io"; // identity rule — never boostuppayments
+
+// Both signatures on the paper (Rob 2026-08-07: "when Both people sign, do I
+// get another email showing Completed"). Sent to the counterparty AND MLE at
+// countersignature — the moment the agreement is actually executed.
+export function fullyExecutedEmail(args: {
+  signerName: string;
+  documentTitle: string;
+  downloadUrl: string;
+  countersignerName: string;
+  countersignerTitle: string;
+  executedAtIso: string;
+}): Omit<EsignEmail, "to"> {
+  const first = args.signerName.split(/\s+/)[0] || "there";
+  return {
+    subject: `Fully executed: ${args.documentTitle}`,
+    text:
+      `Hi ${first},\n\n` +
+      `"${args.documentTitle}" is now fully executed — signed by both parties ` +
+      `as of ${args.executedAtIso.slice(0, 10)} (UTC).\n\n` +
+      `Countersigned for My Local Everything by ${args.countersignerName}, ` +
+      `${args.countersignerTitle}.\n\n` +
+      `Download the fully executed agreement (both signatures + audit certificate):\n\n` +
+      `${args.downloadUrl}\n\n` +
+      `This download link expires in 7 days; the agreement is retained securely ` +
+      `and a fresh copy can be requested at any time.\n\n` +
+      `Rob Acheson\nMy Local Everything`,
+  };
+}
