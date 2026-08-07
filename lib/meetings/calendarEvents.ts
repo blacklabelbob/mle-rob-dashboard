@@ -28,6 +28,7 @@
  * job this repo keeps getting wrong by answering it early.
  */
 
+import { meetCodesIn } from "@/lib/meetings/calendarSpine";
 import type { CalendarMeeting, MeetingSource, SourceRecord } from "@/lib/meetings/calendarSpine";
 
 /**
@@ -157,12 +158,24 @@ export function fromCalendarEvents(
     const physicalLocation =
       event.location && !looksLikeAUrl(event.location) ? event.location.trim() : undefined;
 
+    // inc.6 — the room codes on the invite, from BOTH boxes. Refusal 1 above drops a URL-shaped
+    // location as a *location*; it must not also throw away the room it names. `snf-vmxj-dpo` was
+    // typed into Rob's 8/3 address box and Fireflies recorded that exact room — reading only
+    // `conferenceUrl` would leave that recording an orphan while its own address sat one field away.
+    const conferenceCodes = [
+      ...new Set([
+        ...meetCodesIn(event.conferenceUrl ?? ""),
+        ...(event.location && looksLikeAUrl(event.location) ? meetCodesIn(event.location) : []),
+      ]),
+    ];
+
     meetings.push({
       id: event.id,
       title,
       day: opts.toLocalDay(startIso),
       hasConferenceLink,
       ...(physicalLocation ? { location: physicalLocation } : {}),
+      ...(conferenceCodes.length ? { conferenceCodes } : {}),
     });
   }
 

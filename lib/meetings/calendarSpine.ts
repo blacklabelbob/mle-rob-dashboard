@@ -56,6 +56,15 @@ export type CalendarMeeting = {
   hasConferenceLink: boolean;
   /** A street address or room, when the event carries one and no conference link. */
   location?: string;
+  /**
+   * Every Google Meet room code the invite carries, lowercased — from the conference link AND from
+   * a URL typed into the location box. An event can carry more than one (Rob's 8/3 invite carries
+   * two rooms), so this is a list and never a scalar.
+   *
+   * It is the strongest join in this module after the calendar's own id: a room code is an
+   * identifier the recorder wrote down, not a name a human retyped.
+   */
+  conferenceCodes?: string[];
 };
 
 /** One record held by one source that MIGHT be a recording of a calendar meeting. */
@@ -78,7 +87,7 @@ export type SourceRecord = {
  * audit the join without re-deriving it — and so `day-and-title` can be downgraded later without
  * anyone having to guess which links were affected.
  */
-export type LinkBasis = "calendar-id" | "day-and-title";
+export type LinkBasis = "calendar-id" | "conference-code" | "day-and-title";
 
 export type SourceLink = {
   source: MeetingSource;
@@ -178,6 +187,27 @@ export function normalizeTitle(title: string): string {
 }
 
 /**
+ * Q86 inc.6 — a Google Meet room code as it appears in a recorder's own title.
+ *
+ * Fireflies, when it joins a room it was not given a title for, names the transcript after the room:
+ * `snf-vmxj-dpo`, `bsn-kwzp-wch`, `aob-fada-amf`. Those three sat in the unclaimed list for two
+ * increments looking like orphans, while the calendar event they belong to was in the same report,
+ * on the same day, carrying that exact code in its invite. The spine had the identifier on both
+ * sides and was comparing prose instead.
+ *
+ * Anchored to word boundaries so a code must be a whole token — a substring hit inside a longer
+ * slug is not this format and must not link a meeting.
+ */
+const MEET_CODE = /(?:^|[^a-z0-9])([a-z]{3}-[a-z]{4}-[a-z]{3})(?![a-z0-9])/g;
+
+/** Every Meet-shaped code in a string, lowercased. Empty for a normal human title, which is the point. */
+export function meetCodesIn(text: string): string[] {
+  const found = new Set<string>();
+  for (const m of text.toLowerCase().matchAll(MEET_CODE)) found.add(m[1]);
+  return [...found];
+}
+
+/**
  * Words a title shares with another, ignoring the very short ones. Used ONLY to decide whether a
  * same-day record is worth showing a human as `uncertain` — never to link one.
  */
@@ -236,7 +266,26 @@ export function reconcileCalendarSpine(
     // unconditionally: a source that carries the event id is not guessing, and neither are we.
     for (const r of byCalendarId.get(m.id) ?? []) link(r, "calendar-id");
 
-    // Rung 2 — same day AND identical normalized title. Rung 3 — same day, some shared words:
+    // Rung 2 — the Meet room code, on the same day. An identifier on both sides: the invite created
+    // the room, the recorder titled itself after the room it joined. Stronger than a title, which is
+    // retyped by a human, and it is why this rung sits ABOVE `day-and-title` rather than beside it.
+    //
+    // THE SAME DAY IS REQUIRED, and that is a refusal, not a formality: a recurring invite reuses one
+    // room for months, so a code alone would weld January's recording onto June's meeting. Code AND
+    // day is an identifier plus a date; a wrong weld here is unrecoverable and this queue has paid
+    // for that lesson twice.
+    const codes = new Set(m.conferenceCodes ?? []);
+    if (codes.size > 0) {
+      for (const r of records) {
+        if (linked.has(key(r))) continue;
+        if (r.calendarEventId && r.calendarEventId.trim() !== m.id) continue;
+        if (!r.day || r.day !== m.day) continue;
+        const inRecord = [...meetCodesIn(r.title), ...meetCodesIn(r.id)];
+        if (inRecord.some((c) => codes.has(c))) link(r, "conference-code");
+      }
+    }
+
+    // Rung 3 — same day AND identical normalized title. Rung 4 — same day, some shared words:
     // shown, never linked. A record already linked by id can never be re-read here.
     const wanted = normalizeTitle(m.title);
     for (const r of records) {
