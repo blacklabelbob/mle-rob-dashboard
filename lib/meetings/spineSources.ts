@@ -111,6 +111,60 @@ export function fromManifest(
 }
 
 /**
+ * One row of the Fathom snapshot, as `MLE Internal Meetings/fathom-snapshot-2026-08-07.json` stores
+ * it. The file is cited by its real dated name and not as a wildcard: `citedEvidenceExists.test.ts`
+ * opens every archive path named under `lib/meetings/`, and a glob is a citation no reader can open.
+ */
+export type FathomRecording = {
+  /** Fathom's `recording_id`, as a string so it can be an id like every other source's. */
+  id: string;
+  title: string;
+  /** Local day `YYYY-MM-DD` as Fathom states it. Fathom lists a day, not an instant. */
+  day: string;
+  /** The `fathom.video/calls/…` permalink. */
+  url?: string;
+  /**
+   * TRUE only when someone actually fetched this recording's transcript or summary and it came
+   * back non-empty. Absent and false both mean "not verified", never "verified absent".
+   */
+  transcriptConfirmed?: boolean;
+};
+
+/**
+ * Fathom recordings → source records. Q86 inc.8 — the FIRST of the five unwired sources wired.
+ *
+ * WHY THIS SOURCE FIRST, and why it matters more than its row count suggests: Rob named Fathom in
+ * the sentence this whole item comes from — *"Fireflies has a really dumb tendancy of not joining
+ * meetings so sometimes I have gemeni in there just in case, Fathom."* Fathom is the BACKSTOP. The
+ * meetings it holds alone are, by construction, exactly the ones the primary recorder missed, so a
+ * spine that reads Fireflies and not Fathom is blindest precisely where Rob said it would be.
+ *
+ * `hasTranscript` FOLLOWS `transcriptConfirmed` AND NOTHING ELSE — not the presence of a URL, not
+ * the fact that Fathom is a transcribing product. Fathom transcribes what it records; that is a
+ * fact about the tool, not evidence about this meeting, and closing a row on it would be
+ * INCIDENT-LEDGER #22/#34 in one field: a reader's expectation substituted for the record's state.
+ * Located is the claim. Read is not — the same line `sourceRecordsFromAttachments` holds.
+ *
+ * `hasVideo` is FALSE on every row, for the same reason `fromManifest` refuses it: a `/calls/…`
+ * permalink is a PAGE, and this module has not opened it. Rob's bar is transcripts for all, videos
+ * for most — an honest "no video known" leaves the work visible; a guessed "video" closes it wrongly.
+ *
+ * PURE per CR-3: handed already-read rows, reads no file, no network, no clock. Fathom states a day
+ * already, so unlike `fromManifest` there is no instant to convert and no timezone to borrow.
+ */
+export function fromFathom(recordings: FathomRecording[]): SourceRecord[] {
+  return recordings.map((r) => ({
+    source: "fathom" as const,
+    id: r.id,
+    title: r.title,
+    day: r.day,
+    hasTranscript: r.transcriptConfirmed === true,
+    hasVideo: false,
+    url: r.url,
+  }));
+}
+
+/**
  * Transcript files → source records, with the stub rule applied.
  *
  * A file at or above the floor is a transcript. A file below it is returned in `stubs` AND as a

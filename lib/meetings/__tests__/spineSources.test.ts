@@ -9,6 +9,7 @@
 import { describe, expect, it } from "vitest";
 import {
   TRANSCRIPT_MIN_BYTES,
+  fromFathom,
   fromManifest,
   fromTranscriptFiles,
   type ManifestRow,
@@ -105,5 +106,61 @@ describe("fromTranscriptFiles — the stub rule (Q86 DoD (f))", () => {
     expect(out.counts.withTranscript).toBe(0);
     // ...and the file is still visibly linked, so the human is told which one lied to them.
     expect(out.rows[0].links.map((l) => l.id)).toContain(stub.path);
+  });
+});
+
+/**
+ * Q86 inc.8 — Fathom, the first of the five sources that were only ever listed as NOT wired.
+ *
+ * The refusals under test are the ones that would quietly close a meeting: a permalink is not a
+ * video, and "Fathom transcribes what it records" is not evidence about THIS recording.
+ */
+describe("fromFathom", () => {
+  const REC = {
+    id: "162399934",
+    title: "Impromptu Google Meet Meeting",
+    day: "2026-07-09",
+    url: "https://fathom.video/calls/741525127",
+  };
+
+  it("claims a transcript ONLY when the row says someone confirmed one", () => {
+    const [unconfirmed] = fromFathom([REC]);
+    expect(unconfirmed.hasTranscript).toBe(false);
+
+    const [confirmed] = fromFathom([{ ...REC, transcriptConfirmed: true }]);
+    expect(confirmed.hasTranscript).toBe(true);
+
+    // Explicit false and absent must be indistinguishable — neither is "verified absent".
+    expect(fromFathom([{ ...REC, transcriptConfirmed: false }])[0].hasTranscript).toBe(false);
+  });
+
+  it("never turns a /calls/ permalink into a video claim, even on a confirmed row", () => {
+    const [r] = fromFathom([{ ...REC, transcriptConfirmed: true }]);
+    expect(r.url).toBe("https://fathom.video/calls/741525127");
+    expect(r.hasVideo).toBe(false);
+  });
+
+  it("carries the day through untouched and tags every row to the fathom source", () => {
+    const rows = fromFathom([REC, { ...REC, id: "36208821", day: "2021-09-16" }]);
+    expect(rows.map((r) => r.source)).toEqual(["fathom", "fathom"]);
+    expect(rows.map((r) => r.day)).toEqual(["2026-07-09", "2021-09-16"]);
+  });
+
+  it("lets a confirmed Fathom recording COVER a meeting Fireflies never claimed", () => {
+    // The live finding this increment opened on: a real internal meeting whose only transcript is
+    // in the backstop recorder. Before Fathom was wired the spine had nothing to link here.
+    const meeting: CalendarMeeting = {
+      id: "evt-kickoff",
+      title: "Impromptu Google Meet Meeting",
+      day: "2026-07-09",
+      startsAt: "2026-07-09T14:00:00-04:00",
+      isPast: true,
+    };
+    const out = reconcileCalendarSpine(
+      [meeting],
+      fromFathom([{ ...REC, transcriptConfirmed: true }]),
+    );
+    expect(out.rows[0].transcriptSources).toEqual(["fathom"]);
+    expect(out.counts.withTranscript).toBe(1);
   });
 });

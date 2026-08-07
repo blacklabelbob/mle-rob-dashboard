@@ -31,7 +31,7 @@ import { fileURLToPath } from "node:url";
 
 import { fromCalendarEvents, SOURCES_NOT_WIRED, sourceRecordsFromAttachments } from "../lib/meetings/calendarEvents.ts";
 import { reconcileCalendarSpine } from "../lib/meetings/calendarSpine.ts";
-import { fromManifest, fromTranscriptFiles } from "../lib/meetings/spineSources.ts";
+import { fromFathom, fromManifest, fromTranscriptFiles } from "../lib/meetings/spineSources.ts";
 
 const AS_JSON = process.argv.includes("--json");
 
@@ -46,6 +46,8 @@ const REPO = fileURLToPath(new URL("..", import.meta.url));
 const CALENDAR =
   argOf("--calendar") ?? join(REPO, "MLE Internal Meetings", "calendar-snapshot-2026-08-07.json");
 const MANIFEST = join(REPO, "MLE Internal Meetings", "manifest.json");
+const FATHOM =
+  argOf("--fathom") ?? join(REPO, "MLE Internal Meetings", "fathom-snapshot-2026-08-07.json");
 const TRANSCRIPTS = join(homedir(), "Projects", "MyLocalEverything", "transcripts");
 
 /**
@@ -91,6 +93,15 @@ const files = existsSync(TRANSCRIPTS)
   : [];
 const harvest = fromTranscriptFiles(files, { source: "local-repo" });
 
+// ── the BACKSTOP recorder, wired for the first time (inc.8) ────────────────────────────────────
+// Rob named Fathom in the same breath as Fireflies' "really dumb tendancy of not joining meetings",
+// which means the meetings Fathom holds ALONE are by construction the ones the primary recorder
+// missed. Same snapshot shape and same reason as the calendar: node holds no Fathom credential, so
+// the live read happens through the Fathom MCP in an agent session and lands here, redacted.
+const fathomSnap = existsSync(FATHOM) ? JSON.parse(readFileSync(FATHOM, "utf8")) : null;
+const fathom = fathomSnap ? fromFathom(fathomSnap.recordings ?? []) : [];
+const fathomConfirmed = fathom.filter((r) => r.hasTranscript).length;
+
 // ── the source the calendar was already holding (inc.4) ────────────────────────────────────────
 // Not a fetch and not a credential: `Notes by Gemini` docs are attached to the event itself, so
 // reading them off the spine costs nothing. They are LOCATED, never READ — see the refusal in
@@ -107,16 +118,21 @@ const spineWindow =
     ? { startDay: toLocalDay(snapshot.window.start), endDay: toLocalDay(snapshot.window.end) }
     : undefined;
 
-const report = reconcileCalendarSpine(meetings, [...fireflies, ...harvest.records, ...attached], {
-  window: spineWindow,
-});
+const report = reconcileCalendarSpine(
+  meetings,
+  [...fireflies, ...harvest.records, ...attached, ...fathom],
+  {
+    window: spineWindow,
+  },
+);
 
 if (AS_JSON) {
   console.log(
     JSON.stringify(
       {
         snapshot: { path: CALENDAR, fetchedAt: snapshot.fetchedAt, window: snapshot.window, timeZone },
-        sourcesRead: ["fireflies", "local-repo", "calendar-attachments"],
+        sourcesRead: ["fireflies", "local-repo", "calendar-attachments", "fathom"],
+        fathom: { path: FATHOM, fetchedAt: fathomSnap?.fetchedAt ?? null, records: fathom.length, transcriptsConfirmed: fathomConfirmed },
         attached,
         sourcesNotWired: SOURCES_NOT_WIRED,
         skipped,
@@ -134,8 +150,10 @@ const c = report.counts;
 console.log(`\n📅 CALENDAR SPINE — ${snapshot.window?.start ?? "?"} → ${snapshot.window?.end ?? "?"} (${timeZone})`);
 console.log(`   snapshot taken ${snapshot.fetchedAt ?? "(undated — treat as unknown age)"} · ${CALENDAR}`);
 console.log(
-  `   sources READ: fireflies (${fireflies.length} records), local-repo (${harvest.records.length} files), calendar attachments (${attached.length} located, 0 read)`,
+  `   sources READ: fireflies (${fireflies.length} records), local-repo (${harvest.records.length} files), calendar attachments (${attached.length} located, 0 read), fathom (${fathom.length} recordings, ${fathomConfirmed} transcript${fathomConfirmed === 1 ? "" : "s"} confirmed)`,
 );
+if (!fathomSnap)
+  console.log(`   ⚠ no fathom snapshot at ${FATHOM} — fathom is reading as EMPTY, which is not the same as absent.`);
 console.log(
   `   sources NOT WIRED, so silent and NOT a finding: ${SOURCES_NOT_WIRED.join(", ")} — a source nobody asked has answered nothing.\n`,
 );

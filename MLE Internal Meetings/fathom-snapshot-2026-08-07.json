@@ -1,0 +1,61 @@
+{
+  "_comment": "Q86 inc.8 — the FIRST of the five unwired sources to be wired. Fathom's own list of every recording it holds for Rob, read live through the Fathom MCP in an agent session (node cannot reach it: there is no Fathom key in .env.local, same shape as the calendar snapshot). Read-only. Nothing here was written back to Fathom.",
+  "_pii": "REDACTED IN CODE, not after the fact: the MCP returns `recorded_by` and `calendar_invitees` as EMAIL ADDRESSES for every row (attendees of Rob's real meetings). Those fields are dropped at capture and never enter git — the same subtraction scripts/calendar-snapshot-from-mcp.mjs performs on the calendar. Titles are kept because the calendar snapshot keeps `summary` and the spine joins on title.",
+  "fetchedAt": "2026-08-07T22:00:00Z",
+  "source": "fathom",
+  "timeZone": "America/New_York",
+  "_transcriptClaim": "LOCATED, NOT READ — for every row except the one marked transcriptConfirmed. Fathom transcribes what it records, but 'the tool usually does X' is not evidence about THIS meeting, and a hasTranscript:true nobody verified is INCIDENT-LEDGER #22/#34 in one field. A row is only confirmed when a summary or transcript was actually fetched and came back non-empty, and the increment that confirmed it says so.",
+  "recordings": [
+    {
+      "id": "169803812",
+      "title": "Rob & Austin | MArtin Fierro",
+      "day": "2026-08-03",
+      "url": "https://fathom.video/calls/771332767",
+      "transcriptConfirmed": false
+    },
+    {
+      "id": "168455294",
+      "title": "Rob & Dix | MLE & Skin Cancer Detection AI Model",
+      "day": "2026-07-29",
+      "url": "https://fathom.video/calls/764226458",
+      "transcriptConfirmed": false
+    },
+    {
+      "id": "164040487",
+      "title": "Joseph, Rob, Will | Next Steps",
+      "day": "2026-07-15",
+      "url": "https://fathom.video/calls/747133912",
+      "transcriptConfirmed": false
+    },
+    {
+      "id": "162779788",
+      "title": "Rob, David, Mark | MLE -Sales Network Intro",
+      "day": "2026-07-10",
+      "url": "https://fathom.video/calls/741916443",
+      "transcriptConfirmed": false
+    },
+    {
+      "id": "162399934",
+      "title": "Impromptu Google Meet Meeting",
+      "day": "2026-07-09",
+      "url": "https://fathom.video/calls/741525127",
+      "transcriptConfirmed": true,
+      "_confirmed": "Q86 inc.8 fetched get_meeting_summary(162399934) this run and it returned a full 74-minute Sandler-structured summary — internal MLE team alignment, phases 1-4, pricing guardrails, bounty board, partner portal, Austin named ops/fulfillment POC. This is the meeting the Fireflies archive calls MLE TEAM KICKOFF and which inc.7 reported as sitting on a day Rob's calendar holds ZERO events. Fathom's generic title is why nothing ever joined the two."
+    },
+    {
+      "id": "155598178",
+      "title": "Caleb, Rob, Will | CGRoofingGroup.com + AI Platform Discovery",
+      "day": "2026-06-16",
+      "url": "https://fathom.video/calls/712894560",
+      "transcriptConfirmed": false
+    },
+    {
+      "id": "36208821",
+      "title": "Fathom Demo",
+      "day": "2021-09-16",
+      "url": "https://fathom.video/calls/184964372",
+      "transcriptConfirmed": false,
+      "_note": "Fathom's own onboarding demo from 2021, five years outside any window this repo reconciles. Kept in the snapshot rather than filtered at capture, because a snapshot that quietly drops rows cannot be diffed against the source it claims to mirror. The spine's window is what excludes it, and the window is the caller's."
+    }
+  ]
+}
