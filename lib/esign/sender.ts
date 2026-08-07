@@ -78,15 +78,24 @@ export function signedCopyEmail(args: {
   downloadUrl: string;
   signedAtIso: string;
 }): Omit<EsignEmail, "to"> {
+  // Rob, 2026-08-07: "if only Alex has signed, you should not say completed and
+  // all that other bullshit. Its incorrect if I havent Countersigned it yet."
+  // One party has signed here, by definition — this email fires from the signer
+  // route. Saying "completed agreement" is simply false at this moment, and the
+  // counterparty is one of the recipients. State the real state, and say what
+  // happens next so nobody has to ask.
   return {
     subject: `Signed: ${args.documentTitle}`,
     text:
       `${args.documentTitle} was signed by ${args.signerName} on ` +
       `${args.signedAtIso.slice(0, 10)} (UTC).\n\n` +
-      `Download the completed agreement (includes the signature & audit certificate):\n\n` +
+      `This is not yet fully executed — My Local Everything still has to ` +
+      `countersign. Both parties receive the executed copy as soon as that ` +
+      `happens.\n\n` +
+      `Download the signed copy (includes the signature & audit certificate):\n\n` +
       `${args.downloadUrl}\n\n` +
-      `The link stays valid and always returns the current copy — including the ` +
-      `fully executed version once both parties have signed.\n\n` +
+      `The link stays valid and always returns the current version, so it will ` +
+      `hand back the fully executed agreement once countersigning is complete.\n\n` +
       `My Local Everything`,
   };
 }

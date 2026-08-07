@@ -134,3 +134,18 @@ one twice: ~600 characters, wrapped over five lines, tail full of `%255BDRY+RUN+
 
 Completion email subject leads with **Complete:** (Rob's wording). Do not revert it to
 "Fully executed:".
+
+### Email copy must state the ACTUAL state, never the hoped-for one
+
+The signed-copy email said *"Download the completed agreement"* when only the counterparty had
+signed. Rob: *"you should not say completed and all that other bullshit. Its incorrect if I
+havent Countersigned it yet."* These emails go to the **other side of a contract**, so
+overstating status is a misstatement to a counterparty, not a copy nit.
+
+- Signer route email → the agreement is **signed, not executed**. Say countersignature is
+  outstanding and what happens next.
+- Countersign route email → the only one allowed to claim full execution. Subject leads with
+  **Complete:**.
+- A FUTURE reference ("will return the executed copy once countersigned") is fine and wanted;
+  a present-tense claim is not. `lib/esign/__tests__/sender.test.ts` pins this — every mention
+  of "fully executed" in the signed email must be qualified by *not yet / once / as soon as*.
