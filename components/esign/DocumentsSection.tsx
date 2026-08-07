@@ -475,6 +475,17 @@ export default function DocumentsSection({ personId, orgId, dealId }: Props) {
               Every field is a suggestion to confirm or correct. Nothing sends blind.
               Changing answers requires generating a new version.
             </p>
+            {/* Q93 (c): Rob asked whether it signs sequentially or goes to both at
+                once. It is sequential and enforced — planCountersign() throws on a
+                document the counterparty has not signed. Say so before the link
+                leaves, not only in the build log. */}
+            <p className="mt-2 rounded-lg border border-sky-400/25 bg-sky-400/5 px-3 py-2 text-xs text-sky-200/90">
+              <span className="font-semibold">They sign first — this never goes to both of you at once.</span>{" "}
+              The link goes only to the signer above. When they sign, the agreement comes
+              back here reading <span className="text-slate-300">awaiting your countersignature</span>;
+              it is not executed until you countersign, and then both of you are emailed
+              the fully executed copy.
+            </p>
             <div className="mt-3 grid gap-2.5">
               {(
                 [

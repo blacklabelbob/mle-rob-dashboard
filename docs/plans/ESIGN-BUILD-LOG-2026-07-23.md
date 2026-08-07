@@ -343,6 +343,52 @@ attachment on the MLE-side copy to `rob@aivoicetech.io`, or whether Rob would ra
 his own copy stay a link so his inbox does not accumulate duplicates of documents the
 bucket already holds. Either is defensible; nobody should guess.
 
+## ANSWER — what ORDER do the two signatures happen in? (Q93 DoD (c), 2026-08-07)
+
+Rob asked it plainly: *"whats going to happen is it going to sign first or is it going
+to go to us both at the same time."* Until now the answer was only legible by reading
+the code, which is the same as not having one.
+
+**The answer: SEQUENTIAL, counterparty first. It never goes to both parties at once.**
+
+The order, as built:
+
+1. **You send.** `POST /api/esign/send` mints one tokenised link and emails it to **one
+   address** — the counterparty's authorized signer, the one confirmed in the pre-send
+   check. No link is ever minted for the MLE side, because the MLE side does not sign
+   through the signer page at all.
+2. **They sign.** `/sign/[token]` stamps their signature + audit certificate, writes
+   `documents.signed_path`, moves `documents.status` to `signed` (terminal — 0010
+   header), and emails **them** a copy of the one-sided signed agreement.
+3. **You countersign, afterwards, from the record page.** The `Countersign` button in
+   `components/esign/DocumentsSection.tsx` only renders when
+   `d.status === "signed" && !d.countersigned_at`; until then that document reads
+   **"awaiting your countersignature."**
+4. **Both parties are told it closed.** Countersignature stamps the MLE signature page
+   beside their copy and mails the `fully executed` link to **both** addresses,
+   ledger-deduped (`copy_delivered` / `meta.kind === "fully_executed"`, Q93 inc.1).
+
+**This is enforced, not merely conventional.** `planCountersign` (`lib/esign/
+countersign.ts:72-76`) *throws* on a document that is not yet signed —
+`document <id> is '<status>' — the other party has not signed yet` — so there is no
+code path, race or double-click that can put the MLE signature on the paper first.
+The reverse guard exists too: `state === "complete"` throws rather than re-dating an
+executed agreement, and the atomic claim on `countersigned_at` 409s every second POST.
+
+**Why this order and not simultaneous.** The countersignature is stamped *onto the
+counterparty's signed PDF* (`stampSourcePath = doc.signed_path`), and the route
+refuses to stamp a file whose digest no longer matches `documents.sha256_signed`. A
+simultaneous flow would need two independent signatures merged into one document
+afterwards — a different, harder design that buys nothing here, because in every MLE
+deal to date the counterparty is the party being asked to commit and Rob executes
+after. **Sequential is also the safer commercial posture:** MLE is never bound to an
+agreement the other side has not already signed.
+
+**Where this is now said in the product, not just here (this increment):** the
+pre-send modal states the order *before* the link goes out, and the signer's
+confirmation screen tells the counterparty their copy is one-sided until MLE
+countersigns — so neither party has to infer it from silence.
+
 ## Morning queue (what remains)
 
 - Nudge cron wiring: route (CRON_SECRET bearer) + n8n schedule executing

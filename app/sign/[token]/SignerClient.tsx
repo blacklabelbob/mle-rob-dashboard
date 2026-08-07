@@ -154,6 +154,14 @@ export default function SignerClient(props: Props) {
           attached to the agreement. A copy is being emailed to {email || "you"} for your
           records.
         </p>
+        {/* Q93 (c): signing is sequential — this copy carries only ONE signature
+            until MLE countersigns. Saying so here stops the counterparty reading a
+            one-sided PDF as the finished agreement. */}
+        <p className="mt-2 text-sm text-slate-400">
+          My Local Everything countersigns next. The copy below carries your signature only;
+          once it is countersigned the agreement is fully executed and we&apos;ll email you
+          that final copy, with both signatures and the audit certificate.
+        </p>
         <a
           href={done.downloadUrl}
           target="_blank"
