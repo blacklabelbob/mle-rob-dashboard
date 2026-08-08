@@ -241,12 +241,22 @@ describe("rulingAttachments", () => {
     //     a `rows` entry whose links already carry `source: "notion"` with this page id. There is
     //     no day-and-title rung in this code path at all, and this fixture passes `rows: []`. A
     //     matching title is a CANDIDATE for a human to weld, never a weld.
-    // So: 7 transcript rulings, 7 stranded — still the same number, and the reason is structural.
+    // Re-read 2026-08-08 (Q86 inc.30): EIGHTH, NINTH and TENTH transcript rulings, 7 -> 10 by hand,
+    // from the "pages holding text nobody has ruled" queue (8 -> 5). Each was checked against the
+    // live `spine:q86` run before the number moved, and all three strand:
+    //   · `2fb1de57…` (Opportunity: Title File Processing, Trent Brands, 2026-02-02) strands
+    //     `in-window-day-empty` — the calendar holds NO event that day, the same shape as will
+    //     Devito. The transcript is not in doubt; its place on the board is.
+    //   · `3b31de57…` (Meeting 2026-08-05, Omega platform + Scott drone) and `3b11de57…`
+    //     (2026-08-03 Martin Fierro pre-call) both strand `[undated]` — `Call Date` is NULL on both
+    //     while each title carries its own date, the `3ad1de57…` shape from inc.27. A date in the
+    //     title is not a date on the row, and the spine will not promote one to the other.
+    // So: 10 transcript rulings, 10 stranded — still the same number, and the reason is structural.
     // Until a real `rows` link exists, no body-reading can move this count, which is the property
     // the whole edge is built on: reading a body proves what it CONTAINS, never which event it is
     // OF. If these two numbers ever diverge, a notion link was written onto a meeting row — go
     // find out who welded it and on what evidence.
-    expect(live.filter((c) => c.verdict === "transcript")).toHaveLength(7);
+    expect(live.filter((c) => c.verdict === "transcript")).toHaveLength(10);
     const attachments = rulingAttachments(
       live,
       [],
@@ -264,10 +274,19 @@ describe("rulingAttachments", () => {
         // day-and-title rung matches and it is NOT stranded. Pinned here so the asymmetry with the
         // count above is asserted rather than remembered.
         { id: "3ac1de57-0199-80ff-94ec-eeea07d36588", title: "Rob & Dix | MLE & Skin Cancer Detection AI Model", day: "2026-07-29", placement: "in-window-day-busy", sameDayMeetings: [{ id: "e4", title: "Rob & Dix | MLE & Skin Cancer Detection AI Model" }] },
+        // Q86 inc.30. Dated, in window, and the calendar is EMPTY that day — so there is no event
+        // to choose between and none to attach to. Distinct from `undated`: the row states its day,
+        // the calendar simply has nothing on it.
+        { id: "2fb1de57-0199-80fd-991b-dbb5733c9437", title: "Opportunity: Title File Processing", day: "2026-02-02", placement: "in-window-day-empty", sameDayMeetings: [] },
+        // Q86 inc.30. Both `[undated]` — `Call Date` NULL while the title carries a date. Pinned so
+        // that if either ever leaves this list, it is because a human dated the ROW, not because a
+        // title was parsed into one.
+        { id: "3b31de57-0199-80ea-9171-cd12c228e3d7", title: "Meeting 2026-08-05", day: null, placement: "undated", sameDayMeetings: [] },
+        { id: "3b11de57-0199-8020-9fb9-c3171150b472", title: "2026-08-03T19:34:00.000-04:00", day: null, placement: "undated", sameDayMeetings: [] },
       ],
       titleOf,
     );
-    expect(strandedTranscriptRulings(attachments)).toHaveLength(7);
+    expect(strandedTranscriptRulings(attachments)).toHaveLength(10);
   });
 
   it("THE LIVE FINDING, second half: a summary-only ruling is recorded and is NOT counted as a transcript", () => {
@@ -308,7 +327,11 @@ describe("rulingAttachments", () => {
     // (`3831de57…`, 5 blocks / 0 chars at depth 8, not truncated). The `empty` verdict is pinned
     // by id below too: it is the only verdict that LOOKS like the absence of a reading rather than
     // a reading, so leaving it uncounted is exactly how it gets deleted later with a green suite.
-    expect(live).toHaveLength(12);
+    // Re-read 2026-08-08 (Q86 inc.30): THREE more rulings, 12 -> 15, all `transcript` (asserted in
+    // the test above). The four `summary-only` ids and the one `empty` id below are unchanged,
+    // which is the property this bump has to preserve: a total that moves while the named verdicts
+    // stay put is the only safe way for this file to grow.
+    expect(live).toHaveLength(15);
     for (const pageId of [
       "79dbbdf5-61fe-441c-8324-1d3f75c8a6a9",
       "3c349f70-08dd-48c6-89c6-e0d71fd93d82",
