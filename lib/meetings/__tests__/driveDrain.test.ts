@@ -126,3 +126,93 @@ describe("the measured 2026-08-08 snapshot — asserted against the real file, n
     expect(r.summary).toContain("never run once");
   });
 });
+
+describe("Q86 inc.47 — a doc that HAS been read is not 'nobody has opened it', and is not filed either", () => {
+  const REAL = JSON.parse(
+    readFileSync(
+      join(process.cwd(), "MLE Internal Meetings", "drive-doc-reads-2026-08-08.json"),
+      "utf8",
+    ),
+  ).reads as { fileId: string; found: string; blockedBy: string }[];
+
+  it("moves a read doc out of needs-a-read WITHOUT promoting it to eligible", () => {
+    const f = doc("d1", "Manual Notes from 7/28 Call with Omega", 1024);
+    const r = drainReport([f], [], [], [], [{ fileId: "d1", found: "268 chars of shorthand.", blockedBy: "it is notes, not coverage." }]);
+
+    expect(r.verdicts[0].kind).toBe("read-not-filed");
+    expect(r.needsARead).toHaveLength(0);
+    expect(r.readNotFiled).toHaveLength(1);
+    // The whole hazard this class was added against: a read must never read as a capture.
+    expect(r.eligible).toHaveLength(0);
+    expect(r.drained).toHaveLength(0);
+  });
+
+  it("carries the reader's own words AND the blocker verbatim — neither is paraphrased", () => {
+    const f = doc("d1", "x", 1024);
+    const r = drainReport([f], [], [], [], [{ fileId: "d1", found: "FOUND-SENTINEL.", blockedBy: "BLOCKER-SENTINEL." }]);
+
+    expect(r.verdicts[0].why).toContain("FOUND-SENTINEL.");
+    expect(r.verdicts[0].why).toContain("BLOCKER-SENTINEL.");
+    expect(r.verdicts[0].why).toContain("STILL NOT FILED");
+  });
+
+  it("DROPS a read with no stated blocker — the failure direction is more work outstanding, not less", () => {
+    const f = doc("d1", "x", 1024);
+    const r = drainReport([f], [], [], [], [{ fileId: "d1", found: "read it", blockedBy: "   " }]);
+
+    expect(r.verdicts[0].kind).toBe("needs-a-read");
+    expect(r.readNotFiled).toHaveLength(0);
+  });
+
+  it("a capture ruling still outranks a read — eligible wins, because that file IS in the CRM", () => {
+    const f = doc("d1", "x", 1024);
+    const r = drainReport(
+      [f],
+      [],
+      [{ fileId: "d1", note: "carried in" }],
+      [],
+      [{ fileId: "d1", found: "read it", blockedBy: "nothing much" }],
+    );
+
+    expect(r.verdicts[0].kind).toBe("eligible");
+  });
+
+  it("does NOT suppress transcribed-elsewhere for audio — inc.39's protection survives a read", () => {
+    const a = audio("a1", "Call with John Burns.m4a");
+    const r = drainReport(
+      [a],
+      [],
+      [],
+      [{ fileId: "a1", transcriptRef: "john-burns.txt", why: "Already transcribed." }],
+      [{ fileId: "a1", found: "read it", blockedBy: "something" }],
+    );
+
+    expect(r.verdicts[0].kind).toBe("transcribed-elsewhere");
+    expect(r.verdicts[0].why).toContain("NOT owed a transcriber");
+  });
+
+  it("the summary states read-and-unfilable SEPARATELY from the reading backlog", () => {
+    const f = doc("d1", "x", 1024);
+    const r = drainReport([f], [], [], [], [{ fileId: "d1", found: "a", blockedBy: "b" }]);
+
+    expect(r.summary).toContain("1 read and still unfilable, each naming its blocker");
+    expect(drainSummary(6, 0, 0, 0)).not.toContain("read and still unfilable");
+  });
+
+  it("asserts against the THREE REAL reads on disk, and every one names a blocker", () => {
+    expect(REAL).toHaveLength(3);
+    for (const r of REAL) {
+      expect(r.fileId).toMatch(/^1/);
+      expect(r.blockedBy.trim().length).toBeGreaterThan(40);
+      expect(r.found.trim().length).toBeGreaterThan(40);
+    }
+  });
+
+  it("the David Cates doc is recorded as a TRANSCRIPT, not as the manual notes its neighbours are", () => {
+    const cates = REAL.find((r) => r.fileId === "1-S9tplg38neWbZSBzc2nCaBXWonfcl8e8HaM6RE7LZs");
+    expect(cates).toBeDefined();
+    // The finding that must not quietly regress: the title claims a subject the body never says.
+    expect(cates!.found).toContain("114,530");
+    expect(cates!.blockedBy).toContain("title");
+  });
+});

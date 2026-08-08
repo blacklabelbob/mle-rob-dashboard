@@ -1,0 +1,33 @@
+{
+  "_what": "Q86 inc.47 — DoD (e). The three native Google Docs that `drainReport` had been calling 'a native Google Doc nobody has opened and ruled' since inc.38 are now OPENED, read end to end through the Google Drive MCP in an agent session (node holds no Drive credential). Read only: nothing was moved, renamed, copied or deleted, and no CRM record was written.",
+  "_contract": "Each entry is a `DocRead` (lib/meetings/driveDrain.ts): `found` is what the read established, `blockedBy` is the named condition still stopping the file from being filed. `blockedBy` is REQUIRED — a doc with nothing blocking it is a capture ruling and belongs in drive-read-confirmations.json instead. An entry with an empty blocker is dropped by the module and falls back to needs-a-read, which overstates the work rather than flattering it.",
+  "_whyNotEligible": "None of these three is `eligible`. `eligible` means a human ruled the file CARRIED INTO THE CRM and it is merely awaiting a move. Reading a file is not capturing it. All three remain uncaptured.",
+  "readAt": "2026-08-08T17:35:00Z",
+  "readVia": "claude.ai Google Drive MCP — read_file_content by fileId, ids taken from drive-drain-2026-08-08.json",
+  "reads": [
+    {
+      "fileId": "1qjgBd4UhhEQS9b9w32qUOvw_2uc-kTyEwJdzUAKFM9w",
+      "title": "Manual Notes from 7/28 Call with Omega",
+      "charsRead": 268,
+      "shape": "hand-typed fragments",
+      "found": "Read in full: 268 characters of Rob's own shorthand from the 7/28 Omega call — NOT speech, NOT a transcript. Two blocks. A title-work vocabulary list (order payoff, lien search, title commitment, notices of commencement / NOCs, estoppel, 'Agent brief', 'Pythonic'), and under the heading 'Other companies their PArtner company owner' four names: Monarch, Sanley Furniture, Viceroy insurance (stated as a '$1M and up' platform, with 'Reinsurncce'), and Alana.",
+      "blockedBy": "it is notes, not coverage, so it cannot answer DoD (b) for the 7/28 Omega meeting — the transcript that does is the 531-block Notion body already on C-2019 (A-MTG-2026-07-28-OMEGA). What this doc holds that the CRM does not is the PARTNER-COMPANY list, which is Q87's subject, not Q86's; filing it as a meeting record would file notes as a transcript. It is owed a link to the existing 7/28 activity, not a meeting record of its own."
+    },
+    {
+      "fileId": "1lv6h9cUFWoe6zrshamSVOF3bniTJoKbt05Vpt1WXxNU",
+      "title": "Manual Notes from call with Dixith",
+      "charsRead": 349,
+      "shape": "hand-typed fragments",
+      "found": "Read in full: 349 characters of Rob's own shorthand from a Dix call — NOT speech, NOT a transcript. Mixed subjects in one file: tooling notes (Codex 2x FAST mode, 'Spin up 4 agents' for deep research), the doctor-facing survey questions for the triage model ('How Helpful is this to You', 'Do you feel like its matching your instinct', 'Based on Search 1-10'), a hosting constraint ('Host Models in US Servers'), a name ('Cernan'), and — the part that is not a note about software — an OWNERSHIP fragment: '100% Stake of the company', 'After liceses 51%', 'I'll spin up new company'.",
+      "blockedBy": "the ownership fragment is an equity/structure statement about a company, and this repo may not write money, equity or signed fields without an explicit instruction from Rob. It is also undated — the doc's own text carries no meeting date, and its Drive createdTime (2026-07-30) is the day it was TYPED UP, not the day of the call, so nothing here can place it on the calendar spine. It needs a date and Rob's word on the equity line before any record can carry it."
+    },
+    {
+      "fileId": "1-S9tplg38neWbZSBzc2nCaBXWonfcl8e8HaM6RE7LZs",
+      "title": "Call w David Cates RE MLE Sales Position Overview",
+      "charsRead": 114530,
+      "shape": "full verbatim transcript, speaker-attributed",
+      "found": "THIS IS NOT MANUAL NOTES. Read in full: 114,530 characters / 5,889 lines of verbatim speaker-attributed dialogue between 'David Cates' (497 mentions) and 'You' — a complete transcript, and the largest single artifact in /Unprocessed by text length. The drain snapshot's 57,529-byte fileSize understated it by half, which is the byte-floor refusal earning itself again. It is a SECOND, EARLIER David Cates call: Drive createdTime 2026-06-19, five and a half weeks before the 131-minute 7/28 call that inc.45 read (david-cates.txt, Deepgram, 7,861s). Its subject is a payments/ISO roll-up — buying ISOs, a gig-economy wallet, an office in Florida, 'Mark wants to get like 50 to 100000000' — and it closes with Rob saying 'I'm gonna send you the transcript, too, so you can feed it right into ChatGPT.'",
+      "blockedBy": "its own title contradicts its body and no code may resolve that. The title claims 'MLE Sales Position Overview'; the body says 'MLE' ZERO times and 'commission' ZERO times, and the sales position is the subject of the LATER 7/28 call. Q86 forbids welding a record on a title, so this cannot be filed onto the 7/28 activity (different call) nor onto a June meeting (the calendar snapshot must be checked for a 2026-06-19 event first, and the doc states no time). It also has no counterparty org: The Cates Processing Group has no company record — the same gap that refused the 7/28 read (inc.45). Two things unblock it: a calendar event on or near 2026-06-19 to place it, and a company record for the Cates side."
+    }
+  ]
+}

@@ -55,6 +55,8 @@ export type DrainClass =
   | "drained"
   /** Ruled captured by a human, still in `/Unprocessed` — this is the actual move backlog. */
   | "eligible"
+  /** Opened and ruled by a reader, and NOT filed — the ruling names what still blocks it. */
+  | "read-not-filed"
   /** Audio/video whose transcript already exists on disk (inc.39). Owed a link, not a transcriber. */
   | "transcribed-elsewhere"
   /** Audio/video with no transcript yet: needs a transcriber before it can be captured. */
@@ -78,6 +80,28 @@ export type TranscribedElsewhere = {
   why: string;
 };
 
+/**
+ * A doc somebody actually OPENED, together with the reason it still is not filed.
+ *
+ * This exists because `needs-a-read` and `eligible` were the only two doors, and the three docs in
+ * `/Unprocessed` fit neither: they have now been read end to end (inc.47), and reading them did not
+ * make any of them filable. Leaving them in `needs-a-read` sends the next reader to redo the read —
+ * the same waste `transcribed-elsewhere` was added to stop for audio (inc.39). Promoting them to
+ * `eligible` would be worse: `eligible` means *ruled carried into the CRM*, and none of them were.
+ *
+ * `blockedBy` is REQUIRED, and that is the invariant. A read with nothing blocking it is a capture
+ * ruling and belongs in `DrainRuling`; if this type let `blockedBy` go empty, a file could sit here
+ * forever looking accounted-for while nobody could say what it was waiting on — which is exactly
+ * how the drain reached "never run once" without anyone noticing.
+ */
+export type DocRead = {
+  fileId: string;
+  /** What the read established. Carried verbatim into the report; never summarised here. */
+  found: string;
+  /** The named condition that still blocks filing. Never a mood — a thing someone can do. */
+  blockedBy: string;
+};
+
 export type DrainVerdict = {
   file: DriveFile;
   kind: DrainClass;
@@ -98,6 +122,8 @@ export type DrainReport = {
   needsTranscription: DrainVerdict[];
   /** Documents owed a human read. */
   needsARead: DrainVerdict[];
+  /** Documents a human HAS read, still unfilable — each carrying the condition that blocks it. */
+  readNotFiled: DrainVerdict[];
   /**
    * Rulings naming a file that is in NEITHER folder. Reported rather than dropped: a ruling with
    * no file behind it means either the file moved somewhere unexpected or the id is wrong, and
@@ -122,10 +148,18 @@ export function drainReport(
   processed: DriveFile[],
   rulings: DrainRuling[] = [],
   transcribed: TranscribedElsewhere[] = [],
+  reads: DocRead[] = [],
 ): DrainReport {
   const drainedIds = new Set(processed.map((f) => f.id));
   const ruledIds = new Set(rulings.map((r) => r.fileId));
   const transcribedById = new Map(transcribed.map((t) => [t.fileId, t]));
+  // A read with no stated blocker is dropped rather than trusted: the whole value of this class is
+  // that every file in it names what is holding it, and an empty `blockedBy` would print a file as
+  // handled with a blank where the reason goes. Dropped means it falls back to `needs-a-read`,
+  // which overstates the work left — the safe direction.
+  const readById = new Map(
+    reads.filter((r) => r.blockedBy.trim().length > 0).map((r) => [r.fileId, r]),
+  );
 
   const verdicts: DrainVerdict[] = unprocessed.map((file) => {
     if (drainedIds.has(file.id)) {
@@ -161,6 +195,19 @@ export function drainReport(
         why: `A ${file.mimeType} recording with no transcript beside it. It is an artifact, not a placeholder — it must not be dropped and must not be counted as coverage. It needs a transcriber before its meeting can be captured.`,
       };
     }
+    // Deliberately BELOW the audio branch, not above it. A read could in principle name an .m4a,
+    // and if it did, letting it win here would suppress the `transcribed-elsewhere` sentence that
+    // inc.39 added specifically to stop a human re-running a transcription that already exists.
+    // The audio classes protect work; this class only replaces `needs-a-read`, so it sits where
+    // `needs-a-read` sits and nowhere earlier.
+    const read = readById.get(file.id);
+    if (read) {
+      return {
+        file,
+        kind: "read-not-filed" as const,
+        why: `${read.found} STILL NOT FILED — ${read.blockedBy} Reading it did not capture it, and this line exists so the next reader does not open it again to learn that.`,
+      };
+    }
     return {
       file,
       kind: "needs-a-read" as const,
@@ -178,6 +225,7 @@ export function drainReport(
   const transcribedElsewhere = verdicts.filter((v) => v.kind === "transcribed-elsewhere");
   const needsTranscription = verdicts.filter((v) => v.kind === "needs-transcription");
   const needsARead = verdicts.filter((v) => v.kind === "needs-a-read");
+  const readNotFiled = verdicts.filter((v) => v.kind === "read-not-filed");
 
   return {
     verdicts,
@@ -186,8 +234,9 @@ export function drainReport(
     transcribedElsewhere,
     needsTranscription,
     needsARead,
+    readNotFiled,
     orphanedRulings,
-    summary: drainSummary(unprocessed.length, processed.length, eligible.length),
+    summary: drainSummary(unprocessed.length, processed.length, eligible.length, readNotFiled.length),
   };
 }
 
@@ -197,12 +246,22 @@ export function drainReport(
  * It states the two counts that were actually re-listed and, when nothing has ever landed in
  * `/Processed`, says that in words rather than letting a bare `0` read as a rounding error.
  */
-export function drainSummary(unprocessed: number, processed: number, eligible: number): string {
+export function drainSummary(
+  unprocessed: number,
+  processed: number,
+  eligible: number,
+  readNotFiled = 0,
+): string {
   const head = `Drive drain: ${unprocessed} in /Unprocessed · ${processed} in /Processed`;
   const never = processed === 0 ? " — the drain has never run once" : "";
   const owed =
     eligible === 0
       ? " · 0 files are ruled ready to move, so the backlog is a reading backlog, not a moving one"
       : ` · ${eligible} ruled captured and still owed a move`;
-  return `${head}${never}${owed}.`;
+  // Stated separately rather than folded into the reading backlog. A read file is NOT reading work
+  // left, and it is NOT a move either — it is a third thing, and the sentence that hid it inside
+  // "a reading backlog" would send someone to re-read files that have already been read.
+  const read =
+    readNotFiled === 0 ? "" : ` · ${readNotFiled} read and still unfilable, each naming its blocker`;
+  return `${head}${never}${owed}${read}.`;
 }

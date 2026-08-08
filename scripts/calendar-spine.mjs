@@ -82,6 +82,11 @@ const DRIVE_RULINGS = join(REPO, "MLE Internal Meetings", "drive-read-confirmati
 // Q86 inc.38 — DoD (e). BOTH folders re-listed live; `drained` may only come from the second one.
 const DRAIN =
   argOf("--drain") ?? join(REPO, "MLE Internal Meetings", "drive-drain-2026-08-08.json");
+// Q86 inc.47 — DoD (e). The three native Docs that inc.38 could only call "nobody has opened and
+// ruled" are now READ. A read is not a capture, so these rulings feed the read-not-filed class and
+// never `eligible`; each one names the condition that still blocks filing.
+const DOC_READS =
+  argOf("--doc-reads") ?? join(REPO, "MLE Internal Meetings", "drive-doc-reads-2026-08-08.json");
 // Q86 inc.39 — DoD (b). The transcripts already on disk, measured. inc.38 read the Drive folder and
 // not this one, and reported three recordings as untranscribed that had been transcribed on 7/28.
 const LOCAL_TRANSCRIPTS =
@@ -210,6 +215,12 @@ const driveRuled = summarizeRuledDocs(drive);
 // this is deliberately handed an empty list rather than the doc confirmations, which say a doc was
 // READ, not that its meeting was captured and its file is owed a move.
 const drainSnap = existsSync(DRAIN) ? JSON.parse(readFileSync(DRAIN, "utf8")) : null;
+// A missing reads file is an empty list, NOT an error: every doc then reports `needs-a-read`, which
+// is what was true before anyone read them. The failure direction is deliberately toward more work
+// outstanding, never toward files that quietly look handled.
+const docReads = existsSync(DOC_READS)
+  ? (JSON.parse(readFileSync(DOC_READS, "utf8")).reads ?? [])
+  : [];
 // DoD (b): before a recording may be called untranscribed, the transcripts on disk are asked. Only
 // `linked` verdicts cross over — an `uncertain` near-miss is printed for a human and never counted.
 const localTranscripts = existsSync(LOCAL_TRANSCRIPTS)
@@ -256,6 +267,7 @@ const drain = drainSnap
       recordingLinks
         .filter((l) => l.status === "linked")
         .map((l) => ({ fileId: l.file.id, transcriptRef: l.transcript.ref, why: l.why })),
+      docReads,
     )
   : null;
 const attached = drive.records;
@@ -322,6 +334,7 @@ if (AS_JSON) {
               needsTranscription: drain.needsTranscription.length,
               recordingLinks,
               needsARead: drain.needsARead.length,
+              readNotFiled: drain.readNotFiled.length,
               orphanedRulings: drain.orphanedRulings,
               summary: drain.summary,
               verdicts: drain.verdicts,
@@ -539,7 +552,7 @@ if (drain) {
   console.log(`\n— DRIVE /Unprocessed → /Processed (${basename(DRAIN)}, taken ${drainSnap.fetchedAt ?? "undated"}) —`);
   console.log(`   ${drain.summary}`);
   for (const v of drain.verdicts) {
-    const mark = { drained: "✅", eligible: "📦", "transcribed-elsewhere": "📝", "needs-transcription": "🎙", "needs-a-read": "📄" }[v.kind];
+    const mark = { drained: "✅", eligible: "📦", "transcribed-elsewhere": "📝", "needs-transcription": "🎙", "needs-a-read": "📄", "read-not-filed": "📖" }[v.kind];
     console.log(`   ${mark} ${v.kind} — ${v.file.title}\n     ${v.why}`);
   }
   const uncertainLinks = recordingLinks.filter((l) => l.status === "uncertain");
