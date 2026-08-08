@@ -276,12 +276,19 @@ describe("rulingAttachments", () => {
     // calendar events are marketing broadcast invitations on 12-01, 12-02, 12-25 and 12-28, so
     // every real December call Rob was on is missing from the calendar, not from the archive.
     // That is the finding this pin exists to hold: on this edge the label describes the CALENDAR.
-    // So: 13 transcript rulings, 13 stranded — still the same number, and the reason is structural.
+    // Re-read 2026-08-08 (Q86 inc.35): a FOURTEENTH transcript ruling, 13 -> 14 by hand —
+    // `2cc1de57…` (Matt Jackson and Ryan Groth, 2025-12-17, 44,935 chars), the fourth of the five
+    // STG-era bodies. Checked against the live `spine:q86` run before the number moved:
+    // `in-window-day-empty` a FIFTH consecutive time (will Devito 12-20, Ryan Groth 12-26,
+    // Calvary 12-15, Chain 12-18, Matt Jackson 12-17). inc.34 established that all four December
+    // 2025 calendar events are marketing broadcast invitations; this row lands on 12-17, a day the
+    // calendar does not carry at all, so it corroborates that finding rather than adding a new one.
+    // So: 14 transcript rulings, 14 stranded — still the same number, and the reason is structural.
     // Until a real `rows` link exists, no body-reading can move this count, which is the property
     // the whole edge is built on: reading a body proves what it CONTAINS, never which event it is
     // OF. If these two numbers ever diverge, a notion link was written onto a meeting row — go
     // find out who welded it and on what evidence.
-    expect(live.filter((c) => c.verdict === "transcript")).toHaveLength(13);
+    expect(live.filter((c) => c.verdict === "transcript")).toHaveLength(14);
     const attachments = rulingAttachments(
       live,
       [],
@@ -321,10 +328,16 @@ describe("rulingAttachments", () => {
         // MEASURED placement so that if it ever leaves this list it is because a calendar entry
         // was created for 2025-12-18, not because a day was inferred from the title.
         { id: "2cd1de57-0199-801b-a9d1-c09e11554992", title: "Chain & Rob | STG Sales & Recruiting Analysis 2025-12-18T17:00:00.000-05:00", day: "2025-12-18", placement: "in-window-day-empty", sameDayMeetings: [] },
+        // Q86 inc.35. Fifth consecutive STG-era ruling on an empty calendar day, and the day sits
+        // BETWEEN two others already pinned here (12-15 and 12-18) — the December gap is a run of
+        // days, not scattered rows. Pinned with the MEASURED placement so that if it ever leaves
+        // this list it is because a calendar entry was created for 2025-12-17, not because a day
+        // was inferred from the title.
+        { id: "2cc1de57-0199-8071-b1ac-c075faf9fdbd", title: "Matt Jackson and Ryan Groth 2025-12-17T10:00:00.000-05:00", day: "2025-12-17", placement: "in-window-day-empty", sameDayMeetings: [] },
       ],
       titleOf,
     );
-    expect(strandedTranscriptRulings(attachments)).toHaveLength(13);
+    expect(strandedTranscriptRulings(attachments)).toHaveLength(14);
   });
 
   it("THE LIVE FINDING, second half: a summary-only ruling is recorded and is NOT counted as a transcript", () => {
@@ -376,7 +389,10 @@ describe("rulingAttachments", () => {
     // Re-read 2026-08-08 (Q86 inc.34): ONE more, 17 -> 18, also a `transcript`. This pin went RED
     // before the prose did, which is the guard doing its job — the count is read off the live file,
     // never remembered.
-    expect(live).toHaveLength(18);
+    // Re-read 2026-08-08 (Q86 inc.35): ONE more, 18 -> 19, also a `transcript`. This pin went RED
+    // first again, before a single number was moved, which is the only way this file is allowed to
+    // grow — the count is read off the live file, never remembered.
+    expect(live).toHaveLength(19);
     for (const pageId of [
       "79dbbdf5-61fe-441c-8324-1d3f75c8a6a9",
       "3c349f70-08dd-48c6-89c6-e0d71fd93d82",
