@@ -204,7 +204,7 @@ describe("rulingAttachments", () => {
     expect(a.placement).toBe("not-in-spine");
   });
 
-  it("THE LIVE FINDING: both rulings this repo has earned are stranded, so the board is unmoved", () => {
+  it("THE LIVE FINDING: all three rulings this repo has earned are stranded, so the board is unmoved", () => {
     const live: NotionReadConfirmation[] = JSON.parse(
       readFileSync(
         join(__dirname, "..", "..", "..", "MLE Internal Meetings", "notion-read-confirmations.json"),
@@ -212,16 +212,21 @@ describe("rulingAttachments", () => {
       ),
     ).confirmations;
     // Guard first — if a ruling is ever added, this test must be re-read, not silently widened.
-    expect(live.filter((c) => c.verdict === "transcript")).toHaveLength(2);
+    // Re-read 2026-08-07 (Q86 inc.21): a THIRD transcript ruling was added, so this number
+    // moved 2 -> 3 by hand after checking the new row is genuinely stranded too. It is: the
+    // 11:05 EDT Rob/Connor call is not on the calendar at all, and the only 2026-06-16 event
+    // is the 13:00 CGRoofing meeting, which the body rules out on time AND subject.
+    expect(live.filter((c) => c.verdict === "transcript")).toHaveLength(3);
     const attachments = rulingAttachments(
       live,
       [],
       [
         { id: "2cf1de57-0199-8003-9e6d-fd921fbb8a59", title: "will Devito", day: "2025-12-20", placement: "outside-window", sameDayMeetings: [] },
         { id: "3811de57-0199-8099-9137-ef10c8fd0efe", title: "Gulf Coast Realty, AI Alex meeting one", day: "2026-06-16", placement: "in-window-day-busy", sameDayMeetings: [{ id: "e1", title: "Caleb, Rob, Will | CGRoofingGroup.com + AI Platform Discovery" }] },
+        { id: "3811de57-0199-80d4-b8e5-c0a7c8465085", title: "Meeting 2026-06-16T11:05:00.000-04:00", day: "2026-06-16", placement: "in-window-day-busy", sameDayMeetings: [{ id: "e1", title: "Caleb, Rob, Will | CGRoofingGroup.com + AI Platform Discovery" }] },
       ],
       titleOf,
     );
-    expect(strandedTranscriptRulings(attachments)).toHaveLength(2);
+    expect(strandedTranscriptRulings(attachments)).toHaveLength(3);
   });
 });
