@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { DEEP_DIVE_LEDGER_PATH, isCliRefusal, parseDeepDiveArgs } from "../deepDiveCli";
+import {
+  DEEP_DIVE_DOSSIER_DIR,
+  DEEP_DIVE_LEDGER_PATH,
+  dossierPath,
+  isCliRefusal,
+  parseDeepDiveArgs,
+} from "../deepDiveCli";
 import { recordRun, parseLedger } from "../deepDiveLedger";
 import { deepDiveDecision, type DeepDiveOrg } from "../deepDiveDue";
 
@@ -89,5 +95,89 @@ describe("the parse → record → verdict join the command actually performs", 
 describe("DEEP_DIVE_LEDGER_PATH", () => {
   it("is one shared constant so the script and its readers cannot drift to two files", () => {
     expect(DEEP_DIVE_LEDGER_PATH).toBe("data/enrichment/deep-dive-runs.json");
+  });
+});
+
+// ---------------------------------------------------------------------------------------------
+// Q87 inc.7 — `--pass` and the dossier path. The command line gains a SECOND writer, and the
+// loader gains the one decision that can be dangerous: an org id from a prod table becoming a
+// filesystem path.
+// ---------------------------------------------------------------------------------------------
+
+describe("parseDeepDiveArgs --pass", () => {
+  it("PLANS on a bare --pass — spending a research budget is said out loud, never defaulted", () => {
+    expect(parseDeepDiveArgs(["--pass"])).toEqual({
+      mode: "pass",
+      freshDays: undefined,
+      execute: false,
+      limit: undefined,
+    });
+  });
+
+  it("dives only when --execute is typed", () => {
+    expect(parseDeepDiveArgs(["--pass", "--execute"])).toEqual({
+      mode: "pass",
+      freshDays: undefined,
+      execute: true,
+      limit: undefined,
+    });
+  });
+
+  it("refuses --pass together with --record — two writers, one ledger, no way to tell after", () => {
+    const out = parseDeepDiveArgs(["--pass", "--record", "C-2021", "--by", "lead-enricher"]);
+    expect(isCliRefusal(out)).toBe(true);
+    if (!isCliRefusal(out)) return;
+    expect(out.refusal).toContain("two different writers");
+  });
+
+  it("refuses --by with --pass, in the pass's own terms: it does not name producers", () => {
+    const out = parseDeepDiveArgs(["--pass", "--by", "max"]);
+    expect(isCliRefusal(out)).toBe(true);
+    if (!isCliRefusal(out)) return;
+    // The whole item turns on this. An operator who can type --by onto a pass has handed
+    // themselves `covered` for four companies, which is inc.2's original defect automated.
+    expect(out.refusal).toContain("NEVER names the producer");
+  });
+
+  it("refuses --execute / --limit when no pass is being run", () => {
+    expect(isCliRefusal(parseDeepDiveArgs(["--execute"]))).toBe(true);
+    expect(isCliRefusal(parseDeepDiveArgs(["--limit", "2"]))).toBe(true);
+  });
+
+  it("refuses a --limit that is not a positive whole number of orgs", () => {
+    for (const bad of ["0", "-1", "1.5", "all", ""]) {
+      expect(isCliRefusal(parseDeepDiveArgs(["--pass", "--limit", bad]))).toBe(true);
+    }
+    expect(parseDeepDiveArgs(["--pass", "--limit", "2"])).toMatchObject({ mode: "pass", limit: 2 });
+  });
+
+  it("refuses a value on --pass / --execute rather than swallowing it as an org id", () => {
+    expect(isCliRefusal(parseDeepDiveArgs(["--pass", "C-2021"]))).toBe(true);
+    expect(isCliRefusal(parseDeepDiveArgs(["--pass", "--execute", "yes"]))).toBe(true);
+  });
+
+  it("still carries --fresh-days through, so a pass ages runs the same way a list does", () => {
+    expect(parseDeepDiveArgs(["--pass", "--fresh-days", "90"])).toMatchObject({ mode: "pass", freshDays: 90 });
+  });
+});
+
+describe("dossierPath", () => {
+  it("builds one file per org under the one dossier directory", () => {
+    expect(dossierPath("C-2021")).toBe("data/enrichment/dossiers/C-2021.json");
+    expect(DEEP_DIVE_DOSSIER_DIR).toBe("data/enrichment/dossiers");
+  });
+
+  it("REFUSES an org id that would escape the dossier directory", () => {
+    // The id comes off a prod table and is about to become a path. `../../.env.local` is a read
+    // of the service key wearing an org id's clothes.
+    for (const evil of ["../../.env.local", "..", "C-2021/../../secrets", "/etc/passwd", "C-2021\\x"]) {
+      const out = dossierPath(evil);
+      expect(isCliRefusal(out)).toBe(true);
+    }
+  });
+
+  it("refuses an empty id rather than reading the directory itself", () => {
+    expect(isCliRefusal(dossierPath(""))).toBe(true);
+    expect(isCliRefusal(dossierPath("   "))).toBe(true);
   });
 });

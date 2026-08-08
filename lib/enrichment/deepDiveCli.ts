@@ -27,8 +27,8 @@
  */
 
 export interface DeepDiveCliArgs {
-  /** `list` (default) or `record`. */
-  mode: "list" | "record";
+  /** `list` (default), `record`, or `pass`. */
+  mode: "list" | "record" | "pass";
   /** Only set in `record` mode. */
   orgId?: string;
   producedBy?: string;
@@ -36,14 +36,18 @@ export interface DeepDiveCliArgs {
   ranAt?: string;
   /** Days a recorded run stays fresh; handed to `deepDiveDue`. */
   freshDays?: number;
+  /** `pass` mode only. Rule 4 of `deepDivePass`: never defaulted true, always stated. */
+  execute?: boolean;
+  /** `pass` mode only. Positive cap on orgs dived this tick. */
+  limit?: number;
 }
 
 export interface CliRefusal {
   refusal: string;
 }
 
-const isRefusal = (v: DeepDiveCliArgs | CliRefusal): v is CliRefusal =>
-  Object.prototype.hasOwnProperty.call(v, "refusal");
+const isRefusal = <T>(v: T | CliRefusal): v is CliRefusal =>
+  typeof v === "object" && v !== null && Object.prototype.hasOwnProperty.call(v, "refusal");
 
 const ISO_DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -67,9 +71,13 @@ export function parseDeepDiveArgs(argv: string[]): DeepDiveCliArgs | CliRefusal 
     }
   }
 
-  const known = new Set(["record", "by", "on", "fresh-days"]);
+  const known = new Set(["record", "by", "on", "fresh-days", "pass", "execute", "limit"]);
   for (const key of flags.keys()) {
-    if (!known.has(key)) return { refusal: `unknown flag --${key} (known: --record, --by, --on, --fresh-days)` };
+    if (!known.has(key)) {
+      return {
+        refusal: `unknown flag --${key} (known: --record, --by, --on, --fresh-days, --pass, --execute, --limit)`,
+      };
+    }
   }
 
   let freshDays: number | undefined;
@@ -78,6 +86,43 @@ export function parseDeepDiveArgs(argv: string[]): DeepDiveCliArgs | CliRefusal 
     const n = Number(raw);
     if (!raw || !Number.isFinite(n) || n <= 0) return { refusal: `--fresh-days "${raw}" is not a positive number of days` };
     freshDays = n;
+  }
+
+  // Two writers with one command line. `--record` attributes a run an operator witnessed;
+  // `--pass` lets the pass earn rows from dossiers. Which one wrote a row must never be a
+  // question the ledger cannot answer, so they are refused together rather than ordered.
+  if (flags.has("pass") && flags.has("record")) {
+    return { refusal: "--pass and --record are two different writers — run one or the other, never both" };
+  }
+
+  if (flags.has("pass")) {
+    if (flags.has("by") || flags.has("on")) {
+      return {
+        refusal:
+          "--by / --on only mean something with --record: the pass NEVER names the producer, it " +
+          "reads that name off the dossier the researcher wrote",
+      };
+    }
+    if ((flags.get("pass") ?? "") !== "") {
+      return { refusal: `--pass takes no value (got "${flags.get("pass")}") — it dives every org the worklist says is owed` };
+    }
+    if ((flags.get("execute") ?? "") !== "") {
+      return { refusal: `--execute takes no value (got "${flags.get("execute")}")` };
+    }
+    let limit: number | undefined;
+    if (flags.has("limit")) {
+      const raw = flags.get("limit") ?? "";
+      const n = Number(raw);
+      if (!raw || !Number.isInteger(n) || n <= 0) return { refusal: `--limit "${raw}" is not a positive whole number of orgs` };
+      limit = n;
+    }
+    // Rule 4 of `deepDivePass` restated at the point the operator types it: a bare `--pass`
+    // PLANS. Spending a research budget is something a caller says out loud.
+    return { mode: "pass", freshDays, execute: flags.has("execute"), limit };
+  }
+
+  if (flags.has("execute") || flags.has("limit")) {
+    return { refusal: "--execute / --limit only mean something with --pass" };
   }
 
   if (!flags.has("record")) {
@@ -111,3 +156,33 @@ export { isRefusal as isCliRefusal };
 
 /** The one on-disk location. Named here so the script and its test cannot disagree about it. */
 export const DEEP_DIVE_LEDGER_PATH = "data/enrichment/deep-dive-runs.json";
+
+/** Where `lead-enricher` drops what it found — one file per org, named by org id. */
+export const DEEP_DIVE_DOSSIER_DIR = "data/enrichment/dossiers";
+
+/**
+ * The dossier file for one org, or a refusal.
+ *
+ * This is the loader's only decision, and it is the one worth holding: the org id arrives from
+ * a PROD TABLE, and it is about to be pasted into a filesystem path. `C-2021` is fine;
+ * `../../.env.local` is a read of Rob's service key wearing an org id's clothes. So the id is
+ * checked against the shape ids actually have rather than scanned for bad substrings — a
+ * denylist of `..` and `/` is the version of this check that gets bypassed.
+ *
+ * Pure (CR-3): it joins strings and returns them. Nothing here opens anything.
+ */
+export function dossierPath(orgId: string): string | CliRefusal {
+  const id = typeof orgId === "string" ? orgId.trim() : "";
+  if (!id) return { refusal: "cannot locate a dossier for an org with no id" };
+  if (!/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(id)) {
+    return {
+      refusal:
+        `"${id}" is not a usable org id for a filename — a dossier path is built from it, so ` +
+        `anything but letters, digits, dot, dash and underscore is refused rather than escaped`,
+    };
+  }
+  if (id.includes("..")) {
+    return { refusal: `"${id}" contains ".." — refused before it becomes a path` };
+  }
+  return `${DEEP_DIVE_DOSSIER_DIR}/${id}.json`;
+}

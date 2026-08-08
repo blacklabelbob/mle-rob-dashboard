@@ -16,10 +16,14 @@ import { dirname } from "node:path";
 import {
   parseDeepDiveArgs,
   isCliRefusal,
+  dossierPath,
+  DEEP_DIVE_DOSSIER_DIR,
   DEEP_DIVE_LEDGER_PATH,
 } from "../../lib/enrichment/deepDiveCli.ts";
 import { deepDiveWorklist } from "../../lib/enrichment/deepDiveDue.ts";
 import { parseLedger, recordRun, serializeLedger } from "../../lib/enrichment/deepDiveLedger.ts";
+import { makeDossierDive } from "../../lib/enrichment/deepDiveDossier.ts";
+import { runDeepDivePass, deepDivePassLog } from "../../lib/enrichment/deepDivePass.ts";
 
 for (const line of readFileSync(".env.local", "utf8").split("\n")) {
   const m = line.match(/^([A-Z_]+)=(.*)$/);
@@ -86,6 +90,57 @@ const orgs = (await res.json()).map((o) => ({
   notes: o.notes,
   keyDates: o.key_dates,
 }));
+
+if (args.mode === "pass") {
+  // The loader — the ONLY new thing that touches disk this increment. It opens the file
+  // `dossierPath` names and hands the parsed JSON to `makeDossierDive`, which decides whether it
+  // covers this org. A missing file returns null on purpose: `dossierToFinding` says "nothing has
+  // researched it yet" in those words, which is a different fact from "found nothing".
+  const dropped = [];
+  const load = async (decision) => {
+    const path = dossierPath(decision.orgId);
+    if (isCliRefusal(path)) throw new Error(path.refusal);
+    try {
+      return JSON.parse(readFileSync(path, "utf8"));
+    } catch (err) {
+      if (err?.code === "ENOENT") return null;
+      throw new Error(`the dossier at ${path} could not be read: ${err.message}`);
+    }
+  };
+
+  const result = await runDeepDivePass(
+    {
+      listOrgs: async () => orgs,
+      loadLedger: async () => onDisk,
+      dive: makeDossierDive(load, (decision, read) => {
+        for (const d of read.droppedSources) dropped.push(`${decision.orgId}: "${d.value}" — ${d.reason}`);
+      }),
+      saveLedger: async (ledger) => {
+        mkdirSync(dirname(DEEP_DIVE_LEDGER_PATH), { recursive: true });
+        writeFileSync(DEEP_DIVE_LEDGER_PATH, serializeLedger(ledger));
+      },
+    },
+    {
+      missingConfig: [],
+      execute: args.execute === true,
+      limit: args.limit,
+      freshness: { asOf: today, freshDays: args.freshDays },
+    },
+  );
+
+  console.log(`\nDEEP-DIVE PASS — dossiers read from ${DEEP_DIVE_DOSSIER_DIR}/, as of ${today}`);
+  console.log(JSON.stringify(deepDivePassLog(result), null, 2));
+  // Dropped sources are printed every run, never behind a flag: a dossier half of whose sources
+  // were attributions still earns a row, and whoever reads the ledger deserves to know that.
+  for (const d of dropped) console.error(`⚠️  source dropped — ${d}`);
+  if (result.kind === "planned") {
+    console.log(
+      `\nPLANNED ONLY — ${result.plan.due.length} org(s) owed a dive. Nothing was researched and ` +
+        `nothing was written.\n  Add --execute to run the pass against the dossiers on disk.`,
+    );
+  }
+  process.exit(0);
+}
 
 const { due, counts } = deepDiveWorklist(orgs, { runs, asOf: today, freshDays: args.freshDays });
 
