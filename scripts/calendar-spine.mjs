@@ -32,7 +32,7 @@ import { fileURLToPath } from "node:url";
 
 import { fromCalendarEvents, SOURCES_NOT_WIRED, sourceRecordsFromAttachments } from "../lib/meetings/calendarEvents.ts";
 import { reconcileCalendarSpine } from "../lib/meetings/calendarSpine.ts";
-import { fromDrive } from "../lib/meetings/driveReads.ts";
+import { fromDrive, summarizeRuledDocs } from "../lib/meetings/driveReads.ts";
 import {
   indexNotionReads,
   parseDeepReadHeader,
@@ -170,6 +170,8 @@ const driveRulings = existsSync(DRIVE_RULINGS)
   ? JSON.parse(readFileSync(DRIVE_RULINGS, "utf8")).confirmations ?? []
   : [];
 const drive = fromDrive(locatedAttachments, driveSnap?.docs ?? [], driveRulings);
+// Docs read vs rows moved — computed in `lib/`, never by adding two array lengths at print time.
+const driveRuled = summarizeRuledDocs(drive);
 const attached = drive.records;
 
 // The window's own bounds as LOCAL DAYS, so an unclaimed record's day is compared against them
@@ -232,7 +234,7 @@ const c = report.counts;
 console.log(`\n📅 CALENDAR SPINE — ${snapshot.window?.start ?? "?"} → ${snapshot.window?.end ?? "?"} (${timeZone})`);
 console.log(`   snapshot taken ${snapshot.fetchedAt ?? "(undated — treat as unknown age)"} · ${CALENDAR}`);
 console.log(
-  `   sources READ: fireflies (${fireflies.length} records), local-repo (${harvest.records.length} files), calendar attachments (${attached.length} located, ${drive.confirmedTranscripts.length + drive.ruledNotTranscript.length} READ + ruled, ${drive.bodyFindings.length} measured-unread, ${drive.unmeasured.length} unmeasured), fathom (${fathom.length} recordings, ${fathomConfirmed} transcript${fathomConfirmed === 1 ? "" : "s"} confirmed), notion (${notion.records.length} rows, ${notion.confirmedTranscripts.length} body READ + ruled a transcript, ${notion.bodyFindings.length} still unread)`,
+  `   sources READ: fireflies (${fireflies.length} records), local-repo (${harvest.records.length} files), calendar attachments (${attached.length} located, ${driveRuled.docsRuled} doc${driveRuled.docsRuled === 1 ? "" : "s"} READ + ruled moving ${driveRuled.rowsMoved} row${driveRuled.rowsMoved === 1 ? "" : "s"}, ${drive.bodyFindings.length} measured-unread, ${drive.unmeasured.length} unmeasured), fathom (${fathom.length} recordings, ${fathomConfirmed} transcript${fathomConfirmed === 1 ? "" : "s"} confirmed), notion (${notion.records.length} rows, ${notion.confirmedTranscripts.length} body READ + ruled a transcript, ${notion.bodyFindings.length} still unread)`,
 );
 if (!fathomSnap)
   console.log(`   ⚠ no fathom snapshot at ${FATHOM} — fathom is reading as EMPTY, which is not the same as absent.`);
@@ -253,14 +255,20 @@ if (drive.bodyFindings.length) {
       `   • ${f.day ?? "(undated)"} ${f.title}\n     ${f.bytes.toLocaleString("en-US")} bytes · ${f.calendarEventIds.length} event${f.calendarEventIds.length === 1 ? "" : "s"} would move · ${f.why}`,
     );
 }
-if (drive.ruledNotTranscript.length || drive.confirmedTranscripts.length) {
+if (driveRuled.docsRuled) {
   const titleOf = (id) => driveSnap?.docs?.find((d) => d.id === id)?.title ?? id;
+  const rowsOf = (id) => driveSnap?.docs?.find((d) => d.id === id)?.calendarEventIds?.length ?? 1;
+  const fanout = (id) => (rowsOf(id) > 1 ? ` (one doc on ${rowsOf(id)} invites — it moves both)` : "");
+  // DOCS, not rows: a doc on two invites is one thing somebody read. See `summarizeRuledDocs`.
   console.log(
-    `\n— GEMINI DOCS ALREADY READ AND RULED (${drive.confirmedTranscripts.length + drive.ruledNotTranscript.length}) —`,
+    `\n— GEMINI DOCS ALREADY READ AND RULED (${driveRuled.docsRuled} doc${driveRuled.docsRuled === 1 ? "" : "s"} · ${driveRuled.rowsMoved} row${driveRuled.rowsMoved === 1 ? "" : "s"} moved) —`,
   );
-  for (const id of drive.confirmedTranscripts) console.log(`   ✅ transcript — ${titleOf(id)}`);
-  for (const id of drive.ruledNotTranscript)
-    console.log(`   ⛔ not coverage — ${titleOf(id)} (opened; the meeting is still owed a record)`);
+  for (const id of driveRuled.transcriptDocs)
+    console.log(`   ✅ transcript — ${titleOf(id)}${fanout(id)}`);
+  for (const id of driveRuled.notCoverageDocs)
+    console.log(
+      `   ⛔ not coverage — ${titleOf(id)}${fanout(id)} (opened; the meeting is still owed a record)`,
+    );
 }
 if (drive.orphanedConfirmations.length)
   console.log(

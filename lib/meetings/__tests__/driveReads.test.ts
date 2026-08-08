@@ -6,6 +6,7 @@ import {
   DRIVE_BODY_UNREAD_BYTES,
   fromDrive,
   indexDriveDocs,
+  summarizeRuledDocs,
   type DriveDoc,
   type DriveReadConfirmation,
 } from "@/lib/meetings/driveReads";
@@ -102,6 +103,44 @@ describe("fromDrive — what it refuses to lose", () => {
     expect(out.confirmedTranscripts).toEqual([]);
   });
 
+  it("summarizeRuledDocs counts DOCS READ, not the rows one doc moves", () => {
+    // The exact shape that made the live report say "GEMINI DOCS ALREADY READ AND RULED (3)" over a
+    // list naming two files: one two-invite doc ruled a transcript, one single-invite doc ruled empty.
+    const both = [
+      located("shared", { calendarEventId: "evt-a" }),
+      located("shared", { calendarEventId: "evt-b" }),
+      located("solo"),
+    ];
+    const out = fromDrive(
+      both,
+      [doc("shared"), doc("solo")],
+      [ruling("shared", "transcript"), ruling("solo", "empty")],
+    );
+    // The per-record arrays are unchanged — callers that want every moved row still get every row.
+    expect(out.confirmedTranscripts).toEqual(["shared", "shared"]);
+
+    const summary = summarizeRuledDocs(out);
+    expect(summary.docsRuled).toBe(2);
+    expect(summary.rowsMoved).toBe(3);
+    expect(summary.transcriptDocs).toEqual(["shared"]);
+    expect(summary.notCoverageDocs).toEqual(["solo"]);
+  });
+
+  it("summarizeRuledDocs on the committed evidence: 2 docs read, 3 rows moved", () => {
+    const root = join(process.cwd(), "MLE Internal Meetings");
+    const snap = JSON.parse(readFileSync(join(root, "drive-snapshot-2026-08-07.json"), "utf8"));
+    const rulings = JSON.parse(readFileSync(join(root, "drive-read-confirmations.json"), "utf8"));
+    // One located record per (doc, event) pair — how `sourceRecordsFromAttachments` feeds this.
+    const records = snap.docs.flatMap((d: DriveDoc) =>
+      (d.calendarEventIds ?? []).map((evt) => located(d.id, { calendarEventId: evt })),
+    );
+    const summary = summarizeRuledDocs(fromDrive(records, snap.docs, rulings.confirmations));
+    expect(summary.docsRuled).toBe(2);
+    expect(summary.rowsMoved).toBe(3);
+    // The CG Roofing doc is the fan-out: ruled once, it is on two 2026-06-16 invites.
+    expect(summary.transcriptDocs).toEqual(["1479bPU0Jn1QrMomzSdwpWHrx5lFXTvDP0_W0ppJVd_Y"]);
+  });
+
   it("indexDriveDocs joins by file id", () => {
     const { byFileId } = indexDriveDocs([doc("d1")], [ruling("d1", "summary-only")]);
     expect(byFileId.get("d1")?.confirmation?.verdict).toBe("summary-only");
@@ -140,7 +179,30 @@ describe("the committed snapshot and rulings — the evidence this module cites"
     expect(orphanedConfirmations).toEqual([]);
   });
 
-  it("no committed ruling claims coverage yet — nothing has been read end to end but the empty one", () => {
-    expect(rulings.confirmations.filter((c: DriveReadConfirmation) => c.verdict === "transcript")).toEqual([]);
+  /**
+   * REPLACES inc.15's "no committed ruling claims coverage yet" (Q86 inc.16).
+   *
+   * That assertion pinned a MOMENT — at the time, the only doc anyone had opened was the 3,186-byte
+   * apology — and it read as an invariant. It is not one: reading the CG Roofing doc end to end and
+   * ruling it `transcript` is the work this file exists to enable, and it turned a green test red by
+   * SUCCEEDING. A test that goes red when the project advances is a test that will be deleted in a
+   * hurry by whoever is mid-increment, and the real guarantee underneath it would go with it.
+   *
+   * So the guarantee is stated directly instead: a `transcript` verdict is the one value that turns
+   * `hasTranscript` true and closes a meeting, and it may never be a bare word. It carries quoted
+   * evidence, a date, and a named owner — so a wrong ruling is arguable and has somebody's name on it.
+   */
+  it("a `transcript` ruling always carries quoted evidence, a date and an owner", () => {
+    const coverage = rulings.confirmations.filter(
+      (c: DriveReadConfirmation) => c.verdict === "transcript",
+    );
+    expect(coverage.length).toBeGreaterThan(0);
+    for (const c of coverage) {
+      expect(c.confirmedAt).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      expect(c.confirmedBy?.trim()).toBeTruthy();
+      // Quoted speech, not a summary of a summary: the note must show the doc's own words.
+      expect(c.note).toMatch(/verbatim/i);
+      expect(c.note.length).toBeGreaterThan(200);
+    }
   });
 });

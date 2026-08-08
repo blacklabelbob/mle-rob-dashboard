@@ -112,6 +112,46 @@ export type DriveHarvest = {
   unmeasured: string[];
 };
 
+/**
+ * ONE DOC, MANY ROWS — and the report was calling those rows DOCS (Q86 inc.16).
+ *
+ * `confirmedTranscripts` / `ruledNotTranscript` are per-RECORD by design: a caller asking "which
+ * located records did a ruling move" wants every one of them. But a doc attached to two events
+ * produces two records carrying the SAME file id, so their `.length` is a count of rows moved and
+ * NOT a count of docs read. The first ruling of a two-event doc — `1479bPU0…`, the CG Roofing call
+ * on both 2026-06-16 invites — made the header print `GEMINI DOCS ALREADY READ AND RULED (3)` over
+ * a list naming two files, one of them twice. Two people have read two docs; the report claimed
+ * three, and inflating how much of this archive has been READ is the one direction Q86 must never
+ * drift in.
+ *
+ * So the distinction is computed here, in code, and both numbers are kept: docs read is the honest
+ * headline, rows moved is the reason the two ever differed. `bodyFindings` already deduped by file
+ * id (`seenFindings`); this is the same rule applied to the other end of the ladder.
+ */
+export function summarizeRuledDocs(harvest: {
+  confirmedTranscripts: string[];
+  ruledNotTranscript: string[];
+}): {
+  /** Distinct file ids ruled a transcript, first-seen order. */
+  transcriptDocs: string[];
+  /** Distinct file ids ruled `summary-only` or `empty`, first-seen order. */
+  notCoverageDocs: string[];
+  /** Distinct docs carrying any ruling. THE number to print next to the word "docs". */
+  docsRuled: number;
+  /** Located records those rulings move. Always ≥ `docsRuled`; larger means fan-out, not more reading. */
+  rowsMoved: number;
+} {
+  const distinct = (ids: string[]) => [...new Set(ids)];
+  const transcriptDocs = distinct(harvest.confirmedTranscripts);
+  const notCoverageDocs = distinct(harvest.ruledNotTranscript);
+  return {
+    transcriptDocs,
+    notCoverageDocs,
+    docsRuled: new Set([...transcriptDocs, ...notCoverageDocs]).size,
+    rowsMoved: harvest.confirmedTranscripts.length + harvest.ruledNotTranscript.length,
+  };
+}
+
 /** Docs + rulings → one lookup by file id, with orphaned rulings handed back rather than dropped. */
 export function indexDriveDocs(
   docs: DriveDoc[],

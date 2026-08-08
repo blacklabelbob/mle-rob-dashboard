@@ -3,6 +3,13 @@
   "_verdicts": "transcript = verbatim speech is in the doc, so it is coverage · summary-only = Gemini's prose notes, no speech · empty = Gemini produced nothing.",
   "confirmations": [
     {
+      "fileId": "1479bPU0Jn1QrMomzSdwpWHrx5lFXTvDP0_W0ppJVd_Y",
+      "verdict": "transcript",
+      "note": "Read 2026-08-07 via the Drive MCP — Q86 inc.16, the largest measured-unread doc and the one attached to TWO events, so this single ruling moves both 2026-06-16 CG Roofing rows. The doc is TWO documents in one file: a `# Notes` half (Summary / Decisions / Next steps / Details, Gemini's prose) and a `# Transcript*` half that is 108,943 of the export's 129,502 characters and runs to a printed `Transcription ended after 01:36:43`. The transcript half is VERBATIM SPEECH under 101 timestamp headings with three named speakers — `**William DeVito:**`, `**Robert Acheson:**`, `**caleb green:**`. Opening line at `### 00:00:26`, verbatim: \"Testing. Testing. One, two, three. How do I set? All right. They're late.\" At `### 01:00:01`, verbatim: \"I'm just breaking even. I got a good company that makes good money. I just had my teeth kicked in for the last two years\" — Caleb Green on CG Roofing. Speech, not notes: this is coverage. NOTE ON BYTES, because it cuts the OPPOSITE way to the 3,186-byte apology: the snapshot measured 67,517 bytes and the export is 129,502 characters — 1.9x MORE, not less. Google's fileSize understates a native Doc, so it is a floor and not a size, exactly as `_bytesMeans` says; a rule that read 67,517 as a character count would have been wrong here in the safe direction and could be wrong in the unsafe one elsewhere. Ruling by size remains forbidden in both directions.",
+      "confirmedAt": "2026-08-07",
+      "confirmedBy": "max"
+    },
+    {
       "fileId": "1JD70AcU5xNnXZEVYo_4fDiPq2U82O9kDCB8jEOPZ2WM",
       "verdict": "empty",
       "note": "Read end to end 2026-08-07 via the Drive MCP. 3,186 bytes of Google boilerplate and nothing else. Verbatim, under `### Summary`: \"A summary wasn't produced for this meeting because there wasn't enough conversation in a supported language.\" and under `### Details`: \"Details weren't produced for this meeting.\" The only substantive content is the invite line and a link back to the calendar event. THIS IS THE POINT OF MEASURING: at 3,186 bytes it is the largest thing on that row and reads like a body, and it holds no meeting at all. The 2026-08-03 Rob & Austin call is still OWED A HUMAN.",
