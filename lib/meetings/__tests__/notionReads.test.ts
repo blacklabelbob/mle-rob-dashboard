@@ -229,4 +229,27 @@ describe("rulingAttachments", () => {
     );
     expect(strandedTranscriptRulings(attachments)).toHaveLength(3);
   });
+
+  it("THE LIVE FINDING, second half: a summary-only ruling is recorded and is NOT counted as a transcript", () => {
+    const live: NotionReadConfirmation[] = JSON.parse(
+      readFileSync(
+        join(__dirname, "..", "..", "..", "MLE Internal Meetings", "notion-read-confirmations.json"),
+        "utf8",
+      ),
+    ).confirmations;
+    // Q86 inc.22 added the FOURTH ruling and the first non-transcript one. It is pinned here for a
+    // reason the test above cannot cover: that guard counts `transcript` verdicts, so a row ruled
+    // `summary-only` leaves it at 3 and passes without anyone noticing the file changed. A ruling
+    // nothing asserts is a ruling that can be deleted or flipped in a later edit with a green suite
+    // — the same "green about nothing" shape Q89 inc.22 and Q86 inc.17 both had to correct.
+    expect(live).toHaveLength(4);
+    const row = live.find((c) => c.pageId === "79dbbdf5-61fe-441c-8324-1d3f75c8a6a9");
+    expect(row?.verdict).toBe("summary-only");
+    // The whole point of the ruling: it may never become coverage. `fromNotion()` turns
+    // hasTranscript true on a `transcript` verdict only, so this asserts the boundary rather than
+    // trusting the note prose to be read.
+    expect(live.filter((c) => c.verdict === "transcript").map((c) => c.pageId)).not.toContain(
+      "79dbbdf5-61fe-441c-8324-1d3f75c8a6a9",
+    );
+  });
 });

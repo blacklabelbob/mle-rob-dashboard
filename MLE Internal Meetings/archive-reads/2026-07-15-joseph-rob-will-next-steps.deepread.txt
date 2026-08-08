@@ -1,0 +1,125 @@
+==============================================================================
+TITLE (do not trust): Joseph, Rob, Will | Next Steps - Jul 15, 2026 (Fireflies)
+URL: https://app.notion.com/p/Joseph-Rob-Will-Next-Steps-Jul-15-2026-Fireflies-79dbbdf561fe441c83241d3f75c8a6a9
+id : 79dbbdf5-61fe-441c-8324-1d3f75c8a6a9
+CALL DATE: 2026-07-15T12:01:00.000-04:00
+------------------------------------------------------------------------------
+PROPERTIES — in full; this is where the identity the title omits lives:
+  · Google Doc Link [url]: https://app.fireflies.ai/view/01KXK86RCXFEJ3AHCXDA6JC4KH
+  ∅ Show/No Show [multi_select]: None  ← claims absence
+  · Next Steps/Action Items [rich_text]: Send overview and case studies to Joseph; Joseph reviews materials; arrange Monday 2 PM follow-up; Robert confirms availability.
+  · Company URL [rich_text]: On Time Moving
+  ∅ Parent Account [multi_select]: None  ← claims absence
+  ∅ MLE [select]: None  ← claims absence
+  ∅ Last Edited [last_edited_time]: None
+  ∅ Child Account [multi_select]: None  ← claims absence
+  ∅ Other Combined/Possible referral [rich_text]: None  ← claims absence
+  ∅ Customer Pain Points [rich_text]: None  ← claims absence
+  · Meeting Summary [rich_text]: The meeting focused on lead generation strategies and website optimization, highlighting AI technology and client success cases.
+  ∅ MLE Attendees [multi_select]: None  ← claims absence
+  ∅ Follow Up Date set [date]: None  ← claims absence
+  ∅ Company Meeting with [rich_text]: None  ← claims absence
+  ∅ Export Status [select]: None  ← claims absence
+  ∅ Sales Rep [people]: None  ← claims absence
+  ∅ Notion Meeting Page [url]: None  ← claims absence
+  · Call Date [date]: 2026-07-15T12:01:00.000-04:00
+  · Tags [multi_select]: AI Agent Training
+  · Call Recording [url]: https://app.fireflies.ai/view/01KXK86RCXFEJ3AHCXDA6JC4KH
+  · Contact Name [rich_text]: Joseph Green
+  ∅ Non MLE Attendees [rich_text]: None  ← claims absence
+  ∅ TAM # [number]: None  ← claims absence
+  ∅ Created [created_time]: None
+  ∅ In Person/Virtual [multi_select]: None  ← claims absence
+  ∅ Urgent TO DO [rich_text]: None  ← claims absence
+  ∅ Meeting Type [multi_select]: None  ← claims absence
+  ∅ Primary Target ICP [multi_select]: None  ← claims absence
+  · Meeting Title [title]: Joseph, Rob, Will | Next Steps - Jul 15, 2026 (Fireflies)
+------------------------------------------------------------------------------
+BODY: 7 blocks, 4719 chars — paragraph×3, heading_2×3, bulleted_list_item×1
+  ⚠ 18 field(s) imply 'no record'. CONTRADICTED — the body below HAS content.
+    Trust the body, not the field.
+      · Show/No Show [multi_select] = None
+      · Parent Account [multi_select] = None
+      · MLE [select] = None
+      · Child Account [multi_select] = None
+      · Other Combined/Possible referral [rich_text] = None
+      · Customer Pain Points [rich_text] = None
+      · MLE Attendees [multi_select] = None
+      · Follow Up Date set [date] = None
+      · Company Meeting with [rich_text] = None
+      · Export Status [select] = None
+      · Sales Rep [people] = None
+      · Notion Meeting Page [url] = None
+      · Non MLE Attendees [rich_text] = None
+      · TAM # [number] = None
+      · In Person/Virtual [multi_select] = None
+      · Urgent TO DO [rich_text] = None
+      · Meeting Type [multi_select] = None
+      · Primary Target ICP [multi_select] = None
+------------------------------------------------------------------------------
+PULLED, NOT RULED. A verdict lives in MLE Internal Meetings/notion-read-confirmations.json and
+is written by a human after reading this file end to end. This file existing is NOT coverage.
+==============================================================================
+[paragraph] Imported from Fireflies straggler: Original Fireflies page
+[heading_2] Overview
+[paragraph] Lead Generation
+Guaranteed million monthly views per persona with 50% monthly lead growth from targeted organic sources.  
+- Automation: 17,000 automations with ROI guarantee; includes scheduling, review management, AI receptionist, and invoicing.  
+- Website Optimization: Mobile score improved from 58 to 95+; 13% conversion rate expected from persona-specific landing pages.  
+- Cost and Delivery: Website build or optimization costs $7K, delivered within 30 days, includes social automation setup.  
+- Client Success: Burt’s Breeze got 1,580 visitors and 6 clients first week; Concierge Orthopedics made $11,000 on day 1.  
+- Next Steps: Follow-up call Monday 2 PM; client prefers optimization over rebuild with focus on landing pages and funnels.
+[heading_2] Bullet Notes
+[paragraph] 🤖 AI & SEO Strategy for Customer Acquisition
+• Discussed lowering customer acquisition costs using AI-powered chatbot and SEO optimization.
+• Shift from traditional Google Search to chatbot-based customer journeys projected to reach 20% by year-end and 60% next year.
+• Trust in chatbots is 40 times higher than Google recommendations, boosting conversions and leads.
+
+🌐 Website & Social Media Optimization
+• Phase one includes website foundation optimization: SEO, AEO, geo-tagging, form functionality, visual appeal.
+• Social media automation across 30+ platforms and Google Business Profile optimization.
+• Creation of AI 'second brain' agent automating communication and lead generation.
+• Guarantee of over one million targeted organic views monthly and 50% month-over-month lead growth.
+• 70-90% reduction in customer acquisition costs within three months.
+
+📊 Website Audit & Delivery Process
+• Audit revealed ADA compliance issues, low mobile performance (58/100), and unoptimized SEO on Joseph's site.
+• Commitment to fix or rebuild for performance above 95 in accessibility, SEO, and mobile responsiveness within a month.
+• Website build process includes template choice, 2-3 days build, three revision rounds, full ownership with Cloudflare hosting.
+• Avoids gatekeeping common in marketing agencies.
+
+🚀 Multi-Phase Service Model & Pricing
+• Phase 1: digital foundation with website and social media automation.
+• Phase 2: blueprint for 17,000 automations targeting high ROI operational gains.
+• Phase 3: integration of all tech platforms for centralized management with AI dashboards.
+• Phase one setup costs approx. $7K; monthly costs around $600 for social media plus $150 for security and analytics.
+
+📈 Case Studies & AI Multilingual Capabilities
+• Showcased client successes in HVAC, luxury club, and local orthopedics with rapid growth and lead acquisition.
+• Demonstrated AI-powered multilingual websites with localized chatbots and automatic video lip-sync translation.
+• Critical for diverse markets like Florida to expand reach.
+
+🔒 Transparency & Ethical Business Practices
+• Full refund policy if performance guarantees unmet.
+• Clients retain all digital assets; no hidden fees or gatekeeping.
+• Multiple client successes with minimal refund requests.
+
+📡 Advanced Social Media & Lead Automation
+• Hyper-tailored social media 'radar' technology listens to customer conversations across platforms.
+• Proactively messages leads with customized communication driving prospects to landing pages or calls.
+• Automated communication includes FAQs, scheduling, payments, invoicing, and review solicitation with AI sentiment monitoring.
+
+⚙️ Automation Pricing & 'Spike' Tool
+• Automation pricing is custom and ROI-driven, scaled by business size and complexity.
+• 'Spike' tool allows real-time business info updates across AI ecosystem.
+• System learns continuously via live RSS feeds to track platform changes.
+
+📊 Dashboard Reporting & Next Steps
+• Monthly dashboard reports detailed insights on leads, hours saved, messaging, and automation performance.
+• Scheduled follow-up conversation on Monday afternoon to review materials and address questions.
+[heading_2] Action Items
+[bulleted_list_item] Send overview of meeting content including blueprints and technology documentation to Joseph for further review. (William DeVito) [01:19:52]
+• Share examples of service-based client case studies relevant to Joseph’s industry as requested. (William DeVito) [27:45]
+• Review the meeting materials, case studies, and additional information to evaluate adoption potential and prepare questions for follow-up. (Joseph (On Time Moving)) [51:08]
+• Arrange follow-up call on Monday afternoon, preferably at 2 PM, to discuss any remaining questions and next steps with William and Rob. (Joseph (On Time Moving)) [01:19:37]
+• Confirm availability for Monday 2 PM follow-up meeting slot. (Robert Acheson) [01:19:50]
