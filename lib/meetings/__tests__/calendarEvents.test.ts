@@ -192,3 +192,83 @@ describe("the live calendar snapshot carries its attachments", () => {
     expect(records.every((r) => ids.has(r.calendarEventId!))).toBe(true);
   });
 });
+
+/**
+ * inc.14 — refusal 3. A broadcast Rob REGISTERED for is not a meeting he ATTENDED.
+ *
+ * Every case here is built from a shape that is really in the committed snapshot, because the
+ * whole reason this rule exists is that the Jan–May read returned 41 events — 39 marketing
+ * broadcasts, one real meeting, and one personal entry — and the 39 were drowning the board.
+ */
+describe("a Zoom webinar registration is not a meeting (refusal 3)", () => {
+  const webinar: RawCalendarEvent = {
+    id: "webinar",
+    summary: "[ENCORE] How to Turn LinkedIn Into a 24/7 Client-Getting Machine",
+    start: { dateTime: "2026-02-17T10:00:00-05:00" },
+    // Exactly the snapshot's shape: Rob is the only attendee, and Google attached no conference.
+    attendees: [{ self: true }],
+    location: "https://us06web.zoom.us/w/84919914568?tk=zQz8IgabfYLhrjVQHc2",
+  };
+
+  it("skips it with the reason in words, and never deletes it", () => {
+    const { meetings, skipped } = fromCalendarEvents([webinar], { toLocalDay });
+    expect(meetings).toHaveLength(0);
+    expect(skipped).toHaveLength(1);
+    expect(skipped[0].why).toMatch(/registered for, not a meeting he attended/);
+    // The denominator is preserved — the report cannot shrink itself.
+    expect(meetings.length + skipped.length).toBe(1);
+  });
+
+  it("a Zoom /j/ CALL link is still a meeting — the rule reads Zoom's product, not the word zoom", () => {
+    const call = { ...webinar, location: "https://us06web.zoom.us/j/84919914568" };
+    expect(fromCalendarEvents([call], { toLocalDay }).meetings).toHaveLength(1);
+  });
+
+  it("another attendee makes it a meeting no matter what the link is", () => {
+    const withGuest = { ...webinar, attendees: [{ self: true }, { email: "someone@else.com" }] };
+    expect(fromCalendarEvents([withGuest], { toLocalDay }).meetings).toHaveLength(1);
+  });
+
+  it("an attached conferenceUrl makes it a meeting — Google parsed a real room", () => {
+    const withConference = { ...webinar, conferenceUrl: "https://meet.google.com/ksx-ayxa-rgr" };
+    expect(fromCalendarEvents([withConference], { toLocalDay }).meetings).toHaveLength(1);
+  });
+
+  it("a non-Zoom registration page is NOT caught — the rule is deliberately narrow", () => {
+    // `impactforleads.com/linkedin-leads-training` is really in Rob's snapshot and really is a
+    // broadcast. It stays owed-a-human rather than being swept up by an "unfamiliar host" rule
+    // that would also eat a real 1:1 with a proprietary room link. See the doc comment.
+    const other = { ...webinar, location: "https://www.impactforleads.com/linkedin-leads-training" };
+    expect(fromCalendarEvents([other], { toLocalDay }).meetings).toHaveLength(1);
+  });
+});
+
+/**
+ * The rule measured against the file that ships, not a fixture — the inc.4 lesson. A fixture-only
+ * test would go green while the real board stayed flooded.
+ */
+describe("against Rob's real committed snapshot", () => {
+  it("the Jan–May webinars are skipped, both real meetings survive, and nothing is lost", async () => {
+    const { readFileSync } = await import("node:fs");
+    const snapshot = JSON.parse(
+      readFileSync("MLE Internal Meetings/calendar-snapshot-2026-08-07.json", "utf8"),
+    ) as { events: RawCalendarEvent[] };
+
+    const { meetings, skipped } = fromCalendarEvents(snapshot.events, { toLocalDay });
+
+    // Nothing is ever dropped: the two lists still account for every event in the file.
+    expect(meetings.length + skipped.length).toBe(snapshot.events.length);
+
+    const broadcasts = skipped.filter((s) => /registered for, not a meeting/.test(s.why));
+    // A floor, not a hard count — inc.5's lesson about pinning the window instead of the behaviour.
+    // It still fails loudly if the classification stops firing, which is the defect.
+    expect(broadcasts.length).toBeGreaterThanOrEqual(41);
+
+    // The two real Jan–May meetings must survive. This is the half that matters: a rule that
+    // cleans the board by also removing real meetings is strictly worse than the flood.
+    const titles = meetings.map((m) => m.title);
+    expect(titles).toContain("Florian Rolke and Rob Acheson");
+    // `Dr Lovette Phone` is a solo entry with no link — skipped by refusal 2, not by this rule.
+    expect(skipped.find((s) => s.title === "Dr Lovette Phone")?.why).toMatch(/personal entry/);
+  });
+});

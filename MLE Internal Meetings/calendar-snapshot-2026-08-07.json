@@ -1,6 +1,6 @@
 {
- "_comment": "Q86 inc.13 — SEGMENT read 2025-12-01 → 2026-01-01 merged into the inc.5 window (2026-06-01 → 2026-08-08). Google returned 4 events for December 2025, no nextPageToken, ALL of them Zoom marketing webinars; list_calendars shows this account holds exactly one real calendar (plus US holidays). The widening was executed as inc.12 asked and it did NOT place will-devito (2025-12-20) or any of the five archived December bodies — those meetings are not on this calendar at all. THE GAP 2026-01-01 → 2026-06-01 IS UNREAD: any record dated in it reads as outside-window and that is the read's reach, not a finding.",
- "fetchedAt": "2026-08-07T20:35:00-04:00",
+ "_comment": "Live read of Rob's Google Calendar via the Calendar MCP, redacted by scripts/calendar-snapshot-from-mcp.mjs. Segments: 2025-12-01→2026-01-01 (inc.13), 2026-06-01→2026-08-08 (inc.5), 2026-01-01→2026-06-01 (inc.14) — the Jan–May gap inc.13 left explicit is now READ, so the declared window is continuous 2025-12-01 → 2026-08-08 with no unread span inside it.",
+ "fetchedAt": "2026-08-07T20:36:00-04:00",
  "calendarId": "rob@aivoicetech.io",
  "timeZone": "America/New_York",
  "window": {
@@ -62,6 +62,610 @@
    "location": "https://us06web.zoom.us/w/86437258134",
    "start": {
     "dateTime": "2025-12-28T08:00:00-05:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "_c8sjeqrld8smudjfdtl66p9pdsr66rra71i32qr575n6qd376com8dbi6pqn2ohjcdm72dj1dtp3gdbgddmna",
+   "summary": "STARTING NOW - JOIN THE WEBINAR : [Witness the Breakthrough] AI Websites That Learn, Act, and Grow on Their Own — Evolving Into Living, Self-Running Systems That Create New Income Opportunities",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "https://us06web.zoom.us/w/86169831444?tk=UC9VNitl1RauX6y809UuGCeSbf0rYK0Gboa7BTR6CIQ.DQkAAAAUEB9IFBZUZXpJT3RubFFHTzBON3pqZmphWk1BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&uuid=WN_5C2lAdRwRVq5_DfzAR4xNA",
+   "start": {
+    "dateTime": "2026-01-14T08:00:00-05:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "_c8sjeqrld8smudjfe9l6ap1hdgr3gs3a69i6gs3575n6qd376com8dbi6pqn2ohjcdm72dj1dtp3gdbgddmna",
+   "summary": "[INVITATION] See The Instagram Profit Automation Model: How to Build Once, Let AI Grow & Monetize It Daily",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "https://us06web.zoom.us/w/86774523169?tk=S9SwzOtKIHwtq1SuAoQmDMmKJMt4IRhXHWgIuWl0E-E.DQkAAAAUNColIRZkZzNscFJqSlNXR3ZRaDhCcC1CWlFBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&uuid=WN_-0rThSLDSvmjkzHRG4XMgA",
+   "start": {
+    "dateTime": "2026-02-04T10:00:00-05:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "_c8sjeqrld8smudj7edl34p9pe0r38s9jc5i6grr575n6qd376com8dbi6pqn2ohjcdm72dj1dtp3gdbgddmna",
+   "summary": "[RE-RUN] How to Turn LinkedIn Into a 24/7 Client-Getting Machine (Without Ads, Cold Calls, or Hiring a Sales Team)",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "https://us06web.zoom.us/w/84919914568?tk=zQz8IgabfYLhrjVQHc2xA0CvvmuGkz3IGggM0BmUQb8.DQkAAAATxZ8QSBZhX1ZjY05sY1RIcVdkazYtRXVDcHBnAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&uuid=WN_i_BslhykQd6QkyPrzeY2yw",
+   "start": {
+    "dateTime": "2026-02-17T10:00:00-05:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "_c8sjeqrld8smudpkdspmaoppdsr6eshj61i70r3575n6qd376com8dbi6pqn2ohjcdm72dj1dtp3gdbgddmna",
+   "summary": "[ENCORE] How to Turn LinkedIn Into a Daily Lead, Sales & Client Engine (Without Ads or Cold Calls)",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "https://us06web.zoom.us/w/89071846075?tk=nlu8G9fwWgf_ytn3daaX3YraGWI2MsVA9ma18zXdhfE.DQkAAAAUvRiCuxZnd0ZobzNQaFJPT25QLUtadWJMTEJBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&uuid=WN_ozKaAiAbTOm12ylJYslQNw",
+   "start": {
+    "dateTime": "2026-02-17T17:00:00-05:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "_c8sjeqrld8smudj7e0pmip38d4r6mrpjcti70r3575n6qd376com8dbi6pqn2ohjcdm72dj1dtp3gdbgddmna",
+   "summary": "🔴WATCH LIVE: How to Launch a Self-Growing Instagram Business Powered by AI Agents (That Attract Followers & Close Sales for You)",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "https://us06web.zoom.us/w/84296250875?tk=t7_dvWtiIxlWaOv_ZMENVpeMwSiC-XQqY4inUjH5vgw.DQkAAAAToHK1-xZVUnZnVTZzR1NUR0NKUkdTRU9RNUl3AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&uuid=WN_nYD7dgvsSn6eBrT6MGvr_w",
+   "start": {
+    "dateTime": "2026-02-25T12:00:00-05:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "8u4jvvfer56f6ttd0o5pet5a6k",
+   "summary": "🔒 PRIVATE INVITE: Inside Our Software & Affiliate Business — How We Build, Launch & Profit in This Industry (And How You Can Partner With Us)",
+   "status": "confirmed",
+   "eventType": "FROM_GMAIL",
+   "start": {
+    "dateTime": "2026-02-28T13:00:00-05:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "_c8sjeqrld8smudpgdtl6ip9hdgr6urpj69hmgqb575n6qd376com8dbi6pqn2ohjcdm72dj1dtp3gdbgddmna",
+   "summary": "🔒 PRIVATE INVITE: Inside Our Software & Affiliate Business — How We Build, Launch & Profit in This Industry (And How You Can Partner With Us)",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "https://us06web.zoom.us/w/88198560122?tk=go1VsUjZxt7rpneaq9SknMoo4TzBdb5mY7VhI1yPako.DQkAAAAUiQs5ehZRWmY0WHFoS1NBTzl2dUtaT3hycTl3AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&uuid=WN_p3CM9gmzRPqdm7X0ZvJMVg",
+   "start": {
+    "dateTime": "2026-02-28T13:00:00-05:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "jfqut1i8pnuiqn28fed0e6nic0",
+   "summary": "[Free Class] The AI Video Workflow: How to Use Sora, Veo & Kling Together to Produce Full Marketing Videos",
+   "status": "confirmed",
+   "eventType": "FROM_GMAIL",
+   "start": {
+    "dateTime": "2026-03-08T10:00:00-04:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "_c8sjeqrld8smudpke8pm2p1pcsrj8shjcli3iqj575n6qd376com8dbi6pqn2ohjcdm72dj1dtp3gdbgddmna",
+   "summary": "[Encore] OpenClaw Cracked: How to Turn the Next AI Wave Into Real Income Opportunities",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "https://us06web.zoom.us/w/89655096753?tk=aR1CGddPMNhGTVZGDlrJtGsixYARLVszKFv4_1SMWO0.DQkAAAAU39w1sRY4WjVMeUpuaVNNS0g3Ql9kUmZpdmNBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&uuid=WN_1iUTyPblRRqsOMBxNJW8LQ",
+   "start": {
+    "dateTime": "2026-03-19T18:00:00-04:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "k6tl9tsvcae3vjjsvqq623v240",
+   "summary": "[Encore] OpenClaw Cracked: How to Turn the Next AI Wave Into Real Income Opportunities",
+   "status": "confirmed",
+   "eventType": "FROM_GMAIL",
+   "start": {
+    "dateTime": "2026-03-19T18:00:00-04:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "_c8sjeqrld8smudpge5l6ip9hdkr76s3a69hn0rb575n6qd376com8dbi6pqn2ohjcdm72dj1dtp3gdbgddmna",
+   "summary": "[Encore] The Reputation Arbitrage Training: How to Turn Customer Feedback Into Monthly Income Using AI",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "https://us06web.zoom.us/w/88598673136?tk=3O2ZpNx7XknhtAq928hI9b9aeY5I79PWFU8dQPo_ni4.DQkAAAAUoOR28BY4bVFGdGh6a1JTLUlLRnNWU0pFUnh3AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&uuid=WN_uz8JpE4ISa2ichyjcxi_Dw",
+   "start": {
+    "dateTime": "2026-03-20T19:00:00-04:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "_c8sjeqrld8smudjje1l38p1hcsr6mshj6hhj2qj575n6qd376com8dbi6pqn2ohjcdm72dj1dtp3gdbgddmna",
+   "summary": "[Live Session] Spend One Hour This Saturday Learning How AI Can Help Businesses Look More Trusted, Stand Out & Bring In More Customers and revenue.",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "https://us06web.zoom.us/w/87324056203?tk=PMLfiVrQ7adhOcsmS11gnAPXk2d8d34T4mKoJflIncs.DQkAAAAUVOtaixY3Vzdmd2xZNVM5LTlGVzNWTFFBajl3AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&uuid=WN_JrfG8A8RQbWbs6ZfRtCmRQ",
+   "start": {
+    "dateTime": "2026-03-21T09:00:00-04:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "_c8sjeqrld8smudpge5l30p9hdcr66rpj61i70q3575n6qd376com8dbi6pqn2ohjcdm72dj1dtp3gdbgddmna",
+   "summary": "[Encore] The First Voice AI System Built for Regulated Industries Like Healthcare, Legal & More — Designed to Unlock $50K–$100K Deals",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "https://us06web.zoom.us/w/88508430071?tk=OdqYKU3U0cDz4Ce0Ay1rkBdZHCVhhQy4xS-5nj6inX0.DQkAAAAUm4N29xZvR0tLdVpGbVR6YVZjdFZ3RU9PV09BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&uuid=WN_rfflaJY5TcWZ1SERavAftw",
+   "start": {
+    "dateTime": "2026-03-25T11:00:00-04:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "untc39gh5ds2qb4jmbgsdkoo2k",
+   "summary": "[Encore] The First Voice AI System Built for Regulated Industries Like Healthcare, Legal & More — Designed to Unlock $50K–$100K Deals",
+   "status": "confirmed",
+   "eventType": "FROM_GMAIL",
+   "start": {
+    "dateTime": "2026-03-25T11:00:00-04:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "_c8sjeqrld8smudj3e9l38ophdsr6mrracdi3is3575n6qd376com8dbi6pqn2ohjcdm72dj1dtp3gdbgddmna",
+   "summary": "“AI Videos That Pay You Back” — A Breakthrough I Wish I Found Years Ago (Watch & Copy It Yourself)",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "https://us06web.zoom.us/w/83720851659?tk=Tgkupa5CU6q1f23JTXVkpcS5pa3D0R4yndd4M_OtUzc.DQkAAAATfibQyxZJRjNyQ0dlcFFmcUdaLXlNTnpkbEFnAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&uuid=WN_8QFbwqpCSAOJP_tRRAE2GQ",
+   "start": {
+    "dateTime": "2026-03-26T10:00:00-04:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "jnr619er3k0gqp1cnb8ucop7qc",
+   "summary": "“AI Videos That Pay You Back” — A Breakthrough I Wish I Found Years Ago (Watch & Copy It Yourself)",
+   "status": "confirmed",
+   "eventType": "FROM_GMAIL",
+   "start": {
+    "dateTime": "2026-03-26T10:00:00-04:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "_c8sjeqrld8smudjfedl3cp9hd8r76s1jcdi6grj575n6qd376com8dbi6pqn2ohjcdm72dj1dtp3gdbgddmna",
+   "summary": "[Encore] “AI Videos That Pay You Back” — The Breakthrough I Wish I Found Years Ago (Watch & Copy It Yourself Before It’s Gone)",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "https://us06web.zoom.us/w/86938372667?tk=2-7SdbjgE9cOQTjiIDJxPeF0hNkXXiFy1pHah4YsV94.DQkAAAAUPe5KOxZENDZzNF9jc1JZU2FhX0d5M1ZqMmVnAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&uuid=WN_YNxoXmD7RyuGrDEJzrXK2Q",
+   "start": {
+    "dateTime": "2026-03-27T10:00:00-04:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "_c8sjeqrld8smudj3ecpj4orgdgr66spjcti32rr575n6qd376com8dbi6pqn2ohjcdm72dj1dtp3gdbgddmna",
+   "summary": "[Final Reveal] - The New AI That Turns AI Videos Into a Daily Cashflow Machine — Earn Daily Without Manual Work.",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "https://us06web.zoom.us/w/83813538848?tk=_ykj85r7bGEg_XkHS-6tNwJmvy_FuY3k7-LbgV8F9Sk.DQkAAAATg60cIBYzbU1JXzNrLVR1T05RaGV4WGJXdkZ3AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&uuid=WN_RurvrarRQz-lVRoNHulEpg",
+   "start": {
+    "dateTime": "2026-03-28T14:00:00-04:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "_c8sjeqrld8smudpge1l6eorgdgrj8sba6pi6gqb575n6qd376com8dbi6pqn2ohjcdm72dj1dtp3gdbgddmna",
+   "summary": "🔒 PRIVATE INVITE : See Inside Our Software & Affiliate Business — How We Build, Launch & Profit in This Industry (And How You Can Partner With Us)",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "https://us06web.zoom.us/w/88383595362?tk=QhcIFeyCfL6Gg92HWQ40JO1HWmnuwTPINym0MJArc_o.DQkAAAAUlBKjYhZvaEI0SXRIcFNtV1dUemhXNENlN1pnAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&uuid=WN_DWmEyBg7TruM3nbFyTqobg",
+   "start": {
+    "dateTime": "2026-04-04T11:00:00-04:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "_c8sjeqrld8smudj3edl6ep38dcr66sracdhj2pr575n6qd376com8dbi6pqn2ohjcdm72dj1dtp3gdbgddmna",
+   "summary": "[Exclusive LIVE Demo] How to get Free Buyer Traffic from ChatGPT, Claude, Gemini & Perplexity in 3 Simple Steps — And Why Clients Are Paying $500–$1,500/Month for It",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "https://us06web.zoom.us/w/83986439600?tk=ERwgCo6ErmWk3WA6XM8IYWOczK06WdpyKQsMM4vQ7_g.DQkAAAATjftdsBZ4TXZvX1FlaFMyQzdjMkZKSVRpUGxnAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&uuid=WN_y_BhMNwuSJyC3GMTgIYqAA",
+   "start": {
+    "dateTime": "2026-04-08T09:00:00-04:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "_c8sjeqrld8smudpkedl30p9pcsr30rpjctijiqj575n6qd376com8dbi6pqn2ohjcdm72dj1dtp3gdbgddmna",
+   "summary": "[Join Our Biggest Event of the Year] How AI Agents Create a Self-Running Revenue Engine.",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "https://us06web.zoom.us/w/89909000893?tk=JGgZQC345chSFkGPrbqhqzlAqHccvxq2ArpaAwU2GYc.DQkAAAAU7v56vRZzYy1IRHM2eFJFaUNrREFZRkxrMDVnAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&uuid=WN_UpwW6Y5gRXuRPJsx85nlpw",
+   "start": {
+    "dateTime": "2026-04-10T10:00:00-04:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "_c8sjeqrld8smudjfe5l66ophdcrj8sra69ij2rj575n6qd376com8dbi6pqn2ohjcdm72dj1dtp3gdbgddmna",
+   "summary": "[ENCORE] Our Biggest Event of the Year - How AI Agents Create a Self-Running Revenue Engine.",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "https://us06web.zoom.us/w/86560499187?tk=1_OZrHj0oI3wWpDXxJ49Qnvmv-6qO_xAzUzhkSnGVXw.DQkAAAAUJ2hl8xZZRXpRWGV3MlMzT0VIOVhMSDZ6aW9BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&uuid=WN_zd11-r49QmKUkclyj8k-IA",
+   "start": {
+    "dateTime": "2026-04-10T18:00:00-04:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "_c8sjeqrld8smudjfdspmap1pd4r3gs3acti32qj575n6qd376com8dbi6pqn2ohjcdm72dj1dtp3gdbgddmna",
+   "summary": "[Encore Event] The Self-Running AI Sales Agents That Run the Full Sales Campaign for You — End to End (Prospect, Follow Up, Call, Propose, and Close 24/7)",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "https://us06web.zoom.us/w/86075223843?tk=C3MMJ35qgdh63KfQI-ifVnKx3torqsz_p5ittVhA5rc.DQkAAAAUCnuvIxZveVV1ZFVtb1R6UzU0Vk9vdmNHaUV3AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&uuid=WN_m-PXVzmETQWU1TvY_8mRAA",
+   "start": {
+    "dateTime": "2026-04-11T17:00:00-04:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "lpveacrlnen5ontb9m9mjk71c0",
+   "summary": "Florian Rolke and Rob Acheson",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "Google Meet (instructions in description)",
+   "conferenceUrl": "https://meet.google.com/ksx-ayxa-rgr",
+   "start": {
+    "dateTime": "2026-04-14T17:30:00-04:00"
+   },
+   "attendees": [
+    {},
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "nlhklcr9lln8nqbjt3a6i9keig",
+   "summary": "[FINAL INVITATION] How to Deploy a Self-Running Sales Force That Never Sleeps — and Turn Sales Into Consistent Revenue Without Manual Work",
+   "status": "confirmed",
+   "eventType": "FROM_GMAIL",
+   "start": {
+    "dateTime": "2026-04-15T18:00:00-04:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "_c8sjeqrld8smudhoe9l3gp38dcr30s3ad5ijirj575n6qd376com8dbi6pqn2ohjcdm72dj1dtp3gdbgddmna",
+   "summary": "[Live Event] Clone Yourself As An AI Agent — Then Use It To Reply, Engage & Convert Leads 24/7 For Yourself Or Clients",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "https://us06web.zoom.us/w/82746403997?tk=qlnu5LQRzFQ9iFaXWv6L-hmwu13_v-j3SWMgv_BdrAs.DQkAAAATRBHsnRZjLUxTVjhkZlFseTZLd2tadmxCOW5BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&uuid=WN_E_s5UTPRQR69In30oYksRA",
+   "start": {
+    "dateTime": "2026-04-20T17:00:00-04:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "_c8sjeqrld8smudhke8pjcp3gdcrj0spjclhn0rb575n6qd376com8dbi6pqn2ohjcdm72dj1dtp3gdbgddmna",
+   "summary": "[Live Event] Clone Yourself As An AI Agent — Then Use It To Respond, Engage & Convert Leads 24/7 For Your Business Or Clients",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "https://us06web.zoom.us/w/81637488736?tk=sYgmXsJmS6V_m_9Edw5M0PBnhq6ceIhcEOwuK81awvA.DQkAAAATAfk4YBZLc21sTVdaY1N0bXQ0MUhBa3VMNXBBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&uuid=WN_rT6Zw1BBTfe3a7Exu1WqeA",
+   "start": {
+    "dateTime": "2026-04-21T08:00:00-04:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "_c8sjeqrld8smudhoe0pj4p38dkr6urracthjis3575n6qd376com8dbi6pqn2ohjcdm72dj1dtp3gdbgddmna",
+   "summary": "Your Website Is Invisible to ChatGPT — Discover the WordPress AI Search Fix That Changes Everything",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "https://us06web.zoom.us/w/82216661819?tk=9VSneJNeZxGcaE2nh1tQvbMB-B8J5zJb2PlPFHA31jM.DQkAAAATJH6zOxZqbnhYbXpKY1FtaWlmMlZaOElhY0xRAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&uuid=WN_NDgFyMEXRcOmEaK8T1zpBg",
+   "start": {
+    "dateTime": "2026-04-23T10:00:00-04:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "_c8sjeqrld8smudj7e5l6eor8e0r3grraclhj2r3575n6qd376com8dbi6pqn2ohjcdm72dj1dtp3gdbgddmna",
+   "summary": "Your Website Is Invisible to ChatGPT — Discover the WordPress AI Search Fix That Changes Everything",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "https://us06web.zoom.us/w/84582921705?tk=YG9jJMKFYYt06IXEP11mgYv_UY6aAOYCrr8baIz5QiU.DQkAAAATsYj16RZzVmRsSXg1NFJWaVo0cXhMOXhyM0NBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&uuid=WN_lpH3cbV_Rg-GlY8Jm0VSTA",
+   "start": {
+    "dateTime": "2026-04-23T12:00:00-04:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "_c8sjeqrld8smudj7e0pmip3gdor6us1j6phj2s3575n6qd376com8dbi6pqn2ohjcdm72dj1dtp3gdbgddmna",
+   "summary": "[Encore] The AI Voice Income Machine: Create & Sell Studio-Quality Voice Ads, VSLs, Reels, Podcasts & Sales Videos In Minutes",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "https://us06web.zoom.us/w/84297762309?tk=FQ7YaYXiP0YxqluJVIoPas_lG1oDXXOdYJPVxP3z0DA.DQkAAAAToInGBRZieGRnc0pNMlNteVZ2RmpYeF9QaXh3AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&uuid=WN_wQPB9bRZTHO9nOceApgdNQ",
+   "start": {
+    "dateTime": "2026-04-27T18:00:00-04:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "_c8sjeqrld8smudj3e9l38p9pd8rj0shj61i70r3575n6qd376com8dbi6pqn2ohjcdm72dj1dtp3gdbgddmna",
+   "summary": "ENCORE: The AI Domain Flipping Machine — How To Find $10 Domains With Real Resale Potential And List Them For $500, $1,000+ Without Guessing",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "https://us06web.zoom.us/w/83729386075?tk=7o-L4ngObAH2YG34j7QKAvpeDDPMAr5FicU7R2EOCxw.DQkAAAATfqkKWxZBSTVCbElBdlRQU1BVaFRoT2dSOVRnAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&uuid=WN_fwIXF7jsRy2qwxEeze-GFg",
+   "start": {
+    "dateTime": "2026-04-29T10:00:00-04:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "_c8sjeqrld8smudhoe0pm2p9hdsrj8s1j71hmgqr575n6qd376com8dbi6pqn2ohjcdm72dj1dtp3gdbgddmna",
+   "summary": "[FREE PASS] How to Clone Voices. Design Emotional Narrators. Create A Revenue-Ready AI Voice Service Businesses Can Pay For",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "https://us06web.zoom.us/w/82258892424?tk=lTzdn5RaAY9hXBWqAJF1nB3awpMvGRAEYd40cpyuep0.DQkAAAATJwMWiBZfTmY3M2l6eVM2MlRodlVwdlU4RVNnAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&uuid=WN_XkSH_ZzrRZCgABU3E1eeiQ",
+   "start": {
+    "dateTime": "2026-04-30T10:00:00-04:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "jc07o4tdr8i80qu7hmlj4afqm4",
+   "summary": "[PRIVATE INVITATION] [The 1st AI Operating System That Self-Builds & Grows Info-Businesses — And Lets You Sell Them As High-Ticket Systems To Clients",
+   "status": "confirmed",
+   "eventType": "FROM_GMAIL",
+   "start": {
+    "dateTime": "2026-05-04T14:00:00-04:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "c8kvdt7obh06p2u6cpm8fo0ckc",
+   "summary": "Dr Lovette Phone",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "start": {
+    "dateTime": "2026-05-05T14:30:00-04:00"
+   }
+  },
+  {
+   "id": "_c8sjeqrld8smudpke4pjgor8csr76shj6pi70q3575n6qd376com8dbi6pqn2ohjcdm72dj1dtp3gdbgddmna",
+   "summary": "The AI “Business Rental” Model: How To Deploy Done-For-You AI Info Businesses & Charge Clients $1K–$3K/Month (Without Building Anything Yourself)",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "https://us05web.zoom.us/w/89442076371?tk=jgyVtSkn-BHy3ea2kEcyEOuO176LWwAVFmuAFyrhG8A.DQkAAAAU0ynG0xZhVEZvRlFWWVNVbTZRNnFBd3J6WmJBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&uuid=WN_45vE6fVTQWSKVUufNqEmBQ",
+   "start": {
+    "dateTime": "2026-05-06T20:00:00-04:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "_c8sjeqrld8smudhkedl3cp9hdsrj8sja69i70qb575n6qd376com8dbi6pqn2ohjcdm72dj1dtp3gdbgddmna",
+   "summary": "[WORKSHOP] The 10-Minute AI Video Closer: How People Are Walking Into Local Businesses And Closing $1K–$5K Deals Using AI Videos Built From Their Phone",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "https://us06web.zoom.us/w/81938897172?tk=D7o3uUkiMVrT4qxmY3t_5pTWWnerFTkCIwFnOSHy8D4.DQkAAAATE_BZFBZ0Z0Jva1VuUVFsQzA4UXZCb2NqaC1nAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&uuid=WN_TfywRgavQdWf0NNTLyQuiw",
+   "start": {
+    "dateTime": "2026-05-17T11:00:00-04:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "_c8sjeqrld8smudjbe8pj4orgdcr3grra6pij2r3575n6qd376com8dbi6pqn2ohjcdm72dj1dtp3gdbgddmna",
+   "summary": "[SPECIAL EVENT] One AI Agent. 7 Days. $5K–$25K Client Deal Potential. See The System Live.",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "https://us06web.zoom.us/w/85613421385?tk=gFdBwFh4_F0LPpkmoQergCtsW9MGOs3u7IQwWl7HDYE.DQkAAAAT7vUjSRZyMXRfTUIxeVQ2YVJULVZCV0dvRHl3AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&uuid=WN_PtUhXIB3RkmAobOWv5DewQ",
+   "start": {
+    "dateTime": "2026-05-19T20:00:00-04:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "_c8sjeqrld8smudj7dtl66p1pdor30rra61hj2pr575n6qd376com8dbi6pqn2ohjcdm72dj1dtp3gdbgddmna",
+   "summary": "[ENCORE SESSION] One Video AI Agent. 7 Days. $5K–$25K Client Deal Potential. See The System Live.",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "https://us06web.zoom.us/w/84165701000?tk=BmlMyeqZURod6ocE-RvsNkoZIly9J_HPsVKmled3v5s.DQkAAAATmKqtiBZETG5LWmdEc1E0Q0ZZMWxVczZYMnNBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&uuid=WN_vgk9V5GVSQaja8Uk0lm9GQ",
+   "start": {
+    "dateTime": "2026-05-20T10:00:00-04:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "_c8sjeqrld8smudhodspmaophd0rj0sja71i32q3575n6qd376com8dbi6pqn2ohjcdm72dj1dtp3gdbgddmna",
+   "summary": "[FINAL SHOWING] One AI Video Agent. 7 Days. $5K–$25K Client Deal Potential. See The System Live.",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "https://us06web.zoom.us/w/82070187441?tk=e8CFy7THyHTLzImZ4gleRqn1r5ehSB-EsCTc3FK7Cbk.DQkAAAATG8OtsRZPazFnbnRkTlFZLV9lUU1xVmlHc2xBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&uuid=WN_-ek7mfkDQ9q4dQCbejTzdg",
+   "start": {
+    "dateTime": "2026-05-20T20:00:00-04:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "_c8sjeqrld8smudhkedl30oppdkr66spj71i32r3575n6qd376com8dbi6pqn2ohjcdm72dj1dtp3gdbgddmna",
+   "summary": "[FREE WEBINAR] The Money Multiplier AI: Let AI Create The Ads, Angles & Campaigns That Help Turn Ad Spend Into Scalable Returns",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "https://us06web.zoom.us/w/81901638445?tk=X6PEKm1e-N3GAWROD52hdpYTL3NrHUU0eHYD_KX1PQo.DQkAAAATEbfTLRZOUXVBMzJrdFI0YVU4VlgtRE4tVjBnAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&uuid=WN_TiZ5EjORS7KRZx0wcQkNoQ",
+   "start": {
+    "dateTime": "2026-05-23T17:00:00-04:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "_c8sjeqrld8smudpke4pm2p1hd0r66s9j71i70q3575n6qd376com8dbi6pqn2ohjcdm72dj1dtp3gdbgddmna",
+   "summary": "[RSVP] Watch A.I Self Build a $1,000+/Day Affiliate Campaign LIVE in Real Time",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "https://us06web.zoom.us/w/89454134471?tk=S5b-YT1CjrfscBlmD1M5yTOzy14Soqa3V-xcAmjktx8.DQkAAAAU0-HExxZXcTYwVVN0bFFkbXdwMFBYOURWN2hBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&uuid=WN_t0_1uSj0TDOaLXV4mqjQtA",
+   "start": {
+    "dateTime": "2026-05-27T11:00:00-04:00"
    },
    "attendees": [
     {
@@ -666,6 +1270,14 @@
    },
    "fetchedAt": "2026-08-07T20:35:00-04:00",
    "events": 4
+  },
+  {
+   "window": {
+    "start": "2026-01-01T00:00:00-05:00",
+    "end": "2026-06-01T00:00:00-04:00"
+   },
+   "fetchedAt": "2026-08-07T20:36:00-04:00",
+   "events": 41
   }
  ]
 }

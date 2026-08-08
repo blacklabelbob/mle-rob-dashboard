@@ -24,8 +24,29 @@
  *      come back in `skipped` with the reason in words, so the arithmetic still adds up:
  *      `meetings.length + skipped.length === events.length`, pinned by test.
  *
- * It decides NOTHING about whether a meeting was recorded. That is the spine's job, and it is the
- * job this repo keeps getting wrong by answering it early.
+ *   3. **A broadcast you REGISTERED for is not a meeting you ATTENDED** (inc.14, forced by the
+ *      Jan–May read). Widening the window to the gap inc.13 left explicit returned 41 events, of
+ *      which **39 are marketing broadcasts** and 2 are Rob's own (`Florian Rolke and Rob Acheson`,
+ *      a real meeting, and `Dr Lovette Phone`, a personal entry). Refusal 2 already caught 7 of the
+ *      39 — the ones with no link at all — so 32 of them landed on the board as meetings owed a
+ *      transcript, taking it 33 → 66 meetings and 19 → 52 `owed-a-human`. The real gaps Rob is
+ *      chasing ended up outnumbered 2:1 by mailing-list noise. A board nobody can scan does not
+ *      report a gap; it hides one, which is the same false-confidence failure as a false close,
+ *      arriving by volume instead of by verdict.
+ *
+ *      This also CORRECTS inc.13, which called December's four webinars "correctly counted as
+ *      meetings nobody recorded". The count was honest and the classification was wrong; at four
+ *      rows it was survivable and at forty-three it is not, but the rule was never true at any
+ *      count. Rob's bar is *transcripts for ALL* — of HIS meetings. Nobody owes a transcript of a
+ *      webinar broadcast to a mailing list, and no recorder was ever going to produce one.
+ *
+ *      AND IT REACHES FURTHER BACK THAN THE NEW SEGMENT. Of the 41 broadcasts the rule now skips,
+ *      **9 were already in the committed snapshot** before this increment widened anything: the
+ *      four December ones inc.13 named, plus **five June 2026 webinars** (Reddit Client Machine,
+ *      SmartAgentX ×2, and two encores) that had been sitting on the board as meetings owed a
+ *      human since long before December was ever read. Nobody widened a window to find those —
+ *      they were miscounted in plain sight, which is why the rule is worth more than the segment
+ *      that forced it.
  */
 
 import { meetCodesIn } from "@/lib/meetings/calendarSpine";
@@ -90,6 +111,31 @@ export type CalendarHarvest = {
  */
 const NON_MEETING_TYPES = new Set(["OUT_OF_OFFICE", "FOCUS_TIME", "WORKING_LOCATION", "BIRTHDAY"]);
 
+/**
+ * A Zoom **webinar** registration link — Zoom's `/w/` path, which is a different product from the
+ * `/j/` join path a real Zoom call uses. See refusal 3.
+ *
+ * THE RULE IS DELIBERATELY NARROW, and the narrowness is the safety. It reads Zoom's own product
+ * distinction rather than anything about the title: "webinar", "[ENCORE]", "🔴WATCH LIVE" and the
+ * rest are marketing prose, and a rule keyed on prose would eventually eat a real meeting someone
+ * titled badly. `/w/` is a fact Zoom wrote, not a word a human typed.
+ *
+ * It is NOT generalised to "any registration-looking URL". Rob's snapshot holds one more broadcast
+ * of exactly this kind — `impactforleads.com/linkedin-leads-training` — and it stays a meeting
+ * `owed-a-human` on purpose, because the only rule that would catch it is "an unfamiliar host with
+ * no other attendee", which would also catch a genuine 1:1 whose organiser pasted a proprietary
+ * room link Google never parsed into `conferenceUrl`. One survivor on the board is cheap; one real
+ * meeting silently reclassified out of it is the failure this whole item exists to prevent.
+ */
+function isZoomWebinarRegistration(url: string): boolean {
+  try {
+    const parsed = new URL(url.trim());
+    return /(^|\.)zoom\.us$/i.test(parsed.hostname) && /^\/w\//i.test(parsed.pathname);
+  } catch {
+    return false;
+  }
+}
+
 /** Any conferencing link typed into the location box. Deliberately scheme-based, not host-based. */
 function looksLikeAUrl(location: string): boolean {
   return /^https?:\/\//i.test(location.trim());
@@ -144,6 +190,26 @@ export function fromCalendarEvents(
 
     const hasConferenceLink =
       Boolean(event.conferenceUrl?.trim()) || Boolean(event.location && looksLikeAUrl(event.location));
+
+    // Refusal 3. All three conditions are required together, and each one carries weight:
+    // Google attached no real conference, Rob is the only person on the invite, and the only link
+    // is Zoom's WEBINAR path. A real Zoom call fails at least one of them — it has a `/j/` link,
+    // or someone else on it, or both.
+    if (
+      !event.conferenceUrl?.trim() &&
+      otherAttendees(event) === 0 &&
+      event.location &&
+      isZoomWebinarRegistration(event.location)
+    ) {
+      skip(
+        "a Zoom WEBINAR registration link (`/w/`, not the `/j/` a call uses) with no other attendee " +
+          "and no conference attached — a broadcast Rob registered for, not a meeting he attended. " +
+          "Nobody owes a transcript of someone else's marketing webinar, and no recorder was ever " +
+          "going to produce one. Listed here, never deleted: 41 of these would otherwise outnumber " +
+          "the real gaps on the board 2:1 and hide them by volume.",
+      );
+      continue;
+    }
 
     if (otherAttendees(event) === 0 && !hasConferenceLink) {
       skip(
