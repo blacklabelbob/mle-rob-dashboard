@@ -126,7 +126,7 @@ describe("fromDrive — what it refuses to lose", () => {
     expect(summary.notCoverageDocs).toEqual(["solo"]);
   });
 
-  it("summarizeRuledDocs on the committed evidence: 2 docs read, 3 rows moved", () => {
+  it("summarizeRuledDocs on the committed evidence: docs are counted by FILE, rows by RECORD", () => {
     const root = join(process.cwd(), "MLE Internal Meetings");
     const snap = JSON.parse(readFileSync(join(root, "drive-snapshot-2026-08-07.json"), "utf8"));
     const rulings = JSON.parse(readFileSync(join(root, "drive-read-confirmations.json"), "utf8"));
@@ -135,10 +135,38 @@ describe("fromDrive — what it refuses to lose", () => {
       (d.calendarEventIds ?? []).map((evt) => located(d.id, { calendarEventId: evt })),
     );
     const summary = summarizeRuledDocs(fromDrive(records, snap.docs, rulings.confirmations));
-    expect(summary.docsRuled).toBe(2);
-    expect(summary.rowsMoved).toBe(3);
-    // The CG Roofing doc is the fan-out: ruled once, it is on two 2026-06-16 invites.
-    expect(summary.transcriptDocs).toEqual(["1479bPU0Jn1QrMomzSdwpWHrx5lFXTvDP0_W0ppJVd_Y"]);
+
+    // THE ASSERTION IS THE ARITHMETIC, NOT THE TOTAL OF THE DAY. inc.16's own test pinned
+    // "2 docs, 3 rows" and inc.17 turned it red by RULING ANOTHER DOC — going red for success
+    // is the exact fault inc.16 replaced a test for, and re-typing the new totals would just
+    // re-arm it for inc.18. What must never drift is the distinction that inflated the report:
+    // `docsRuled` counts DISTINCT FILES, `rowsMoved` counts RECORDS, and a doc on two invites
+    // is one of the first and two of the second. Both sides are recomputed from the committed
+    // evidence, so a new ruling moves them together and only a regression separates them.
+    const ruledIds = new Set<string>(
+      rulings.confirmations
+        .map((c: { fileId: string }) => c.fileId)
+        .filter((id: string) => snap.docs.some((d: DriveDoc) => d.id === id)),
+    );
+    const expectedRows = snap.docs
+      .filter((d: DriveDoc) => ruledIds.has(d.id))
+      .reduce((n: number, d: DriveDoc) => n + (d.calendarEventIds ?? []).length, 0);
+    expect(summary.docsRuled).toBe(ruledIds.size);
+    expect(summary.rowsMoved).toBe(expectedRows);
+
+    // The CG Roofing doc is the fan-out that made the two numbers differ in the first place:
+    // ruled once, it sits on two 2026-06-16 invites. Assert the fan-out still EXISTS — a fixture
+    // that cannot reach the branch is green about nothing (inc.16's other lesson) — and that it
+    // is counted once as a doc and twice as rows.
+    const fanOut = snap.docs.filter(
+      (d: DriveDoc) => ruledIds.has(d.id) && (d.calendarEventIds ?? []).length > 1,
+    );
+    expect(fanOut.length).toBeGreaterThan(0);
+    expect(summary.rowsMoved).toBeGreaterThan(summary.docsRuled);
+
+    // Verdicts partition the ruled set: every ruled doc is coverage or it is not, never both.
+    expect(summary.transcriptDocs.length + summary.notCoverageDocs.length).toBe(ruledIds.size);
+    expect(summary.transcriptDocs).toContain("1479bPU0Jn1QrMomzSdwpWHrx5lFXTvDP0_W0ppJVd_Y");
   });
 
   it("indexDriveDocs joins by file id", () => {
