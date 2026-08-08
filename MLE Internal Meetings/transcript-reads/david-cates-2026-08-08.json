@@ -1,0 +1,204 @@
+{
+  "_what": "Q86 inc.45 — DoD (b). A HUMAN READ of ~/Projects/MyLocalEverything/transcripts/david-cates.txt (97,229 bytes, 17,742 words, 131.0 min, transcribed 2026-07-28 via Deepgram nova-3). All 433 lines were read. Intel extracted VERBATIM with a line number behind every entry. Read only: nothing was written to the CRM, no record created, no file moved or renamed.",
+  "_whyItExists": "This was the last unread of the three local transcripts and 4× the size of the other two. It is also the ONE that links cleanly — so it isolates what actually blocks filing when the linker is not the problem. It exists as a file so the next increment starts from the read instead of re-reading a 17,742-word body.",
+  "_sourceRefIs": "`david-cates.txt:<line>` — the line number in the transcript as it sits on disk. A reader opens the file and lands on the sentence. 'somewhere in the call' is not traceability.",
+  "readAt": "2026-08-08",
+  "readBy": "max (driver)",
+  "transcriptRef": "david-cates.txt",
+  "transcriptTitle": "Call with David Cates",
+
+  "speakerMap": {
+    "_howItWasDetermined": "Neither speaker is named by the transcriber. Speaker 1 addresses the other as 'Rob' seven times (lines 37, 93, 177, 197, 205, 285, 397) and Speaker 0 addresses him back as 'David' six times (lines 151, 187, 211, 231, 283, 303). Speaker 0 also delivers the phase 1–4 offer and speaks of 'my partner' / 'Will's collective' (lines 167, 247), which matches Rob's own material in the joseph-ontime read. Two mis-hearings are noted rather than smoothed: Speaker 1 says 'Mark' when he means Rob at line 129, and 'Anthony' at line 245 — Deepgram artefacts inside Speaker 1's turn, not a third party. No third speaker joins; Mark is proposed at line 177 and never dials in.",
+    "speaker0": "Rob Acheson",
+    "speaker1": "David Cates (P-1020, The Cates Processing Group)"
+  },
+
+  "recordLink": {
+    "_finding": "THE FIRST OF THE THREE TRANSCRIPTS THAT LINKS CLEANLY — and it still cannot be filed. The linker is not this call's bottleneck.",
+    "status": "linked",
+    "record": "P-1020 David Cates",
+    "signals": { "nameMatched": "david cates", "slugMatched": true },
+    "unexplainedTitleWords": [],
+    "linkerWhy": "title carries \"david cates\" and the filename stem \"david-cates\" agrees — two independently written strings naming the same subject; proposes P-1020, does not file it",
+    "runNotRecited": "linkTranscriptToRecord was RUN against the real registry (data/network.local.json, people only) and the real body this run; the four fields above are its output, not a description of it.",
+    "whatIsNOTClaimed": "That a clean link is permission to write. It is not, and planTranscriptActivity proves it below."
+  },
+
+  "whyItStillCannotBeFiled": {
+    "primary": {
+      "refusal": "no-org",
+      "why": "david-cates.txt: linked to P-1020 (person) but no org was supplied — activities land on a company, and this module will not infer which one",
+      "theActualGap": "David Cates' business is 'The Cates Processing Group' on P-1020, and NO company record for it exists — the 2026-07-22 enrichment hunt recorded in his notes found no public web footprint and left it blank rather than guessing. So the meeting has a person, a proven link, and nowhere to land. This is Q87-shaped: a company named in a call that the CRM does not hold.",
+      "provenBy": "planTranscriptActivity({ link, orgId: null, personId: 'P-1020', occurredOn: '2026-07-09', intel: [...] }) → drafted: false, kind: 'no-org'"
+    },
+    "secondary": {
+      "refusal": "no-day",
+      "why": "the call date is bounded, not proven — see callDate below",
+      "provenBy": "planTranscriptActivity({ ..., occurredOn: null }) → drafted: false, kind: 'no-day'"
+    },
+    "whatUnblocksIt": "With BOTH supplied — an org id and a proven day — the same call drafts `A-TR-2026-07-09-DAVID-CATES` on that org with P-1020 attached, `bookProtected: false`, and carries no title discrepancy because there is none. So unlike joseph-ontime, this transcript needs no human ruling on identity at all: it needs a company record and a date."
+  },
+
+  "callDate": {
+    "_ruledOut": "The header's 'Transcribed: 2026-07-28' is the transcription day, 19 days after the ceiling below. It is not the call date and is rejected again here.",
+    "hardCeiling": "2026-07-09",
+    "ceilingEvidence": "Drive `createdTime` of `Call with David Cates.m4a` is 2026-07-10T03:22:46.508Z = 2026-07-09 23:22 ET (MLE Internal Meetings/drive-drain-2026-08-08.json). A recording cannot be uploaded before the call it records.",
+    "candidates": ["2026-07-06", "2026-07-07", "2026-07-08", "2026-07-09"],
+    "resolved": false,
+    "computedBy": "boundCallDate({ ref: 'david-cates.txt', uploadedOn: '2026-07-09' }) — run this increment, output pasted, not paraphrased",
+    "_theWeekdayEvidenceBROKEtheModule_andThatIsRecordedNotHidden": "Both speakers place work AFTER a weekend: David — 'I'm gonna go through my portfolio this weekend' (line 285), 'I'm gonna be working this weekend through my client base' (line 397), 'We'll talk Monday' (line 429); Rob — 'We'll bounce in a call next week' (line 395). Fed to boundCallDate as futureWeekdays: ['monday'], it returns candidates: [] and says 'the evidence contradicts itself — every day of the upload week is ruled out, which means the negotiated week is NOT the upload week'. It is NOT the evidence that is contradictory — the module reads a named weekday as THIS week's, and 'Monday' here is plainly NEXT Monday, across the weekend both speakers name. The module refused rather than guessing, which is the right failure direction, but the limitation is real and is filed as a finding rather than worked around by dropping the input.",
+    "humanObservationNotARuling": "'this weekend' + 'talk Monday' + Rob's 'I've already worked a hundred hours this week' (line 179) read most naturally as late in the week, which would make 2026-07-09 (Thursday) the likeliest of the four. That is an impression, it is NOT proof, and it is recorded here as an observation so that nobody downstream mistakes it for a resolved day. The machine bound stands at four days.",
+    "sharedDumpCaveatConfirmedAndWIDENED": "inc.44 recorded joseph-ontime and john-burns landing 3m41s apart. With this file the dump is THREE recordings inside 6m24s — joseph 03:16:22, john-burns 03:20:03, david-cates 03:22:46 (all 2026-07-10 UTC). One phone-recorder dump. The upload instant is a ceiling for all three and a clock for none of them, and the ORDER of upload says nothing about the order of the calls."
+  },
+
+  "intel": [
+    {
+      "kind": "engagement",
+      "text": "The call is a recruiting call: Rob is signing David as MLE's first outside sales rep. 'If you were the first person to come on and do this, you would be the first sales rep of mine, like, and I can't have the first sales rep not work.'",
+      "sourceRef": "david-cates.txt:279"
+    },
+    {
+      "kind": "commercial-terms",
+      "text": "Rep compensation as stated to David: 'you'll get your part of the of the up of the one time fee, the setup fee, and as well, you'll get your, you know, your monthly recurring revenue in perpetuity.'",
+      "sourceRef": "david-cates.txt:191"
+    },
+    {
+      "kind": "offer",
+      "text": "The four-phase offer, laid out end to end: phase 1 = AI/SEO/GEO/convertibility-optimised website + a self-updating 'second brain'; phase 2 = the automations marketplace ('50,000 automations'), priced per automation, e.g. '$2,000 upfront and $300 a month' or '$5,000 and $4,000 a month'; phase 3 = bespoke build after a full business audit; phase 4 = 'we actually partner with you' — a new entity.",
+      "sourceRef": "david-cates.txt:167"
+    },
+    {
+      "kind": "pricing",
+      "text": "Real-estate brokerage closed the day before this call at '$18,000' flat for a up-to-2,000-page MLS website + 60 agent pages + a company second brain + per-agent second brains + automated social posting with AI avatar video. Rob's own comparison: five frontier models priced the same scope at 'about $2,000,000 upfront and $400,000 a month'.",
+      "sourceRef": "david-cates.txt:167"
+    },
+    {
+      "kind": "pricing-spread",
+      "text": "Website + second brain has no list price: 'I've charged guys $18,000 for them. I've charged $500 for them. Right? It it just it it all depends. Get what you can get.'",
+      "sourceRef": "david-cates.txt:167"
+    },
+    {
+      "kind": "guarantee",
+      "text": "Two customer-facing guarantees are made on this call. Views: 'We can guarantee a million views within the first month.' Refund: 'Within thirty days of us delivering these products, if you don't like it, you don't wanna move forward, you don't see any value to it, we will give you a full refund, and you get to keep the tech' — repeated for phase 2 ('another thirty days later... you keep all the tech, and we'll give you the refund for what you've paid to date').",
+      "sourceRef": "david-cates.txt:167"
+    },
+    {
+      "kind": "equity",
+      "text": "Two 50/50 partnerships stated as agreed on deals closed the day before: with the roofer, on a roofing production+CRM software that 'just doesn't exist' — 'we're like, okay. Yeah. We'll go fifty fifty on that'; and with the real-estate principal, on further ventures — 'he has, like, two other ones... that he's just gonna, you know, give us $50.50 on.'",
+      "sourceRef": "david-cates.txt:279"
+    },
+    {
+      "kind": "product",
+      "text": "The real-estate software being partnered on is a BoomTown displacement. 'It's called BoomTown, and they charge $2,500 a month... You can't build on top of it. They don't offer API stuff... only 20% tops of the things that real estate agents and brokerages actually need does BoomTown offer.' 'So Alex has already been building out this this CRM, and it looked good. So we're like, okay. Let's partner on that.'",
+      "sourceRef": "david-cates.txt:279"
+    },
+    {
+      "kind": "pipeline",
+      "text": "Rob's stated volume when asked how many businesses: 'About a 100, and then we're about to sign up 18,000.' The 18,000 is one of the partner's former clients rolling out to its own B2B base — 'they have 18,000 clients. They're all rolling it all out soon.'",
+      "sourceRef": "david-cates.txt:391"
+    },
+    {
+      "kind": "partner",
+      "text": "The technical partner is named as Will, 25, 'been working on AI since he's been eight years old', and his prior technologies are claimed as 'implemented in 17,000 companies and generated an additional $11,000,000,000 in revenue'; 'through Will's collective, technologies, they've been used by over 17,000 clients.' Rob qualifies the number himself: 'to be candid, not necessarily a lot of it wasn't related to this venture.'",
+      "sourceRef": "david-cates.txt:167"
+    },
+    {
+      "kind": "target-account",
+      "text": "Qualia named as a white-label target with an existing relationship: 'In real estate, there's a big home closing company called Qualia. They do about 60 percent of all home closings... we're gonna actually go into Qualia because we have a relationship with them.' Rob frames the open question as white-label vs branded: 'should I allow Qualia to white label all of our automations, or should I let a bunch of different providers in the industry offer our automations but still show that it's us.'",
+      "sourceRef": "david-cates.txt:207"
+    },
+    {
+      "kind": "target-account",
+      "text": "A Canada white-label deal is in flight and priced: 'my partner's flying up and talking with one of his old customers in, Canada, and they want to white label it for their 20,000 customers. We wouldn't even think about doing that for less than high high seven figures.'",
+      "sourceRef": "david-cates.txt:211"
+    },
+    {
+      "kind": "counterparty-asset",
+      "text": "What David brings: a payment-processing merchant portfolio and the trust that comes with it. Rob's own framing of why that matters — 'Payment processing is great because unless you've really fucked up as a payment processor, they stay with you for a long time.'",
+      "sourceRef": "david-cates.txt:175"
+    },
+    {
+      "kind": "prospect",
+      "text": "David names his own first candidate: 'They're called fruit truck... 3 or $400,000 a month doing these farmers markets.' He is their processor — 'I take care of all of the processing' — and knows the owners personally.",
+      "sourceRef": "david-cates.txt:217"
+    },
+    {
+      "kind": "prospect",
+      "text": "Second candidate named: 'a company called US Card Solutions. I've got some accounts with them... they just recently became a full service provider. So they have all in house underwriting. They ride the rails of Fiserv.' David is 'good friends with the owner of the company' (line 413).",
+      "sourceRef": "david-cates.txt:197"
+    },
+    {
+      "kind": "prospect",
+      "text": "David's stated weekend homework and his own segment pick: 'I'm gonna be working this weekend through my client base and finding markets... I'm gonna be looking at going after franchises with this this opportunity.'",
+      "sourceRef": "david-cates.txt:397"
+    },
+    {
+      "kind": "third-party",
+      "text": "Mark — David's partner, not on this call — is running an ISO roll-up: 'our strategy is definitely a roll up... buy ISOs... wrapping things into a PayFac... Mark wants to get, like, 50 to 100,000,000.' Rob's position on Mark is explicitly reserved: 'my relationship with Mark is such that I don't know Mark very well... if you guys are able to spin up capital to help acquire processing companies, like, I'm in... But I don't really know him beyond that.'",
+      "sourceRef": "david-cates.txt:9"
+    },
+    {
+      "kind": "capital-position",
+      "text": "Rob declines the funding conversation outright: 'money is the last thing we need. We don't need any money. I mean, we've got people that wanna throw us tons of money right now. We have Fidelity who wants to open up a billion dollar line of credit for it. We don't wanna do that.' RECORDED VERBATIM AND NOT ASSERTED — this read makes no claim about any Fidelity facility.",
+      "sourceRef": "david-cates.txt:275"
+    },
+    {
+      "kind": "roadmap-hint",
+      "text": "A payments idea is raised and deliberately not explained: 'I can't get into it right now, but I also thought of a way to usurp... a not insignificant portion of Stripe's customers where they would wanna come to us before Stripe. I figured out a way to do it.' Said at 2026-07-09 or earlier — i.e. BEFORE the 2026-07-25 payments-layer dump that became Q60/Q61.",
+      "sourceRef": "david-cates.txt:403"
+    },
+    {
+      "kind": "domain-data",
+      "text": "Roofing sales-rep retention, from Rob's coaching years: 'in the roofing industry, this is broadly in the trades, only about 30% of the sales reps that you hire are both with the company a year later and are hitting their KPIs... With this test, we got it to 92%.' The instrument named is OMG, tailored first to roofing and then per-company.",
+      "sourceRef": "david-cates.txt:83"
+    },
+    {
+      "kind": "domain-data",
+      "text": "Exit-multiple argument, used live on a roofer: 'Analyzed 150 roofing companies and the biggest difference in what kind of multiple they were paid for was companies that had a lower percentage of owner dependency or single rep dependency and those that had a good tech stack in place.' Worked example given to the owner: $10M revenue, 10% EBITDA, '4x versus 7x' — 'me putting this system in place for you just made this business, when you sell it, an extra $3,000,000.'",
+      "sourceRef": "david-cates.txt:127"
+    },
+    {
+      "kind": "history",
+      "text": "Rob's account of the coaching company he left: 'I just did not have much aligned with them ethically at all... They cheated me out of a lot of money.' Amount, when David asks: 'Oh, man. 50, 60... if you go all in, over a 100 across various things. And I'll never see that.' THE COMPANY IS NEVER NAMED IN THIS TRANSCRIPT and is not named here either.",
+      "sourceRef": "david-cates.txt:147"
+    },
+    {
+      "kind": "proof-point",
+      "text": "Cold-canvass proof point offered as the sales motion: 'one day, we just walked up and down 5th Street here and signed up 29 of the 30 businesses.' Delivery speed stated twice: 'it takes us about forty minutes to spin up the second brain and the website if they wanna move forward to get it live. It only takes about twenty minutes.'",
+      "sourceRef": "david-cates.txt:243"
+    },
+    {
+      "kind": "next-step",
+      "text": "Rob's commitment, made three times: send David the recording/transcript so he can work it through ChatGPT against his own portfolio — 'I'll send you the transcript of this conversation for you to really do your due diligence. Look at your portfolio. Think about the customers that you already have, and then come back to me.'",
+      "sourceRef": "david-cates.txt:283"
+    },
+    {
+      "kind": "next-step",
+      "text": "Agreed follow-up: 'We'll bounce in a call next week or something' (Rob, line 395) and 'We'll talk Monday' (David, line 429), with Rob inviting weekend contact — 'feel free to shoot me over any text message over the weekend. I work seven days a week.'",
+      "sourceRef": "david-cates.txt:411"
+    },
+    {
+      "kind": "ask-of-rob",
+      "text": "David asks for enablement Rob has not built: 'You already have bullet points? So, like, if I call on a franchise...' — answered with 'Bro, you'll be able to get it from this conversation.' Rob does name the intended fix: 'one of the things I'm gonna do is set up, like, some type of knowledge base or chatbot' a rep can query on fit.",
+      "sourceRef": "david-cates.txt:417"
+    },
+    {
+      "kind": "context",
+      "text": "P-1020's CRM description already reads 'Very Excited to get training and onboarding. We need more Social Proof and Mini Case Studies first which I communicated to Will' — which this call is the source conversation for, and which the CRM records with no date, no activity and no link to this transcript.",
+      "sourceRef": "data/network.local.json — P-1020"
+    }
+  ],
+
+  "notIntel_butOperationallyImportant": {
+    "politicalContent": "Roughly one fifth of this transcript (lines 295–379, ~85 lines of a 433-line file) is a private political and religious conversation between the two men — Israel/Zionism, APAC, a congressional primary, media mergers, theology. It bears on no deal, it belongs in no CRM field, and it is recorded here ONLY as a redaction flag: the CRM must never surface a transcript body wholesale, and any future 'show the transcript' surface has to run through the existing redaction path rather than printing the file. NOTHING from those lines is extracted into `intel` above.",
+    "recordingEndsCleanly": "Unlike joseph-ontime, this recording ends on a complete goodbye (line 433), so nothing is missing from the tail."
+  },
+
+  "whatWasNotDone": [
+    "No record created, updated or proposed — read only.",
+    "No file renamed, moved, copied or deleted; the Drive folders were not touched.",
+    "No money, quoted, signed or paid field touched anywhere.",
+    "The two 50/50 splits and the two customer guarantees above are RECORDED HERE, not written to any deal — both are money-adjacent and belong to Rob.",
+    "No claim is made about Fidelity, Qualia, BoomTown, US Card Solutions or Fruit Truck beyond quoting what was said on this call."
+  ]
+}
