@@ -27,9 +27,9 @@
  */
 
 export interface DeepDiveCliArgs {
-  /** `list` (default), `record`, or `pass`. */
-  mode: "list" | "record" | "pass";
-  /** Only set in `record` mode. */
+  /** `list` (default), `record`, `pass`, or `check`. */
+  mode: "list" | "record" | "pass" | "check";
+  /** Set in `record` and `check` modes. */
   orgId?: string;
   producedBy?: string;
   /** ISO day for the run. The shell supplies today when the operator does not. */
@@ -71,11 +71,11 @@ export function parseDeepDiveArgs(argv: string[]): DeepDiveCliArgs | CliRefusal 
     }
   }
 
-  const known = new Set(["record", "by", "on", "fresh-days", "pass", "execute", "limit"]);
+  const known = new Set(["record", "by", "on", "fresh-days", "pass", "execute", "limit", "check"]);
   for (const key of flags.keys()) {
     if (!known.has(key)) {
       return {
-        refusal: `unknown flag --${key} (known: --record, --by, --on, --fresh-days, --pass, --execute, --limit)`,
+        refusal: `unknown flag --${key} (known: --record, --by, --on, --fresh-days, --pass, --execute, --limit, --check)`,
       };
     }
   }
@@ -93,6 +93,33 @@ export function parseDeepDiveArgs(argv: string[]): DeepDiveCliArgs | CliRefusal 
   // question the ledger cannot answer, so they are refused together rather than ordered.
   if (flags.has("pass") && flags.has("record")) {
     return { refusal: "--pass and --record are two different writers — run one or the other, never both" };
+  }
+
+  // `--check` (inc.8) is the READER, and it is kept off the same command line as either writer for
+  // a sharper reason than tidiness: a researcher who can type `--check` beside `--record` has a
+  // command that reads like "verify then file" and will, one bad day, file a dossier the check
+  // rejected. Checking a dossier and claiming a company are separate acts, so they are separate
+  // commands — and the refusal says which one to run rather than just saying no.
+  if (flags.has("check") && (flags.has("pass") || flags.has("record"))) {
+    return {
+      refusal:
+        "--check only reads — it never writes a ledger row. Run it alone to see whether a dossier " +
+        "would be accepted, then run --pass --execute to let the pass earn the row",
+    };
+  }
+
+  if (flags.has("check")) {
+    if (flags.has("by") || flags.has("on") || flags.has("execute") || flags.has("limit") || flags.has("fresh-days")) {
+      return {
+        refusal:
+          "--check takes only an org id: it reads one dossier off disk and applies the same rules " +
+          "the pass would. It does not attribute (--by/--on), does not run (--execute/--limit) and " +
+          "does not age anything (--fresh-days)",
+      };
+    }
+    const target = flags.get("check") ?? "";
+    if (!target) return { refusal: "--check needs the org id of the dossier to read (e.g. --check C-2021)" };
+    return { mode: "check", orgId: target };
   }
 
   if (flags.has("pass")) {

@@ -7,10 +7,11 @@
  */
 
 import { describe, expect, it, vi } from "vitest";
-import { dossierToFinding, makeDossierDive } from "../deepDiveDossier";
+import { checkDossier, dossierToFinding, makeDossierDive } from "../deepDiveDossier";
 import { runDeepDivePass, runFromFinding, type DeepDivePassDeps } from "../deepDivePass";
 import type { DeepDiveDecision, DeepDiveOrg } from "../deepDiveDue";
 import type { LedgerFile } from "../deepDiveLedger";
+import { parseDeepDiveArgs } from "../deepDiveCli";
 
 const dossier = (over: Record<string, unknown> = {}) => ({
   orgId: "C-2021",
@@ -172,5 +173,116 @@ describe("makeDossierDive — wired into the pass", () => {
     const dive = makeDossierDive(async () => dossier({ orgId: "C-2020" }), onRead);
     await expect(dive(decision("C-2021"))).rejects.toThrow("is about C-2020");
     expect(onRead).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * Q87 inc.8 — `checkDossier`: would this be accepted, asked without writing anything.
+ *
+ * The rule these tests exist to hold is that the checker AGREES WITH THE PASS. It has no ladder of
+ * its own; if it ever drifts from `dossierToFinding` + `runFromFinding`, a researcher gets a green
+ * check on a dossier the pass will refuse, which is worse than having no checker.
+ */
+describe("checkDossier", () => {
+  it("accepts a well-formed dossier and reads back exactly what the pass would write", () => {
+    const c = checkDossier("C-2021", dossier());
+    expect(c.accepted).toBe(true);
+    expect(c.dossierRefusal).toBeNull();
+    expect(c.passRefusal).toBeNull();
+    expect(c.wouldRecord).toEqual({ orgId: "C-2021", ranAt: "2026-08-08", producedBy: "lead-enricher" });
+  });
+
+  it("never invents the row — `wouldRecord` is the pass's own output, not a suggestion", () => {
+    const c = checkDossier("C-2021", dossier({ producedBy: "company-catcher", ranAt: "2026-07-04" }));
+    const run = runFromFinding("C-2021", { producedBy: "company-catcher", ranAt: "2026-07-04", summary: "x", sources: ["https://a.example/b"] });
+    expect(c.wouldRecord).toEqual(run);
+  });
+
+  it("reports a missing dossier in the words of what happened, not as an empty dive", () => {
+    const c = checkDossier("C-2021", null);
+    expect(c.accepted).toBe(false);
+    expect(c.dossierRefusal).toContain("nothing has researched it yet");
+    expect(c.passRefusal).toBeNull();
+  });
+
+  it("refuses the one-dossier-four-companies case with both ids named", () => {
+    const c = checkDossier("C-2021", dossier({ orgId: "C-2024" }));
+    expect(c.accepted).toBe(false);
+    expect(c.dossierRefusal).toContain("is about C-2024");
+    expect(c.wouldRecord).toBeNull();
+  });
+
+  it("reaches the PASS's rules when the dossier reader passes — an unattributed dossier fails at the second gate, not the first", () => {
+    const c = checkDossier("C-2021", dossier({ producedBy: "" }));
+    expect(c.accepted).toBe(false);
+    expect(c.dossierRefusal).toBeNull();
+    expect(c.passRefusal).toContain("named no producer");
+  });
+
+  it("fails an all-attribution dossier at the pass gate for having no source, and still names the dropped entries", () => {
+    const c = checkDossier("C-2021", dossier({ sources: ["Scott said", "per the 7/28 call"] }));
+    expect(c.accepted).toBe(false);
+    expect(c.passRefusal).toContain("no source URL");
+    expect(c.droppedSources.map((d) => d.value)).toEqual(["Scott said", "per the 7/28 call"]);
+  });
+
+  it("reports dropped sources even when it ACCEPTS — a half-sourced dossier is visible, not trimmed", () => {
+    const c = checkDossier("C-2021", dossier({ sources: ["Scott said", "https://monarchnational.com/about"] }));
+    expect(c.accepted).toBe(true);
+    expect(c.droppedSources).toEqual([
+      { value: "Scott said", reason: "not a URL — an attribution is not a source (external-facts.md)" },
+    ]);
+  });
+
+  it("agrees with the pass on every shape — the checker has no ladder of its own", () => {
+    const cases: unknown[] = [
+      dossier(),
+      dossier({ orgId: "C-2024" }),
+      dossier({ orgId: "" }),
+      dossier({ status: "in-progress" }),
+      dossier({ producedBy: "" }),
+      dossier({ ranAt: "" }),
+      dossier({ summary: "" }),
+      dossier({ sources: [] }),
+      null,
+      "not an object",
+    ];
+    for (const raw of cases) {
+      const c = checkDossier("C-2021", raw);
+      const read = dossierToFinding("C-2021", raw);
+      const expected =
+        "refused" in (read as object)
+          ? false
+          : !("refused" in (runFromFinding("C-2021", (read as { finding: unknown }).finding as never) as object));
+      expect(c.accepted, JSON.stringify(raw)).toBe(expected);
+    }
+  });
+});
+
+describe("--check on the command line", () => {
+  it("parses an org id", () => {
+    expect(parseDeepDiveArgs(["--check", "C-2021"])).toEqual({ mode: "check", orgId: "C-2021" });
+  });
+
+  it("refuses a bare --check — there is no dossier to read without an org", () => {
+    const r = parseDeepDiveArgs(["--check"]);
+    expect(r).toHaveProperty("refusal");
+    expect((r as { refusal: string }).refusal).toContain("needs the org id");
+  });
+
+  it("refuses --check beside either writer, and says which command to run instead", () => {
+    for (const writer of [["--pass"], ["--record", "C-2021", "--by", "lead-enricher"]]) {
+      const r = parseDeepDiveArgs(["--check", "C-2021", ...writer]);
+      expect(r).toHaveProperty("refusal");
+      expect((r as { refusal: string }).refusal).toContain("only reads");
+    }
+  });
+
+  it("refuses attribution, execution and freshness flags on a read", () => {
+    for (const extra of [["--by", "lead-enricher"], ["--on", "2026-08-08"], ["--execute"], ["--limit", "1"], ["--fresh-days", "30"]]) {
+      const r = parseDeepDiveArgs(["--check", "C-2021", ...extra]);
+      expect(r, extra.join(" ")).toHaveProperty("refusal");
+      expect((r as { refusal: string }).refusal).toContain("--check takes only an org id");
+    }
   });
 });

@@ -53,7 +53,7 @@
  */
 
 import type { DeepDiveDecision } from "./deepDiveDue";
-import type { DeepDiveFinding } from "./deepDivePass";
+import { runFromFinding, type DeepDiveFinding } from "./deepDivePass";
 
 /** Refusal shape — the reason travels, always. A dropped dossier without a reason is a bug. */
 export interface DossierRefusal {
@@ -168,5 +168,82 @@ export function makeDossierDive(
     if (isRefusal(result)) throw new Error(result.refused);
     onRead?.(decision, result);
     return result.finding;
+  };
+}
+
+/**
+ * Q87 inc.8 — WOULD THIS DOSSIER BE ACCEPTED? Asked without writing anything.
+ *
+ * inc.7 proved the whole chain live and named what is left: nobody has written a dossier yet. The
+ * researcher that will write the first one has, today, exactly one way to find out whether its
+ * file is any good — `--pass --execute`, which is a WRITE path. Running the writer to validate its
+ * own input is the wrong shape twice over: a dossier that passes gets a ledger row nobody asked
+ * for, and a dossier that fails burns the org's turn in a pass that was supposed to be doing work.
+ *
+ * So this is the read-only question, and it is deliberately NOT a new rulebook. It composes the
+ * two that already exist — `dossierToFinding` (is this dossier about this company, sourced, and
+ * finished?) then `runFromFinding` (would the pass sign a ledger row off it?) — because a second
+ * copy of either ladder is precisely the duplicate-rule class Q88 exists to catch, and a checker
+ * that disagrees with the pass is worse than no checker at all.
+ *
+ * BOTH STAGES ARE REPORTED, NOT JUST THE FIRST FAILURE. A dossier can clear the dossier reader and
+ * still be refused by the pass (no producer, no date, no summary), and a researcher told only
+ * "rejected — names no subject" will fix that one line and come back to the next surprise. The
+ * whole verdict is cheaper than the round trip.
+ *
+ * `accepted: true` MEANS "recordable", NEVER "covered". This function does not write, cannot write,
+ * and is not evidence that a dive happened — the ledger row stays the pass's to earn, off a dossier
+ * on disk. A check that could confer `covered` would be inc.2's original defect with a friendlier
+ * flag name.
+ *
+ * Pure (CR-3): the parsed dossier arrives, no fs, no clock, no fetch.
+ */
+export interface DossierCheck {
+  orgId: string;
+  /** True only when BOTH ladders pass — the dossier reader and the pass's own finding rules. */
+  accepted: boolean;
+  /** Refusal from `dossierToFinding`, verbatim. Null when that stage passed. */
+  dossierRefusal: string | null;
+  /** Refusal from `runFromFinding`, verbatim. Null when unreached or passed. */
+  passRefusal: string | null;
+  /** Non-URL entries and why, reported even on success (same rule as the pass's own logging). */
+  droppedSources: { value: string; reason: string }[];
+  /** What the pass would write, present only when accepted. Never a suggestion — a readback. */
+  wouldRecord: { orgId: string; ranAt: string; producedBy: string } | null;
+}
+
+export function checkDossier(orgId: string, raw: unknown): DossierCheck {
+  const read = dossierToFinding(orgId, raw);
+  if (isRefusal(read)) {
+    return {
+      orgId,
+      accepted: false,
+      dossierRefusal: read.refused,
+      passRefusal: null,
+      droppedSources: [],
+      wouldRecord: null,
+    };
+  }
+
+  const run = runFromFinding(orgId, read.finding);
+  if (Object.prototype.hasOwnProperty.call(run, "refused")) {
+    return {
+      orgId,
+      accepted: false,
+      dossierRefusal: null,
+      passRefusal: (run as { refused: string }).refused,
+      droppedSources: read.droppedSources,
+      wouldRecord: null,
+    };
+  }
+
+  const recorded = run as { orgId: string; ranAt: string; producedBy: string };
+  return {
+    orgId,
+    accepted: true,
+    dossierRefusal: null,
+    passRefusal: null,
+    droppedSources: read.droppedSources,
+    wouldRecord: { orgId: recorded.orgId, ranAt: recorded.ranAt, producedBy: recorded.producedBy },
   };
 }

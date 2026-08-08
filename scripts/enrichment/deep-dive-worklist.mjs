@@ -22,7 +22,7 @@ import {
 } from "../../lib/enrichment/deepDiveCli.ts";
 import { deepDiveWorklist } from "../../lib/enrichment/deepDiveDue.ts";
 import { parseLedger, recordRun, serializeLedger } from "../../lib/enrichment/deepDiveLedger.ts";
-import { makeDossierDive } from "../../lib/enrichment/deepDiveDossier.ts";
+import { makeDossierDive, checkDossier } from "../../lib/enrichment/deepDiveDossier.ts";
 import { runDeepDivePass, deepDivePassLog } from "../../lib/enrichment/deepDivePass.ts";
 
 for (const line of readFileSync(".env.local", "utf8").split("\n")) {
@@ -65,6 +65,42 @@ if (args.mode === "record") {
     console.log(`✔ recorded: ${run.orgId} deep-dived ${run.ranAt} by ${run.producedBy} → ${DEEP_DIVE_LEDGER_PATH}`);
   }
   process.exit(0);
+}
+
+if (args.mode === "check") {
+  // Read-only, and it never reaches prod: whether a dossier is well-formed is a question about the
+  // FILE, not about the book. Asking Supabase here would make a researcher need the service key to
+  // proof-read its own output, and would make an offline check impossible.
+  const path = dossierPath(args.orgId);
+  if (isCliRefusal(path)) {
+    console.error(`✋ ${path.refusal}`);
+    process.exit(2);
+  }
+  let raw = null;
+  try {
+    raw = JSON.parse(readFileSync(path, "utf8"));
+  } catch (err) {
+    if (err?.code !== "ENOENT") {
+      // Unparseable is NOT the same as absent, and must not be reported as "nothing researched it".
+      console.error(`✋ ${path} exists but is not readable JSON: ${err.message}`);
+      process.exit(2);
+    }
+  }
+
+  const check = checkDossier(args.orgId, raw);
+  console.log(`\nDOSSIER CHECK — ${args.orgId}  (${path})`);
+  for (const d of check.droppedSources) console.error(`⚠️  source dropped — "${d.value}" — ${d.reason}`);
+  if (check.dossierRefusal) console.log(`\n✗ REJECTED by the dossier reader:\n    ${check.dossierRefusal}`);
+  else if (check.passRefusal) console.log(`\n✗ REJECTED by the pass's finding rules:\n    ${check.passRefusal}`);
+  else {
+    console.log(
+      `\n✔ RECORDABLE — the pass would write: ${check.wouldRecord.orgId} ` +
+        `${check.wouldRecord.ranAt} by ${check.wouldRecord.producedBy}`,
+    );
+    // Said out loud every time it passes. A green check is not a covered company.
+    console.log(`  Nothing was written. This org is still owed its row until --pass --execute earns it.`);
+  }
+  process.exit(check.accepted ? 0 : 1);
 }
 
 const url = process.env.SUPABASE_URL;
