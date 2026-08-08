@@ -1,0 +1,57 @@
+{
+  "_what": "Q86 inc.15 — the `Notes by Gemini` docs the calendar was already pointing at, MEASURED. Captured through the Google Drive MCP in an agent session (node holds no Drive credential); metadata only, bodies are NOT stored here.",
+  "_redaction": "`owner` and `viewUrl`'s `ouid` are dropped AT CAPTURE and never enter git — the same subtraction the fathom snapshot performs, and for the same reason. There is NO capture script: node holds no Drive credential, so this file was assembled by hand in an agent session from the MCP calls named in `fetchedVia`. An earlier draft of this line cited a `scripts/…` capture script that has never existed; the sweep in lib/meetings/__tests__/citedEvidenceExists.test.ts was widened to these JSON headers so that a dead citation here is red instead of invisible. Titles are Google Meet's own auto-generated titles and are already in calendar-snapshot-2026-08-07.json.",
+  "_bytesMeans": "Google's `fileSize` for a native Doc. It is a FLOOR-ish proxy for how much is in the file and NOT the exported character count — 3,186 bytes here is an empty-notes notice, so size alone never rules a doc.",
+  "fetchedAt": "2026-08-07",
+  "fetchedVia": "claude.ai Google Drive MCP — get_file_metadata, read_file_content",
+  "docs": [
+    {
+      "id": "1479bPU0Jn1QrMomzSdwpWHrx5lFXTvDP0_W0ppJVd_Y",
+      "title": "Caleb, Rob, Will | CGRoofingGroup.com + AI Platform Discovery - 2026/06/16 13:09 EDT - Notes by Gemini",
+      "day": "2026-06-16",
+      "bytes": 67517,
+      "mimeType": "application/vnd.google-apps.document",
+      "calendarEventIds": ["4ods95v77ggfjfeaqvbf7oiqhv", "3e5ommarc5f4rl57c0dfvfpmdk"]
+    },
+    {
+      "id": "1dFBZJ0cAItYPHOEkIwmi-vdciNy_4F7CI-AXnbOiOBg",
+      "title": "Call with Dixith & Rob - MLE - 2026/07/08 14:01 EDT - Notes by Gemini",
+      "day": "2026-07-08",
+      "bytes": 41827,
+      "mimeType": "application/vnd.google-apps.document",
+      "calendarEventIds": ["v87n6666bga3c08grq6arlkbv4"]
+    },
+    {
+      "id": "1R3Dh6W7w_dk_mc57wehfak3ToktX_nEfq9_o02ZjQV8",
+      "title": "Rob & Dix | MLE & Skin Cancer Detection AI Model - 2026/07/29 13:59 EDT - Notes by Gemini",
+      "day": "2026-07-29",
+      "bytes": 14199,
+      "mimeType": "application/vnd.google-apps.document",
+      "calendarEventIds": ["k5c9v683uk0umjqp618ltsrbbg"]
+    },
+    {
+      "id": "1RcgLuFmrRT08fUXHaLv48UTZ7p1PCx2zis7TIFPFjo8",
+      "title": "Joseph, Rob, Will | Next Steps - 2026/07/15 12:01 EDT - Notes by Gemini",
+      "day": "2026-07-15",
+      "bytes": 10312,
+      "mimeType": "application/vnd.google-apps.document",
+      "calendarEventIds": ["o42ambchnnk15d3gd6b399eoso"]
+    },
+    {
+      "id": "162aprusmYFj2wTy8jqi26wUT7O-vwif7NCPoPw6_Lv8",
+      "title": "Joseph, Rob, Will | MLE Partnership - 2026/07/20 13:55 EDT - Notes by Gemini",
+      "day": "2026-07-20",
+      "bytes": 7272,
+      "mimeType": "application/vnd.google-apps.document",
+      "calendarEventIds": ["bpa7857sll7jmqsg52k4s98iuk"]
+    },
+    {
+      "id": "1JD70AcU5xNnXZEVYo_4fDiPq2U82O9kDCB8jEOPZ2WM",
+      "title": "Rob & Austin | MArtin Fierro - 2026/08/03 19:54 EDT - Notes by Gemini",
+      "day": "2026-08-03",
+      "bytes": 3186,
+      "mimeType": "application/vnd.google-apps.document",
+      "calendarEventIds": ["6o95pd7dj1sk5j0fildnp2di7o"]
+    }
+  ]
+}

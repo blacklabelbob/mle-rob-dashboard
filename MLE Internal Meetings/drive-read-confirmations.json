@@ -1,0 +1,13 @@
+{
+  "_what": "Q86 inc.15 — rulings on `Notes by Gemini` docs someone OPENED. Same contract as notion-read-confirmations.json: a ruling is recorded, never inferred from size or shape.",
+  "_verdicts": "transcript = verbatim speech is in the doc, so it is coverage · summary-only = Gemini's prose notes, no speech · empty = Gemini produced nothing.",
+  "confirmations": [
+    {
+      "fileId": "1JD70AcU5xNnXZEVYo_4fDiPq2U82O9kDCB8jEOPZ2WM",
+      "verdict": "empty",
+      "note": "Read end to end 2026-08-07 via the Drive MCP. 3,186 bytes of Google boilerplate and nothing else. Verbatim, under `### Summary`: \"A summary wasn't produced for this meeting because there wasn't enough conversation in a supported language.\" and under `### Details`: \"Details weren't produced for this meeting.\" The only substantive content is the invite line and a link back to the calendar event. THIS IS THE POINT OF MEASURING: at 3,186 bytes it is the largest thing on that row and reads like a body, and it holds no meeting at all. The 2026-08-03 Rob & Austin call is still OWED A HUMAN.",
+      "confirmedAt": "2026-08-07",
+      "confirmedBy": "max"
+    }
+  ]
+}

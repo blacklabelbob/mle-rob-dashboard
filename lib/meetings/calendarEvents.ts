@@ -65,8 +65,14 @@ import type { CalendarMeeting, MeetingSource, SourceRecord } from "@/lib/meeting
  * vocabulary problem. The list is domain vocabulary, so it belongs in the domain layer; the guard
  * keeps its full reach over `scripts/`, and every real route into that mailbox — the credential
  * name, the API surface, IMAP — still matches there.
+ *
+ * **Q86 inc.15 — `gemini` and `drive` came OFF this list**, because they are now read: the Drive
+ * MCP measures each attached Doc into `drive-snapshot-2026-08-07.json` and a reader's verdict lands
+ * in `drive-read-confirmations.json` (`lib/meetings/driveReads.ts`). The list is shorter by
+ * subtraction of work done, never by lowering what "wired" means — `gmail` stays because no mailbox
+ * has been asked anything, and the sentence below still holds for it exactly.
  */
-export const SOURCES_NOT_WIRED = ["gemini", "gmail", "drive"] as const;
+export const SOURCES_NOT_WIRED = ["gmail"] as const;
 
 /**
  * A file Google Calendar hangs off an event. Google Meet writes one of these — `Notes by Gemini` —

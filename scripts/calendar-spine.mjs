@@ -32,6 +32,7 @@ import { fileURLToPath } from "node:url";
 
 import { fromCalendarEvents, SOURCES_NOT_WIRED, sourceRecordsFromAttachments } from "../lib/meetings/calendarEvents.ts";
 import { reconcileCalendarSpine } from "../lib/meetings/calendarSpine.ts";
+import { fromDrive } from "../lib/meetings/driveReads.ts";
 import {
   indexNotionReads,
   parseDeepReadHeader,
@@ -61,6 +62,10 @@ const TRANSCRIPTS = join(homedir(), "Projects", "MyLocalEverything", "transcript
 // Q84's deep reads of the Notion page bodies, and the rulings on them (inc.10).
 const ARCHIVE_READS = join(REPO, "MLE Internal Meetings", "archive-reads");
 const READ_RULINGS = join(REPO, "MLE Internal Meetings", "notion-read-confirmations.json");
+// The Drive/Gemini docs the calendar attachments point at, MEASURED, and the rulings on them (inc.15).
+const DRIVE =
+  argOf("--drive") ?? join(REPO, "MLE Internal Meetings", "drive-snapshot-2026-08-07.json");
+const DRIVE_RULINGS = join(REPO, "MLE Internal Meetings", "drive-read-confirmations.json");
 
 /**
  * ISO instant → local day in the snapshot's timezone.
@@ -150,7 +155,22 @@ const notion = notionSnap
 // `sourceRecordsFromAttachments`. Every one of these carries `hasTranscript: false`, so no row's
 // coverage status can move because of this list; what moves is that the human sent to look now
 // has the URL.
-const attached = sourceRecordsFromAttachments(snapshot.events ?? [], { toLocalDay });
+const locatedAttachments = sourceRecordsFromAttachments(snapshot.events ?? [], { toLocalDay });
+
+// ── and now the docs those attachments point at, OPENED (inc.15) ───────────────────────────────
+// The refusal above is discharged, not relaxed. `drive-snapshot-*.json` measures each Doc through
+// the Drive MCP (agent session; node holds no Drive credential) and `drive-read-confirmations.json`
+// records what a reader found when they opened one. `fromDrive` enriches the located records in
+// place — the `calendarEventId` join the calendar already proved is never traded for a snapshot
+// row — and `hasTranscript` turns true for a RULING and nothing else. The first doc read, 3,186
+// bytes on Rob's 2026-08-03 call, is Google saying it produced nothing; it is ruled `empty` and
+// that meeting is still owed a human.
+const driveSnap = existsSync(DRIVE) ? JSON.parse(readFileSync(DRIVE, "utf8")) : null;
+const driveRulings = existsSync(DRIVE_RULINGS)
+  ? JSON.parse(readFileSync(DRIVE_RULINGS, "utf8")).confirmations ?? []
+  : [];
+const drive = fromDrive(locatedAttachments, driveSnap?.docs ?? [], driveRulings);
+const attached = drive.records;
 
 // The window's own bounds as LOCAL DAYS, so an unclaimed record's day is compared against them
 // with the same zone rule the meetings were placed with. Passed INTO the module (inc.7) rather
@@ -186,6 +206,16 @@ if (AS_JSON) {
           orphanedConfirmations,
         },
         attached,
+        drive: {
+          snapshot: driveSnap ? basename(DRIVE) : null,
+          fetchedAt: driveSnap?.fetchedAt ?? null,
+          docs: driveSnap?.docs?.length ?? 0,
+          confirmedTranscripts: drive.confirmedTranscripts,
+          ruledNotTranscript: drive.ruledNotTranscript,
+          bodyFindings: drive.bodyFindings,
+          orphanedConfirmations: drive.orphanedConfirmations,
+          unmeasured: drive.unmeasured,
+        },
         sourcesNotWired: SOURCES_NOT_WIRED,
         skipped,
         stubs: harvest.stubs,
@@ -202,15 +232,40 @@ const c = report.counts;
 console.log(`\n📅 CALENDAR SPINE — ${snapshot.window?.start ?? "?"} → ${snapshot.window?.end ?? "?"} (${timeZone})`);
 console.log(`   snapshot taken ${snapshot.fetchedAt ?? "(undated — treat as unknown age)"} · ${CALENDAR}`);
 console.log(
-  `   sources READ: fireflies (${fireflies.length} records), local-repo (${harvest.records.length} files), calendar attachments (${attached.length} located, 0 read), fathom (${fathom.length} recordings, ${fathomConfirmed} transcript${fathomConfirmed === 1 ? "" : "s"} confirmed), notion (${notion.records.length} rows, ${notion.confirmedTranscripts.length} body READ + ruled a transcript, ${notion.bodyFindings.length} still unread)`,
+  `   sources READ: fireflies (${fireflies.length} records), local-repo (${harvest.records.length} files), calendar attachments (${attached.length} located, ${drive.confirmedTranscripts.length + drive.ruledNotTranscript.length} READ + ruled, ${drive.bodyFindings.length} measured-unread, ${drive.unmeasured.length} unmeasured), fathom (${fathom.length} recordings, ${fathomConfirmed} transcript${fathomConfirmed === 1 ? "" : "s"} confirmed), notion (${notion.records.length} rows, ${notion.confirmedTranscripts.length} body READ + ruled a transcript, ${notion.bodyFindings.length} still unread)`,
 );
 if (!fathomSnap)
   console.log(`   ⚠ no fathom snapshot at ${FATHOM} — fathom is reading as EMPTY, which is not the same as absent.`);
 if (!notionSnap)
   console.log(`   ⚠ no notion snapshot at ${NOTION} — notion is reading as EMPTY, which is not the same as absent.`);
+if (!driveSnap)
+  console.log(`   ⚠ no drive snapshot at ${DRIVE} — the Gemini docs are LOCATED only, as before inc.15.`);
 console.log(
   `   sources NOT WIRED, so silent and NOT a finding: ${SOURCES_NOT_WIRED.join(", ")} — a source nobody asked has answered nothing.\n`,
 );
+
+if (drive.bodyFindings.length) {
+  // The same shape as the Notion list above and for the same reason: a doc that exists is a lead,
+  // and a lead printed quietly at the bottom of a 50-row report is a lead nobody follows.
+  console.log(`\n— GEMINI DOCS HOLDING TEXT NOBODY HAS RULED (${drive.bodyFindings.length}) —`);
+  for (const f of drive.bodyFindings)
+    console.log(
+      `   • ${f.day ?? "(undated)"} ${f.title}\n     ${f.bytes.toLocaleString("en-US")} bytes · ${f.calendarEventIds.length} event${f.calendarEventIds.length === 1 ? "" : "s"} would move · ${f.why}`,
+    );
+}
+if (drive.ruledNotTranscript.length || drive.confirmedTranscripts.length) {
+  const titleOf = (id) => driveSnap?.docs?.find((d) => d.id === id)?.title ?? id;
+  console.log(
+    `\n— GEMINI DOCS ALREADY READ AND RULED (${drive.confirmedTranscripts.length + drive.ruledNotTranscript.length}) —`,
+  );
+  for (const id of drive.confirmedTranscripts) console.log(`   ✅ transcript — ${titleOf(id)}`);
+  for (const id of drive.ruledNotTranscript)
+    console.log(`   ⛔ not coverage — ${titleOf(id)} (opened; the meeting is still owed a record)`);
+}
+if (drive.orphanedConfirmations.length)
+  console.log(
+    `\n   ⚠ ${drive.orphanedConfirmations.length} drive ruling(s) name a file the snapshot never measured: ${drive.orphanedConfirmations.map((c) => c.fileId).join(", ")}`,
+  );
 
 for (const row of report.rows) {
   const icon =

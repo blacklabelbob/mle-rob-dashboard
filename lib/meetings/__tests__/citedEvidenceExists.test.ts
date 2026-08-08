@@ -104,3 +104,62 @@ describe("the counts cited about the Q89 pre-call row are computed, not asserted
     for (const line of quoted) expect(body).toContain(line);
   });
 });
+
+/**
+ * Q86 inc.15 — the same failure, one directory over: a cited SCRIPT that never existed.
+ *
+ * inc.26's sweep above proved every `MLE Internal Meetings/…` path named under `lib/meetings/`.
+ * It had two blind spots, and inc.15's first draft walked through both at once:
+ * `drive-snapshot-2026-08-07.json` claimed its redaction was performed by a `drive-spine-snapshot`
+ * capture script under `scripts/` — a file that has never existed — and the claim was made
+ * (a) in a `scripts/` path, which the sweep does not match, and (b) inside a JSON evidence file,
+ * which the sweep does not read. Two misses multiply into a citation nothing on earth checks.
+ *
+ * (As above, the dead path is DESCRIBED rather than written out: writing it would trip this very
+ * sweep. That is not a dodge, it is the sweep working — and the first run of this block proved it
+ * by going red on this comment.)
+ *
+ * The truth is that there IS no capture script: node holds no Drive credential, so that snapshot
+ * was assembled by hand in an agent session. The wording was corrected to say so. This gate is the
+ * part that is not prose — INCIDENT-LEDGER #37's rule is that a fix must be code, and "cite more
+ * carefully" is not code.
+ *
+ * So the sweep now covers BOTH axes it was short on:
+ *   • the `MLE Internal Meetings/*.json` evidence headers, not just `lib/meetings/**.ts`
+ *   • `scripts/*.{mjs,ts,js}` citations, not just archive paths
+ * A capture script is exactly the kind of provenance claim a reader trusts without opening, which
+ * is precisely why it has to be re-proven on every run.
+ */
+describe("every script cited as provenance actually exists (Q86 inc.15)", () => {
+  // Both boundaries are load-bearing, and the first run of this gate proved each with a false
+  // alarm. LEADING: `transcripts/` ENDS IN `scripts/`, so an unanchored pattern reports every
+  // real transcript in the archive as a missing script. TRAILING: `js` is a prefix of `json`, so
+  // `…/01KZ….json` matches as `…/01KZ….js`. A gate that cries wolf on healthy evidence gets
+  // muted, and a muted gate is worse than the one blind spot it was written to close.
+  const SCRIPT_PATH = /(?<![A-Za-z0-9._/-])scripts\/[A-Za-z0-9._-]+\.(?:mjs|ts|js)(?![A-Za-z0-9])/g;
+  const EVIDENCE_DIR = join(ROOT, "MLE Internal Meetings");
+
+  const citingFiles = [
+    ...sourceFiles(MEETINGS_DIR),
+    ...readdirSync(EVIDENCE_DIR, { withFileTypes: true })
+      .filter((e) => e.isFile() && e.name.endsWith(".json"))
+      .map((e) => join(EVIDENCE_DIR, e.name)),
+  ];
+
+  const cited = citingFiles.flatMap((file) => {
+    const text = readFileSync(file, "utf8");
+    return [...new Set(text.match(SCRIPT_PATH) ?? [])].map((path) => ({ file, path }));
+  });
+
+  it("finds citations to check — an empty sweep would pass vacuously", () => {
+    expect(cited.length).toBeGreaterThan(0);
+  });
+
+  it("reaches the JSON evidence headers, the half inc.26 could not see", () => {
+    expect(cited.some(({ file }) => file.endsWith(".json"))).toBe(true);
+  });
+
+  it.each(cited)("$path (cited in $file) resolves on disk", ({ path }) => {
+    expect(existsSync(join(ROOT, path))).toBe(true);
+  });
+});
