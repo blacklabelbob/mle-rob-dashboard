@@ -33,6 +33,7 @@ import { fileURLToPath } from "node:url";
 import { fromCalendarEvents, SOURCES_NOT_WIRED, sourceRecordsFromAttachments } from "../lib/meetings/calendarEvents.ts";
 import { reconcileCalendarSpine } from "../lib/meetings/calendarSpine.ts";
 import { fromDrive, summarizeRuledDocs } from "../lib/meetings/driveReads.ts";
+import { drainReport } from "../lib/meetings/driveDrain.ts";
 import {
   indexNotionReads,
   parseDeepReadHeader,
@@ -76,6 +77,9 @@ const TRANSCRIPTION_SCAN = join(
 const DRIVE =
   argOf("--drive") ?? join(REPO, "MLE Internal Meetings", "drive-snapshot-2026-08-07.json");
 const DRIVE_RULINGS = join(REPO, "MLE Internal Meetings", "drive-read-confirmations.json");
+// Q86 inc.38 — DoD (e). BOTH folders re-listed live; `drained` may only come from the second one.
+const DRAIN =
+  argOf("--drain") ?? join(REPO, "MLE Internal Meetings", "drive-drain-2026-08-08.json");
 
 /**
  * ISO instant → local day in the snapshot's timezone.
@@ -193,6 +197,15 @@ const driveRulings = existsSync(DRIVE_RULINGS)
 const drive = fromDrive(locatedAttachments, driveSnap?.docs ?? [], driveRulings);
 // Docs read vs rows moved — computed in `lib/`, never by adding two array lengths at print time.
 const driveRuled = summarizeRuledDocs(drive);
+
+// DoD (e): the /Unprocessed → /Processed drain. The rulings that make a file MOVABLE are a
+// different question from the rulings on Gemini docs above, and no drain ruling exists yet — so
+// this is deliberately handed an empty list rather than the doc confirmations, which say a doc was
+// READ, not that its meeting was captured and its file is owed a move.
+const drainSnap = existsSync(DRAIN) ? JSON.parse(readFileSync(DRAIN, "utf8")) : null;
+const drain = drainSnap
+  ? drainReport(drainSnap.unprocessed ?? [], drainSnap.processed ?? [], [])
+  : null;
 const attached = drive.records;
 
 // The window's own bounds as LOCAL DAYS, so an unclaimed record's day is compared against them
@@ -246,6 +259,20 @@ if (AS_JSON) {
           orphanedConfirmations: drive.orphanedConfirmations,
           unmeasured: drive.unmeasured,
         },
+        drain: drain
+          ? {
+              snapshot: basename(DRAIN),
+              fetchedAt: drainSnap.fetchedAt ?? null,
+              unprocessed: drain.verdicts.length,
+              processed: drain.drained.length,
+              eligible: drain.eligible.length,
+              needsTranscription: drain.needsTranscription.length,
+              needsARead: drain.needsARead.length,
+              orphanedRulings: drain.orphanedRulings,
+              summary: drain.summary,
+              verdicts: drain.verdicts,
+            }
+          : null,
         sourcesNotWired: SOURCES_NOT_WIRED,
         skipped,
         stubs: harvest.stubs,
@@ -449,6 +476,25 @@ if (report.unclaimed.length) {
     `   ${c.unclaimedInWindow} inside the window (real, unplaced) · ${c.unclaimedOutsideWindow} outside it ` +
       `(widen the snapshot) · ${c.unclaimedUndated} undated. Only the first number is a finding.`,
   );
+}
+
+if (drain) {
+  // DoD (e) printed as what was RE-LISTED, never as what was intended. The classes are kept apart
+  // for the same reason the Notion section keeps named absences apart from debts: a recording owed
+  // a transcriber and a doc owed a reader are two different asks of two different people.
+  console.log(`\n— DRIVE /Unprocessed → /Processed (${basename(DRAIN)}, taken ${drainSnap.fetchedAt ?? "undated"}) —`);
+  console.log(`   ${drain.summary}`);
+  for (const v of drain.verdicts) {
+    const mark = { drained: "✅", eligible: "📦", "needs-transcription": "🎙", "needs-a-read": "📄" }[v.kind];
+    console.log(`   ${mark} ${v.kind} — ${v.file.title}\n     ${v.why}`);
+  }
+  if (drain.orphanedRulings.length)
+    console.log(`   ⚠ ${drain.orphanedRulings.length} ruling(s) name a file in NEITHER folder — a finding, not a gap.`);
+  console.log(
+    `   ⛔ this repo cannot perform the move: the Drive MCP has no move/delete, and node holds no Drive credential.\n      A move needs the Drive API (addParents/removeParents) or an n8n node. Nothing here claims one happened.`,
+  );
+} else {
+  console.log(`\n   ⚠ no drain snapshot at ${DRAIN} — DoD (e) is UNMEASURED, which is not the same as drained.`);
 }
 
 console.log(

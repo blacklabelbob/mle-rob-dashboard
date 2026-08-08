@@ -1,0 +1,61 @@
+{
+  "_what": "Q86 inc.38 — DoD (e). A LIVE re-listing of both Drive folders, taken 2026-08-08 through the Google Drive MCP in an agent session (node holds no Drive credential). Measurement only: no file was moved, copied, renamed or deleted, and this file records no judgement about any meeting.",
+  "_whyBothFolders": "DoD (e) says 'moved' may only be claimed after re-listing BOTH folders. So both are listed here, and `processed` is the ONLY thing a drained claim may ever be computed from. An intent to move is not a move.",
+  "_bytesMeans": "`bytes` is Drive's own `fileSize` for the file. For a NATIVE Google Doc that number is not the length of its text, which is exactly why the DoD (f) byte floor is not applied to Docs — see lib/meetings/driveDrain.ts.",
+  "_correctsThePriorCount": "BUILD-QUEUE has carried '9 files, 0 moved' since 2026-07-31, including 'three 26-byte .txt stubs'. Re-listed live today: Unprocessed holds 6 files and NO .txt of any size; Processed holds 0. The drain has still never run once — that half of the old line stands. The file count and the stub claim do not.",
+  "fetchedAt": "2026-08-08T13:00:00Z",
+  "fetchedVia": "claude.ai Google Drive MCP — search_files parentId = <folder id>",
+  "unprocessedFolder": {
+    "id": "1J17UjTXVqLTQzkMfBPhAOSJRWgcr5UG8",
+    "title": "/Unprocessed Meeting Recording & Transcripts"
+  },
+  "processedFolder": {
+    "id": "10eQkX-KWX-YxH1KonnZm0QoUsZQSKlyG",
+    "title": "/Processed to CRM Meeting Recording & Transcripts"
+  },
+  "unprocessed": [
+    {
+      "id": "1qjgBd4UhhEQS9b9w32qUOvw_2uc-kTyEwJdzUAKFM9w",
+      "title": "Manual Notes from 7/28 Call with Omega",
+      "mimeType": "application/vnd.google-apps.document",
+      "bytes": 1024,
+      "createdTime": "2026-07-30T23:54:04.350Z"
+    },
+    {
+      "id": "1hxpJ-v26ZHtbNs71uzS8QEC6IHG-j6_F",
+      "title": "Call with John Burns.m4a",
+      "mimeType": "audio/x-m4a",
+      "bytes": 51119085,
+      "createdTime": "2026-07-10T03:20:03.271Z"
+    },
+    {
+      "id": "1lv6h9cUFWoe6zrshamSVOF3bniTJoKbt05Vpt1WXxNU",
+      "title": "Manual Notes from call with Dixith",
+      "mimeType": "application/vnd.google-apps.document",
+      "bytes": 1024,
+      "createdTime": "2026-07-30T23:53:20.655Z"
+    },
+    {
+      "id": "1-S9tplg38neWbZSBzc2nCaBXWonfcl8e8HaM6RE7LZs",
+      "title": "Call w David Cates RE MLE Sales Position Overview",
+      "mimeType": "application/vnd.google-apps.document",
+      "bytes": 57529,
+      "createdTime": "2026-06-19T20:32:12.876Z"
+    },
+    {
+      "id": "1upA8x8sNsmMmB2MiojIsgPic5LnLsU_z",
+      "title": "Joseph On Time Roofing Call Recording.m4a",
+      "mimeType": "audio/x-m4a",
+      "bytes": 41048288,
+      "createdTime": "2026-07-10T03:16:22.134Z"
+    },
+    {
+      "id": "1sK32llvGzDQNzek0BPTzgXsOzmuQOBkh",
+      "title": "Call with David Cates.m4a",
+      "mimeType": "audio/x-m4a",
+      "bytes": 208855344,
+      "createdTime": "2026-07-10T03:22:46.508Z"
+    }
+  ],
+  "processed": []
+}
