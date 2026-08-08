@@ -71,3 +71,6 @@ MLE Internal Meetings/.intake-last-escalation
 MLE Internal Meetings/.new-since-last-agent-run
 MLE Internal Meetings/.intake-flag-pending
 supabase/.temp/
+
+# verify-helper receipts (INCIDENT-LEDGER #47/#48) — per-run measurements, never committed
+.verify/

@@ -62,7 +62,7 @@ is written by a human after reading this file end to end. This file existing is 
   [paragraph] 
     [heading_1] Call with Dixith & Rob - MLE
     [paragraph] Date: Jul 8, 2026  
-    [paragraph] Invited: Robert Acheson, thedevdix@gmail.com, fred@fireflies.ai  
+    [paragraph] Invited: Robert Acheson, [email redacted @gmail.com], [email redacted @fireflies.ai]  
     [paragraph] Calendar event: Call with Dixith & Rob - MLE  
     [paragraph] Transcript: Google Doc transcript
     [heading_2] Summary
