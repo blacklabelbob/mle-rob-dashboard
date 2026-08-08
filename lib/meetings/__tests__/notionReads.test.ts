@@ -223,7 +223,13 @@ describe("rulingAttachments", () => {
     // off meeting.") and the spine still refuses to weld a body to an event, so it attaches as a
     // near-match and stays stranded. NOTE inc.24 did not update this pin — it verified with
     // `vitest lib/__tests__`, a path that excludes this file, so the guard sat red until push.
-    expect(live.filter((c) => c.verdict === "transcript")).toHaveLength(4);
+    // Re-read 2026-08-08 (Q86 inc.26): a FIFTH transcript ruling — `3ab1de57…`, the 2026-07-28
+    // Omega page INCIDENT-LEDGER #34 was opened for, 531 blocks / 95,834 chars. 4 -> 5 by hand
+    // after checking it is stranded too, off the live `spine:q86` run: its day holds the event
+    // "Meeting with Mike @ Omega", the titles share only the word "meeting", and the spine leaves
+    // it UNLINKED on purpose ("a wrong weld is unrecoverable"). Reading the body proved what it
+    // contains, never which event it is of — so a fifth ruling still moves the board by zero.
+    expect(live.filter((c) => c.verdict === "transcript")).toHaveLength(5);
     const attachments = rulingAttachments(
       live,
       [],
@@ -232,10 +238,11 @@ describe("rulingAttachments", () => {
         { id: "3811de57-0199-8099-9137-ef10c8fd0efe", title: "Gulf Coast Realty, AI Alex meeting one", day: "2026-06-16", placement: "in-window-day-busy", sameDayMeetings: [{ id: "e1", title: "Caleb, Rob, Will | CGRoofingGroup.com + AI Platform Discovery" }] },
         { id: "3811de57-0199-80d4-b8e5-c0a7c8465085", title: "Meeting 2026-06-16T11:05:00.000-04:00", day: "2026-06-16", placement: "in-window-day-busy", sameDayMeetings: [{ id: "e1", title: "Caleb, Rob, Will | CGRoofingGroup.com + AI Platform Discovery" }] },
         { id: "3a51de57-0199-802b-b9f8-f59fa153a013", title: "Gulf Coast RE KICKOFF 2026-07-22", day: "2026-07-22", placement: "in-window-day-busy", sameDayMeetings: [{ id: "e2", title: "10 am - meet with Rob and Will; Kick off meeting." }] },
+        { id: "3ab1de57-0199-80ef-bf9c-c2b98d7578ed", title: "Meeting 2026-07-28", day: "2026-07-28", placement: "in-window-day-busy", sameDayMeetings: [{ id: "e3", title: "Meeting with Mike @ Omega" }] },
       ],
       titleOf,
     );
-    expect(strandedTranscriptRulings(attachments)).toHaveLength(4);
+    expect(strandedTranscriptRulings(attachments)).toHaveLength(5);
   });
 
   it("THE LIVE FINDING, second half: a summary-only ruling is recorded and is NOT counted as a transcript", () => {
@@ -265,7 +272,12 @@ describe("rulingAttachments", () => {
     // floor" was measured on a depth-capped number, so there was never a reason for it to stop.
     // The prediction is left standing above rather than edited out: it was the belief at the time,
     // and what falsified it is the point.
-    expect(live).toHaveLength(7);
+    // Re-read 2026-08-08 (Q86 inc.26): an EIGHTH ruling, 7 -> 8, and it is a `transcript` not a
+    // `summary-only` — so the three page ids asserted below are unchanged and this count is the
+    // only thing that moved. The deepread is beside it
+    // (`archive-reads/2026-07-28-omega-title-ai-platform-demo.deepread.txt`), written by
+    // `notion-body-dump.mjs` in the same increment that taught that script to recurse.
+    expect(live).toHaveLength(8);
     for (const pageId of [
       "79dbbdf5-61fe-441c-8324-1d3f75c8a6a9",
       "3c349f70-08dd-48c6-89c6-e0d71fd93d82",

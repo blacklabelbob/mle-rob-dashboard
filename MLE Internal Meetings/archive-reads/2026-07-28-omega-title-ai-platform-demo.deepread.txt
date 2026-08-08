@@ -1,0 +1,597 @@
+==============================================================================
+TITLE (do not trust): Meeting 2026-07-28
+URL: https://app.notion.com/p/Meeting-3ab1de57019980efbf9cc2b98d7578ed
+id : 3ab1de57-0199-80ef-bf9c-c2b98d7578ed
+CALL DATE: 2026-07-28
+------------------------------------------------------------------------------
+PROPERTIES — in full; this is where the identity the title omits lives:
+  ∅ Google Doc Link [url]: None  ← claims absence
+  · Show/No Show [multi_select]: Show
+  ∅ Next Steps/Action Items [rich_text]: None  ← claims absence
+  · Company URL [rich_text]: https://omegatitlegroup.com/
+  · Parent Account [multi_select]: Yes
+  · MLE [select]: YES
+  ∅ Last Edited [last_edited_time]: None
+  · Child Account [multi_select]: Yes
+  · Other Combined/Possible referral [rich_text]: Monarch National Insurance Company — Direct relationship / referral rationale: Omega’s partner/group also owns Monarch, and Byron is the IT lead across the broader company portfolio. In the transcript, Monarch was described as the insurance company getting most of the shared IT department’s attention because of its size/profitability. Financial/detail shared: Monarch reportedly had ~$125M net profit last year. Business focus shared: targets independent agents writing homeowners insurance. URL: https://monarchnational.com/. Web overview: Florida homeowners insurance carrier offering HO-3 homeowners, DP-3 dwelling fire, HO-6 condo, and HO-4 renters coverage; site says it has served Florida since 2015 and has a Demotech A rating. Potential next step: get on the Teams call with Byron and use the Omega Title demo as the entry point to discuss broader AI/automation opportunities for Monarch.
+
+Viceroy Preferred Insurance Company — Direct relationship / referral rationale: mentioned as another insurance platform/subsidiary owned by the same partner/group. Financial/detail shared: positioned as a separate insurance platform focused on homes valued at $1M+. Business focus shared: high-value coastal homeowners insurance. URL: https://viceroyinsurance.com/. Web overview: Florida property insurance carrier offering homeowners/rental property coverage; public coverage notes Viceroy targets high-value homes with an initial Florida east coast focus. Potential next step: include Viceroy in the broader-company opportunity conversation with Byron after the Omega Title intro.
+
+Former Stanley Furniture / furniture manufacturing business — Direct relationship / referral rationale: Omega’s partner was said to also own what used to be Stanley Furniture, now manufacturing/building products for companies like Lovesac and Wayfair. Financial/detail shared: no revenue/profit numbers shared in transcript. Business focus shared: furniture manufacturing / e-commerce supply chain. Relevant URLs found: Stanley Furniture asset-sale context: https://www.woodworkingnetwork.com/news/woodworking-industry-news/vietnam-linked-furniture-group-acquires-stanley-furniture-assets; Lovesac: https://www.lovesac.com/; Wayfair: https://www.wayfair.com/. Web overview: Stanley Furniture was an established furniture brand; the transcript suggests the related manufacturing operation now produces for large furniture/home-goods brands. Potential next step: if Byron confirms IT involvement across this company too, explore website, operations, workflow automation, and e-commerce automation opportunities.
+
+Omega Title Group / Mega Title Florida — Direct relationship / current prospect rather than separate referral. Included here only for context because it is the active account that creates the referral path to Byron and the related companies above. Details shared: ~300–350 closings/month across 15+ locations in FL, PA, NJ, and working on Alabama acquisition. Next steps discussed: beta Phase 1 with Mega Title Florida, arrange Teams call with Byron, and speak with Katherine at the Cape office about processing workflows and bottlenecks.
+  ∅ Customer Pain Points [rich_text]: None  ← claims absence
+  ∅ Meeting Summary [rich_text]: None  ← claims absence
+  · MLE Attendees [multi_select]: Rob Acheson, Will DeVito
+  ∅ Follow Up Date set [date]: None  ← claims absence
+  · Company Meeting with [rich_text]: Omega Title
+  ∅ Export Status [select]: None  ← claims absence
+  ∅ Sales Rep [people]: None  ← claims absence
+  ∅ Notion Meeting Page [url]: None  ← claims absence
+  · Call Date [date]: 2026-07-28
+  ∅ Tags [multi_select]: None  ← claims absence
+  ∅ Call Recording [url]: None  ← claims absence
+  ∅ Contact Name [rich_text]: None  ← claims absence
+  ∅ Non MLE Attendees [rich_text]: None  ← claims absence
+  ∅ TAM # [number]: None  ← claims absence
+  ∅ Created [created_time]: None
+  ∅ In Person/Virtual [multi_select]: None  ← claims absence
+  ∅ Urgent TO DO [rich_text]: None  ← claims absence
+  · Meeting Type [multi_select]: Intro
+  · Primary Target ICP [multi_select]: Real Estate Agents
+  · Meeting Title [title]: Meeting 2026-07-28
+------------------------------------------------------------------------------
+BODY: 531 blocks, 95834 chars of block TEXT (no markup) — paragraph×457, bulleted_list_item×50, heading_3×9, divider×8, to_do×6, transcription×1
+DEPTH: walked 4 level(s), cap 8 — not truncated
+  ⚠ 15 field(s) imply 'no record'. CONTRADICTED — the body below HAS content.
+    Trust the body, not the field.
+      · Google Doc Link [url] = None
+      · Next Steps/Action Items [rich_text] = None
+      · Customer Pain Points [rich_text] = None
+      · Meeting Summary [rich_text] = None
+      · Follow Up Date set [date] = None
+      · Export Status [select] = None
+      · Sales Rep [people] = None
+      · Notion Meeting Page [url] = None
+      · Tags [multi_select] = None
+      · Call Recording [url] = None
+      · Contact Name [rich_text] = None
+      · Non MLE Attendees [rich_text] = None
+      · TAM # [number] = None
+      · In Person/Virtual [multi_select] = None
+      · Urgent TO DO [rich_text] = None
+------------------------------------------------------------------------------
+PULLED, NOT RULED. A verdict lives in MLE Internal Meetings/notion-read-confirmations.json and
+is written by a human after reading this file end to end. This file existing is NOT coverage.
+==============================================================================
+[transcription] Omega Title Group: AI Platform & Automation Sales Demo 2026-07-28
+  [paragraph] 
+    [heading_3] Action Items
+    [to_do] Arrange a Teams call with Byron (Omega's IT head in Tallahassee) to demo the platform and explore broader company integration 
+    [to_do] Speak with Katherine tomorrow at the Cape office — give her a heads up that the presenter will be reaching out to learn about processing workflows and bottlenecks  
+    [to_do] Proceed with Phase 1 beta test starting with Mega Title Florida 
+    [to_do] Collect social media account usernames and passwords across all office locations to begin automation setup 
+    [to_do] Presenter to send over AI clone/avatar examples via email 
+    [to_do] Note: Presenter will be traveling to Bolivia from the 3rd to the 8th — schedule accordingly 
+    [divider] 
+    [heading_3] Meeting Overview
+    [bulleted_list_item] A tech platform provider demoed an AI-powered suite — branded "Everything Agent" — to leadership from Omega Title Group 
+    [bulleted_list_item] The pitch covered website rebuilding, SEO/AEO optimization, AI voice agents, social media automation, title processing automation, and a phased CRM/dashboard buildout 
+    [bulleted_list_item] Omega Title does approximately 300–350 closings per month across 15+ locations in FL, PA, NJ, and is working on an Alabama acquisition  
+    [bulleted_list_item] The meeting was facilitated through an introduction by Alex 
+    [divider] 
+    [heading_3] Website Rebuild & SEO/AEO Demo
+    [bulleted_list_item] A demo website was built for Omega Title ahead of the meeting to show capabilities 
+    [bulleted_list_item] The existing Omega website has multiple technical issues including accessibility violations — the American Disability Association could issue fines (~$5K/day) for incorrect contrast ratios 
+    [bulleted_list_item] The demo site achieved a performance score of 9,200, improving on the current site 
+    [bulleted_list_item] SEO goal: rank #1–3 on Google for Florida and individual office locations within ~3 months organically 
+    [bulleted_list_item] AEO (Answer Engine Optimization): getting found on ChatGPT, Perplexity, Gemini, Siri, Alexa — typically takes 2–3 months and results in ~40x higher purchase likelihood vs. Google PPC 
+    [bulleted_list_item] Multi-language support (e.g., Spanish, German) to be hard-coded into the site 
+    [bulleted_list_item] Omega's current social media is uncoordinated — individual branches posting independently without a brand/style guide 
+    [divider] 
+    [heading_3] Everything Agent (AI Voice Assistant)
+    [bulleted_list_item] An AI voice agent on the website can scroll through content, answer questions, book appointments, collect leads, and call visitors by name 
+    [bulleted_list_item] Legally compliant in all 50 states with user consent mechanism 
+    [bulleted_list_item] Trained on all company information; can be configured with any voice, including cloning a team member's voice 
+    [bulleted_list_item] Costs approximately $0.07/minute to run 
+    [bulleted_list_item] Demo showed the agent navigating the site, explaining social media services, and responding to queries in real time  
+    [bulleted_list_item] The same agent can also interface with backend data (dashboards, CRMs, analytics) via voice commands — with no reported errors in testing to date 
+    [divider] 
+    [heading_3] Title Processing Automation
+    [bulleted_list_item] A demo dashboard ("ClearClose") was shown pulling live settlement data from Pythonic, displaying pipeline, proceeds, debts, and credits  
+    [bulleted_list_item] Key bottlenecks identified for automation: 
+      [bulleted_list_item] Payoff ordering — currently staff manually call 800 numbers, enter loan info; can be handled by an outbound AI agent 
+      [bulleted_list_item] Municipality lien searches — notifying agents of open/expired permits 
+      [bulleted_list_item] NOC (Notice of Commencement) releases — contacting contractors for signed affidavits 
+      [bulleted_list_item] Estoppels — HOA management companies each have different payment/request methods 
+    [bulleted_list_item] Smart routing for underwriter assignment (Omega targets 75% to in-house underwriter, 25% to others) can be automated via email trigger 
+    [bulleted_list_item] Full pipeline automation proposed: email trigger → title search order → upload to title software → alert for manual review → approve with <3 clicks 
+    [bulleted_list_item] Integration caveat: Cloud-based title software (SoftPro, Closer's Choice, Qualia) may restrict API access — this is a vendor lock-in issue, not a legal one   — to be explored with Byron and Katherine 
+    [divider] 
+    [heading_3] Software & Tools Discussed
+    [bulleted_list_item] Omega's current stack: Closer's Choice (Orlando South), Qualia (Panhandle to Tampa — currently has $80K in vendor credits), SoftPro (Fidelity-aligned) 
+    [bulleted_list_item] Agent Brief: App used by Omega's sales team — tracks agent activity by zip/brokerage, fires automated texts/emails on new listings (~$600/person/year, 10 users = $6K/year) 
+    [bulleted_list_item] Palm Agent: Used for net sheet/seller quotes 
+    [bulleted_list_item] Pythonic: Currently used for some automation; approved by SoftPro for cloud access 
+    [bulleted_list_item] Presenter confirmed ability to integrate with HubSpot, GoHighLevel, and others via one-time connections 
+    [divider] 
+    [heading_3] JV & Business Structure Discussion
+    [bulleted_list_item] There is a desire to remove the current JV partner, Scott, who is alleged to have committed fraud and stolen money 
+    [bulleted_list_item] Scott's team has generated 19 closings (~$57K revenue) through June; Omega (48 closings YTD) does significantly more volume  
+    [bulleted_list_item] Options discussed: amend the operating agreement to define performance-based removal clauses, or wind down the current JV entity and ramp up a new one without Scott 
+    [bulleted_list_item] Stated goal: remove Scott and replace his contribution with 3–4x the volume 
+    [bulleted_list_item] Series LLC structure discussed as ideal vehicle for JV expansion — each sub-LLC has separate liability, harder to pierce, and cheaper to file taxes  
+    [bulleted_list_item] A Delaware master LLC recommended for eventual national scaling 
+    [bulleted_list_item] Interest in bringing in 1–2 high-volume individual agents as new JV partners 
+    [divider] 
+    [heading_3] Pricing & Phases
+    [bulleted_list_item] Phase 1 (Foundation — website, SEO/AEO, social media, landing pages, Everything Agent): $6,000 one-time + ~$700/location for 15 offices; $50/month/site for security & analytics (Cloudflare)  
+      [bulleted_list_item] Includes 3 rounds of revision per site
+      [bulleted_list_item] Full refund guarantee if not delivered within one month 
+      [bulleted_list_item] Client owns all code; hosted on their servers 
+    [bulleted_list_item] Phase 2 (Automations — variable based on scope): Full ROI guaranteed within 3 months or presenter pays the difference; client keeps the tech regardless 
+    [bulleted_list_item] Phase 3 (CRM & Dashboard): Presenter wants to shadow offices for 5 days (Mon–Fri) to build an automation blueprint before quoting  
+    [bulleted_list_item] Phase 4 (Partnership & national rollout): Use Omega as a case study to scale the platform to other title companies nationally 
+    [bulleted_list_item] Presenter emphasized: no other title company in the area is currently under contract (one prospect meeting on the 5th) — first-come, first-served exclusivity implied 
+    [divider] 
+    [heading_3] Future-Proofing & Valuation
+    [bulleted_list_item] Presenter is actively tracking AGI and quantum computing developments; all client systems are being built to update automatically when AGI arrives 
+    [bulleted_list_item] Automation directly increases company valuation — cited example of helping ~800–900 companies raise valuations by a minimum of 78% 
+    [bulleted_list_item] Key valuation insight: reducing owner dependency and improving tech stack can jump a business from a 3–4x to an 8x+ multiple 
+    [bulleted_list_item] Owning the technology (vs. renting platforms like Boomtown) is a key asset differentiator 
+  [paragraph] 
+    [paragraph] 
+  [paragraph] 
+    [paragraph] 
+    [paragraph] about them, they're close by, they're happy, they're agents, there they come to the hub. That's the funnel that we typically set up and over the past four and a half, five years, companies I've been running that for, all totally organic, they were able to do a little over $11 billion. It works. I'm a numbers guy. I make my data. And if I tell someone, hey, it's going to work, and if it doesn't work, I'll go ahead and give them a full refund, which you don't hear from any tech companies ever.
+    [paragraph] But I went ahead and made you an example of a website. This one is a lot more cleaned up, nothing fancy. And it's not important to have a super pretty one. What's important is to have the information on the back end.
+    [paragraph] It will be super pretty.
+    [paragraph] Oh, it will, of course. But on this one that you guys have, like I showed you guys, there are a lot of issues with it. And it's stuff that's not difficult to fix. You can see my report goes ahead and grabs every single issue that's there. And we already fixed them. One thing, accessibility right now, the American Disability Association can send you guys a letter right now. That's going to be about five grand a day until you fix it because if someone's colorblind, the contrast ratios are not set up properly.
+    [paragraph] Little stuff like that, that whoever went ahead and put it together, that doesn't understand this kind of stuff, and people are getting hit with this stuff all day, every day. Now there's automations to go ahead and find the websites and send them out. It's going to happen within the next year or two. You're going to have to fix them anyways. I went ahead and fixed all that for you. As you guys can see, I'm here and check it out.
+    [paragraph] We got everything set up for you already. Description, title, all the errors are gone with it. You got the headers and information with it. You can put images and videos in it, no problem. All your links are perfect. You got full schema set up so that way computers can understand it. And even though this is on a dev server right now, And the analytics aren't showing up because it's a little low on performance because it's not live yet.
+    [paragraph] You can see we got 9,200. So it's already better. It's already going to start showing up more. But that's something that just went ahead and put together. And it has the information about the local services as well. And we set up the everything agent as well. The voice isn't connected right now because that takes a lot of assets to go ahead and put it together. I wanted to show it to you guys first and see if you guys liked it.
+    [paragraph] But I do have an example on my site as a demo that I can show you if you would like to see. It's pretty freaking cool.
+    [paragraph] That would be the website that went live for us now instead.
+    [paragraph] Yeah, right there.
+    [paragraph] Multiple websites. But it could be fixed up whenever I build a website for someone, I tell them you get three rounds of revision.
+    [paragraph] What happens to our old site? Does it come down? It all points to this.
+    [paragraph] You can either point to it or if you want to, because we want to preserve the authority and the link structure of it, which is why you'll see the same tabs that we have right here are with the previous one as well. That's important to go ahead and keep the site map because if you change it too much you will get penalized for it. So we wanted to keep that. We can go ahead and take the videos on it. We could take the images.
+    [paragraph] I can go ahead and grab them in about two seconds. And we can go ahead and put these on the site as well so that way it looks the way that you guys want. And from there make the edits so that way it communicates a little bit better. But by going ahead and setting it up like this, within about Two to three months organically you should be showing up one, two or three on Google for Florida. And for the individual locations that we get set up in as well for the landing pages that are for the offices, we can typically get you first, second or third from a new website within about three months.
+    [paragraph] Which means anybody looking for it, about 70% of people that look it up go for the first one. About 20% go for the second. About 10% go to third, as long as companies go ahead and answer the phones immediately. That is all data. I can get you the exact numbers for how many people are looking it up in the different areas and give you a full breakdown of what would be expected for the organic traffic coming to the site and how many you'd be able to expect if you start ranking for it.
+    [paragraph] And again, it's all totally free to go ahead and get set up at the SCM.
+    [paragraph] And well, how quick would they see results from the AEO?
+    [paragraph] The AAO, typically for a company of your size, because you guys are not doing social media content right now, correct? We're doing some, but nothing major organized.
+    [paragraph] Not real strategic. Just mostly like get us out there.
+    [paragraph] Yeah. Everybody's posts, they post closings.
+    [paragraph] Yeah. That's good. If you guys set it up so that way it's optimized for it, and that's typically by incorporating the questions in the post, creating original content, not recycling from everybody else, which we do with the content radar that we built. Usually within two to three months, you guys will be showing up on ChatGPT, Perplexity, Gemini, Google. Voice agents, of course, is valid if you talk to Siri and Alexa.
+    [paragraph] But honestly, that's super simple to do. Go ahead and do it. But to go ahead and set up on the AEO, which is Answer Engine, that usually takes about two to three months. And again, that's all totally organic. And anybody who asks ChatGPT for a title company, whatever company is going to be showing up with that, about 40 times more likely to go ahead and purchase than if they see you on Google. Pay-per-click is dead, sponsored is dead.
+    [paragraph] I mean, when you go to Google, if you guys are looking for restaurants near me, what's the first thing you do? You scroll past the ones that say sponsored and you click at the first one at the top. That's what everybody does. So as long as you can show up organically with it, it's just free customers coming in.
+    [paragraph] What he's about to show you plainly, it's just You can conversationally run any software suite, action, automation you want just by talking to it. That's what it is in a nutshell.
+    [paragraph] So when people go to your site, it's simple. They just give approval. This is so that way you are completely legally able to do it in all 50 states. This gives permission for it to be recorded and for individuals to communicate with it. It allows it to scroll through your website, show them the individual parts. We can make it any voice on the planet. Even if you guys want to make it yours, it's no problem at all.
+    [paragraph] And it's trained on all of your company's information. So if someone wants to learn about what title is, if someone wants to see different portions of your website, they can go to it and--
+    [paragraph] Hey, I'm the everything agent. I know this whole site. Ask me anything or say show me around and I'll walk you through it.
+    [paragraph] What is my local everything and how can I help a title business?
+    [paragraph] Everything helps local businesses set up and automate their online presence. For a title business, that means we can get you found online easily, manage your social media, and automate a lot of your day-to-day operations. That's so cool.
+    [paragraph] Can you go ahead and show me the social media?
+    [paragraph] Okay, so the social media suite handles five key jobs for you all in one system. It's designed to make your social media presence easy and effective.
+    [paragraph] Awesome. Can you show me some more stuff on the site, please? It was picking up the audio from it, but it can book appointments, it can call, it can learn the people's names. You can set it up with a script, go in and figure out what you want it to know. And as you can see, it scrolls through your site, it explains it, it teaches people about it. It costs about seven cents a minute. But if you set it up with a landing page for realtors, this is everything you want realtors to know about your company.
+    [paragraph] This is what they need to know to get excited about it and to come on board. You can set it up to communicate right to that ideal customer profile, take their contact information, save the leads, ask them for their phone numbers. Again, it's completely, totally automated. And that's the same agent that whenever I build dashboards or CRMs for companies, it has access to all of your go high level, your reports, your analytics, the information coming into it.
+    [paragraph] And you can talk to it and say, I want to know this, this, this, this, and this. Takes a look at all the information, relays it directly to you, and then you can tell it what you want it to do and what you want it to change. And so far, out of every single test that I have done with it and every company that has used it, there has not been a single error from it because of how it's set up. Very, very, very cool.
+    [paragraph] And like I said, it could be any voice on the planet. That was just a random test one that I did on it this morning. Or if you guys want to be here, we could do that as well. Okay.
+    [paragraph] - Pretty cool. - He's showing me things that I didn't think were possible.
+    [paragraph] - Well, he can simplify the processes and the way he stacked the AIs.
+    [paragraph] - I think the bigger advantage, for me, is having a little control over a giant tech firm. Usually it's like, that's it, you get what you get. If you want me to make any edits, $2,000 an hour, but I would probably not do 90% of what you're asking us. You know what I mean? Here, it's like, okay, we missed a gap, right? We missed a hole. We've got to fix that. All right, let's go to work and we get a fix.
+    [paragraph] Like, that's something we would not have with, like, Boomtown or you guys, where you use. We don't have that, you know? Which to me is very valuable. Mm-hmm.
+    [paragraph] I just successfully ran 35 checks with the automation that I put together when we sat down. It got, let's see, I don't even know what the login is that I put for it.
+    [paragraph] So it took all Pythonic's information. See exactly what you're doing. Pretty much strategy. Totally legal, by the way.
+    [paragraph] Yes, kind of reverse engineer it.
+    [paragraph] Yeah, because they're like I said, I've researched all of them out there. They're the best.
+    [paragraph] They're the best. Yeah, great. That's the data we need to know, you know. And he needs to know, out of all the softwares that Title uses, what are the ones we must be able to work with? Who has the biggest share of that?
+    [paragraph] What's this? That's it. It's the example of the dashboard. Not as much of the information, obviously, the UI would want to be changed with it. But called it clear close. You can see all the settlements that are currently in the pipeline right now. The proceeds are... sale of property, the information, higher debt, higher credit, solar debt, credit. You can go ahead and switch between them it looks like.
+    [paragraph] I mean this is my first time seeing it as well, but this is the front end for the technology that it went ahead and put together. If you want to print it, you can go ahead and print all your reports directly with it. Got the settlement statements. From where? I just built it. Oh, where are you getting the settlement statements? Yeah. Oh, I would have to check. We're going to ask it. It got it.
+    [paragraph] It got it. But yeah, you'll have to figure out where it was sourced from.
+    [paragraph] Yeah. And what is it? I mean, these are closings that are already happening?
+    [paragraph] Yeah, from what's it called? From Pythonic. Pythonic. Yeah. Things that I didn't believe were possible. I'm saying, like, honestly. I'm not bullshitting. Like, you know me, man. I'm not. I don't. I'm not. I'm a straight shooter. Like, I don't. not gonna mess around with the shit that is blowing smoke. Like, which is 99% of the shit out there.
+    [paragraph] - Yeah. - Alex, I know why he's looking at that.
+    [paragraph] You wanted to talk about-- - Yeah, I wanted to see how close we are to being able to, if that's still a part of the strategy.
+    [paragraph] - So I ran a report for his team and what we've done so far through June.
+    [paragraph] - Okay.
+    [paragraph] So his team has generated 19 closings through June. Okay. And almost $57,000 in revenue.
+    [paragraph] Okay, $57,000. So that would be...
+    [paragraph] That's through six months. So he's on track to generate, if he does the same, $115,000 in for the year, $200,000 in title revenue. Okay.
+    [paragraph] Good to know.
+    [paragraph] I mean, he's done 19 closings. How much is that in six months? Is that like three a month?
+    [paragraph] Three, yeah. Three to one.
+    [paragraph] Yeah, looks like we're at 48.
+    [paragraph] - Year to date with Omega 48.
+    [paragraph] - That sound right to you?
+    [paragraph] - I didn't run your report, but I probably did.
+    [paragraph] - Okay.
+    [paragraph] - Yeah, I mean you guys are just pulled up. - And of course he says to me now, Scott Riedel says to me now, he's like, "Well, he should do more closings. "He has a bigger team than me." - I know you. - That doesn't include July. - No, I didn't do July. - Yeah, yeah, yeah. - I was just curious, so. - I didn't run a report for you guys.
+    [paragraph] I know you guys do more business. - The two guys that left his team set up their own real estate company.
+    [paragraph] David Ward and... What kind of volume do they do?
+    [paragraph] Zero. Yeah, they're not big preachers.
+    [paragraph] Not much. They both work for me and they're great guys. Great guys. Without structure behind them, they're lost. If we don't guide, point them in the right direction, keep them pointed, they're over here.
+    [paragraph] That deal with 20 to 30 deals a month is probably not Is that what they said, 20 years later?
+    [paragraph] I mean, the last post... Oh, God, though. No, not even close. The last post I saw was the beginning of this year, and they were... I'm so proud of us.
+    [paragraph] We did 10 million last year. I was like, what the fuck? 10 million for how many of you?
+    [paragraph] Like, that's... Don't advertise that, you know?
+    [paragraph] That's a fucking week, you know? That's a week worth of fucking production. What do you guys do at Tomas? What's that? Tomas? Tomas? Okay, he's more pro basketball player at Europe. The guy who drives the Rolls Royce. He did a lot of closing, does about 100 and some on the year, 110. 110 what? Closings. He has a telephone? Oh, he has a team. No, no, just it's mostly him.
+    [paragraph] Oh, he's buying.
+    [paragraph] Jesus. Just doing his own deals. Yeah. I mean, he's, so, you know, um, That might be, you know, what I'm trying to do is find one or two really good players that if we want to pull into the current JV, it's only going to feed down to the bigger. Right, right. But we'd have to figure that out if it's a possibility and if you guys wanted to go that route too.
+    [paragraph] I'm with you guys. You guys know what you're doing. I'm not. No, I'm not out of my way or the highway. I'm open so that we can come up with a best strategy.
+    [paragraph] So please, keep it coming. And the good part is we can keep expanding it to get larger because there are a lot of individual agents that produce a lot. Right. They want to do a JV, but they're not, you can't just make it with, it's hard with sometimes.
+    [paragraph] Yeah, the numbers don't make sense.
+    [paragraph] Yeah, you got to make sure the numbers make sense and all that. So I just want to say if you guys are open to that, if we come across some key people that could participate and bring value to.
+    [paragraph] That is my passion, you know, pushing and seeing how productive we can be without breaking our necks, you know.
+    [paragraph] Right, like ambassadors type of thing. - I know, I know, I didn't want to bash them.
+    [paragraph] - And it may be too, that new LLC they created in Florida, where now you can have sub-LLCs under it. - Series. - The series? - Series LLC, yeah. - That's strong. - That's awesome. - Because each has separate liabilities, so they can't use anything. - When that came out, I was like, "Fuck yeah." - That's gonna be a way to go on the JV, because they need to create a master JV and have all the subs under it too.
+    [paragraph] - And then make the master a Delaware, And then that way, if we ever wanted to really scale, it's... Yeah, exactly.
+    [paragraph] As an option, not like that's what we want to do, but at least leave it open. Yeah, what I see, and I'm like, that makes it easy, because the problem in Florida was, if you had an LLC or a single owner, they could pierce the corporate veil, believe it or not. But if it's a multi-member, it's way harder to pierce as a multi-member. Right. But now this LLC makes it a lot harder.
+    [paragraph] That is on my agenda to restructure myself.
+    [paragraph] You could have 10 different entities under one, and one of them, something happens.
+    [paragraph] Yeah.
+    [paragraph] It doesn't kill the body.
+    [paragraph] Right, right, right. Yes. It's awesome. I was like, that's very cool. That's very cool. I mean, that's basically what I was... Here, I just sent you something. It wins the companies, but it's not as protective as like this. And it's cheaper, right? At the end of the year, you're filing taxes. Is it cheaper to file taxes in this with the series?
+    [paragraph] Yeah. It actually saves you money.
+    [paragraph] Yeah, yeah, yeah.
+    [paragraph] I mean, but as far as, you know, the current JV partner that we have in there with us. Yeah.
+    [paragraph] I mean, well, I mean, keep and remove. And I mean, you know, our conversation is the same.
+    [paragraph] Yeah. I mean, what do I know what the operating agreement looks like? I don't know what, what legally we like, what are we looking at legally, you know, as far as what we can do.
+    [paragraph] Yeah. I mean, like anything else, I think if, if you want to remove somebody, probably the first step would be to, see if we can amend the operating agreement to define specific reasons. Right. More so than your normal, which is typical. Operating agreements are going to be okay. If you commit fraud, you do anything stupid. Right, right, right.
+    [paragraph] Where is he not performing? Yeah. Which might be a little thin, like hard to accomplish, but maybe the play is if it's not defined in the operating agreement, we just slowly wind it down and ramp up the next-gen company of that company without Scott.
+    [paragraph] Yeah, that's the other side too.
+    [paragraph] It's not like we're already everywhere as far as digital, we're not everywhere with the JV.
+    [paragraph] But if you can add, let's just say we can add one or two other people in that do a lot of volume, then we can say, hey Scott, to do this you're going to have to go to this percentage.
+    [paragraph] Yeah, and Scott, just know I have not tried to build the joint venture company yet. I have not tried. And that is because Scott defrauded me, stole money from me. I do not want to help him make money. That's my biggest issue. If not, I would be hitting the ground running and that's my goal. That's what I want. So watch me. Once this shit happens, we get rid of Scott. Watch my level of energy go into this company.
+    [paragraph] And that can be done.
+    [paragraph] You want him out. I've got to look up our operating agreement. You want him out. Regardless of the revenue he's bringing in, basically.
+    [paragraph] Yeah, the revenue doesn't appeal to me at all. No. I want to... My goal is to take him out and bring in three times what he brought in. Take him out and make him feel like we took you out for a fucking reason. We're making four times the money now. You were slowing us down, dipshit.
+    [paragraph] See ya. That's what I want. That may be just very simple to, you know, just ask him to, you know, say, hey. Nothing simple with Scott. Maybe we should push him towards somebody else. Oh, try to make it more appealing? Like make it appealing almost? Yeah, say, hey, go over here.
+    [paragraph] I don't mind how it happens.
+    [paragraph] So we'll figure that out. I just don't want you to worry about the money. I'm going to hit the ground running. We want to get that separated out, so we'll figure it out.
+    [paragraph] - There's a way to, yeah, I know we can figure it out. I didn't want to shoot ourselves in the foot if it's gonna, you know, the timing has to be right, right? Like we're gonna be spending money on building all this other stuff out. We don't wanna have to start stroking checks to keep us afloat for the JV, right? So it has to, the timing has to be right. And I think this is kind of part of that timing, if you will.
+    [paragraph] - Yeah, I got you. - Yeah. So anyways, that's it, that's all. I mean, do you have any answers, Sean?
+    [paragraph] I got a breakdown of the information that I just shared, but if you guys want to hear that. Yeah. Yeah, so the settlement statement is the standard closing statement rendered in CDHED groupings from the charge ledger that they have on their site. The distribution, sorry, I'm from the South, I can't read. Who gets paid what out of the escrow, seller net proceeds, what the seller walks away with. It did a breakdown in that because I do not have a 412 agency license plus an underwriter appointment personally.
+    [paragraph] I don't get a rendering of it. So if I was to go ahead and have someone with that information, then the entirety of this would be automatable.
+    [paragraph] So if I gave you my license number and you didn't...
+    [paragraph] Boom, you did pull it up. It goes ahead and it automates the purchase contract ledger package title search, the due diligence. The only one that it doesn't is the title search exam after. I don't have that right now set up to where it can efficiently, but it can be done. The entity docs are totally automated. The Florida... Promunculated premium plus doc stamps plus intangible. That's done, built and tested in session.
+    [paragraph] Per county recording fees with page count logic for all 67 of them. I get the information uploaded to it as a database and it would be automatically available. Municipality directory for each city, county, agency, how to request a main search, what they return, turnaround. That, it wasn't able to find the information online, but if I was to update it, then it would be able to run it with it. And the TRID bucket map, which falls in 0, 10% and no tolerance, needs to be configured that that can be uploaded as well and totally automated.
+    [paragraph] So it needs some information that I just don't know myself personally. I know how to talk to a computer. I don't know much about title. But to go ahead and put it together, my whole reasoning is that if I can build something that's smarter than me and understands this better than I would be able to, because it has access to the entirety of the internet, learn about it, do a better job of understanding it quicker than I can as an individual.
+    [paragraph] Listen, I'm really intrigued. This outfit that we're using right now that is helping us get... They're only working Cape Coral and Tampa offices, oh, and Orlando. I probably dropped 20 grand with them in 7500, 7500. Is that the CRM? Yeah, in the classes where we're supposed to get the realtors pushed to us, there's a CRM in there. I mean, they're talking, you know, they... This one was Compete with Jesse, correct?
+    [paragraph] No, that's Agent Brief. That's Agent Brief. Agent Brief is our app that we're paying for that... So, if you guys want to know about this, so this guy, Mike Simon, is the owner of Agent Brief. Okay. We get so we have an app and we get a notice we get like you take a new listing We can follow any agent we want by zip code. We can follow any agent by brokerage. We can follow any agent by You know like by brokerage name individual agent however we want to do it So we want to we want to farm a zip code We put the zip code in there and follow every realtor in that zip code they get a new listing and
+    [paragraph] It automatically, boom, you get a text. It fires them a text and an email. Hey, can we, congratulations on your new listing. Can we do the open house? You know, so first, right away. Yeah, if it goes pending and they change something, then boom, you get, oh, congratulations, we're going pending, da-da-da-da-da. So currently, so the sales team all are on agent brief on the app. Yeah, gotcha. And you get alerted as soon as they enter something on social media.
+    [paragraph] Predictive marketing animals. Yeah, if they...
+    [paragraph] His sales piece is...
+    [paragraph] And you pull through production.
+    [paragraph] Yeah, you pull through production, who they closed with, see who they're closing with, so before you talk to them, what title company they're using. Yeah, and so how you can create... It says it's all AI, where they'll talk in the app and they'll just... You can send back a response to them in English, Spanish, whatever. But currently that's what the sales team has. They have it on their app. It's not expensive.
+    [paragraph] Thoughts on that? It's a RSS feed. Yeah, that's super easy. That's where an agent will watch a specific portion of the Internet and updates you whenever there's a change on it. They are completely free to set up. And the transfer of information and transcribing it costs about... 0.50 is two cents to go ahead and do that. But it's a nice little UI that they go ahead and put together for the results with it.
+    [paragraph] And the messaging is the part that's kind of tedious to set up with it, but really it takes like a day or two to do it. But this is literally an RSS feed. I've probably got 20, 30,000 of them going right now to update my technology just on best practices and algorithms. He's actually doing a...
+    [paragraph] He signed up, that agent brief guy is doing a, through Underwriter, now they're hosting a class, I mean, to get out to all the title agents, but through Westcore and Underwriter. I mean, listen.
+    [paragraph] I can do those classes.
+    [paragraph] Yeah, those are, but that's what our sales team has right now. They have agent brief. I mean, it's a text message, email, whatever they want. What's it like, 10 cents a notification? No, no, it's a flat fee that we pay a year. It's like, what do we pay? I think for the year, we have 10 people on it, and it's 600 bucks a person, so it's six grand for the year. That's not bad.
+    [paragraph] Yeah, it's not a word one.
+    [paragraph] Agent Brief. Agent Brief is the name of the app.
+    [paragraph] What was the platform that most used for Fidelity that is attached to Fidelity? SoftPro.
+    [paragraph] SoftPro is the title software.
+    [paragraph] Yeah, so the big ones you have SoftPro, you have Closers Choice. Closers Choice. You have Qualia. And under Closers Choice, that company, there's... Different variations they have. Okay. First American has their own software, too.
+    [paragraph] That's... There sucks, though, I think. Well, because it only works with First American. You can't work with another underwriter on it. A lot of people don't use it.
+    [paragraph] The guys that have the biggest market share are probably Agent Brief, SoftPro, ClosureSource. Yeah. Okay.
+    [paragraph] Agent Brief is just an app that we use for our sales team.
+    [paragraph] It's a bulletin extra. Yeah, it's not the type of software. I got you.
+    [paragraph] So then we also, I'm also paying for Palm Agent.
+    [paragraph] Yeah, I know Palm Agent.
+    [paragraph] Palm Agent is, well, it's our, if you look up our app in the app store, it's...
+    [paragraph] I could follow it for him.
+    [paragraph] The agent one agent one or something that's a mega agent one or a mega one agent But yeah, it's for you guys to do net sheet seller. Yeah. Yeah. Yeah.
+    [paragraph] Yeah See see I was I was thinking the exact same thing I think a big thing for you guys was going to draw a lot of attention and Realtors wanting to continue working with you is we put a Some great lead magnets out, right? So, net sheets, you know, all of that stuff and just put it like right on your site because I know a lot of title guys that like, you know, they will call them up and be like, hey, you know, what's this going to be?
+    [paragraph] And then all of a sudden they have a relationship, you know?
+    [paragraph] Yeah. But those are things, I don't know if like our app that we pay for, You know, that's just for, we give them out, we talk to agents about them, have them download the app. Right. But then I get, you know, tell me how many, like on the dashboard, like on my side, I can see how many times they did a quote, how many net sheets they did, how often they're using it. Yeah, and then the people will be like, there's one agent that keeps on calling me, hey man, can you turn my app back on?
+    [paragraph] And I'm like, he did all these things. I said, look, man, those are for clients that... that use our services. And I said, you've done X amount of NetSheets. Well, my uncle owns a title company, but I really like the app and the NetSheet. I was like, well, have your uncle own it. I'm not turning you back on if we're not going to get business from you. It's for our clients that use us. And so he was like, I got you.
+    [paragraph] I understand.
+    [paragraph] Yeah, I would just say, I mean, I have a title capture company. duplicate type of a thing built 90% out. And, you know, I would consider giving that to just anybody on the website because you're just going to draw more attention and it costs next to nothing. You know what I mean? Some of the guys you're not going to work with, some of you are, but at least it keeps the door open.
+    [paragraph] A loss leader kind of thing, yeah. But that's the tools we're using now on our side to generate more title. All right. That's what those do. But you're saying...
+    [paragraph] The roadblocks that you can run into software companies and understanding that first.
+    [paragraph] But that sounds like something you can all do and you can do the same program.
+    [paragraph] Yeah, I recently put... But it's going to integrate with the underwriters so it still won't have to run through the software to the underwriters. That's an API. That's okay.
+    [paragraph] That's okay.
+    [paragraph] They can do it with a farm agent. Yeah. Right. So we should be able to feed. The way that I typically work with it is I take all that information coming in from all of these different scatter tools that are being used. I funnel it into one place in one database. And that's what your everything agent has access to. That's what we set up a dashboard for in the CRM. With the measurements and the metrics and all that kind of stuff, I only really focus on the ones that are important for y'all.
+    [paragraph] How many calls are you getting? How many sales are you getting from it?
+    [paragraph] So they have to go, so they've got to agent everything, right? As an example. So you have soft row or closers choice here in Florida. So will that just talk to it and feed all the data into it?
+    [paragraph] Yes. So the agent, the dashboard that he's talking about, like my everything agent, it will take action on every piece of software, every little sector that you do.
+    [paragraph] So it should integrate everything.
+    [paragraph] With it, to go ahead and add different integrations, super simple. You go to connections and you can either request a new one and you just name the platform. And I tell you exactly what's needed to go ahead and connect it. Or you can go ahead and request connections for some of the popular ones that people go ahead and use on a day-to-day, like HubSpot, GoHighLevel, Service Titan, stuff like that. And once you connect them one time,
+    [paragraph] That gives the everything agent access to it to go ahead and draw upon the information. And it uses RSS feeds and your own communications with it to self-evolve over time and get better and better. So as it gets the data, it trains itself, it learns more, and it gets better when it interacts with you. So that way it's an evolving system.
+    [paragraph] So who goes into here and does that?
+    [paragraph] You guys don't even have to if you don't want to, honestly. So you can work within your existing software. Yes. So for instance... We get an email on a new contract. You set up so that it's scanned, takes the PDF. You start drawing out the file. Yep, yep.
+    [paragraph] You get the update right here with your live activity. And whoever is going into the dashboards right now and taking a look at that information, Instead, they would just log into one place, they see exactly what they want to see, or they could just talk to the agent and ask them and it'll give them the information that they want to know like that. They don't even have to go through it.
+    [paragraph] So, like, we get a... So, you understand a little bit more about that. We get a contract from Alex. Okay. You know, we get a contract in, comes, emails over to us. We order the title search or the title commitment from our underwriter. Okay? So, the system can automatically... That's what we're talking about. Like, it'll automatically order it, like, say... We want to use our in-house underwriter. We have multiple.
+    [paragraph] We have seven underwriters. Okay. They get, I mean, and we want, we're trying to, from our side of things, we're trying to funnel at least 75% of our incoming new contracts to our in-house underwriter that we own.
+    [paragraph] Sure.
+    [paragraph] Okay. So, and then the other thing. 30%, 25% can go to other underwriters because we want to keep the relationships. One of the bigger underwriters.
+    [paragraph] Yeah, so that's just a routing pipeline connected to an email trigger notification in your inbox. Whenever it gets an email notification, it takes a look at it. It takes a look at what it does. Smart routing system, we go ahead and make sure that whatever amount you want is going to your internal staff and then set it up so that way it's filtered out to the others the way that you would like for it to.
+    [paragraph] That's just an algorithm that we set up one time. And from there, because that's a trigger, so that starts any piece of technology that we want it to be. So with what we were going ahead and putting together with, say, this one right here, where it goes ahead and does the automation and runs through the process and automates the parts that Pythonic is doing, it'll work on the email trigger. So you guys don't even have to really do anything besides the manual review part, which they would make you do anyways.
+    [paragraph] The results go wherever you want them.
+    [paragraph] So it'll email our underwriter or the title search. When it comes back in, it'll upload it into our system, into our title software. Thank you.
+    [paragraph] And then it'll tell us when you're ready for it to be reviewed and when everything that's been automated has been done. It goes ahead and sends an email for it to go ahead and get manually reviewed. They review it, make sure it's good, click approve, click approve, done. Every piece of technology that I have ever made takes less than three clicks to run and I can teach it to my 95 year old grandmother.
+    [paragraph] That is my gate for testing.
+    [paragraph] I wonder how we can like, for example, a title commitment comes in for us and one of the things when we're clearing the conditions and able to ensure the policy, like ordering payoffs. Like we have to, we hang up, we call, you know, there's a fax number for Wells Fargo and there's an authorization and all that shit. that we have to send over. Every bank's different. But typically it's a fax or something like that.
+    [paragraph] They want fax. It's like, they'll e-fax us the payoff. We'll send a request. You know, there might be, or we'll call the, you got to call the 800 number and order it. Like you type it into the phone, put in the loan number. You got to, someone in the office is calling the 800 number, put in the loan number. Right, right. Totally manual, tedious. Yeah, and then they fax, e-fax over the pay odds. Yeah.
+    [paragraph] Anything that anybody has to call for, communicating back and forth with the municipality, anything, it's just an outbound agent. That's an outbound agent.
+    [paragraph] But some banks don't like AI calling them. Yeah, they don't. It's just sending a fax and some stuff like that. That's a little bit more simple.
+    [paragraph] Well, we receive it by fax, e-fax. It comes back in once we order the payout.
+    [paragraph] It comes in by email. Yeah. So that's right.
+    [paragraph] But they call. It's literally the staff picking up the phone, calling, putting in the loan number, putting in all the information that they ask. That's the information in the email though, right? No, what do you mean? Where is that information coming from that they relay? We send out an open entry sheet to the consumer. The consumer fills it out. They put their loan number on there. They put the bank, the loan number, contact information, and then when that comes back in, we start contacting the bank to get the payoff.
+    [paragraph] Okay, we can just have an agent analyze that information, upload it to its database, have the agent go ahead and call up the bank or the institution that it is. They can find a phone number of that pretty easily if it's not on the document. And then he can go ahead and relay the information that they need to know for it. And it will tell us, it will come back and tell us the payoff's been ordered? Full transcription going right to your inbox.
+    [paragraph] You get a notification the second it's done. Every step. Holy fuck.
+    [paragraph] It's insane. I love this. Sorry for my language. What you have to figure out, I guess, would be... And because this is where Alana couldn't do it with us, and that's why I went to Pythonic, because they weren't, software would not let them integrate. So if there's no way for you to bypass them to integrate it up into our software, because it's cloud-based, they heard it on their server.
+    [paragraph] It just has to go in and come out for reading, and he can explain that.
+    [paragraph] Yeah, but that's what you're probably going to have to do. If we can figure that part out...
+    [paragraph] If I was unable to connect it to exactly what you guys needed for it, build a new one. Yeah, okay. To figure it out.
+    [paragraph] So, what's it, what, I mean, listen, I'm very interested in this because I, especially, I mean, it sounds like it's the key to like the website. The website, I mean, our website sucks. Yeah, it does. No, our website's shit. I've been talking to Tallahassee, the IT department in Tallahassee is saying our website sucks. They're like, oh, well, let's schedule some time and we'll fix it. We have an internal IT staff up there that handles...
+    [paragraph] And they put that website together?
+    [paragraph] I don't know if they would. I don't know how old it is. It's awful.
+    [paragraph] Probably 20 years ago. Probably.
+    [paragraph] I mean, it's probably... I mean, maybe not 20, but you know... It's close to a long time ago, but 8, 10 years at least.
+    [paragraph] I think what we'd do is we would, you know, now you know Python makes the leader out there, in my opinion. You can figure out what they're doing, how they're doing it, get all that organized. We'd beta test one of the offices and work out all the pigs.
+    [paragraph] Well, that's what I'm saying. Let me be the guinea pig, right?
+    [paragraph] So we'd have to deal with... So you don't have to stop anything you're doing. Who does your code?
+    [paragraph] It was Catherine? Yeah, Catherine and Holly. Which is Catherine... They're great.
+    [paragraph] They're great. She's on Sofra, right?
+    [paragraph] No, she's on Closer Choice. Oh, Closer Choice. Okay. So that would be the first. Right now, the way the company's set up is just the panhandle, Pensacola down to Jacksonville and Tampa are all on Qualia. Orlando South is all on Closer's Choice. But I will tell you, Qualia is not costing us any fucking money right now. Really? Because we have $80,000 in credits right now from the banking credits for vendors.
+    [paragraph] And I've got to call and set up them to renew. But their AI is very expensive. I don't know about the AI.
+    [paragraph] So that would be the two and four, a closer's choice and quality if they're able to somehow... It's probably has her own AI platform.
+    [paragraph] Right. Yeah, we were looking at it.
+    [paragraph] So we want to start off, you want to start off just doing a mega title?
+    [paragraph] Yeah, that way you don't have to change your testing that you're doing in Pennsylvania. You're not losing ground, I guess. You're not losing time in case.
+    [paragraph] I mean, I'm going to be honest, this looks way like it's going to be.
+    [paragraph] It's a no brainer once you have faith and once you.
+    [paragraph] When I worked with companies, I always structured it so that way there is truly no risk if I don't deliver on what I say. For every single phase that I do, with phase one for the foundation with companies, I would tell you exactly what I would do to go ahead and get you guys more business. I would set up the hub site for you guys. You desperately need a new website. Even if you get an extra... five people a month from it.
+    [paragraph] It's the window into what you guys are doing. If you have a restaurant or you have a location, people looking in the window and it's dirty and it's not clean and it's not organized, that gives a bad impression. It might not directly go and convert immediately, but there's people that are looking at it. And if you go ahead and share it and it looks nice and it has some cool technology on it that increases the trust and you have the authority and you have the time of having the site, so it's important to leverage.
+    [paragraph] There's no reason not to. But set up the website so that way it's optimized for SEO and AEO showing up on the answer engines as well. And then setting up the social media and the landing pages for each of the offices that you guys have to get the local authority from that.
+    [paragraph] Yes.
+    [paragraph] This is going to be huge. So that way you guys are in whatever languages you guys want it to be hard-coded into the site. When someone in Spanish goes ahead and talks to the AI looking for a title company, guess what? You guys are going to show up. You guys are set up with that. If someone, you know, a lot of Germans are starting to come here now. They want to go ahead and close it. They can talk to it.
+    [paragraph] So we set it up so that way you guys are getting organic leads from every source that you possibly can. Social media, SEO, and ADO. All of this I deliver in a month. 100% guarantee. If not, full refund. And you can look at the analytics for it. You can have your internal tech team take a look at it. And you guys will see that the meta tags are perfect. The scheme is going to be perfect. No broken images, no broken headers.
+    [paragraph] It's going to be set up the way that you guys like. And every single site that's developed gets three rounds of revision. So someone takes a look at it, says, "I want to change the gradient on this right here. You know, this text looks fine, but I want to change that omega symbol to something else, blah, blah, blah." They send it to us, one of my programmers. I would have Austin working on this. He's a pretty cool guy.
+    [paragraph] You met him. He's funny as shit. And he would go ahead and he is happy to go ahead and get that done for you like that. Once those are done, we maintain good communication. We could set up the agent for you, the one that you guys saw that talks and communicates to go ahead and get some leads on it as well. Not really much reason not to. And that's phase one. Like I said, final deliver, full refund.
+    [paragraph] Phase two, you guys have seen the results. You guys have seen that we're a tech company that sticks to our word. And if we say something's going to happen, it's going to happen. And you guys can say, look, we want to go ahead and invest X amount into it. Great. I will happily sign that if you guys do not get a full ROI within the three months, I'll pay the difference out of my own pocket. And after those three months, you keep the technology.
+    [paragraph] And why that's a variable, the Phase 2, is because it depends on how much automation you want to buy. What's the price of Phase 1? That's the cost of Phase 1. So if you like minimal automation, you can buy it in the maximum amount. That's why it's a variable. Every community has a barrier. Every council has information.
+    [paragraph] So that would be a good time to get up on AELF. - There's gonna be showing up each time. That's a one time of account, 6K to go ahead and set it up. And then for each of the office locations, because you guys have 15 of them, right? That'd probably be about maybe 700 bucks each to go ahead and do that. And that's a month to have all of them delivered for you guys. - The one time fee. - One time, you guys own it.
+    [paragraph] You guys own the code. We set it up on your systems and servers. We recommend Cloudflare. We can do security and analytics for you if you like. That's about 50 bucks a month per site to go ahead and do that for you. And that's what we pay because you guys are getting them. So I don't want to add anything more than that. It's not much for us to do it. But that would all be one-time payment. It's forever.
+    [paragraph] You can have your IT team work on them and edit them if you want. Or if you guys want to, you can go ahead, shoot us an email, and we'll have it done and fixed for you in about five minutes. Sets it up so that way you guys have all of your documentation. You have your style guide, your brand expert, your business knowledge base, your brain. You get everything that you need so that way for phases two, three, and four, we have everything that we need to go ahead and scale this and knock it out of the park.
+    [paragraph] Because if I'm building technology for you guys that's going to be able to say this, this, this, this, and you guys are looking to scale, and you guys don't want to be spending ten times more in order to scale, you need to have the foundation set up. Absolutely need to. I don't work with companies unless they have a solid enough foundation to where when I'm running the technology, I know that they're going to be as busy as I can get them.
+    [paragraph] That's what I like to do. So for phase one, like I said, that's what it would be. Take it one time. - We're a solid operator. - And then phase two, once you've seen it and you've seen how it works.
+    [paragraph] - Yeah, I mean some people are like, oh, we're gonna put in 10K, some people are like, we're gonna put in 100K. We'll get you a full ROI on whatever automations they are.
+    [paragraph] - And that's why, like I said, we assign a time value depending on the task. If it's currently takes an hour to go ahead and do X tasks, And it would cost you guys $25 to go ahead and do that. Well, then that's $25 that would go towards the ROI on the technology. If it's a lead coming in, you guys would say, OK, this is the value of a lead. Because I cannot guarantee that you guys are going to close it.
+    [paragraph] I can tell you it's going to be a good lead. I can tell you where they're coming from. We can track the customer journey. I can't. As much as I wish that I could, I can automate it, I can set up communications, but really that's up to your team. And I've had it before where I went ahead and worked with companies and I'll bring them two, 300 leads like that, but their closers are terrible. So they'll close like two or three and they'll be like, well, we only do this.
+    [paragraph] And I'm like, I'm just sitting here like 300. I got all their phone numbers right here. I can show you their profiles. They're great candidates for it. And then we can set up everything from the... automated content radar so people go on social media and they leave a comment looking for a title company on linkedin great send them an automated message from y'all if someone on instagram goes ahead and makes a post and we see that it's going viral well then great leave a comment from one of your guys's accounts though you guys are the top liked comment people are seeing you this is the differentiator than most automated social media it's mostly automated posts yeah this is automatic responses which is
+    [paragraph] High value for AI authenticity. Responses, communication, lead generation. Are you gentlemen on Instagram? One thing that's very popular right now is people will be like, comment house down below, and I'll go ahead and send you the information about this house. People go ahead and leave a comment with it. You say, great. If you want the information in the DMs, you automatically send them a message with it.
+    [paragraph] They go ahead and follow your account. They message you, and you now have them in your inbox. You can automate the communications. You send them what you want. You get an extra follower for Instagram.com. It's that interesting content. And that right there is a great lead. And typically about 7% to 10% of the time, that person will become a customer.
+    [paragraph] It's all free. I know I'm going to... I'll collaborate with Catherine. I don't know if you guys could just give her a heads up and I'll reach out. I'll see her tomorrow.
+    [paragraph] I'll go cover that up tomorrow.
+    [paragraph] In your eyes, and I'll ask her the same thing, the biggest bottlenecks, I know you guys mentioned just the one a second ago where they have to call the bank and get the payoff. What are the biggest bottlenecks, manual or not, that we should know about and focus on?
+    [paragraph] On the process side, the free people up? Yes. So, ordering the payoffs, if there's a payoff like right now, we're dealing with one that's a foreclosure, the attorneys that are involved, it's a fucking nightmare. So, payoffs are manual. The lien search, when you order the municipality lien search and that comes back in, it's also notifying if there's open and expired permits to let the agents know because the homeowner is going to have to resolve that if there's any issues.
+    [paragraph] Code enforcement liens or something on the property or code something, violation with code. Those are things that they have to clear and we have to get resolved. Things like that. On the title commitment, when it comes back, if there's notices of commencement, say someone built a pool, the company didn't close out the permit or the notice of commencement, I should say. It's contacting that contractor, that pool company, getting them to sign affidavits.
+    [paragraph] to say yes, they've been paid, verifying they've been paid to release that NOC. The notice of commencement's leave, you know, a lot of people don't, a lot of contractors don't get rid of them because they expire after one year if they don't refile. So they're like, oh, fuck it, we ain't gonna spend the time to file the release. It's gonna be gone in a year anyway. Well, then someone goes and refiles or goes and tries to sell their house.
+    [paragraph] It's still there. So then we're contacting the pool company or the, you know, whatever, you know, to get down, hey, you've been paid to, This job was completed six months ago. We have six more months on notice of commencement before it expires. So we need to get a release.
+    [paragraph] And so you guys now would just call them and then just keep calling until we get back to them? Yes. So we would automate all of that, send them nudges automatically. We'd even write it in a way where they're more likely to respond. Here's the other thing, Rob.
+    [paragraph] There's services out there. Have you ever tried them? That's all they do is hunt down and get permits that expired and not closed and get them done. Yeah. We have one that we like. So maybe it's just, it identifies, reaches out to the vendor, vendor executes, sends it back, it gets executed and then notices, notifies the system. And you guys. Maybe that.
+    [paragraph] I'm trying to think of like, when Polly's sitting there processing a file, clear and titled so we can close. I mean, it's usually, like I said, payoff, lien searches, NOCs that are still on the property but haven't expired. Stoppels. Stoppels. If there's an HOA, if they're buying an HOA, then we have to order a stoppel. Every stoppel has a different... If it's a management company, some management companies only take credit cards, you gotta call a dude over the phone.
+    [paragraph] Some only take a cashier's check, so then we're gonna cashiers from the check from the bank and mailing the request to them. Every frickin' management company in HOA is different.
+    [paragraph] - Just to get the, you would wanna do, for phase three, that's typically when we build the CRM, the dashboard, and this is us putting together the technology that we plan on taking. to the entirety of the United States together. I do not understand this vertical as well as I would like to in order to go ahead and build that for you. So when you guys come on board after we've done phase one and the phase two, if you guys are okay with it for five days, Monday through Friday,
+    [paragraph] I'd like to shadow in some of your offices and see what the individual team members are doing, what they like, what they dislike, learn about it so that way I can take that information from the assets that you guys have and what you guys are doing and use that to really piece together an awesome platform. I've done that for 18 different businesses this year in 15 different countries, flown all around the world doing it for years now, pretty good at it.
+    [paragraph] And when I do that, I create what's called an automation blueprint. That would be the basis for what we would do for doing the CRM on the dashboard with you. Make sure not only is it what you guys want, it's what your employees want, what the customers want. Just set it up so that way I understand it a little bit better. Because right now at this point, I can't tell you if it's something that would be 10K, 50K, 100K, or 100K, whatever.
+    [paragraph] I don't know. But I want to learn it, and I want to understand it, so that way I can come to you guys and say, look, for this, it would be this, this, this, this, and this. And now in phase one and two, that is not something I would charge to do. So at the very least, you guys would get an amazing blueprint that you can use. If you guys want to do that with us, that's great. I can tell you right now that we're cheaper than anybody else, and we're going to do a better job.
+    [paragraph] But if you guys want to take that blueprint and go on Fiverr or Upwork or reach out to someone, that's up to you. But I want to learn this better. I know how to do phase one. I know how to do phase two. I know how to do the tech for phase three, but I want to learn more about what you gentlemen do. That's something you guys are okay with? I'd like to add that on the schedule sometime. Sure. Cool. 100%.
+    [paragraph] And then phase four, we, like I said, partner together, take the case studies and the information because improving your website, guess what? Every title company out there, most of them have terrible websites. If we can go to it, build you a new one, look at the analytics and see that you guys are doubling with the amount of calls that you're getting from it or the locations that you have are getting 56.
+    [paragraph] 60 people looking them up each month, that's data. Phase two, with the automations, we track how much time and money they're saving and how many leads they're generating for each of your locations and for you guys, that's data. Phase three, we set up the perfect platform. Phase four, we have this incredible case study of the success that you guys have had. And if it's not successful, guess what? You don't pay for anything.
+    [paragraph] So I'd have to get you so I'd have to take you set up a call with you in our IT department who's hosting I mean that's that's what I'd have to do with Byron or like I have IT you know and because there's our company like we're only running the title division but our company overall owns like Hummer's insurance Monarch Monarch insurance company they own that they also own They also own, our partner also owns what used to be Stanley Furniture.
+    [paragraph] And he bought the Stanley Furniture. Now they're building all the Love Saks and all that stuff for Wayfair and Love Saks, all that other companies. Manufacturing, e-commerce. So we have all these buckets that our partner owns that he's got his hand in. So I'm like, but Byron's the IT over all the companies. But Monarch is... being the volume and the money that that company is making, they get most of the attention.
+    [paragraph] The title gets shit on. So I'm like, with our IT department, because we're sharing them with everybody. But I would love to get you... And you might be able to... I would love to get you on the call with Byron, because I think there's things you can do to help those other platforms as well. We commonly do that. I'll tell you right now, Monarch, they had a net profit of $125 million last year. That company is just killing it right now.
+    [paragraph] I've heard of them. Their targets are independent agents writing homeowner's insurance. When you're an independent agent on homeowner's insurance, they might get it quoted with Universal. They'll get it quoted with with Monarch or with, what's the, one of the, anyway, they have different carriers that they can run quotes with. And so Monarch's one of the carriers. So they're calling on, they have a sales team calling independent agents like, you know, ABC Insurance Company that you see sitting in the, and they, but it's their, that's who they run quotes with.
+    [paragraph] But, and, And then they also own another company called Viceroy, which is a different insurance platform that they're only doing homes from $1 million and up. And they're up the whole coast. That's another subsidiary. And then they own also the reader. So, I mean, my partner's got his hand. I mean, he makes a ton of money, but he's got his hand in that bucket. But I see you... I want to get you on with Byron.
+    [paragraph] Byron is an IT guy. Our IT department sucks, in my opinion. It sucks. Their responses to us, like when we're having issues, they don't understand on the title side. When our computer's down and we're having an issue, we've got agents calling, we're trying to fund files, print docs, and they're making us put in a ticket. They'll get back to you in an hour. That's exactly it. We've got to fucking do it now.
+    [paragraph] They don't understand. You know, and they don't get it that it's time sensitive when you got people screaming at you trying to get to the bank and we're trying to get out shit and we're shut down. So then we end up not even using our in-house and we're calling somebody else. Because they're like, the in-house IT is not responding fast enough. But there's things on here that could help with those responses, I'm sure.
+    [paragraph] All that. When my previous position, before I started my company and doing what I do now, I was working as a professor over in Europe. I absolutely loved it. Did the advising and consulting. I came back to the United States, and I was CTO of three Inc. 500 companies. It was a family of companies called Brands 10X. Not affiliated, but It was really, really, really fun. I was leading a team of about 100 developers when we were there.
+    [paragraph] The IT sector, that was where I hated to be, just because that's not really what I do. That's where you're fixing computers.
+    [paragraph] You're in a box.
+    [paragraph] I like building the system so that way they don't break in the first place.
+    [paragraph] We did. I'd love to get you a call with Byron and see how we... I feel like our website, I've been looking for something like this, Alex. I appreciate the invite and introduction because, and I'm talking, Nikita in our home office is like, okay, well, let's schedule some time to talk about the website. And I'm like, you know, it's just, it's, they're... It's just been a frustration of mine. Our IT sucks.
+    [paragraph] Our social media is getting better, but I think our social media is all over the place. Every branch is doing something different.
+    [paragraph] You guys should not be doing social media in this moment because you don't have the website. You don't have your style guide. You don't have your brand established. And so you guys have your... color guide set up, your typography, how you set up the icons, your soles, all of the information that you need to look professional. There is a reason why enterprise companies spend millions of dollars on what color their logo is.
+    [paragraph] Right, their thumbnail.
+    [paragraph] Obviously, we are not going to be spending anywhere near that amount on it, but we're going to be taking the data from all the companies that are figuring out how to do it the best way and target the customers you want to target and go ahead and build it with that. So, We set up the websites for you guys. Make sure that they look great. They're going to fit the same theme. They're going to be unique because if you set them up so that way they're just copies of each other, Google will penalize that.
+    [paragraph] We don't want to do that. We want all of them to be nice, all of them to be standalone. Something where people can go and it's a showstopper. Not difficult to set up. You guys saw we came in here and we've already got a website built for you because we want to show you that we can do our shit. But we set those up, we get the style guide from it, we use the style guide, we use the brand experts from the communications on your site and from you gentlemen, and we go ahead and use that in conjunction with each other to automate the social media.
+    [paragraph] We use that in conjunction with each other to automate the omnichannel communications. That's inbound phone, outbound phone, email, text, SMS, WhatsApp. If someone sends you a messenger pigeon, a bird with a little note wrapped around it, we'll figure out how to reply to them using AI. We're going to figure it out so that way we can take all of this time and energy that you're spending and make it so that we don't have to worry about that anymore.
+    [paragraph] And by setting it up with the AEO, the SEO, the social media, it's all freeways of getting more guys.
+    [paragraph] I spent my whole career renting sites, like Boomtown, these kind of enterprise platforms, so I don't have to figure it out. But I'm renting it. I don't own anything. As soon as I stop paying them, it's gone. It's not an asset. That's one of the big advantages here too. You own everything.
+    [paragraph] These guys are on your servers. You guys have full copies of the code. Honestly, every dashboard that I've set up, every CRM that I've built for customers, which at this point for CRM, probably about 80 of them, I don't have the login information. I cannot log into them myself because I don't want to. I build it out one time, I set it up to update itself, maybe once every couple months they'll shoot me a text, "Hey, we want to go ahead and add this." Okay, cool.
+    [paragraph] This is what it will cost. They send it, I go ahead and get it live, update it with it, they check it, make sure that it's working perfectly and great. That is the extent of everything that we do.
+    [paragraph] That's another thing to understand. For me it was great. Part of lack and not wanting to or the bottleneck of scale is changes, right? Like things have to be adjusted on the site due to time changes things, right? So instead of having to go to 20 websites, you just, you have a master dashboard, boom, and boom, changes all the sites. Same thing with social media.
+    [paragraph] Because it's more than one site? Yeah, because you want the authority.
+    [paragraph] Go ahead, sorry. One for each of the locations, one for the hub. These are individual landing pages that are each going to have social media accounts connected to them, so that way they get the local demographics in the area. Everything from local events are going to get posted there. If there's a realtor event in Orlando, then that's going to go on your realtor-based Instagram page.
+    [paragraph] All of it completely automated. How do you get a hold of all the social media pages that are already out there?
+    [paragraph] I mean, it's just RSS feeds, and we build them. It takes two minutes to go ahead and put one together. We get the usernames and passwords, send them over to me, and I can automate those platforms entirely. I don't even know. Posting. I mean, the offices might know, but I don't know.
+    [paragraph] Well, we can find them.
+    [paragraph] It's not very difficult to do at all. It might take a day max to go ahead and automate. How do I get you on a call with Byron?
+    [paragraph] I can give you my number. Yeah. Promise not to share it. No. I mean, can we do like a Teams call or something and show a demo at the Byron?
+    [paragraph] Is he in Tallahassee? Yeah. Tallahassee. I was going to say we could make a drive.
+    [paragraph] He's in our Tallahassee office. But, you know, I want to get you, I want to introduce you, I think a phone call and then... I think it's great. I mean, my personal opinion.
+    [paragraph] I don't know what you're thinking. You can get everything going out the way you need it and be adaptable. That would be my guinea pig job. Like I said, the first part, the social media, lead generation, those things, I think that's something. The production software and that is a whole different animal. I agree. That's why I want to learn more about it. Because if a lot of them, that's what I'm saying, I think because it's cloud-based, if they don't give you access...
+    [paragraph] I don't know if there's restrictions of accessing it without their permission. There's some reason Alana can't do what Python is doing with SoftPro because they won't approve them.
+    [paragraph] Well, it might just be...
+    [paragraph] So it might be a piece that really it's unable to do unless they approve you to do it.
+    [paragraph] Some companies do play nice and allow them. Yeah. So then that's a company...
+    [paragraph] overlay security condition.
+    [paragraph] So in that case it's not legal compliance issue, it's a policy issue, which what can they do to us? But yours was legal compliance?
+    [paragraph] Yeah, I get it. You're currently not working with any other title companies.
+    [paragraph] I have one that I'm in talks with on the 5th, but I'm very much first come first serve. Whoever comes on board with it is one that
+    [paragraph] I would say this too, that if we decide to go with something long-term, we would want to beta it with the one or two-man shops as well as the larger shops too, because if we can turn this into something that we can build a platform to roll out nationally and then make some serious money on it.
+    [paragraph] It fits every size. Yeah. Yeah.
+    [paragraph] Yeah, and companies like Qualia, they help with productivity, but they don't help with revenue generation.
+    [paragraph] No. No, it's all productivity. Same thing. I mean, that's what most of them are. That's what Platonic is. It's all productivity. Exactly. Like I said, they're the best I've seen. I've been looking at this shit for six months.
+    [paragraph] Yeah, yeah, yeah.
+    [paragraph] No, I'm sure it is. Yeah. You have email too, right? I mean, your email? Give me your email and I'll give you my personal. Whoever you want me to email you, I want someone to set up a meeting with me or Byron and all of you on the call.
+    [paragraph] It's a prop time?
+    [paragraph] Yeah, just ask. I'm just going to email you my thing over there. A-S-C-A-N-I. A-S-C-A-N-I? William S. That's not it. F as in frame, but A-S-C-A-N-I. William, I'm sorry. F as in frame.
+    [paragraph] Yeah. D-E-V-I-T-O. I'm going to send you. At gmail.com. I'd like to hear briefs. William F. DeVita. At gmail. Yes.
+    [paragraph] Okay.
+    [paragraph] And the company that I was talking about previously, three days ago, I believe. He wanted us to recall. So just take a look and let me know your thoughts.
+    [paragraph] We're in the talks right now.
+    [paragraph] OmegaSenseOptional.com, sorry.
+    [paragraph] OmegaTitleGroup.com.
+    [paragraph] TitleGroup. Yeah. Besides that, no other title. Yeah. What's that? I was saying, besides the one that we were talking to, but he hasn't come on board yet, hasn't signed anything. Yeah. You guys don't even need a title.
+    [paragraph] Yeah, and we specifically, like, you know, I was like, we're not working with any brokerages until we work with them, right? And it's the same thing with you guys, right?
+    [paragraph] Well, the key is figuring it out. Yeah. You know, there's, like I said, there's different platforms out there. Alanis told me they couldn't do what we need because if we were on our own server, which means we would have to change our software from the cloud to the soft pro on a server, then they can implement their systems because they're approved with soft pro to be able to access the cloud. Right.
+    [paragraph] Interesting.
+    [paragraph] Yeah. So it's kind of their way of creating a moat. Yeah, it's vendor lock. What they're doing is they're locking people out to build their own. Yeah, the moat.
+    [paragraph] We can get information from somewhere.
+    [paragraph] We can figure out where they're getting it from. Yeah, but that's what I was told. You can only do it if you have your own server. They can do it. I got it. So I don't know if they're blocking access in your system.
+    [paragraph] Yeah, it's vendor lock-in.
+    [paragraph] Probably what they're doing. I think it's just a way to control more markets. They're controlling it. That's how they're doing it. Sounds like it. Yeah, so they must have picked, of all the ones out there, they picked Python.
+    [paragraph] Could you make sure to throw me on that invite as well? I just emailed you.
+    [paragraph] Oh, okay.
+    [paragraph] We'll get you over the...
+    [paragraph] Yeah, same thing.
+    [paragraph] There's some big...
+    [paragraph] ...run with Pythonic, but then you have the social media, the client, the lead generation, all that. Anything else you have to... You can tie that into the back end. Because the kids, I know people that could do the cloning, but they're spending four weeks to clone it perfect.
+    [paragraph] And what are they, 5 grand or something like that? That's what I saw at one point.
+    [paragraph] I don't know if it's that crazy anymore. It's probably down from there. It might be 1,200, 2 grand to clone. I saw there's different programs that will clone all video and that real quick. The physical AI, what's it called, AI genetic? So. Okay, where basically it is a person. It can respond, it can give feedback.
+    [paragraph] Yeah, yeah.
+    [paragraph] That's a little more.
+    [paragraph] You know the everything agent thing you saw? Yeah. That's that, but with the person that moves their lips. Yeah. I can show you something off my laptop, but I got a couple examples I can send you all of something that I generated. Okay, cool. That's something I created my first one of those probably four years ago. Okay.
+    [paragraph] So the good part is I've been looking at all this shit for six months trying to figure it out. And see, that's the hard part. Most people that own title businesses, they don't have time to deal with this shit. No. Right. And they have no clue how to implement it. Which is a huge advance for you.
+    [paragraph] Yeah, you've got to make it a simplified process. Exactly. If you want to purchase a sold, charge about $1,500 for it one time, you can go ahead and do that. We can do that with the Phase I. And from there, your soul is connected to the everything agent. When we're creating copy and content for the social media, we can have it generate scripts for it as well. We can render the videos and set it up so that way those are auto-published.
+    [paragraph] If you have a LinkedIn account, you want to generate space for it. Well, that's where I see the benefit to that would be.
+    [paragraph] Because when we do videos and shoots and hours and creates. It's super cool.
+    [paragraph] One of our clients gives a lot to Spanish people. which everybody should, right? And so if you're Spanish speaking, you go to the website, there's the video of her talking in Spanish. You go in English, it's super dope.
+    [paragraph] Got some cool tech. We're coming out with stuff all the time too. Any company that's on board, they get discounted access. Everything new that comes out. Since we started working together, we got the full database of companies in Florida, active and inactive, that are getting updated and
+    [paragraph] When you think deeply, it applies to almost any vertical, right? It's crazy. The key is you've got to figure out the net rate.
+    [paragraph] Yeah. Everything is in sales. So you get that first pitch where you're generating a lot of revenue, a lot of inroads.
+    [paragraph] Well, that's the beautiful thing about all things real estate because it's so in session.
+    [paragraph] Antiquated. Another one antiquated. I had a street legal golf cart dealership. They're antiquated. They thought my marketing was like, oh my God. They relied on traffic, you know, they wanted that lease. That's all they did for marketing. So now they're all starting to get into the technology, but from 10 years ago, because that's what I did, you know, and now we're going to bring this to, well, I hope we bring it to that realm as well, because those are the lowest line fruits.
+    [paragraph] The industry sectors that are so antiquated, and that's title, that's real estate, that's these guys, you know, that's the lowest line fruit and where we should start, right? So, yeah.
+    [paragraph] How many files do you guys do a month at a location? At a location or company-wide? Between 300 and 350 closings a month. Gotcha. Do you know what they, like, I know some people, do you outsource any of it to just the processing agencies that charge 500 bucks?
+    [paragraph] No, we don't outsource. Our underwriter outsources the title search to... I think they use Donut as the name of the company, our underwriter. They outsource the searches too. They have examiners. But we don't outsource anything. We have our processors and closers in place.
+    [paragraph] Did you ever figure out, like, have you looked at what the actual unit cost is per file?
+    [paragraph] As far as employee costs compared to...
+    [paragraph] Yeah, yeah, yeah. So like, you know, when somebody outsources a file, most of the guys I've heard say it's like 500 bucks or something like that. And then in-house, you know, when you calculate the amount of time that they have to put into it, you know, annual fee, you know, as a percentage of like, you know, how many files they're doing relative to what they're...
+    [paragraph] We have a breakdown of the file average per FT, full-time employee. Per FT in our data. We have a breakdown of, okay, we're closing X amount of files per full-time employee. So that's the only thing I have. But I mean, if I can, as we scale, as, you know, if interest rates come down and as the real estate market turns, I would love to be in a position to do something like this where we're not hiring more staff.
+    [paragraph] Oh, no, absolutely. Like Scott was saying, you know, the current people we have can just handle more volume. Exactly.
+    [paragraph] You know, let the technology do it.
+    [paragraph] I can look at our Excel and see what we're doing. what our file average per FTE is. But we try to keep our closers around 25 closings a month. A good closer can handle 25 a month closed files, closed funded files.
+    [paragraph] A good closer.
+    [paragraph] There's closers that are strong. They're at 15 or 14, 15 closings and they're like, I need help, I need help. So the process jump in. But there's some... I guess I would just go to... But this, I think, really...
+    [paragraph] Yeah, and you know how important it is too. I mean, just like obviously it's going to bring the per unit cost of anything that you do down.
+    [paragraph] I was actually just emailing him right now. That's not great.
+    [paragraph] But you know it's something like I said that I think is potentially something that we could you know make a platform out of and roll out nationally. They don't know. I mean it's just a big opportunity. Yeah, for sure. And 80% of them still come from realtors.
+    [paragraph] Alright buddy. So the next step he wants to keep doing he wants to try to beta test it with a main title Florida.
+    [paragraph] That would be the first step, at least.
+    [paragraph] And then I want to get him set up with Byron and have a call with Byron where we all can get on a Teams call and just have a quick chat, you know, and chat about him. That would be – because I think there's opportunity for you, you know, and the other platforms might be interested as well. Yeah, absolutely. So, you know, maybe if I can get you to other platforms, you take a little bit of a discount on the platform.
+    [paragraph] I'm just kidding, man. I wasn't. I wasn't. We're all falling in love.
+    [paragraph] Keep it in the family.
+    [paragraph] But listen, we've got to be... I've always felt like we've always been behind the technology at Omega. We're not... I want to be ahead, you know, I want to be a step ahead and I always... This is the moment. I feel like we always are behind. Like, you do this, oh, you've got to do this yet.
+    [paragraph] We missed the SEO rollout.
+    [paragraph] You've got to make it simplistic, right?
+    [paragraph] Look, I remember you had a title like Ram Quest. It was robust. Very good, but it was so un-user friendly that closers didn't want to... Even though it was more robust than all of them, It wasn't as user-friendly.
+    [paragraph] So this is the thing we understand it and we always keep in mind. Most companies are owned by a 45-year-old plus. They don't want to learn shit when it comes to technology. That's why when he introduced the voice capability of just saying, hey, dashboard, show me what got done today regarding processing. It's just talking. It takes the fear away from adoption, which is the biggest and hardest part.
+    [paragraph] 100%. You can spend a lot of money, but nobody uses it.
+    [paragraph] Right, right.
+    [paragraph] And that's my biggest concern always. It's so important nowadays for companies to focus on their technology. If they want to sell their company, they need it clean, they need it organized. They need to do their technology. Oh, yeah, yeah, yeah.
+    [paragraph] I've been a consultant for 20 years, and the two biggest... Factors that contribute to getting the highest multiple possible are single points of failure, owner dependency, but tech stack.
+    [paragraph] Tech stack.
+    [paragraph] I mean, I was working with one roofer the other day, and he has three different roofing companies. And he's like, well, I want to sell this one in two years, and we're at full capacity. So I don't really want to do much on that, and I'm like, I can't let you do that, man. Because right now, you're getting all referrals, right? And you have no tech sec, right? Even if you want to turn down the customers, have them coming in.
+    [paragraph] You're going to jump from a 3x multiple to an 8x multiple for that particular roofing. If you're doing $10 million at 10% EBITDA and you're doing $1 million at EBITDA in that particular industry, most of the multiples are around 4% if it's high and under dependency and poor tech stack. It's $4 million. We do this for you and you're the double your payout, Jackie.
+    [paragraph] Plenty of yourself's automated, you know, the lead generation that generates leads for realtors and title. Because then you've got the cares for the realtors to pull them in for business too. Because we're generating leads for free for you, you know. Oh, yeah.
+    [paragraph] It's no longer a one-way street. Yeah. It's two-way.
+    [paragraph] Exactly. One thing as well, I know that you guys have been getting a lot of information, and I don't want to be overwhelming by any means, but one thing that I do need to share as well, is that a lot of what I do, I'm probably one of six or seven hundred people on the planet right now. I travel constantly to go to AGI and quantum computing events. That is the next level of AI technology. It's coming out in about the next year and a half to three years when it reaches us.
+    [paragraph] All the companies that I work with are going to be totally future-proofed with it. I've got about eight or 900 different agents right now set up. So that way the moment AGI is a thing, I click a button and it updates all of the systems for all of my customers and their technology. So you guys are the first ones on top of it and working with it. But when it comes to the future technologies that are coming out right now, which is just when I tell you it is so mind boggling, it's not even funny.
+    [paragraph] It would, it's just, All I can say is that I'm very much on top of it. And the people that I'm working with, when it does come out with it, they're going to be set up and taken care of. And if not, everybody's going to be scrambling for it.
+    [paragraph] Quantum computing is the next leg. I love it. Combine it with AI, which we're already starting to do.
+    [paragraph] Yeah.
+    [paragraph] Yeah.
+    [paragraph] I got my developers, we got sales, we got tech support, stuff like that. But yeah, I mean, it's a lot of fun. It's been cool.
+    [paragraph] Yeah, we can move quick.
+    [paragraph] Oh, God, yeah. But for this, have you guys heard of One-on-One? No. I was vice president of that company, so third oldest in the United States for marketing SEO technology. I was transferring systems from the Archonet onto the Internet, if you generally know what the Archonet is. So that's a little bit before your guys' day and age. Practically freaking ancient technology at this point. It's basically coding in binary.
+    [paragraph] 00100110-1010 is an enter button. And taking technology from banks and hospitals and government and taking it so that way it gets converted onto the internet. So I started working with that. Then I started working with SEO, marketing, and some social media and stuff back when I was doing it on MySpace. It's changed a lot. But right now, practically all of that's dead. It's really just ADO. It's an open playing field right now.
+    [paragraph] Whoever comes on board with it first, it's about one decade.
+    [paragraph] Just the whole fact that the customer journey has gone from, you know, the yellow pages to google you know and now so much chat box it's just like and you look at you look at even some of the biggest companies in the world and they're not optimized for it so you can leapfrog you know these guys yeah well the hard part is right is technology right you got guys that know technology people that don't and then you get somebody wants to invest in to build the technology
+    [paragraph] And I've seen where they just tremble while sucking the money out and they never deliver anything, right? No, that's right. And I've seen that over the years. Well, it's all changed now because AI can do a lot of that legwork and filter through it.
+    [paragraph] Right, so an operational guy can now do a little bit of the technical set up one or the other.
+    [paragraph] They don't understand what's really going on. But it's shifted, but that's the way it was. I mean, I looked at three or four different companies over the years that are all out of business, right? Because I knew that what they were developing, they're already too late to the game.
+    [paragraph] Yeah.
+    [paragraph] Because there's already shit out there that they're so far ahead and it's not going to work.
+    [paragraph] This is why the division of labor, I partner with them as much as possible because the division of labor is so, and that's usually us, Yeah.
+    [paragraph] Yeah. Yeah. Yeah. Yeah.
+    [paragraph] I talked to an AI guy that I knew through a buddy of mine that's in Miami, but they're doing all the big... Philip Arpin? I don't know if you know Philip.
+    [paragraph] He's in one of my students' school communities. Jack Roberts.
+    [paragraph] People that teach him how to do it. Yeah, so he's doing all the restaurant things there. But I mean, ultimately... He's got a cool bartender assistant. Well, the big key to it is because we can do acquisitions and buy companies. We can teach them how to... build their business so that it's sellable.
+    [paragraph] Yes.
+    [paragraph] Which is a huge issue right now. When you put that carrot in there along with lead generation, social media, business development, that's what sells the whole package. That's my favorite. For sure. That's what's different with us because we've already done it. We've proved it. We grew it, partnered with the hedge fund. So we know how to do that within our realm, in any realm, basically. It's all the same concepts.
+    [paragraph] So, you know, I see this as a big package. You come in, but the biggest kink, which I'm trying to work out, is this production piece because it's not as easy as I thought it was going to be. Right. By talking to other companies, they say, well, fuck, I can't access the cloud on SoftPro.
+    [paragraph] Yeah.
+    [paragraph] They can't. So, like, you know, so you want everything to integrate with your SoftPro because it's cloud-based. His stuff won't feed into the system. And there's no way around it unless you partner with them and they agree to accept the partnership, right? Okay, so software, that's here. But the question is, is there ones out there that could be bought out similar to Pythonic that can partner with us?
+    [paragraph] Well, yeah.
+    [paragraph] Because changing production software is a pain in the ass. Sure. It's like heart surgery, right? Because you're using this software to do all your business daily. Now all of a sudden you're changing to a new platform. And, you know, I know Michael will tell you, that's tricking.
+    [paragraph] You know, the migration from people using this and that is horrible. Like, that's why I'm saying, I've been with Boomtown for... 15, 16 years because I've already migrated 60 agents to another platform and I'll never do it again.
+    [paragraph] But the problem is, as you know, with like Booptown and stuff, they don't innovate. They think they have lock-in.
+    [paragraph] Oh, no, no, no. They're legacy. They're old school. They are what they are kind of thing.
+    [paragraph] But that's actually all the pieces aligning is you have the – AI piece, and that's going to tell lead generation, it's going to tell social media, websites, all that automated. I totally agree. Where I think the niche is that nobody's really talking about is the cloning, because it's kind of cool, it's kind of sexy.
+    [paragraph] That's how you sound about that shit?
+    [paragraph] Yeah, it's cool, it's sexy, it's like, hey, we're going to clone you. It's going to look like you saw me in 100 places at once. Yeah, exactly. And see, that somebody is a value nobody's out there pitching.
+    [paragraph] Yeah. Well, and we'll send you some of the ones that we've done.
+    [paragraph] Yeah, that's kind of what I'm looking at on the platform. But you have a variety of it. And maybe that's where you guys are the AI piece. You know what I mean on that part? For sure. We can bring in the acquisition side, the scalability from... business development growth and all that. Because the goal is for us to buy more title companies too. Oh, yeah, absolutely. So you start a relationship in a different way than you acquire them.
+    [paragraph] There is not a person on this planet that has more automations than me. Yeah, I believe that. I believe that. All of them are right here. I lose this laptop, I'm done for. No, it's like, I got caught. Well, at least I know how to hold you hostage. Seriously. Yeah. Just grab this laptop and run. Actually, fun fact, when I was in Cyprus, I was working for the president of the country, we were deploying technology for the public sector, about 1.3 million people.
+    [paragraph] Pretty cool, nice little island.
+    [paragraph] And when I was there, I was getting a kidnapping bonus.
+    [paragraph] Yeah. Yeah. - You get a bonus because you might be paid back?
+    [paragraph] - Yes. - Wow.
+    [paragraph] - Wow.
+    [paragraph] - Wow. - I don't know. And it was not as much as you would expect it to be. I'm like, what, mine is not that valuable? - Yeah, yeah.
+    [paragraph] It's like a $2,500 bonus, yeah.
+    [paragraph] - It's only like $3,500. - Yeah, yeah, yeah. - I'm not complaining, but like, man.
+    [paragraph] - Well, and you know, one of the things with like the private equities and stuff, like, The people they acquire, one of the challenges that they have is because in my experience, the private equity guys are numbers guys. They're not great. operators, right? But they want, in fragmented industries, they want to be able to roll them up, but then they're like, "Oh, this guy's on this software, and this guy's on this software." You know what I mean?
+    [paragraph] And so when you have the platform aspect to basically easily get people on the same stuff, it makes it that much more attractive. So we talk to companies about how it increases the valuation all the time. You know, because it's just a huge, huge component. Whether you want to sell it, you know, soon or not, you want that valuation as high as possible.
+    [paragraph] Well, you only get the valuation if it runs itself.
+    [paragraph] That's right.
+    [paragraph] Exactly, exactly. Yeah, because when you're a single operator or it's a family-owned business, well, you're gone, the business is gone.
+    [paragraph] That's exactly right.
+    [paragraph] You're buying a job. Exactly. One of my old clients is called WebsiteClosers.com. I do a lot of buying and selling businesses. I did like three sales, I think, last year. They did really, really well. And we set up a piece of technology so that whenever they're advising a company that's going to be selling, they run some automation blueprint, which goes through all of my technology. It looks at their tech stack, their technology, their SOPs.
+    [paragraph] And it gives them a full blueprint on how we can automate up to 95% of their business. The guy who's advising them is like, look, this will be... to go ahead and set up with it, but if you set it up, it's going to raise your evaluation 3x. It takes care of everything with it. I think we probably had a good 800, 900 companies just say yes to it. They did it. Within three months, we were able to go. They would sell their companies after automating it and setting it up and make it the technology, and that's their technology that's included.
+    [paragraph] IP is not cheap at all, especially for custom packages of the technology like that. Every single one of them, the lowest price The increase that they had was about 78% with it. Everything else was just through the roof. And that was all done in a couple months.
+    [paragraph] Clean data. It's worth a lot. It takes the setting it up. Running it with Kathy and Polly, figuring out the bottom line, add this, well, we need this automation, we didn't realize we needed it, all that stuff until it's perfectly dialed in before we cannot actually seriously test it.
+    [paragraph] I'll call Katherine and talk to her. I'll see her tomorrow when I'm up at the Cape.
+    [paragraph] Yeah, just let her know I'm going to reach out and just come and spend some time with her.
+    [paragraph] We have Vanessa in there too. Vanessa is business development and she... She and she's on all this awesome and I've been lacking and that's our actor, but I will be better like it's just I've had so many listen She's there when you guys need her but utilize her because she can definitely build a relationship.
+    [paragraph] Yeah No, I could tell by her first way just in her emails.
+    [paragraph] Yeah, she's very educational She's an asset to the agents and they love her.
+    [paragraph] Yeah, she doesn't seem like You know the typical marketing What do you call marketing director? Marketing liaison. Most of them are like coming in from some other industry and they're like, yeah, pitch us. You can tell that she's got some history. She's one of the best.
+    [paragraph] I actually went and told Mike when I first met her. She's actually got the same experience, I feel like. I told Mike, you found a bit higher than me.
+    [paragraph] Where in Florida are you all located? Where do I live? I live in Stewart. I live over in Stewart. He's in Veracruz.
+    [paragraph] Oh, yeah? I sell my art gallery in Veracruz.
+    [paragraph] Yeah, so we're about... About, what, 45 minutes probably?
+    [paragraph] Four beers, PSL.
+    [paragraph] Yeah, yeah, PSL. That's the backyard, man. PSL, dude. I went to the IRS. That's the... Yeah, that's the... You're trying to buy a title company in PSL and investors, not us.
+    [paragraph] One last question. I know you mentioned an office in PA. Yeah. Are you, are your goal other offices and eventually go, or do you already have other offices?
+    [paragraph] So we already have offices in PA, New Jersey, and Florida. We're working on Alabama.
+    [paragraph] We're working on an acquisition in Alabama right now. Okay. Gotcha. Gotcha.
+    [paragraph] We've done a bunch. Yeah. Stuart, where are you at?
+    [paragraph] He lives in Naples. I think I went to your house once in Leonard's house, right? Yeah. Right down the road. Yeah. Nice. Well, we appreciate it. Thanks, guys. Yeah, man. It's a real pleasure.
+    [paragraph] Thanks for making the time, brother. Real pleasure. Yeah, man, likewise. Awesome, though.
+    [paragraph] Thanks so much. Mike, always good to see you, brother.
+    [paragraph] We're going to go play...
+    [paragraph] I got a head start. All right, gentlemen. Well, I sent you that email. I'll loop you guys back in and bring Byron into it, and we'll set up a time. It'll probably be beginning of next week, and we'll get on there and set up a time. From the 3rd to the 8th, I'm going to be in Bolivia.
+    [paragraph] I'm going to be with a girlfriend taking a week off.
+    [paragraph] Good for you. I want to get that website up there. I want to get that shit running. All right. All right, man. See you, brother.
+    [paragraph] Yep, and I'll get with the big guys. I'll be
+    [paragraph] Yeah, I'll see you tomorrow.
+    [paragraph] Good job, man.
+    [paragraph] Catch up with you a little later, all right? I got a meeting I got to run to.
+    [paragraph] Okay. Where are you going to be most of the day?
+    [paragraph] Marco.
+    [paragraph] Marco?
+    [paragraph] Okay. Meeting with the marketing company there. 1-800-AUTO-VIA. Oh, yeah?
+    [paragraph] All right.
+    [paragraph] All right. All right, brother. All right. Take care, Scott. Thank you. Appreciate your time. We get out this way? More time. Oh, yeah. All right, fellas. See you guys. Have a good one. Good luck. Thank you.
+    [paragraph] 
+    [paragraph] Us

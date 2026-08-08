@@ -80,28 +80,69 @@ const title = plainText(props["Meeting Title"]?.title).trim() || "(untitled)";
 const callDate = props["Call Date"]?.date?.start || "";
 
 /**
- * Top-level blocks, same depth as the snapshot that measured this page. One level is what
- * distinguishes a transcript from a summary; recursing into toggles would cost a request per node
- * for a distinction already made at the sibling level.
+ * THE WALK RECURSES, AND THAT IS THE WHOLE POINT OF Q86 inc.26.
+ *
+ * The first version of this file walked ONE level, "same depth as the snapshot that measured this
+ * page", on the reasoning that sibling shape already separates a transcript from a summary. Run
+ * against the 2026-07-28 Omega page that reasoning writes a 0-character deepread over a 104,683-
+ * character transcript — because that page's entire body is ONE `transcription` block with
+ * `has_children: true`. A tool whose job is to make a body readable may not inherit the exact
+ * blindness (`notion-spine-snapshot.mjs`'s top-level cap) that the body it is aimed at defeats.
+ * Cost is not the objection it was for the snapshot: the snapshot walks 49 rows, this walks one.
+ *
+ * `MAX_DEPTH` and `MAX_BLOCKS` are stated rather than assumed, and when either bites the header
+ * SAYS SO — a truncated read that does not announce its truncation is the defect one layer up.
  */
+const MAX_DEPTH = 8;
+const MAX_BLOCKS = 20000;
+
+/**
+ * Notion does not put block text in one field. Ordinary blocks carry `rich_text`; `table_of_
+ * contents`-style and the AI-meeting `transcription` block carry `title`. The single-field read
+ * scored Omega's top-level block at 0 chars while its own `title` held 53 — so the field is
+ * probed, not assumed, and an unknown block type degrades to empty text rather than to a crash.
+ */
+const blockText = (payload) => {
+  if (!payload) return "";
+  if (Array.isArray(payload.rich_text)) return plainText(payload.rich_text);
+  if (Array.isArray(payload.title)) return plainText(payload.title);
+  return "";
+};
+
 const lines = [];
 let blocks = 0;
 let chars = 0;
+let deepest = 0;
+let truncated = null;
 const byType = new Map();
-let cursor;
-do {
-  const qs = new URLSearchParams({ page_size: "100", ...(cursor ? { start_cursor: cursor } : {}) });
-  const res = await notion(`/blocks/${pageId}/children?${qs}`);
-  for (const b of res.results ?? []) {
-    blocks += 1;
-    byType.set(b.type, (byType.get(b.type) ?? 0) + 1);
-    const payload = b[b.type];
-    const text = payload && Array.isArray(payload.rich_text) ? plainText(payload.rich_text) : "";
-    chars += text.length;
-    lines.push(`[${b.type}] ${text}`);
+
+async function walk(parentId, depth) {
+  if (depth > MAX_DEPTH) {
+    truncated ??= `depth cap ${MAX_DEPTH} reached — deeper blocks NOT read`;
+    return;
   }
-  cursor = res.has_more ? res.next_cursor : null;
-} while (cursor);
+  let cursor;
+  do {
+    const qs = new URLSearchParams({ page_size: "100", ...(cursor ? { start_cursor: cursor } : {}) });
+    const res = await notion(`/blocks/${parentId}/children?${qs}`);
+    for (const b of res.results ?? []) {
+      if (blocks >= MAX_BLOCKS) {
+        truncated ??= `block cap ${MAX_BLOCKS} reached — remaining blocks NOT read`;
+        return;
+      }
+      blocks += 1;
+      deepest = Math.max(deepest, depth);
+      byType.set(b.type, (byType.get(b.type) ?? 0) + 1);
+      const text = blockText(b[b.type]);
+      chars += text.length;
+      lines.push(`${"  ".repeat(depth)}[${b.type}] ${text}`);
+      if (b.has_children) await walk(b.id, depth + 1);
+    }
+    cursor = res.has_more ? res.next_cursor : null;
+  } while (cursor);
+}
+
+await walk(pageId, 0);
 
 const slug =
   argOf("--slug") ??
@@ -164,7 +205,18 @@ const header = [
   `PROPERTIES — in full; this is where the identity the title omits lives:`,
   ...propLines,
   THIN,
-  `BODY: ${blocks} blocks, ${chars} chars — ${shape || "(empty)"}`,
+  // `chars` is BLOCK TEXT ONLY, and the label says so because the number next to it in the
+  // archive does not mean the same thing. `find_meeting.py:290` computes `sum(len(l) for l in
+  // body)` over its RENDERED lines, so its total carries the `[type]` prefix and the indent —
+  // on the 2026-07-28 Omega page that is 104,683 against this file's 95,834 over the identical
+  // 531 blocks, a ~9% inflation that looks exactly like a bigger read. Comparing the two, or
+  // either against the snapshot's text-only count, is inc.24's depth-cap error one layer up:
+  // an apples-to-oranges number published as a measurement.
+  `BODY: ${blocks} blocks, ${chars} chars of block TEXT (no markup) — ${shape || "(empty)"}`,
+  // RECURSIVE, and it says how deep. `notionReads.ts` documents these counts as "typically HIGHER
+  // than the snapshot's top-level count"; printing the depth is what lets a reader tell a real
+  // agreement from the accident of a flat page. A cap that bit is stated, never silently absorbed.
+  `DEPTH: walked ${deepest + 1} level(s), cap ${MAX_DEPTH}${truncated ? ` — ⚠ TRUNCATED: ${truncated}` : " — not truncated"}`,
   ...contradiction,
   THIN,
   `PULLED, NOT RULED. A verdict lives in MLE Internal Meetings/notion-read-confirmations.json and`,
