@@ -1,0 +1,110 @@
+==============================================================================
+TITLE (do not trust): Rob, Alex, Will, Chris | Gulf Coast RE + AI Platform - Jun 17, 2026 (Fireflies)
+URL: https://app.notion.com/p/Rob-Alex-Will-Chris-Gulf-Coast-RE-AI-Platform-Jun-17-2026-Fireflies-3c349f7008dd48c689c6e0d71fd93d82
+id : 3c349f70-08dd-48c6-89c6-e0d71fd93d82
+CALL DATE: 2026-06-17T11:30:00.000-04:00
+------------------------------------------------------------------------------
+PROPERTIES — in full; this is where the identity the title omits lives:
+  · Google Doc Link [url]: https://app.fireflies.ai/view/01KV97D83V9WKJKS0HS1NFW0N7
+  ∅ Show/No Show [multi_select]: None  ← claims absence
+  · Next Steps/Action Items [rich_text]: Share demo website with Alex; coordinate in-person deep dive; Alex prepares software/priorities list; William brings technology materials.
+  · Company URL [rich_text]: Gulf Coast RE Group
+  ∅ Parent Account [multi_select]: None  ← claims absence
+  ∅ MLE [select]: None  ← claims absence
+  ∅ Last Edited [last_edited_time]: None
+  ∅ Child Account [multi_select]: None  ← claims absence
+  ∅ Other Combined/Possible referral [rich_text]: None  ← claims absence
+  ∅ Customer Pain Points [rich_text]: None  ← claims absence
+  · Meeting Summary [rich_text]: The meeting focused on AI, automation, and strategic real estate platform collaboration.
+  ∅ MLE Attendees [multi_select]: None  ← claims absence
+  ∅ Follow Up Date set [date]: None  ← claims absence
+  · Company Meeting with [rich_text]: gulfregroup.com
+  ∅ Export Status [select]: None  ← claims absence
+  ∅ Sales Rep [people]: None  ← claims absence
+  ∅ Notion Meeting Page [url]: None  ← claims absence
+  · Call Date [date]: 2026-06-17T11:30:00.000-04:00
+  · Tags [multi_select]: AI Agent Training
+  · Call Recording [url]: https://app.fireflies.ai/view/01KV97D83V9WKJKS0HS1NFW0N7
+  · Contact Name [rich_text]: Alex Greenwood
+  ∅ Non MLE Attendees [rich_text]: None  ← claims absence
+  ∅ TAM # [number]: None  ← claims absence
+  ∅ Created [created_time]: None
+  ∅ In Person/Virtual [multi_select]: None  ← claims absence
+  ∅ Urgent TO DO [rich_text]: None  ← claims absence
+  ∅ Meeting Type [multi_select]: None  ← claims absence
+  ∅ Primary Target ICP [multi_select]: None  ← claims absence
+  · Meeting Title [title]: Rob, Alex, Will, Chris | Gulf Coast RE + AI Platform - Jun 17, 2026 (Fireflies)
+------------------------------------------------------------------------------
+BODY: 7 blocks, 4565 chars — paragraph×3, heading_2×3, bulleted_list_item×1
+  ⚠ 17 field(s) imply 'no record'. CONTRADICTED — the body below HAS content.
+    Trust the body, not the field.
+      · Show/No Show [multi_select] = None
+      · Parent Account [multi_select] = None
+      · MLE [select] = None
+      · Child Account [multi_select] = None
+      · Other Combined/Possible referral [rich_text] = None
+      · Customer Pain Points [rich_text] = None
+      · MLE Attendees [multi_select] = None
+      · Follow Up Date set [date] = None
+      · Export Status [select] = None
+      · Sales Rep [people] = None
+      · Notion Meeting Page [url] = None
+      · Non MLE Attendees [rich_text] = None
+      · TAM # [number] = None
+      · In Person/Virtual [multi_select] = None
+      · Urgent TO DO [rich_text] = None
+      · Meeting Type [multi_select] = None
+      · Primary Target ICP [multi_select] = None
+------------------------------------------------------------------------------
+PULLED, NOT RULED. A verdict lives in MLE Internal Meetings/notion-read-confirmations.json and
+is written by a human after reading this file end to end. This file existing is NOT coverage.
+==============================================================================
+[paragraph] Imported from Fireflies straggler: Original Fireflies page
+[heading_2] Overview
+[paragraph] Team Experience
+William brings deep AI and dev leadership; Alex new to managing dev teams; Rob has strong sales and project management background.  
+- Real Estate Strategy: Alex launching brokerage, focusing on software innovation; competitor Boomtown charges $2,500/month for data-driven services.  
+- AI and Automation: William owns 44,000 automations across 400 integrations for lead gen, comm, and social media; RAG database secures business data updates instantly.  
+- SEO and Social Media: Website SEO strategy drove 6,200 visitors and 256 service requests in one week; social media automation reaches 1 million views monthly.  
+- Collaboration Plan: Four-phase approach starting with SEO and social, moving to automations, business process automation, and scaling nationwide expansion.  
+- Industry Insight: 85% of real estate conversions come from websites; AI aims to augment agents, improving productivity 10x without replacing jobs.
+[heading_2] Bullet Notes
+[paragraph] 🤝 Introductions and Backgrounds
+• William DeVito, Robert Acheson, and Alex Greenwood exchanged greetings and shared their global experience in AI and teaching.
+• William highlighted his extensive international teaching in AI mindset and successful student projects generating significant profit.
+
+🏢 Real Estate Market and Challenges
+• Discussion about Gulf Coast RE Group's market segmentation and ongoing property management joint venture talks.
+• Challenges with traditional property management tools were noted.
+• Emphasis on leveraging AI and institutional-grade software to address pain points and mitigate recession and regulatory risks.
+
+🤖 AI and Automation Expertise
+• William introduced his expertise in automation with a large database of over 44,000 automations and integration capabilities with 400+ platforms.
+• Demonstrated successful AI-driven SEO/AEO results with a new Airbnb platform generating thousands of visitors and hundreds of client requests without paid ads.
+• Explained local SEO strategies using granular content and Q&A schema to outperform larger competitors like Zillow.
+
+🌐 Hyperlocal SEO and Content Strategy
+• Alex described his project hyperlocalhomes.com as a content-rich, SEO-driven platform focusing on niche local data supporting advanced buyer stages.
+• Open to partnerships for private-label or integration of this technology.
+• Social media automated content strategies generating millions of targeted monthly views using AI content scheduling were discussed.
+
+🧠 Advanced AI Backend and Integration
+• William shared insights on RAG (Retrieval-Augmented Generation) databases enabling scalable knowledge and automation without AI memory loss or hallucinations.
+• Integration with GDPR and HIPAA compliant automation systems was highlighted.
+• AI ecosystem integration allows instant updates across multiple business systems, improving agent productivity significantly without increasing staff.
+
+📅 Next Steps and Collaboration Plans
+• Scheduled follow-up in-person meeting for deeper software review and strategic planning.
+• William committed to sharing the demo website for Alex's review.
+• Discussion on how RAG databases operate independently but connect via live RSS feeds for real-time SEO updates.
+• Recognition of AI-driven real estate platforms as a disruptive opportunity comparable to Google's impact.
+• Outlined phased approach: foundation building, ROI-driven automations, scaling operations, and national partnership with shared revenue.
+• Emphasis on ethical technology use to augment jobs and multiply team productivity.
+• Agreement on win-win partnership values and collaboration commitment.
+• Brief personality profile sharing highlighting William's ENF type and data-driven communication style.
+• Final action items included preparation for the next meeting with demo review and priority identification.
+[heading_2] Action Items
+[bulleted_list_item] Share the demo website link with Alex Greenwood for his review to provide a practical example of the technology capabilities. (William DeVito) [40:00]
+• Coordinate and confirm meeting time for an in-person deep dive to review technologies and integration opportunities among William DeVito, Alex Greenwood, and Robert Acheson. (William DeVito / Alex Greenwood / Robert Acheson) [39:00]
+• Prepare a list of existing software, business nuances, priorities, and ideas to discuss during the upcoming meeting. (Alex Greenwood) [48:50]
+• Bring comprehensive technology setup and materials to the next meeting for demonstration and collaboration. (William DeVito) [48:50]

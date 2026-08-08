@@ -226,5 +226,13 @@ describe("pii-guard — the real tree", () => {
 
     expect(report.exitCode, `guard:pii failed:\n${report.text}`).toBe(0);
     expect(verdict.findings).toHaveLength(0);
-  });
+    // Q86 inc.23b — EXPLICIT TIMEOUT, AND IT IS NOT A RUBBER STAMP ON SLOWNESS. This test reads
+    // and scans EVERY tracked file (1,091 and climbing — each increment adds another
+    // `archive-reads/*.deepread.txt`), so its cost grows with the repo while vitest's default
+    // timeout stays at 5s. It crossed that line here: the scan takes ~7s, the guard still passes
+    // 13/13, and the red said `timed out`, never `finding`. A PII gate that goes red for SLOW is
+    // worse than one that is merely slow — it teaches the reader to skim past a red that means a
+    // real customer phone number is in the tree. Raised HERE and not in vitest.config.ts on
+    // purpose: a global raise would slacken all 5,498 tests to hide one whole-tree scan.
+  }, 60_000);
 });

@@ -407,7 +407,14 @@ describe("the live guard family", () => {
     ]);
     // ...against a real tree that has nineteen. The gap IS the defect.
     expect(recognisers.length).toBe(19);
-  });
+    // Q86 inc.23b — EXPLICIT TIMEOUT, SAME CAUSE AS `piiGuard.test.ts` AND FIXED THE SAME WAY.
+    // `modules` / `producers` are derived by walking the real tree, so this test's cost grows with
+    // the repo while vitest's default timeout stays at 5s; the tree crossed that line and three
+    // tests in this file went red reading `timed out`, never a failed assertion. The distinction
+    // that matters: NOTHING here was weakened — the counts below (19, 1) are the same pins as
+    // before, still checked, just given room to finish. Raised per-test, not in vitest.config.ts,
+    // so one slow whole-tree scan cannot slacken the other 5,495 tests.
+  }, 60_000);
 
   it("learns the walk's vocabulary from the tree, not from a list in the module", () => {
     const types = walkOutputTypes(modules, contentsFieldNames(producers));
@@ -561,7 +568,8 @@ describe("testlessProducerNotice", () => {
     expect(contentsFieldNames(producers).length).toBeGreaterThan(contentsFieldNames(modules).length);
     expect(treeScanRecognisers(modules, producers).length).toBe(19);
     expect(treeScanRecognisers(modules, modules).length).toBe(1);
-  });
+    // Q86 inc.23b — whole-tree scan, see the timeout note above. Assertions unchanged.
+  }, 60_000);
 
   it("defers to illiterateScanNotice rather than doubling it when the scan learned nothing", () => {
     // No disk read at all: blind, not thin. One cause must not print two sentences.
@@ -577,7 +585,8 @@ describe("testlessProducerNotice", () => {
     // And the same pair with tests in the producer set, which the perimeter check answers instead.
     expect(illiterateScanNotice(barren, producers)).not.toBeNull();
     expect(testlessProducerNotice(barren, producers)).toBeNull();
-  });
+    // Q86 inc.23b — whole-tree scan, see the timeout note above. Assertions unchanged.
+  }, 60_000);
 
   // THE TEST THAT ACTUALLY DECIDES THE DESIGN, and it exists because the mutation run demanded it:
   // substituting `fields.length >= 2` for the perimeter check left all of the above GREEN. A floor

@@ -242,14 +242,49 @@ describe("rulingAttachments", () => {
     // `summary-only` leaves it at 3 and passes without anyone noticing the file changed. A ruling
     // nothing asserts is a ruling that can be deleted or flipped in a later edit with a green suite
     // — the same "green about nothing" shape Q89 inc.22 and Q86 inc.17 both had to correct.
-    expect(live).toHaveLength(4);
-    const row = live.find((c) => c.pageId === "79dbbdf5-61fe-441c-8324-1d3f75c8a6a9");
-    expect(row?.verdict).toBe("summary-only");
-    // The whole point of the ruling: it may never become coverage. `fromNotion()` turns
-    // hasTranscript true on a `transcript` verdict only, so this asserts the boundary rather than
-    // trusting the note prose to be read.
-    expect(live.filter((c) => c.verdict === "transcript").map((c) => c.pageId)).not.toContain(
+    // Re-read 2026-08-08 (Q86 inc.23): a FIFTH ruling landed, also `summary-only`, so this number
+    // moved 4 -> 5 by hand after reading the new body end to end. Both non-transcript rulings are
+    // asserted below by page id, not by count, so a later edit cannot swap one for the other.
+    expect(live).toHaveLength(5);
+    for (const pageId of [
       "79dbbdf5-61fe-441c-8324-1d3f75c8a6a9",
+      "3c349f70-08dd-48c6-89c6-e0d71fd93d82",
+    ]) {
+      expect(live.find((c) => c.pageId === pageId)?.verdict).toBe("summary-only");
+      // The whole point of the ruling: it may never become coverage. `fromNotion()` turns
+      // hasTranscript true on a `transcript` verdict only, so this asserts the boundary rather than
+      // trusting the note prose to be read.
+      expect(live.filter((c) => c.verdict === "transcript").map((c) => c.pageId)).not.toContain(
+        pageId,
+      );
+    }
+  });
+
+  // Q86 inc.23. Two of the five rulings are now Fireflies MIRRORS — a Notion row whose own url
+  // properties point at a Fireflies id the spine already holds. That is the finding the counts hide:
+  // `notion (49 rows)` printed beside `fireflies (17 records)` reads as the larger, more diverse
+  // source, and an unknown share of the 49 are derivatives of the 17. This pins the two proven
+  // mirrors against the live manifest so the claim stays measured rather than remembered.
+  it("THE LIVE FINDING, third part: ruled Notion bodies that mirror a Fireflies record the spine already holds", () => {
+    const read = (...p: string[]) => readFileSync(join(__dirname, "..", "..", "..", ...p), "utf8");
+    const manifest: { count: number; meetings: Array<{ id: string }> } = JSON.parse(
+      read("MLE Internal Meetings", "manifest.json"),
     );
+    const onSpine = new Set(manifest.meetings.map((m) => m.id));
+
+    // slug -> the Fireflies id its OWN properties point at. Read off the deepread, not inferred.
+    const mirrors: Record<string, string> = {
+      "2026-07-15-joseph-rob-will-next-steps": "01KXK86RCXFEJ3AHCXDA6JC4KH",
+      "2026-06-17-gulfcoast-re-ai-platform-notion": "01KV97D83V9WKJKS0HS1NFW0N7",
+    };
+    for (const [slug, firefliesId] of Object.entries(mirrors)) {
+      const body = read("MLE Internal Meetings", "archive-reads", `${slug}.deepread.txt`);
+      expect(body).toContain(firefliesId); // the mirror edge is in the row itself
+      expect(body).toContain("Imported from Fireflies straggler");
+      expect(onSpine.has(firefliesId)).toBe(true); // ...and it lands on a record already counted
+    }
+    // Neither may be counted as an independent source: both are summary-only, so neither can ever
+    // turn hasTranscript true, and the meetings behind them were covered before they were opened.
+    expect(manifest.meetings).toHaveLength(17);
   });
 });
