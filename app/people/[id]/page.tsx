@@ -8,6 +8,9 @@ import EnrichmentSection from "@/components/EnrichmentSection";
 import EstimatePanel from "@/components/EstimatePanel";
 import PersonEditor from "@/components/PersonEditor";
 import StatusJustification from "@/components/StatusJustification";
+import WaitingCallsSection from "@/components/meetings/WaitingCallsSection";
+import { waitingCallsFor } from "@/lib/meetings/transcriptWaiting";
+import { loadTranscriptReads } from "@/lib/meetings/transcriptWaitingLoad";
 import ThingsToAddress from "@/components/ThingsToAddress";
 import EquityOnRecord from "@/components/EquityOnRecord";
 import { typeLabel } from "@/lib/labels";
@@ -25,6 +28,7 @@ export default async function PersonPage({
 }) {
   const { id } = await params;
   const data = await getStore().getNetwork();
+  const transcriptReads = loadTranscriptReads();
   // Q70/0031: ids are record numbers now; the old name-slug lives on in
   // legacy_slug. A bookmarked /people/caleb-green resolves and then SETTLES on
   // the record number rather than rendering under two different URLs — one
@@ -171,6 +175,14 @@ export default async function PersonPage({
               </ul>
             </div>
           </section>
+
+          {/* Q86 inc.46 — a call that was read and REFUSED sits directly above the timeline it
+              is missing from, because "this person's calls" and "the call that never made it"
+              are the same question asked twice. Renders nothing when nothing is waiting. */}
+          <WaitingCallsSection
+            calls={waitingCallsFor(person.id, transcriptReads.reads)}
+            unavailable={transcriptReads.unavailable}
+          />
 
           <ActivityTimeline subject={{ kind: "person", id: person.id }} demoEntries={[]} isDemo={false} />
 

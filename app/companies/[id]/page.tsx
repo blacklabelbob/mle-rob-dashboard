@@ -21,6 +21,9 @@ import { provenanceOf } from "@/lib/phases/phase2ReturnsSelect";
 import { splitNotes } from "@/lib/notes";
 import { typeLabel, STAGE_LABELS } from "@/lib/labels";
 import MeetingIntelSection from "@/components/meetings/MeetingIntelSection";
+import WaitingCallsSection from "@/components/meetings/WaitingCallsSection";
+import { waitingCallsFor } from "@/lib/meetings/transcriptWaiting";
+import { loadTranscriptReads } from "@/lib/meetings/transcriptWaitingLoad";
 import AttendeeRoster from "@/components/meetings/AttendeeRoster";
 import {
   rosterLinkCounts,
@@ -149,6 +152,7 @@ export default async function CompanyPage({
   // ladder directly here would re-derive the rule with the guard silently missing (the
   // second-copy failure Q88 exists to catch). A withheld row is simply absent, so this
   // page prints nothing rather than an accusation the book cannot support.
+  const transcriptReads = loadTranscriptReads();
   const statusDrift = driftReport(data.people).items.find((i) => i.id === company.id)?.drift ?? null;
   const picks = await loadScanPicks(company.id);
   const returns = await loadPhase2Returns(company.id);
@@ -404,6 +408,13 @@ export default async function CompanyPage({
           {/* §3.4 — the record spine. Company rows anchor activities the same way
               a person row does (≤1-of-person/org), so this is the same feed the
               person record shows, not a second copy. */}
+          {/* Q86 inc.46 — a call that was read and REFUSED sits directly above the timeline it
+              is missing from. Renders nothing when nothing is waiting on this company. */}
+          <WaitingCallsSection
+            calls={waitingCallsFor(company.id, transcriptReads.reads)}
+            unavailable={transcriptReads.unavailable}
+          />
+
           <ActivityTimeline subject={{ kind: "org", id: company.id }} demoEntries={[]} isDemo={false} />
 
           {/* §3.5 — Notes: Rob's words only, directly under the timeline, and
