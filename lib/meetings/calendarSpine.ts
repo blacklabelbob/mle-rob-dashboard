@@ -220,6 +220,56 @@ export type SpineReconciliation = {
 };
 
 /**
+ * Q86 inc.48 — the placement verdict, asked of a BARE DAY instead of only of a source record.
+ *
+ * WHY THIS IS EXPORTED. `reconcileCalendarSpine` has ruled placement since inc.6, but only for
+ * records that already reach the spine as `SourceRecord`s. The three `/Unprocessed` docs inc.47
+ * read do NOT — they sit in the drain pipeline — so the question "is there a calendar event on
+ * 2026-06-19 for the earlier Cates call?" had no machine that could answer it, and the previous
+ * increment left it as an instruction to go look. An eyeball answer to that question is exactly
+ * how a wrong `occurredAt` gets written: "I scrolled and saw nothing" and "the read covered that
+ * day and it is empty" are different claims, and only the second one is worth anything.
+ *
+ * The distinction this preserves is the one `UnclaimedPlacement` already draws and that folding
+ * these together destroys: `outside-window` means the read never looked, `in-window-day-empty`
+ * means the read looked and the day is genuinely bare. Same empty result, opposite fixes.
+ *
+ * PURE per CR-3 — no clock, no fs, no network; the window and the days are both handed in. A
+ * caller with no window gets `unknown-window`, never a cheerful `empty`, because "I have no idea
+ * what was read" must not be reported as "there is nothing there".
+ */
+export function placeDay(
+  day: string | undefined,
+  spine: { window?: SpineWindow; daysWithMeetings: ReadonlyMap<string, unknown[]> },
+): UnclaimedPlacement {
+  if (!day) return "undated";
+  const w = spine.window;
+  if (!w) return "unknown-window";
+  // End EXCLUSIVE, matching how the window was declared to the fetcher. String compare is exact
+  // for `YYYY-MM-DD` and needs no Date, which this module is not allowed to construct.
+  if (day < w.startDay || day >= w.endDay) return "outside-window";
+  return (spine.daysWithMeetings.get(day)?.length ?? 0) > 0
+    ? "in-window-day-busy"
+    : "in-window-day-empty";
+}
+
+/**
+ * Index meetings by their local day — the shape `placeDay` reads. Exported alongside it so a
+ * caller outside this module cannot get the verdict right while building the index wrong.
+ */
+export function daysWithMeetings<T extends { day: string }>(
+  meetings: readonly T[],
+): Map<string, T[]> {
+  const byDay = new Map<string, T[]>();
+  for (const m of meetings) {
+    const onDay = byDay.get(m.day) ?? [];
+    onDay.push(m);
+    byDay.set(m.day, onDay);
+  }
+  return byDay;
+}
+
+/**
  * Title normalization for the day-and-title link ONLY.
  *
  * Kept deliberately blunt — case, punctuation and whitespace, nothing else. No stemming, no token
@@ -404,15 +454,8 @@ export function reconcileCalendarSpine(
     meetingsByDay.set(m.day, onDay);
   }
 
-  const placementOf = (day?: string): UnclaimedPlacement => {
-    if (!day) return "undated";
-    const w = opts.window;
-    if (!w) return "unknown-window";
-    // End EXCLUSIVE, matching how the window was declared to the fetcher. String compare is exact
-    // for `YYYY-MM-DD` and needs no Date, which this module is not allowed to construct.
-    if (day < w.startDay || day >= w.endDay) return "outside-window";
-    return (meetingsByDay.get(day)?.length ?? 0) > 0 ? "in-window-day-busy" : "in-window-day-empty";
-  };
+  const placementOf = (day?: string): UnclaimedPlacement =>
+    placeDay(day, { window: opts.window, daysWithMeetings: meetingsByDay });
 
   const unclaimed: UnclaimedRecord[] = records
     .filter((r) => !claimed.has(key(r)))
