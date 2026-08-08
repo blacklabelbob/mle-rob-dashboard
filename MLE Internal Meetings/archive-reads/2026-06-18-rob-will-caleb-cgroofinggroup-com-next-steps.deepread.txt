@@ -1,0 +1,64 @@
+==============================================================================
+TITLE (do not trust): Rob Will Caleb | CGRoofinggroup.com - Next Steps
+URL: https://app.notion.com/p/Rob-Will-Caleb-CGRoofinggroup-com-Next-Steps-3831de5701998068855ae55c59e00577
+id : 3831de57-0199-8068-855a-e55c59e00577
+CALL DATE: 2026-06-18T16:24:00.000+00:00
+------------------------------------------------------------------------------
+PROPERTIES — in full; this is where the identity the title omits lives:
+  ∅ Google Doc Link [url]: None  ← claims absence
+  ∅ Show/No Show [multi_select]: None  ← claims absence
+  · Next Steps/Action Items [rich_text]: **Caleb Green**
+Provide Robert and William with legal and business entity information to initiate partnership contracts (30:18)
+Send Kelly’s email to Robert and William for backend communication and invoicing (46:29)
+Coordinate payment scheduling through CFO Kelly and provide invoices to her promptly (36:48)
+Discuss with Garrett about website transition and inform Kelly for backend support (41:54)
+Share detailed cost-out sheets and project folders for job margin tracking with Robert and William (57:55)
+Adjust website SEO strategy to focus on North Florida/South Georgia regions, removing Tampa and Orlando from focus (53:33)
+Initiate and schedule ongoing communications and coordinate logistics around family vacation and business travel (53:33)
+
+**Robert Acheson**
+Provide business and legal entity information to Caleb for partnership formation (32:10)
+Collaborate in drafting partnership agreement with Caleb’s lawyer (30:18)
+Guide Caleb in transferring website control, and communicate with Kelly on backend technical requirements (41:54)
+
+**William DeVito**
+Assist Robert and Caleb with website and CRM development transition, including technical requests and spreadsheet for CRM development (32:52)
+Provide his legal info for partnership contracts (37:38)
+  ∅ Company URL [rich_text]: None  ← claims absence
+  ∅ Parent Account [multi_select]: None  ← claims absence
+  ∅ MLE [select]: None  ← claims absence
+  ∅ Last Edited [last_edited_time]: None
+  ∅ Child Account [multi_select]: None  ← claims absence
+  ∅ Other Combined/Possible referral [rich_text]: None  ← claims absence
+  ∅ Customer Pain Points [rich_text]: None  ← claims absence
+  · Meeting Summary [rich_text]: The discussion focused on building a national CRM program with a potential scalability to $100 million, using Red Rock as an interim vehicle for growth. Current progress includes using CG Proofing Roofing as a test case and preparing for a nationwide launch in 3-5 years. With a partnership plan in motion, legal contracts are being drafted, and an estimated initial investment of $400,000 is anticipated. The company currently has $450-$460K cash available for projects, emphasizing reinvestment and debt management. Market strategy is shifting towards targeting high-end residential and commercial clients, specifically in Northeast Florida, while reducing focus on Tampa and Orlando. Additionally, payment terms are set to Net 30, with detailed job documentation in place to support sales and operational transparency.
+  ∅ MLE Attendees [multi_select]: None  ← claims absence
+  ∅ Follow Up Date set [date]: None  ← claims absence
+  · Company Meeting with [rich_text]: cgroofing.net
+  ∅ Export Status [select]: None  ← claims absence
+  ∅ Sales Rep [people]: None  ← claims absence
+  ∅ Notion Meeting Page [url]: None  ← claims absence
+  · Call Date [date]: 2026-06-18T16:24:00.000+00:00
+  ∅ Tags [multi_select]: None  ← claims absence
+  · Call Recording [url]: https://app.fireflies.ai/view/01KVE1WWM8WT07RDR2X54CNJND
+  ∅ Contact Name [rich_text]: None  ← claims absence
+  ∅ Non MLE Attendees [rich_text]: None  ← claims absence
+  ∅ TAM # [number]: None  ← claims absence
+  ∅ Created [created_time]: None
+  ∅ In Person/Virtual [multi_select]: None  ← claims absence
+  ∅ Urgent TO DO [rich_text]: None  ← claims absence
+  ∅ Meeting Type [multi_select]: None  ← claims absence
+  ∅ Primary Target ICP [multi_select]: None  ← claims absence
+  · Meeting Title [title]: Rob Will Caleb | CGRoofinggroup.com - Next Steps
+------------------------------------------------------------------------------
+BODY: 5 blocks, 0 chars of block TEXT (no markup) — paragraph×4, transcription×1
+DEPTH: walked 3 level(s), cap 8 — not truncated
+------------------------------------------------------------------------------
+PULLED, NOT RULED. A verdict lives in MLE Internal Meetings/notion-read-confirmations.json and
+is written by a human after reading this file end to end. This file existing is NOT coverage.
+==============================================================================
+[transcription] 
+  [paragraph] 
+    [paragraph] 
+  [paragraph] 
+    [paragraph] 

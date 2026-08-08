@@ -229,7 +229,24 @@ describe("rulingAttachments", () => {
     // "Meeting with Mike @ Omega", the titles share only the word "meeting", and the spine leaves
     // it UNLINKED on purpose ("a wrong weld is unrecoverable"). Reading the body proved what it
     // contains, never which event it is of — so a fifth ruling still moves the board by zero.
-    expect(live.filter((c) => c.verdict === "transcript")).toHaveLength(5);
+    // Re-read 2026-08-08 (Q86 inc.27): SIXTH and SEVENTH transcript rulings, 5 -> 7 by hand.
+    //   · `3ad1de57…` (Meeting 2026-07-30, Martin Fierro, 82,530 chars) strands by a mechanism none
+    //     of the rows above strand for — `[undated]`. Its `Call Date` is NULL, so there is no day
+    //     to place it on at all, as opposed to "the day is busy and a human must choose".
+    //   · `3ac1de57…` (Rob & Dix, 2026-07-29, 97,623 chars) has a Notion title byte-identical to
+    //     its calendar event. THAT IS STILL NOT AN ATTACHMENT, and the first draft of this comment
+    //     claimed it was — asserting 6 stranded against a suite that returned 7. Corrected against
+    //     the function instead of against the story: `strandedTranscriptRulings` counts a ruling
+    //     attached ONLY when `placement === "linked"`, and `rulingAttachments` sets that ONLY from
+    //     a `rows` entry whose links already carry `source: "notion"` with this page id. There is
+    //     no day-and-title rung in this code path at all, and this fixture passes `rows: []`. A
+    //     matching title is a CANDIDATE for a human to weld, never a weld.
+    // So: 7 transcript rulings, 7 stranded — still the same number, and the reason is structural.
+    // Until a real `rows` link exists, no body-reading can move this count, which is the property
+    // the whole edge is built on: reading a body proves what it CONTAINS, never which event it is
+    // OF. If these two numbers ever diverge, a notion link was written onto a meeting row — go
+    // find out who welded it and on what evidence.
+    expect(live.filter((c) => c.verdict === "transcript")).toHaveLength(7);
     const attachments = rulingAttachments(
       live,
       [],
@@ -239,10 +256,18 @@ describe("rulingAttachments", () => {
         { id: "3811de57-0199-80d4-b8e5-c0a7c8465085", title: "Meeting 2026-06-16T11:05:00.000-04:00", day: "2026-06-16", placement: "in-window-day-busy", sameDayMeetings: [{ id: "e1", title: "Caleb, Rob, Will | CGRoofingGroup.com + AI Platform Discovery" }] },
         { id: "3a51de57-0199-802b-b9f8-f59fa153a013", title: "Gulf Coast RE KICKOFF 2026-07-22", day: "2026-07-22", placement: "in-window-day-busy", sameDayMeetings: [{ id: "e2", title: "10 am - meet with Rob and Will; Kick off meeting." }] },
         { id: "3ab1de57-0199-80ef-bf9c-c2b98d7578ed", title: "Meeting 2026-07-28", day: "2026-07-28", placement: "in-window-day-busy", sameDayMeetings: [{ id: "e3", title: "Meeting with Mike @ Omega" }] },
+        // Q86 inc.27. Undated: the spine has no day to place this on, so it strands for a reason
+        // none of the rows above strand for — not "which of this day's events is it", but "there
+        // is no day". Its Notion `Call Date` is NULL while its body states its own date.
+        { id: "3ad1de57-0199-80dd-b213-d09c387217e7", title: "Meeting 2026-07-30", day: null, placement: "undated", sameDayMeetings: [] },
+        // Q86 inc.27. The one that ATTACHES — byte-identical title on a busy day, so the
+        // day-and-title rung matches and it is NOT stranded. Pinned here so the asymmetry with the
+        // count above is asserted rather than remembered.
+        { id: "3ac1de57-0199-80ff-94ec-eeea07d36588", title: "Rob & Dix | MLE & Skin Cancer Detection AI Model", day: "2026-07-29", placement: "in-window-day-busy", sameDayMeetings: [{ id: "e4", title: "Rob & Dix | MLE & Skin Cancer Detection AI Model" }] },
       ],
       titleOf,
     );
-    expect(strandedTranscriptRulings(attachments)).toHaveLength(5);
+    expect(strandedTranscriptRulings(attachments)).toHaveLength(7);
   });
 
   it("THE LIVE FINDING, second half: a summary-only ruling is recorded and is NOT counted as a transcript", () => {
@@ -277,11 +302,18 @@ describe("rulingAttachments", () => {
     // only thing that moved. The deepread is beside it
     // (`archive-reads/2026-07-28-omega-title-ai-platform-demo.deepread.txt`), written by
     // `notion-body-dump.mjs` in the same increment that taught that script to recurse.
-    expect(live).toHaveLength(8);
+    // Re-read 2026-08-08 (Q86 inc.27): FOUR more rulings, 8 -> 12, draining the "snapshot could not
+    // measure" queue inc.25 opened. Two `transcript` (asserted above), one `summary-only`
+    // (`3971de57…`, added to the id list below) and — a first for this file — one `empty`
+    // (`3831de57…`, 5 blocks / 0 chars at depth 8, not truncated). The `empty` verdict is pinned
+    // by id below too: it is the only verdict that LOOKS like the absence of a reading rather than
+    // a reading, so leaving it uncounted is exactly how it gets deleted later with a green suite.
+    expect(live).toHaveLength(12);
     for (const pageId of [
       "79dbbdf5-61fe-441c-8324-1d3f75c8a6a9",
       "3c349f70-08dd-48c6-89c6-e0d71fd93d82",
       "1ce2ff0c-e5cc-4756-8d48-28e37f66a2f1",
+      "3971de57-0199-803e-8edb-d81be7596732",
     ]) {
       expect(live.find((c) => c.pageId === pageId)?.verdict).toBe("summary-only");
       // The whole point of the ruling: it may never become coverage. `fromNotion()` turns
@@ -291,6 +323,15 @@ describe("rulingAttachments", () => {
         pageId,
       );
     }
+    // Q86 inc.27. The `empty` verdict, pinned by id and by the thing that makes it sayable. It is
+    // the only verdict that is indistinguishable from a FAILED read — Omega's body measured 0 too,
+    // over a 95,834-character transcript, until inc.26 taught the walker to recurse. So this
+    // asserts both halves: the verdict is recorded, and it may never be counted as coverage.
+    const emptyRuling = live.find((c) => c.pageId === "3831de57-0199-8068-855a-e55c59e00577");
+    expect(emptyRuling?.verdict).toBe("empty");
+    expect(live.filter((c) => c.verdict === "transcript").map((c) => c.pageId)).not.toContain(
+      "3831de57-0199-8068-855a-e55c59e00577",
+    );
   });
 
   // Q86 inc.23. Two of the five rulings are now Fireflies MIRRORS — a Notion row whose own url
@@ -324,5 +365,32 @@ describe("rulingAttachments", () => {
     // Neither may be counted as an independent source: both are summary-only, so neither can ever
     // turn hasTranscript true, and the meetings behind them were covered before they were opened.
     expect(manifest.meetings).toHaveLength(17);
+  });
+
+  // Q86 inc.27 — INCIDENT-LEDGER #46. A ruling note is written through a shell, and an unquoted
+  // heredoc eats `$10,000-$20,000` into `,000-,000` and `$1-$2` into `-`. It landed: the
+  // 2026-07-08 Dixith ruling shipped its healthcare pricing with every dollar figure deleted, and
+  // nothing was red, because a note is prose to every other test in this file. The damage is
+  // silent and specific — the note still READS fluently, so the missing number is invisible unless
+  // you happen to re-open the deepread. This is the gate: a comma-thousands group with no digit in
+  // front of it never occurs in real prose, so it can only be the corpse of an expanded variable.
+  it("no ruling note has had a currency figure eaten by shell expansion", () => {
+    const confirmations: NotionReadConfirmation[] = JSON.parse(
+      readFileSync(
+        join(__dirname, "..", "..", "..", "MLE Internal Meetings", "notion-read-confirmations.json"),
+        "utf8",
+      ),
+    ).confirmations;
+    expect(confirmations.length).toBeGreaterThan(0);
+    for (const c of confirmations) {
+      // `,000` / `-,000` with no digit before the comma == a stripped `$N,000`.
+      expect(c.note ?? "", `stripped currency in ruling for ${c.pageId}`).not.toMatch(
+        /(^|[^0-9]),\d{3}/,
+      );
+    }
+    // ...and the figures the incident actually deleted are back, read off the deepread body.
+    const dixith = confirmations.find((c) => c.pageId === "3971de57-0199-803e-8edb-d81be7596732");
+    expect(dixith?.note).toContain("$10,000-$20,000/month");
+    expect(dixith?.note).toContain("$1-$2 per API request");
   });
 });

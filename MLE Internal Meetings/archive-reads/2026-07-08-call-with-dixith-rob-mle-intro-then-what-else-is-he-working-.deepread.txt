@@ -1,0 +1,112 @@
+==============================================================================
+TITLE (do not trust): Call with Dixith & Rob -MLE Intro & then What Else is He Working on
+URL: https://app.notion.com/p/Call-with-Dixith-Rob-MLE-Intro-then-What-Else-is-He-Working-on-3971de570199803e8edbd81be7596732
+id : 3971de57-0199-803e-8edb-d81be7596732
+CALL DATE: 2026-07-08
+------------------------------------------------------------------------------
+PROPERTIES — in full; this is where the identity the title omits lives:
+  · Google Doc Link [url]: https://docs.google.com/document/d/1dFBZJ0cAItYPHOEkIwmi-vdciNy_4F7CI-AXnbOiOBg/edit?usp=drive_web&tab=t.bk1eozh5viom
+  · Show/No Show [multi_select]: Show
+  · Next Steps/Action Items [rich_text]: Robert: document proposal, send project examples, provide case studies, share product demo with dermatology contact, assist licensing. Dix: build website mockup, send AI demos/business info, consult George, email businesses. Group: schedule follow-up in 1 week.
+  · Company URL [rich_text]: MLE / Healthcare AI collaboration
+  ∅ Parent Account [multi_select]: None  ← claims absence
+  ∅ MLE [select]: None  ← claims absence
+  ∅ Last Edited [last_edited_time]: None
+  ∅ Child Account [multi_select]: None  ← claims absence
+  ∅ Other Combined/Possible referral [rich_text]: None  ← claims absence
+  · Customer Pain Points [rich_text]: Need trusted development capacity for high-volume custom projects; healthcare AI requires US certifications, licensing, validation, documentation, and pilot access.
+  · Meeting Summary [rich_text]: Discussion reviewed technical development stacks and strategic healthcare project expansion via cross-border collaboration and referral agreements.
+  ∅ MLE Attendees [multi_select]: None  ← claims absence
+  ∅ Follow Up Date set [date]: None  ← claims absence
+  ∅ Company Meeting with [rich_text]: None  ← claims absence
+  ∅ Export Status [select]: None  ← claims absence
+  ∅ Sales Rep [people]: None  ← claims absence
+  · Notion Meeting Page [url]: https://app.notion.com/p/3971de570199803e8edbd81be7596732
+  · Call Date [date]: 2026-07-08
+  ∅ Tags [multi_select]: None  ← claims absence
+  · Call Recording [url]: https://docs.google.com/document/d/1dFBZJ0cAItYPHOEkIwmi-vdciNy_4F7CI-AXnbOiOBg/edit?usp=drive_web&tab=t.bk1eozh5viom
+  · Contact Name [rich_text]: Dix thedev08
+  ∅ Non MLE Attendees [rich_text]: None  ← claims absence
+  ∅ TAM # [number]: None  ← claims absence
+  ∅ Created [created_time]: None
+  ∅ In Person/Virtual [multi_select]: None  ← claims absence
+  ∅ Urgent TO DO [rich_text]: None  ← claims absence
+  ∅ Meeting Type [multi_select]: None  ← claims absence
+  · Primary Target ICP [multi_select]: Healthcare clinics / hospitals; SMB automation and website clients
+  · Meeting Title [title]: Call with Dixith & Rob -MLE Intro & then What Else is He Working on
+------------------------------------------------------------------------------
+BODY: 52 blocks, 7137 chars of block TEXT (no markup) — bulleted_list_item×23, to_do×11, paragraph×9, heading_2×4, heading_3×3, transcription×1, heading_1×1
+DEPTH: walked 3 level(s), cap 8 — not truncated
+  ⚠ 15 field(s) imply 'no record'. CONTRADICTED — the body below HAS content.
+    Trust the body, not the field.
+      · Parent Account [multi_select] = None
+      · MLE [select] = None
+      · Child Account [multi_select] = None
+      · Other Combined/Possible referral [rich_text] = None
+      · MLE Attendees [multi_select] = None
+      · Follow Up Date set [date] = None
+      · Company Meeting with [rich_text] = None
+      · Export Status [select] = None
+      · Sales Rep [people] = None
+      · Tags [multi_select] = None
+      · Non MLE Attendees [rich_text] = None
+      · TAM # [number] = None
+      · In Person/Virtual [multi_select] = None
+      · Urgent TO DO [rich_text] = None
+      · Meeting Type [multi_select] = None
+------------------------------------------------------------------------------
+PULLED, NOT RULED. A verdict lives in MLE Internal Meetings/notion-read-confirmations.json and
+is written by a human after reading this file end to end. This file existing is NOT coverage.
+==============================================================================
+[transcription] Meeting 2026-07-08
+  [paragraph] 
+    [heading_1] Call with Dixith & Rob - MLE
+    [paragraph] Date: Jul 8, 2026  
+    [paragraph] Invited: Robert Acheson, thedevdix@gmail.com, fred@fireflies.ai  
+    [paragraph] Calendar event: Call with Dixith & Rob - MLE  
+    [paragraph] Transcript: Google Doc transcript
+    [heading_2] Summary
+    [paragraph] Discussion reviewed technical development stacks and strategic healthcare project expansion via cross-border collaboration and referral agreements.
+    [heading_3] Technical Capabilities and Strategy
+    [paragraph] Development focuses on optimizing web performance using TypeScript and high-speed automation tools. Both parties evaluated current project portfolios including specialized AI models and component libraries for scalability.
+    [heading_3] Healthcare Project Expansion
+    [paragraph] The initiative targets medical diagnostics with AI models demonstrating high accuracy in image detection. The group established a partnership regarding US market entry and regulatory licensing assistance.
+    [heading_3] Collaboration and Market Alignment
+    [paragraph] Partners explored sharing technical resources and leads to support small business platforms. A key decision was made to exchange equity for support in securing necessary healthcare certifications and documentation.
+    [heading_2] Decisions
+    [bulleted_list_item] Strategic partnership for business development: Dix will manage quick website optimizations from his network, and Robert will outsource extensive Phase 3 business audit development work to Dix.
+    [bulleted_list_item] Healthcare AI model pilot location selection: Initial pilot of the skin cancer detection AI model will be conducted at the dermatology clinic where Robert's sister-in-law is employed.
+    [bulleted_list_item] Equity stake for healthcare certification: Robert is allocated 20–30% equity in exchange for facilitating introductions to entities capable of providing healthcare certification and licensing in the US market.
+    [heading_2] Next Steps
+    [to_do] Robert Acheson — Document Proposal: Write out business offerings and pitching strategy to assist with client discussions.
+    [to_do] Robert Acheson — Send Project Examples: Share case studies and performance results to showcase current capabilities.
+    [to_do] Dix thedev08 — Build Website Mockup: Create a demonstration site based on the provided domain to showcase technical proficiency.
+    [to_do] Dix thedev08 — Send Demos: Provide AI model demos to Robert for review.
+    [to_do] Dix thedev08 — Send Business Info: Provide a website link and details about potential businesses.
+    [to_do] Dix thedev08 — Consult George: Discuss potential contacts in Europe regarding automation services with George.
+    [to_do] Dix thedev08 — Email Businesses: Send outreach emails to identified businesses.
+    [to_do] The group — Schedule Meeting: Coordinate a follow-up call in 1 week.
+    [to_do] Robert Acheson — Provide Case Studies: Deliver personalized case studies to assist with marketing.
+    [to_do] Robert Acheson — Share Product Demo: Present the AI model to the sister-in-law to facilitate introduction to hospitals.
+    [to_do] Robert Acheson — Assist Licensing: Connect with contacts to help with healthcare certifications and model licensing.
+    [heading_2] Details
+    [bulleted_list_item] Dix thedev08 Current Project Status: Dix explained that they are currently conducting demos and trials, with progress awaiting company registration and GDPR compliance in Europe. They highlighted a side project, a component library, which currently has 20,000 daily viewers and has attracted sponsors, noting plans to open-source the code.
+    [bulleted_list_item] Technical Implementation and UI/UX: The participants discussed the technical stack for their web projects, utilizing TypeScript and 3JS models. They explored using ASCII art for desktop UI enhancements and balancing automated AI generation with manual hand-coding to optimize performance, aiming for load times as low as 18 KB.
+    [bulleted_list_item] Robert Acheson Business Model and Answer Engine Optimization: Robert detailed business operations including AEO, SEO, and conversion-optimized sites. They use a “second living brain” to manage social media and have built a library of 44,000 automations, operating under a 30-day money-back guarantee policy.
+    [bulleted_list_item] Collaboration and Referral Agreement: The participants discussed collaborating by sharing leads and outsourcing technical development work. Robert expressed a need for trustworthy developers to support a high volume of custom projects.
+    [bulleted_list_item] Documentation and Proposals: Dix requested documentation, proposals, and testimonials to share with potential clients. Robert agreed to provide these materials and prepare for a company-wide meeting on third-party collaborations.
+    [bulleted_list_item] Business Capacity and Partners: Robert stated they are working with a partner who is a top AI systems architect, but noted capacity constraints due to physical requirements of business audits, such as visiting manufacturing sites.
+    [bulleted_list_item] Mission for Small and Medium Businesses: Robert articulated a mission to provide SMBs with competitive advantages through the “my local everything” platform and help them avoid displacement by larger corporations.
+    [bulleted_list_item] Healthcare AI Project Overview: Dix presented a healthcare AI initiative with seven models covering blood smear, skin cancer, bone fracture, and breast cancer detection.
+    [bulleted_list_item] Skin Cancer Model Performance: Dix reported that the skin cancer detection model outperforms existing research models by 7–8% in accuracy and specificity across key metrics, based on internal benchmarks using 3,000 images.
+    [bulleted_list_item] Healthcare Pricing and Use Cases: The participants discussed pricing involving a $10,000–$20,000 monthly retainer for unlimited usage or $1–$2 per API request. The model tracks lesions over time to support automated warnings and deeper research.
+    [bulleted_list_item] Development Resources and Compute: Dix described gifted TPU compute resources from an investor and said top-tier machine learning engineers are used for specific high-cost tasks.
+    [bulleted_list_item] Go-to-Market and Regulatory Strategy: Strategy involves securing initial feedback from 5 hospitals or clinics, offering the model free for one year in exchange for case studies and validation. The model is positioned as a “second opinion” tool for compliance and safety.
+    [bulleted_list_item] Next Steps for Collaboration: Robert agreed to review forthcoming demos and share them with relevant contacts, including a family member in dermatology.
+    [bulleted_list_item] Networking and Automation Outreach: Dix committed to outreach to contacts in Eastern Europe, Montenegro, and the UK, plus consulting George regarding potential European connections.
+    [bulleted_list_item] Project Philosophy and Market Values: Robert emphasized supporting SMBs against market consolidation and prioritizing project values.
+    [bulleted_list_item] Technical Capabilities and Deployment Speed: Robert stated the team can launch 500 websites and “second brains” within 15 minutes; Dix said AI models are expected to complete training within the coming week.
+    [bulleted_list_item] Healthcare Market Entry and Equity Offer: Dix requested Robert’s assistance securing certifications and licenses for US healthcare market entry, offering 20–30% equity in exchange.
+    [bulleted_list_item] Challenges with Current Investors: Dix reported difficulty entering the American market due to investor skepticism and concerns about competitive advantage.
+    [bulleted_list_item] Future Strategy and Regulatory Compliance: Long-term plan may include incorporating as a US company if performance targets are met to support compliance, tax optimization, and US market trust.
+    [bulleted_list_item] Scheduling: Participants agreed to hold a follow-up meeting in one week to review progress on model training and market-entry initiatives.

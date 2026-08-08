@@ -1,0 +1,563 @@
+==============================================================================
+TITLE (do not trust): Rob & Dix | MLE & Skin Cancer Detection AI Model
+URL: https://app.notion.com/p/Rob-Dix-MLE-Skin-Cancer-Detection-AI-Model-3ac1de57019980ff94eceeea07d36588
+id : 3ac1de57-0199-80ff-94ec-eeea07d36588
+CALL DATE: 2026-07-29
+------------------------------------------------------------------------------
+PROPERTIES — in full; this is where the identity the title omits lives:
+  ∅ Google Doc Link [url]: None  ← claims absence
+  · Show/No Show [multi_select]: Show
+  · Next Steps/Action Items [rich_text]: GEt him some projects to work on
+  ∅ Company URL [rich_text]: None  ← claims absence
+  ∅ Parent Account [multi_select]: None  ← claims absence
+  · MLE [select]: YES
+  ∅ Last Edited [last_edited_time]: None
+  ∅ Child Account [multi_select]: None  ← claims absence
+  · Other Combined/Possible referral [rich_text]: CERNAN (Dex’s company; spelled “C-E-R-N-A-N”)
+- Relationship/context: Dex proposed doing low-cost dev work for Rob’s US-based company in exchange for being listed as a US client reference (and NDA protection).
+- What they do: AI/automation/dev shop; has multiple developers; offers to build features/websites and help with agent “skills” workflows.
+- Website/URL: Not found via web search.
+- Next steps discussed: Dex to send/sign NDA; Rob to send project requirements/doc(s) for (1) AI Voice Tech site refresh + digital receptionist/outbound voice agent positioning, (2) proactive e-commerce chatbot w/ lip-sync avatar, and (3) sales-rep training portal w/ quizzes + simulated call practice/grading.
+
+More Bookings (morebookings.io)
+- Relationship/context: Mentioned as an example hospitality product/site (“go to morebookings.io”); positioned as hospitality tech.
+- What they do: Hospitality tech focused on direct-booking sites + AI guest messaging + dynamic pricing + turnover automation.
+- URL: https://morebookings.io/
+- Next steps discussed: None explicit.
+
+AI Voice Tech (aivoicetech.io)
+- Relationship/context: Rob’s company; Dex offered to help build features/website work and requires Rob’s requirements doc.
+- What they do: AI voice agents for small businesses (capture/qualify/convert leads; inbound/outbound; receptionist/speed-to-lead/etc.).
+- URL: https://aivoicetech.io/
+- Next steps discussed: Rob to send requirements; Dex to draft intake questions/form.
+
+Guest Genius (hotel CRM / management platform)
+- Relationship/context: Dex demoed/mentioned “Guest Genius” as a comprehensive hotel management/CRM platform concept with AI + KPI dashboards; discussed integrations (incl. Airbnb) and potential channel partnerships.
+- Financial/pricing notes: Mentioned targeting ~$8–10k/month per large hotel; claimed 20–30 hotels already contacted.
+- URL: Not found via web search.
+- Next steps discussed: Potential partnership route: Dex sells Guest Genius; Rob’s team could deliver additional services to those customers (split discussed).
+  ∅ Customer Pain Points [rich_text]: None  ← claims absence
+  · Meeting Summary [rich_text]: During the meeting, the team presented a skin lesion triage model that analyzes thermoscopic images, achieving an accuracy of 97-98%, outperforming global competitors with fewer images. The model will be integrated with a mobile app to monitor patient history and notify patients and doctors about changes in lesions over time. A two-month trial for dermatologists was proposed, followed by a licensing rollout. They plan to establish a US-based company for hosting and licensing, with potential future expansion into EU and Dubai markets. Significant token usage for AI agents was noted, and an LLM demo is expected shortly after a security review, with intentions to develop additional models for breast cancer and psoriasis in the future.
+  · MLE Attendees [multi_select]: Rob Acheson
+  · Follow Up Date set [date]: 2026-08-03
+  · Company Meeting with [rich_text]: Dixith
+  ∅ Export Status [select]: None  ← claims absence
+  ∅ Sales Rep [people]: None  ← claims absence
+  ∅ Notion Meeting Page [url]: None  ← claims absence
+  · Call Date [date]: 2026-07-29
+  ∅ Tags [multi_select]: None  ← claims absence
+  · Call Recording [url]: https://app.fireflies.ai/view/01KYQH9MJZ87R45TRHFCDG7AMD
+  · Contact Name [rich_text]: Dixith
+  · Non MLE Attendees [rich_text]: Dixith
+  ∅ TAM # [number]: None  ← claims absence
+  ∅ Created [created_time]: None
+  · In Person/Virtual [multi_select]: Virtual
+  · Urgent TO DO [rich_text]: Ge and Sign an NDA and then start feeding him some Projects
+  · Meeting Type [multi_select]: Partner Cadence Call
+  · Primary Target ICP [multi_select]: Dermatology, Healthcare clinics / hospitals; SMB automation and website clients
+  · Meeting Title [title]: Rob & Dix | MLE & Skin Cancer Detection AI Model
+------------------------------------------------------------------------------
+BODY: 486 blocks, 97623 chars of block TEXT (no markup) — paragraph×441, bulleted_list_item×27, heading_3×9, to_do×8, transcription×1
+DEPTH: walked 3 level(s), cap 8 — not truncated
+  ⚠ 10 field(s) imply 'no record'. CONTRADICTED — the body below HAS content.
+    Trust the body, not the field.
+      · Google Doc Link [url] = None
+      · Company URL [rich_text] = None
+      · Parent Account [multi_select] = None
+      · Child Account [multi_select] = None
+      · Customer Pain Points [rich_text] = None
+      · Export Status [select] = None
+      · Sales Rep [people] = None
+      · Notion Meeting Page [url] = None
+      · Tags [multi_select] = None
+      · TAM # [number] = None
+------------------------------------------------------------------------------
+PULLED, NOT RULED. A verdict lives in MLE Internal Meetings/notion-read-confirmations.json and
+is written by a human after reading this file end to end. This file existing is NOT coverage.
+==============================================================================
+[transcription] Skin Cancer AI Model Demo & Partnership Discussion 2026-07-29
+  [paragraph] 
+    [heading_3] Action Items
+    [to_do] Dex to send NDA to Robert   
+    [to_do] Dex to send research paper/benchmarks report on the malignancy model 
+    [to_do] Dex to finalize LLM connection demo by August 1st 
+    [to_do] Dex to have full demo ready with security reviews by the 15th  
+    [to_do] Robert to gather dermatologist feedback on pricing and usefulness  
+    [to_do] Dex to investigate public medical data feeds for real-time updates 
+    [to_do] Robert to send detailed project requirements for chatbot and training portal  
+    [to_do] Follow-up meeting scheduled for Monday, August 3rd  
+    [heading_3] Skin Cancer Detection Model Demo
+    [bulleted_list_item] Dex demoed a skin lesion triage model using ConvNeXt Large architecture that analyzes dermoscopic images and returns malignancy probability  
+    [bulleted_list_item] Model achieves ~95-97% accuracy with only 270K training images, comparable to PENDARM Large (trained on 2M images)  
+    [bulleted_list_item] Currently no LLM connected; waiting for OpenAI 5.6 Pro license approval for credits   
+    [bulleted_list_item] LLM will provide research-backed recommendations by searching historical cases, medications, and treatment processes   
+    [heading_3] Future Ecosystem Vision
+    [bulleted_list_item] Patient mobile app for ongoing monitoring with automatic image tracking over time   
+    [bulleted_list_item] AI will compare week-over-week changes and send proactive notifications to patients and doctors when risk increases  
+    [bulleted_list_item] Plans to expand to breast cancer detection and other conditions  
+    [bulleted_list_item] Discussion about pulling real-time medical data updates; Dex noted current data is through April 2026 
+    [heading_3] US Market Partnership Structure
+    [bulleted_list_item] US licensing requires American majority ownership; proposed Robert holds 51-100% of new US entity  
+    [bulleted_list_item] Strategy: Get dermatologist demos → collect feedback → spin up US company → apply for licenses → expand 
+    [bulleted_list_item] US license would facilitate easier EU licensing approval afterward  
+    [bulleted_list_item] Robert noted healthcare is shifting to local clinics, creating more sales opportunities  
+    [heading_3] Dex's AI Automation Business Update
+    [bulleted_list_item] Business doing well with capacity constraints; signed clients including $10M businesses wanting full automation  
+    [bulleted_list_item] Three-phase model: Phase 1 (AEO/SEO/content), Phase 2 (automations), Phase 3 (full business digitization) with money-back guarantees   
+    [bulleted_list_item] Recently acquired 20-year family business for testimonials and case studies  
+    [bulleted_list_item] Need to build training portal for sales reps to scale  
+    [heading_3] Development Work Partnership
+    [bulleted_list_item] Dex offered extremely low-cost development work ($20 for projects) in exchange for listing Robert's US company as a client reference   
+    [bulleted_list_item] Robert agreed; will sign NDA to protect proprietary SaaS ideas  
+    [heading_3] Guest Genius Hotel CRM Demo
+    [bulleted_list_item] Comprehensive hotel management platform with KPI tracking, AI insights, booking analytics, nationality heatmaps, investor dashboards    
+    [bulleted_list_item] Includes WhatsApp/Instagram/Messenger chatbot integration with AI responses  
+    [bulleted_list_item] Targeting $8-10K/month per large hotel; 20-30 hotels already contacted  
+    [bulleted_list_item] Robert mentioned connections to hospitality ($70B AUM friend) and acquired business with hotel chain customers  
+    [heading_3] Requested Development Projects
+    [bulleted_list_item] E-commerce chatbot with lip-syncing avatar from still image, proactive engagement, in-chat checkout, visitor tracking, and analytics dashboard    
+    [bulleted_list_item] Sales rep training portal with AI-delivered content, questionnaires, and simulated call practice with grading   
+    [heading_3] AI Development Workflow Discussion
+    [bulleted_list_item] Dex shared using 2.1 billion tokens daily on Codex; team members use 3-4 billion   
+    [bulleted_list_item] Workflow involves spinning up multiple agents for development and testing simultaneously  
+    [bulleted_list_item] Recommended Andrej Karpathy-based skills documentation for agent training   
+  [paragraph] 
+    [paragraph] 
+  [paragraph] 
+    [paragraph] May it be. Hey bro, can you hear me?
+    [paragraph] I can't. Let me just fix my own hearing. Yeah, I'm fixing it right now. You're sharing current time with a third.
+    [paragraph] All right. Oh, my God.
+    [paragraph] Let's do this.
+    [paragraph] All right.
+    [paragraph] That better, bro? Yeah, but that's much better. Awesome. Give me one second.
+    [paragraph] Yeah, so I had a few questions. about this clinic or the hospital connections you had. Did you ask them if they want the demo and did they say yes? because the window of the demo is going to be less than six hours. We can only keep it on for like six hours at a time because there are constant updates. So we kind of like start the system. I was just going to ask for that.
+    [paragraph] Well, right now you and me are just doing the demo.
+    [paragraph] Yeah, yeah.
+    [paragraph] Right, right. Yeah, but when we do it, yes, we will plan it all out. Like I've already talked to some, I'm 100% positive that We can do demos with them. So we'll arrange it all. Nice. Okay.
+    [paragraph] Give me give me one minute for the mission.
+    [paragraph] yeah Hello.
+    [paragraph] Yeah. Yep. My lab just cut off for some reason. So yeah. Give me one second, let me turn the servers on. Also, how has it been going with the thing that you developed with your partner? Are you getting some good traction there?
+    [paragraph] Oh, dude, I mean, you It's been... A whirlwind, bro. It's going great, man. I have a good problem. In that, like... uh is then that we cannot like as we're set up right now keep up with uh capacity um like so here's what we did so i was you know we're not even like advertising the website the website's up but we're not even like ad advertising it yet or just um having it and then going around to basically people in my network that I know are you know They're smart guys, they're domain experts.
+    [paragraph] And so what we do is we'll come in and we'll talk about, you know, all the stuff that we do, but we'll say, look, here's what we do. We kick it off with phase one, right? So we get you AEO, SEO, convertibility optimized we get the Google business profile set, we create your second brain. That's what feeds the, what we dub as the everything agent. But Basically, they can select from a couple of different channels. If I'm talking to a guy whose most of his clients are people moving down to Naples from the Midwest that are like 60 years old, TikTok's not going to be the social media that I focus on.
+    [paragraph] But we'll do stuff like we'll find where their customer hangs out. And then anything as far as the content stuff we can do perfectly we create a soul for uh you know the owner or and or sales reps so I mean it looks literally exactly like them and we're you know all day every day we are out um you know, learning about the, uh, industry, you know, we've created, we're creating, we created personas for them, you know, content pillars, everything's in their voice.
+    [paragraph] Um, you know, so literally if it's an industry, like in some industries, uh, they use the word, uh, deal instead of, uh, or they use the word job instead of like a deal or a sale. Right. Um, it's written in the right type of, uh, in the right type of vernacular. So, you know, in the first 30 days, they get this just enormous uptick in organic traffic. And then we roll them into phase two, which is, you know, We have about 50,000 really high-end business automations already pre-built, but we tailor them, obviously, specific for their industry. So phase one is just kind of about building trust. If you don't like it after 30 days, we give you a full refund and you keep the tech, which nobody fucking does.
+    [paragraph] Same thing with phase two. I'm going to spend... $40,000. I'm going to spend $100,000 on automations. We figure out the automations that are going to yield them the highest ROI. And if we don't hit the ROI, if they don't get an ROI within 90 days, same thing. You keep the tech. We give you a full refund. None of this ever happens. What do you mean?
+    [paragraph] why they can keep the tag it's like they can just own it and then just keep using it without paying you guys yep That's crazy. It is crazy.
+    [paragraph] But what we're doing is we're trying to, you know, we're trying to... Now, if there's like really special things, you know, that they have, then, you know, maybe that deal will change a little bit. But those are our guarantees because we know we're that good at it. And... The main thing is to get them into phase three, which is what we call the 95% business, which is where, you know, we actually...
+    [paragraph] audit like basically everything that they do anything that can be digitized and automated gets digitized and automated um and so they can use their selves and their people just to focus on um you know what they do best which is revenue generating activities but With that, the thing that we're focusing on the most now that like when we're built out, I'll probably even tell less than 5% of people that I talked to about this, but we're going to domain owners that I know really understand their business and understand the industry and like all of the inefficiencies in it and the gaps and like the software that exists.
+    [paragraph] So, yeah, The goal with that is what we do is we come in and we, um, basically take kind of what we've learned so far and in conjunction with, uh, those people who are bringing this to our attention, we kind of work together. We spin off another entity and then we sell that software to just like take over a vertical, you know? So that's kind of the... That's kind of the main idea around it. And so it's great on one aspect, like we've signed.
+    [paragraph] And by the way, like some of the people early on are just like, dude, we want to go all in with you. So like, you know, there's some people that have fucking $10 million businesses and they'll just be like, here, just take 30%. You're going to handle, we're going straight to the, you know, automating everything and spinning up you know, new, new software so we can take this over. And so like, that's pretty sweet. But, but the, the, the problem with it is that, right. Like we don't charge a lot for phase one and phase two, we're going to start charging more. But, you know, as you know, with any new business, just like kind of you're doing with the, with the trained models is that you have to have like the case studies, right.
+    [paragraph] And stuff like that.
+    [paragraph] So while we've been working on this, collectively for 15 years, especially my partner, with this specific thing. We had just started, so we didn't have a lot of case studies, but as of today, we just acquired, um, Well, it's a business that's been in the family for 20 years.
+    [paragraph] 20 years. And so, and so, you know, the son and the father don't get along that great. The son is my partner, but he's really, you know, the dad is older and wants to retire. So they have a big group of customers that work with them that have been working with them for, you know, 20 years. And, you know, these are like, hotel chains it's any type of business that you really can think of and so what's cool is we're buying that business under very favorable terms and taking over 100 equity so we have we can immediately get like all of the fucking testimonials and validation because you know we we did work you know, with them.
+    [paragraph] And so that's really going to lend a big thing, a big feather in our cap too. But again, my problem right now is you know, is getting kind of more people on board. And so I want to build out a training portal so we can get people up to speed, like really, you know, quickly because like I can't be in and on every meeting, right? Like my partner can't be in on every meeting. Like we need sales reps that can really handle phase one and two.
+    [paragraph] but quality control is important, especially with a new business. So I want to have them go through this training kind of portal process and then actually even have them kind of like do simulated conversations because like, you know, we have, we turned on marketing for a day just to, to run some like big, basic, basic, basic stuff and had 104 high intent local people. So there's no limit to what we can do with this. I mean, we were getting eight figure offers for this company before we even sold one company.
+    [paragraph] So that's good, but I need the cash flow so we can build out more people. My goal is to build up that training platform. I'm also developing the CRM, which is almost done. And then I can get my guys trained up and then they can sell the phase one and phase two stuff. And just like, I don't care if companies want to stop with that, right? I don't expect most of the customers that we talk to to like, I don't even basically want them aware of phase four because it's just too much right now. Like I can't start a new entity and like not all these, their ideas are going to be great.
+    [paragraph] So I specifically went to companies that I knew had a lot of connections. So like yesterday we had a meeting with this big title company. Everything in real estate is like the real estate's the most, inefficient fucking, uh, fucking vertical that there is. So there's just so much room for improvement. So I got into a meeting. I've got a meeting with, um, a company that owns like 15 different title agencies and we were telling them you know basically what the idea is and they're like you know yeah we love it But and I wasn't even aware of this but the big boss is came to the meeting too.
+    [paragraph] And he is also part, he showed up in a fucking million dollar Ferrari. And so he's part of another holding group that owns five other enormous kind of businesses. They're doing 125 million profit a year. So he's like, we could do a lot of this stuff for those too. I'm like, yes, we could. So it's going great. It's going great. Busy as hell, obviously, working. 20 hours a day.
+    [paragraph] Yeah, sounds like you're doing great.
+    [paragraph] Yeah, man. Really excited to get into... Really excited to get into healthcare because there's a lot of changes happening in there and this is going to be awesome.
+    [paragraph] Take it away, bro. Yeah, let me share my screen. Let me show you the demo of the model first for... for the malignancy one. We can start. Hey, actually, let's do this. Let's do this.
+    [paragraph] I'm going to...
+    [paragraph] Hold this up. Hold on.
+    [paragraph] Okay, so I've got you showing. on your own screen. And what I want to do is I'm just gonna say basically five, four, three, two, one, and then I'm gonna let you take it away just in case somebody wants to just get an idea of it, right? I'll clip this. So you ready? Yep. 5, 4, 3, 2, 1.
+    [paragraph] Yeah, so this is just a simple UI for a model. The model, you can call it a skin-lays-on-triage model. What it basically does is analyzes a bunch of dermoscopic images, and the skin lays on and returns a probability-based referral or a routine triage result. And then it flags any suspicious patterns that link to like melanoma, BCC, SCC, and like some maybe others, high-risk lesions. But here is like a small tab up.
+    [paragraph] So what the medical experts can do is they'll take a bunch of pictures of these spots on the skin of the patient. you know they can upload multiple images or just one image and then they can reference a case the llm isn't connected yet but it should be connected because we're still in the process of getting license for the open ai one uh open ai 5.6 pro model uh so that's going to take a bit of time but this is just the plain model i'm demoing it so you can you can make a new case here there should be a new button to make a case and then you can you know write down the patient's name and then probably the id in them you know, you reference your medical records and then, you know, body size, blah, blah, blah, all of that information.
+    [paragraph] And then you can upload images of the skin where he asked the spots and then you run an analysis and then you get this percentage score. So I added pictures of five, you know, different patients here, if you see. And then... what it does is it basically returns a probability of how much percentage is that, what do you say, is there a risk of malignancy. And it's 92% for this one. So this is just a basic backend model. And then on top of this, what you'll get is a large language model.
+    [paragraph] So what it does is it takes this, and it sticks the back end and everything and it says, okay, you know, this malignancy is this type of it, you know, it's not BCC, it's SCC or it's this specific branch of malignancy and then it goes online, it does a really deep research and then it, It gets to the historical records of any other patient that came with this and then it suggests any specific brands of how to cure him or blah blah blah or if there's a future risk of any type of cancer that he's going to get blah blah blah and then it gives the entire information.
+    [paragraph] But yeah, you'll see the entire demo after we connect the large language model and then give it these really advanced tools we're developing. But this is the base backend model that we It did. And it's like 97, 98% accurate, you know, better than any other model.
+    [paragraph] the top ranking one in the world.
+    [paragraph] Yeah, yeah. So we have an entire paper I can send it to you, but I'll give you a short summary. So the best model in the world before we developed this was something called PENDARM Large. P-E-N-D-A-R-M Large. And it was in this really, in a European university where they took two million images of malignancy and then they labeled all those images and then they trained that model on top of it using PENDARM Large architecture.
+    [paragraph] And then it was a bunch of college students and researchers that did a really good job. They trained a really good model that could do a lot of really good detecting. It was achieving like 95% accuracy rate in our internal benchmarks. And then it was trained on around 2 million images. But the model that we trained right now is only on about like 270,000 images. But it achieves the same amount of accuracy the Panem model achieves, The architecture advancements that happened in the last two, three years, we use the convex large architecture and then it achieves almost the same percent of accuracy. The reason it doesn't go into 98, 99% is because you can go so much far with these image models.
+    [paragraph] Image detection models are superhuman. You can ask any AI expert and then they'll tell you this, but the reason it wouldn't go to 97, 98, 99% is because there are really rare types of malignancy stuff. And then, you know, the data, the pictures and the data, you wouldn't get them anywhere except for these really top hospitals that cure them. So, you know, while we expand, while we serve this model to like multiple hospitals, if they give us the permission to collect data, we might get more data of certain types of malignancy and then, you know, we can keep fine tuning our model and making it better.
+    [paragraph] But for now, this is, This is one of the best models, even without any fine tunings. We are currently doing 12, 13 fine tunings on top of it. We've got more data from more hospitals locally. So we are doing a lot of fine tunings. The GPUs are running, the models are training.
+    [paragraph] But this is just the base model for now.
+    [paragraph] I'll send you the entire report paper on how we evaluated. The benchmarks are mostly internal because there are no really big benchmarks that exist for malaria. and see detection, especially for image models like this, because in the future, this is going to be a multi-model model. So it's going to have an LLM inside of it, and then it's going to have the image capability. So it's going to detect, but just like the LLMs now, they can take in images and they can also take in text.
+    [paragraph] So it's going to be the same for this model in the future.
+    [paragraph] But the benchmarks are mostly internal. We use the ISIC dataset. It's publicly available.
+    [paragraph] So the dataset hasn't been given to the model yet.
+    [paragraph] And then we give it after the training and then we give it to the Pandem large model, which is the best model in the world made by those university guys. And then we test both of those models on how much accuracy they achieve.
+    [paragraph] And then we basically determine which one's the best. I think I sent you the images of it, but I'll send you the entire report of it. But yeah, that's it. That's how we come to the conclusion on how good that is.
+    [paragraph] But we need to do really extensive benchmark reports. before going into the US.
+    [paragraph] So they're gonna let us do a lot of tests, but before that we gotta give it to the experts and ask them how accurate it is, how is it doing its job, blah, blah, blah, because we're at the early stages of this, especially multi-modeling with stuff like malignancy models is a bit hard. So once we break through with that, it's gonna be amazing because it's like superhuman.
+    [paragraph] Yeah. Now, when you say before you go into the U.S., you mean on like a large commercial scale. But what we'd like now is basically to have, you know, the custom architectured, fine-tuned model that you have fully set up so that, you know, we can achieve already those 95, 96 scores, it will take a look at an image that a doctor or a dermatologist are looking at. It'll go in, it will do its analysis, and then it will spit out information as to what it is.
+    [paragraph] point. Look, you know, you're already getting to something like a 96% accuracy rating just based on images that can identify without any type of external intervention, incision, biopsy, or anything like that is a huge, huge boon. So what you would like to do is basically We have this all packaged together to get it out to some, you know, dermatologists and some hospitals and let them basically use the tool.
+    [paragraph] You know, they'll see how much it assists in their own diagnostic processes. is that you're going to be adding more real life images to it, which will just help based on the architecture that you're going to, you've designed, get that up to that even 97, 98 level, at which point, like, you know, that, that's a real, I mean, it's already a lifesaver for a lot of people, you know, because obviously it's very easy to, to miss these things and you get, you know, People even trained looking at, you know, certain types of skin issues and there's going to be a confluence of opinions.
+    [paragraph] But this way you can get a very high probability of what it is before any type of, you know, like I said, having to send it to a lab or actually, you know, cut anything out.
+    [paragraph] And that's where the real advantage lies because you can get with high probability and increasingly higher probability as we work with the dermatologist offices and the hospitals a very highly probable answer on what this is. So obviously it can be a life-saving type of solution for the patient.
+    [paragraph] you Yeah, exactly. Not only because of the detection of it.
+    [paragraph] The bigger picture is what I haven't told you yet, which is basically like in the starting, I've told you that you're going to make a case, right? So, you know, we're going to give the user an ID and then, you know, give the patient the name. And then what it's going to do is there's going to be like an ecosystem. So it's going to be a semi-CRM kind of system.
+    [paragraph] the patient is going to have a mobile app. So basically an entire mobile app for his hospital visits.
+    [paragraph] So it's going to take images from the last three weeks. Okay, so two weeks ago you had a spot this big and now it's like this big.
+    [paragraph] And then the AI is going to evaluate every single visit, every single day. And then it's going to keep looking at historical records on what happened when this type of malignancy stuff is going to happen.
+    [paragraph] And then if there's going to be a risk in the next one week, You know, without the doctor even paying attention, the app is going to send out a notification or like a WhatsApp message or like an iMessage to both the hospital, the doctor, and also the user saying, you know, we have a risk of blah, blah, blah. And then the past two weeks, here's what we have found. This is like an automation system. And we have found that, you know, this could be really bad for you the next one week because of these reasons.
+    [paragraph] These are the historical cases. We send the message to the doctor so he can keep track of it. So it's like an entire CRM slash tracking system where it's going to keep track of you. And it's going to keep track of, you know, how your health is going to go and then give you like automatic alerts on how it is. And also, you know, not only these diseases, but we're also making progress with like breast cancer detection.
+    [paragraph] So once let's say breast cancer is cured, you use the tool, the stuff is done. In the future, you're going to have effects, let's say, if you consume certain type of medications. So, you know, the app is going to give you alerts on what kind of, you know, stuff you need to avoid, what kind of food you need to avoid, what you have to do in the next two, three weeks before you have another appointment.
+    [paragraph] All of that stuff is going to be given directly by the model autonomously.
+    [paragraph] Or you can also select like an option with the doctor so that you The AI system does a review, sends that review to the doctor, he approves it, and then that approved review goes to the patient after that.
+    [paragraph] So it's going to be an entire tracking system, not only for malignancy, it's also going to be for breast cancer, it's also going to be for many, many more use cases.
+    [paragraph] It's going to be like a really, really big multi-model model that's going to help in so much stuff, not only for these guys. That's great.
+    [paragraph] So let me just kind of... and circle back to something that you said. So another great thing about this is that, like, obviously the images are tied to unique identifiers and those unique identifiers indicate, you know, who the patient actually is. And so, you know, let's say that you're going into a dermatologist's office and they see something and they say, hey, you know, this is something that we're going to want to keep our eye on.
+    [paragraph] a picture of it at that time and it'll spit out, you know, whatever kind of probability is associated with it at that point in time. But then you're also saying, because obviously, you know, people don't go to dermatologists every week, you know, what they can do because of the mobile app is on their own, they can take images of it every, you know, week or, every couple of weeks and you're going to be able to tell based on those historical records if you know, this is moving in a negative direction.
+    [paragraph] which would also increase the probability rate. So you can really get advanced detection from that. And a lot of it is able to be done by the patient themselves without actually having to go in. But then when it reaches a certain threshold where it's like, hmm, it's going to send out notifications. to both the doctor and the patient to say like, hey, we need to schedule something right away. Is that about accurate?
+    [paragraph] Exactly.
+    [paragraph] Yeah, 100%. You got what I was trying to say. But yeah, that's going to be the vision. That's going to be like the final and the app that's going to be here. We are in the designing phase of the mobile app. And it's not only going to have like, you know, just from malignancy, right? So if it's a big hospital, it's going to have like multiple use cases, you know, we're also planning on training models for Prosperous I'm not sure if I'm spelling that right.
+    [paragraph] Yeah, sure Yeah, yeah, we have like huge amounts of data from this one hospital nearest and then they have you know They have they have users from like all over the world, you know like not only like Indian skin or African skin or your picture they have data for everything because they're in a partnership with these like overseas hospitals that do a lot of this you know treatment kind of stuff just specifically for skin they have contracts with turkish hospitals that you know the the cures that they they do for skin same the chinese ones so we have like enormous data setting that's waiting to be trained uh for for that case as well so so we're gonna have like many many models but this is ready the llm is gonna ready it's gonna be ready in probably like a week so we can you know put this all together give it give it out at them or give out a link so the experts can you know do a really good demo of it and then you know let us know what they think but uh yeah yeah before that i i also wanted to check how much the anticipated cost is going to be because This is like a really small model.
+    [paragraph] It's like 200 million parameters.
+    [paragraph] This is not like a billion parameter model, right?
+    [paragraph] image models can be really small uh but they can they can do like really good uh you know detection stuff so the the cost for running these is going to be really really small so probably less than like 2 000 bucks per big hospital uh for for like all of their uh you know your patients that come in so uh so you know uh i think we have to set in also with how much we're going to these guys on using the entire ecosystem if they're happy because we haven't been able to land upon a cost yet because we landed upon a maximum cost which is like 2000 bucks for any any big hospital so you know if you can do a bit of research as well and then help us know you know how much you know these clinics or these dermatologists are ready to pay for a tool like this because it isn't like you know, very, very helpful.
+    [paragraph] It's going to replace them. It's not entirely like that. No, of course. A lot of heavy lifting, right?
+    [paragraph] Especially when it comes to detection and, you know, making the patient remember that they have this and then they should be going to the dermatologist and next time.
+    [paragraph] So, yeah, I mean, it's going to get the dermatologist, you know, more visits. It's going to allow the patient to be mindful and, to continue to monitor it, it's actually going to make the dermatologist more efficient because this can help with a lot of the kind of recognition. So they'll have to be be able to identify what this convention potentially be earlier obviously um and uh and you know follow up with that patient and all this stuff will happen uh automatically and so it's it's ultimately just gonna be able to make the dermatologist uh more efficient more accurate and uh it's gonna help uh the you know help help users stay on top of their health and hopefully, not hopefully, definitely help prevent some bad outcomes that otherwise could But otherwise could have occurred without a solution like this.
+    [paragraph] Exactly. So even if like there's like 90 plus patients in a big hospital, let's say that are doing this dermatology review, you know, at some point, not every doctor can keep a lookout on every single patient 24/7. But the AI system can.
+    [paragraph] And it has, you know, we have just, you know, achieved like 95% accuracy on how accurately it can predict anything happening.
+    [paragraph] So like if you have a 90 plus percent accuracy advantage over any other hospital, as in you can detect these before the patient gets into a condition where you cannot treat them, then it's a win-win for everyone.
+    [paragraph] Absolutely.
+    [paragraph] the problem. So it's going to be amazing when we get access to the new GPT model. So we can integrate that and then do a demo. And then I can send you a link of the demo. And it's probably going to be live for like six to eight hours. So you can show them the demo and then ask them all these kind of different questions I have, probably like five or six. And then we can phase out and then try for licenses after that.
+    [paragraph] and probably one two months and we can start serving these hospitals Okay, so let me just kind of go over that last part of it now.
+    [paragraph] So I think we just had a good conversation. So we'll maybe kind of consider this the end of the clipping, but that's, this is something that I can use to help start having a preliminary conversations and also, you know, remind myself of exactly everything. And please do send over, you know, any of the documentation, stuff like that. So I can just compile everything. But right now... Right now, just where the timeline goes, let me actually just make a couple of...
+    [paragraph] physical notes, which I don't do that much anymore, I just record everything. So So right now you are The model that we're looking at right now does not have the best LLM. There is an LLM behind it, but it's not the best.
+    [paragraph] There isn't a connection to the LLM yet on this. At all? Because there are going to be two demos. Yeah, at all. There isn't any LLM connection. There's only the model, which is image detection. So it detects the image and then says how much probability there is for malignancy.
+    [paragraph] End of the image. that is the only model that's connected to it. And later on we'll have the LLM connection to it. So it's gonna summarize everything. So it takes the data that this model gives, which is the image detection model.
+    [paragraph] It's gonna give a bunch of information to it. And the LLM is gonna take that information, take the image, go to the internet, go to its library sources, which are directly connected to our servers, based on all of the data that we collected from all of these hospitals and then it's going to search up any needed information or you know any helpful information that it could find.
+    [paragraph] The hospital can tune that information as well with the help of the dermatologist later on and then they can check what information they want, what they don't want and all of that stuff. So yeah there's only one image detection model connected to it for now.
+    [paragraph] Okay, okay, great. So we'll get the LLM connection. And then obviously just to like help kind of To clarify what you said, there's obviously all of the existing body of research that you guys have done and also that is out in the broader literature. But one of the big benefits of this is that there's new discoveries happening every day and people are running experiments. the greatest body of knowledge. Is that fair to say?
+    [paragraph] Come again, bro? It got cut off in the middle. Okay, so...
+    [paragraph] So as far as the LLM piece of it, um, you know, obviously you, you have collected information on your servers there, there exists, um, you know, in, um, uh, uh, different kind of like journals and peer reviewed literature and stuff like that out in the broader, uh, body of, of, uh, of healthcare literature, medicinal biology literature that exists on the internet. There's that body of knowledge, which you can rely on.
+    [paragraph] But what I'm saying is that one of the benefits to having the LLM2 is that there could be some kind of discovery associated with you know, that particular, uh, type of cancer that has come out within, you know, the last few days. And so it's going to be looking all over the place and would be able to ultimately provide the most updated information to the doctor and the patient in conjunction with everything else.
+    [paragraph] Is that accurate? Exactly.
+    [paragraph] Yeah, exactly. If I'm going to be more clear on the, you know, So if you have used any LLM or coding agent, you know what MCP servers are, right? So it's going to be similar to that where you have 20 different servers, subsets in the servers, and then they all have data on historical cases of rare malignancy stuff or similar malignancy cases where they show, week on week progress, what has happened with this patient, and then what this patient has gone through, what medications did this patient use, and then how did that cure the patient, every single detailed step of it.
+    [paragraph] It's like 10,000 words per patient per step, and then it's going to be clearly written out on how they did it. So all of those historical cases with other research data from biology is going to be in those servers so the llm can go out there you know use the data that this uh your visual model is going to give it and then you know go out on that and then find you know a case that is 99 to 100 similar to this and then find out what you know, medications they used, what kind of processes they used to cure this patient, and how did they do that, what this patient should expect in these times, in these timelines, in the next two weeks, one week, blah, blah, blah.
+    [paragraph] And then it's going to make an entire report, and then it's going to show showed you like 20 different slides on what notifications to send to this user, what medications to prescribe to them, and then when he should come for regular checkups again. So all of those, the next five or 10 or 20 weeks, the doctor can just sit in front of the computer, look at all these slides and then decide what he wants to do the next five to 10 weeks.
+    [paragraph] And then if there's any change, then he's going to go back to the same case, record the change and then update the LLM on what happened with the patient. And then the same continues back again and again.
+    [paragraph] Okay. Okay.
+    [paragraph] The one part I just wanted to be clear on is that, like you said, you have a historical body of information on your servers that has already come out, right? Yep. Okay. Now what I'm saying is that let's say a whole bunch of a bunch of new information comes out one day that's relevant. and it's not on your servers yet, the LLM is still going outside of just your servers and the historical data to grab that new information as well, correct?
+    [paragraph] I'm not sure we did not go out on that.
+    [paragraph] Or I guess the other piece of that would be that you just set up your servers to pull in the latest stuff like, you know, all of the time. Yeah, I got you.
+    [paragraph] If it's compliant with the US law, then yes. If it's not compliant, then I don't think we can do it. We haven't thought about that now that you have reminded us. We probably should because up-to-date information is really important. Why wouldn't it be compliant? uh because uh you're you should be able to get the license for the for the images of these data from ex hospitals right oh no no no what no what i mean is like if it's published publicly you know like then then yeah uh when it's published they'll publish it with like a license or like a compliance uh uh you know record or something so based on that yes if it is Right, exactly.
+    [paragraph] And so my only question on that is like, do you guys have like an RSS feed or something that is automatically pulling in the relevant data all the time? Or do you just have like, say your historical information up to a date and then you train the agents to go look in these other places too?
+    [paragraph] We just have it till April of 2026 for now. But we're going to get in more data as it goes because we are setting up contracts with three hospitals now. So every single piece of data that enters those three hospitals is going to be in our servers automatically. But I think as we expand, we're going to get in more data, more quality data from these hospitals. But we're going to set up this new agent that's going to automatically pull from the internet.
+    [paragraph] I don't think there are many cases on the internet that you can just pull through in the same rate as you get from these hospitals. Oh, of course. So, yeah, we should check into it and see if there are any public feeds where these doctors go to and get this data. But if there is, then yeah, we'll set that up as well.
+    [paragraph] Yeah, yeah. And you're right. Obviously, I'm not a doctor. I don't live in that world. But I know that they have systems where they're like, let's say, I'll clip on this. It was like this case of... gonorrhea that one hospital had reported that looked very kind of dissimilar than normal. And so what was happening was they were tracking it through the hospitals so people could, who had not seen this before, but thought, hey, this looks a lot like this because it was mutating so fast, be able to go in.
+    [paragraph] but what type of like systems those are. Like convex, you said was something?
+    [paragraph] Convex large is the architecture that we are building the model of. So it is a... I did not get what you mean by these feeds. I don't think there's a specific platform where you get this up-to-date information.
+    [paragraph] What I'm saying is that you know how... You know how the like the you don't necessarily see every all the latest updates on a case that the FBI is tracking right publicly. Yep. Right. But there is. there are software systems on the back end that like a guy who sees a murder in one state and then it looks suspiciously like a murder in another state and then they can kind of look at the information like that.
+    [paragraph] Doctors have that too. with particularly for stuff that it's like actual, if it's like an actual transmissible, you know, pathogen or something like that. So, you know, I don't know if they have like that backend information with something like this, because it's not as like, it's not like a public health risk same degree right but but It might be something worth looking into.
+    [paragraph] We should look into it. All these common cases that have been historically recorded, especially in molecularity stuff. But yeah, I'll get back to you on that. I'll talk to my team and I'll get back to you on that.
+    [paragraph] And that's cool. I mean, that's just an aside. You guys obviously know what you're doing. But from a go-forward perspective, you have that piece set up. You're waiting for licensing to be able to use the latest OpenAI model. Yep.
+    [paragraph] So it's going to be the 5.6 Pro model. It's publicly available, so you can use it. But if you're waiting for, you know, we have submitted all of our information so we can get some credits from them. So especially when you're doing stuff like this with healthcare, they give you free access to these really big models because the 5.6 Pro model is like incredibly expensive. So even with like one run, it's going to take you, $6,000, $7,000 because it's like for the output of 1 million token, it's going to take like $200, $300. So it's going to be like many, many tokens. So it's going to be like many, many thousand dollars.
+    [paragraph] But it is the model that you have to use because it has the lowest risk of hallucination and then it has the highest accuracy. So we're just waiting on their credit acceptance. Even if we don't get the credit, we'll find a way to get around that.
+    [paragraph] probably top up some some credits ourselves uh with the ground that we have uh or um or use just like the probably subscription based uh you know 5.64 model uh in the back end how much how many tokens do you guys like have to burn through doing stuff like this like let me like just as a for instance like Um, could you use like a Kimmy or a flash that's like good cheap, but cheap or, you know, anything like that?
+    [paragraph] Yeah, to code stuff like this or to like...
+    [paragraph] Well, no, no, no. Um... You know, again, this isn't my world, the imaging one, but the particular 5.6 one that you're talking about, from ChatGPT or from OpenAI. So like if I'm just going on OpenRouter right now and look at some models and so they would probably be Uh... do like uh Confusion. And we could... I was just doing it the other day where I was just looking at them side by side. But yeah, these are models that are...
+    [paragraph] uh, You're talking about using models that are uh, Like, you think they're that much better than... Some of the cheaper ones.
+    [paragraph] Yes, yes. If you go to DeepSVE, it's like the benchmark where they test out these models.
+    [paragraph] It's like the most reliable benchmark.
+    [paragraph] Which size is that? Steve, I typed it out in the WhatsApp.
+    [paragraph] I can send you the link if you want, but... Just one. Monday, HWE.
+    [paragraph] Yeah, and then they list out...
+    [paragraph] these models and their costs and how much accurate they are, especially for coding benchmarks and other ones.
+    [paragraph] So this is where we decide mostly what models we have to use. And there's also another benchmark for research.
+    [paragraph] Let me send you that as well.
+    [paragraph] There's one called the LAP bench. Yeah. I'm not sure why I'm not able to find the link of it, but it's basically how they check how good the model is for biology stuff and the research of biology. So the same, the pro models are exceptional because they are made for specific scientific studies, be it mathematical or physical or biological. They are made to do stuff like this. Yeah, exactly.
+    [paragraph] Exactly. So, yeah. So, and again, I'm just curious, like, how much does it take to, like, train these fucking things?
+    [paragraph] These pro models or the models of the...
+    [paragraph] Yeah, like the tokens. oh the tokens uh like what like when you're trained in one of these models like I don't know.
+    [paragraph] We use like 2 billion tokens today, bro. 2 billion?
+    [paragraph] Only on Codex. 2 billion. Wow.
+    [paragraph] Bro, I can send you it right now. The people's 2.1 billion tokens.
+    [paragraph] I would love this. Like that. So, so.
+    [paragraph] Let me let me see that.
+    [paragraph] I'm just sending you mine.
+    [paragraph] This is just mine. Not the entire team's. That's just mine.
+    [paragraph] The peak was 2.1 billion tokens on July 12th. I mean, one of these.
+    [paragraph] Say that one more time, bro.
+    [paragraph] Come again, bro? Could you say that one more time?
+    [paragraph] I'm sorry. Somebody was talking.
+    [paragraph] Yeah, this is the screenshot that I've sent you is just my own codecs usage. The peak tokens is $2.1 billion.
+    [paragraph] On one day in like 24 hours. Wow.
+    [paragraph] And then I used like a billion tokens in cloud. probably like 500 million on Chimi every day.
+    [paragraph] And then the team, you know, there are some people in the team that use like three, four billion tokens a day just on Codex. And then they burn to everything.
+    [paragraph] We require so many subscriptions just for codecs.
+    [paragraph] That day comes to you so much. So many tokens. This is just me though. This is just my screenshot. That's my email. That's wild.
+    [paragraph] Is that a screenshot? Is that a Codex platform that shows the Toganext?
+    [paragraph] Yeah, it's from Codex profile screenshot. It's the Codex apps. You can go into your app and check it out.
+    [paragraph] Yeah, I know. I'm still addicted to Fable.
+    [paragraph] Fable is a really nice model. I'm loving the Opus 5 as well.
+    [paragraph] It's a really great model. Opus 5 is great. But Fable is the best.
+    [paragraph] Fable, remember the one that came out a couple weeks ago that they had out for like two days? Uh-huh. That one was even better.
+    [paragraph] You think so? You think they moved it after the re-release? Oh no, they did.
+    [paragraph] They totally did. Because what happened was... What was it that happened?
+    [paragraph] The United States government actually put restrictions on it.
+    [paragraph] for a few weeks after that it got released again yeah it did but they they took out some shit like well one of the things that had happened oh what happened was i think that version of fable found or Or was this mythos that found like serious vulnerabilities in so many different like of the top software and like security things that, uh, that they, you know, they never released her. They had to pull it.
+    [paragraph] Um, I don't know.
+    [paragraph] But the thing is, the Fable and Mitos are just one model, but then Fable on top was trained a bit more to be more restrictive for common usage.
+    [paragraph] But they're fundamentally the same model.
+    [paragraph] But Fable is an amazing model.
+    [paragraph] It is. I still, man, there's something, there's something, it's still not, this is just my subjective opinion, can't prove it, but I feel like the one that came out of, a few weeks ago was better and they put some more restrictions on it.
+    [paragraph] Yeah.
+    [paragraph] Dude, let me ask you something because my world is not hardware and You know, and this stuff, it's just...
+    [paragraph] I'm more of a business guy who can do a pretty good amount of AI stuff. But how the fuck are you even running 2 billion? What is your setup?
+    [paragraph] I'll tell you how, bro. I'll tell you how. So we use the 2x feature where it's like two times fast, the fast mode in Codex. So everything...
+    [paragraph] Every single time that we run, we use the fast mode because we only have like 10 hours a day that we do a really serious work. So we have to do it fast. So we use fast mode and we only burn through max thinking level. So we use max, we use extra high as much as we can. And then we run a lot of agents for deep research. And then...
+    [paragraph] And then a lot of agents, what they do is, let's say I have to get one of those features built out, really hard features, right? So let's say I just woke up, the team just called me and they told me that this feature needs to be done. The client wants a demo. What I do is I talk to it for like 20 minutes, the Codex platform. And I say, okay, spin up four agents, two agents will do the work. And then two agents will use the computer use tool.
+    [paragraph] They're going to go to the platform, they're going to go to the app that you build, they're going to test every single part of it, and then they're going to give out a specific type of review, and then they're going to explain what's lacking inside of this. And then I tell it always that we have a four-page document on how we want our software to be built. So it should be objectively this good, and it should follow these UI rules and these backend rules, these security features.
+    [paragraph] agents test out every single one of them and then it's going to give it to the agent back. It's going to do the work. It's going to go out on the loop for like two hours. I'll go do my shower. I'll, I'll, I'll like eat some food. I'll go to the workout, all of that stuff. I come back. five agents are done working.
+    [paragraph] The work is probably like 90% meeting the standard that if I manually code it, it's going to meet that standard and it's going to be amazing. So that's how we went to like 2 billion tokens.
+    [paragraph] And we have like five projects. So imagine running that loop for like five times per project and then it's going to burn through so many tokens because of how complex the work is.
+    [paragraph] Dude, where can I get a 5G? document like that my problem is like my my business partner has all this shit but like you know he focuses on his stuff i focus on mine but like i all i do is a really fucking like brute force my way fucking through this dude like and it's killing me like you know i i need some type of thing to like, I don't know.
+    [paragraph] I just, I don't have the right structure in place so it's forgetting to do shit and it'll build it in and it'll remember and and you know i sent you something bro so if you don't know uh the thing that i sent you is a skill based on what andre carpati said andre carpati is this really really good machine learning engineer i i know you know so so you know he in an interview told how he uses agents and then based on that they made like skills for that We have a really big document, but we did that because we work subjectively in one type of way.
+    [paragraph] So we tune that document, we tune these skills. We use the Andres Carpati skills as a base. And then we keep on building on top of it as we go through these conversations with the agent. And then I tell the agent, let's say we go through a long conversation, we build this specific feature. After all of this, I want you to read through all of my patterns and what I specifically liked about all the UI features you built, all the backend features you built. And then let's have a conversation for like two minutes.
+    [paragraph] I'll type something out, you talk it to me, and then I'll tell you what I liked about this stuff. And then you take all the practices that you've took for that specific feature and then put it in the skills folder.
+    [paragraph] And then it's going to put it to the MD file and then it keeps building every single project.
+    [paragraph] every single session. If you build a successful feature and you like it, you tell it the agent and then it's going to edit and then build on top of it. And then that's how in 20 days, trust me, bro, in 20 days, your agent is going to feel like a clone of yourself if you build enough features on top of the Carpati skills.
+    [paragraph] And then, but what do you do? And do you use them pretty much? Obviously, for certain projects, you need certain skills, You just use the same type of startup with everything that you do and then tuned from there, I have a base MD file, agent.md file that I take to every project and then I edit on top of it every single conversation I have.
+    [paragraph] But if you want, bro, I also wanted to jump on a call because I wanted to propose an offer with you. So we came up with this new company, right? It's called CERNAN. C-E-R-N-A-N. And then we only work with European clients now. and mostly Indian clients now. So if you want to get into the US market, so we want to show the experience that we got. So if you want, bro, send out any developed work,
+    [paragraph] And then we'll charge you like 20 bucks maybe for the entire thing. You know, however big work that is. And then what we just want is we want to show that we work with a US-based company or an agency. So we can find our way through different markets.
+    [paragraph] So if you want, bro.
+    [paragraph] 100,000%.
+    [paragraph] Anything you're feeling hard, send it over to us. We have three developers. We have like two hours that we want to spend extra every day. So we'll spend two hours and then we'll get anything done that you want for the next like two months. Any software thing, any event, if you want a new website, we'll charge you 20 bucks for it. The entire thing, you can write a contract, don't worry about it.
+    [paragraph] But we just want to show your agency in our website so then we can get into the US market. with other projects.
+    [paragraph] Let's do it.
+    [paragraph] If you want to, I mean, a hundred, a hundred for 20 bucks.
+    [paragraph] Yeah. A hundred, a hundred percent. Um, As long as I get... Well, okay, so here's my only thing, right? That's my thing. And I trust you. But some of the stuff that I'm going to want, like, I do not want anyone else to have ever, right? Like, you know, if somebody else wants to figure out how to, like... Like if I'm building a SaaS or something like that, right? You know what I mean? I don't want somebody who comes along and says something similar to just get the exact version of mine slightly tweaked.
+    [paragraph] Yeah, we can write an NDA for it, bro. Sure. It will be transparent. And then probably you just give out certain features and then you can gatekeep some others so you don't expose your entire platform to us. So you can do it the way that you want because we just want your name on.
+    [paragraph] website because we want to show that we have worked with US companies.
+    [paragraph] But yeah, bro, sure. We can sign an NDA. I'll send you all of my information, my ID number, my full name, my address, all of it. So you can have the NDA with you. We'll sign an NDA and then the next two months, probably from the first, we can start. And then if you want, we'll revamp your website. We'll do everything. And then we can take on probably a couple of really hot features.
+    [paragraph] I got shit for you right now.
+    [paragraph] Really?
+    [paragraph] Yeah, for sure. What is that?
+    [paragraph] Because this weekend we are a bit free because we are going to go through the American market, how to explore it, all of that stuff.
+    [paragraph] So we'll be working this weekend.
+    [paragraph] So if you want to send anything over or just share your screen, I'll just record it.
+    [paragraph] I'll just get through it.
+    [paragraph] Now, let me ask you a question. Do you... If I have code bases that are like... you know, partially built out. You want to look at those? Or do you want... To just start from scratch.
+    [paragraph] I guess, bro, however you want. If you want us to start from scratch and then you want to go for a week and then compare what you have built with what we have built and then check and compare in between, you can do that because we're going to build the best software, bro. Because the past two years, we've been grinding so fucking hard because I'm in the middle of getting a degree that is the best degree in India.
+    [paragraph] It's like only 7,000 people get into it out of 1.4 billion. It's called IIT. It's IIT Madras and then I have the best teachers. I've been learning so much shit. I can build softwares that nobody can think of. We build the models that are the best. So if you want to start from scratch, you don't have to worry about it.
+    [paragraph] Yeah, okay. Now let me ask you another question. What is the best way? Do you have like an intake form that you want me to fill out a certain way that you're going to send me or like... How would you like me to like...
+    [paragraph] Just tell me what the requirements are or what the project is.
+    [paragraph] And then based on that, I'll send you a couple of questions or like a form.
+    [paragraph] Okay. That's what we always do with the clients.
+    [paragraph] Okay. Awesome. Yes. Dude, send that over to me and we'll sign it right now. I did have, do you have a couple more minutes?
+    [paragraph] Yeah, sure, bro. Sure. I'm free the next two hours.
+    [paragraph] Okay. It's like, it's like 1am here.
+    [paragraph] All right. Don't worry. Awesome. All right. So I did have a couple more questions for you. Let's, let's circle back to the, um, to the dermatology or the, I'm sorry, the skin,Cancer one. So, So how do you want to, how are you thinking that we structure this?
+    [paragraph] I say what we do is we'll get a demo link done, which will be up for like 12 hours maximum. And then you set out a date with the dermatologist connections you have. And then we'll make the demo live then. And then before that, we'll go over everything. We'll have probably two meetings in the middle.
+    [paragraph] And then I'll tell you every single piece of information you have to know when demoing this. So you don't feel like you're lagging in front of the dermatologist. or anything so you can answer all the questions or if you want I can join in right mean as well answer any of these questions okay we'll do all of that I'll send you them I'll send you the demo link and then you'll do the demo with them and then after that you know you last and you know or like you'll discuss with them how much they would pay for something like this because we need a number that actually from that from the expert because I don't know what they want I just know what I want which is like $6,000 a month.
+    [paragraph] But before that, I can even do like $2,000 a month because my baseline cost maximum will be $200. So anything I get over $200 is going to be a profit for me. So...
+    [paragraph] Okay, here we go. Yeah, sure. Go on.
+    [paragraph] Okay, so yeah, so that's one of the things I want to square away. The first time we talked, you know, you had expressed that obviously you're building out a lot of different models and you want to build you know, be able to gain access into the, into the U S market. And so, um, you know, obviously we have like kind of the skin cancer one right now. Um, but just like with every new business you need, um, you need, uh, uh, Case study.
+    [paragraph] So the last time we had spoken, you had said that we would just let them use it for a period and then charge them. Do you want to change that? Do you want me to charge them?
+    [paragraph] Yeah, we can go over that route as well, but we haven't fundamentally figured out what's good for the dermatologist yet.
+    [paragraph] So that's the part we're stuck at. But yeah, I'm happy to give them like a two-month trial so they can keep using it.
+    [paragraph] Right, right. Okay.
+    [paragraph] But before that, I just need a few pieces of information from the dermatologist, which is how helpful is this model to you guys?
+    [paragraph] Do you feel like it's matching your instance? when you see this malignancy report.
+    [paragraph] And after that is the mobile app and the LLM that we're going to give them.
+    [paragraph] How helpful is that on a scale of one to 10? And then based on what they give us, we can keep designing the mobile app and everything and the ecosystem after that probably for a couple of weeks and then give out the entire ecosystem for another demo for the next two months after that. And then if they like it, then what we can do is, on their review, we'll sign a document with them and we'll say, you give out this review in the support of our company and then say that you like this and that it matches your instinct.
+    [paragraph] So we can use this review to apply for licenses for the US government.
+    [paragraph] And then we'll apply for licenses because for this, an American needs to have a whole majority of the company.
+    [paragraph] So we'll probably create a new company just for this, just for the malignancy thing. for the entire hospital idea that we have. And then you can have like 55% or probably you can just have 100% of the stake of the company until we get the licenses. And then once you get the licenses, you can keep majority 51% of it. And then we'll just start charging and then expanding after that.
+    [paragraph] Because once we get the licenses, there's like no stopping because you're the only way I can get access to the US market because you have to have the ownership and the model needs to be hosted in the United States.
+    [paragraph] So you can keep majority of the profit, but my entire goal is to, is to expand to at least two hospitals.
+    [paragraph] No man, that totally works for me. And look, this is, you know, this, this, this is perfect timing too. Right. Because, because I need, I, this is a great, I mean, it's the best lead magnet ever to get into like, you know, a new vertical, right? And I want to, I definitely want to start doing more in healthcare. So this is a great place, a great place to start. So yeah, I'm totally down with that. Let me know.
+    [paragraph] If we should, do you want me to spend it? Do you want, I mean, are we close enough? Do you want me to spin up a new company right now?
+    [paragraph] Right now, let's wait until we're done with demo one, where we get the information back from the dermatologist. Once we're done with that, immediately after that we'll just spin up a new company and then and then you know who holds the models in the u.s servers directly and then uh probably train a few more directly in the united states it's all the u.s servers because the models that we train right now are european union based is the servers i mean uh the tpu servers uh so yeah bro i'll let you know once we're done with demo number one because uh you're you're the only way i can get into the u.s market because Yeah.
+    [paragraph] The reason that I'm saying that is because I have connections with George and other people in the European Union.
+    [paragraph] So if you get into, let's say, 30 hospitals in the United States, right? After that, I can just show the same licenses I got in the US to the European Union.
+    [paragraph] And there's like 90% chance that they would give out licenses more easily without extensive review if I already have the United States license. 100%. You get what I mean, right? So the United States market is incredibly valuable.
+    [paragraph] Same with the Turkish market. You know, they do a lot of healthcare stuff.
+    [paragraph] So it's also valuable, but I don't have anyone in Turkey. So we're just starting off with the United States.
+    [paragraph] Dude, I got... Well, I can tell you my...
+    [paragraph] Just tell me what markets you want to get in, bro, because my business partner, he spent the last like five years going around and teaching. And so he's worked with the Greek government. He's worked with the Chinese government. He trained the Dubai royal families' kids on, you know what I mean?
+    [paragraph] So like,We've got anywhere you want to go, we've got contacts yeah dubai is an interesting market too because they have really good healthcare there as well uh so yeah it's a really nice market as well i think we can we can also do dubai uh if if the connections are closed but first is the united states it's probably gonna take us like three four months but once we sign the first first hospital sort of for first clinic then there's like no stopping because we're gonna get like every license that we need all almost everything that we need before we get in.
+    [paragraph] But yeah, bro, sure. I'll fast track this project up and I'll get these models for the ASAP. Yeah.
+    [paragraph] And just so you know, this will be important for you to know. I know you keep mentioning hospitals and you're probably not aware of this. A lot of people aren't. But the government is pushing a lot of the care that happens in the hospital, they're pushing it down to the local level. So they want more people going to local. So, you know, it doesn't fundamentally change a whole lot. Right. But it just gives it actually is a good thing.
+    [paragraph] It gives us, you know, more If one hospital serviced skin issues, they're also servicing a million other things. But if they push it down, then there's going to be a lot more different lives. like offices to sell this and get the money from every month rather you know so it's actually it's actually a good thing so it doesn't change this the strategy really in any way but i just want to make you aware of that and then on my end uh on my end uh what what is so awesome about this is you know obviously i'll all i'm gonna go in and like this is my um you you know, this is, this is what I'm going to be talking about.
+    [paragraph] I won't confuse them with anything else. Although, you know, it actually might not hurt, but, but because, because, so much business is being, so much of the healthcare in this country is being going to push down to the local levels. The government also recently where any file that has to come to the government in healthcare, has to be digitized. Right? And these fucking doctors and stuff are not ready for that.
+    [paragraph] So I can also like just... AI the shit out of their entire companies. So they have this awesome new LLM and we're upgrading the the whole system for them. So it's an awesome partnership. Yep.
+    [paragraph] Makes sense, bro. 100%. Yeah, bro.
+    [paragraph] We can do that. I did not know that the shift is happening.
+    [paragraph] I didn't know the fact that Trump was pushing more for cheaper healthcare and the new policies and everything, but I'm not to keep up on the US and what's happening in the US.
+    [paragraph] I should have. You probably need someone that can keep track of this or probably like an LLM that can That's what I do.
+    [paragraph] Yeah, yeah. I'll be Rob GP2.
+    [paragraph] Yeah. Thank you for that, bro. But yeah, thank you for letting me know, bro. We'll also do some research on that as well. But yeah, bro, I'll get back to you on that. Let's jump on a call again on Monday or Tuesday for the malignants you want.
+    [paragraph] But if you want the other work that you said, we can do it now or you can do it after I send you the NDA and then we both can sign it.
+    [paragraph] Send me the NDA right away. And we'll get, we'll just start working on it. And so, okay. So we'll say Monday for the next one. And then when are you going to be in a position, you know, where everything's built out that you actually like want this in, it's going to be ready to go for them to actually do.
+    [paragraph] Yeah, probably like the 15th with the LLM connection and everything because we also have to do human evaluations on top of it with the hospital that we have here. So we should do some security reviews after that as well because we don't want to mess anything up in the demo because that's like the first impression, right?
+    [paragraph] So like until the 15th, just give us some time.
+    [paragraph] Yeah, that's cool. But I'll show you the LLM demo on the first.
+    [paragraph] Okay, perfect. be more amazing.
+    [paragraph] A lot of that stuff. But yeah, bro, I'll get back to you on that probably tomorrow, but I'll send you the NDA.
+    [paragraph] I actually have a couple more things to talk to you about. I don't know if you're trying to run No, no, bro.
+    [paragraph] I can be here for the next 40 minutes if you want.
+    [paragraph] Okay.
+    [paragraph] Shit, now what was I going to say? Um... Ba ba ba ba ba. Okay, so all right. So we got Monday for the next meeting. Let me actually send out an invite for that right now so we don't forget. And We'll do that.
+    [paragraph] Monday. Oh no, that's not it. Thank you. Uh, You want to say same time too?
+    [paragraph] Yeah, bro, we can do same time. No worries. Okay.
+    [paragraph] I'm sorry, dude, I don't have it in front of me. What's your email again? I'll send it to you, Brian. I just don't have it in front of me right now because you just It's devdex at the right gmail.com. you The DevDix. Yep. Yeah. Awesome. Hmm. All right, August 3rd, that is... Set up. Oh, I was, yeah. One of the things I was curious of, um, Are all of the models that you're going to be spinning up specifically within healthcare or are you looking at other stuff too?
+    [paragraph] I'm also looking into real estate, bro. We are in the early stages to building one of these small models. Basically, you scan out the entire property. This is like the oldest model. It's like everyone knows it.
+    [paragraph] Basically, you scan the entire house and and then it appears as a 3D model inside of your computer.
+    [paragraph] And then whenever someone walks into your office and says, I want an X property, it should look like this. And then you just tell the LLM that the customer needs this.
+    [paragraph] And then based off all of the scans that you did before, it's going to pull out the best one, the best matching one. And then you can select. You can give out the VR headsets and then the guy can express. The guy can check the entire. property and then if he likes it, it's going to be pixel perfect. Just so you know. He can see the entire thing. And then using his hands, he can go forward or backward and check the entire property.
+    [paragraph] And then after that, he would check if he wants to buy it or not. We cannot sell this for huge amounts of money, but it's one of the stuff that we wanted to get into. And also CRM systems for... real estate agents. We're also trying to build a CRM system for them.
+    [paragraph] Okay. All right. Hold on now. Let's talk about that. Yeah, so... Because we're going to do that too. You're going to do that too? Yes. Yeah. So let's see if there's a way we can do something where it makes sense. Burp. All parties. But you don't even have to. I mean, you can tell me about it or not. But yeah, that's one of the things that we're going to be doing. It's not exact. It's kind of it's a CRM, but it's a little more than that.
+    [paragraph] Yeah, it's a little more than that as well, what we have thought. But I'll show you something, bro, matter of fact. Give me something. I'll show you one of the systems that we build right now and how advanced they are.
+    [paragraph] I'd love to see it.
+    [paragraph] Can you see my screen? Nope.
+    [paragraph] Oh, there it was coming. Yep.
+    [paragraph] Can you see it?
+    [paragraph] Not yet. Oh, wait. Hold on. Yes, I got it.
+    [paragraph] Yep. So I'm sure you know, guest genius. It's probably one of the oldest projects that we were working on.
+    [paragraph] Yeah. I never actually got to see it though.
+    [paragraph] Yeah.
+    [paragraph] We were done working on it, but this is, this is how it's going to look like. And you know, this is a task page.
+    [paragraph] So any new order from any customer you get here, you know, all the orders, you know, what the order is, massage, you know, anything. And then you take it, you mark as complete. But what we were trying to build was real estate.
+    [paragraph] Sorry. See. Could you move? Yeah, thank you. Moving it out of the way. Yep, sure. Cool. Yep, sure.
+    [paragraph] So what we are trying to build out for real estate is basically like a KPI tracking stuff where every single piece of information in the real estate agency is going to be displayed here. Like everything.
+    [paragraph] If you see in the hotel, revenue, everything related to revenue and the future forecast as well. So you can see what the occupancy has been, ADR, and then in insight mode, when you click on insight mode, you're going to get this.
+    [paragraph] So the AI is going to give you the insight for everything. And then you're going to have all of this information here. You can chat with the AI as well. That's a beta feature. But then you can click on these and then you can check historically And every single KPI, it tracks every single thing through. And then it's the same for booking. So you can check how your booking has been doing with the nationalities and everything, all of this stuff. And then you can check your heat map as well.
+    [paragraph] What nationality people are visiting my hotel and then what is the profitability of them? All of that stuff. Cancel expenses. you know what people are cancelling the most is it the people that book from Airbnb or is it the people that are from ex nationalities all of that stuff so the same there's just one page And then there's going to be another page for investors and owners. So this is basically where the investor can put in some money.
+    [paragraph] And then it's going to give out an entire overview on how your money has been doing for the past couple of months. All of that stuff. And then we also have, in the guest genius, we have a PMS analytics one.
+    [paragraph] So basically, without opening a lot of tabs in your browser, what the staff does is they open this page.
+    [paragraph] Bye. Personal management system. So then they open this and then they open their management system here. And then they go over everything. They open the management system that they have. They log through it and then they'll check all of it. All of their data, any bookings that they have got from other companies, blah, blah, blah, blah, blah, blah. All of that stuff. So they can do everything from here itself in one platform.
+    [paragraph] They don't have to go with any other platform. That's cool.
+    [paragraph] And you also have the live chat. You can go through the live chat with all of your users. So let's say he's trying to order something, you can go through and then tell him, blah, blah, blah, order, and then you can check out all the guest information.
+    [paragraph] This is just like a developer dashboard that I'm giving a demo of you right now.
+    [paragraph] But all you can see is JSON here because it's like a developer demo.
+    [paragraph] But I can send you the real demo if you want on one. I just have to ask George because we have a lot of KPIs that we track. We don't want anyone to have them so they could copy us in the future. No, no, no.
+    [paragraph] No, for sure. And I would not do that. But it would be worthwhile to do because... The company that we just bought has a bunch of hotel chains. as customers already. So what I was thinking was, you know, you know, Maybe we could offer them yes, genius. And, um, uh, you know, I don't know, we'd figure out a way maybe George can scratch my back and, you know, um, make some money off it and, and, and things like that.
+    [paragraph] But, you know, I also have, um, I also have a What am I? wealthiest friends has about $70 billion under assets under management. And the biggest part of it is hospitality. Nice.
+    [paragraph] Yeah. That's like music to my ears, bro. Because, you know, there's like, we're trying to build this goddamn system for the past two years. You understand how long that is, bro? Oh, yeah. For a SaaS like this. And every single KPI here, you know, for just one of these KPIs, we had to do a demo with the hotel owner. We had to get his opinions. We had to change the way that we fundamentally track. All of that bullshit, you know, but, but it's, At the end, we got the best system in the world for hotels, especially for Spain.
+    [paragraph] But you have other languages that you can select. We are trying to explore the Southeast Asian market, the Bali market as well, all of that. But you have so much stuff that you can track with this.
+    [paragraph] Bro, I'll send you something. Check your WhatsApp.
+    [paragraph] What? Yeah, well, what do you have for... for agent, for the guest, for the, like voice agents and stuff.
+    [paragraph] You also have a voice agent, bro. I can send you the demo for it as well. It's basically just like Guess Genius, the one that I sent you. So the number that I've just sent you, go to it and then...
+    [paragraph] Let me pull up Is there? I haven't used WhatsApp on my computer in a long time. I just use it on my thing. So let me... Can you hear that? Hold on.
+    [paragraph] Yeah, bro. Go through it over your phone and then... If you open that account that I just sent you and then type in GGTEST, all in caps, you'll get the entire demo of the application.
+    [paragraph] Well, hold on.
+    [paragraph] I just want to download it on my computer. It's just way better to see it in real time. Sure, sure. But I'll do both.
+    [paragraph] But then you're looking at this platform, right, bro?
+    [paragraph] Like it's one of the best platforms I've built just for like CRM systems. We're trying to do the same for real estate because George is a real estate guy fundamentally, right? So he has like so many KPIs with him already that we can use and then, you know, probably go on top of the softwares he use and then build like a real estate agent on top of it.
+    [paragraph] Well, but no, what is George? Isn't George in private equity?
+    [paragraph] Yeah, bro. He does multiple things.
+    [paragraph] He's also opening up a hotel right now in Spain, in Mallorca. So he told me he's mostly a real estate guy that does real estate all the time.
+    [paragraph] But his real estate, is that mostly commercial or is it mostly hotels or is it...
+    [paragraph] residential he told me it is mostly hotels bro uh but i might have to ask him again because uh he keeps you know i'm mentioning just hotels in his real estate so i'm not really 100 sure because we all the time when we go through calls we just discuss about the platform and just the hotels and then demo with the hotels we you know don't go on the real estate now uh but i'll ask him again we can we can probably catch up If you want, I can send you the voice demo as well.
+    [paragraph] Then if you like it, we can catch up.
+    [paragraph] And then if you want, we can do this. Because it's like fundamentally, you're selling this for a minimum cost of $8,000 a month for really big hotels. So if you want, five or six hotels, if your guy can hook up with 10 hotels that are five-star, they're going to like this system.
+    [paragraph] in like a snap. And then if you can get into like 10 of these, our immediate revenue is going to be more than like 100k just with this one size.
+    [paragraph] How are you guys doing with it so far?
+    [paragraph] We're doing really great.
+    [paragraph] We haven't signed the monthly retainer yet because like I mentioned, he's doing a lot of work with this new hotel. He's renovating that. So we have just been busy with a lot of that stuff.
+    [paragraph] But 20 to 30 hotels we have already contacted with. He has demoed. He has talked about the idea. They all like it. And then one guy especially is like pinging us all the time.
+    [paragraph] to get the system into his hotel and he's ready to pay like 10k a month for the entire system.
+    [paragraph] That is cool. All right, cool. I'm in guest genius.
+    [paragraph] I'm sorry. The demo in your phone is going to be more interactive because the interactive messages are going to be only visible in your phone, I guess.
+    [paragraph] Not on your PC.
+    [paragraph] Oh, that's interesting.
+    [paragraph] You can go through everything, flow, and then this demo is going to be up 24/7.
+    [paragraph] So if you want, you can show it to any one of your hotel guys, and then immediately get their thoughts and everything. It also has an AI system, so ask it something like, what is the Wi-Fi password? What is the pet policy? Stuff like that. It's going to give you an answer immediately. Okay. That's...
+    [paragraph] oh that's cool so i just threw in like what's there to do around here for a nightlife Yeah, what it has is like this connection where it can go back and then go Google Maps and then get data.
+    [paragraph] So it can also do that as well.
+    [paragraph] Yeah, you should have it pull in the... links thoughYeah, bro, I should.
+    [paragraph] They're requesting the MetaGuys to give us the capability to send out, you know, interact the messages for Google Maps so we can just send the Google Maps, you know? Yeah. So they can just open and navigate or like Apple Maps.
+    [paragraph] They take fucking forever, don't they?
+    [paragraph] Exactly, bro. Like so fucking annoying. Like sometimes I like lose so much patience that I try to give up on this project.
+    [paragraph] But I get reminded every time that, you know, every single client is like 20k worth. Yeah, right.
+    [paragraph] But if you can see my screen again, bro, the entire conversation that you did is going to be pulled up in the live chat.
+    [paragraph] So, like...
+    [paragraph] So like the hotel can look at who's interacting with the platform and everything.
+    [paragraph] So they can correct the AI if it's anything wrong, everything.
+    [paragraph] But like, you don't know, this is just a developer demo thing. I'll show you the real thing one day.
+    [paragraph] Bro, it's like so fucking good.
+    [paragraph] You know? That's cool. And then I see that you have... You have Instagram and Meta or Messenger.
+    [paragraph] Yeah, yeah, we have those integrations as well. We also have integration with iMessages, Booking.com.
+    [paragraph] We are trying to get connections with Expedia and these booking platforms as well and all of that stuff.
+    [paragraph] Yo, let me ask you something. You said you do stuff with Airbnb, guys?
+    [paragraph] Yeah, bro, we do, but they don't have the chat API, but we can track the bookings with their API. We do know everything about Airbnb though, like their documentation.
+    [paragraph] My developer team knows like everything about their documentation. But so if you want anything, just let me know. Well, yeah.
+    [paragraph] You know, here's, And I don't know, you know, I know we're in different countries, but I I don't know. You know people, I know people. So we, one of the first things we did if you go to like go just go to morebookings.io Thank you. Okay. Yep. So this is like the very first... that we put up. We made it up ourselves. It's not even a real business. You know, just to like test some stuff out. And like, you know, the fucking thing gets like, oh, 100,000 visitors a month and like, you know, 4,000 of them Bring in...
+    [paragraph] putting in a request And so I'm thinking to myself, I'm like, You know... I'm like, we could, we can spin up prop. We can spin up like legit businesses like so fast as far as like, everything is going to be, everything's, um, you know, going to be, uh, the website and this website, like we didn't even like look at it. It's, it's, it's good for, for AEO, but I mean, it's nothing like, um, like gorgeous uh it's not bad but like it's nothing like we we can do but but um But my point is that this was just one business that we put up just to do some tests on it.
+    [paragraph] And we can put up stuff, like legit businesses that can draw people actual interested people to do them so fucking fast. And it's like, why don't we actually do something with them? And so I had a couple ideas. One of them was... Like, you know, to partner with, operators, right? guys that will actually like run the business will do the will do the you know the marketing and the aeo and seo and every automation forever um you know and so it'll always be the best but like you know you still need the human element to do stuff with it.
+    [paragraph] And it's just like, if I can do this with a bunch of different businesses and just find operators to actually like, Run them or you know, just fucking sell them off. Right. It's like, dude, here's a website, buy it on the cheap. You've got a new business and it's, it's proven, you know what I mean? It's like, well, We can do this for businesses so easily that like...
+    [paragraph] might as well yeah it's a really cool idea it's like it's like you know get a catchy get a catchy train uh you know put like 100 bucks in marketing or something and then and then get like all of these schedule call like emails and leads and just said we don't even need to everything's organic bro we don't do anything yeah exactly yeah exactly you told me a hundred thousand plus for this yeah a month and then four thousand people put in the schedule yeah in that shitty little thing.
+    [paragraph] Crazy. Yeah, dude. Like, we're really, really good at this.
+    [paragraph] And this is a dog shit. Yeah, bro, I could tell. I could fucking tell. 4,000 in this?
+    [paragraph] Bro, I know an agency that puts like a thousand bucks a month just for like email stuff, just for them to get like 300 leads and like two of them signing up, you know?
+    [paragraph] Crazy stuff.
+    [paragraph] Yeah. So I'm like, dude, we can do this with any type of business. Or I could just be like... ask somebody like you know what kind of business you want to spin up and i'll just spin it up to firm and like sell them like a kind of like like a business in a box Exactly.
+    [paragraph] You know, what about papers or or maybe like what about the stuff like, you know, you know, then it's a company company registered, all of that stuff. You think that doesn't matter? You think that can be done later? Because I don't know how the United States works.
+    [paragraph] Yeah, that's it. It's a good question. I mean, but. But it doesn't matter. Like I could just leave this as it is. And then like the day that somebody wants to buy it, I just register, um, you know, an LLC for it. And then, And then like, you know, They buy it the next day along with all of the all of the you know, other shit.
+    [paragraph] Yep, makes sense.
+    [paragraph] You know, I mean, I can help you automate this stuff if you want. Well, it's all.
+    [paragraph] What do you think needs to be automated?
+    [paragraph] What I meant by automating is we can think of like 30 businesses maybe. And I can maybe write up a program or something where like 20 different AI agents are triggered. And they build all this stuff.
+    [paragraph] We have all of it. We have all of it. Oh, yeah. Crazy. we have all of it. Like everything is, is we have, we have every, we can do anything. Right. But the thing is right. Like, it's just sitting here. I want to actually make some money off it. Right. And so it's like, It's like, And some of them I just wanna, I would just wanna frigging sell. You know, because like this, this, I mean, this one, for instance, is like, I help short-term, I'll take over your business. So this is almost like a coaching service.
+    [paragraph] you Yeah, I mean...
+    [paragraph] Yeah. Like the problem is, Okay. So... Well, what we would need to do for something like this.
+    [paragraph] is basically just do... Um, Just do automated...
+    [paragraph] like the problem is like just doing it right it's like the automated we need to automate the onboarding as much as possible and then just like transfer over the But like, you know, this, that's just one idea for business, but we could do, we could do, we could do other stuff too. All I know is that we can get more organic traffic than anyone. And dude, actually, don't share this. Please, but Like probe.
+    [paragraph] We have... you know, we've, uh, consulted so much for Meta and Google and all of them that we have like, we have access to what they use internally, not the developer access that they give publicly. We have... the fucking satellites that they give the military. You know what I mean?
+    [paragraph] Like, We What do you mean, for like booking stuff? Or like I don't really get it.
+    [paragraph] OK. You know how like if you're a dev and you want to use like Google Google has a bunch of different services you can utilize.
+    [paragraph] Say that again, you're cutting off a bit.
+    [paragraph] Like if you're if you're If you're a dev and you want to use a bunch of Google stuff. Right. Um, API is to, I don't know, Google earth or like, or, you know, this or, or that. Right. Um, you know, uh, All that stuff, right? Like they have a developer... console and you have a bunch of shit you can do. Right? Yep. What I'm saying is that is that we, have Well, he has consulted so much. to help Google and Meta and like all those companies out that he said, he basically was like, I don't want payment.
+    [paragraph] I want access to all the shit that you have internally, like all the... the more advanced of it, Oh, yeah.
+    [paragraph] And they gave it to him? Crazy stuff.
+    [paragraph] Yeah, dude. So that's like invaluable.
+    [paragraph] Yeah, exactly. And are you guys using that data that you get from them internally while building any tools?
+    [paragraph] Yeah, we... We haven't really... but we could. You know, it's just that... we don't really nothing we've done we've really needed to do it yet like with this new businessYeah. Yeah. Anyway, it's wild. But yeah, man, I want to fucking spin up businesses and just... Stellum. So anyway, well, anyway, that was a tangent. All right, so... Oh yeah, the Airbnb stuff. What do you guys do with them again?
+    [paragraph] We are just adding integration of it. So, you know, in Guest Genius, where like people know if they booked, you know, what customers booked what from Guest Genius, from Airbnb in Guest Genius. But nothing more than that. But we do know the entire documentation of Airbnb. So if you want anything, I think we can build them. I'm like 90% sure.
+    [paragraph] Well, how about this? How about this? If you go after Airbnb, you get them signed up for guest genius, and then we'll do all of the other shit for them that it says on this site.
+    [paragraph] Come again, bro? Come again?
+    [paragraph] Like, if you talk to... If you talk to a...
+    [paragraph] you know, if you're going to work with a Airbnb, Right.
+    [paragraph] And they want to buy Gas Genius. Right? Yep. What I'm saying is... that Um, You can also... if you want, like recommend like this service will build out everything for them and then just give you, you know, Fucking half the split or something. Yeah, sure, bro. Sure. Yeah, like, all I'm saying is that, like, you know... You know, we both can kind of, like, do anything, but, like... But there's stuff that we're definitely going to be way, way faster and just have more shit in, man. It's just the case. But I'm not fucking spinning up LLMs and stuff, right? Like imaging LLMs.
+    [paragraph] So it's like, let's work together to just take everything over so we can move so much faster.
+    [paragraph] Sure, boy. Sure, 100%. I can do that. Sure. So if you want, what do you think we should first focus on mostly? Is it going to be...
+    [paragraph] What should we focus on first mostly? Yeah. Yeah, what I'd like to focus on first mostly is getting you some... getting you some info on some shit I'd like you to spin off for me as soon as possible. Sure, sure. Do you have any lead magnets for... to attract real estate agents at the moment. Uh...
+    [paragraph] Give me one sec, bro. Let me share. Give me one sec. I think I... I worked with a guy like a year ago. But I think it's in the old number that I had. But we did share some magnets together. But I'm not really sure. Um... Okay. Yeah, I'll get back to you on that, bro. I don't really work with real estate guys that frequently, but... I'll get back to you on that.
+    [paragraph] Well, if you ever, and I'm happy to do the same for you too. Like if you ever, you know, come up, if you ever have any like really. lead magnets that you use that work particularly well, let me know. Sure. And it doesn't matter what vertical. And I'll share mine with you. Like I made one the other day that is kind of for roofing. Uh-huh. And so what it does is it tracks all of the storms that are going on and it will detect down, it will detect any piece of hail that, that, above what we're seeing.
+    [paragraph] 1.5 centimeters, right? And I'll know it in two minutes. So what I do is I grab all of those and then I look at, and then I bring in like the geo coordinates of where exactly it landed. I put in like the neighborhood view on top of it. I can tell where it hit their, their, their roofs. hang the, um, municipality to see how long it's been since the roof has been replaced, because a lot more probability of damage if it's been over 10 years.
+    [paragraph] And then I just have like a cluster of people, like neighborhoods and stuff that I can, you know, sell or to sell to roofers or use as a lead magnet to get them to talk to us about all the other shit that we can do for them, you know? So I've got some, I've got some pretty cool ones like that. Um, But... But yeah, man, no, this actual, yeah, this guest genius thing. And the more bookings who would work, would work well because all I'll do is remove the AI guest messaging and The rest of it... Uh.
+    [paragraph] doesn't really have anything to do with guest genius. So that's cool. All right. But yeah, man, the main thing I'd love to focus on is... spinning up some some of these projects. Let me think, let me look which one we should do first. Well, I'll tell you what. How? Remember, like... Remember like a year ago, we were, We were doing those like avatar based Uh, Chad Barton.
+    [paragraph] Chad Barton, yeah. With the girl's face on top of it. Yeah, I remember it.
+    [paragraph] Alright, so here's what I want to do. I have a website right now. It's called AI Voice Tech. I am. Right. I want to spin up a new website for it and I basically want it to Focus on... being focusing on a leaky bucket, right? So I view that as three things, right? A leaky bucket's when you can't when you have leads coming in, but you're not capturing them all. Right. And the reason people do that is because they're not answering like 62% of phone calls that go to small businesses go unanswered. Right.
+    [paragraph] So it's like, you gotta be able to answer your phone all the time. So I, um, I want to to super dope uh outbound voice agent for the future.
+    [paragraph] for or what's it called?
+    [paragraph] um, for like database reactivation, um, I want to do outbound for speed to lead stuff. New lead comes in, boom, they can call out. But the more important one is I want to do... a digital receptionist, which I know everyone does, but I want to basically make a self-selling demo.
+    [paragraph] Right? And so...
+    [paragraph] I have, let me see if I can pull something up for you. Sure.
+    [paragraph] And also if you can write this requirement down as clearly as you can so I don't forget while I misinterpret it to the team members, that'd be nice. But yeah, sure. So.
+    [paragraph] Let's do, And we will. We'll do our live.
+    [paragraph] um I don't know what the fuck's going on, man. He can... I'm not at my office. I'm not. the client's office just often are No worries. And. No, no. Okay, hold on.
+    [paragraph] um Okay, well, I'll pull that up.
+    [paragraph] But okay, so... So you got that one. I mean, here's the thing. I can do a lot of this shit myself, but Um, I just don't. don't have the time in it rather Have you guys do it? Okay, but the other big one is here's what I want. This is what I want, Dex. I want to... have a I want to build a chatbot I want, I wanted to have this ability on the back end. So you have the ability to log in under your name, and set whether you want the uh, Chatbot Launcher to have a to have a avatar or not.
+    [paragraph] There'll be a couple of ones that they can choose from and most people are going to want to like put a picture of their wife or themselves up there. It's gonna be a still image, right? And so I need to take that still image and I need to, converted perfectly into lip syncing. And I am super, super stickler about it sounding like an actual real person. But what I do is I... I, on the back end, will suggest the text, right?
+    [paragraph] that it should say and the customer can change it if they want, but Um, The Avatar will... show up it'll be proactive about five seconds after um you know a couple seconds after they come on it'll just say like hey welcome here blah blah blah blah um and so on and so forth. Like if you want to talk, blah, blah, blah. Okay. Or let's use an e-commerce store example, right? I'm your personal shopper, like blah, blah, blah.
+    [paragraph] And then when they go over to it, I want... I think it's better to actually have it open into a little bit larger of a chatbot, especially in an e-commerce case. And There's no avatar in there. uh, except for just like a little one but it doesn't really like do any talking back or or anything like that it's just kind of smiling and and moving back and forth. But, you know, they'll go through the conversation with it.
+    [paragraph] Oh, yeah, you know, what are you interested in? Yeah, I'm interested in like a hoodie. Cool. Like what kind of colors were you thinking? Red. Nice. You know, what size are you? So, Cool. Here's our three best selling Excel red hoodies lately. It pulls up the product images right there. And you can actually place an order right from within the chat box. It doesn't even have to go to a checkout. And we have the payment processing stuff in place that you'll be able to utilize.
+    [paragraph] But... Yes. Don't, yeah.
+    [paragraph] Yeah. So I think that'd be super dope. But then, you know, the main like kind of sticking points are, taking the still image, right? converting it, removing the background putting it into an office uh an on like an office-y type setting um and just making sure it looks superhuman. And so what it'll do is it will, um, It will say whatever we have it say, and then if they don't click on it, what it's doing is just doing a loop of just kind of smiling and sitting there. But it's also watching the customer.
+    [paragraph] move around the site. And so like, you know, it'll reach out a couple of times. Like if they go somewhere and you know, they're looking at a different page, you know, we want to say like, Oh yeah, about this, this and this, like, like really, I'm happy to help you out. So it's like being proactive. And then I want it to like, Follow the person around and understand where, what they're doing, where they're at.
+    [paragraph] I would like I don't know a lot about this, but the website kind of anonymous website video visitors um if we can get some information on that that's obviously really good if it can recognize right away um you know who the person is that came back um that's that's important can pull up past conversations all of that stuff and um And so also on the back end within this is where I suck is is just having being allowing the owner to go in and see like all of the analytics right like if i want to look at this conversation boom it happened at this time here's what it was um this is where they uh Came in from, you know, this was the result.
+    [paragraph] Just shit like that. And I'll put it all together for you, but... But...
+    [paragraph] Yeah, makes sense. So what we'll just do is we'll just take a sample e-commerce website from anywhere on the internet and then make a chatbot.
+    [paragraph] It needs to have, you know, we'll put in an image of a lady and then needs to be with, the background needs to be, you know, an office setting. It has to be lip syncing, has to be with audio. It has to keep talking, all of that stuff, right? So sure. but we can um just type this out again so you know any feature you like extra on top of it also we already know that you know they can check out they can start the booking they can enter the address and everything in the chat box itself yeah it's nice yeah sure yeah that's one of them and then and then another one is i need help building out a training portal like badly for my sales reps so I don't know if you've ever done anything like that.
+    [paragraph] Training portal as in as there's going to be an AI agent and then or like there's going to be information and then Yeah. Yeah. Sorry, go ahead. So, like... Is it going to be like an AI agent, just like the one that we said, and then he's going to read out multiple information and then they're going to demo whatever the sales rep to the AI agent and it's going to rate on top of it, something like that?
+    [paragraph] At some point in the process, it will, right? I mean, ideally, what I'd really like to do is just create scripts and have some type of AI avatar, read out and have them talk about that company. And then like break that up into different sections of like, you know, this is what you want to know about this is what you want to know about this. But then later on in the process, like maybe we'll give them a questionnaire where they have to click on the right answers. It'll score them.
+    [paragraph] And then, you know, one of the pieces will be actually like going through an actual call with a customer. And then basically grading them, coaching them on it. grading them on it, you know? Yep, yep, makes sense.
+    [paragraph] Yeah. Just type these two ideas into...
+    [paragraph] into WhatsApp for me. Yeah. Maybe if you can, and then I'll, I'll, I get that stuff done for me.
+    [paragraph] Is there anything in particular that you want me to... Like, like with the with the portal i'm not sure what the best like stack to use is right like You knowFor the portal, the stack, we can just do TypeScript.
+    [paragraph] TypeScript, I think it's the best. Okay. Yeah.
+    [paragraph] Right.
+    [paragraph] Like I, I just, the reason that I said that is because like, I don't know exactly what information that you, how in depth you want me to go or just basically kind of, No, go as much as you want because you can just give us the initial document and then we'll build out the entire thing and then add our own features on top of it and then we'll jump on the phone, we'll discuss if you need anything tuning and then we'll be done.
+    [paragraph] All right. Put in as much information as you can. Take your time if you want, like an entire day and then send it over.
+    [paragraph] All right, dude. Well, I'll let you go. I appreciate the time. I'm super fired up about the LLM So keep me posted on that and we'll make some serious money.
+    [paragraph] I'll get back to you once I'm done with most of the work that I have. But yeah, bro, send me the documents. I'll get started on it.
+    [paragraph] I'll also send you the NDA when I can.
+    [paragraph] I also have to go right now. Yeah, no worries. But yeah. Well, let's talk soon. Had a nice conversation with you. Let's talk a few days later on Monday, maybe on a meeting. Yeah.
+    [paragraph] I sent out an invite for Monday, so we're good.
+    [paragraph] Yep, sure, Bob. See you then. Amen. Later.
