@@ -15,6 +15,7 @@ import {
   nameForms,
   normalizeTitle,
   transcriptStem,
+  countWords,
   type RegistryRecord,
 } from "../transcriptRecordLink";
 
@@ -152,5 +153,89 @@ describe("refusals", () => {
     );
     expect(links.filter((l) => l.status === "linked")).toHaveLength(2);
     expect(links.filter((l) => l.status === "uncertain")).toHaveLength(1);
+  });
+});
+
+/**
+ * Q86 inc.41 — the body evidence.
+ *
+ * The excerpt below is VERBATIM from `~/Projects/MyLocalEverything/transcripts/joseph-ontime.txt`
+ * (lines 49, 53 and 93 of the file, read 2026-08-08). It is embedded rather than read from disk
+ * because that path is outside this repo and a test that silently skips when a file moves proves
+ * nothing — quoting it makes the test the record of the read.
+ */
+const JOSEPH_BODY_EXCERPT = `
+we're we're an agent for National Van Lines. We're the Northeast Florida agent for National Van
+Lines, which is one of the larger, you know, van lines out there.
+So when when for, like, local moves, I mean, it's like it could be anywhere from, you know, $6,700
+to, you know, maybe $3,000 would be, like, an average, you know, for, like, local, like, moves.
+But then when they're going out of state, it can vary drastically.
+Oh, awesome. Sorry about that. I was having some audio issues, but it's nice to meet you, Joseph.
+I'm Will.
+`;
+
+describe("countWords", () => {
+  it("counts whole words only, case-insensitively", () => {
+    expect(countWords("Roofing the roof, roofing again", ["roofing", "roof"])).toEqual([2, 1]);
+  });
+
+  it("counts a word repeated back to back as two", () => {
+    expect(countWords("on time time again", ["time"])).toEqual([2]);
+  });
+
+  it("returns 0 for a word the body never says, and for an empty word", () => {
+    expect(countWords("nothing about it here", ["roofing", ""])).toEqual([0, 0]);
+  });
+
+  it("matches a multi-word phrase as a phrase", () => {
+    expect(countWords("the on time crew", ["on time", "time on"])).toEqual([1, 0]);
+  });
+});
+
+describe("body evidence on the joseph-ontime pair", () => {
+  it("finds the disputed title word ROOFING spoken zero times in the excerpt", () => {
+    const t = snapshot.transcripts.find((x) => x.ref === "joseph-ontime.txt");
+    expect(t, "the joseph-ontime row must still be in the snapshot").toBeTruthy();
+    const link = linkTranscriptToRecord({ ...t!, body: JOSEPH_BODY_EXCERPT }, registry);
+    const roofing = link.wordEvidence.find((e) => e.word === "roofing");
+    expect(roofing, "roofing must be reported as a disputed title word").toBeTruthy();
+    expect(roofing!.side).toBe("title");
+    expect(roofing!.bodyHits).toBe(0);
+  });
+
+  it("counts BOTH sides — the record's own name words too, not just the case against the title", () => {
+    const t = snapshot.transcripts.find((x) => x.ref === "joseph-ontime.txt")!;
+    const link = linkTranscriptToRecord({ ...t, body: JOSEPH_BODY_EXCERPT }, registry);
+    expect(link.wordEvidence.some((e) => e.side === "record")).toBe(true);
+  });
+
+  it("NEVER upgrades the verdict on word counts — evidence narrows, a human rules", () => {
+    const t = snapshot.transcripts.find((x) => x.ref === "joseph-ontime.txt")!;
+    const withBody = linkTranscriptToRecord({ ...t, body: JOSEPH_BODY_EXCERPT }, registry);
+    const without = linkTranscriptToRecord(t, registry);
+    expect(withBody.status).toBe(without.status);
+    expect(withBody.status).toBe("uncertain");
+    expect(withBody.record?.id).toBe(without.record?.id);
+  });
+
+  it("says the counts out loud in `why`, and says whose call the ruling is", () => {
+    const t = snapshot.transcripts.find((x) => x.ref === "joseph-ontime.txt")!;
+    const link = linkTranscriptToRecord({ ...t, body: JOSEPH_BODY_EXCERPT }, registry);
+    expect(link.why).toMatch(/"roofing" 0×/);
+    expect(link.why).toMatch(/the ruling is a human's/);
+  });
+
+  it("a caller with no body gets no evidence and an unchanged sentence", () => {
+    const t = snapshot.transcripts.find((x) => x.ref === "joseph-ontime.txt")!;
+    const link = linkTranscriptToRecord(t, registry);
+    expect(link.wordEvidence).toEqual([]);
+    expect(link.why).not.toMatch(/spoken in the body/);
+  });
+
+  it("a linked pair with nothing disputed reports no evidence even when a body is supplied", () => {
+    const t = snapshot.transcripts.find((x) => x.ref === "david-cates.txt")!;
+    const link = linkTranscriptToRecord({ ...t, body: "any words at all" }, registry);
+    expect(link.status).toBe("linked");
+    expect(link.wordEvidence.filter((e) => e.side === "title")).toEqual([]);
   });
 });

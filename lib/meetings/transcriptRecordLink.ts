@@ -60,6 +60,13 @@ export type DiskTranscript = {
   ref: string;
   /** The title the transcriber wrote at the top of the file. */
   title: string;
+  /**
+   * The spoken words, header excluded — the THIRD independently written string (Q86 inc.41).
+   *
+   * Optional on purpose: every caller that has only a snapshot keeps working unchanged and simply
+   * gets no body evidence. A caller that can open the file passes it and gets counts.
+   */
+  body?: string;
 };
 
 export type TranscriptRecordStatus =
@@ -89,8 +96,31 @@ export type TranscriptRecordLink = {
    * the same engagement.
    */
   unexplainedTitleWords: string[];
+  /**
+   * Q86 inc.41 — what the TRANSCRIPT BODY says about the words the title and the record disagree
+   * on. Empty when no body was supplied, or when there was nothing to disagree about.
+   *
+   * Both sides are counted, always: the title words the record cannot account for AND the record's
+   * own name words the title never carried. Counting only one side would be building a case.
+   */
+  wordEvidence: WordSupport[];
   /** In words, what was and was not established. Printed beside the verdict, never inferred. */
   why: string;
+};
+
+/**
+ * How often one word is actually spoken in a transcript body.
+ *
+ * The point of this signal is that it is written by a third hand at a third time: the title was
+ * typed by whoever saved the recording, the slug by whoever wrote the registry row, and the body by
+ * the people who were on the call. A 26-minute call about roofing says "roofing".
+ */
+export type WordSupport = {
+  word: string;
+  /** Which string the word came from — so a reader knows which reading it tests. */
+  side: "title" | "record";
+  /** Whole-word occurrences in the body, case-insensitive. */
+  bodyHits: number;
 };
 
 /**
@@ -151,6 +181,79 @@ function containsWords(haystack: string, needle: string): boolean {
 }
 
 /**
+ * Count whole-word occurrences of each word in a transcript body. Pure; the body is an argument.
+ *
+ * ⛔ **THIS RESOLVES NOTHING AND MUST NEVER BE ALLOWED TO.** A count is not a ruling. Zero hits for
+ * `roofing` in a 4,205-word call is strong evidence the title word is not what the call was about —
+ * and it is still not proof that the call belongs to the moving company, because a body can be
+ * about a third thing entirely. So this returns numbers, the verdict stays wherever the two
+ * identifying signals left it, and a human reads the numbers. `status` is deliberately untouched by
+ * everything in here: no path through this module can turn `uncertain` into `linked` on word counts.
+ */
+export function countWords(body: string, words: readonly string[]): number[] {
+  const normalized = ` ${normalizeTitle(body)} `;
+  return words.map((word) => {
+    const w = normalizeTitle(word);
+    if (!w) return 0;
+    let hits = 0;
+    let from = 0;
+    for (;;) {
+      const at = normalized.indexOf(` ${w} `, from);
+      if (at === -1) return hits;
+      hits += 1;
+      // Advance by one space so adjacent repeats ("time time") are both counted.
+      from = at + 1;
+    }
+  });
+}
+
+/**
+ * The evidence block for one ruled pair: the disputed words from BOTH strings, counted in the body.
+ *
+ * `record` side = the record's own name words the title never carried. Included so the reader sees
+ * the counterweight and not just the case against the title.
+ */
+function bodyEvidence(
+  body: string | undefined,
+  unexplainedTitleWords: string[],
+  matchedWords: string[],
+  record?: RegistryRecord,
+): WordSupport[] {
+  // No body, or nothing in dispute, means nothing to weigh. A `linked` pair is not made more or
+  // less linked by how often the body says the name, and printing counts under it would read as
+  // doubt where the two identifying signals already agreed.
+  if (!body || !unexplainedTitleWords.length) return [];
+  // Only the name words the title never carried. The words the match already accounted for are
+  // not in dispute, and counting them buries the two that are under filler like "on" and "the".
+  const accounted = new Set(matchedWords);
+  const recordSide = record
+    ? normalizeTitle(record.name)
+        .split(" ")
+        .filter((w) => w && !accounted.has(w) && !TITLE_BOILERPLATE.includes(w as never))
+    : [];
+  const sides: WordSupport[] = [
+    ...unexplainedTitleWords.map((word) => ({ word, side: "title" as const, bodyHits: 0 })),
+    ...recordSide.map((word) => ({ word, side: "record" as const, bodyHits: 0 })),
+  ];
+  if (!sides.length) return [];
+  const counts = countWords(body, sides.map((s) => s.word));
+  return sides.map((s, i) => ({ ...s, bodyHits: counts[i] }));
+}
+
+/** One line a human can read without opening the file. Never asserts which reading is right. */
+function evidenceSentence(evidence: WordSupport[]): string {
+  if (!evidence.length) return "";
+  const say = (s: WordSupport) => `"${s.word}" ${s.bodyHits}×`;
+  const title = evidence.filter((e) => e.side === "title");
+  const record = evidence.filter((e) => e.side === "record");
+  const parts = [
+    title.length ? `the title's ${title.map(say).join(", ")}` : "",
+    record.length ? `the record's ${record.map(say).join(", ")}` : "",
+  ].filter(Boolean);
+  return ` — spoken in the body: ${parts.join("; ")}; counts only, the ruling is a human's`;
+}
+
+/**
  * Rule one transcript against every record in the registry.
  *
  * A record whose full name is present in the title is the candidate; the slug is what confirms or
@@ -186,18 +289,21 @@ export function linkTranscriptToRecord(
     const left = unexplained(form.split(" "));
     const status: TranscriptRecordStatus =
       stemAgrees && left.length === 0 ? "linked" : "uncertain";
+    const evidence = bodyEvidence(transcript.body, left, form.split(" "), record);
     return {
       transcript,
       record,
       status,
       signals: { nameMatched: form, slugMatched: stemAgrees },
       unexplainedTitleWords: left,
+      wordEvidence: evidence,
       why:
-        status === "linked"
+        (status === "linked"
           ? `title carries "${form}" and the filename stem "${stem}" agrees — two independently written strings naming the same subject; proposes ${record.id}, does not file it`
           : stemAgrees
             ? `title carries "${form}" and the stem agrees, but the title also says ${left.map((w) => `"${w}"`).join(", ")} — which ${record.id} (${record.name}) does not account for; left uncertain for a human`
-            : `title carries "${form}" but the filename stem "${stem}" does not agree with ${record.id}; one signal only, never enough to link`,
+            : `title carries "${form}" but the filename stem "${stem}" does not agree with ${record.id}; one signal only, never enough to link`) +
+        evidenceSentence(evidence),
     };
   }
 
@@ -208,13 +314,17 @@ export function linkTranscriptToRecord(
       const prefix = words.slice(0, take).join(" ");
       if (!containsWords(title, prefix)) continue;
       const left = unexplained(prefix.split(" "));
+      const evidence = bodyEvidence(transcript.body, left, prefix.split(" "), record);
       return {
         transcript,
         record,
         status: "uncertain",
         signals: { nameMatched: prefix, slugMatched: false },
         unexplainedTitleWords: left,
-        why: `title carries "${prefix}" but not the rest of "${record.name}", and says ${left.map((w) => `"${w}"`).join(", ")} besides — this is either a mis-titled file or a different entity, and resolving that is not this module's call`,
+        wordEvidence: evidence,
+        why:
+          `title carries "${prefix}" but not the rest of "${record.name}", and says ${left.map((w) => `"${w}"`).join(", ")} besides — this is either a mis-titled file or a different entity, and resolving that is not this module's call` +
+          evidenceSentence(evidence),
       };
     }
   }
@@ -224,6 +334,7 @@ export function linkTranscriptToRecord(
     status: "none",
     signals: { nameMatched: null, slugMatched: false },
     unexplainedTitleWords: unexplained([]),
+    wordEvidence: [],
     why: `no record in the registry (${registry.length} read) has a name this title carries — the transcript stays unattached rather than attached to a guess`,
   };
 }

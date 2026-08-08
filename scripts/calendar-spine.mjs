@@ -230,7 +230,23 @@ const registry = existsSync(NETWORK)
       legacySlug: p.legacySlug ?? null,
     }))
   : [];
-const transcriptRecordLinks = linkTranscripts(localTranscripts, registry);
+// Q86 inc.41 — the THIRD independently written string: what the people on the call actually said.
+// Read here (a script may touch the filesystem; the module may not) and passed in as an argument.
+// READ-ONLY, and deliberately so: this opens files under a directory outside the repo and writes,
+// moves or renames nothing there — Q86 DoD (f)'s directory is evidence, not a workspace.
+const TRANSCRIPT_DIR =
+  argOf("--transcript-dir") ??
+  join(homedir(), "Projects", "MyLocalEverything", "transcripts");
+const withBodies = localTranscripts.map((t) => {
+  const path = join(TRANSCRIPT_DIR, t.ref);
+  if (!existsSync(path)) return t;
+  // The header block above the `===` rule is the transcriber's, not the speakers'. Counting a
+  // title word inside the title would make the title corroborate itself.
+  const raw = readFileSync(path, "utf8");
+  const rule = raw.indexOf("=====");
+  return { ...t, body: rule === -1 ? raw : raw.slice(raw.indexOf("\n", rule) + 1) };
+});
+const transcriptRecordLinks = linkTranscripts(withBodies, registry);
 
 const drain = drainSnap
   ? drainReport(
@@ -553,6 +569,13 @@ if (transcriptRecordLinks.length) {
     console.log(
       `   ${mark} ${l.status} — ${l.transcript.ref} → ${l.record ? `${l.record.id} ${l.record.name}` : "no record"}\n     ${l.why}`,
     );
+    // Q86 inc.41 — the disputed words, counted in the body, both sides. A word the speakers never
+    // said in a 26-minute call is the strongest thing a machine can honestly say here, and it is
+    // still not a ruling: the verdict above is unchanged by every number below it.
+    for (const e of l.wordEvidence) {
+      const verdict = e.bodyHits === 0 ? "never spoken" : `spoken ${e.bodyHits}×`;
+      console.log(`       · ${e.side} word "${e.word}" — ${verdict} in the transcript body`);
+    }
   }
   console.log(
     `   ⛔ these are PROPOSALS. Nothing was written to any record, and "same named subject" is not "this call is about that deal".`,
