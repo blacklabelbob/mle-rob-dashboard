@@ -58,6 +58,16 @@ const DECLARES =
   "export type SourceFile = { path: string; text: string };\n" +
   'const walked = { path: rel, text: readFileSync(abs, "utf8") };\n';
 
+// Ledger #47 RECURRENCE (2026-08-08, Q86 inc.47). #47 gave three individual `it`s in this file an
+// explicit 60s timeout because the real-tree scan had outgrown vitest's 5s default. That fix was
+// scoped to the tests that happened to be red THAT DAY, so every sibling calling the SAME scan —
+// and every test added since — silently reverted to 5s. One of them ("says the scan could see AND
+// was not handed a thin producer set") went red at 6.1s under full-suite contention and blocked a
+// push. The timeout now sits on the DESCRIBE, so a new test in this family inherits it instead of
+// re-discovering the limit. Still not `testTimeout` in vitest.config.ts — a global raise would
+// slacken all ~5,650 tests to hide these few slow scans, per #47's own reasoning.
+const REAL_TREE_SCAN = { timeout: 60_000 };
+
 describe("contentsFieldNames", () => {
   it("reads the bytes field off a real disk read, whatever it is spelled", () => {
     // The case the hard-coded `text|content|source` could not see: same meaning, different noun.
@@ -334,7 +344,7 @@ describe("undischargedVacuityNotice", () => {
   });
 });
 
-describe("the live guard family", () => {
+describe("the live guard family", REAL_TREE_SCAN, () => {
   it("was handed modules and tests at all — an empty sweep must not read as clean", () => {
     expect(modules.length).toBeGreaterThan(0);
     expect(tests.length).toBeGreaterThan(0);
@@ -547,7 +557,7 @@ describe("illiterateScanNotice", () => {
 // the near-silence still had none, and a plausible 1 is the more dangerous of the two because it
 // never prompts the question. Pinned against the LIVE tree in both directions, because the whole
 // claim is about which producer set was passed and a fixture cannot exhibit that.
-describe("testlessProducerNotice", () => {
+describe("testlessProducerNotice", REAL_TREE_SCAN, () => {
   const producers = [...modules, ...tests];
 
   it("fires on exactly inc.125's collapse, where the illiteracy notice is correctly silent", () => {
@@ -638,7 +648,7 @@ describe("testlessProducerNotice", () => {
 // sentences there would mean trusting a caller to pass the same values twice, which is the very
 // failure the notices exist to catch. The scan's entry point is the only place the arguments are
 // written once.
-describe("scanTreeWithNotices", () => {
+describe("scanTreeWithNotices", REAL_TREE_SCAN, () => {
   const producers = [...modules, ...tests];
 
   /** Q84 inc.133 — the written no-op: what a caller who wants only the list must now say out loud. */
