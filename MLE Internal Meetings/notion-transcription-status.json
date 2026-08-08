@@ -1,0 +1,229 @@
+{
+  "source": "notion:blocks/{id}/children",
+  "snapshot": "MLE Internal Meetings/notion-snapshot-2026-08-07.json",
+  "measuredAt": "2026-08-08T12:19:55.430Z",
+  "note": "Status verbatim per row, for spine rows measuring 0 chars over >=1 block. `error` non-null means UNMEASURED — the spine must keep that row owed, never read it as an absence.",
+  "counts": {
+    "notes_ready": 16,
+    "transcription_not_started": 15,
+    "transcription_paused": 5
+  },
+  "measured": [
+    {
+      "pageId": "3b31de57-0199-80ea-9171-cd12c228e3d7",
+      "title": "Meeting 2026-08-05",
+      "status": "notes_ready",
+      "error": null
+    },
+    {
+      "pageId": "3b21de57-0199-80e8-95b6-ca602d7129c6",
+      "title": "Meeting 2026-08-04",
+      "status": "transcription_not_started",
+      "error": null
+    },
+    {
+      "pageId": "3b21de57-0199-8006-959b-d4a9c66718ef",
+      "title": "Meeting 2026-08-04",
+      "status": "transcription_not_started",
+      "error": null
+    },
+    {
+      "pageId": "3b21de57-0199-8027-8f75-c0bd6b76a138",
+      "title": "Meeting 2026-08-04",
+      "status": "transcription_not_started",
+      "error": null
+    },
+    {
+      "pageId": "3b21de57-0199-804c-89f5-d0aee4a6c96a",
+      "title": "Meeting 2026-08-03",
+      "status": "transcription_paused",
+      "error": null
+    },
+    {
+      "pageId": "3b11de57-0199-8020-9fb9-c3171150b472",
+      "title": "2026-08-03T19:34:00.000-04:00",
+      "status": "notes_ready",
+      "error": null
+    },
+    {
+      "pageId": "3ae1de57-0199-80ce-b9cd-d8b94eb4d85b",
+      "title": "2026-07-31T10:14:00.000-04:00",
+      "status": "transcription_not_started",
+      "error": null
+    },
+    {
+      "pageId": "3ad1de57-0199-80dd-b213-d09c387217e7",
+      "title": "Meeting 2026-07-30",
+      "status": "notes_ready",
+      "error": null
+    },
+    {
+      "pageId": "3ac1de57-0199-80ff-94ec-eeea07d36588",
+      "title": "Rob & Dix | MLE & Skin Cancer Detection AI Model",
+      "status": "notes_ready",
+      "error": null
+    },
+    {
+      "pageId": "3ac1de57-0199-80de-9f7b-ef7146b6383d",
+      "title": "2026-07-29T14:01:00.000-04:00",
+      "status": "transcription_paused",
+      "error": null
+    },
+    {
+      "pageId": "3ab1de57-0199-80ef-bf9c-c2b98d7578ed",
+      "title": "Meeting 2026-07-28",
+      "status": "notes_ready",
+      "error": null
+    },
+    {
+      "pageId": "3a51de57-0199-802b-b9f8-f59fa153a013",
+      "title": "Gulf Coast RE KICKOFF 2026-07-22",
+      "status": "notes_ready",
+      "error": null
+    },
+    {
+      "pageId": "3a01de57-0199-8036-8dd8-e54130f6abb0",
+      "title": "📊 Weekly Review - Pipeline / Deals / Next Week Plan 2026-07-17T16:00:00.000-04:00",
+      "status": "transcription_not_started",
+      "error": null
+    },
+    {
+      "pageId": "3971de57-0199-803e-8edb-d81be7596732",
+      "title": "Call with Dixith & Rob -MLE Intro & then What Else is He Working on",
+      "status": "transcription_not_started",
+      "error": null
+    },
+    {
+      "pageId": "38b1de57-0199-807f-9268-e278b740821c",
+      "title": "📊 Weekly Review - Pipeline / Deals / Next Week Plan 2026-06-26T16:00:00.000-04:00",
+      "status": "transcription_not_started",
+      "error": null
+    },
+    {
+      "pageId": "3831de57-0199-8068-855a-e55c59e00577",
+      "title": "Rob Will Caleb | CGRoofinggroup.com - Next Steps",
+      "status": "transcription_paused",
+      "error": null
+    },
+    {
+      "pageId": "3811de57-0199-8099-9137-ef10c8fd0efe",
+      "title": "Gulf Coast Realty, AI Alex meeting one",
+      "status": "notes_ready",
+      "error": null
+    },
+    {
+      "pageId": "3811de57-0199-80d4-b8e5-c0a7c8465085",
+      "title": "Meeting 2026-06-16T11:05:00.000-04:00",
+      "status": "notes_ready",
+      "error": null
+    },
+    {
+      "pageId": "3761de57-0199-8054-86a9-cdc63def71a5",
+      "title": "2026-06-05T13:56:00.000-04:00",
+      "status": "notes_ready",
+      "error": null
+    },
+    {
+      "pageId": "3761de57-0199-80e9-a6eb-ff707627cc66",
+      "title": "📊 Weekly Review - Pipeline / Deals / Next Week Plan 2026-06-05T16:00:00.000-04:00",
+      "status": "transcription_not_started",
+      "error": null
+    },
+    {
+      "pageId": "3511de57-0199-807b-91db-e5adc61dcab7",
+      "title": "🔨 BUILD - Ingrid's Chatbot (elevateroofingsolutions.net) 2026-04-30T13:00:00.000-04:00",
+      "status": "transcription_not_started",
+      "error": null
+    },
+    {
+      "pageId": "3511de57-0199-80a8-8d2a-f96358c106dc",
+      "title": "📞 AI Outreach Block - Hector / Dick Seth / PropLogix / Phil 21 Electric / David Degeorgi 2026-04-29T13:00:00.000-04:00",
+      "status": "transcription_not_started",
+      "error": null
+    },
+    {
+      "pageId": "3511de57-0199-807a-acb4-ce1fc956b3e0",
+      "title": "🤝 Fulfillment Recruiting Block (Tyson, Nick, Dwayne, David Reed) 2026-04-29T09:00:00.000-04:00",
+      "status": "transcription_not_started",
+      "error": null
+    },
+    {
+      "pageId": "34f1de57-0199-8000-8821-c77f5e7295fa",
+      "title": "🔴 Chris (Blooming Blinds CEO, 75 locations) - AI Demo 2026-04-28T14:00:00.000-04:00",
+      "status": "transcription_not_started",
+      "error": null
+    },
+    {
+      "pageId": "3281de57-0199-809b-9d9b-c7c17613e691",
+      "title": "Phil, Ingrid & Rob | Proposal Review & Next Steps 2026-03-19T15:00:00.000-04:00",
+      "status": "transcription_not_started",
+      "error": null
+    },
+    {
+      "pageId": "2fb1de57-0199-80fd-991b-dbb5733c9437",
+      "title": "Opportunity: Title File Processing",
+      "status": "notes_ready",
+      "error": null
+    },
+    {
+      "pageId": "2f61de57-0199-80ac-af6a-d470150c197f",
+      "title": "The Roof Co & STG | Presentation 2026-01-28T16:00:00.000-05:00",
+      "status": "transcription_not_started",
+      "error": null
+    },
+    {
+      "pageId": "2d51de57-0199-8091-905c-e0000e9aa309",
+      "title": "Ryan Groth Explaining ClickUp",
+      "status": "notes_ready",
+      "error": null
+    },
+    {
+      "pageId": "2d11de57-0199-806d-a463-d6fa23abb167",
+      "title": "Matt, Ryan, & Rob | STG Presentation 2025-12-22T10:00:00.000-05:00",
+      "status": "transcription_not_started",
+      "error": null
+    },
+    {
+      "pageId": "2ce1de57-0199-807a-ad21-d485624258e8",
+      "title": "MacDermott & STG | Fractional Sales VP Program 2025-12-19T15:30:00.000-05:00",
+      "status": "transcription_paused",
+      "error": null
+    },
+    {
+      "pageId": "2cd1de57-0199-801b-a9d1-c09e11554992",
+      "title": "Chain & Rob | STG Sales & Recruiting Analysis 2025-12-18T17:00:00.000-05:00",
+      "status": "notes_ready",
+      "error": null
+    },
+    {
+      "pageId": "2cd1de57-0199-8029-8c87-ea7fdf6c9c53",
+      "title": "GHL AI Agent Knowledge Base Webinar 2025-12-18T15:00:00.000-05:00",
+      "status": "notes_ready",
+      "error": null
+    },
+    {
+      "pageId": "2cc1de57-0199-802a-be27-d2fc6c2ec5d0",
+      "title": "Rescheduled: Bud and Rob & Kyle | STG & MacDermott Roofing 2025-12-17T11:00:00.000-05:00",
+      "status": "notes_ready",
+      "error": null
+    },
+    {
+      "pageId": "2cc1de57-0199-8071-b1ac-c075faf9fdbd",
+      "title": "Matt Jackson and Ryan Groth 2025-12-17T10:00:00.000-05:00",
+      "status": "notes_ready",
+      "error": null
+    },
+    {
+      "pageId": "2cb1de57-0199-8060-9859-df447f869755",
+      "title": "Tony Alicea: STG Sales Action Plan Call 2025-12-16T14:30:00.000-05:00",
+      "status": "transcription_paused",
+      "error": null
+    },
+    {
+      "pageId": "2ca1de57-0199-80aa-a323-fc9d3fc564a0",
+      "title": "Calvary Roofing RAMP Call | Donny & Tyson &Robert 2025-12-15T14:00:00.000-05:00",
+      "status": "notes_ready",
+      "error": null
+    }
+  ]
+}

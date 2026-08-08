@@ -39,6 +39,10 @@ import {
   rulingAttachments,
   strandedTranscriptRulings,
 } from "../lib/meetings/notionReads.ts";
+import {
+  notionAbsences,
+  unrecoveredReadyTranscripts,
+} from "../lib/meetings/notionTranscriptionScan.ts";
 import { fromFathom, fromManifest, fromNotion, fromTranscriptFiles } from "../lib/meetings/spineSources.ts";
 
 const AS_JSON = process.argv.includes("--json");
@@ -62,6 +66,12 @@ const TRANSCRIPTS = join(homedir(), "Projects", "MyLocalEverything", "transcript
 // Q84's deep reads of the Notion page bodies, and the rulings on them (inc.10).
 const ARCHIVE_READS = join(REPO, "MLE Internal Meetings", "archive-reads");
 const READ_RULINGS = join(REPO, "MLE Internal Meetings", "notion-read-confirmations.json");
+// Notion's own `transcription.status` per wrapper-bearing row, measured live (inc.37).
+const TRANSCRIPTION_SCAN = join(
+  REPO,
+  "MLE Internal Meetings",
+  "notion-transcription-status.json",
+);
 // The Drive/Gemini docs the calendar attachments point at, MEASURED, and the rulings on them (inc.15).
 const DRIVE =
   argOf("--drive") ?? join(REPO, "MLE Internal Meetings", "drive-snapshot-2026-08-07.json");
@@ -145,6 +155,17 @@ const confirmations = existsSync(READ_RULINGS)
   ? JSON.parse(readFileSync(READ_RULINGS, "utf8")).confirmations ?? []
   : [];
 const { byPageId: notionReads, orphanedConfirmations } = indexNotionReads(deepReads, confirmations);
+// inc.37: the rows reading is finished with and could not close. A `[transcription]` wrapper with no
+// text under it has a deep read on disk, so it is neither a body nobody ruled nor an unmeasured page
+// — until this file was joined in, those 20 rows appeared in NO list at all. The status is measured
+// by `scripts/notion-transcription-scan.mjs`; the judgement is pure in `notionTranscriptionScan.ts`.
+const scanFile = existsSync(TRANSCRIPTION_SCAN)
+  ? JSON.parse(readFileSync(TRANSCRIPTION_SCAN, "utf8"))
+  : null;
+const { absences: notionAbsenceRows, skippedRuled: notionScanControls } = scanFile
+  ? notionAbsences(scanFile.measured ?? [], confirmations.map((c) => c.pageId))
+  : { absences: [], skippedRuled: 0 };
+const notionReadyUnrecovered = unrecoveredReadyTranscripts(notionAbsenceRows);
 const notion = notionSnap
   ? fromNotion(notionSnap.rows ?? [], notionReads)
   : { records: [], bodyFindings: [], confirmedTranscripts: [], ruledNotTranscript: [] };
@@ -206,6 +227,13 @@ if (AS_JSON) {
           confirmedTranscripts: notion.confirmedTranscripts,
           ruledNotTranscript: notion.ruledNotTranscript,
           orphanedConfirmations,
+          transcriptionScan: {
+            path: scanFile ? TRANSCRIPTION_SCAN : null,
+            measuredAt: scanFile?.measuredAt ?? null,
+            controls: notionScanControls,
+            absences: notionAbsenceRows,
+            readyButUnrecovered: notionReadyUnrecovered,
+          },
         },
         attached,
         drive: {
@@ -319,6 +347,28 @@ if (notion.unmeasuredBodies.length) {
     console.log(
       `   · ${u.day ?? "(no date)"}  ${u.title}\n       ${u.bodyBlocks} top-level block(s) · ${u.url ?? "(no url)"}\n       ${u.why}`,
     );
+}
+
+if (notionAbsenceRows.length) {
+  // inc.37 — DoD (b) for the rows reading cannot close. Two OPPOSITE things live in this list and
+  // they are printed apart: a row Notion says never produced a transcript is FINISHED work with a
+  // named reason, and a row Notion says is ready while the harvester recovered nothing is a debt.
+  // Folding them into one count would let 18 closures hide 2 real gaps.
+  const named = notionAbsenceRows.filter((a) => a.disposition === "named-absence");
+  const owed = notionAbsenceRows.filter((a) => a.disposition !== "named-absence");
+  console.log(
+    `\n— NOTION ROWS WITH NO RECOVERABLE BODY (${notionAbsenceRows.length}) — answered by Notion's OWN status field, not by our silence —`,
+  );
+  console.log(
+    `   ${named.length} carry a NAMED reason there is no transcript · ${owed.length} still owe one` +
+      ` · ${notionScanControls} already-ruled rows measured as controls and not re-judged`,
+  );
+  for (const a of named) console.log(`   ␀ ${String(a.status).padEnd(26)} ${a.title}`);
+  for (const a of owed) {
+    console.log(`   ⚠ ${String(a.status ?? "unmeasured").padEnd(26)} ${a.title}`);
+    console.log(`       ${a.why}`);
+    console.log(`       → ${a.action}`);
+  }
 }
 
 // inc.10: reading is a STAGE, so the finished ones are printed as finished. A ruling that came out

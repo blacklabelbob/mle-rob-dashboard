@@ -44,8 +44,21 @@ export type TranscriptionDisposition =
  */
 const NEVER_PRODUCED = new Set(["transcription_not_started", "transcription_paused"]);
 
-/** Statuses that assert a transcript IS there to be read. */
-const PRODUCED = new Set(["transcription_completed"]);
+/**
+ * Statuses that assert a transcript IS there to be read.
+ *
+ * `notes_ready` was added 2026-08-08 (Q86 inc.37) on a measurement with CONTROLS, not on a reading
+ * of the name. All 36 wrapper-bearing rows in the archive were scanned live: of the 16 already
+ * ruled by a human reading the body end to end, the **14** ruled `transcript` all report
+ * `notes_ready`, and the two ruled `summary-only` / `empty` report `transcription_not_started` /
+ * `transcription_paused`. The field tracks the artifact.
+ *
+ * THE DIRECTION IS WHY THIS IS SAFE. Every member of this set makes a row read OWED — "a
+ * transcript exists and the reader has not recovered it" — so a wrong entry costs a second look at
+ * a page. A wrong entry in `NEVER_PRODUCED` would retire a human read that was genuinely owed.
+ * The two sets are not symmetric and must never be maintained as though they were.
+ */
+const PRODUCED = new Set(["transcription_completed", "notes_ready"]);
 
 /** The verbatim status plus what may be claimed from it. The status is never dropped. */
 export interface TranscriptionVerdict {
