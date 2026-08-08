@@ -14,7 +14,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 // @ts-expect-error — the redactor is a .mjs script module; it has no .d.ts and needs none.
-import { redactCalendarPayload } from "@/scripts/calendar-snapshot-from-mcp.mjs";
+import { mergeCalendarSnapshots, redactCalendarPayload } from "@/scripts/calendar-snapshot-from-mcp.mjs";
 
 const META = {
   comment: "test",
@@ -122,5 +122,53 @@ describe("redactCalendarPayload", () => {
       .sort()[0]
       .slice(0, 10);
     expect(snapshot.window.start.slice(0, 10) <= earliest).toBe(true);
+  });
+});
+
+/**
+ * Q86 inc.13 — the SEGMENT MERGE, pinned.
+ *
+ * inc.12 asked for the window to be widened past 2025-12-20. Widening it by re-reading the whole
+ * span would push every already-committed event back through an agent's context and would make the
+ * result unreproducible from what was actually fetched, so a widened snapshot is now a base plus a
+ * SEGMENT. These tests pin the two properties that make that safe: the declared window may only
+ * grow to the union of spans that were really read, and a re-read day must not duplicate its events.
+ */
+describe("mergeCalendarSnapshots (Q86 inc.13)", () => {
+  const base = {
+    timeZone: "America/New_York",
+    window: { start: "2026-06-01T00:00:00-04:00", end: "2026-08-08T00:00:00-04:00" },
+    events: [{ id: "june", start: { dateTime: "2026-06-16T11:00:00-04:00" } }],
+  };
+  const segment = {
+    fetchedAt: "2026-08-07T20:35:00-04:00",
+    window: { start: "2025-12-01T00:00:00-05:00", end: "2026-01-01T00:00:00-05:00" },
+    events: [{ id: "dec", start: { dateTime: "2025-12-25T08:00:00-05:00" } }],
+  };
+
+  it("widens the window to the union of both reads, and no further", () => {
+    const merged = mergeCalendarSnapshots(base, segment);
+    expect(merged.window.start).toBe("2025-12-01T00:00:00-05:00");
+    expect(merged.window.end).toBe("2026-08-08T00:00:00-04:00");
+  });
+
+  it("keeps both segments' events, in start order, with no duplicate ids on a re-read", () => {
+    const merged = mergeCalendarSnapshots(mergeCalendarSnapshots(base, segment), segment);
+    expect(merged.events.map((e: { id: string }) => e.id)).toEqual(["dec", "june"]);
+  });
+
+  it("records each segment, so the gap between two reads stays visible", () => {
+    const merged = mergeCalendarSnapshots(base, segment);
+    expect(merged._segments).toEqual([{ window: segment.window, fetchedAt: segment.fetchedAt, events: 1 }]);
+  });
+
+  it("the COMMITTED snapshot declares the widened window it was actually read over", () => {
+    const snapshot = JSON.parse(
+      readFileSync(join(process.cwd(), "MLE Internal Meetings", "calendar-snapshot-2026-08-07.json"), "utf8"),
+    );
+    expect(snapshot.window.start).toBe("2025-12-01T00:00:00-05:00");
+    // The Jan–May 2026 gap is UNREAD. If a later increment reads it, this list grows; it must never
+    // shrink, because a dropped segment turns "we never looked" back into "nothing was there".
+    expect(snapshot._segments?.length).toBeGreaterThanOrEqual(1);
   });
 });

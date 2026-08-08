@@ -88,6 +88,39 @@ export function redactCalendarPayload(payload, meta) {
   };
 }
 
+/**
+ * Fold a newly-read SEGMENT into an existing snapshot, widening the declared window to the union.
+ *
+ * WHY A MERGE AND NOT A RE-READ. Widening the window by re-reading the whole span would re-send
+ * every event already committed through an agent's context for no gain, and — worse — it would
+ * make the widened snapshot unreproducible from the segment that was actually fetched. A segment
+ * read is the honest unit: it names exactly which days were newly covered.
+ *
+ * Dedupe is by Google's own event `id`, and the INCOMING row wins, because the segment is the
+ * more recent read. The window is the union of both declared windows; it is NOT widened past
+ * what was read — `segmentWindow` must be the span the caller actually asked Google for.
+ *
+ * Pure per CR-3: two objects in, one object out. No fs, no clock.
+ */
+export function mergeCalendarSnapshots(base, segment) {
+  const byId = new Map((base?.events ?? []).map((e) => [e.id, e]));
+  for (const event of segment?.events ?? []) byId.set(event.id, event);
+  const min = (a, b) => (a == null ? b : b == null ? a : a < b ? a : b);
+  const max = (a, b) => (a == null ? b : b == null ? a : a > b ? a : b);
+  return {
+    ...base,
+    ...segment,
+    window: {
+      start: min(base?.window?.start, segment?.window?.start),
+      end: max(base?.window?.end, segment?.window?.end),
+    },
+    _segments: [...(base?._segments ?? []), { window: segment?.window, fetchedAt: segment?.fetchedAt, events: (segment?.events ?? []).length }],
+    events: [...byId.values()].sort((a, b) =>
+      (a.start?.dateTime ?? a.start?.date ?? "").localeCompare(b.start?.dateTime ?? b.start?.date ?? ""),
+    ),
+  };
+}
+
 const argOf = (flag) => {
   const i = process.argv.indexOf(flag);
   return i >= 0 ? process.argv[i + 1] : undefined;
@@ -114,6 +147,14 @@ if (isMain && argOf("--in")) {
       "`fromCalendarEvents` reads exactly two things off an attendee: Google's own `self` marker and the " +
       "COUNT of everyone else. Attendee identity is resolved from the LIVE calendar by person-resolver.",
   });
-  writeFileSync(outPath, `${JSON.stringify(snapshot, null, 1)}\n`);
-  console.log(`✓ ${snapshot.events.length} events → ${outPath}`);
+  const mergePath = argOf("--merge");
+  const final = mergePath
+    ? mergeCalendarSnapshots(JSON.parse(readFileSync(mergePath, "utf8")), snapshot)
+    : snapshot;
+  writeFileSync(outPath, `${JSON.stringify(final, null, 1)}\n`);
+  console.log(
+    mergePath
+      ? `✓ ${snapshot.events.length} segment events merged into ${final.events.length} → ${outPath} (window ${final.window.start} → ${final.window.end})`
+      : `✓ ${snapshot.events.length} events → ${outPath}`,
+  );
 }

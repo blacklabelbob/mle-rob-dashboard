@@ -1,14 +1,74 @@
 {
- "_comment": "Q86 inc.5 — a LIVE read of Rob's primary Google Calendar (rob@aivoicetech.io) through the Google Calendar MCP, taken 2026-08-07 by the build driver and redacted IN CODE by scripts/calendar-snapshot-from-mcp.mjs (inc.3/inc.4 did that transcription by hand). WINDOW WIDENED from 14 days to 2026-06-01 → 2026-08-08, chosen to cover the Fireflies archive manifest's own earliest row (2026-06-16) rather than a round number: the 14-day report warned that its 18 unclaimed Fireflies records were an artefact of the window, and that warning was doing work the window should do. Google returned 35 events with NO nextPageToken, so this is the complete window, not a page of it. It remains a SNAPSHOT, not a cache: no OAuth/service-account credential for Calendar exists in .env.local, so no .mjs in this repo can fetch this itself.",
- "fetchedAt": "2026-08-07T17:24:00-04:00",
+ "_comment": "Q86 inc.13 — SEGMENT read 2025-12-01 → 2026-01-01 merged into the inc.5 window (2026-06-01 → 2026-08-08). Google returned 4 events for December 2025, no nextPageToken, ALL of them Zoom marketing webinars; list_calendars shows this account holds exactly one real calendar (plus US holidays). The widening was executed as inc.12 asked and it did NOT place will-devito (2025-12-20) or any of the five archived December bodies — those meetings are not on this calendar at all. THE GAP 2026-01-01 → 2026-06-01 IS UNREAD: any record dated in it reads as outside-window and that is the read's reach, not a finding.",
+ "fetchedAt": "2026-08-07T20:35:00-04:00",
  "calendarId": "rob@aivoicetech.io",
  "timeZone": "America/New_York",
  "window": {
-  "start": "2026-06-01T00:00:00-04:00",
+  "start": "2025-12-01T00:00:00-05:00",
   "end": "2026-08-08T00:00:00-04:00"
  },
  "_pii": "Attendee EMAIL ADDRESSES, displayNames, event descriptions, creator/organizer and htmlLink are DELIBERATELY ABSENT — removed in CODE by scripts/calendar-snapshot-from-mcp.mjs, not by hand. `fromCalendarEvents` reads exactly two things off an attendee: Google's own `self` marker and the COUNT of everyone else. Attendee identity is resolved from the LIVE calendar by person-resolver.",
  "events": [
+  {
+   "id": "_c8sjeqrld8smudj7e5l6ior8e0r6es9j6hi6gq3575n6qd376com8dbi6pqn2ohjcdm72dj1dtp3gdbgddmna",
+   "summary": "[INVITATION] The AI Social Agent Revolution: Watch This AI Agent Build a Social Media Empire in Real-Time — Then Copy the Blueprint to Grow Yours",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "https://us06web.zoom.us/w/84592944261",
+   "start": {
+    "dateTime": "2025-12-01T11:00:00-05:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "_c8sjeqrld8smudjbedl66p1he0r6uspjc5hjiqr575n6qd376com8dbi6pqn2ohjcdm72dj1dtp3gdbgddmna",
+   "summary": "[INVITATION] The AI Social Agent Revolution: Watch This AI Agent Build a Social Media Empire in Real-Time — Then Copy the Blueprint to Grow Yours",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "https://us06web.zoom.us/w/85964968514",
+   "start": {
+    "dateTime": "2025-12-02T10:00:00-05:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "_c8sjeqrld8smudhoe5l3gor8csr6erraclijirj575n6qd376com8dbi6pqn2ohjcdm72dj1dtp3gdbgddmna",
+   "summary": "STARTING NOW - JOIN THE WEBINAR :🎁 Christmas Day Exclusive Event  : How to Gift Yourself a $3K–$15K/Month Video Engine Using Cinematic, Voice-Driven Content & Smart Channel Strategy ",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "https://us06web.zoom.us/w/82542041797",
+   "start": {
+    "dateTime": "2025-12-25T08:00:00-05:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    }
+   ]
+  },
+  {
+   "id": "_c8sjeqrld8smudjfe4pjcp3gd4r6mspj69hn0qr575n6qd376com8dbi6pqn2ohjcdm72dj1dtp3gdbgddmna",
+   "summary": "STARTING NOW - JOIN THE WEBINAR  : How Anyone Can Launch a Viral, Faceless YouTube Channel That Runs & Earns 24/7 — Without Filming or Editing",
+   "status": "confirmed",
+   "eventType": "DEFAULT",
+   "location": "https://us06web.zoom.us/w/86437258134",
+   "start": {
+    "dateTime": "2025-12-28T08:00:00-05:00"
+   },
+   "attendees": [
+    {
+     "self": true
+    }
+   ]
+  },
   {
    "id": "_c8sjeqrld8smudpke0pj8p1hdsr6us3a6pij2rr575n6qd376com8dbi6pqn2ohjcdm72dj1dtp3gdbgddmna",
    "summary": "[WEBINAR] The Reddit Client Machine: How To Find Hidden Buyer Conversations, Automate Engagement, And Turn Reddit Into A 24/7 Traffic, Lead & Sales Channel — Without Ads.",
@@ -596,6 +656,16 @@
      "self": true
     }
    ]
+  }
+ ],
+ "_segments": [
+  {
+   "window": {
+    "start": "2025-12-01T00:00:00-05:00",
+    "end": "2026-01-01T00:00:00-05:00"
+   },
+   "fetchedAt": "2026-08-07T20:35:00-04:00",
+   "events": 4
   }
  ]
 }
