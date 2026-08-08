@@ -149,3 +149,37 @@ overstating status is a misstatement to a counterparty, not a copy nit.
 - A FUTURE reference ("will return the executed copy once countersigned") is fine and wanted;
   a present-tense claim is not. `lib/esign/__tests__/sender.test.ts` pins this — every mention
   of "fully executed" in the signed email must be qualified by *not yet / once / as soon as*.
+
+### HARD RULE: every agreement routes through Rob (2026-08-08)
+
+Rob: *"its really simple ALL agreements go through me, period."* No exception for seniority,
+urgency, or deal size. A rep PREPARES and SENDS; only Rob executes on behalf of MLE.
+
+- The provider signing link is minted to the **authorized signer on file (Rob)** and is never
+  delivered to whoever clicked Send. A rep cannot receive, forward or self-issue one.
+- The rep's identity goes on the paper instead, as **Prepared by: Name / Email / Phone**
+  (typed at send time, printed offset in the execution block).
+- Signing is ORDER-AGNOSTIC — either party may sign first. Rob, on why provider-first helps:
+  *"sometimes, the provider signing it first gives them the reminder or impetus to be like
+  'shoot they're waiting on me' and it helps speed up the process."*
+- Rob must be able to sign **without CRM access** — SMS + email carry his link.
+
+⚠️ **STATUS: THIS IS A REQUIREMENT, NOT A DESCRIPTION OF THE SHIPPED FLOW.** Read as of
+2026-08-08 **none of the four bullets above is built**, and one of them contradicts what is
+built and tested:
+
+- The shipped flow is **sequential, counterparty-first, and enforced in code** — `planCountersign`
+  (`lib/esign/countersign.ts`) *throws* on a document the other side has not signed, and the
+  pre-send modal + signer screen both state that order to both parties. That answer was written
+  down one day earlier for Rob's own question (Q93 DoD (c), `docs/plans/ESIGN-BUILD-LOG-2026-07-23.md`
+  §"what ORDER do the two signatures happen in"). **Order-agnostic signing is a change to that,
+  not a restatement of it** — do not implement it by loosening the guard until Rob confirms.
+- There is no `prepared_by` anywhere in `lib/esign/**`, `contracts/**` or the PDF engine, and no
+  SMS channel for the MLE-side link (Q5b Twilio creds are still outstanding).
+
+**Provenance, stated plainly because it could not be verified from here:** these quotes were left
+in the working tree by a session that was cut off, and they appear in **no** other record — not
+prod `dev_chat` (newest is max #64), not `BUILD-QUEUE.md`, not `docs/`. They read as Rob's live
+words from the 2026-08-08 interactive session, which is how Q93's verbatim reached the queue too,
+but a driver run cannot confirm that. They are preserved **verbatim and unedited**; the work they
+imply is queued as **Q94** and is flagged for Rob's confirmation before any code moves.
