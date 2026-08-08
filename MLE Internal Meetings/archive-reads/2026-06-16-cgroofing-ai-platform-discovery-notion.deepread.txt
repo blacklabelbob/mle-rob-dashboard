@@ -1,0 +1,104 @@
+==============================================================================
+TITLE (do not trust): Caleb, Rob, Will | CGRoofingGroup.com + AI Platform Discovery - Jun 16, 2026 (Fireflies)
+URL: https://app.notion.com/p/Caleb-Rob-Will-CGRoofingGroup-com-AI-Platform-Discovery-Jun-16-2026-Fireflies-1ce2ff0ce5cc47568d4828e37f66a2f1
+id : 1ce2ff0c-e5cc-4756-8d48-28e37f66a2f1
+CALL DATE: 2026-06-16T14:36:00.000-04:00
+------------------------------------------------------------------------------
+PROPERTIES — in full; this is where the identity the title omits lives:
+  · Google Doc Link [url]: https://app.fireflies.ai/view/01KV8VGJS6T7Z4P8ATSB4X5NQN
+  ∅ Show/No Show [multi_select]: None  ← claims absence
+  · Next Steps/Action Items [rich_text]: Communicate CRM requirements; coordinate timeline with Caleb; start group text with Caleb, William, and Rob; continue CRM vision alignment.
+  · Company URL [rich_text]: CGRoofingGroup.com / Red Rock
+  ∅ Parent Account [multi_select]: None  ← claims absence
+  ∅ MLE [select]: None  ← claims absence
+  ∅ Last Edited [last_edited_time]: None
+  ∅ Child Account [multi_select]: None  ← claims absence
+  ∅ Other Combined/Possible referral [rich_text]: None  ← claims absence
+  ∅ Customer Pain Points [rich_text]: None  ← claims absence
+  · Meeting Summary [rich_text]: The meeting focused on customer acquisition, CRM project timeline, roofing CRM vision, and communication next steps.
+  ∅ MLE Attendees [multi_select]: None  ← claims absence
+  ∅ Follow Up Date set [date]: None  ← claims absence
+  ∅ Company Meeting with [rich_text]: None  ← claims absence
+  ∅ Export Status [select]: None  ← claims absence
+  ∅ Sales Rep [people]: None  ← claims absence
+  ∅ Notion Meeting Page [url]: None  ← claims absence
+  · Call Date [date]: 2026-06-16T14:36:00.000-04:00
+  · Tags [multi_select]: AI Agent Training, Commercial
+  · Call Recording [url]: https://app.fireflies.ai/view/01KV8VGJS6T7Z4P8ATSB4X5NQN
+  · Contact Name [rich_text]: Caleb Green
+  ∅ Non MLE Attendees [rich_text]: None  ← claims absence
+  ∅ TAM # [number]: None  ← claims absence
+  ∅ Created [created_time]: None
+  ∅ In Person/Virtual [multi_select]: None  ← claims absence
+  ∅ Urgent TO DO [rich_text]: None  ← claims absence
+  ∅ Meeting Type [multi_select]: None  ← claims absence
+  ∅ Primary Target ICP [multi_select]: None  ← claims absence
+  · Meeting Title [title]: Caleb, Rob, Will | CGRoofingGroup.com + AI Platform Discovery - Jun 16, 2026 (Fireflies)
+------------------------------------------------------------------------------
+BODY: 7 blocks, 2962 chars — paragraph×3, heading_2×3, bulleted_list_item×1
+  ⚠ 18 field(s) imply 'no record'. CONTRADICTED — the body below HAS content.
+    Trust the body, not the field.
+      · Show/No Show [multi_select] = None
+      · Parent Account [multi_select] = None
+      · MLE [select] = None
+      · Child Account [multi_select] = None
+      · Other Combined/Possible referral [rich_text] = None
+      · Customer Pain Points [rich_text] = None
+      · MLE Attendees [multi_select] = None
+      · Follow Up Date set [date] = None
+      · Company Meeting with [rich_text] = None
+      · Export Status [select] = None
+      · Sales Rep [people] = None
+      · Notion Meeting Page [url] = None
+      · Non MLE Attendees [rich_text] = None
+      · TAM # [number] = None
+      · In Person/Virtual [multi_select] = None
+      · Urgent TO DO [rich_text] = None
+      · Meeting Type [multi_select] = None
+      · Primary Target ICP [multi_select] = None
+------------------------------------------------------------------------------
+PULLED, NOT RULED. A verdict lives in MLE Internal Meetings/notion-read-confirmations.json and
+is written by a human after reading this file end to end. This file existing is NOT coverage.
+==============================================================================
+[paragraph] Imported from Fireflies straggler: Original Fireflies page
+[heading_2] Overview
+[paragraph] Customer Acquisition
+Web maintenance limits acquisition cost; minimal current advertising; Red Rock expense needs refining.  
+- Project Timeline: Caleb prefers a careful, slower approach with flexible timing; no system dependency yet.  
+- CRM Features: Aim for the most advanced US roofing CRM with a pyramid color-coded job status system for quick issue management.  
+- Communication: Use group text for fast replies; texting preferred over email in busy periods.  
+- Strategic Commitment: CRM is key for building/selling company; multi-million dollar potential recognized; team ready to start work.
+[heading_2] Bullet Notes
+[paragraph] 🏗️ Industry Background and Connections
+• Discussed mutual professional connections and background with roofing businesses including Belcore and Cutting Edge.
+• Outlined deep industry experience and familiarity with a small network.
+
+💰 Customer Acquisition and Market Dynamics
+• Caleb explained minimal current customer acquisition cost due to market saturation and inbound calls.
+• Contrasted with Red Rock which requires more effort to build business.
+• Discussed risks and benefits of refining acquisition strategy for Red Rock to reduce long-term ad spend.
+
+⏳ Project Timeline and Priorities
+• Caleb emphasized willingness to delay start to build the CRM correctly rather than rushing.
+• William and Caleb discussed vision for an advanced, roofing-specific CRM system beyond generic solutions like ChatGPT.
+
+🎨 CRM System Features and Visualization
+• William detailed a pyramid color-coded system tracking all job stages with green, purple, and red colors.
+• Agreed color coding is essential for roofing contractors for simplicity and quick visual management.
+
+📱 Communication and Collaboration Setup
+• Agreed to start a group text including Rob to enable timely responses via texting instead of email.
+
+🚀 Business Opportunity and Partnership Commitment
+• Caleb highlighted the CRM project as critical to building and selling a second company within timeline.
+• Recognized a multi-million dollar market opportunity for a roofing-specific CRM that Caleb cannot build alone.
+• William confirmed his roofing industry knowledge and readiness to build the product correctly.
+
+🤝 Meeting Closure and Next Steps
+• Meeting concluded with mutual thanks and plans for future communication.
+• Personal notes about a Utah visit reflected goodwill and intent for continued collaboration.
+[heading_2] Action Items
+[bulleted_list_item] Communicate next steps and requirements to start moving forward with CRM development. (Caleb Green) [04:01]
+• Coordinate timeline preferences with Caleb’s readiness and provide flexibility for start planning. (William DeVito) [04:42]
+• Initiate group text including Caleb and William to improve communication speed and efficiency. (Rob) [07:31]
+• Continue collaboration and alignment on CRM vision and technical requirements for roofing industry needs. (Caleb Green & William DeVito) [00:00]

@@ -245,10 +245,15 @@ describe("rulingAttachments", () => {
     // Re-read 2026-08-08 (Q86 inc.23): a FIFTH ruling landed, also `summary-only`, so this number
     // moved 4 -> 5 by hand after reading the new body end to end. Both non-transcript rulings are
     // asserted below by page id, not by count, so a later edit cannot swap one for the other.
-    expect(live).toHaveLength(5);
+    // Re-read 2026-08-08 (Q86 inc.23c): a SIXTH ruling landed, again `summary-only`, moving this
+    // 5 -> 6 by hand after reading that body end to end too. It is the LAST Notion body above the
+    // 512-byte floor, so absent a new snapshot this count should now stop moving — a later bump
+    // without a new deepread beside it is the thing to be suspicious of.
+    expect(live).toHaveLength(6);
     for (const pageId of [
       "79dbbdf5-61fe-441c-8324-1d3f75c8a6a9",
       "3c349f70-08dd-48c6-89c6-e0d71fd93d82",
+      "1ce2ff0c-e5cc-4756-8d48-28e37f66a2f1",
     ]) {
       expect(live.find((c) => c.pageId === pageId)?.verdict).toBe("summary-only");
       // The whole point of the ruling: it may never become coverage. `fromNotion()` turns
@@ -276,6 +281,11 @@ describe("rulingAttachments", () => {
     const mirrors: Record<string, string> = {
       "2026-07-15-joseph-rob-will-next-steps": "01KXK86RCXFEJ3AHCXDA6JC4KH",
       "2026-06-17-gulfcoast-re-ai-platform-notion": "01KV97D83V9WKJKS0HS1NFW0N7",
+      // Q86 inc.23c — the THIRD mirror, which makes it the rule rather than the exception:
+      // all three `summary-only` rulings are Fireflies mirrors, all three `transcript` rulings
+      // are not. Shape now predicts provenance, so the count `notion (49)` is even less a
+      // measure of source diversity than inc.22 and inc.23 each said in turn.
+      "2026-06-16-cgroofing-ai-platform-discovery-notion": "01KV8VGJS6T7Z4P8ATSB4X5NQN",
     };
     for (const [slug, firefliesId] of Object.entries(mirrors)) {
       const body = read("MLE Internal Meetings", "archive-reads", `${slug}.deepread.txt`);
