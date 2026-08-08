@@ -288,7 +288,15 @@ describe("rulingAttachments", () => {
     // the whole edge is built on: reading a body proves what it CONTAINS, never which event it is
     // OF. If these two numbers ever diverge, a notion link was written onto a meeting row — go
     // find out who welded it and on what evidence.
-    expect(live.filter((c) => c.verdict === "transcript")).toHaveLength(14);
+    // Re-read 2026-08-08 (Q86 inc.36): a FIFTEENTH transcript ruling, 14 -> 15 by hand —
+    // `2cd1de57…8c87…` (GHL AI Agent Knowledge Base Webinar, 2025-12-18, 65,104 chars), the LAST
+    // STG-era body and the last body in this archive holding readable prose. Checked against the
+    // live `spine:q86` run before the number moved: `in-window-day-empty` a SIXTH consecutive time,
+    // and it lands on 2025-12-18 — a day this list ALREADY pins (Chain & Rob). So one empty
+    // calendar day now carries TWO stranded transcripts, which is why the count below moves in
+    // lockstep again: two recordings of the same date still attach to nothing, because the calendar
+    // has nothing on that date to attach them to.
+    expect(live.filter((c) => c.verdict === "transcript")).toHaveLength(15);
     const attachments = rulingAttachments(
       live,
       [],
@@ -334,10 +342,16 @@ describe("rulingAttachments", () => {
         // this list it is because a calendar entry was created for 2025-12-17, not because a day
         // was inferred from the title.
         { id: "2cc1de57-0199-8071-b1ac-c075faf9fdbd", title: "Matt Jackson and Ryan Groth 2025-12-17T10:00:00.000-05:00", day: "2025-12-17", placement: "in-window-day-empty", sameDayMeetings: [] },
+        // Q86 inc.36. Sixth consecutive STG-era ruling on an empty calendar day, and the FIRST time
+        // two ruled transcripts share one empty day — 2025-12-18 is already pinned three rows up
+        // (Chain & Rob). Pinned separately rather than folded into that row because they are two
+        // distinct recordings: if 12-18 ever gains a calendar entry, exactly one of these may
+        // attach to it and the other must still strand, and only two rows can express that.
+        { id: "2cd1de57-0199-8029-8c87-ea7fdf6c9c53", title: "GHL AI Agent Knowledge Base Webinar 2025-12-18T15:00:00.000-05:00", day: "2025-12-18", placement: "in-window-day-empty", sameDayMeetings: [] },
       ],
       titleOf,
     );
-    expect(strandedTranscriptRulings(attachments)).toHaveLength(14);
+    expect(strandedTranscriptRulings(attachments)).toHaveLength(15);
   });
 
   it("THE LIVE FINDING, second half: a summary-only ruling is recorded and is NOT counted as a transcript", () => {
@@ -392,7 +406,12 @@ describe("rulingAttachments", () => {
     // Re-read 2026-08-08 (Q86 inc.35): ONE more, 18 -> 19, also a `transcript`. This pin went RED
     // first again, before a single number was moved, which is the only way this file is allowed to
     // grow — the count is read off the live file, never remembered.
-    expect(live).toHaveLength(19);
+    // Re-read 2026-08-08 (Q86 inc.36): ONE more, 19 -> 20, also a `transcript` — the LAST body in
+    // this archive carrying readable prose. Red first again before any number moved. From here the
+    // total can only grow if a NEW page arrives or one of the 20 short `[transcription]`-wrapper
+    // rows becomes readable; a body-reading increment can no longer move it, and that is the state
+    // this pin now records.
+    expect(live).toHaveLength(20);
     for (const pageId of [
       "79dbbdf5-61fe-441c-8324-1d3f75c8a6a9",
       "3c349f70-08dd-48c6-89c6-e0d71fd93d82",
