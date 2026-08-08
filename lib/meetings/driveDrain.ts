@@ -55,10 +55,28 @@ export type DrainClass =
   | "drained"
   /** Ruled captured by a human, still in `/Unprocessed` — this is the actual move backlog. */
   | "eligible"
+  /** Audio/video whose transcript already exists on disk (inc.39). Owed a link, not a transcriber. */
+  | "transcribed-elsewhere"
   /** Audio/video with no transcript yet: needs a transcriber before it can be captured. */
   | "needs-transcription"
   /** A document nobody has opened and ruled. The byte floor is deliberately not applied. */
   | "needs-a-read";
+
+/**
+ * A recording this run was shown to already have a transcript sitting somewhere else.
+ *
+ * Passed IN, never decided here: the two-signal rule that earns one lives in
+ * `driveTranscriptLink.ts` and is tested there. Only `linked` verdicts belong in this list — an
+ * `uncertain` one is a near-miss for a human to read, not a reason to stop calling a file
+ * untranscribed.
+ */
+export type TranscribedElsewhere = {
+  fileId: string;
+  /** How a reader opens the transcript. */
+  transcriptRef: string;
+  /** The sentence the linker wrote about what was and was not established. Carried verbatim. */
+  why: string;
+};
 
 export type DrainVerdict = {
   file: DriveFile;
@@ -74,6 +92,8 @@ export type DrainReport = {
   drained: DriveFile[];
   /** Ruled captured and still sitting in `/Unprocessed` — waiting on a move this repo cannot do. */
   eligible: DrainVerdict[];
+  /** Recordings whose transcript already exists elsewhere — owed a link and a move, not a rerun. */
+  transcribedElsewhere: DrainVerdict[];
   /** Recordings with no transcript. */
   needsTranscription: DrainVerdict[];
   /** Documents owed a human read. */
@@ -101,9 +121,11 @@ export function drainReport(
   unprocessed: DriveFile[],
   processed: DriveFile[],
   rulings: DrainRuling[] = [],
+  transcribed: TranscribedElsewhere[] = [],
 ): DrainReport {
   const drainedIds = new Set(processed.map((f) => f.id));
   const ruledIds = new Set(rulings.map((r) => r.fileId));
+  const transcribedById = new Map(transcribed.map((t) => [t.fileId, t]));
 
   const verdicts: DrainVerdict[] = unprocessed.map((file) => {
     if (drainedIds.has(file.id)) {
@@ -122,6 +144,17 @@ export function drainReport(
       };
     }
     if (AUDIO_VIDEO.test(file.mimeType)) {
+      // Ordered BEFORE the untranscribed class on purpose: inc.38 shipped the opposite reading and
+      // filed a debt that did not exist. A recording with a transcript on disk is not waiting on a
+      // transcriber, and must never be counted as if it were.
+      const link = transcribedById.get(file.id);
+      if (link) {
+        return {
+          file,
+          kind: "transcribed-elsewhere" as const,
+          why: `${link.why} It is still owed a LINK into the CRM and a move out of /Unprocessed — but it is NOT owed a transcriber, and reporting it as untranscribed sends a human to redo work already done.`,
+        };
+      }
       return {
         file,
         kind: "needs-transcription" as const,
@@ -142,6 +175,7 @@ export function drainReport(
   );
 
   const eligible = verdicts.filter((v) => v.kind === "eligible");
+  const transcribedElsewhere = verdicts.filter((v) => v.kind === "transcribed-elsewhere");
   const needsTranscription = verdicts.filter((v) => v.kind === "needs-transcription");
   const needsARead = verdicts.filter((v) => v.kind === "needs-a-read");
 
@@ -149,6 +183,7 @@ export function drainReport(
     verdicts,
     drained: processed,
     eligible,
+    transcribedElsewhere,
     needsTranscription,
     needsARead,
     orphanedRulings,

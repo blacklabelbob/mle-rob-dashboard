@@ -1,0 +1,41 @@
+{
+  "_what": "Q86 inc.39 — DoD (b). A LIVE measurement of the transcripts already sitting at ~/Projects/MyLocalEverything/transcripts/, taken 2026-08-08 by reading the files. Measurement only: nothing was written, moved or renamed there.",
+  "_whyItExists": "inc.38 reported the three .m4a files in Drive /Unprocessed as recordings NOBODY HAS EVER TRANSCRIBED. That is false, and Q86 DoD (f) had already said so in its own text (\"the real transcripts are already at ~/Projects/MyLocalEverything/transcripts/\"). Each of the three was transcribed 2026-07-28 via Deepgram nova-3. This file is the evidence, so the claim is never re-made from memory.",
+  "_durationIs": "`durationSeconds` is Deepgram’s own measured duration of the SUBMITTED AUDIO, read from the sibling .json metadata — not the rounded minutes in the .txt header. It is what makes an implied-bitrate check against Drive’s fileSize possible at all.",
+  "_audioSha256Is": "Deepgram’s SHA-256 OF THE AUDIO IT WAS GIVEN. It is recorded because it is the one check that would settle the link beyond argument — hash the Drive file, compare. It CANNOT be run from here (no Drive credential, and the largest file is 209 MB), so no link in this repo currently rests on it. It is written down so the day someone has the Drive API, the proof is one command away.",
+  "_transcriptsDir": "/Users/robertacheson/Projects/MyLocalEverything/transcripts",
+  "measuredAt": "2026-08-08T13:40:00Z",
+  "measuredVia": "node fs.readFileSync of the .txt header + sibling .json metadata",
+  "transcripts": [
+    {
+      "ref": "david-cates.txt",
+      "title": "Call with David Cates",
+      "durationSeconds": 7861.695,
+      "words": 17742,
+      "transcribedOn": "2026-07-28",
+      "engine": "Deepgram nova-3",
+      "bytes": 97229,
+      "audioSha256": "28823639ae285f3f8bfd48d1558f04205a2ab0a04d1af0b5cb0d498158fb8ce9"
+    },
+    {
+      "ref": "john-burns.txt",
+      "title": "Call with John Burns",
+      "durationSeconds": 1865.629,
+      "words": 4448,
+      "transcribedOn": "2026-07-28",
+      "engine": "Deepgram nova-3",
+      "bytes": 24122,
+      "audioSha256": "db4cfdeb26c15f6f63511c8e2f3ef7db15df7f7b31fe8927cca2cea24b9bbb9f"
+    },
+    {
+      "ref": "joseph-ontime.txt",
+      "title": "Joseph On Time Roofing Call Recording",
+      "durationSeconds": 1579.9307,
+      "words": 4205,
+      "transcribedOn": "2026-07-28",
+      "engine": "Deepgram nova-3",
+      "bytes": 22959,
+      "audioSha256": "714d97408813d7cc474d333357221bd8b1867a3b8f7f64f8a5d62c4371c3b396"
+    }
+  ]
+}

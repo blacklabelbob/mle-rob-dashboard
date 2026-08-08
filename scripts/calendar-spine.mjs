@@ -34,6 +34,7 @@ import { fromCalendarEvents, SOURCES_NOT_WIRED, sourceRecordsFromAttachments } f
 import { reconcileCalendarSpine } from "../lib/meetings/calendarSpine.ts";
 import { fromDrive, summarizeRuledDocs } from "../lib/meetings/driveReads.ts";
 import { drainReport } from "../lib/meetings/driveDrain.ts";
+import { linkRecordings } from "../lib/meetings/driveTranscriptLink.ts";
 import {
   indexNotionReads,
   parseDeepReadHeader,
@@ -80,6 +81,11 @@ const DRIVE_RULINGS = join(REPO, "MLE Internal Meetings", "drive-read-confirmati
 // Q86 inc.38 — DoD (e). BOTH folders re-listed live; `drained` may only come from the second one.
 const DRAIN =
   argOf("--drain") ?? join(REPO, "MLE Internal Meetings", "drive-drain-2026-08-08.json");
+// Q86 inc.39 — DoD (b). The transcripts already on disk, measured. inc.38 read the Drive folder and
+// not this one, and reported three recordings as untranscribed that had been transcribed on 7/28.
+const LOCAL_TRANSCRIPTS =
+  argOf("--local-transcripts") ??
+  join(REPO, "MLE Internal Meetings", "local-transcripts-2026-08-08.json");
 
 /**
  * ISO instant → local day in the snapshot's timezone.
@@ -203,8 +209,23 @@ const driveRuled = summarizeRuledDocs(drive);
 // this is deliberately handed an empty list rather than the doc confirmations, which say a doc was
 // READ, not that its meeting was captured and its file is owed a move.
 const drainSnap = existsSync(DRAIN) ? JSON.parse(readFileSync(DRAIN, "utf8")) : null;
+// DoD (b): before a recording may be called untranscribed, the transcripts on disk are asked. Only
+// `linked` verdicts cross over — an `uncertain` near-miss is printed for a human and never counted.
+const localTranscripts = existsSync(LOCAL_TRANSCRIPTS)
+  ? JSON.parse(readFileSync(LOCAL_TRANSCRIPTS, "utf8")).transcripts ?? []
+  : [];
+const recordingLinks = drainSnap
+  ? linkRecordings(drainSnap.unprocessed ?? [], localTranscripts)
+  : [];
 const drain = drainSnap
-  ? drainReport(drainSnap.unprocessed ?? [], drainSnap.processed ?? [], [])
+  ? drainReport(
+      drainSnap.unprocessed ?? [],
+      drainSnap.processed ?? [],
+      [],
+      recordingLinks
+        .filter((l) => l.status === "linked")
+        .map((l) => ({ fileId: l.file.id, transcriptRef: l.transcript.ref, why: l.why })),
+    )
   : null;
 const attached = drive.records;
 
@@ -266,7 +287,9 @@ if (AS_JSON) {
               unprocessed: drain.verdicts.length,
               processed: drain.drained.length,
               eligible: drain.eligible.length,
+              transcribedElsewhere: drain.transcribedElsewhere.length,
               needsTranscription: drain.needsTranscription.length,
+              recordingLinks,
               needsARead: drain.needsARead.length,
               orphanedRulings: drain.orphanedRulings,
               summary: drain.summary,
@@ -485,9 +508,15 @@ if (drain) {
   console.log(`\n— DRIVE /Unprocessed → /Processed (${basename(DRAIN)}, taken ${drainSnap.fetchedAt ?? "undated"}) —`);
   console.log(`   ${drain.summary}`);
   for (const v of drain.verdicts) {
-    const mark = { drained: "✅", eligible: "📦", "needs-transcription": "🎙", "needs-a-read": "📄" }[v.kind];
+    const mark = { drained: "✅", eligible: "📦", "transcribed-elsewhere": "📝", "needs-transcription": "🎙", "needs-a-read": "📄" }[v.kind];
     console.log(`   ${mark} ${v.kind} — ${v.file.title}\n     ${v.why}`);
   }
+  const uncertainLinks = recordingLinks.filter((l) => l.status === "uncertain");
+  if (uncertainLinks.length)
+    console.log(
+      `   ⚠ ${uncertainLinks.length} recording(s) matched a transcript on ONE signal only — shown, not counted:\n` +
+        uncertainLinks.map((l) => `     · ${l.file.title} — ${l.why}`).join("\n"),
+    );
   if (drain.orphanedRulings.length)
     console.log(`   ⚠ ${drain.orphanedRulings.length} ruling(s) name a file in NEITHER folder — a finding, not a gap.`);
   console.log(
