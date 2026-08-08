@@ -1,0 +1,152 @@
+{
+  "_what": "Q86 inc.44 — DoD (b). A HUMAN READ of ~/Projects/MyLocalEverything/transcripts/joseph-ontime.txt (22,959 bytes, 4,205 words, 26.3 min, transcribed 2026-07-28 via Deepgram nova-3). Every one of its 129 lines was read. Intel extracted VERBATIM with a line number behind every entry. Read only: nothing was written to the CRM, no record created, no file moved or renamed.",
+  "_whyItExists": "planTranscriptActivity refuses this transcript THREE times over (Q86 inc.42): not-linked, no-intel, no-day. This file closes the intel half outright, converts the link question from an open dispute into a RECORDED HUMAN RULING with whole-body evidence, and bounds the date to four days. It exists as a file so the next increment starts from the read instead of re-reading a 4,205-word body.",
+  "_sourceRefIs": "`joseph-ontime.txt:<line>` — the line number in the transcript as it sits on disk. A reader opens the file and lands on the sentence. 'somewhere in the call' is not traceability.",
+  "readAt": "2026-08-08",
+  "readBy": "max (driver)",
+  "transcriptRef": "joseph-ontime.txt",
+  "transcriptTitle": "Joseph On Time Roofing Call Recording",
+
+  "speakerMap": {
+    "_howItWasDetermined": "Deepgram labels speakers 0/1/2 and names nobody. Speaker 2 names HIMSELF at line 93 — 'it's nice to meet you, Joseph. I'm Will' — which simultaneously fixes Speaker 2 as Will and Speaker 1 as Joseph, since Will is greeting the counterparty. Speaker 0 is Rob: he delivers the leaky-bucket/AEO thesis, speaks of a partner who 'has been working on it since he was eight' (line 75), and Will refers to 'the second brain that Rob touched on' (line 121) about what Speaker 0 had just said. Speaker 2 also emits three short interjections BEFORE Will joins (lines 11, 43, 65) — diarisation noise, not a fourth party; no third company is named as a speaker.",
+    "speaker0": "Rob Acheson",
+    "speaker1": "Joseph (On Time Moving & Storage)",
+    "speaker2": "Will (MLE partner)"
+  },
+
+  "recordLink": {
+    "_finding": "THE TITLE SAYS ROOFING AND THE WHOLE BODY IS A MOVING COMPANY — read end to end, the dispute inc.40/41 left open is now decided on evidence rather than deferred.",
+    "linkedRecord": "C-2016 On Time Moving & Storage",
+    "humanRuling": "SAME COMPANY. The word 'roofing' is a filename error, not a second lead.",
+    "ruledBy": "max (driver), 2026-08-08, on a complete read of all 129 lines",
+    "evidence": [
+      "'roofing' appears exactly once in the file and it is LINE 1 — the transcriber's title. In 4,205 words of speech it is spoken zero times.",
+      "Joseph states the business is a van-line agent: 'we're an agent for National Van Lines. We're the Northeast Florida agent for National Van Lines' (line 49).",
+      "His own pricing is quoted in moving units — one-bedroom local ~$700, bigger house $2–3k, out-of-state one-bedroom ~$4,200, a big home to California '26 or $27,000' (line 53).",
+      "Will names the vertical back to him: 'love working with movers because everybody needs it. If someone's moving, they don't wanna do it on their own' and gives 'movers near me' as the AI search query (line 113).",
+      "Moving-industry vocabulary appears 8× (Van Lines ×3, movers ×2, moving ×2, out-of-state moves); roofing vocabulary 0× outside the title."
+    ],
+    "whatIsNOTClaimed": "That the linker should now return `linked`. It must not, and it does not: `linkTranscriptToRecord` is built to narrow on word evidence and NEVER upgrade a verdict on counts (lib/meetings/__tests__/transcriptRecordLink.test.ts, 'NEVER upgrades the verdict on word counts'). The ruling above is a human's, recorded here as an input a caller may supply — it is not a change to the linker's rule.",
+    "notCorrected": "The file is NOT renamed and 'Roofing' is NOT corrected anywhere. Renaming would destroy the only surviving record that the mislabel happened — and the mislabel is exactly what made this call invisible for eleven days."
+  },
+
+  "callDate": {
+    "resolved": false,
+    "latestPossible": "2026-07-09",
+    "latestPossibleProof": "Drive `createdTime` for `Joseph On Time Roofing Call Recording.m4a` (id 1upA8x8sNsmMmB2MiojIsgPic5LnLsU_z) is 2026-07-10T03:16:22.134Z = 2026-07-09 23:16 America/New_York, recorded in MLE Internal Meetings/drive-drain-2026-08-08.json. A recording cannot reach Drive before the call it records, so this is a ceiling, not an estimate.",
+    "candidates": ["2026-07-06", "2026-07-07", "2026-07-08", "2026-07-09"],
+    "narrowedBy": "NOTHING INSIDE THE BODY. Unlike john-burns.txt, neither speaker places a weekday in the future — Rob says only 'next week' twice (lines 63, 87). The upload ceiling is the sole bound, so four days survive where john-burns had three. Reported as weaker on purpose rather than borrowed from the sibling read.",
+    "corroboratingCeiling": "The 'next week' sit-down Rob asks for (lines 63, 87) is consistent with the 1h19m Joseph/Rob/Will meeting already archived at 2026-07-15 (MLE Internal Meetings/archive-reads/2026-07-15-joseph-rob-will-next-steps.deepread.txt). Consistent, NOT proof — it does not distinguish 7/6 from 7/9.",
+    "batchUploadCaveat": "This recording (03:16:22Z) and `Call with John Burns.m4a` (03:20:03Z) reached Drive 3m41s apart on the same night. That is a phone-recorder dump of multiple calls, so the upload instant bounds neither call tightly — it is a ceiling for both and a clock for neither.",
+    "whatWouldSettleIt": "Rob's phone call log for 2026-07-06..2026-07-09, or Rob simply naming the day.",
+    "notUsed": {
+      "transcribedOn": "2026-07-28 — the day Deepgram ran, 19+ days after the call. Using it would date this conversation almost three weeks late, forever, in the one field a wrong value is unrecoverable in.",
+      "ableRelease": "Will says 'a platform called Able just got rereleased today' (line 129). If that product and date are ever identified, it dates the call to the day. It is written down as a LEAD, not used — the name is probably a mishearing and nothing here verified it."
+    }
+  },
+
+  "recordingIsPartial": "The transcript ENDS MID-SENTENCE at line 129 ('but I haven't had a single'). Whatever was agreed after that point is not in this file, and no close, price or commitment should be read out of its absence.",
+
+  "intel": [
+    {
+      "kind": "pain_point",
+      "text": "we've got a secretary that answers the phones, and I don't think she really does anything else.",
+      "who": "Joseph",
+      "sourceRef": "joseph-ontime.txt:17",
+      "why": "The counterparty describes a full-time salary absorbed entirely by answering a phone — the missed-call leak in his own words, unprompted, before any pitch."
+    },
+    {
+      "kind": "pain_point",
+      "text": "we do a lot of military work ... The paperwork involved with it is just ridiculous.",
+      "who": "Joseph",
+      "sourceRef": "joseph-ontime.txt:13",
+      "why": "A named, high-volume back-office burden he raises himself — the concrete automation target on this account."
+    },
+    {
+      "kind": "company_facts",
+      "text": "we have one guy that does dispatch for us, and we've got a lady that does most of our, like, billing ... we've got about 30 guys. We usually stick around 30 or so.",
+      "who": "Joseph",
+      "sourceRef": "joseph-ontime.txt:21",
+      "why": "Headcount and shape of the org: ~30 field labourers with real turnover, three office staff. Sizes any per-seat or per-call proposal."
+    },
+    {
+      "kind": "company_facts",
+      "text": "we're an agent for National Van Lines. We're the Northeast Florida agent for National Van Lines ... any work that we can't actually do, we can always put into the system ... We still get paid off the job, but we don't we're not physically doing it.",
+      "who": "Joseph",
+      "sourceRef": "joseph-ontime.txt:49",
+      "why": "This is the evidence that fixes the record (see recordLink) AND it pre-answers the capacity objection: overflow demand converts to revenue without a truck."
+    },
+    {
+      "kind": "company_facts",
+      "text": "local moves ... maybe $3,000 would be, like, an average ... one bedroom apartment, you're probably talking, like, $700 ... going out to California, it could be 26 or $27,000.",
+      "who": "Joseph",
+      "sourceRef": "joseph-ontime.txt:53",
+      "why": "His own transaction-value range, stated on the call. Recorded as a meeting note only — no money field on any record is touched by this read."
+    },
+    {
+      "kind": "company_facts",
+      "text": "we're an s corp, so all the taxes fall ... business partner at the end of the year ... we try to write as much off as we can ... you can buy these trucks and depreciate a $200,000 truck.",
+      "who": "Joseph",
+      "sourceRef": "joseph-ontime.txt:29",
+      "why": "Stated reason his reported profit is deliberately managed year to year — any ROI case built off his filed numbers would be built off a number he says is engineered."
+    },
+    {
+      "kind": "what_benefits_us",
+      "text": "if you're getting too much work, you get better paying work ... you quit doing jobs that aren't making you a lot of money ... That that would definitely be profitable for us.",
+      "who": "Joseph",
+      "sourceRef": "joseph-ontime.txt:41",
+      "why": "He states the value of more demand in his own terms — margin mix, not volume. The pitch does not have to establish want; it is already conceded."
+    },
+    {
+      "kind": "relationship",
+      "text": "Kayla was saying that and and from what you guys are you know, from what you were saying here a minute ago, so I guess a lot of what you're doing is optimizing everything for AI searches, essentially?",
+      "who": "Joseph",
+      "sourceRef": "joseph-ontime.txt:107",
+      "why": "A third party pre-briefed Joseph before this call. Rob also calls the same person 'a sharp dude' at line 35, rendered 'Caleb' there and 'Kayla' here — one referrer, two spellings, neither verified. Referral provenance the CRM does not currently hold."
+    },
+    {
+      "kind": "positioning",
+      "text": "we don't just optimize your website for AEO ... We also do it for convertibility ... we build what's called a living second brain ... if you're not happy with it within the first thirty days, you get a full refund and you get to keep the [site].",
+      "who": "Rob",
+      "sourceRef": "joseph-ontime.txt:79",
+      "why": "The offer as actually delivered to this prospect, including the refund term — what MLE is on the hook for if this deal proceeds."
+    },
+    {
+      "kind": "product",
+      "text": "we like to work in different phases ... phase two ... After we deliver the second time for phase three, we go ahead and we automate up to 95% of your business ... turn it into passive income for both of us forever.",
+      "who": "Will",
+      "sourceRef": "joseph-ontime.txt:121",
+      "why": "The three-phase ladder and the revenue-partnership ending, as pitched verbally. Any proposal to On Time must match this or explain the change."
+    },
+    {
+      "kind": "risk",
+      "text": "Over the past seven days, I was able to get a 126,830 people to the website all through organic traffic ... about 800 individuals that went to it request services ... Customers are about 40 times more likely [to purchase] ... we can lower the customer acquisition cost between 70 to 90% within two to three months ... I was a presidential level adviser in Europe ... I've worked with the royal government of Dubai.",
+      "who": "Will",
+      "sourceRef": "joseph-ontime.txt:113",
+      "why": "Specific, checkable claims made to a live prospect on a recorded call, none of them sourced in this repo. If any reaches a proposal or a deck it needs a source URL behind it (Rob's own standing rule) — flagged to the ledger this increment, asserted nowhere."
+    },
+    {
+      "kind": "next_step",
+      "text": "I'd really love to set something up for next week so we can kinda sit down ... Love to circle back with you next week.",
+      "who": "Rob",
+      "sourceRef": "joseph-ontime.txt:63",
+      "why": "The ask made on the call. Its apparent landing is the 1h19m Joseph/Rob/Will meeting archived 2026-07-15."
+    },
+    {
+      "kind": "next_step",
+      "text": "Oh, I can't. I'm on Yeah. I can't right now, actually. I'm on my cell phone on this, so I don't have it.",
+      "who": "Joseph",
+      "sourceRef": "joseph-ontime.txt:111",
+      "why": "The screen-share demo Will offered never happened — Joseph was on a cell phone. The case study he was told about was described, never shown; a follow-up owes him the actual screen."
+    },
+    {
+      "kind": "intent",
+      "text": "Yeah. Well, that's cool. So you guys do, like, automated, like, virtual assistant type things then also?",
+      "who": "Joseph",
+      "sourceRef": "joseph-ontime.txt:123",
+      "why": "Unprompted pull toward the automation half of the offer — the buying question he asked rather than was asked."
+    }
+  ],
+
+  "notWritten": "No CRM record was created, updated or proposed by this read. No activity row exists for this call. No money, quoted, signed or paid field on any record was touched. The transcript file was not renamed, moved or edited."
+}
