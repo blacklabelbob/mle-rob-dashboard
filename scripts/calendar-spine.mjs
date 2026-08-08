@@ -32,7 +32,12 @@ import { fileURLToPath } from "node:url";
 
 import { fromCalendarEvents, SOURCES_NOT_WIRED, sourceRecordsFromAttachments } from "../lib/meetings/calendarEvents.ts";
 import { reconcileCalendarSpine } from "../lib/meetings/calendarSpine.ts";
-import { indexNotionReads, parseDeepReadHeader } from "../lib/meetings/notionReads.ts";
+import {
+  indexNotionReads,
+  parseDeepReadHeader,
+  rulingAttachments,
+  strandedTranscriptRulings,
+} from "../lib/meetings/notionReads.ts";
 import { fromFathom, fromManifest, fromNotion, fromTranscriptFiles } from "../lib/meetings/spineSources.ts";
 
 const AS_JSON = process.argv.includes("--json");
@@ -252,6 +257,33 @@ if (notion.confirmedTranscripts.length || notion.ruledNotTranscript.length) {
     console.log(`   ✔ TRANSCRIPT  ${titleOf(id)}`);
   for (const id of notion.ruledNotTranscript)
     console.log(`   · not a transcript — ${titleOf(id)} (read, ruled, not coverage)`);
+
+  // inc.12: a ruling only becomes a number on the board if a calendar meeting claims it. Printed
+  // here, next to the rulings themselves, because that is where a reader forms the belief that the
+  // reading finished the job.
+  // Orphaned rulings are excluded on purpose: they were already dropped from the join because no
+  // .deepread.txt carries their id, they never set `hasTranscript`, and printing one here as a
+  // stranded transcript would claim coverage for a body nobody can open. They get their own section.
+  const attachments = rulingAttachments(
+    confirmations.filter((c) => !orphanedConfirmations.includes(c)),
+    report.rows,
+    report.unclaimed,
+    (id) => notion.records.find((r) => r.id === id)?.title ?? id,
+  );
+  const stranded = strandedTranscriptRulings(attachments);
+  if (stranded.length) {
+    console.log(
+      `\n— ⚠ RULED TRANSCRIPTS NO MEETING CLAIMS (${stranded.length} of ${notion.confirmedTranscripts.length}) —`,
+    );
+    console.log(
+      `   Someone read these end to end and ruled them transcripts. They move ZERO of the ${report.counts.meetings} rows`,
+    );
+    console.log(
+      `   below, because a coverage row is a calendar meeting and nothing links these to one.`,
+    );
+    for (const a of stranded)
+      console.log(`   · ${a.title} [${a.placement}]\n       → ${a.action}`);
+  }
 }
 
 if (orphanedConfirmations.length) {

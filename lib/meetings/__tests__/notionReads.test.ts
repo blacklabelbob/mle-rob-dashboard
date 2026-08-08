@@ -10,7 +10,12 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { indexNotionReads, parseDeepReadHeader } from "@/lib/meetings/notionReads";
+import {
+  indexNotionReads,
+  parseDeepReadHeader,
+  rulingAttachments,
+  strandedTranscriptRulings,
+} from "@/lib/meetings/notionReads";
 import type { NotionReadConfirmation } from "@/lib/meetings/notionReads";
 
 // Copied verbatim from `MLE Internal Meetings/archive-reads/2025-12-20-will-devito.deepread.txt`.
@@ -94,5 +99,129 @@ describe("the committed reads and rulings", () => {
     // Same verdict, 25× apart on the axis a heuristic would key off. Shape measures how Notion
     // recorded the page, not what the page holds. If this ever goes red because a verdict moved,
     // the doc comment in notionReads.ts is what has to change with it.
+  });
+});
+
+/**
+ * Q86 inc.12 — a ruling that no calendar meeting claims.
+ *
+ * These assert against the LIVE rulings file and the real spine window, not fixtures: the finding
+ * is that both rulings this repo has actually earned are stranded, and a fixture would go green
+ * while the real board still showed 9-with-transcript and neither of them in it.
+ */
+describe("rulingAttachments", () => {
+  const titleOf = (id: string) => `title:${id}`;
+  const ruling = (pageId: string, verdict: NotionReadConfirmation["verdict"] = "transcript") => ({
+    pageId,
+    verdict,
+    note: "read end to end",
+    confirmedAt: "2026-08-07",
+    confirmedBy: "max",
+  });
+
+  it("says nothing is owed when a meeting links the ruled page", () => {
+    const [a] = rulingAttachments(
+      [ruling("p1")],
+      [
+        {
+          meetingId: "evt-1",
+          title: "Gulf Coast RE KICKOFF",
+          day: "2026-07-22",
+          links: [{ source: "notion", id: "p1" }],
+        },
+      ],
+      [],
+      titleOf,
+    );
+    expect(a.placement).toBe("linked");
+    expect(a.meeting?.meetingId).toBe("evt-1");
+    expect(strandedTranscriptRulings([a])).toEqual([]);
+  });
+
+  it("does NOT count a link from another source as this ruling's link", () => {
+    // The join is (source === notion AND id === pageId). A fireflies record that happens to carry
+    // the same id string must not close a Notion ruling — that is a mis-join wearing a green tick.
+    const [a] = rulingAttachments(
+      [ruling("p1")],
+      [{ meetingId: "evt-1", title: "m", day: "2026-07-22", links: [{ source: "fireflies", id: "p1" }] }],
+      [{ id: "p1", title: "t", day: "2026-07-22", placement: "in-window-day-busy", sameDayMeetings: [{ id: "evt-1", title: "m" }] }],
+      titleOf,
+    );
+    expect(a.placement).toBe("in-window-day-busy");
+  });
+
+  it("names the day's candidate events rather than picking one", () => {
+    const [a] = rulingAttachments(
+      [ruling("p1")],
+      [],
+      [
+        {
+          id: "p1",
+          title: "t",
+          day: "2026-06-16",
+          placement: "in-window-day-busy",
+          sameDayMeetings: [
+            { id: "e1", title: "Caleb, Rob, Will | CGRoofingGroup.com" },
+            { id: "e2", title: "Rob, Alex | Gulf Coast RE" },
+          ],
+        },
+      ],
+      titleOf,
+    );
+    expect(a.action).toContain("A HUMAN RULES");
+    expect(a.action).toContain("CGRoofingGroup.com");
+    expect(a.action).toContain("Gulf Coast RE");
+    // The one thing it must never do: choose.
+    expect(a.meeting).toBeUndefined();
+  });
+
+  it("tells the reader to widen the window, not to re-read the body, when the day was never scanned", () => {
+    const [a] = rulingAttachments(
+      [ruling("p1")],
+      [],
+      [{ id: "p1", title: "t", day: "2025-12-20", placement: "outside-window", sameDayMeetings: [] }],
+      titleOf,
+    );
+    expect(a.action).toContain("WIDEN THE WINDOW past 2025-12-20");
+  });
+
+  it("treats a summary-only ruling as settled, never as a stranded transcript", () => {
+    const attachments = rulingAttachments(
+      [ruling("p1", "summary-only"), ruling("p2", "empty")],
+      [],
+      [
+        { id: "p1", title: "t", day: "2026-06-16", placement: "in-window-day-busy", sameDayMeetings: [] },
+        { id: "p2", title: "t", day: "2026-06-16", placement: "in-window-day-busy", sameDayMeetings: [] },
+      ],
+      titleOf,
+    );
+    expect(strandedTranscriptRulings(attachments)).toEqual([]);
+    for (const a of attachments) expect(a.action).toContain("nothing owed");
+  });
+
+  it("flags a ruling on a page the spine never harvested", () => {
+    const [a] = rulingAttachments([ruling("ghost")], [], [], titleOf);
+    expect(a.placement).toBe("not-in-spine");
+  });
+
+  it("THE LIVE FINDING: both rulings this repo has earned are stranded, so the board is unmoved", () => {
+    const live: NotionReadConfirmation[] = JSON.parse(
+      readFileSync(
+        join(__dirname, "..", "..", "..", "MLE Internal Meetings", "notion-read-confirmations.json"),
+        "utf8",
+      ),
+    ).confirmations;
+    // Guard first — if a ruling is ever added, this test must be re-read, not silently widened.
+    expect(live.filter((c) => c.verdict === "transcript")).toHaveLength(2);
+    const attachments = rulingAttachments(
+      live,
+      [],
+      [
+        { id: "2cf1de57-0199-8003-9e6d-fd921fbb8a59", title: "will Devito", day: "2025-12-20", placement: "outside-window", sameDayMeetings: [] },
+        { id: "3811de57-0199-8099-9137-ef10c8fd0efe", title: "Gulf Coast Realty, AI Alex meeting one", day: "2026-06-16", placement: "in-window-day-busy", sameDayMeetings: [{ id: "e1", title: "Caleb, Rob, Will | CGRoofingGroup.com + AI Platform Discovery" }] },
+      ],
+      titleOf,
+    );
+    expect(strandedTranscriptRulings(attachments)).toHaveLength(2);
   });
 });
