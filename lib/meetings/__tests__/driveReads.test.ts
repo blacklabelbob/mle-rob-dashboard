@@ -262,6 +262,44 @@ describe("the committed snapshot and rulings — the evidence this module cites"
     expect(biggest).toBeGreaterThan(DRIVE_BODY_UNREAD_BYTES);
   });
 
+  /**
+   * RULED MEANS RULED, IN BOTH DIRECTIONS — the general form of the pin above (Q86 inc.19).
+   *
+   * inc.18 asserted that a `summary-only` doc leaves the unread queue. That is the important half,
+   * but it is only one verdict of three, and the reciprocal was never stated at all: nothing said
+   * that a doc sitting in `bodyFindings` is genuinely unruled. Both halves matter for the same
+   * reason — `bodyFindings` is the list a human is sent to go and READ, and this edge is now five
+   * docs deep with the majority coming back with no speech in them. A ruled doc leaking back into
+   * that list sends someone to re-open a file that is already settled; an unruled doc missing from
+   * it loses the only prompt anyone will ever get to open it.
+   *
+   * So the invariant is disjointness on the real snapshot, computed both ways rather than asserted
+   * once: no ruled file appears in `bodyFindings`, and no file in `bodyFindings` carries a ruling.
+   * It holds for every verdict, and it does not move when the next doc is read — unlike the ratio,
+   * which is evidence for a reader and would be a trap in a test.
+   */
+  it("the ruled set and the unread queue are disjoint — no verdict re-queues, no queued doc is ruled", () => {
+    const harvest = fromDrive(
+      snap.docs.map((d: DriveDoc) => ({ id: d.id, source: "gemini" }) as unknown as SourceRecord),
+      snap.docs,
+      rulings.confirmations,
+    );
+
+    const ruledIds = new Set(rulings.confirmations.map((c: DriveReadConfirmation) => c.fileId));
+    const queuedIds = new Set(harvest.bodyFindings.map((f) => f.fileId));
+    expect(ruledIds.size).toBeGreaterThan(0);
+
+    for (const id of ruledIds) expect(queuedIds.has(id)).toBe(false);
+    for (const id of queuedIds) expect(ruledIds.has(id)).toBe(false);
+
+    // Every measured doc is on exactly one side of the line or is below the read floor — so the
+    // two sets plus the boilerplate floor account for the whole snapshot, with nothing stranded.
+    const belowFloor = snap.docs
+      .filter((d: DriveDoc) => (d.bytes ?? 0) < DRIVE_BODY_UNREAD_BYTES && !ruledIds.has(d.id))
+      .map((d: DriveDoc) => d.id);
+    expect(ruledIds.size + queuedIds.size + belowFloor.length).toBe(snap.docs.length);
+  });
+
   it("a `transcript` ruling always carries quoted evidence, a date and an owner", () => {
     const coverage = rulings.confirmations.filter(
       (c: DriveReadConfirmation) => c.verdict === "transcript",
