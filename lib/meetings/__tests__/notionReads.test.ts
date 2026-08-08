@@ -251,12 +251,19 @@ describe("rulingAttachments", () => {
     //     (2026-08-03 Martin Fierro pre-call) both strand `[undated]` — `Call Date` is NULL on both
     //     while each title carries its own date, the `3ad1de57…` shape from inc.27. A date in the
     //     title is not a date on the row, and the spine will not promote one to the other.
-    // So: 10 transcript rulings, 10 stranded — still the same number, and the reason is structural.
+    // Re-read 2026-08-08 (Q86 inc.31): an ELEVENTH transcript ruling, 10 -> 11 by hand —
+    // `2d51de57…` (Ryan Groth Explaining ClickUp, 2025-12-26, 21,102 chars), the first of the five
+    // STG-era bodies that still held unruled text. Checked against the live `spine:q86` run before
+    // the number moved: it strands `in-window-day-empty` — the row IS dated (Call Date 2025-12-26,
+    // Contact Name "Ryan Groth"), so it is not the inc.27/inc.30 `undated` shape, but the calendar
+    // holds NO event that day. Same shape as will Devito: the transcript is not in doubt, its place
+    // on the board is, and only a human can give it a calendar entry or say it never had one.
+    // So: 11 transcript rulings, 11 stranded — still the same number, and the reason is structural.
     // Until a real `rows` link exists, no body-reading can move this count, which is the property
     // the whole edge is built on: reading a body proves what it CONTAINS, never which event it is
     // OF. If these two numbers ever diverge, a notion link was written onto a meeting row — go
     // find out who welded it and on what evidence.
-    expect(live.filter((c) => c.verdict === "transcript")).toHaveLength(10);
+    expect(live.filter((c) => c.verdict === "transcript")).toHaveLength(11);
     const attachments = rulingAttachments(
       live,
       [],
@@ -283,10 +290,14 @@ describe("rulingAttachments", () => {
         // title was parsed into one.
         { id: "3b31de57-0199-80ea-9171-cd12c228e3d7", title: "Meeting 2026-08-05", day: null, placement: "undated", sameDayMeetings: [] },
         { id: "3b11de57-0199-8020-9fb9-c3171150b472", title: "2026-08-03T19:34:00.000-04:00", day: null, placement: "undated", sameDayMeetings: [] },
+        // Q86 inc.31. Dated by the ROW (not by its title) and the calendar is empty that day — the
+        // will Devito shape, five days after will Devito. Pinned so that if it ever leaves this
+        // list it is because a calendar entry was created, not because a day was inferred.
+        { id: "2d51de57-0199-8091-905c-e0000e9aa309", title: "Ryan Groth Explaining ClickUp", day: "2025-12-26", placement: "in-window-day-empty", sameDayMeetings: [] },
       ],
       titleOf,
     );
-    expect(strandedTranscriptRulings(attachments)).toHaveLength(10);
+    expect(strandedTranscriptRulings(attachments)).toHaveLength(11);
   });
 
   it("THE LIVE FINDING, second half: a summary-only ruling is recorded and is NOT counted as a transcript", () => {
@@ -331,7 +342,9 @@ describe("rulingAttachments", () => {
     // the test above). The four `summary-only` ids and the one `empty` id below are unchanged,
     // which is the property this bump has to preserve: a total that moves while the named verdicts
     // stay put is the only safe way for this file to grow.
-    expect(live).toHaveLength(15);
+    // Re-read 2026-08-08 (Q86 inc.31): ONE more ruling, 15 -> 16, a `transcript` (asserted in the
+    // test above). The four `summary-only` ids and the one `empty` id below are unchanged.
+    expect(live).toHaveLength(16);
     for (const pageId of [
       "79dbbdf5-61fe-441c-8324-1d3f75c8a6a9",
       "3c349f70-08dd-48c6-89c6-e0d71fd93d82",
