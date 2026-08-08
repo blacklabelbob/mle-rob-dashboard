@@ -220,6 +220,48 @@ describe("the committed snapshot and rulings — the evidence this module cites"
    * `hasTranscript` true and closes a meeting, and it may never be a bare word. It carries quoted
    * evidence, a date, and a named owner — so a wrong ruling is arguable and has somebody's name on it.
    */
+  /**
+   * Q86 inc.18 — the mirror of the assertion below, and the one that costs coverage when it fails.
+   *
+   * Every ruling before this one pointed the same way: the two big docs (41,827 and 67,517 bytes)
+   * both held transcripts, and the only non-coverage ruling was the 3,186-byte apology. Read
+   * together they say "big means transcript", which is a rule nobody wrote and everybody would
+   * start assuming. `1R3Dh6W7…` is 14,199 bytes of genuinely rich Gemini notes — 10 Aligned
+   * decisions, 20 next steps, 40 Details bullets — and not one word of it is speech.
+   *
+   * So the pin is on the direction that hurts: a doc ruled `summary-only` stays OUT of coverage no
+   * matter how far above the unread floor it measures. Size may never promote a ruling.
+   */
+  it("a big `summary-only` doc is never coverage — size cannot promote a ruling", () => {
+    const notCoverage = rulings.confirmations.filter(
+      (c: DriveReadConfirmation) => c.verdict === "summary-only",
+    );
+    expect(notCoverage.length).toBeGreaterThan(0);
+
+    for (const c of notCoverage) {
+      const doc = snap.docs.find((d: DriveDoc) => d.id === c.fileId);
+      expect(doc).toBeTruthy();
+      const harvest = fromDrive(
+        [{ id: doc.id, source: "gemini" } as unknown as SourceRecord],
+        snap.docs,
+        rulings.confirmations,
+      );
+      expect(harvest.records[0].hasTranscript).toBe(false);
+      expect(harvest.confirmedTranscripts).not.toContain(doc.id);
+      // ...and it is ruled, so it must not be re-queued as an unread body either.
+      expect(harvest.bodyFindings.map((f) => f.fileId)).not.toContain(doc.id);
+    }
+
+    // The point only lands if at least one of them is genuinely large.
+    const biggest = Math.max(
+      ...notCoverage.map(
+        (c: DriveReadConfirmation) =>
+          snap.docs.find((d: DriveDoc) => d.id === c.fileId)?.bytes ?? 0,
+      ),
+    );
+    expect(biggest).toBeGreaterThan(DRIVE_BODY_UNREAD_BYTES);
+  });
+
   it("a `transcript` ruling always carries quoted evidence, a date and an owner", () => {
     const coverage = rulings.confirmations.filter(
       (c: DriveReadConfirmation) => c.verdict === "transcript",
