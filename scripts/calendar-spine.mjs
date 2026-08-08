@@ -35,6 +35,7 @@ import { reconcileCalendarSpine } from "../lib/meetings/calendarSpine.ts";
 import { fromDrive, summarizeRuledDocs } from "../lib/meetings/driveReads.ts";
 import { drainReport } from "../lib/meetings/driveDrain.ts";
 import { linkRecordings } from "../lib/meetings/driveTranscriptLink.ts";
+import { linkTranscripts } from "../lib/meetings/transcriptRecordLink.ts";
 import {
   indexNotionReads,
   parseDeepReadHeader,
@@ -217,6 +218,20 @@ const localTranscripts = existsSync(LOCAL_TRANSCRIPTS)
 const recordingLinks = drainSnap
   ? linkRecordings(drainSnap.unprocessed ?? [], localTranscripts)
   : [];
+// Q86 inc.40 — DoD (b), the half inc.39 named: a transcript proven to exist and attached to NOTHING
+// is still a gap. This asks which CRM record each one belongs to. It PROPOSES; it writes no record,
+// and an `uncertain` verdict is printed for a human rather than resolved here.
+const NETWORK = join(REPO, "data", "network.local.json");
+const registry = existsSync(NETWORK)
+  ? (JSON.parse(readFileSync(NETWORK, "utf8")).people ?? []).map((p) => ({
+      id: p.id,
+      name: p.name,
+      entityKind: p.entityKind === "company" ? "company" : "person",
+      legacySlug: p.legacySlug ?? null,
+    }))
+  : [];
+const transcriptRecordLinks = linkTranscripts(localTranscripts, registry);
+
 const drain = drainSnap
   ? drainReport(
       drainSnap.unprocessed ?? [],
@@ -524,6 +539,24 @@ if (drain) {
   );
 } else {
   console.log(`\n   ⚠ no drain snapshot at ${DRAIN} — DoD (e) is UNMEASURED, which is not the same as drained.`);
+}
+
+if (transcriptRecordLinks.length) {
+  // Printed apart from the drain for the same reason the drain is printed apart from Notion: "this
+  // audio is transcribed" and "this transcript belongs to P-1020" are two different claims, and
+  // collapsing them is how a corroboration gets read as an identification.
+  console.log(
+    `\n— TRANSCRIPTS ON DISK → CRM RECORD (${basename(LOCAL_TRANSCRIPTS)}, ${registry.length} records read) —`,
+  );
+  for (const l of transcriptRecordLinks) {
+    const mark = { linked: "🔗", uncertain: "⚠", none: "❓" }[l.status];
+    console.log(
+      `   ${mark} ${l.status} — ${l.transcript.ref} → ${l.record ? `${l.record.id} ${l.record.name}` : "no record"}\n     ${l.why}`,
+    );
+  }
+  console.log(
+    `   ⛔ these are PROPOSALS. Nothing was written to any record, and "same named subject" is not "this call is about that deal".`,
+  );
 }
 
 console.log(
