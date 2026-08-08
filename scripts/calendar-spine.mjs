@@ -307,6 +307,20 @@ if (notion.bodyFindings.length) {
     console.log(`   · ${f.day ?? "(no date)"}  ${f.title}\n       ${f.bodyChars.toLocaleString("en-US")} chars${f.contradictsCheckbox ? " · checkbox says NO transcript" : ""} · ${f.url ?? "(no url)"}\n       ${f.why}`);
 }
 
+if (notion.unmeasuredBodies.length) {
+  // inc.25. The list that was never printed because these rows were dropped before they could
+  // become anything. They are NOT counted with the findings above and must not be: a finding names
+  // how much text is owed a read, and here the only honest statement is that we did not look far
+  // enough to know. Printed after the findings so the queue a human works is still on top.
+  console.log(
+    `\n— NOTION PAGES THE SNAPSHOT COULD NOT MEASURE (${notion.unmeasuredBodies.length}) — blocks present, 0 characters counted, NOT empty —`,
+  );
+  for (const u of notion.unmeasuredBodies)
+    console.log(
+      `   · ${u.day ?? "(no date)"}  ${u.title}\n       ${u.bodyBlocks} top-level block(s) · ${u.url ?? "(no url)"}\n       ${u.why}`,
+    );
+}
+
 // inc.10: reading is a STAGE, so the finished ones are printed as finished. A ruling that came out
 // "summary-only" is worth as much as one that came out "transcript" — it is the only thing that
 // stops the same body being re-read every week — so both are shown, and neither is folded into the

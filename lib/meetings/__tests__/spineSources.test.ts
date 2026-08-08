@@ -325,3 +325,90 @@ describe("fromNotion + deep reads (inc.10)", () => {
     expect(fromNotion([ROW], byPageId).records[0].hasTranscript).toBe(false);
   });
 });
+
+describe("fromNotion — below the floor is not the same as empty (inc.25)", () => {
+  /**
+   * The live shape this was found on: `Meeting 2026-07-28` — the Omega row INCIDENT-LEDGER #34 was
+   * opened for — measured 0 characters over 1 block in `notion-snapshot-2026-08-07.json`, and was
+   * therefore dropped before it could become a finding, an unread row, or anything a human sees.
+   */
+  const CAPPED: NotionMeetingRow = {
+    id: "3ab1de57-0199-80ef-bf9c-c2b98d7578ed",
+    title: "Meeting 2026-07-28",
+    day: "2026-07-28",
+    url: "https://app.notion.com/p/Meeting-3ab1de57019980efbf9cc2b98d7578ed",
+    transcriptAvailable: false,
+    bodyChars: 0,
+    bodyBlocks: 1,
+  };
+
+  it("reports a 0-character page WITH blocks as unmeasured — never silently drops it", () => {
+    const { unmeasuredBodies, bodyFindings } = fromNotion([CAPPED]);
+    expect(unmeasuredBodies).toHaveLength(1);
+    expect(unmeasuredBodies[0].id).toBe(CAPPED.id);
+    expect(unmeasuredBodies[0].bodyBlocks).toBe(1);
+    expect(unmeasuredBodies[0].url).toBe(CAPPED.url);
+    // It is NOT a finding: a finding names how much text is owed a read, and that is the one thing
+    // this row cannot tell us. Conflating the two is how a depth cap read as a drained queue.
+    expect(bodyFindings).toHaveLength(0);
+  });
+
+  it("says the number is about OUR read depth, and names the command that settles it", () => {
+    const [u] = fromNotion([CAPPED]).unmeasuredBodies;
+    expect(u.why).toContain("not about the page");
+    expect(u.why).toContain("may never be called an absence");
+    expect(u.why).toContain(`node scripts/notion-body-dump.mjs ${CAPPED.id}`);
+  });
+
+  it("stays silent about a page the snapshot saw NO blocks on — a different claim entirely", () => {
+    // Zero blocks means the reader looked and found nothing there. That is the snapshot speaking
+    // about the page; 0 chars over 1 block is the snapshot speaking about itself.
+    expect(fromNotion([{ ...CAPPED, bodyBlocks: 0 }]).unmeasuredBodies).toHaveLength(0);
+  });
+
+  it("drops off the unmeasured list the moment the body IS read deeply — no double-queueing", () => {
+    const read: NotionPageRead = {
+      pageId: CAPPED.id,
+      // A SYNTHETIC path on purpose, and it must never look like a real archive citation. The
+      // draft of this test named `archive-reads/2026-07-28-omega.deepread.txt` — a file that does
+      // not exist, because the Omega body has NOT been deep-read yet; that is the open work this
+      // whole describe block exists to surface. `citedEvidenceExists` caught it at the push gate,
+      // which is the guard doing exactly its job (Q89 inc.26). `fromNotion` never opens the path,
+      // so a fixture value that cannot be mistaken for evidence is the honest one.
+      path: "(test fixture — no file; the Omega body is unread, which is the point)",
+      blocks: 531,
+      chars: 104683,
+    };
+    const { unmeasuredBodies, bodyFindings } = fromNotion([CAPPED], indexNotionReads([read], []).byPageId);
+    expect(unmeasuredBodies).toHaveLength(0);
+    // …and the deep read carries it over the floor as a real finding, with the real number.
+    expect(bodyFindings).toHaveLength(1);
+    expect(bodyFindings[0].bodyChars).toBe(104683);
+  });
+
+  it("a RULED page is settled and never appears as unmeasured, whatever the snapshot counted", () => {
+    const read: NotionPageRead = {
+      pageId: CAPPED.id,
+      // A SYNTHETIC path on purpose, and it must never look like a real archive citation. The
+      // draft of this test named `archive-reads/2026-07-28-omega.deepread.txt` — a file that does
+      // not exist, because the Omega body has NOT been deep-read yet; that is the open work this
+      // whole describe block exists to surface. `citedEvidenceExists` caught it at the push gate,
+      // which is the guard doing exactly its job (Q89 inc.26). `fromNotion` never opens the path,
+      // so a fixture value that cannot be mistaken for evidence is the honest one.
+      path: "(test fixture — no file; the Omega body is unread, which is the point)",
+      blocks: 531,
+      chars: 104683,
+    };
+    const ruling: NotionReadConfirmation = {
+      pageId: CAPPED.id,
+      verdict: "transcript",
+      note: "full transcript beneath the AI summary",
+      confirmedAt: "2026-08-05",
+      confirmedBy: "max",
+    };
+    const out = fromNotion([CAPPED], indexNotionReads([read], [ruling]).byPageId);
+    expect(out.unmeasuredBodies).toHaveLength(0);
+    expect(out.bodyFindings).toHaveLength(0);
+    expect(out.confirmedTranscripts).toEqual([CAPPED.id]);
+  });
+});

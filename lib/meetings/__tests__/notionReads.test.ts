@@ -216,7 +216,14 @@ describe("rulingAttachments", () => {
     // moved 2 -> 3 by hand after checking the new row is genuinely stranded too. It is: the
     // 11:05 EDT Rob/Connor call is not on the calendar at all, and the only 2026-06-16 event
     // is the 13:00 CGRoofing meeting, which the body rules out on time AND subject.
-    expect(live.filter((c) => c.verdict === "transcript")).toHaveLength(3);
+    // Re-read 2026-08-08 (Q86 inc.25, catching up inc.24): a FOURTH transcript ruling was added by
+    // inc.24 — `3a51de57…` (Gulf Coast RE KICKOFF 2026-07-22, 114,354 chars). This moved 3 -> 4 by
+    // hand after confirming the new row is stranded too, off the live `spine:q86` run rather than
+    // off the ruling note: its day holds exactly ONE event ("10 am - meet with Rob and Will; Kick
+    // off meeting.") and the spine still refuses to weld a body to an event, so it attaches as a
+    // near-match and stays stranded. NOTE inc.24 did not update this pin — it verified with
+    // `vitest lib/__tests__`, a path that excludes this file, so the guard sat red until push.
+    expect(live.filter((c) => c.verdict === "transcript")).toHaveLength(4);
     const attachments = rulingAttachments(
       live,
       [],
@@ -224,10 +231,11 @@ describe("rulingAttachments", () => {
         { id: "2cf1de57-0199-8003-9e6d-fd921fbb8a59", title: "will Devito", day: "2025-12-20", placement: "outside-window", sameDayMeetings: [] },
         { id: "3811de57-0199-8099-9137-ef10c8fd0efe", title: "Gulf Coast Realty, AI Alex meeting one", day: "2026-06-16", placement: "in-window-day-busy", sameDayMeetings: [{ id: "e1", title: "Caleb, Rob, Will | CGRoofingGroup.com + AI Platform Discovery" }] },
         { id: "3811de57-0199-80d4-b8e5-c0a7c8465085", title: "Meeting 2026-06-16T11:05:00.000-04:00", day: "2026-06-16", placement: "in-window-day-busy", sameDayMeetings: [{ id: "e1", title: "Caleb, Rob, Will | CGRoofingGroup.com + AI Platform Discovery" }] },
+        { id: "3a51de57-0199-802b-b9f8-f59fa153a013", title: "Gulf Coast RE KICKOFF 2026-07-22", day: "2026-07-22", placement: "in-window-day-busy", sameDayMeetings: [{ id: "e2", title: "10 am - meet with Rob and Will; Kick off meeting." }] },
       ],
       titleOf,
     );
-    expect(strandedTranscriptRulings(attachments)).toHaveLength(3);
+    expect(strandedTranscriptRulings(attachments)).toHaveLength(4);
   });
 
   it("THE LIVE FINDING, second half: a summary-only ruling is recorded and is NOT counted as a transcript", () => {
@@ -249,7 +257,15 @@ describe("rulingAttachments", () => {
     // 5 -> 6 by hand after reading that body end to end too. It is the LAST Notion body above the
     // 512-byte floor, so absent a new snapshot this count should now stop moving — a later bump
     // without a new deepread beside it is the thing to be suspicious of.
-    expect(live).toHaveLength(6);
+    // Re-read 2026-08-08 (Q86 inc.25, catching up inc.24): a SEVENTH ruling landed, moving this
+    // 6 -> 7 — and it is exactly the bump the line above says to be suspicious of, so it was
+    // checked rather than waved through. It holds up: the deepread IS beside it
+    // (`archive-reads/2026-07-22-gulfcoast.deepread.txt`, on disk and tracked), and the reason the
+    // "should stop moving" prediction was wrong is inc.25's own finding — "the last body above the
+    // floor" was measured on a depth-capped number, so there was never a reason for it to stop.
+    // The prediction is left standing above rather than edited out: it was the belief at the time,
+    // and what falsified it is the point.
+    expect(live).toHaveLength(7);
     for (const pageId of [
       "79dbbdf5-61fe-441c-8324-1d3f75c8a6a9",
       "3c349f70-08dd-48c6-89c6-e0d71fd93d82",

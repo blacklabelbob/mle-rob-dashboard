@@ -208,9 +208,36 @@ export type NotionBodyFinding = {
   why: string;
 };
 
+/**
+ * A page the snapshot could not measure — NOT a page that is empty.
+ *
+ * The distinction is the whole point. `notion-spine-snapshot.mjs` counts top-level blocks only, so
+ * a page whose entire body hangs one level down measures **0 characters over ≥1 block**, and 0 is
+ * indistinguishable from empty to every consumer downstream. That is the 2026-07-28 Omega shape
+ * arrived at by arithmetic (INCIDENT-LEDGER #34) and it is the same rule Q84 already pays for on
+ * the recovery worklist — `atMostUnrecoverable = 0`, *a page with blocks may never be called an
+ * absence*. This type carries that rule onto the Notion edge.
+ */
+export type NotionUnmeasuredBody = {
+  id: string;
+  title: string;
+  day?: string;
+  url?: string;
+  /** Top-level blocks the snapshot DID see. > 0 is what makes this unmeasured rather than empty. */
+  bodyBlocks: number;
+  why: string;
+};
+
 export type NotionHarvest = {
   records: SourceRecord[];
   bodyFindings: NotionBodyFinding[];
+  /**
+   * Rows the snapshot's own number cannot speak for: below the floor, blocks present, no deep read
+   * on disk. Deliberately NOT folded into `bodyFindings` — a finding states how much text is owed a
+   * read, and here we do not know that. Reporting an unknown as a quantity is how the depth cap got
+   * mistaken for a drained queue in the first place.
+   */
+  unmeasuredBodies: NotionUnmeasuredBody[];
   /** Page ids whose body was READ off disk and RULED a transcript — the only rows that are coverage. */
   confirmedTranscripts: string[];
   /** Read on disk, opened, and ruled NOT a transcript. Closed work, not open — and not coverage. */
@@ -251,6 +278,7 @@ export function fromNotion(
 ): NotionHarvest {
   const records: SourceRecord[] = [];
   const bodyFindings: NotionBodyFinding[] = [];
+  const unmeasuredBodies: NotionUnmeasuredBody[] = [];
   const confirmedTranscripts: string[] = [];
   const ruledNotTranscript: string[] = [];
 
@@ -286,11 +314,44 @@ export function fromNotion(
       url: r.url,
     });
 
-    if (bodyChars < NOTION_BODY_UNREAD_CHARS) continue;
     // A ruled page is settled — either it is coverage above, or it was opened and found to hold no
     // speech. Neither is "text nobody has read", and leaving it on that list is how a finished
-    // reading gets done twice while a genuinely unread page waits behind it.
+    // reading gets done twice while a genuinely unread page waits behind it. Checked BEFORE the
+    // floor, because a ruled page is settled whatever its character count says.
     if (verdict) continue;
+
+    if (bodyChars < NOTION_BODY_UNREAD_CHARS) {
+      /**
+       * BELOW THE FLOOR IS NOT THE SAME AS EMPTY — measured live 2026-08-08, inc.25.
+       *
+       * Until this branch existed, every row under the floor was `continue`d silently, and the
+       * report's unread queue was therefore a statement about *what the snapshot could measure*
+       * dressed up as a statement about *what Notion holds*. On the live database that is not a
+       * hypothetical margin: **36 of 49 rows measure 0 characters over ≥1 block**, and after the
+       * committed deep reads are subtracted **5 remain both unmeasured and unread** — one of them
+       * `Meeting 2026-07-28`, the Omega row INCIDENT-LEDGER #34 was opened for. inc.24's headline
+       * that the Notion edge was "drained" was computed with those 5 already dropped here.
+       *
+       * `bodyBlocks === 0` is left out on purpose and is NOT the same claim: there the snapshot
+       * looked and saw no blocks at all. Blocks present with no characters under them means the cap
+       * stopped the walk — the reader's silence, not the page's.
+       */
+      if ((r.bodyBlocks ?? 0) > 0 && !read)
+        unmeasuredBodies.push({
+          id: r.id,
+          title: r.title,
+          day: r.day,
+          url: r.url,
+          bodyBlocks: r.bodyBlocks ?? 0,
+          why:
+            `the snapshot measured ${bodyChars.toLocaleString("en-US")} characters across ` +
+            `${(r.bodyBlocks ?? 0).toLocaleString("en-US")} top-level block(s) — it counts the top level ` +
+            `only, so this is a statement about OUR read depth, not about the page. A page with blocks ` +
+            `may never be called an absence (INCIDENT-LEDGER #34). Re-read it recursively — ` +
+            `\`node scripts/notion-body-dump.mjs ${r.id}\` — before anyone concludes there is nothing here.`,
+        });
+      continue;
+    }
 
     const contradictsCheckbox = r.transcriptAvailable !== true;
     bodyFindings.push({
@@ -319,7 +380,7 @@ export function fromNotion(
     });
   }
 
-  return { records, bodyFindings, confirmedTranscripts, ruledNotTranscript };
+  return { records, bodyFindings, unmeasuredBodies, confirmedTranscripts, ruledNotTranscript };
 }
 
 /**
