@@ -1,0 +1,126 @@
+{
+  "_what": "Q86 inc.43 — DoD (b). A HUMAN READ of ~/Projects/MyLocalEverything/transcripts/john-burns.txt (24,122 bytes, 4,448 words, 31.1 min, transcribed 2026-07-28 via Deepgram nova-3). Intel extracted VERBATIM with a line number behind every entry. Read only: nothing was written to the CRM, no record created, no file moved or renamed.",
+  "_whyItExists": "planTranscriptActivity refused this transcript on TWO grounds — no intel and no call date (Q86 inc.42). This file closes the intel half with quotable evidence, and states exactly how far the date can be bounded. It exists as a file so the next increment starts from the read rather than re-reading a 4,448-word body.",
+  "_sourceRefIs": "`john-burns.txt:<line>` — the line number in the transcript as it sits on disk. A reader opens the file and lands on the sentence. 'somewhere in the call' is not traceability.",
+  "readAt": "2026-08-08",
+  "readBy": "max (driver)",
+  "transcriptRef": "john-burns.txt",
+  "transcriptTitle": "Call with John Burns",
+
+  "speakerMap": {
+    "_howItWasDetermined": "Deepgram labels speakers 0/1 and names nobody. Speaker 1 is Rob: he describes the leaky-bucket thesis, the avatar web chat, having 'run lots of agents last night' on state-by-state voice-AI law (that is ~/Projects/voice-ai-state-by-state-legality), and he speaks of Will as his partner. Speaker 0 is John Burns: he is inside the counterparty's business portal, its billing data and its trade show. NOT asserted beyond that — no third party is named as either speaker.",
+    "speaker0": "John Burns (P-1015)",
+    "speaker1": "Rob Acheson"
+  },
+
+  "recordLink": {
+    "_finding": "THE TRANSCRIPT SAYS 'VIBE' EIGHT TIMES AND THE RECORD IS 'VIVE HEALTH' — and this read corroborates the pair rather than assuming it.",
+    "linkedRecord": "C-2013 Vive Health (via P-1015 John Burns)",
+    "corroboration": [
+      "The transcript's company sells medical supply through a 'business portal' its customers reorder through, and names nebulizers as a line item (line 67) — Vive Health is a medical supply company.",
+      "Rob names the decision-maker as 'Joe' twice (lines 113, 149). docs/research/vive-health-joe-fleming.md in this repo holds Joe Fleming, Vive Health. The name is not in the audio by surname, so the match is on first name + company + role, and is reported as corroboration, not proof.",
+      "Rob states the target market as 'every medical supply company in the area' (line 117)."
+    ],
+    "notCorrected": "The file is NOT renamed and 'Vibe' is NOT corrected anywhere. A speech-to-text mishearing of Vive→Vibe is the likeliest reading, but renaming would destroy the only record that the mishearing happened — the same rule inc.41 applied to the ROOFING/On Time mislabel."
+  },
+
+  "callDate": {
+    "resolved": false,
+    "latestPossible": "2026-07-09",
+    "latestPossibleProof": "Drive `createdTime` for `Call with John Burns.m4a` (id 1hxpJ-v26ZHtbNs71uzS8QEC6IHG-j6_F) is 2026-07-10T03:20:03.271Z = 2026-07-09 23:20 America/New_York, recorded in MLE Internal Meetings/drive-drain-2026-08-08.json. A recording cannot reach Drive before the call it records, so this is a ceiling, not an estimate.",
+    "candidates": ["2026-07-06", "2026-07-07", "2026-07-08"],
+    "narrowedBy": "Both speakers place Thursday AND Friday in the future and negotiate between them (lines 117, 127, 137, 143, 153); John closes with 'Talk to you tomorrow' (line 167). The call is therefore before Thursday of the week being negotiated.",
+    "assumption": "That the negotiated week is the week of the upload (Mon 2026-07-06 – Sun 2026-07-12). Strong — the upload lands Thursday night of that week — but NOT proven, and it is the only thing standing between three candidates and one.",
+    "whatWouldSettleIt": "Rob's phone call log for 2026-07-06..2026-07-09 (the recording was made in the phone app's call recorder — Rob describes that mechanism at line 13), or Rob simply saying which day.",
+    "notUsed": {
+      "transcribedOn": "2026-07-28 — the day Deepgram ran, 19+ days after the call. Using it would date this conversation almost three weeks late, forever.",
+      "fileMtime": "2026-07-28 23:19 — same event as above, same objection."
+    }
+  },
+
+  "intel": [
+    {
+      "kind": "pain_point",
+      "text": "I see that this person that's on here hasn't bought nebulizers from us, but they bill for x amount of nebulizers a fucking month. And so why are we not trying to sell them fucking nebulizers as a sales rep?",
+      "who": "John Burns",
+      "sourceRef": "john-burns.txt:67",
+      "why": "The counterparty's own stated revenue leak, in his words: they hold the billing data that names the gap and nothing in the portal acts on it."
+    },
+    {
+      "kind": "pain_point",
+      "text": "I was trying to get Vibe on board with using AI to make a salesperson for the fucking portal... our business portal.",
+      "who": "John Burns",
+      "sourceRef": "john-burns.txt:63",
+      "why": "He has ALREADY pitched this internally and been unable to move it — the buying motion is his, not ours to create."
+    },
+    {
+      "kind": "what_benefits_us",
+      "text": "Yeah. Let's let's get together. I wanna meet Will, and let me see if maybe we can this week.",
+      "who": "John Burns",
+      "sourceRef": "john-burns.txt:115",
+      "why": "Explicit agreement to meet, and to meet Will — the ask was accepted in the call."
+    },
+    {
+      "kind": "next_step",
+      "text": "I think the next meeting we should have is with you, me, Will, and Vibe. And then after we have that initial conversation... you become the face of it and the gatekeeper to it.",
+      "who": "Rob",
+      "sourceRef": "john-burns.txt:149",
+      "why": "The agreed shape of the next meeting: four people, John fronting it into his own company."
+    },
+    {
+      "kind": "next_step",
+      "text": "So we're making time on on Friday.",
+      "who": "Rob",
+      "sourceRef": "john-burns.txt:153",
+      "why": "The day both parties landed on, subject to John's 30% Miami risk (line 127)."
+    },
+    {
+      "kind": "risk",
+      "text": "There's a 30% chance I'm gonna have to go over to Miami, though. And in that case, I wouldn't be able to to meet on Friday.",
+      "who": "John Burns",
+      "sourceRef": "john-burns.txt:127",
+      "why": "The named risk to the agreed Friday, with his own probability on it and a trade-show breakdown as the cause."
+    },
+    {
+      "kind": "relationship",
+      "text": "I've been working with you for five years. Whatever amount of trust in me, you're just gonna have to lay it on the table.",
+      "who": "Rob",
+      "sourceRef": "john-burns.txt:153",
+      "why": "Five-year working relationship — this is a warm, high-trust edge, not a cold approach, and it is how the referral into Joe is being asked for."
+    },
+    {
+      "kind": "positioning",
+      "text": "Will's automations, he's worked with 17,000 companies. It's generated over 11,000,000,000 in incremental revenue. Alright? We have the largest automation platform in the world.",
+      "who": "Rob",
+      "sourceRef": "john-burns.txt:113",
+      "why": "The credibility claim Rob makes on Will's behalf, verbatim. Recorded as SAID, not as verified — the CRM must not restate these figures as its own."
+    },
+    {
+      "kind": "positioning",
+      "text": "62% of calls that go to small businesses are not answered... 70% of calls that are not answered have already gone on to call the next competitor.",
+      "who": "Rob",
+      "sourceRef": "john-burns.txt:37",
+      "why": "The leaky-bucket pitch as Rob actually delivers it live — useful to the sales bible, and again recorded as SAID, not sourced."
+    },
+    {
+      "kind": "product",
+      "text": "My ideal chatbot is after about five seconds, a video avatar pops up on the bottom. It's somebody that you can put in yourself. I set up the automations to take a still screen and turn it into the perfect lip generation.",
+      "who": "Rob",
+      "sourceRef": "john-burns.txt:53",
+      "why": "AIVA described to a prospect in Rob's own words, including the avatar-from-a-still pipeline."
+    },
+    {
+      "kind": "intent",
+      "text": "I absolutely wanna get into Vibe... I'm gonna go after every medical supply company in the area. And so I wanna give at least an opportunity for those companies that my friends work for to have first mover abilities.",
+      "who": "Rob",
+      "sourceRef": "john-burns.txt:117",
+      "why": "States the account target and the segment strategy behind it in one sentence."
+    }
+  ],
+
+  "notWritten": [
+    "No activity row created — planTranscriptActivity still refuses this transcript on `no-day`, and that refusal is correct.",
+    "No org, person or CRM field written, corrected or created.",
+    "No money, quoted, signed or paid field appears anywhere in this file. Nothing in this call named a price."
+  ]
+}
